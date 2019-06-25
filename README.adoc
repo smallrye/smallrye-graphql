@@ -1,0 +1,29 @@
+:microprofile-graphql: https://github.com/eclipse/microprofile-graphql/
+
+image:https://semaphoreci.com/api/v1/smallrye/smallrye-graphql/branches/master/badge.svg["Semaphore CI", link="https://semaphoreci.com/smallrye/smallrye-graphql"]
+image:https://img.shields.io/github/license/thorntail/thorntail.svg["License", link="http://www.apache.org/licenses/LICENSE-2.0"]
+
+= SmallRye GraphQL
+
+SmallRye GraphQL is an implementation of {microprofile-graphql}[Eclipse MicroProfile GraphQL].
+
+== Instructions
+
+Compile and install this project:
+
+[source,bash]
+----
+mvn clean install
+----
+
+=== Project structure
+
+* link:implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
+* link:testsuite[] - Test suite to run the implementation against the Eclipse MicroProfile GraphQL TCK.
+* link:docs[] - Project documentation.
+
+=== Links
+
+* http://github.com/smallrye/smallrye-graphql/[Project Homepage]
+* {microprofile-graphql}[Eclipse MicroProfile GraphQL]
+

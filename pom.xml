@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+~  Copyright 2019 Red Hat, Inc.
+~
+~  Licensed under the Apache License, Version 2.0 (the "License");
+~  you may not use this file except in compliance with the License.
+~  You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~  Unless required by applicable law or agreed to in writing, software
+~  distributed under the License is distributed on an "AS IS" BASIS,
+~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~  See the License for the specific language governing permissions and
+~  limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <artifactId>smallrye-graphql-parent-1.0</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+    <name>SmallRye: MicroProfile GraphQL Parent</name>
+
+    <properties>
+        <version.eclipse.microprofile.graphql>1.0-M2</version.eclipse.microprofile.graphql>
+
+        <!-- Used by release plugin to define git tag -->
+        <tagNameFormat>smallrye-graphql-1.0-@{project.version}</tagNameFormat>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git@github.com:smallrye/smallrye-graphql.git</connection>
+        <developerConnection>scm:git:git@github.com:smallrye/smallrye-graphql.git</developerConnection>
+        <url>https://github.com/smallrye/ssmallrye-graphql/</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.microprofile.graphql</groupId>
+                <artifactId>microprofile-graphql-api</artifactId>
+                <version>${version.eclipse.microprofile.graphql}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.microprofile.graphql</groupId>
+                <artifactId>microprofile-graphql-tck</artifactId>
+                <version>${version.eclipse.microprofile.graphql}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.arquillian.testng</groupId>
+                <artifactId>arquillian-testng-container</artifactId>
+                <version>${version.org.jboss.arquillian}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${version.testng}</version>
+                <scope>compile</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- Dependencies provided by the project -->
+            <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>smallrye-graphql-1.0</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+      
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.asciidoctor</groupId>
+                    <artifactId>asciidoctor-maven-plugin</artifactId>
+                    <configuration>
+                        <sourceHighlighter>coderay</sourceHighlighter>
+                        <attributes>
+                            <icons>font</icons>
+                            <pagenums />
+                            <version>${project.version}</version>
+                            <idprefix />
+                            <idseparator>-</idseparator>
+                            <allow-uri-read>true</allow-uri-read>
+                            <revnumber>${project.version}</revnumber>
+                            <revdate>${maven.build.timestamp}</revdate>
+                            <organization>${project.organization.name}</organization>
+                        </attributes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>!release.maven.bug.always.be.active</name>
+                </property>
+            </activation>
+            <modules>
+                <module>release</module>
+            </modules>
+        </profile>
+    </profiles>
+</project>
