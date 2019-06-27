@@ -19,6 +19,7 @@ mvn clean install
 === Project structure
 
 * link:implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
+* link:tck[] - Test suite to run the implementation against the Eclipse MicroProfile GraphQL TCK.
 
 === Links
 
