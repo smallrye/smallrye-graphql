@@ -48,15 +48,17 @@ public class GraphQLListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
 
-        // The Endpoint
-        SimpleGraphQLHttpServlet graphQLServlet = SimpleGraphQLHttpServlet.newBuilder(schema).build();
-        ServletRegistration.Dynamic endpointservlet = context.addServlet(GRAPHQL_SERVLET_NAME, graphQLServlet);
-        endpointservlet.addMapping(path + SLASH_STAR);
+        if (schema != null) {
+            // The Endpoint
+            SimpleGraphQLHttpServlet graphQLServlet = SimpleGraphQLHttpServlet.newBuilder(schema).build();
+            ServletRegistration.Dynamic endpointservlet = context.addServlet(GRAPHQL_SERVLET_NAME, graphQLServlet);
+            endpointservlet.addMapping(path + SLASH_STAR);
 
-        // The Schema
-        GraphQLSchemaServlet graphQLSchemaServlet = new GraphQLSchemaServlet(schema);
-        ServletRegistration.Dynamic schemaservlet = context.addServlet(GRAPHQL_SCHEMA_SERVLET_NAME, graphQLSchemaServlet);
-        schemaservlet.addMapping(path + SLASH_SCHEMA_GRAPHQL);
+            // The Schema
+            GraphQLSchemaServlet graphQLSchemaServlet = new GraphQLSchemaServlet(schema);
+            ServletRegistration.Dynamic schemaservlet = context.addServlet(GRAPHQL_SCHEMA_SERVLET_NAME, graphQLSchemaServlet);
+            schemaservlet.addMapping(path + SLASH_SCHEMA_GRAPHQL);
+        }
     }
 
     private static final String GRAPHQL_SERVLET_NAME = "GraphQLServlet";

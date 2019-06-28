@@ -36,7 +36,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
 
             String[] deps = {
                     "io.smallrye:smallrye-graphql-1.0",
-                    //                "io.smallrye:smallrye-config-1.3",
+                    "io.smallrye:smallrye-config-1.3",
                     "io.smallrye:smallrye-graphql-tck-1.0",
                     "org.eclipse.microprofile.graphql:microprofile-graphql-tck",
                     "org.jboss.weld.servlet:weld-servlet-core" };

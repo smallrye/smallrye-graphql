@@ -75,7 +75,6 @@ public class GraphQLExtension implements Extension {
 
     // Detect and store GraphQLComponents
     private <X> void detectGraphQLApiBeans(@Observes ProcessBean<X> event) {
-        log.severe(">>>> found annotation : " + event.getAnnotated());
         if (event.getAnnotated().isAnnotationPresent(GraphQLApi.class)) {
             graphQLComponents.add(event.getBean());
         }
