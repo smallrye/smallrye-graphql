@@ -38,7 +38,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     "io.smallrye:smallrye-graphql-1.0",
                     //                "io.smallrye:smallrye-config-1.3",
                     "io.smallrye:smallrye-graphql-tck-1.0",
-                    "org.eclipse.microprofile.health:microprofile-graphql-tck",
+                    "org.eclipse.microprofile.graphql:microprofile-graphql-tck",
                     "org.jboss.weld.servlet:weld-servlet-core" };
 
             File[] dependencies = Maven.resolver().loadPomFromFile(new File("pom.xml")).resolve(deps).withTransitivity()

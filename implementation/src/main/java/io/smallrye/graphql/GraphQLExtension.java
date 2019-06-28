@@ -38,7 +38,7 @@ import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 
 /**
  * This is a CDI extension that detects GraphQL components
- * and the GraphQL Schema
+ * and generate the GraphQL Schema
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -53,24 +53,29 @@ public class GraphQLExtension implements Extension {
         GraphQLSchemaGenerator schemaGen = new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder());
 
-        for (Bean component : graphQLComponents) {
-            Type beanClass = component.getBeanClass();
-            CreationalContext<?> creationalContext = beanManager.createCreationalContext(component);
-            schemaGen.withOperationsFromSingleton(
-                    beanManager.getReference(component, beanClass, creationalContext),
-                    component.getBeanClass());
-            log.log(Level.INFO, "GraphQL Component [{0}] registered", component.getBeanClass());
+        if (!graphQLComponents.isEmpty()) {
+            for (Bean component : graphQLComponents) {
+                Type beanClass = component.getBeanClass();
+                CreationalContext<?> creationalContext = beanManager.createCreationalContext(component);
+                schemaGen.withOperationsFromSingleton(
+                        beanManager.getReference(component, beanClass, creationalContext),
+                        component.getBeanClass());
+                log.log(Level.INFO, "GraphQL Component [{0}] registered", component.getBeanClass());
+            }
+            schema = schemaGen.generate();
+
+            SchemaProducer schemaProducer = CDI.current().select(SchemaProducer.class).get();
+            schemaProducer.setGraphQLSchema(schema);
+
+            log.info("All GraphQL Components added to the endpoint.");
+        } else {
+            log.warning("No GraphQL Components found. Make sure to annotate your endpoint with @GraphQLApi.");
         }
-        schema = schemaGen.generate();
-
-        SchemaProducer schemaProducer = CDI.current().select(SchemaProducer.class).get();
-        schemaProducer.setGraphQLSchema(schema);
-
-        log.info("All GraphQL Components added to the endpoint.");
     }
 
     // Detect and store GraphQLComponents
     private <X> void detectGraphQLApiBeans(@Observes ProcessBean<X> event) {
+        log.severe(">>>> found annotation : " + event.getAnnotated());
         if (event.getAnnotated().isAnnotationPresent(GraphQLApi.class)) {
             graphQLComponents.add(event.getBean());
         }
