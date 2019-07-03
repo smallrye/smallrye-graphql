@@ -14,33 +14,35 @@
 
     <properties>
         <spqr.version>1.0.0-SNAPSHOT</spqr.version>
-        <servlet.version>4.0.1</servlet.version>
         <graphql.servlet.version>7.5.0</graphql.servlet.version>
     </properties>
 
     <dependencies>
-        <!-- The API we implement -->
+        
+        <!-- The API -->
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-api</artifactId>
         </dependency>
-        <!-- MicroProfile apis -->
+        
+        <!-- What we use from MicroProfile -->
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.config</groupId>
-            <artifactId>microprofile-config-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        
+
+
         <!-- The GraphQL Libraries we are wrapping for the implementation -->
         <!-- TODO: Add excludes -->
         <dependency>
@@ -48,53 +50,11 @@
             <artifactId>spqr</artifactId>
             <version>${spqr.version}</version>
         </dependency>
-        
-        <!-- Servlet from Java EE, used to expose graphql over HTTP -->
-        <!-- TODO: See if we can change this to allow another technology like vert.x -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${servlet.version}</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.graphql-java-kickstart</groupId>
             <artifactId>graphql-java-servlet</artifactId>
             <version>${graphql.servlet.version}</version>
         </dependency>
-        
-        <!-- ???? -->
-<!--        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>java-dataloader</artifactId>
-            <version>2.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.1</version>
-        </dependency>-->
-        
-        <!-- Testing -->
-<!--        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>-->
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <enableAssertions>true</enableAssertions>
-                    <argLine>-Xmx512m</argLine>
-                    <forkMode>once</forkMode>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

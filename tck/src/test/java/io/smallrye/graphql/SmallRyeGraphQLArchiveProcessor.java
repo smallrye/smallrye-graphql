@@ -16,6 +16,9 @@
 package io.smallrye.graphql;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
@@ -28,23 +31,34 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
 
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
+
         if (applicationArchive instanceof WebArchive) {
             WebArchive testDeployment = (WebArchive) applicationArchive;
+
             // Register SmallRyeBeanArchiveHandler using the ServiceLoader mechanism
             testDeployment.addClass(SmallRyeBeanArchiveHandler.class);
             testDeployment.addAsServiceProvider(BeanArchiveHandler.class, SmallRyeBeanArchiveHandler.class);
 
+            // TODO: Add spql ? Add graphql-java ?
             String[] deps = {
-                    "io.smallrye:smallrye-graphql-1.0",
-                    "io.smallrye:smallrye-config-1.3",
-                    "io.smallrye:smallrye-graphql-tck-1.0",
-                    "org.eclipse.microprofile.graphql:microprofile-graphql-tck",
-                    "org.jboss.weld.servlet:weld-servlet-core" };
+                    "io.smallrye:smallrye-graphql-1.0", // The implementation
+                    //                    "io.leangen.graphql:spqr", // ?
+                    "io.smallrye:smallrye-config-1.3", // We use config
+                    //"io.smallrye:smallrye-graphql-tck-1.0",
+                    //"org.eclipse.microprofile.graphql:microprofile-graphql-tck",
+                    "org.jboss.weld.servlet:weld-servlet-core" // To detect the @GraphQLApi and register the schema
+                    // Can's seem to get @Inject to work in the servlet listener....
+                    //"org.jboss.resteasy:resteasy-cdi",
+                    //"org.jboss.resteasy:resteasy-servlet-initializer"
 
+            };
             File[] dependencies = Maven.resolver().loadPomFromFile(new File("pom.xml")).resolve(deps).withTransitivity()
                     .asFile();
 
-            testDeployment.addAsLibraries(dependencies);
+            // Make sure it's unique
+            Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));
+            testDeployment.addAsLibraries(dependenciesSet.toArray(new File[] {}));
+
         }
     }
 

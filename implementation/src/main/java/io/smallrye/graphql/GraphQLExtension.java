@@ -43,7 +43,7 @@ import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLExtension implements Extension {
-    private static final Logger log = Logger.getLogger(GraphQLExtension.class.getName());
+    private static final Logger LOG = Logger.getLogger(GraphQLExtension.class.getName());
 
     private final Set<Bean<?>> graphQLComponents = new LinkedHashSet<>();
 
@@ -60,16 +60,16 @@ public class GraphQLExtension implements Extension {
                 schemaGen.withOperationsFromSingleton(
                         beanManager.getReference(component, beanClass, creationalContext),
                         component.getBeanClass());
-                log.log(Level.INFO, "GraphQL Component [{0}] registered", component.getBeanClass());
+                LOG.log(Level.INFO, "GraphQL Component [{0}] registered", component.getBeanClass());
             }
             schema = schemaGen.generate();
 
             SchemaProducer schemaProducer = CDI.current().select(SchemaProducer.class).get();
             schemaProducer.setGraphQLSchema(schema);
 
-            log.info("All GraphQL Components added to the endpoint.");
+            LOG.info("All GraphQL Components added to the endpoint.");
         } else {
-            log.warning("No GraphQL Components found. Make sure to annotate your endpoint with @GraphQLApi.");
+            LOG.warning("No GraphQL Components found. Make sure to annotate your endpoint(s) with @GraphQLApi.");
         }
     }
 

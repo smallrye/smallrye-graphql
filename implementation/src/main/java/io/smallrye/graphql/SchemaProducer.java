@@ -29,11 +29,14 @@ import graphql.schema.GraphQLSchema;
 @ApplicationScoped
 public class SchemaProducer {
 
-    @Produces
     private GraphQLSchema graphQLSchema;
 
     public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
     }
 
+    @Produces
+    public GraphQLSchema getGraphQLSchema() {
+        return this.graphQLSchema;
+    }
 }
