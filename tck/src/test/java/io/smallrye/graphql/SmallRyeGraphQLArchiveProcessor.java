@@ -27,6 +27,10 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.weld.environment.deployment.discovery.BeanArchiveHandler;
 
+/**
+ * Creates the deployable unit with all the needed dependencies.
+ * @author Phillip Kruger (phillip.kruger@redhat.com)
+ */
 public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProcessor {
 
     @Override
@@ -39,7 +43,6 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             testDeployment.addClass(SmallRyeBeanArchiveHandler.class);
             testDeployment.addAsServiceProvider(BeanArchiveHandler.class, SmallRyeBeanArchiveHandler.class);
 
-            // TODO: Add spql ? Add graphql-java ?
             String[] deps = {
                     "io.smallrye:smallrye-graphql-1.0", // The implementation
                     //                    "io.leangen.graphql:spqr", // ?

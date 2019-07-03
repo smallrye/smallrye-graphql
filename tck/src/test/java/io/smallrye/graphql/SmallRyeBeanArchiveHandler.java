@@ -29,7 +29,8 @@ import org.jboss.weld.environment.util.Files;
 
 /**
  * Special handler for WildFly VFS urls.
- *
+ * Copied from Smallrye Health
+ * 
  * @author Martin Kouba
  */
 @Priority(1)
