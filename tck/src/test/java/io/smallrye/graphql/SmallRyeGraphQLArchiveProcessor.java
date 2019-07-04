@@ -29,6 +29,7 @@ import org.jboss.weld.environment.deployment.discovery.BeanArchiveHandler;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProcessor {
