@@ -54,6 +54,13 @@
             <artifactId>graphql-java-servlet</artifactId>
             <version>${graphql.servlet.version}</version>
         </dependency>
+        
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

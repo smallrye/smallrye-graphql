@@ -18,8 +18,6 @@ package io.smallrye.graphql;
 import java.lang.reflect.Type;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
@@ -31,6 +29,7 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
@@ -60,7 +59,7 @@ public class GraphQLExtension implements Extension {
                 schemaGen.withOperationsFromSingleton(
                         beanManager.getReference(component, beanClass, creationalContext),
                         component.getBeanClass());
-                LOG.log(Level.INFO, "GraphQL Component [{0}] registered", component.getBeanClass());
+                LOG.info("GraphQL Component [" + component.getBeanClass() + "] registered");
             }
             schema = schemaGen.generate();
 
@@ -69,7 +68,7 @@ public class GraphQLExtension implements Extension {
 
             LOG.info("All GraphQL Components added to the endpoint.");
         } else {
-            LOG.warning("No GraphQL Components found. Make sure to annotate your endpoint(s) with @GraphQLApi.");
+            LOG.warn("No GraphQL Components found. Make sure to annotate your endpoint(s) with @GraphQLApi.");
         }
     }
 

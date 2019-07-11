@@ -15,9 +15,6 @@
  */
 package io.smallrye.graphql;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -26,6 +23,7 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.WebListener;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
 import graphql.servlet.SimpleGraphQLHttpServlet;
@@ -61,7 +59,7 @@ public class GraphQLListener implements ServletContextListener {
             ServletRegistration.Dynamic schemaservlet = context.addServlet(GRAPHQL_SCHEMA_SERVLET_NAME, graphQLSchemaServlet);
             schemaservlet.addMapping(path + SLASH_SCHEMA_GRAPHQL);
         }
-        LOG.log(Level.INFO, "GraphQL Endpoint available on {0}", path);
+        LOG.info("GraphQL Endpoint available on " + path);
     }
 
     private static final String GRAPHQL_SERVLET_NAME = "GraphQLServlet";
