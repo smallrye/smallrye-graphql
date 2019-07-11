@@ -42,9 +42,8 @@
             <scope>provided</scope>
         </dependency>
 
-
         <!-- The GraphQL Libraries we are wrapping for the implementation -->
-        <!-- TODO: Add excludes -->
+        <!-- TODO: Once release use the version from io.leangen.graphql and add excludes -->
         <dependency>
             <groupId>io.leangen.graphql</groupId>
             <artifactId>spqr</artifactId>
