@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Red Hat, Inc, and individual contributors.
+ * Copyright 2019 Red Hat, Inc, and individual contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.weld.environment.deployment.discovery.BeanArchiveHandler;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
@@ -40,21 +39,9 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
         if (applicationArchive instanceof WebArchive) {
             WebArchive testDeployment = (WebArchive) applicationArchive;
 
-            // Register SmallRyeBeanArchiveHandler using the ServiceLoader mechanism
-            testDeployment.addClass(SmallRyeBeanArchiveHandler.class);
-            testDeployment.addAsServiceProvider(BeanArchiveHandler.class, SmallRyeBeanArchiveHandler.class);
-
             String[] deps = {
                     "io.smallrye:smallrye-graphql-1.0", // The implementation
-                    //                    "io.leangen.graphql:spqr", // ?
                     "io.smallrye:smallrye-config-1.3", // We use config
-                    //"io.smallrye:smallrye-graphql-tck-1.0",
-                    //"org.eclipse.microprofile.graphql:microprofile-graphql-tck",
-                    "org.jboss.weld.servlet:weld-servlet-core" // To detect the @GraphQLApi and register the schema
-                    // Can's seem to get @Inject to work in the servlet listener....
-                    //"org.jboss.resteasy:resteasy-cdi",
-                    //"org.jboss.resteasy:resteasy-servlet-initializer"
-
             };
             File[] dependencies = Maven.resolver().loadPomFromFile(new File("pom.xml")).resolve(deps).withTransitivity()
                     .asFile();

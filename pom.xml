@@ -32,7 +32,7 @@
     </scm>
 
     <modules>
-        <module>graphql-spqr</module><!-- Keeping the source here for now as graphql-spqr is not yet released -->
+        <module>graphql-spqr</module><!-- Getting the source from here for now as graphql-spqr is not yet released -->
         <module>implementation</module>
         <module>tck</module>
     </modules>
@@ -61,19 +61,6 @@
                 <groupId>org.eclipse.microprofile.config</groupId>
                 <artifactId>microprofile-config-api</artifactId>
                 <version>${version.eclipse.microprofile.config}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.jboss.spec.javax.servlet</groupId>
-                <artifactId>jboss-servlet-api_3.1_spec</artifactId>
-                <version>${version.jboss.servlet}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.jboss.weld.servlet</groupId>
-                <artifactId>weld-servlet-core</artifactId>
-                <version>${version.weld.core}</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>

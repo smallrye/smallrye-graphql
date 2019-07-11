@@ -18,7 +18,6 @@ package io.smallrye.graphql;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -40,37 +39,33 @@ import graphql.servlet.SimpleGraphQLHttpServlet;
 public class GraphQLListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(GraphQLListener.class.getName());
 
-    // TODO: Fix this. 
-    // Can not get inject to work when doing tests. 
-    // @Inject
+    @Inject
     private GraphQLSchema schema;
 
     @Inject
-    @ConfigProperty(name = "mp.graphql.contextpath", defaultValue = DEFAULT_CONTEXT_PATH) // TODO: Check this key in the spec
-    private String path; // TODO: This return null ?!?, not the default value.
+    @ConfigProperty(name = "mp.graphql.contextpath", defaultValue = "/graphql")
+    private String path;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
 
-        schema = CDI.current().select(GraphQLSchema.class).get();
         if (schema != null) {
             // The Endpoint
             SimpleGraphQLHttpServlet graphQLServlet = SimpleGraphQLHttpServlet.newBuilder(schema).build();
             ServletRegistration.Dynamic endpointservlet = context.addServlet(GRAPHQL_SERVLET_NAME, graphQLServlet);
-            endpointservlet.addMapping(DEFAULT_CONTEXT_PATH + SLASH_STAR);
+            endpointservlet.addMapping(path + SLASH_STAR);
 
             // The Schema
             GraphQLSchemaServlet graphQLSchemaServlet = new GraphQLSchemaServlet(schema);
             ServletRegistration.Dynamic schemaservlet = context.addServlet(GRAPHQL_SCHEMA_SERVLET_NAME, graphQLSchemaServlet);
-            schemaservlet.addMapping(DEFAULT_CONTEXT_PATH + SLASH_SCHEMA_GRAPHQL);
+            schemaservlet.addMapping(path + SLASH_SCHEMA_GRAPHQL);
         }
-        LOG.log(Level.INFO, "GraphQL Endpoint available on {0}", DEFAULT_CONTEXT_PATH);
+        LOG.log(Level.INFO, "GraphQL Endpoint available on {0}", path);
     }
 
     private static final String GRAPHQL_SERVLET_NAME = "GraphQLServlet";
     private static final String GRAPHQL_SCHEMA_SERVLET_NAME = "GraphQLSchemaServlet";
-    private static final String DEFAULT_CONTEXT_PATH = "/graphql";
     private static final String SLASH_STAR = "/*";
     private static final String SLASH_SCHEMA_GRAPHQL = "/schema.graphql";
 
