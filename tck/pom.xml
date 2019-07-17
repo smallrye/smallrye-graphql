@@ -63,7 +63,7 @@
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-1.0</artifactId>
         </dependency>
-        
+
         
 
         <dependency>
