@@ -14,7 +14,7 @@
 
     <properties>
         <spqr.version>1.0.0-SNAPSHOT</spqr.version>
-        <graphql.servlet.version>7.5.0</graphql.servlet.version>
+        <graphql.servlet.version>8.0.0</graphql.servlet.version>
     </properties>
 
     <dependencies>
