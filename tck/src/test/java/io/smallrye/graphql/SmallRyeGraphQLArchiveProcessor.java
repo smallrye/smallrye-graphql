@@ -40,8 +40,8 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             WebArchive testDeployment = (WebArchive) applicationArchive;
 
             String[] deps = {
-                    "io.smallrye:smallrye-graphql-1.0", // The implementation
-                    "io.smallrye:smallrye-config-1.3", // We use config
+                    "io.smallrye:smallrye-graphql", // The implementation
+                    "io.smallrye:smallrye-config", // We use config
             };
             File[] dependencies = Maven.resolver().loadPomFromFile(new File("pom.xml")).resolve(deps).withTransitivity()
                     .asFile();
