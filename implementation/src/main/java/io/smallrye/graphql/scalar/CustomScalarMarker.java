@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
+package io.smallrye.graphql.scalar;
 
-import graphql.schema.GraphQLSchema;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import javax.inject.Qualifier;
 
 /**
- * A simple place to keep the generated schema.
- * The Schema is generate on start up
+ * Marks a class as a custom scalar definition
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class SchemaProducer {
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+public @interface CustomScalarMarker {
 
-    private GraphQLSchema graphQLSchema;
-
-    public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
-        this.graphQLSchema = graphQLSchema;
-    }
-
-    @Produces
-    public GraphQLSchema getGraphQLSchema() {
-        return this.graphQLSchema;
-    }
 }

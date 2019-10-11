@@ -64,8 +64,6 @@
             <artifactId>smallrye-graphql</artifactId>
         </dependency>
 
-        
-
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-tck</artifactId>
@@ -93,7 +91,7 @@
                     <dependency>
                         <groupId>io.thorntail</groupId>
                         <artifactId>bom-all</artifactId>
-                        <version>2.4.0.Final</version>
+                        <version>2.5.0.Final</version>
                         <type>pom</type>
                         <scope>import</scope>
                     </dependency>    
