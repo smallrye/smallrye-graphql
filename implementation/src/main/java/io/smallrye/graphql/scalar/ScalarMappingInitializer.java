@@ -12,6 +12,7 @@ import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
@@ -74,6 +75,12 @@ public class ScalarMappingInitializer {
                         return customScalar.deserialize(o); // TODO: ??
                     }
                 }).build();
+    }
+
+    @Produces
+    @Named("scalars")
+    public Set<DotName> getScalars() {
+        return this.scalarMapping.keySet();
     }
 
     private static final Map<DotName, GraphQLScalarType> DEFAULT_MAPPING = new HashMap<>();

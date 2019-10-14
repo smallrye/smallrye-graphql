@@ -40,7 +40,7 @@ public class IndexInitializer {
         // TODO: Use a facory to load scanners ?
         // TODO: Check if IndexInitializer is already create on build time, then load from there.
         Indexer indexer = new Indexer();
-        LOG.debug("==== Now indexing all beans ====");
+        LOG.info("==== Now indexing all beans ====");
 
         Set<Bean<?>> beans = beanManager.getBeans(Object.class, new AnnotationLiteral<Any>() {
         });
@@ -51,7 +51,8 @@ public class IndexInitializer {
             // TODO: Find a nice way to do this ?
             //if (!Blacklist.ignore(clazz.getName())) {
             String className = clazz.getName().replace(DOT, SLASH) + DOT_CLASS;
-            LOG.debug("indexing [" + className + "]");
+            if (className.startsWith("org/eclipse/microprofile/graphql/"))
+                LOG.info("indexing [" + className + "]");
             InputStream stream = clazz.getClassLoader().getResourceAsStream(className);
             try {
                 indexer.index(stream);
