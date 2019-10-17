@@ -4,15 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Priority;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized;
-import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
@@ -33,14 +30,16 @@ import graphql.schema.GraphQLScalarType;
 public class ScalarMappingInitializer {
     private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
 
-    @Produces
-    private final Map<DotName, GraphQLScalarType> scalarMapping = new HashMap<>(DEFAULT_MAPPING);
-
     @Inject
     private BeanManager beanManager;
 
-    public void init(@Priority(Integer.MAX_VALUE - 1) @Observes @Initialized(ApplicationScoped.class) Object init) {
+    @Produces
+    private final Map<DotName, GraphQLScalarType> scalarMap = new HashMap<>();
+
+    @PostConstruct
+    void init() {
         LOG.debug("Finding all custom scalars...");
+        scalarMap.putAll(DEFAULT_MAPPING);
 
         Set<Bean<?>> beans = beanManager.getBeans(Object.class, new CustomScalarLiteral() {
         });
@@ -52,7 +51,7 @@ public class ScalarMappingInitializer {
             LOG.debug("\t found " + bean.getBeanClass() + " for scalar type [" + customScalar.getName() + "] that maps to ["
                     + customScalar.forClass() + "]");
 
-            scalarMapping.put(DotName.createSimple(customScalar.forClass().getName()), createGraphQLScalarType(customScalar));
+            scalarMap.put(DotName.createSimple(customScalar.forClass().getName()), createGraphQLScalarType(customScalar));
 
         }
     }
@@ -75,12 +74,6 @@ public class ScalarMappingInitializer {
                         return customScalar.deserialize(o); // TODO: ??
                     }
                 }).build();
-    }
-
-    @Produces
-    @Named("scalars")
-    public Set<DotName> getScalars() {
-        return this.scalarMapping.keySet();
     }
 
     private static final Map<DotName, GraphQLScalarType> DEFAULT_MAPPING = new HashMap<>();

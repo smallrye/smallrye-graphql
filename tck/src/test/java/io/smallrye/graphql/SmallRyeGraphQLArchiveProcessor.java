@@ -47,6 +47,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             // Make sure it's unique
             Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));
             testDeployment.addAsLibraries(dependenciesSet.toArray(new File[] {}));
+            testDeployment.addClass(TestRuntime.class);
         }
     }
 
