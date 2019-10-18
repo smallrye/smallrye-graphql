@@ -36,7 +36,6 @@ import io.smallrye.graphql.index.Classes;
  * Creates the GraphQL Schema
  * TODO: Make schema available for injection
  * TODO: Check that class is annotated with GraphQLApi ?
- * TODO: Collections ? List of ?
  * TODO: Default value ? Can that be on the schema ?
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
@@ -88,7 +87,7 @@ public class GraphQLSchemaInitializer {
         return createGraphQLObjectType(Annotations.MUTATION, MUTATION, "Mutation root"); // TODO: Make description configurable ?
     }
 
-    private GraphQLObjectType createGraphQLObjectType(DotName annotationToScan, String name, String description) {
+    private <T> GraphQLObjectType createGraphQLObjectType(DotName annotationToScan, String name, String description) {
         List<AnnotationInstance> graphQLAnnotations = this.index.getAnnotations(annotationToScan);
 
         GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject().name(name).description(description);
@@ -111,37 +110,8 @@ public class GraphQLSchemaInitializer {
                     if (maybeDescription.isPresent()) {
                         fieldDefinitionBuilder = fieldDefinitionBuilder.description(maybeDescription.get());
                     }
-
                     // Type
-                    switch (returnType.kind()) {
-                        case VOID:
-                            LOG.warn("Ignoring void return"); // TODO: Throw an exception ?
-                            break;
-                        case ARRAY:
-                            // TODO
-                            fieldDefinitionBuilder.type(GraphQLList.list(Scalars.GraphQLString));
-                            break;
-                        case PARAMETERIZED_TYPE:
-                            // TODO
-                            fieldDefinitionBuilder.type(GraphQLList.list(Scalars.GraphQLString));
-                            break;
-                        case CLASS:
-                            Optional<GraphQLOutputType> maybeOutput = getGraphQLOutputType(returnType);
-                            if (maybeOutput.isPresent()) {
-                                fieldDefinitionBuilder.type(maybeOutput.get());
-                            } else {
-                                LOG.warn("Can not get field type mapping for " + returnType.name() + " of kind "
-                                        + returnType.kind() + " - default to String");
-                                fieldDefinitionBuilder.type(Scalars.GraphQLString);
-                            }
-                            break;
-                        // TODO: check the other kinds (Interface Unions etc)    
-                        default:
-                            LOG.warn("Can not get field type mapping for " + returnType.name() + " of kind " + returnType.kind()
-                                    + " - default to String");
-                            fieldDefinitionBuilder.type(Scalars.GraphQLString);
-                            break;
-                    }
+                    fieldDefinitionBuilder = fieldDefinitionBuilder.type(toGraphQLOutputType(returnType));
 
                     // TODO: Arguments
 
@@ -158,6 +128,46 @@ public class GraphQLSchemaInitializer {
         }
 
         return queryTypeBuilder.build();
+    }
+
+    private GraphQLOutputType toGraphQLOutputType(Type type) {
+        // Type
+        switch (type.kind()) {
+            case VOID:
+                LOG.warn("Ignoring void return"); // TODO: Throw an exception ?
+                return getNoMappingScalarType(type);
+            case ARRAY:
+                Type typeInArray = type.asArrayType().component();
+                return GraphQLList.list(toGraphQLOutputType(typeInArray));
+            case PARAMETERIZED_TYPE:
+                // TODO: Check if there is more than one type in the Collection, throw an exception ?
+                Type typeInCollection = type.asParameterizedType().arguments().get(0);
+                return GraphQLList.list(toGraphQLOutputType(typeInCollection));
+            case CLASS:
+                Optional<GraphQLOutputType> maybeOutput = getGraphQLOutputType(type);
+                if (maybeOutput.isPresent()) {
+                    return maybeOutput.get();
+                } else {
+                    return getNoMappingScalarType(type);
+                }
+            case PRIMITIVE:
+                Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type);
+                if (maybeScalar.isPresent()) {
+                    return maybeScalar.get();
+                } else {
+                    return getNoMappingScalarType(type);
+                }
+                // TODO: check the other kinds (Maps, Interface, Unions etc)    
+            default:
+                return getNoMappingScalarType(type);
+        }
+    }
+
+    private GraphQLScalarType getNoMappingScalarType(Type type) {
+        // TODO: How should this be handled ? Exception or default Object scalar ?
+        LOG.warn("Can not get field type mapping for " + type.name() + " of kind " + type.kind()
+                + " - default to String");
+        return Scalars.GraphQLString;
     }
 
     private Optional<GraphQLOutputType> getGraphQLOutputType(Type type) {
@@ -220,6 +230,18 @@ public class GraphQLSchemaInitializer {
         return Optional.empty();
     }
 
+    private boolean hasIdAnnotation(Type type) {
+        // See if there is a @Id Annotation on return type
+        List<AnnotationInstance> annotations = type.annotations();
+        for (AnnotationInstance annotation : annotations) {
+            if (annotation.name().equals(Annotations.ID)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // -----------------
     private String getNameFromAnnotation(AnnotationInstance annotation) {
         if (annotation.value() == null || annotation.value().asString().isEmpty()) {
             return annotation.target().asMethod().name();
@@ -242,17 +264,6 @@ public class GraphQLSchemaInitializer {
             }
         }
         return Optional.empty();
-    }
-
-    private boolean hasIdAnnotation(Type type) {
-        // See if there is a @Id Annotation on return type
-        List<AnnotationInstance> annotations = type.annotations();
-        for (AnnotationInstance annotation : annotations) {
-            if (annotation.name().equals(Annotations.ID)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void printGraphQLSchema() {

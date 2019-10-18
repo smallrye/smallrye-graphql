@@ -12,31 +12,39 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.ArrayType;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import graphql.Scalars;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
 
 /**
- * Create a Maps of all the types
- * This looks at all POJOs annotated with @Type or @InputType,
+ * Create a Maps of all the types.
+ * This looks at all POJOs annotated with @Type or @InputType
  * and then also all return type and arguments on @Queries and @Mutations.
  * 
- * TODO: Generics ?
+ * It produces a few maps, that can be injected anywhere in the code:
+ * - objectMap - contains all object types.
+ * - enumMap - contains all enum types.
+ * TODO:
+ * - interfaceMap - contains all interface types
+ * - inputObjectMap - contains all inputObject types
+ * - unionMap - contains all union types
+ * - Generics ?
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -56,137 +64,156 @@ public class TypeMappingInitializer {
     @Produces
     private final Map<DotName, GraphQLEnumType> enumMap = new HashMap<>();
 
-    // DONE:
-    //  Enum
-    //  Scalar
-
-    // BUSE WITH:
-    //  Object
-
-    // TODO: 
-    //  Interface
-    //  Union
-    //  InputObject
+    private final Map<DotName, TypeHolder> classesWeCareAbout = new HashMap<>();
+    private final Map<DotName, TypeHolder> enumsWeCareAbout = new HashMap<>();
 
     @PostConstruct
     void init() {
-        // Actual POJOS
-        discoverType();
-        discoverInputType();
-        // Return type and input parameters
-        discoverReturnTypeAndArguments(Annotations.QUERY);
-        discoverReturnTypeAndArguments(Annotations.MUTATION);
+
+        // First traverse all the types and create referenced types
+        scanClassLevelAnnotations(Annotations.TYPE);
+        scanClassLevelAnnotations(Annotations.INPUTTYPE);
+        scanMethodLevelAnnotations(Annotations.QUERY);
+        scanMethodLevelAnnotations(Annotations.MUTATION);
+
+        for (Map.Entry<DotName, TypeHolder> e : enumsWeCareAbout.entrySet()) {
+            this.enumMap.put(e.getKey(), createEnumType(e.getValue()));
+            LOG.debug("adding [" + e.getKey() + "] to the enums list");
+        }
+
+        for (Map.Entry<DotName, TypeHolder> e : classesWeCareAbout.entrySet()) {
+            this.objectMap.put(e.getKey(), createObjectType(e.getValue()));
+            LOG.debug("adding [" + e.getKey() + "] to the object list");
+        }
+
     }
 
-    private void discoverType() {
-        LOG.debug("Finding all " + Annotations.TYPE + "...");
-        List<AnnotationInstance> annotations = this.index.getAnnotations(Annotations.TYPE);
-
+    private void scanClassLevelAnnotations(DotName annotationName) {
+        List<AnnotationInstance> annotations = this.index.getAnnotations(annotationName);
         for (AnnotationInstance annotation : annotations) {
-            switch (annotation.target().kind()) {
-                case CLASS:
-                    // This is when we annotate with @Type related annotations. TODO: Add JsonB ?
-                    ClassInfo classInfo = annotation.target().asClass();
-                    discoveredType(classInfo);
-                    break;
+
+            if (annotation.target().kind().equals(AnnotationTarget.Kind.CLASS)) {
+                ClassInfo classInfo = annotation.target().asClass();
+                scanClass(classInfo);
             }
         }
     }
 
-    private void discoverInputType() {
-        LOG.debug("Finding all " + Annotations.INPUTTYPE + "...");
-        List<AnnotationInstance> annotations = this.index.getAnnotations(Annotations.INPUTTYPE);
-
-        for (AnnotationInstance annotation : annotations) {
-            switch (annotation.target().kind()) {
-                case CLASS:
-                    // This is when we annotate with @InputType related annotations. TODO: Add JsonB ?
-                    ClassInfo classInfo = annotation.target().asClass();
-                    discoveredType(classInfo);
-                    break;
-            }
-        }
-    }
-
-    private void discoverReturnTypeAndArguments(DotName annotationName) {
-        LOG.error("Finding all " + annotationName + "...");
+    private void scanMethodLevelAnnotations(DotName annotationName) {
         List<AnnotationInstance> annotations = this.index.getAnnotations(annotationName);
 
         for (AnnotationInstance annotation : annotations) {
             switch (annotation.target().kind()) {
                 case CLASS:
-                    // TODO: Do we allow Query on class level ?
+                    // TODO: Do we allow Query and Mutation on class level ?
                     break;
                 case METHOD:
                     MethodInfo methodInfo = annotation.target().asMethod();
-                    // Return types Queries
-                    Type type = methodInfo.returnType();
-                    discoverReturnOrInputObject(type);
-
-                    // Arguments on Queries
-                    List<Type> parameters = methodInfo.parameters();
-                    for (Type t : parameters) {
-                        discoverReturnOrInputObject(t);
+                    // Return types on Queries and Mutations
+                    // TODO: What if getting has void ?
+                    if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
+                        scanType(methodInfo.returnType());
                     }
-
+                    // arguments on getters and setter
+                    List<Type> parameters = methodInfo.parameters();
+                    for (Type parameter : parameters) {
+                        scanType(parameter);
+                    }
                     break;
             }
         }
     }
 
-    private void discoverReturnOrInputObject(Type type) {
-        DotName typeName = type.name();
+    private void scanClass(ClassInfo classInfo) {
+        // TODO: Get name from Annotation (Can name be from InputType, Type or JSonbProperty ? Or somewhere else ?)
+        String name = classInfo.name().local();
 
-        if (notInScalarMap(typeName)) {
-            switch (type.kind()) {
-                case VOID:
-                    // No type to find here...
-                    break;
-                case ARRAY:
-                    ArrayType arrayType = type.asArrayType();
-                    discoverReturnOrInputObject(arrayType.component());
-                    break;
-                case PARAMETERIZED_TYPE:
-                    ParameterizedType parameterizedType = type.asParameterizedType();
-                    List<Type> collectionType = parameterizedType.arguments();
-                    for (Type t : collectionType) {
-                        discoverReturnOrInputObject(t);
-                    }
-                    break;
-                case CLASS:
-                    if (notInEnumMap(typeName) && notInObjectMap(typeName)) {
-                        ClassInfo classInfo = index.getClassByName(typeName);
-                        if (classInfo != null) {
-                            discoveredType(classInfo);
-                        } else {
-                            LOG.error("Not sure what to do with return type on Query [" + typeName + "]");
+        if (Classes.isEnum(classInfo)) {
+            if (!enumsWeCareAbout.containsKey(classInfo.name())) {
+                enumsWeCareAbout.put(classInfo.name(), new TypeHolder(name, classInfo));
+            }
+        } else {
+            if (!classesWeCareAbout.containsKey(classInfo.name())) {
+                classesWeCareAbout.put(classInfo.name(), new TypeHolder(name, classInfo));
+
+                // fields
+                List<FieldInfo> fieldInfos = classInfo.fields();
+                for (FieldInfo fieldInfo : fieldInfos) {
+                    Type type = fieldInfo.type();
+                    scanType(type);
+                }
+
+                // methods
+                List<MethodInfo> methodInfos = classInfo.methods();
+                for (MethodInfo methodInfo : methodInfos) {
+                    String methodName = methodInfo.name();
+
+                    // return types on getters and setters
+                    if (isSetter(methodName) || isGetter(methodName)) {
+                        // TODO: What if getting has void ?
+                        if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
+                            scanType(methodInfo.returnType());
+                        }
+
+                        // arguments on getters and setter
+                        List<Type> parameters = methodInfo.parameters();
+                        for (Type parameter : parameters) {
+                            scanType(parameter);
                         }
                     }
-                    break;
-                // TODO: check the kind (Interface Unions etc)    
-                default:
-                    LOG.warn("Not sure how to handle " + typeName + " of kind " + type.kind() + " . Ignoring");
-                    break;
+                }
             }
         }
     }
 
-    private void discoveredType(ClassInfo classInfo) {
-
-        if (typeIsEnum(classInfo)) {
-            createEnumType(classInfo);
-        } else if (typeIsObject(classInfo)) {
-            createObjectType(classInfo);
-        } else {
-            LOG.error("Don't know what to do with [" + classInfo + "]");
+    private void scanType(Type type) {
+        switch (type.kind()) {
+            case ARRAY:
+                Type typeInArray = type.asArrayType().component();
+                scanType(typeInArray);
+                break;
+            case PARAMETERIZED_TYPE:
+                // TODO: Check if there is more than one type in the Collection, throw an exception ?
+                Type typeInCollection = type.asParameterizedType().arguments().get(0);
+                scanType(typeInCollection);
+                break;
+            case PRIMITIVE:
+                if (!scalarMap.containsKey(type.name())) {
+                    LOG.error("No scalar mapping for " + type.name() + " with kind " + type.kind());
+                }
+                break;
+            case CLASS:
+                if (!scalarMap.containsKey(type.name())) {
+                    ClassInfo classInfo = index.getClassByName(type.name());
+                    if (classInfo != null) {
+                        scanClass(classInfo);
+                    } else {
+                        LOG.error("Not indexed class " + type.name() + " with kind " + type.kind());
+                    }
+                }
+                break;
+            default:
+                LOG.error("What should we do with field type of " + type.name() + " with kind " + type.kind());
+                break;
         }
+    }
+
+    private boolean isSetter(String methodName) {
+        return methodName.length() > 3 && methodName.startsWith("set");
+    }
+
+    private boolean isGetter(String methodName) {
+        return (methodName.length() > 3 && methodName.startsWith("get"))
+                || (methodName.length() > 2 && methodName.startsWith("is"));
     }
 
     // TODO: Test a more complex enum
-    private void createEnumType(ClassInfo classInfo) {
-        // TODO: Can name be from JSonbProperty ? Or somewhere else ?
+    private GraphQLEnumType createEnumType(TypeHolder typeHolder) {
+        String name = typeHolder.getNameInSchema();
+        ClassInfo classInfo = typeHolder.getClassInfo();
+
         GraphQLEnumType.Builder builder = GraphQLEnumType.newEnum()
-                .name(classInfo.name().local());
+                .name(name);
 
         // Description
         Optional<String> maybeDescription = getDescription(classInfo);
@@ -201,15 +228,15 @@ public class TypeMappingInitializer {
                 builder = builder.value(field.name());
             }
         }
-
-        LOG.warn("adding [" + classInfo.name() + "] of kind [" + classInfo.kind() + "] to the enums list");
-        this.enumMap.put(classInfo.name(), builder.build());
+        return builder.build();
     }
 
-    private void createObjectType(ClassInfo classInfo) {
+    private GraphQLObjectType createObjectType(TypeHolder typeHolder) {
+        String name = typeHolder.getNameInSchema();
+        ClassInfo classInfo = typeHolder.getClassInfo();
+
         GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject();
-        // Name TODO: Get name from annotation ? @Input @InputType ?
-        objectTypeBuilder = objectTypeBuilder.name(classInfo.name().local());
+        objectTypeBuilder = objectTypeBuilder.name(name);
 
         // Description
         Optional<String> maybeDescription = getDescription(classInfo);
@@ -217,7 +244,7 @@ public class TypeMappingInitializer {
             objectTypeBuilder = objectTypeBuilder.description(maybeDescription.get());
         }
 
-        // Fields (TODO: Look at methods rather ?)
+        // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
         for (FieldInfo field : fields) {
             GraphQLFieldDefinition.Builder fieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition();
@@ -231,22 +258,45 @@ public class TypeMappingInitializer {
             // Type
             Type type = field.type();
             DotName fieldTypeName = type.name();
-            if (scalarMap.containsKey(fieldTypeName)) {
-                fieldDefinitionBuilder = fieldDefinitionBuilder.type(scalarMap.get(fieldTypeName));
-            } else if (enumMap.containsKey(fieldTypeName)) {
-                fieldDefinitionBuilder = fieldDefinitionBuilder.type(enumMap.get(fieldTypeName));
-            } else if (objectMap.containsKey(fieldTypeName)) {
-                fieldDefinitionBuilder = fieldDefinitionBuilder.type(objectMap.get(fieldTypeName));
+            // Myself
+            if (fieldTypeName.equals(classInfo.name())) {
+                fieldDefinitionBuilder = fieldDefinitionBuilder.type(GraphQLTypeReference.typeRef(name));
+                // Another type    
             } else {
-                fieldDefinitionBuilder = fieldDefinitionBuilder.type(Scalars.GraphQLByte); // TODO: HERE !!
+                fieldDefinitionBuilder = fieldDefinitionBuilder.type(toGraphQLOutputType(type));
             }
 
             objectTypeBuilder.field(fieldDefinitionBuilder.build());
         }
 
-        LOG.warn("adding [" + classInfo.name() + "] to the types list");
-        this.objectMap.put(classInfo.name(), objectTypeBuilder.build());
+        return objectTypeBuilder.build();
+    }
 
+    private GraphQLOutputType toGraphQLOutputType(Type type) {
+        DotName fieldTypeName = type.name();
+        // Scalar
+        if (scalarMap.containsKey(fieldTypeName)) {
+            return scalarMap.get(fieldTypeName);
+            // Enum    
+        } else if (enumMap.containsKey(fieldTypeName)) {
+            return enumMap.get(fieldTypeName);
+            // Array    
+        } else if (type.kind().equals(Type.Kind.ARRAY)) {
+            Type typeInArray = type.asArrayType().component();
+            return GraphQLList.list(toGraphQLOutputType(typeInArray));
+            // Collections
+        } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            // TODO: Check if there is more than one type in the Collection, throw an exception ?
+            Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            return GraphQLList.list(toGraphQLOutputType(typeInCollection));
+            // Reference to some type
+        } else if (classesWeCareAbout.containsKey(type.name())) {
+            GraphQLTypeReference graphQLTypeReference = classesWeCareAbout.get(type.name()).getGraphQLTypeReference();
+            return graphQLTypeReference;
+        } else {
+            // Maps ? Intefaces ? Generics ?
+            throw new RuntimeException("Don't know what to do with " + type);
+        }
     }
 
     private Optional<String> getDescription(ClassInfo classInfo) {
@@ -288,35 +338,6 @@ public class TypeMappingInitializer {
             }
         }
         return Optional.empty();
-    }
-
-    private boolean isSetter(String methodName) {
-        return methodName.length() > 3 && methodName.startsWith("set");
-    }
-
-    private boolean isGetter(String methodName) {
-        return (methodName.length() > 3 && methodName.startsWith("get"))
-                || (methodName.length() > 2 && methodName.startsWith("is"));
-    }
-
-    private boolean typeIsObject(ClassInfo classInfo) {
-        return classInfo.kind().equals(ClassInfo.Kind.CLASS) && notInObjectMap(classInfo.name());
-    }
-
-    private boolean typeIsEnum(ClassInfo classInfo) {
-        return classInfo.kind().equals(ClassInfo.Kind.CLASS) && Classes.isEnum(classInfo) && notInEnumMap(classInfo.name());
-    }
-
-    private boolean notInEnumMap(DotName d) {
-        return !enumMap.keySet().contains(d);
-    }
-
-    private boolean notInObjectMap(DotName d) {
-        return !objectMap.keySet().contains(d);
-    }
-
-    private boolean notInScalarMap(DotName d) {
-        return !scalarMap.keySet().contains(d);
     }
 
     private String getNameFromField(FieldInfo fieldInfo) {
