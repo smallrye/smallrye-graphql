@@ -41,6 +41,7 @@ import io.smallrye.graphql.index.Classes;
  * TODO: Check that class is annotated with GraphQLApi ?
  * TODO: Default value ? Can that be on the schema ?
  * TODO: Check duplication with TypeMappingInitializer
+ * TODO: Exceptions
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -66,7 +67,7 @@ public class GraphQLSchemaInitializer {
     @Produces
     private GraphQLSchema graphQLSchema;
 
-    public void createGraphQLSchema() {
+    public String createGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         LOG.error("We have " + inputObjectMap.size() + " input objects");
         LOG.error("We have " + outputObjectMap.size() + " output objects");
@@ -85,7 +86,9 @@ public class GraphQLSchemaInitializer {
         schemaBuilder.mutation(allMutations);
 
         this.graphQLSchema = schemaBuilder.build();
-        printGraphQLSchema();
+
+        SchemaPrinter schemaPrinter = new SchemaPrinter();//TODO: ? SchemaPrinter.Options.defaultOptions().includeSchemaDefintion(true));
+        return schemaPrinter.print(this.graphQLSchema);
     }
 
     private GraphQLObjectType getAllQueries() {
@@ -341,12 +344,6 @@ public class GraphQLSchemaInitializer {
             }
         }
         return Optional.empty();
-    }
-
-    private void printGraphQLSchema() {
-        SchemaPrinter schemaPrinter = new SchemaPrinter();//TODO: ? SchemaPrinter.Options.defaultOptions().includeSchemaDefintion(true));
-        String schemaString = schemaPrinter.print(this.graphQLSchema);
-        LOG.error("\n\n" + schemaString);
     }
 
     private static final String QUERY = "Query";

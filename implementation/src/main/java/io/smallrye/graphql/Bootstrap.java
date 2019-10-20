@@ -26,14 +26,13 @@ public class Bootstrap {
     @Produces
     private Index index;
 
-    public void bootstrap() {
-        bootstrap(indexInitializer.createIndex());
+    public String generateSchema() {
+        return generateSchema(indexInitializer.createIndex());
     }
 
-    public void bootstrap(Index index) {
+    public String generateSchema(Index index) {
         this.index = index;
-
-        graphQLSchemaInitializer.createGraphQLSchema();
+        return graphQLSchemaInitializer.createGraphQLSchema();
     }
 
 }
