@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -31,7 +30,6 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import graphql.schema.idl.SchemaPrinter;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
 
@@ -64,10 +62,7 @@ public class GraphQLSchemaInitializer {
     @Inject
     private Map<DotName, GraphQLEnumType> enumMap;
 
-    @Produces
-    private GraphQLSchema graphQLSchema;
-
-    public String createGraphQLSchema() {
+    public GraphQLSchema createGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         LOG.error("We have " + inputObjectMap.size() + " input objects");
         LOG.error("We have " + outputObjectMap.size() + " output objects");
@@ -85,10 +80,7 @@ public class GraphQLSchemaInitializer {
         schemaBuilder.query(allQueries);
         schemaBuilder.mutation(allMutations);
 
-        this.graphQLSchema = schemaBuilder.build();
-
-        SchemaPrinter schemaPrinter = new SchemaPrinter();//TODO: ? SchemaPrinter.Options.defaultOptions().includeSchemaDefintion(true));
-        return schemaPrinter.print(this.graphQLSchema);
+        return schemaBuilder.build();
     }
 
     private GraphQLObjectType getAllQueries() {

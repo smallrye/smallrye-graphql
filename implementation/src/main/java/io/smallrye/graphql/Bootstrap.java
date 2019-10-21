@@ -6,6 +6,7 @@ import javax.inject.Inject;
 
 import org.jboss.jandex.Index;
 
+import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.index.IndexInitializer;
 import io.smallrye.graphql.schema.GraphQLSchemaInitializer;
 
@@ -26,13 +27,17 @@ public class Bootstrap {
     @Produces
     private Index index;
 
-    public String generateSchema() {
+    @Produces
+    private GraphQLSchema graphQLSchema;
+
+    public GraphQLSchema generateSchema() {
         return generateSchema(indexInitializer.createIndex());
     }
 
-    public String generateSchema(Index index) {
+    public GraphQLSchema generateSchema(Index index) {
         this.index = index;
-        return graphQLSchemaInitializer.createGraphQLSchema();
+        this.graphQLSchema = graphQLSchemaInitializer.createGraphQLSchema();
+        return this.graphQLSchema;
     }
 
 }
