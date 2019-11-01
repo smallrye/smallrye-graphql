@@ -35,6 +35,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
+import io.smallrye.graphql.inspector.GraphQLInstructions;
 import io.smallrye.graphql.inspector.MethodArgumentInspector;
 import io.smallrye.graphql.scalar.GraphQLScalarTypeCreator;
 
@@ -66,6 +67,9 @@ public class TypeMappingInitializer {
 
     @Inject
     private MethodArgumentInspector methodArgumentInspector;
+
+    @Inject
+    private GraphQLInstructions graphQLInstructions;
 
     @Produces
     private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();
@@ -310,48 +314,45 @@ public class TypeMappingInitializer {
         List<FieldInfo> fields = classInfo.fields();
 
         for (FieldInfo field : fields) {
-            // Check if we should we ignore this ?
-            if (!shouldIgnore(field)) {
-                // Check if there is a getter (for output) 
-                Optional<MethodInfo> maybeGetter = getGetMethod(field.name(), classInfo);
-                if (maybeGetter.isPresent()) {
-                    MethodInfo getter = maybeGetter.get();
-                    if (!shouldIgnore(getter)) {
-                        GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
-                        // Annotations on the field and setter
-                        Map<DotName, AnnotationInstance> annotationsForThisField = getAnnotationsForThisField(field, getter);
+            // Check if there is a getter (for output) 
+            Optional<MethodInfo> maybeGetter = getGetMethod(field.name(), classInfo);
+            if (maybeGetter.isPresent()) {
+                MethodInfo getter = maybeGetter.get();
+                // Annotations on the field and getter
+                Map<DotName, AnnotationInstance> annotationsForThisField = getAnnotationsForThisField(field, getter);
 
-                        // Name
-                        builder = builder.name(getOutputNameForField(annotationsForThisField, field.name()));
-                        // Description
-                        Optional<String> maybeFieldDescription = getDescription(annotationsForThisField, field.type());
-                        if (maybeFieldDescription.isPresent()) {
-                            builder = builder.description(maybeFieldDescription.get());
-                        }
-
-                        // Type
-                        Type type = field.type();
-                        DotName fieldTypeName = type.name();
-                        GraphQLOutputType graphQLOutputType;
-                        if (fieldTypeName.equals(classInfo.name())) {
-                            // Myself
-                            if (markAsNonNull(field, getter)) {
-                                graphQLOutputType = GraphQLNonNull.nonNull(GraphQLTypeReference.typeRef(name));
-                            } else {
-                                graphQLOutputType = GraphQLTypeReference.typeRef(name);
-                            }
-                        } else {
-                            // Another type    
-                            if (markAsNonNull(field, getter)) {
-                                graphQLOutputType = GraphQLNonNull.nonNull(toGraphQLOutputType(type, annotationsForThisField));
-                            } else {
-                                graphQLOutputType = toGraphQLOutputType(type, annotationsForThisField);
-                            }
-                        }
-                        builder = builder.type(graphQLOutputType);
-
-                        fieldDefinitions.add(builder.build());
+                if (!shouldIgnore(annotationsForThisField)) {
+                    GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
+                    // Name
+                    builder = builder.name(getOutputNameForField(annotationsForThisField, field.name()));
+                    // Description
+                    Optional<String> maybeFieldDescription = getDescription(annotationsForThisField, field.type());
+                    if (maybeFieldDescription.isPresent()) {
+                        builder = builder.description(maybeFieldDescription.get());
                     }
+
+                    // Type
+                    Type type = field.type();
+                    DotName fieldTypeName = type.name();
+                    GraphQLOutputType graphQLOutputType;
+                    if (fieldTypeName.equals(classInfo.name())) {
+                        // Myself
+                        if (graphQLInstructions.markAsNonNull(field, annotationsForThisField)) {
+                            graphQLOutputType = GraphQLNonNull.nonNull(GraphQLTypeReference.typeRef(name));
+                        } else {
+                            graphQLOutputType = GraphQLTypeReference.typeRef(name);
+                        }
+                    } else {
+                        // Another type    
+                        if (graphQLInstructions.markAsNonNull(field, annotationsForThisField)) {
+                            graphQLOutputType = GraphQLNonNull.nonNull(toGraphQLOutputType(type, annotationsForThisField));
+                        } else {
+                            graphQLOutputType = toGraphQLOutputType(type, annotationsForThisField);
+                        }
+                    }
+                    builder = builder.type(graphQLOutputType);
+
+                    fieldDefinitions.add(builder.build());
                 }
             }
         }
@@ -364,66 +365,63 @@ public class TypeMappingInitializer {
         List<FieldInfo> fields = classInfo.fields();
         short count = 0;
         for (FieldInfo field : fields) {
-            // Check if we should we ignore this ?
-            if (!shouldIgnore(field)) {
+            // Check if there is a setter (for input) 
+            Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), classInfo);
+            if (maybeSetter.isPresent()) {
+                MethodInfo setter = maybeSetter.get();
+                // Annotations on the field and setter
+                Map<DotName, AnnotationInstance> annotationsForThisField = getAnnotationsForThisField(field, setter);
+                if (!shouldIgnore(annotationsForThisField)) {
+                    GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
-                // Check if there is a setter (for input) 
-                Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), classInfo);
-                if (maybeSetter.isPresent()) {
-                    MethodInfo setter = maybeSetter.get();
-                    if (!shouldIgnore(setter)) {
-                        GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
-                        // Annotations on the field and setter
-                        Map<DotName, AnnotationInstance> annotationsForThisField = getAnnotationsForThisField(field, setter);
+                    // Name
+                    builder = builder.name(getInputNameForField(annotationsForThisField, field.name()));
 
-                        // Name
-                        builder = builder.name(getInputNameForField(annotationsForThisField, field.name()));
-
-                        // Description
-                        Optional<String> maybeFieldDescription = getDescription(annotationsForThisField, field.type());
-                        if (maybeFieldDescription.isPresent()) {
-                            builder = builder.description(maybeFieldDescription.get());
-                        }
-                        // Type
-                        Type type = field.type();
-                        DotName fieldTypeName = type.name();
-                        GraphQLInputType graphQLInputType;
-                        if (fieldTypeName.equals(classInfo.name())) {
-                            // Myself
-                            if (markAsNonNull(field, setter)) {
-                                graphQLInputType = GraphQLNonNull.nonNull(GraphQLTypeReference.typeRef(name));
-                            } else {
-                                graphQLInputType = GraphQLTypeReference.typeRef(name);
-                            }
-                        } else {
-                            // Another type
-                            if (markAsNonNull(field, setter)) {
-                                graphQLInputType = GraphQLNonNull.nonNull(toGraphQLInputType(type, annotationsForThisField));
-                            } else {
-                                graphQLInputType = toGraphQLInputType(type, annotationsForThisField);
-                            }
-                        }
-
-                        builder = builder.type(graphQLInputType);
-
-                        // Default value (on method)
-                        Optional<AnnotationValue> maybeDefaultValue = methodArgumentInspector.getArgumentAnnotationValue(setter,
-                                count, Annotations.DEFAULT_VALUE);
-                        if (maybeDefaultValue.isPresent()) {
-                            builder = builder.defaultValue(maybeDefaultValue.get().value());
-                        } else {
-                            // Default value (on field)
-                            Optional<AnnotationValue> maybeFieldAnnotation = getAnnotationValue(field.annotations(),
-                                    Annotations.DEFAULT_VALUE);
-                            if (maybeFieldAnnotation.isPresent()) {
-                                builder = builder.defaultValue(maybeFieldAnnotation.get().value());
-                            }
-                        }
-
-                        inputObjectFields.add(builder.build());
+                    // Description
+                    Optional<String> maybeFieldDescription = getDescription(annotationsForThisField, field.type());
+                    if (maybeFieldDescription.isPresent()) {
+                        builder = builder.description(maybeFieldDescription.get());
                     }
+                    // Type
+                    Type type = field.type();
+                    DotName fieldTypeName = type.name();
+                    GraphQLInputType graphQLInputType;
+                    if (fieldTypeName.equals(classInfo.name())) {
+                        // Myself
+                        if (graphQLInstructions.markAsNonNull(field, annotationsForThisField)) {
+                            graphQLInputType = GraphQLNonNull.nonNull(GraphQLTypeReference.typeRef(name));
+                        } else {
+                            graphQLInputType = GraphQLTypeReference.typeRef(name);
+                        }
+                    } else {
+                        // Another type
+                        if (graphQLInstructions.markAsNonNull(field, annotationsForThisField)) {
+                            graphQLInputType = GraphQLNonNull.nonNull(toGraphQLInputType(type, annotationsForThisField));
+                        } else {
+                            graphQLInputType = toGraphQLInputType(type, annotationsForThisField);
+                        }
+                    }
+
+                    builder = builder.type(graphQLInputType);
+
+                    // Default value (on method)
+                    Optional<AnnotationValue> maybeDefaultValue = methodArgumentInspector.getArgumentAnnotationValue(setter,
+                            count, Annotations.DEFAULT_VALUE);
+                    if (maybeDefaultValue.isPresent()) {
+                        builder = builder.defaultValue(maybeDefaultValue.get().value());
+                    } else {
+                        // Default value (on field)
+                        Optional<AnnotationValue> maybeFieldAnnotation = getAnnotationValue(field.annotations(),
+                                Annotations.DEFAULT_VALUE);
+                        if (maybeFieldAnnotation.isPresent()) {
+                            builder = builder.defaultValue(maybeFieldAnnotation.get().value());
+                        }
+                    }
+
+                    inputObjectFields.add(builder.build());
                 }
             }
+
             count++;
         }
         return inputObjectFields;
@@ -495,10 +493,10 @@ public class TypeMappingInitializer {
     }
 
     private Optional<String> getDescription(Map<DotName, AnnotationInstance> annotationsForThisField, Type type) {
-        if (containsKeyAndValidValue(annotationsForThisField, Annotations.DESCRIPTION)) {
+        if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.DESCRIPTION)) {
             return Optional.of(annotationsForThisField.get(Annotations.DESCRIPTION).value().asString());
         } else if (isDateLikeTypeOrCollectionThereOf(type)) {
-            if (containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_DATE_FORMAT)) {
+            if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_DATE_FORMAT)) {
                 return Optional.of(annotationsForThisField.get(Annotations.JSONB_DATE_FORMAT).value().asString());
             } else {
                 // return the default dates format
@@ -571,26 +569,22 @@ public class TypeMappingInitializer {
 
     // TODO: Where does @Argument fits in ?
     private String getInputNameForField(Map<DotName, AnnotationInstance> annotationsForThisField, String defaultValue) {
-        if (containsKeyAndValidValue(annotationsForThisField, Annotations.INPUTFIELD)) {
+        if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.INPUTFIELD)) {
             return annotationsForThisField.get(Annotations.INPUTFIELD).value().asString();
-        } else if (containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_PROPERTY)) {
+        } else if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.get(Annotations.JSONB_PROPERTY).value().asString();
         }
         return defaultValue;
     }
 
     private String getOutputNameForField(Map<DotName, AnnotationInstance> annotationsForThisField, String defaultValue) {
-        if (containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_PROPERTY)) {
+        if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.get(Annotations.JSONB_PROPERTY).value().asString();
-        } else if (containsKeyAndValidValue(annotationsForThisField, Annotations.QUERY)) {
+        } else if (graphQLInstructions.containsKeyAndValidValue(annotationsForThisField, Annotations.QUERY)) {
             return annotationsForThisField.get(Annotations.QUERY).value().asString();
         }
 
         return defaultValue;
-    }
-
-    private boolean containsKeyAndValidValue(Map<DotName, AnnotationInstance> annotations, DotName key) {
-        return annotations.containsKey(key) && annotations.get(key).value() != null;
     }
 
     private Optional<AnnotationValue> getAnnotationValue(Collection<AnnotationInstance> annotations, DotName namedAnnotation) {
@@ -637,89 +631,46 @@ public class TypeMappingInitializer {
         return Optional.empty();
     }
 
-    private boolean shouldIgnore(FieldInfo fieldInfo) {
-        List<AnnotationInstance> annotations = fieldInfo.annotations();
-        return shouldIgnore(annotations);
+    private boolean shouldIgnore(Map<DotName, AnnotationInstance> annotations) {
+        return annotations.containsKey(Annotations.IGNORE)
+                || annotations.containsKey(Annotations.JSONB_TRANSIENT);
     }
 
-    private boolean shouldIgnore(MethodInfo methodInfo) {
-        List<AnnotationInstance> annotations = methodInfo.annotations();
-        return shouldIgnore(annotations);
-    }
+    //    private boolean markAsNonNull(FieldInfo fieldInfo, Map<DotName, AnnotationInstance> annotations) {
+    //        // check if the @NonNull annotation is present
+    //        boolean hasNonNull = hasNonNull(annotations);
+    //        // true if this is a primitive
+    //        if (fieldInfo.type().kind().equals(Type.Kind.PRIMITIVE)) {
+    //            hasNonNull = true; // By implication
+    //        }
+    //
+    //        // check if the @DefaultValue annotation is present
+    //        boolean hasDefaultValue = hasDefaultValue(annotations);
+    //        if (hasDefaultValue) {
+    //            if (hasNonNull) {
+    //                LOG.warn("Ignoring @NonNull on [" + fieldInfo.name() + "] as there is a @DefaultValue");
+    //            }
+    //            return false;
+    //        }
+    //
+    //        return hasNonNull;
+    //    }
+    //
+    //    private boolean hasNonNull(Map<DotName, AnnotationInstance> annotations) {
+    //
+    //        return annotations.containsKey(Annotations.NON_NULL)
+    //                || annotations.containsKey(Annotations.BEAN_VALIDATION_NOT_NULL)
+    //                || annotations.containsKey(Annotations.BEAN_VALIDATION_NOT_EMPTY)
+    //                || annotations.containsKey(Annotations.BEAN_VALIDATION_NOT_BLANK);
+    //    }
 
-    private boolean shouldIgnore(List<AnnotationInstance> annotations) {
-        for (AnnotationInstance a : annotations) {
-            if (a.name().equals(Annotations.IGNORE) || a.name().equals(Annotations.JSONB_TRANSIENT)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean markAsNonNull(FieldInfo fieldInfo, MethodInfo methodInfo) {
-        // check if the @NonNull annotation is present
-        boolean hasNonNull = hasNonNull(fieldInfo, methodInfo);
-        // check if the @DefaultValue annotation is present
-        boolean hasDefaultValue = hasDefaultValue(fieldInfo, methodInfo);
-        if (hasDefaultValue) {
-            if (hasNonNull) {
-                LOG.warn("Ignoring @NonNull on [" + methodInfo.name() + "] as there is a @DefaultValue");
-            }
-            return false;
-        }
-
-        return hasNonNull;
-    }
-
-    private boolean hasNonNull(FieldInfo fieldInfo, MethodInfo methodInfo) {
-        return hasNonNull(methodInfo) || hasNonNull(fieldInfo);
-    }
-
-    private boolean hasNonNull(FieldInfo fieldInfo) {
-        List<AnnotationInstance> annotations = fieldInfo.annotations();
-        return hasNonNull(annotations);
-    }
-
-    private boolean hasNonNull(MethodInfo methodInfo) {
-        List<AnnotationInstance> annotations = methodInfo.annotations();
-        return hasNonNull(annotations);
-    }
-
-    private boolean hasNonNull(List<AnnotationInstance> annotations) {
-        for (AnnotationInstance a : annotations) {
-            // GraphQL Annotation, and optional Bean validation
-            if (a.name().equals(Annotations.NON_NULL)
-                    || a.name().equals(Annotations.BEAN_VALIDATION_NOT_NULL)
-                    || a.name().equals(Annotations.BEAN_VALIDATION_NOT_EMPTY)
-                    || a.name().equals(Annotations.BEAN_VALIDATION_NOT_BLANK)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasDefaultValue(FieldInfo fieldInfo, MethodInfo methodInfo) {
-        return hasDefaultValue(methodInfo) || hasDefaultValue(fieldInfo);
-    }
-
-    private boolean hasDefaultValue(FieldInfo fieldInfo) {
-        List<AnnotationInstance> annotations = fieldInfo.annotations();
-        return hasDefaultValue(annotations);
-    }
-
-    private boolean hasDefaultValue(MethodInfo methodInfo) {
-        List<AnnotationInstance> annotations = methodInfo.annotations();
-        return hasDefaultValue(annotations);
-    }
-
-    private boolean hasDefaultValue(List<AnnotationInstance> annotations) {
-        for (AnnotationInstance a : annotations) {
-            if (a.name().equals(Annotations.DEFAULT_VALUE)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    //    private boolean hasDefaultValue(Map<DotName, AnnotationInstance> annotations) {
+    //        return containsKeyAndValidValue(annotations, Annotations.DEFAULT_VALUE);
+    //    }
+    //
+    //    private boolean containsKeyAndValidValue(Map<DotName, AnnotationInstance> annotations, DotName key) {
+    //        return annotations.containsKey(key) && annotations.get(key).value() != null;
+    //    }
 
     private Optional<MethodInfo> getSetMethod(String forField, ClassInfo classInfo) {
         String name = SET + forField;

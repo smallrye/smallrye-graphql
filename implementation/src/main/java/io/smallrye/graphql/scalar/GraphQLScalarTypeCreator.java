@@ -101,7 +101,6 @@ public class GraphQLScalarTypeCreator {
         MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLChar);
         MAPPING.put(DotName.createSimple(Character.class.getName()), Scalars.GraphQLChar);
 
-        MAPPING.put(DotName.createSimple(char[].class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
 
         MAPPING.put(DotName.createSimple(Short.class.getName()), Scalars.GraphQLShort);
