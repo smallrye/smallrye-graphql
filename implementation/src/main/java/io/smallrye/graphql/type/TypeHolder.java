@@ -1,5 +1,7 @@
 package io.smallrye.graphql.type;
 
+import java.util.Objects;
+
 import org.jboss.jandex.ClassInfo;
 
 import graphql.schema.GraphQLTypeReference;
@@ -9,7 +11,6 @@ import graphql.schema.GraphQLTypeReference;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * 
- *         TODO: Equal on nameInSchema ? So that we can not have more than one ?
  */
 public class TypeHolder {
     private final String nameInSchema;
@@ -35,6 +36,31 @@ public class TypeHolder {
     @Override
     public String toString() {
         return "TypeHolder{" + "nameInSchema=" + nameInSchema + ", classInfo=" + classInfo + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 83 * hash + Objects.hashCode(this.nameInSchema);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TypeHolder other = (TypeHolder) obj;
+        if (!Objects.equals(this.nameInSchema, other.nameInSchema)) {
+            return false;
+        }
+        return true;
     }
 
 }

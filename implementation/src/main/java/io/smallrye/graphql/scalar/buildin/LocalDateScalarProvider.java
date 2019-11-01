@@ -17,7 +17,13 @@ package io.smallrye.graphql.scalar.buildin;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.DotName;
+import org.jboss.logging.Logger;
+
+import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.scalar.CustomScalar;
 import io.smallrye.graphql.scalar.CustomScalarMarker;
 
@@ -31,6 +37,7 @@ import io.smallrye.graphql.scalar.CustomScalarMarker;
  */
 @CustomScalarMarker
 public class LocalDateScalarProvider implements CustomScalar<LocalDate, String> {
+    private static final Logger LOG = Logger.getLogger(LocalDateScalarProvider.class.getName());
 
     @Override
     public String getName() {
@@ -43,13 +50,31 @@ public class LocalDateScalarProvider implements CustomScalar<LocalDate, String> 
     }
 
     @Override
-    public String serialize(LocalDate localDate) {
-        return localDate.format(DateTimeFormatter.ISO_DATE);
+    public String serialize(LocalDate localDate, Map<DotName, AnnotationInstance> annotations) {
+        return localDate.format(getDateTimeFormatter(annotations));
     }
 
     @Override
-    public LocalDate deserialize(String fromScalar) {
-        return LocalDate.parse(fromScalar);
+    public LocalDate deserialize(String fromScalar, Map<DotName, AnnotationInstance> annotations) {
+        try {
+            LOG.warn("===== fromScalar: " + fromScalar);
+            LOG.warn("===== annotations: " + annotations);
+            LOG.warn("===== format: " + getDateTimeFormatter(annotations));
+            return LocalDate.parse(fromScalar, getDateTimeFormatter(annotations));
+        } catch (Throwable t) {
+            return LocalDate.now();
+        }
+    }
+
+    private DateTimeFormatter getDateTimeFormatter(Map<DotName, AnnotationInstance> annotations) {
+        if (annotations.containsKey(Annotations.JSONB_DATE_FORMAT)) {
+            AnnotationInstance ai = annotations.get(Annotations.JSONB_DATE_FORMAT);
+            if (ai != null && ai.value() != null) {
+                String format = ai.value().asString();
+                return DateTimeFormatter.ofPattern(format);
+            }
+        }
+        return DateTimeFormatter.ISO_DATE;
     }
 
 }

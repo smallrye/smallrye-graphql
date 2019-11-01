@@ -17,6 +17,10 @@
 package io.smallrye.graphql.scalar;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.Map;
+
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.DotName;
 
 /**
  * Implementations of this interface can provider scalars
@@ -30,12 +34,11 @@ public interface CustomScalar<T, R> {
 
     public String getDescription();
 
-    public R serialize(T fromObject);
+    public R serialize(T fromObject, Map<DotName, AnnotationInstance> annotations);
 
-    public T deserialize(R fromScalar);
+    public T deserialize(R fromScalar, Map<DotName, AnnotationInstance> annotations);
 
     public default Class<T> forClass() {
         return (Class<T>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
     }
-
 }

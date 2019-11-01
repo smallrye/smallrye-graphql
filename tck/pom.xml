@@ -21,6 +21,7 @@
                     <dependenciesToScan>
                         <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency>
                     </dependenciesToScan>
+                    <detail>true</detail>
                 </configuration>
             </plugin>
 
