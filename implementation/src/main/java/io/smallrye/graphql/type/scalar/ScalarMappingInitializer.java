@@ -14,25 +14,33 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.scalar;
+package io.smallrye.graphql.type.scalar;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
+import javax.inject.Named;
 
-import org.jboss.jandex.AnnotationInstance;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
 import graphql.Scalars;
+import graphql.language.StringValue;
+import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
+import graphql.schema.CoercingParseValueException;
+import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
 
 /**
@@ -41,16 +49,48 @@ import graphql.schema.GraphQLScalarType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class GraphQLScalarTypeCreator {
-    private static final Logger LOG = Logger.getLogger(GraphQLScalarTypeCreator.class.getName());
+public class ScalarMappingInitializer {
+    private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
+
+    @Inject
+    @ConfigProperty(name = "mp.graphql.passthroughScalars", defaultValue = "Date:java.time.LocalDate,Time:java.time.LocalTime,DateTime:java.time.LocalDateTime")
+    private List<String> passthroughScalars;
 
     @Inject
     private BeanManager beanManager;
 
-    private final Map<DotName, CustomScalar> customScalarMap = new HashMap<>();
+    @Produces
+    private final Map<DotName, GraphQLScalarType> scalarMap = new HashMap<>();
 
     @PostConstruct
     void init() {
+        scalarMap.putAll(MAPPING);
+        addPassthroughScalars();
+        addCustomScalars();
+    }
+
+    @Produces
+    @Named("scalars")
+    public Set<DotName> getKnownScalars() {
+        return scalarMap.keySet();
+    }
+
+    private void addPassthroughScalars() {
+        LOG.debug("Finding all passthrough scalars...");
+        for (String kv : passthroughScalars) {
+            String[] keyValue = kv.split(":");
+            String name = keyValue[0];
+            String className = keyValue[1];
+            LOG.debug("\t found scalar type [" + name + "] that maps to [" + className + "]");
+
+            PassthroughScalar passthroughScalar = new PassthroughScalar(name,
+                    "Scalar for " + className + "that just let the value pass though");
+
+            scalarMap.put(DotName.createSimple(className), passthroughScalar);
+        }
+    }
+
+    private void addCustomScalars() {
         LOG.debug("Finding all custom scalars...");
 
         Set<Bean<?>> beans = beanManager.getBeans(Object.class, new CustomScalarLiteral() {
@@ -63,36 +103,36 @@ public class GraphQLScalarTypeCreator {
             LOG.debug("\t found " + bean.getBeanClass() + " for scalar type [" + customScalar.getName() + "] that maps to ["
                     + customScalar.forClass() + "]");
 
-            customScalarMap.put(DotName.createSimple(customScalar.forClass().getName()), customScalar);
+            scalarMap.put(DotName.createSimple(customScalar.forClass().getName()), newGraphQLScalarType(customScalar));
+
         }
     }
 
-    public boolean isScalarType(DotName dotName) {
-        return MAPPING.containsKey(dotName) || customScalarMap.containsKey(dotName);
-    }
-
-    public int size() {
-        return MAPPING.size();
-    }
-
-    public GraphQLScalarType getGraphQLScalarType(DotName name, Map<DotName, AnnotationInstance> annotations) {
-
-        if (MAPPING.containsKey(name)) {
-            return MAPPING.get(name);
-        } else if (customScalarMap.containsKey(name)) {
-            GraphQLScalarType newGraphQLScalarType = newGraphQLScalarType(customScalarMap.get(name), annotations);
-            MAPPING.put(name, newGraphQLScalarType);
-            return newGraphQLScalarType;
-        }
-
-        throw new RuntimeException("This is not a scalar type [" + name + "]");
-    }
-
-    private GraphQLScalarType newGraphQLScalarType(CustomScalar customScalar, Map<DotName, AnnotationInstance> annotations) {
+    private GraphQLScalarType newGraphQLScalarType(CustomScalar customScalar) {
         return GraphQLScalarType.newScalar()
                 .name(customScalar.getName())
                 .description(customScalar.getDescription())
-                .coercing(new AnnotatedCoercing(customScalar, annotations)).build();
+                .coercing(new Coercing() {
+                    @Override
+                    public Object serialize(Object o) throws CoercingSerializeException {
+                        return customScalar.serialize(o);
+                    }
+
+                    @Override
+                    public Object parseValue(Object o) throws CoercingParseValueException {
+                        return customScalar.deserialize(o);
+                    }
+
+                    @Override
+                    public Object parseLiteral(Object o) throws CoercingParseLiteralException {
+                        if (o.getClass().getName().equals(StringValue.class.getName())) {
+                            StringValue stringValue = StringValue.class.cast(o);
+                            String value = stringValue.getValue();
+                            return parseValue(value);
+                        } // TODO: Other types ? ArrayValue, BooleanValue, EnumValue, FloatValue, IntValue, NullValue, ObjectValue, ScalarValue;
+                        return parseValue(o);
+                    }
+                }).build();
     }
 
     private static final Map<DotName, GraphQLScalarType> MAPPING = new HashMap<>();

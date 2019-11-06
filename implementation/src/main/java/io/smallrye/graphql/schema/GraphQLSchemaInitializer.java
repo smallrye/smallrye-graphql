@@ -1,6 +1,21 @@
+/*
+ * Copyright 2019 Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.smallrye.graphql.schema;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +27,6 @@ import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
@@ -29,15 +43,18 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import io.smallrye.graphql.helper.AnnotationsHelper;
+import io.smallrye.graphql.helper.DefaultValueHelper;
+import io.smallrye.graphql.helper.DescriptionHelper;
+import io.smallrye.graphql.helper.NameHelper;
+import io.smallrye.graphql.helper.NonNullHelper;
+import io.smallrye.graphql.helper.creator.OutputTypeCreator;
+import io.smallrye.graphql.holder.AnnotationsHolder;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
-import io.smallrye.graphql.inspector.GraphQLInstructions;
-import io.smallrye.graphql.inspector.MethodArgumentInspector;
-import io.smallrye.graphql.scalar.GraphQLScalarTypeCreator;
 
 /**
  * Creates the GraphQL Schema
@@ -55,7 +72,7 @@ public class GraphQLSchemaInitializer {
     private Index index;
 
     @Inject
-    private GraphQLScalarTypeCreator graphQLScalarTypeCreator;
+    private OutputTypeCreator outputTypeCreator;
 
     @Inject
     private Map<DotName, GraphQLInputObjectType> inputObjectMap;
@@ -67,10 +84,10 @@ public class GraphQLSchemaInitializer {
     private Map<DotName, GraphQLEnumType> enumMap;
 
     @Inject
-    private MethodArgumentInspector methodArgumentInspector;
+    private NonNullHelper nonNullHelper;
 
     @Inject
-    private GraphQLInstructions graphQLInstructions;
+    private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
     @ConfigProperty(name = "mp.graphql.queryRootDescription", defaultValue = "Query root")
@@ -80,12 +97,24 @@ public class GraphQLSchemaInitializer {
     @ConfigProperty(name = "mp.graphql.mutationRootDescription", defaultValue = "Mutation root")
     private String mutationRootDescription;
 
+    @Inject
+    private AnnotationsHelper annotationsHelper;
+
+    @Inject
+    private DefaultValueHelper defaultValueHelper;
+
+    @Inject
+    private NameHelper nameHelper;
+
+    @Inject
+    private DescriptionHelper descriptionHelper;
+
     public GraphQLSchema createGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         LOG.error("We have " + inputObjectMap.size() + " input objects");
         LOG.error("We have " + outputObjectMap.size() + " output objects");
         LOG.error("We have " + enumMap.size() + " enums");
-        LOG.error("We have " + graphQLScalarTypeCreator.size() + " scalars");
+        LOG.error("We have " + scalarMap.size() + " scalars");
 
         Set<GraphQLType> additionalTypes = new HashSet<>();
         additionalTypes.addAll(enumMap.values());
@@ -93,23 +122,15 @@ public class GraphQLSchemaInitializer {
         additionalTypes.addAll(inputObjectMap.values());
         schemaBuilder.additionalTypes(additionalTypes);
 
-        GraphQLObjectType allQueries = getAllQueries();
-        GraphQLObjectType allMutations = getAllMutations();
+        GraphQLObjectType allQueries = createGraphQLObjectType(Annotations.QUERY, QUERY, queryRootDescription);
+        GraphQLObjectType allMutations = createGraphQLObjectType(Annotations.MUTATION, MUTATION, mutationRootDescription);
         schemaBuilder.query(allQueries);
         schemaBuilder.mutation(allMutations);
 
         return schemaBuilder.build();
     }
 
-    private GraphQLObjectType getAllQueries() {
-        return createGraphQLObjectType(Annotations.QUERY, QUERY, queryRootDescription);
-    }
-
-    private GraphQLObjectType getAllMutations() {
-        return createGraphQLObjectType(Annotations.MUTATION, MUTATION, mutationRootDescription);
-    }
-
-    private <T> GraphQLObjectType createGraphQLObjectType(DotName annotationToScan, String name, String description) {
+    private GraphQLObjectType createGraphQLObjectType(DotName annotationToScan, String name, String description) {
         List<AnnotationInstance> graphQLAnnotations = this.index.getAnnotations(annotationToScan);
 
         GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject().name(name).description(description);
@@ -121,41 +142,35 @@ public class GraphQLSchemaInitializer {
                     MethodInfo methodInfo = graphQLAnnotation.target().asMethod();
 
                     // Annotations on this method
-                    Map<DotName, AnnotationInstance> annotations = getAnnotationsForThisMethod(methodInfo);
+                    AnnotationsHolder annotations = annotationsHelper.getAnnotationsForMethod(methodInfo);
 
                     Type returnType = methodInfo.returnType();
 
-                    GraphQLFieldDefinition.Builder fieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition();
-                    // Name
-                    fieldDefinitionBuilder = fieldDefinitionBuilder.name(getName(graphQLAnnotation, annotations));
+                    GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
+                    // Name // TODO: Need test cases for this
+                    builder = builder
+                            .name(nameHelper.getExecutionTypeName(graphQLAnnotation, annotations));
 
                     // Description
-                    Optional<String> maybeDescription = getDescription(methodInfo);
+                    Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
                     if (maybeDescription.isPresent()) {
-                        fieldDefinitionBuilder = fieldDefinitionBuilder.description(maybeDescription.get());
+                        builder = builder.description(maybeDescription.get());
                     }
                     // Type (output)
-                    fieldDefinitionBuilder = fieldDefinitionBuilder
-                            .type(toGraphQLOutputType(returnType, methodInfo.name(), annotations));
+                    builder = builder
+                            .type(outputTypeCreator.createGraphQLOutputType(returnType, annotations));
 
                     // Arguments (input)
                     List<Type> parameters = methodInfo.parameters();
 
                     short cnt = 0;
                     for (Type parameter : parameters) {
-                        fieldDefinitionBuilder.argument(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
+                        builder.argument(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
                         cnt++;
                     }
 
-                    // TODO: Deprecate
-                    // fieldDefinitionBuilder.deprecate(description)
-
-                    // TODO: Directives ?
-                    // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
-
-                    queryTypeBuilder = queryTypeBuilder.field(fieldDefinitionBuilder.build());
+                    queryTypeBuilder = queryTypeBuilder.field(builder.build());
                     break;
-                // TODO negative on other cases ?
             }
         }
 
@@ -163,82 +178,24 @@ public class GraphQLSchemaInitializer {
     }
 
     private GraphQLArgument toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
-            Map<DotName, AnnotationInstance> annotations) {
-        String argName = getArgumentName(methodInfo, argCount);
+            AnnotationsHolder annotations) {
+        AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
+
+        String argName = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
         GraphQLInputType inputType = toGraphQLInputType(parameter, methodInfo.name(), annotations);
 
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
         argumentBuilder = argumentBuilder.name(argName);
         argumentBuilder = argumentBuilder.type(inputType);
-        Optional<AnnotationValue> maybeDefaultValue = methodArgumentInspector.getArgumentAnnotationValue(methodInfo, argCount,
-                Annotations.DEFAULT_VALUE);
+        Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument);
         if (maybeDefaultValue.isPresent()) {
-            argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.get().value());
+            argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.get());
         }
 
         return argumentBuilder.build();
     }
 
-    private Map<DotName, AnnotationInstance> getAnnotationsForThisMethod(MethodInfo methodInfo) {
-
-        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
-
-        for (AnnotationInstance annotationInstance : methodInfo.annotations()) {
-            DotName name = annotationInstance.name();
-            annotationMap.put(name, annotationInstance);
-        }
-
-        return annotationMap;
-    }
-
-    public String getArgumentName(MethodInfo methodInfo, short argCount) {
-        Optional<AnnotationValue> argumentAnnotationValue = methodArgumentInspector.getArgumentAnnotationValue(methodInfo,
-                argCount,
-                Annotations.ARGUMENT);
-        if (argumentAnnotationValue.isPresent())
-            return String.valueOf(argumentAnnotationValue.get().asString());
-        int nice = argCount + 1;
-        return "arg" + nice;
-    }
-
-    private GraphQLOutputType toGraphQLOutputType(Type type, String name, Map<DotName, AnnotationInstance> annotations) {
-        // Type
-        switch (type.kind()) {
-            case VOID:
-                LOG.warn("Ignoring void return"); // TODO: Throw an exception ?
-                return getNoMappingScalarType(type);
-            case ARRAY:
-                Type typeInArray = type.asArrayType().component();
-                return GraphQLList.list(toGraphQLOutputType(typeInArray, name, annotations));
-            case PARAMETERIZED_TYPE:
-                // TODO: Check if there is more than one type in the Collection, throw an exception ?
-                Type typeInCollection = type.asParameterizedType().arguments().get(0);
-                return GraphQLList.list(toGraphQLOutputType(typeInCollection, name, annotations));
-            case CLASS:
-                Optional<GraphQLOutputType> maybeOutput = getGraphQLOutputType(type, annotations);
-                if (maybeOutput.isPresent()) {
-                    if (graphQLInstructions.markAsNonNull(type, name, annotations)) {
-                        return GraphQLNonNull.nonNull(maybeOutput.get());
-                    } else {
-                        return maybeOutput.get();
-                    }
-                } else {
-                    return getNoMappingScalarType(type);
-                }
-            case PRIMITIVE:
-                Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type, annotations);
-                if (maybeScalar.isPresent()) {
-                    return GraphQLNonNull.nonNull(maybeScalar.get());
-                } else {
-                    return getNoMappingScalarType(type);
-                }
-                // TODO: check the other kinds (Maps, Interface, Unions etc)    
-            default:
-                return getNoMappingScalarType(type);
-        }
-    }
-
-    private GraphQLInputType toGraphQLInputType(Type type, String name, Map<DotName, AnnotationInstance> annotations) {
+    private GraphQLInputType toGraphQLInputType(Type type, String name, AnnotationsHolder annotations) {
         // Type
         switch (type.kind()) {
             case ARRAY:
@@ -249,9 +206,9 @@ public class GraphQLSchemaInitializer {
                 Type typeInCollection = type.asParameterizedType().arguments().get(0);
                 return GraphQLList.list(toGraphQLInputType(typeInCollection, name, annotations));
             case CLASS:
-                Optional<GraphQLInputType> maybeInput = getGraphQLInputType(type, annotations);
+                Optional<GraphQLInputType> maybeInput = getGraphQLInputType(type);
                 if (maybeInput.isPresent()) {
-                    if (graphQLInstructions.markAsNonNull(type, name, annotations)) {
+                    if (nonNullHelper.markAsNonNull(type, annotations)) {
                         return GraphQLNonNull.nonNull(maybeInput.get());
                     } else {
                         return maybeInput.get();
@@ -260,7 +217,7 @@ public class GraphQLSchemaInitializer {
                     return getNoMappingScalarType(type);
                 }
             case PRIMITIVE:
-                Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type, annotations);
+                Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type);
                 if (maybeScalar.isPresent()) {
                     return GraphQLNonNull.nonNull(maybeScalar.get());
                 } else {
@@ -279,23 +236,8 @@ public class GraphQLSchemaInitializer {
         return Scalars.GraphQLString;
     }
 
-    private Optional<GraphQLOutputType> getGraphQLOutputType(Type type, Map<DotName, AnnotationInstance> annotations) {
-        Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type, annotations);
-        Optional<GraphQLEnumType> maybeEnum = toGraphQLEnumType(type);
-        Optional<GraphQLObjectType> maybeObject = toGraphQLObjectType(type);
-
-        if (maybeScalar.isPresent()) {
-            return Optional.of(maybeScalar.get());
-        } else if (maybeEnum.isPresent()) {
-            return Optional.of(maybeEnum.get());
-        } else if (maybeObject.isPresent()) {
-            return Optional.of(maybeObject.get());
-        }
-        return Optional.empty();
-    }
-
-    private Optional<GraphQLInputType> getGraphQLInputType(Type type, Map<DotName, AnnotationInstance> annotations) {
-        Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type, annotations);
+    private Optional<GraphQLInputType> getGraphQLInputType(Type type) {
+        Optional<GraphQLScalarType> maybeScalar = toGraphQLScalarType(type);
         Optional<GraphQLEnumType> maybeEnum = toGraphQLEnumType(type);
         Optional<GraphQLInputObjectType> maybeObject = toGraphQLInputObjectType(type);
 
@@ -309,7 +251,7 @@ public class GraphQLSchemaInitializer {
         return Optional.empty();
     }
 
-    private Optional<GraphQLScalarType> toGraphQLScalarType(Type type, Map<DotName, AnnotationInstance> annotations) {
+    private Optional<GraphQLScalarType> toGraphQLScalarType(Type type) {
         // ID - First check if the type is set with an annotation like @Id 
         // TODO: What if this annotation is not on a scalar ??
         if (hasIdAnnotation(type)) {
@@ -318,8 +260,8 @@ public class GraphQLSchemaInitializer {
 
         // Scalar - Else get the type from the mappings
         DotName dotName = type.name();
-        if (graphQLScalarTypeCreator.isScalarType(dotName)) {
-            return Optional.of(graphQLScalarTypeCreator.getGraphQLScalarType(dotName, annotations));
+        if (scalarMap.containsKey(dotName)) {
+            return Optional.of(scalarMap.get(dotName));
         }
 
         return Optional.empty();
@@ -333,18 +275,6 @@ public class GraphQLSchemaInitializer {
             if (Classes.isEnum(clazz)) {
                 GraphQLEnumType enumtype = enumMap.get(dotName);
                 return Optional.of(enumtype);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Optional<GraphQLObjectType> toGraphQLObjectType(Type type) {
-        DotName dotName = type.name();
-        if (outputObjectMap.containsKey(dotName)) {
-            ClassInfo clazz = index.getClassByName(dotName);
-            if (!Classes.isEnum(clazz)) {
-                GraphQLObjectType objectType = outputObjectMap.get(dotName);
-                return Optional.of(objectType);
             }
         }
         return Optional.empty();
@@ -372,40 +302,6 @@ public class GraphQLSchemaInitializer {
             }
         }
         return false;
-    }
-
-    // TODO: Need test cases for this
-    private String getName(AnnotationInstance annotation, Map<DotName, AnnotationInstance> otherAnnotations) {
-        if (annotation.value() != null && !annotation.value().asString().isEmpty()) {
-            // If the @Query or @Mutation annotation has a value, use that.
-            return annotation.value().asString();
-        } else if (containsKeyAndValidValue(otherAnnotations, Annotations.JSONB_PROPERTY)) {
-            // If there is a @JsonbProperty, use that.
-            return otherAnnotations.get(Annotations.JSONB_PROPERTY).value().asString();
-        } else {
-            // Else use the method name (TODO: Remove Get / Set / Is ?)
-            return annotation.target().asMethod().name();
-        }
-    }
-
-    private boolean containsKeyAndValidValue(Map<DotName, AnnotationInstance> annotations, DotName key) {
-        return annotations.containsKey(key) && annotations.get(key).value() != null;
-    }
-
-    private Optional<String> getDescription(MethodInfo methodInfo) {
-        // See if there is a @Description Annotation on the method
-        AnnotationInstance descriptionAnnotation = methodInfo.annotation(Annotations.DESCRIPTION);
-        return getDescription(descriptionAnnotation);
-    }
-
-    private Optional<String> getDescription(AnnotationInstance descriptionAnnotation) {
-        if (descriptionAnnotation != null) {
-            AnnotationValue value = descriptionAnnotation.value();
-            if (value != null) {
-                return Optional.of(value.asString());
-            }
-        }
-        return Optional.empty();
     }
 
     private static final String QUERY = "Query";

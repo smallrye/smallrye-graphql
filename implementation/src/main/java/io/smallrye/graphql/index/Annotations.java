@@ -1,19 +1,34 @@
+/*
+ * Copyright 2019 Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.smallrye.graphql.index;
 
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 
-import org.eclipse.microprofile.graphql.Argument;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Ignore;
-import org.eclipse.microprofile.graphql.InputField;
 import org.eclipse.microprofile.graphql.InputType;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.SchemaName;
 import org.eclipse.microprofile.graphql.Type;
 import org.jboss.jandex.DotName;
 
@@ -27,8 +42,6 @@ public interface Annotations {
     public static final DotName MUTATION = DotName.createSimple(Mutation.class.getName());
     public static final DotName INPUTTYPE = DotName.createSimple(InputType.class.getName());
     public static final DotName TYPE = DotName.createSimple(Type.class.getName());
-
-    public static final DotName INPUTFIELD = DotName.createSimple(InputField.class.getName());
 
     public static final DotName ID = DotName.createSimple(Id.class.getName());
     public static final DotName DESCRIPTION = DotName.createSimple(Description.class.getName());
@@ -45,5 +58,5 @@ public interface Annotations {
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
-    public static final DotName ARGUMENT = DotName.createSimple(Argument.class.getName());
+    public static final DotName SCHEMANAME = DotName.createSimple(SchemaName.class.getName());
 }

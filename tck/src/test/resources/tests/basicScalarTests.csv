@@ -1,4 +1,0 @@
-# Default Time Descriptions
-1|type ScalarHolder|#yyyy-MM-dd                 |Missing Default Date Format description on Output Type
-2|type ScalarHolder|#yyyy-MM-dd'T'HH:mm:ss'Z'   |Missing Default DateTime Format description on Output Type
-3|type ScalarHolder|#HH:mm:ss                   |Missing Default Time Format description on Output Type

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.scalar;
+package io.smallrye.graphql.type.scalar;
 
 import javax.enterprise.util.AnnotationLiteral;
 
