@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.type.scalar;
+package io.smallrye.graphql.schema.type.scalar;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

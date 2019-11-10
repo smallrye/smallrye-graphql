@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.type.scalar;
+package io.smallrye.graphql.schema.type.scalar;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import javax.inject.Qualifier;
+import java.lang.reflect.ParameterizedType;
 
 /**
- * Marks a class as a custom scalar definition
+ * Implementations of this interface can provider scalars
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * @param <T> This is the Type as represented in Java
+ * @param <R> This is the Return Type in the Schema
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface CustomScalarMarker {
+public interface CustomScalar<T, R> {
+    public String getName();
 
+    public String getDescription();
+
+    public R serialize(T fromObject);
+
+    public T deserialize(R fromScalar);
+
+    public default Class<T> forClass() {
+        return (Class<T>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+    }
 }

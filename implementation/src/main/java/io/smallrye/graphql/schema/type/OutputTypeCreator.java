@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.smallrye.graphql.type;
+package io.smallrye.graphql.schema.type;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,44 +31,52 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.logging.Logger;
+import org.jboss.jandex.Type;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
-import io.smallrye.graphql.helper.AnnotationsHelper;
-import io.smallrye.graphql.helper.DescriptionHelper;
-import io.smallrye.graphql.helper.IgnoreHelper;
-import io.smallrye.graphql.helper.NameHelper;
-import io.smallrye.graphql.helper.creator.OutputTypeCreator;
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.holder.TypeHolder;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLTypeReference;
+import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.helper.AnnotationsHelper;
+import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.NameHelper;
+import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
- * Create a Map of all output types.
- * This looks at all POJOs annotated with @Type
- * and then also all return types on @Queries and @Mutations.
- * 
- * It produces a map, that can be injected anywhere in the code:
- * - outputObjectMap - contains all object type used for requests.
+ * Create a graphql-java GraphQLOutputType
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class OutputTypeInitializer {
-    private static final Logger LOG = Logger.getLogger(OutputTypeInitializer.class.getName());
-
-    @Inject
-    private OutputTypeCreator outputTypeCreator;
-
-    @Inject
-    @Named("output")
-    private Map<DotName, TypeHolder> outputClasses;
+@Dependent
+public class OutputTypeCreator {
 
     @Produces
     private final Map<DotName, GraphQLObjectType> outputObjectMap = new HashMap<>();
 
     @Inject
+    private Map<DotName, GraphQLScalarType> scalarMap;
+
+    @Inject
+    private Map<DotName, GraphQLEnumType> enumMap;
+
+    @Inject
+    @Named("output")
+    private Map<DotName, TypeHolder> outputClasses;
+
+    @Inject
     private NameHelper nameHelper;
+
+    @Inject
+    private NonNullHelper nonNullHelper;
 
     @Inject
     private DescriptionHelper descriptionHelper;
@@ -80,11 +87,24 @@ public class OutputTypeInitializer {
     @Inject
     private AnnotationsHelper annotationsHelper;
 
+    public GraphQLOutputType createGraphQLOutputType(Type type, AnnotationsHolder annotations) {
+        if (nonNullHelper.markAsNonNull(type, annotations)) {
+            return GraphQLNonNull.nonNull(toGraphQLOutputType(type, annotations));
+        } else {
+            return toGraphQLOutputType(type, annotations);
+        }
+
+        // TODO: Deprecate
+        // fieldDefinitionBuilder.deprecate(description)
+
+        // TODO: Directives ?
+        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+    }
+
     @PostConstruct
-    void init() {
+    void createOutputObjectTypes() {
         for (Map.Entry<DotName, TypeHolder> e : outputClasses.entrySet()) {
             this.outputObjectMap.put(e.getKey(), createOutputObjectType(e.getValue()));
-            LOG.debug("adding [" + e.getKey() + "] to the output object list");
         }
     }
 
@@ -102,12 +122,12 @@ public class OutputTypeInitializer {
         }
 
         // Fields
-        objectTypeBuilder = objectTypeBuilder.fields(getGraphQLFieldDefinitions(classInfo, name));
+        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo));
 
         return objectTypeBuilder.build();
     }
 
-    private List<GraphQLFieldDefinition> getGraphQLFieldDefinitions(ClassInfo classInfo, String name) {
+    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo) {
         List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
         List<FieldInfo> fields = classInfo.fields();
 
@@ -131,7 +151,7 @@ public class OutputTypeInitializer {
 
                     // Type
                     builder = builder
-                            .type(outputTypeCreator.createGraphQLOutputType(field.type(), annotations));
+                            .type(createGraphQLOutputType(field.type(), annotations));
 
                     fieldDefinitions.add(builder.build());
 
@@ -139,6 +159,36 @@ public class OutputTypeInitializer {
             }
         }
         return fieldDefinitions;
+    }
+
+    private GraphQLOutputType toGraphQLOutputType(Type type, AnnotationsHolder annotations) {
+
+        DotName fieldTypeName = type.name();
+
+        if (annotations.containsOnOfTheseKeys(Annotations.ID)) {
+            // ID
+            return Scalars.GraphQLID;
+        } else if (scalarMap.containsKey(fieldTypeName)) {
+            // Scalar
+            return scalarMap.get(fieldTypeName);
+        } else if (enumMap.containsKey(fieldTypeName)) {
+            // Enum  
+            return enumMap.get(fieldTypeName);
+        } else if (type.kind().equals(Type.Kind.ARRAY)) {
+            // Array 
+            Type typeInArray = type.asArrayType().component();
+            return GraphQLList.list(toGraphQLOutputType(typeInArray, annotations));
+        } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            // Collections
+            Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            return GraphQLList.list(toGraphQLOutputType(typeInCollection, annotations));
+        } else if (outputClasses.containsKey(type.name())) {
+            String name = nameHelper.getOutputTypeName(outputClasses.get(type.name()));
+            return GraphQLTypeReference.typeRef(name);
+        } else {
+            // Maps ? Intefaces ? Generics ?
+            throw new RuntimeException("Don't know what to do with " + type);
+        }
     }
 
     private Optional<MethodInfo> getGetMethod(String forField, ClassInfo classInfo) {
@@ -155,5 +205,4 @@ public class OutputTypeInitializer {
 
     private static final String GET = "get";
     private static final String IS = "is";
-
 }

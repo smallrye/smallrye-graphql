@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.smallrye.graphql.type;
+package io.smallrye.graphql.schema.type;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,8 +32,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
+import graphql.Scalars;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -43,28 +42,26 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.helper.AnnotationsHelper;
-import io.smallrye.graphql.helper.DefaultValueHelper;
-import io.smallrye.graphql.helper.DescriptionHelper;
-import io.smallrye.graphql.helper.IgnoreHelper;
-import io.smallrye.graphql.helper.NameHelper;
-import io.smallrye.graphql.helper.NonNullHelper;
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.holder.TypeHolder;
+import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.helper.AnnotationsHelper;
+import io.smallrye.graphql.schema.helper.DefaultValueHelper;
+import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.NameHelper;
+import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
- * Create a Map of all input types.
- * This looks at all POJOs annotated with @InputType
- * and then also all arguments on @Queries and @Mutations.
- * 
- * It produces a map, that can be injected anywhere in the code:
- * - inputObjectMap - contains all object type used for requests.
+ * Create a graphql-java GraphQLInputType
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class InputObjectInitializer {
-    private static final Logger LOG = Logger.getLogger(InputObjectInitializer.class.getName());
+@Dependent
+public class InputTypeCreator {
+
+    @Produces
+    private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();
 
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
@@ -76,14 +73,14 @@ public class InputObjectInitializer {
     @Named("input")
     private Map<DotName, TypeHolder> inputClasses;
 
-    @Produces
-    private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();
-
     @Inject
     private NameHelper nameHelper;
 
     @Inject
     private DescriptionHelper descriptionHelper;
+
+    @Inject
+    private NonNullHelper nonNullHelper;
 
     @Inject
     private IgnoreHelper ignoreHelper;
@@ -94,14 +91,24 @@ public class InputObjectInitializer {
     @Inject
     private DefaultValueHelper defaultValueHelper;
 
-    @Inject
-    private NonNullHelper nonNullHelper;
+    public GraphQLInputType createGraphQLInputType(Type type, AnnotationsHolder annotations) {
+        if (nonNullHelper.markAsNonNull(type, annotations)) {
+            return GraphQLNonNull.nonNull(toGraphQLInputType(type, annotations));
+        } else {
+            return toGraphQLInputType(type, annotations);
+        }
+
+        // TODO: Deprecate
+        // fieldDefinitionBuilder.deprecate(description)
+
+        // TODO: Directives ?
+        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+    }
 
     @PostConstruct
     void init() {
         for (Map.Entry<DotName, TypeHolder> e : inputClasses.entrySet()) {
             this.inputObjectMap.put(e.getKey(), createInputObjectType(e.getValue()));
-            LOG.debug("adding [" + e.getKey() + "] to the input object list");
         }
     }
 
@@ -118,12 +125,12 @@ public class InputObjectInitializer {
         }
 
         // Fields
-        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(getGraphQLInputObjectField(classInfo, name));
+        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo));
 
         return inputObjectTypeBuilder.build();
     }
 
-    private List<GraphQLInputObjectField> getGraphQLInputObjectField(ClassInfo classInfo, String name) {
+    private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo) {
         List<GraphQLInputObjectField> inputObjectFields = new ArrayList<>();
         // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
@@ -134,51 +141,27 @@ public class InputObjectInitializer {
             if (maybeSetter.isPresent()) {
                 MethodInfo setter = maybeSetter.get();
                 // Annotations on the field and setter
-                AnnotationsHolder annotationsForThisField = annotationsHelper.getAnnotationsForField(field, setter);
-                if (!ignoreHelper.shouldIgnore(annotationsForThisField)) {
+                AnnotationsHolder annotations = annotationsHelper.getAnnotationsForField(field, setter);
+                if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
                     // Name
-                    builder = builder.name(nameHelper.getInputNameForField(annotationsForThisField, field));
+                    builder = builder.name(nameHelper.getInputNameForField(annotations, field));
 
                     // Description
-                    Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotationsForThisField, field);
+                    Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
                     if (maybeFieldDescription.isPresent()) {
                         builder = builder.description(maybeFieldDescription.get());
                     }
 
                     // Type
-                    Type type = field.type();
-                    DotName fieldTypeName = type.name();
-                    GraphQLInputType graphQLInputType;
-                    if (fieldTypeName.equals(classInfo.name())) {
-                        // Myself
-                        if (nonNullHelper.markAsNonNull(field.type(), annotationsForThisField)) {
-                            graphQLInputType = GraphQLNonNull.nonNull(GraphQLTypeReference.typeRef(name));
-                        } else {
-                            graphQLInputType = GraphQLTypeReference.typeRef(name);
-                        }
-                    } else {
-                        // Another type
-                        if (nonNullHelper.markAsNonNull(field.type(), annotationsForThisField)) {
-                            graphQLInputType = GraphQLNonNull.nonNull(toGraphQLInputType(type, annotationsForThisField));
-                        } else {
-                            graphQLInputType = toGraphQLInputType(type, annotationsForThisField);
-                        }
-                    }
-
-                    // TODO: Deprecate
-                    // fieldDefinitionBuilder.deprecate(description)
-
-                    // TODO: Directives ?
-                    // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
-
-                    builder = builder.type(graphQLInputType);
+                    builder = builder
+                            .type(createGraphQLInputType(field.type(), annotations));
 
                     // Default value (on method)
                     AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);
                     Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument,
-                            annotationsForThisField);
+                            annotations);
                     if (maybeDefaultValue.isPresent()) {
                         builder = builder.defaultValue(maybeDefaultValue.get());
                     }
@@ -193,9 +176,13 @@ public class InputObjectInitializer {
     }
 
     private GraphQLInputType toGraphQLInputType(Type type, AnnotationsHolder annotations) {
+
         DotName fieldTypeName = type.name();
 
-        if (scalarMap.containsKey(fieldTypeName)) {
+        if (annotations.containsOnOfTheseKeys(Annotations.ID)) {
+            // ID
+            return Scalars.GraphQLID;
+        } else if (scalarMap.containsKey(fieldTypeName)) {
             // Scalar
             return scalarMap.get(fieldTypeName);
         } else if (enumMap.containsKey(fieldTypeName)) {
@@ -207,14 +194,11 @@ public class InputObjectInitializer {
             return GraphQLList.list(toGraphQLInputType(typeInArray, annotations));
         } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Collections
-            // TODO: Check if there is more than one type in the Collection, throw an exception ?
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
             return GraphQLList.list(toGraphQLInputType(typeInCollection, annotations));
         } else if (inputClasses.containsKey(type.name())) {
-            // Reference to some type
             String name = nameHelper.getInputTypeName(inputClasses.get(type.name()));
-            GraphQLTypeReference graphQLTypeReference = GraphQLTypeReference.typeRef(name);
-            return graphQLTypeReference;
+            return GraphQLTypeReference.typeRef(name);
         } else {
             // Maps ? Intefaces ? Generics ?
             throw new RuntimeException("Don't know what to do with " + type);
@@ -233,5 +217,4 @@ public class InputObjectInitializer {
     }
 
     private static final String SET = "set";
-
 }

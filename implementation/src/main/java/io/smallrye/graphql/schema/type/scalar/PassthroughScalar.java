@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.type.scalar;
+package io.smallrye.graphql.schema.type.scalar;
 
 import graphql.language.StringValue;
 import graphql.schema.Coercing;

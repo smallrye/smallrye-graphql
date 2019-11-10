@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.type;
+package io.smallrye.graphql.schema;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,9 +34,9 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLEnumType;
-import io.smallrye.graphql.helper.DescriptionHelper;
-import io.smallrye.graphql.helper.NameHelper;
-import io.smallrye.graphql.holder.TypeHolder;
+import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.NameHelper;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
  * Create a map of all Enums.
@@ -47,8 +47,8 @@ import io.smallrye.graphql.holder.TypeHolder;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class EnumMappingInitializer {
-    private static final Logger LOG = Logger.getLogger(EnumMappingInitializer.class.getName());
+public class EnumTypeInitializer {
+    private static final Logger LOG = Logger.getLogger(EnumTypeInitializer.class.getName());
 
     @Inject
     @Named("enum")
@@ -65,7 +65,6 @@ public class EnumMappingInitializer {
 
     @PostConstruct
     void init() {
-        // TODO: Can a enum be named different between in- and output ?
         for (Map.Entry<DotName, TypeHolder> e : enums.entrySet()) {
             this.enumMap.put(e.getKey(), createEnumType(e.getValue()));
             LOG.debug("adding [" + e.getKey() + "] to the enums list");

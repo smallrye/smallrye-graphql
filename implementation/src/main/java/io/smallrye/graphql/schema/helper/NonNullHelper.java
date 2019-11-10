@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.helper;
 
 import javax.enterprise.context.Dependent;
 
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
 import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
  * Helping to figure out of some should be marked as Non null

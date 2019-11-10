@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.helper;
 
 import java.util.Optional;
 
@@ -23,10 +23,10 @@ import javax.enterprise.context.Dependent;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.holder.TypeHolder;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
  * Helper to get the correct Description.

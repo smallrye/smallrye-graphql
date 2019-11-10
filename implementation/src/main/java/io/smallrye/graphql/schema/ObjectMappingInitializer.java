@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.type.object;
+package io.smallrye.graphql.schema;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,11 +37,11 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.helper.AnnotationsHelper;
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.holder.TypeHolder;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.index.Classes;
+import io.smallrye.graphql.schema.helper.AnnotationsHelper;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
  * Create some Maps of all the relevant Objects.

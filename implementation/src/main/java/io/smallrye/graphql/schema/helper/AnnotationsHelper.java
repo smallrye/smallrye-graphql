@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.helper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
  * Getting all the annotations for something.

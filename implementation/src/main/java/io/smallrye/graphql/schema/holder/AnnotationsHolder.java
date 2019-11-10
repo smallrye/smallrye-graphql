@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.holder;
+package io.smallrye.graphql.schema.holder;
 
 import java.util.Map;
 

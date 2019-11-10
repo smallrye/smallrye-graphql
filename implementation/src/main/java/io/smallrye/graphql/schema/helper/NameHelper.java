@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.helper;
 
 import javax.enterprise.context.Dependent;
 
@@ -22,9 +22,9 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.FieldInfo;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.holder.TypeHolder;
 import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
  * Helping with Name of types in the schema
@@ -35,7 +35,11 @@ import io.smallrye.graphql.index.Annotations;
 public class NameHelper {
 
     public String getEnumName(TypeHolder typeHolder) {
-        return getOutputTypeName(typeHolder);
+        AnnotationsHolder annotations = typeHolder.getAnnotations();
+        if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotations.getAnnotation(Annotations.NAME).value().asString();
+        }
+        return typeHolder.getClassInfo().name().local();
     }
 
     public String getOutputTypeName(TypeHolder typeHolder) {
@@ -43,6 +47,8 @@ public class NameHelper {
         if (annotations.containsKeyAndValidValue(Annotations.TYPE)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TYPE);
             return annotationValue.asString();
+        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
         // TODO: Do we support any other annotations ?
         return typeHolder.getClassInfo().name().local();
@@ -53,14 +59,16 @@ public class NameHelper {
         if (annotations.containsKeyAndValidValue(Annotations.INPUTTYPE)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUTTYPE);
             return annotationValue.asString();
+        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
         // TODO: Do we support any other annotations ?
         return typeHolder.getClassInfo().name().local() + "Input";
     }
 
     public String getInputNameForField(AnnotationsHolder annotationsForThisField, FieldInfo field) {
-        if (annotationsForThisField.containsKeyAndValidValue(Annotations.SCHEMANAME)) {
-            return annotationsForThisField.getAnnotation(Annotations.SCHEMANAME).value().asString();
+        if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
         }
@@ -68,18 +76,20 @@ public class NameHelper {
     }
 
     public String getOutputNameForField(AnnotationsHolder annotationsForThisField, FieldInfo field) {
-        if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
-            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
+        if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
             return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString();
+        } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
+            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
         }
 
         return field.name();
     }
 
     public String getArgumentName(AnnotationsHolder annotations, short argCount) {
-        if (annotations.containsKeyAndValidValue(Annotations.SCHEMANAME)) {
-            return annotations.getAnnotationValue(Annotations.SCHEMANAME).asString();
+        if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotations.getAnnotationValue(Annotations.NAME).asString();
         }
         return "arg" + argCount;
     }
@@ -88,8 +98,8 @@ public class NameHelper {
         if (annotation.value() != null && !annotation.value().asString().isEmpty()) {
             // If the @Query or @Mutation annotation has a value, use that.
             return annotation.value().asString();
-        } else if (otherAnnotations.containsKeyAndValidValue(Annotations.SCHEMANAME)) {
-            return otherAnnotations.getAnnotation(Annotations.SCHEMANAME).value().asString();
+        } else if (otherAnnotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return otherAnnotations.getAnnotation(Annotations.NAME).value().asString();
         } else if (otherAnnotations.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return otherAnnotations.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
         } else {

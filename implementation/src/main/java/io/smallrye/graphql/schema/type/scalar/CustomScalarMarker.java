@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.type.scalar;
 
-import javax.enterprise.context.Dependent;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
-import io.smallrye.graphql.index.Annotations;
+import javax.inject.Qualifier;
 
 /**
- * Helping to figure out if we should ignore a field.
- * Looking for the @Ignore and other relevant annotations.
+ * Marks a class as a custom scalar definition
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
-public class IgnoreHelper {
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+public @interface CustomScalarMarker {
 
-    public boolean shouldIgnore(AnnotationsHolder annotations) {
-        return annotations.containsOnOfTheseKeys(Annotations.IGNORE,
-                Annotations.JSONB_TRANSIENT);
-    }
 }

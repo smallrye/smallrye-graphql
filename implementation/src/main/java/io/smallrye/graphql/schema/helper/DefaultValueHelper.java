@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.helper;
+package io.smallrye.graphql.schema.helper;
 
 import java.util.Optional;
 
 import javax.enterprise.context.Dependent;
 
-import io.smallrye.graphql.holder.AnnotationsHolder;
 import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
  * Helping to figure out if there is a default value.

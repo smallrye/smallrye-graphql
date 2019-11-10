@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.type.scalar;
+package io.smallrye.graphql.schema.helper;
 
-import java.lang.reflect.ParameterizedType;
+import javax.enterprise.context.Dependent;
+
+import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
- * Implementations of this interface can provider scalars
+ * Helping to figure out if we should ignore a field.
+ * Looking for the @Ignore and other relevant annotations.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
- * @param <T> This is the Type as represented in Java
- * @param <R> This is the Return Type in the Schema
  */
-public interface CustomScalar<T, R> {
-    public String getName();
+@Dependent
+public class IgnoreHelper {
 
-    public String getDescription();
-
-    public R serialize(T fromObject);
-
-    public T deserialize(R fromScalar);
-
-    public default Class<T> forClass() {
-        return (Class<T>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+    public boolean shouldIgnore(AnnotationsHolder annotations) {
+        return annotations.containsOnOfTheseKeys(Annotations.IGNORE,
+                Annotations.JSONB_TRANSIENT);
     }
 }
