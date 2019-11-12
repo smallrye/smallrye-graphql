@@ -19,7 +19,7 @@
         <version.eclipse.microprofile.config>1.3</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.0-SNAPSHOT</version.eclipse.microprofile.graphql>
         <version.jboss.servlet>1.0.2.Final</version.jboss.servlet>
-        <version.smallrye-config>1.3.9</version.smallrye-config>
+        <version.smallrye-config>1.4.0</version.smallrye-config>
     </properties>
 
     <licenses>
