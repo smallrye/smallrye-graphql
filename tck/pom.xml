@@ -65,14 +65,6 @@
             <artifactId>smallrye-graphql</artifactId>
         </dependency>
 
-        <!-- We test using Servlet -->
-        <dependency>
-            <groupId>com.graphql-java-kickstart</groupId>
-            <artifactId>graphql-java-servlet</artifactId>
-            <version>8.0.0</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-tck</artifactId>

@@ -31,8 +31,11 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
+import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
@@ -40,6 +43,7 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import io.smallrye.graphql.execution.ReflectionDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
@@ -59,7 +63,8 @@ import io.smallrye.graphql.schema.type.OutputTypeCreator;
  */
 @ApplicationScoped
 public class GraphQLSchemaInitializer {
-    
+    private static final Logger LOG = Logger.getLogger(GraphQLSchemaInitializer.class.getName());
+
     @Inject
     private Index index;
 
@@ -98,6 +103,9 @@ public class GraphQLSchemaInitializer {
     @Inject
     private DescriptionHelper descriptionHelper;
 
+    @Inject
+    private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+
     public GraphQLSchema createGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
@@ -112,6 +120,8 @@ public class GraphQLSchemaInitializer {
         schemaBuilder.query(allQueries);
         schemaBuilder.mutation(allMutations);
 
+        schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+
         return schemaBuilder.build();
     }
 
@@ -123,7 +133,6 @@ public class GraphQLSchemaInitializer {
         for (AnnotationInstance graphQLAnnotation : graphQLAnnotations) {
             switch (graphQLAnnotation.target().kind()) {
                 case METHOD:
-
                     MethodInfo methodInfo = graphQLAnnotation.target().asMethod();
 
                     // Annotations on this method
@@ -134,8 +143,8 @@ public class GraphQLSchemaInitializer {
                     // Fields
                     GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
                     // Name // TODO: Need test cases for this
-                    builder = builder
-                            .name(nameHelper.getExecutionTypeName(graphQLAnnotation, annotations));
+                    String fieldName = nameHelper.getExecutionTypeName(graphQLAnnotation, annotations);
+                    builder = builder.name(fieldName);
 
                     // Description
                     Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
@@ -156,6 +165,12 @@ public class GraphQLSchemaInitializer {
                     }
 
                     queryTypeBuilder = queryTypeBuilder.field(builder.build());
+
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                            new ReflectionDataFetcher(methodInfo));
+                    //        new LambdaMetafactoryDataFetcher(methodInfo));
+                    //                    PropertyDataFetcher.fetching(methodInfo.name()));
+
                     break;
             }
         }

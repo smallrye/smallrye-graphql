@@ -87,6 +87,9 @@ public class OutputTypeCreator {
     @Inject
     private AnnotationsHelper annotationsHelper;
 
+    //@Inject
+    //private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+
     public GraphQLOutputType createGraphQLOutputType(Type type, AnnotationsHolder annotations) {
         if (nonNullHelper.markAsNonNull(type, annotations)) {
             return GraphQLNonNull.nonNull(toGraphQLOutputType(type, annotations));
@@ -122,12 +125,12 @@ public class OutputTypeCreator {
         }
 
         // Fields
-        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo));
+        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
 
         return objectTypeBuilder.build();
     }
 
-    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo) {
+    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo, String name) {
         List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
         List<FieldInfo> fields = classInfo.fields();
 
@@ -142,7 +145,8 @@ public class OutputTypeCreator {
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
                     // Name
-                    builder = builder.name(nameHelper.getOutputNameForField(annotations, field));
+                    String fieldName = nameHelper.getOutputNameForField(annotations, field);
+                    builder = builder.name(fieldName);
                     // Description
                     Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
                     if (maybeFieldDescription.isPresent()) {
@@ -152,6 +156,10 @@ public class OutputTypeCreator {
                     // Type
                     builder = builder
                             .type(createGraphQLOutputType(field.type(), annotations));
+
+                    //codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                    //new LambdaMetafactoryDataFetcher(methodInfo));
+                    //        PropertyDataFetcher.fetching(getter.name()));
 
                     fieldDefinitions.add(builder.build());
 
