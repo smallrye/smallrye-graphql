@@ -44,7 +44,7 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, AnnotationsHolder annotations) {
         super(propertyName);
         this.type = type;
-        
+
         if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
             if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
                 String format = annotations.getAnnotationValue(Annotations.JSONB_DATE_FORMAT).asString();

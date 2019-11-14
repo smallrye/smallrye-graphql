@@ -19,7 +19,9 @@ package io.smallrye.graphql.schema.helper;
 import javax.enterprise.context.Dependent;
 
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 
 import io.smallrye.graphql.index.Annotations;
@@ -98,13 +100,31 @@ public class NameHelper {
         if (annotation.value() != null && !annotation.value().asString().isEmpty()) {
             // If the @Query or @Mutation annotation has a value, use that.
             return annotation.value().asString();
-        } else if (otherAnnotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return otherAnnotations.getAnnotation(Annotations.NAME).value().asString();
-        } else if (otherAnnotations.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
-            return otherAnnotations.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
-        } else {
-            // Else use the method name (TODO: Remove Get / Set / Is ?)
-            return annotation.target().asMethod().name();
+        } else if (hasValidExecutionTypeAnnotation(Annotations.NAME, otherAnnotations)) {
+            return getValueAsString(Annotations.NAME, otherAnnotations);
+        } else if (hasValidExecutionTypeAnnotation(Annotations.JSONB_PROPERTY, otherAnnotations)) {
+            return getValueAsString(Annotations.JSONB_PROPERTY, otherAnnotations);
         }
+        // Else use the method name (TODO: Remove Get / Set / Is ?)
+        return annotation.target().asMethod().name();
+
+    }
+
+    private boolean hasValidExecutionTypeAnnotation(DotName annotation, AnnotationsHolder otherAnnotations) {
+        if (otherAnnotations.containsKeyAndValidValue(annotation)) {
+            AnnotationInstance annotationInstance = otherAnnotations.getAnnotation(annotation);
+            if (isMethodAnnotation(annotationInstance)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getValueAsString(DotName annotation, AnnotationsHolder otherAnnotations) {
+        return otherAnnotations.getAnnotation(annotation).value().asString();
+    }
+
+    private boolean isMethodAnnotation(AnnotationInstance instance) {
+        return instance.target().kind().equals(AnnotationTarget.Kind.METHOD);
     }
 }

@@ -16,6 +16,7 @@
 
 package io.smallrye.graphql.schema;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +130,7 @@ public class GraphQLSchemaInitializer {
         List<AnnotationInstance> graphQLAnnotations = this.index.getAnnotations(annotationToScan);
 
         GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject().name(name).description(description);
-
+        // TODO: Take GraphQLApi into account
         for (AnnotationInstance graphQLAnnotation : graphQLAnnotations) {
             switch (graphQLAnnotation.target().kind()) {
                 case METHOD:
@@ -156,13 +157,7 @@ public class GraphQLSchemaInitializer {
                             .type(outputTypeCreator.createGraphQLOutputType(returnType, annotations));
 
                     // Arguments (input)
-                    List<Type> parameters = methodInfo.parameters();
-
-                    short cnt = 0;
-                    for (Type parameter : parameters) {
-                        builder.argument(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
-                        cnt++;
-                    }
+                    builder.arguments(toGraphQLArguments(methodInfo, annotations));
 
                     queryTypeBuilder = queryTypeBuilder.field(builder.build());
 
@@ -176,6 +171,17 @@ public class GraphQLSchemaInitializer {
         }
 
         return queryTypeBuilder.build();
+    }
+
+    private List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations) {
+        List<Type> parameters = methodInfo.parameters();
+        List<GraphQLArgument> r = new ArrayList<>();
+        short cnt = 0;
+        for (Type parameter : parameters) {
+            r.add(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
+            cnt++;
+        }
+        return r;
     }
 
     private GraphQLArgument toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
