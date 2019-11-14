@@ -61,7 +61,9 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
 
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+        this.graphQL = GraphQL
+                .newGraphQL(graphQLSchema)
+                .build();
 
     }
 
@@ -80,6 +82,7 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(query)
+
                 //.operationName(graphQLRequest.getOperationName())
                 //.context(context)
                 //.root(root)
@@ -90,13 +93,14 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
 
         ExecutionResult executionResult = this.graphQL.execute(executionInput);
 
-        //Map<String, Object> toSpecificationResult = executionResult.toSpecification();
+        //        Map<String, Object> specificationResult = executionResult.toSpecification();
 
         LOG.error("\n\n\n");
-        Object data = executionResult.getData();
+        Object pojo = executionResult.getData();
+        LOG.error(pojo);
 
         JsonObject outputJson = Json.createObjectBuilder()
-                .add("data", getJsonObject(data))
+                .add("data", getJsonObject(pojo))
                 .build();
 
         PrintWriter out = response.getWriter();

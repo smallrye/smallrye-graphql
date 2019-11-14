@@ -34,6 +34,8 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import graphql.Scalars;
+import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
@@ -42,6 +44,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
+import io.smallrye.graphql.execution.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -87,8 +90,8 @@ public class OutputTypeCreator {
     @Inject
     private AnnotationsHelper annotationsHelper;
 
-    //@Inject
-    //private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+    @Inject
+    private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
     public GraphQLOutputType createGraphQLOutputType(Type type, AnnotationsHolder annotations) {
         if (nonNullHelper.markAsNonNull(type, annotations)) {
@@ -157,9 +160,8 @@ public class OutputTypeCreator {
                     builder = builder
                             .type(createGraphQLOutputType(field.type(), annotations));
 
-                    //codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
-                    //new LambdaMetafactoryDataFetcher(methodInfo));
-                    //        PropertyDataFetcher.fetching(getter.name()));
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                            new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     fieldDefinitions.add(builder.build());
 

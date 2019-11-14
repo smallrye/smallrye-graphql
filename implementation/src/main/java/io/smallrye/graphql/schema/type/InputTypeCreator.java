@@ -34,6 +34,8 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import graphql.Scalars;
+import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -42,6 +44,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
+import io.smallrye.graphql.execution.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
@@ -91,6 +94,9 @@ public class InputTypeCreator {
     @Inject
     private DefaultValueHelper defaultValueHelper;
 
+    @Inject
+    private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+
     public GraphQLInputType createGraphQLInputType(Type type, AnnotationsHolder annotations) {
         if (nonNullHelper.markAsNonNull(type, annotations)) {
             return GraphQLNonNull.nonNull(toGraphQLInputType(type, annotations));
@@ -125,12 +131,12 @@ public class InputTypeCreator {
         }
 
         // Fields
-        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo));
+        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
 
         return inputObjectTypeBuilder.build();
     }
 
-    private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo) {
+    private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo, String name) {
         List<GraphQLInputObjectField> inputObjectFields = new ArrayList<>();
         // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
@@ -146,7 +152,8 @@ public class InputTypeCreator {
                     GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
                     // Name
-                    builder = builder.name(nameHelper.getInputNameForField(annotations, field));
+                    String fieldName = nameHelper.getInputNameForField(annotations, field);
+                    builder = builder.name(fieldName);
 
                     // Description
                     Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
@@ -157,6 +164,9 @@ public class InputTypeCreator {
                     // Type
                     builder = builder
                             .type(createGraphQLInputType(field.type(), annotations));
+
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                            new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     // Default value (on method)
                     AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);

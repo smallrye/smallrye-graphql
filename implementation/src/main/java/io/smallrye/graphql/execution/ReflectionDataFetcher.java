@@ -79,7 +79,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             clazz = classLoader.loadClass(className);
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException("COULD NOT FIND " + className, ex);
+            throw new RuntimeException("Could not find class [" + className + "]", ex);
         }
         return clazz;
     }
@@ -112,26 +112,25 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Class getPrimativeClassType(String primativeName) {
-        if (primativeName.equals("boolean")) {
-            return boolean.class;
-        } else if (primativeName.equals("byte")) {
-            return byte.class;
-        } else if (primativeName.equals("char")) {
-            return char.class;
-        } else if (primativeName.equals("short")) {
-            return short.class;
-        } else if (primativeName.equals("int")) {
-            return int.class;
-        } else if (primativeName.equals("long")) {
-            return long.class;
-        } else if (primativeName.equals("float")) {
-            return float.class;
-        } else if (primativeName.equals("double")) {
-            return double.class;
-        } else {
-            throw new RuntimeException("Unknown primative type [" + primativeName + "]");
+        switch (primativeName) {
+            case "boolean":
+                return boolean.class;
+            case "byte":
+                return byte.class;
+            case "char":
+                return char.class;
+            case "short":
+                return short.class;
+            case "int":
+                return int.class;
+            case "long":
+                return long.class;
+            case "float":
+                return float.class;
+            case "double":
+                return double.class;
+            default:
+                throw new RuntimeException("Unknown primative type [" + primativeName + "]");
         }
-
     }
-
 }
