@@ -30,6 +30,7 @@ import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
  * Extending the default property data fetcher and take the annotations into account
+ * TODO: Make a general annotation for marshaling/unmarshaling
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

@@ -105,10 +105,38 @@ public class NameHelper {
         } else if (hasValidExecutionTypeAnnotation(Annotations.JSONB_PROPERTY, otherAnnotations)) {
             return getValueAsString(Annotations.JSONB_PROPERTY, otherAnnotations);
         }
-        // Else use the method name (TODO: Remove Get / Set / Is ?)
-        return annotation.target().asMethod().name();
+        // Else use the method name
+        return getDefaultExecutionTypeName(annotation);
 
     }
+
+    private String getDefaultExecutionTypeName(AnnotationInstance annotation) {
+        String methodName = annotation.target().asMethod().name();
+        // TODO: Also check that the word start with a capital ?
+        if (annotation.name().equals(Annotations.QUERY)) {
+            if (methodName.startsWith(GET) && methodName.length() > 3) {
+                methodName = removeAndLowerCase(methodName, 3);
+            } else if (methodName.startsWith(IS) && methodName.length() > 2) {
+                methodName = removeAndLowerCase(methodName, 2);
+            }
+        } else if (annotation.name().equals(Annotations.MUTATION)) {
+            if (methodName.startsWith(SET) && methodName.length() > 3) {
+                methodName = removeAndLowerCase(methodName, 3);
+            }
+        }
+
+        return methodName;
+
+    }
+
+    private String removeAndLowerCase(String original, int pre) {
+        original = original.substring(pre);
+        return original.substring(0, 1).toLowerCase() + original.substring(1);
+    }
+
+    private static final String GET = "get";
+    private static final String IS = "is";
+    private static final String SET = "set";
 
     private boolean hasValidExecutionTypeAnnotation(DotName annotation, AnnotationsHolder otherAnnotations) {
         if (otherAnnotations.containsKeyAndValidValue(annotation)) {
@@ -127,4 +155,5 @@ public class NameHelper {
     private boolean isMethodAnnotation(AnnotationInstance instance) {
         return instance.target().kind().equals(AnnotationTarget.Kind.METHOD);
     }
+
 }
