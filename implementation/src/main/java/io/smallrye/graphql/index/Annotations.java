@@ -24,7 +24,7 @@ import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Ignore;
-import org.eclipse.microprofile.graphql.InputType;
+import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -40,8 +40,9 @@ import org.jboss.jandex.DotName;
 public interface Annotations {
     public static final DotName QUERY = DotName.createSimple(Query.class.getName());
     public static final DotName MUTATION = DotName.createSimple(Mutation.class.getName());
-    public static final DotName INPUTTYPE = DotName.createSimple(InputType.class.getName());
+    public static final DotName INPUT = DotName.createSimple(Input.class.getName());
     public static final DotName TYPE = DotName.createSimple(Type.class.getName());
+    public static final DotName ENUM = DotName.createSimple(org.eclipse.microprofile.graphql.Enum.class.getName());
 
     public static final DotName ID = DotName.createSimple(Id.class.getName());
     public static final DotName DESCRIPTION = DotName.createSimple(Description.class.getName());

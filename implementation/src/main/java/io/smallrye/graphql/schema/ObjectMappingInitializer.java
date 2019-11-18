@@ -85,7 +85,7 @@ public class ObjectMappingInitializer {
     void init() {
         // Traverse all the types and create referenced types
         scanClassLevelAnnotations(Direction.OUT, Annotations.TYPE);
-        scanClassLevelAnnotations(Direction.IN, Annotations.INPUTTYPE);
+        scanClassLevelAnnotations(Direction.IN, Annotations.INPUT);
         scanMethodLevelAnnotations(Annotations.QUERY);
         scanMethodLevelAnnotations(Annotations.MUTATION);
     }

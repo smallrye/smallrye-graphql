@@ -38,7 +38,10 @@ public class NameHelper {
 
     public String getEnumName(TypeHolder typeHolder) {
         AnnotationsHolder annotations = typeHolder.getAnnotations();
-        if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+        if (annotations.containsKeyAndValidValue(Annotations.ENUM)) {
+            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ENUM);
+            return annotationValue.asString();
+        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
         return typeHolder.getClassInfo().name().local();
@@ -52,19 +55,17 @@ public class NameHelper {
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        // TODO: Do we support any other annotations ?
         return typeHolder.getClassInfo().name().local();
     }
 
     public String getInputTypeName(TypeHolder typeHolder) {
         AnnotationsHolder annotations = typeHolder.getAnnotations();
-        if (annotations.containsKeyAndValidValue(Annotations.INPUTTYPE)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUTTYPE);
+        if (annotations.containsKeyAndValidValue(Annotations.INPUT)) {
+            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUT);
             return annotationValue.asString();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        // TODO: Do we support any other annotations ?
         return typeHolder.getClassInfo().name().local() + "Input";
     }
 
