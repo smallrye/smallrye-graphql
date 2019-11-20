@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.schema;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,29 +34,25 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.FieldCoordinates;
-import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import io.smallrye.graphql.execution.ReflectionDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
-import io.smallrye.graphql.schema.helper.DefaultValueHelper;
+import io.smallrye.graphql.schema.helper.ArgumentsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
-import io.smallrye.graphql.schema.type.InputTypeCreator;
 import io.smallrye.graphql.schema.type.OutputTypeCreator;
 
 /**
  * Creates the GraphQL Schema
  * TODO: Check that class is annotated with GraphQLApi ?
- * TODO: Check duplication with TypeMappingInitializer
  * TODO: Exceptions
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
@@ -71,9 +66,6 @@ public class GraphQLSchemaInitializer {
 
     @Inject
     private OutputTypeCreator outputTypeCreator;
-
-    @Inject
-    private InputTypeCreator inputTypeCreator;
 
     @Inject
     private Map<DotName, GraphQLInputObjectType> inputObjectMap;
@@ -96,7 +88,7 @@ public class GraphQLSchemaInitializer {
     private AnnotationsHelper annotationsHelper;
 
     @Inject
-    private DefaultValueHelper defaultValueHelper;
+    private ArgumentsHelper argumentsHelper;
 
     @Inject
     private NameHelper nameHelper;
@@ -126,6 +118,8 @@ public class GraphQLSchemaInitializer {
         return schemaBuilder.build();
     }
 
+    // TODO: Only scan @GraphQLAPI
+
     private GraphQLObjectType createGraphQLObjectType(DotName annotationToScan, String name, String description) {
         List<AnnotationInstance> graphQLAnnotations = this.index.getAnnotations(annotationToScan);
 
@@ -149,19 +143,20 @@ public class GraphQLSchemaInitializer {
 
                     // Description
                     Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
-                    if (maybeDescription.isPresent()) {
-                        builder = builder.description(maybeDescription.get());
-                    }
+                    builder = builder.description(maybeDescription.orElse(null));
+
                     // Type (output)
                     builder = builder
                             .type(outputTypeCreator.createGraphQLOutputType(returnType, annotations));
 
                     // Arguments (input)
-                    builder.arguments(toGraphQLArguments(methodInfo, annotations));
+                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
 
-                    queryTypeBuilder = queryTypeBuilder.field(builder.build());
+                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                    queryTypeBuilder = queryTypeBuilder.field(graphQLFieldDefinition);
+
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodInfo));
                     //        new LambdaMetafactoryDataFetcher(methodInfo));
                     //                    PropertyDataFetcher.fetching(methodInfo.name()));
@@ -171,35 +166,6 @@ public class GraphQLSchemaInitializer {
         }
 
         return queryTypeBuilder.build();
-    }
-
-    private List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations) {
-        List<Type> parameters = methodInfo.parameters();
-        List<GraphQLArgument> r = new ArrayList<>();
-        short cnt = 0;
-        for (Type parameter : parameters) {
-            r.add(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
-            cnt++;
-        }
-        return r;
-    }
-
-    private GraphQLArgument toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
-            AnnotationsHolder annotations) {
-        AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
-
-        String argName = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
-        GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotations);
-
-        GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
-        argumentBuilder = argumentBuilder.name(argName);
-        argumentBuilder = argumentBuilder.type(inputType);
-        Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument);
-        if (maybeDefaultValue.isPresent()) {
-            argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.get());
-        }
-
-        return argumentBuilder.build();
     }
 
     private static final String QUERY = "Query";

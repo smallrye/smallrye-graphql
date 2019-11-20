@@ -53,7 +53,10 @@ public class DescriptionHelper {
     }
 
     public Optional<String> getDescription(AnnotationsHolder annotationsHolder, FieldInfo field) {
-        Type type = field.type();
+        return getDescription(annotationsHolder, field.type());
+    }
+
+    public Optional<String> getDescription(AnnotationsHolder annotationsHolder, Type type) {
         if (annotationsHolder.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
             return Optional.of(annotationsHolder.getAnnotation(Annotations.DESCRIPTION).value().asString());
         } else if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {

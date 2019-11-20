@@ -78,7 +78,7 @@ public class NameHelper {
         return field.name();
     }
 
-    public String getOutputNameForField(AnnotationsHolder annotationsForThisField, FieldInfo field) {
+    public String getOutputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
@@ -87,7 +87,7 @@ public class NameHelper {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
         }
 
-        return field.name();
+        return fieldName;
     }
 
     public String getArgumentName(AnnotationsHolder annotations, short argCount) {

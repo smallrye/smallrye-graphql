@@ -126,9 +126,7 @@ public class InputTypeCreator {
 
         // Description
         Optional<String> maybeDescription = descriptionHelper.getDescription(typeHolder);
-        if (maybeDescription.isPresent()) {
-            inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.get());
-        }
+        inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.orElse(null));
 
         // Fields
         inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
@@ -157,9 +155,7 @@ public class InputTypeCreator {
 
                     // Description
                     Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
-                    if (maybeFieldDescription.isPresent()) {
-                        builder = builder.description(maybeFieldDescription.get());
-                    }
+                    builder = builder.description(maybeFieldDescription.orElse(null));
 
                     // Type
                     builder = builder
@@ -172,9 +168,7 @@ public class InputTypeCreator {
                     AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);
                     Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument,
                             annotations);
-                    if (maybeDefaultValue.isPresent()) {
-                        builder = builder.defaultValue(maybeDefaultValue.get());
-                    }
+                    builder = builder.defaultValue(maybeDefaultValue.orElse(null));
 
                     inputObjectFields.add(builder.build());
                 }

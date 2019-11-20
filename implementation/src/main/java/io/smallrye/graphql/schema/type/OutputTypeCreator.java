@@ -31,7 +31,9 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
@@ -45,8 +47,10 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.AnnotatedPropertyDataFetcher;
+import io.smallrye.graphql.execution.ReflectionDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
+import io.smallrye.graphql.schema.helper.ArgumentsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
@@ -61,6 +65,7 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
  */
 @Dependent
 public class OutputTypeCreator {
+    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     @Produces
     private final Map<DotName, GraphQLObjectType> outputObjectMap = new HashMap<>();
@@ -91,7 +96,13 @@ public class OutputTypeCreator {
     private AnnotationsHelper annotationsHelper;
 
     @Inject
+    private ArgumentsHelper argumentsHelper;
+
+    @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+
+    @Inject
+    private Map<DotName, List<MethodParameterInfo>> sourceFields;
 
     public GraphQLOutputType createGraphQLOutputType(Type type, AnnotationsHolder annotations) {
         if (nonNullHelper.markAsNonNull(type, annotations)) {
@@ -123,9 +134,7 @@ public class OutputTypeCreator {
 
         // Description
         Optional<String> maybeDescription = descriptionHelper.getDescription(typeHolder);
-        if (maybeDescription.isPresent()) {
-            objectTypeBuilder = objectTypeBuilder.description(maybeDescription.get());
-        }
+        objectTypeBuilder = objectTypeBuilder.description(maybeDescription.orElse(null));
 
         // Fields
         objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
@@ -146,29 +155,64 @@ public class OutputTypeCreator {
                 AnnotationsHolder annotations = annotationsHelper.getAnnotationsForField(field, getter);
 
                 if (!ignoreHelper.shouldIgnore(annotations)) {
-                    GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
-                    // Name
-                    String fieldName = nameHelper.getOutputNameForField(annotations, field);
-                    builder = builder.name(fieldName);
-                    // Description
-                    Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
-                    if (maybeFieldDescription.isPresent()) {
-                        builder = builder.description(maybeFieldDescription.get());
-                    }
+                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, field.name(),
+                            field.type());
 
-                    // Type
-                    builder = builder
-                            .type(createGraphQLOutputType(field.type(), annotations));
+                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
-                    fieldDefinitions.add(builder.build());
+                    fieldDefinitions.add(graphQLFieldDefinition);
 
                 }
             }
         }
+
+        // Also check for @Source fields
+        if (sourceFields.containsKey(classInfo.name())) {
+            List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
+            for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                MethodInfo methodInfo = methodParameterInfo.method();
+
+                // Annotations on this method
+                AnnotationsHolder annotations = annotationsHelper.getAnnotationsForMethod(methodInfo);
+                if (!ignoreHelper.shouldIgnore(annotations)) {
+
+                    Type type = methodParameterInfo.method().returnType();
+                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, methodInfo.name(),
+                            type);
+
+                    // Arguments (input)
+                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
+
+                    // TODO: Check that the receiver is a CDI Bean ?
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
+                            new ReflectionDataFetcher(methodParameterInfo.method()));
+
+                    fieldDefinitions.add(builder.build());
+                }
+            }
+        }
+
         return fieldDefinitions;
+    }
+
+    private GraphQLFieldDefinition.Builder getGraphQLFieldDefinitionBuilder(AnnotationsHolder annotations, String fieldName,
+            Type fieldType) {
+        GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
+        // Name
+        builder = builder.name(nameHelper.getOutputNameForField(annotations, fieldName));
+
+        // Description
+        Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, fieldType);
+        builder = builder.description(maybeFieldDescription.orElse(null));
+
+        // Type
+        builder = builder
+                .type(createGraphQLOutputType(fieldType, annotations));
+
+        return builder;
     }
 
     private GraphQLOutputType toGraphQLOutputType(Type type, AnnotationsHolder annotations) {

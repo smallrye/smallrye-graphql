@@ -51,12 +51,12 @@
             <artifactId>javax.json.bind-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- <dependency>
+        <dependency>
             <groupId>javax.json</groupId>
             <artifactId>javax.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        -->
+        
 
         <!-- GraphQL Java -->
         <dependency>

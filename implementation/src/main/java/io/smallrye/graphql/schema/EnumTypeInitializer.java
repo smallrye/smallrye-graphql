@@ -81,9 +81,7 @@ public class EnumTypeInitializer {
 
         // Description
         Optional<String> maybeDescription = descriptionHelper.getDescription(typeHolder);
-        if (maybeDescription.isPresent()) {
-            builder = builder.description(maybeDescription.get());
-        }
+        builder = builder.description(maybeDescription.orElse(null));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();

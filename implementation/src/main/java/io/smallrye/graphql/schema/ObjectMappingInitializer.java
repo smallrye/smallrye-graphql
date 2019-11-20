@@ -84,6 +84,7 @@ public class ObjectMappingInitializer {
     @PostConstruct
     void init() {
         // Traverse all the types and create referenced types
+        // TODO: Scan for Enum
         scanClassLevelAnnotations(Direction.OUT, Annotations.TYPE);
         scanClassLevelAnnotations(Direction.IN, Annotations.INPUT);
         scanMethodLevelAnnotations(Annotations.QUERY);

@@ -29,6 +29,7 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import org.eclipse.microprofile.graphql.Type;
 import org.jboss.jandex.DotName;
 
@@ -60,4 +61,6 @@ public interface Annotations {
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
     public static final DotName NAME = DotName.createSimple(Name.class.getName());
+
+    public static final DotName SOURCE = DotName.createSimple(Source.class.getName());
 }
