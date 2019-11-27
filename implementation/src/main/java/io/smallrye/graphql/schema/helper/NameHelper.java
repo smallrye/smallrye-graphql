@@ -23,10 +23,12 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 import io.smallrye.graphql.schema.holder.TypeHolder;
+import io.smallrye.graphql.schema.type.OutputTypeCreator;
 
 /**
  * Helping with Name of types in the schema
@@ -35,6 +37,7 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
  */
 @Dependent
 public class NameHelper {
+    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     public String getEnumName(TypeHolder typeHolder) {
         AnnotationsHolder annotations = typeHolder.getAnnotations();
@@ -66,11 +69,15 @@ public class NameHelper {
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        return typeHolder.getClassInfo().name().local() + "Input";
+        return typeHolder.getClassInfo().name().local() + INPUT;
     }
 
     public String getInputNameForField(AnnotationsHolder annotationsForThisField, FieldInfo field) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
+            AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
+            if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
+                return nameAnnotation.value().asString();
+            }
             return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
@@ -80,7 +87,10 @@ public class NameHelper {
 
     public String getOutputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
+            AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
+            if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
+                return nameAnnotation.value().asString();
+            }
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
             return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
@@ -135,10 +145,6 @@ public class NameHelper {
         return original.substring(0, 1).toLowerCase() + original.substring(1);
     }
 
-    private static final String GET = "get";
-    private static final String IS = "is";
-    private static final String SET = "set";
-
     private boolean hasValidExecutionTypeAnnotation(DotName annotation, AnnotationsHolder otherAnnotations) {
         if (otherAnnotations.containsKeyAndValidValue(annotation)) {
             AnnotationInstance annotationInstance = otherAnnotations.getAnnotation(annotation);
@@ -157,4 +163,8 @@ public class NameHelper {
         return instance.target().kind().equals(AnnotationTarget.Kind.METHOD);
     }
 
+    private static final String GET = "get";
+    private static final String IS = "is";
+    private static final String SET = "set";
+    private static final String INPUT = "Input";
 }

@@ -183,8 +183,8 @@ public class OutputTypeCreator {
                     GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, methodInfo.name(),
                             type);
 
-                    // Arguments (input)
-                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
+                    // Arguments (input) TODO: Remove @source and add others
+                    // builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
 
                     // TODO: Check that the receiver is a CDI Bean ?
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),

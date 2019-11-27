@@ -58,23 +58,14 @@ public class SourceFieldDiscoverer {
             AnnotationTarget target = ai.target();
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
                 MethodParameterInfo methodParameter = target.asMethodParameter();
-                // TODO: What do we do when multiple parameters ?
-                // TODO: Make sure @Query is there. Why ?
-                if (methodParameter.method().parameters().size() == 1) {
-                    DotName name = methodParameter.method().parameters().get(0).name();
-                    if (sourceFields.containsKey(name)) {
-                        sourceFields.get(name).add(methodParameter);
-                    } else {
-                        List<MethodParameterInfo> l = new ArrayList<>();
-                        l.add(methodParameter);
-                        sourceFields.put(name, l);
-                    }
-
+                DotName name = methodParameter.method().parameters().get(0).name();
+                if (sourceFields.containsKey(name)) {
+                    sourceFields.get(name).add(methodParameter);
                 } else {
-                    LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind()
-                            + ". Only expecting 1 method argument");
+                    List<MethodParameterInfo> l = new ArrayList<>();
+                    l.add(methodParameter);
+                    sourceFields.put(name, l);
                 }
-
             } else {
                 LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind() + ". Only expecting @"
                         + Annotations.SOURCE.local() + " on Method parameters");
