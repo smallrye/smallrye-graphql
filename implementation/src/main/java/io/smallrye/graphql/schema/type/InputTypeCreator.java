@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +32,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
@@ -60,8 +61,9 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
+@ApplicationScoped
 public class InputTypeCreator {
+    private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     @Produces
     private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();

@@ -52,7 +52,7 @@ public class Bootstrap {
 
     public GraphQLSchema generateSchema(Index index) {
         this.index = index;
-        this.graphQLSchema = graphQLSchemaInitializer.createGraphQLSchema();
+        this.graphQLSchema = graphQLSchemaInitializer.getGraphQLSchema();
         return this.graphQLSchema;
     }
 

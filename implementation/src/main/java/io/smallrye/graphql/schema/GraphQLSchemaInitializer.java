@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -99,7 +100,18 @@ public class GraphQLSchemaInitializer {
     @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
-    public GraphQLSchema createGraphQLSchema() {
+    private GraphQLSchema graphQLSchema;
+
+    @PostConstruct
+    public void init() {
+        graphQLSchema = createGraphQLSchema();
+    }
+
+    public GraphQLSchema getGraphQLSchema() {
+        return graphQLSchema;
+    }
+
+    private GraphQLSchema createGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         Set<GraphQLType> additionalTypes = new HashSet<>();

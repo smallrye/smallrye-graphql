@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -142,6 +143,7 @@ public class ScalarMappingInitializer {
         MAPPING.put(DotName.createSimple(Character.class.getName()), Scalars.GraphQLChar);
 
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
+        MAPPING.put(DotName.createSimple(UUID.class.getName()), Scalars.GraphQLString);
 
         MAPPING.put(DotName.createSimple(Short.class.getName()), Scalars.GraphQLShort);
         MAPPING.put(DotName.createSimple(short.class.getName()), Scalars.GraphQLShort);

@@ -45,7 +45,11 @@ public class NonNullHelper {
         boolean hasDefaultValue = hasDefaultValue(annotations);
         if (hasDefaultValue) {
             if (hasNonNull) {
-                LOG.warn("Ignoring non null on [" + type.name() + "] as there is a @DefaultValue");
+                if (type.kind().equals(Type.Kind.PRIMITIVE)) {
+                    LOG.warn("Not marking primative as non null on [" + type.name() + "] as there is a @DefaultValue");
+                } else {
+                    LOG.warn("Ignoring non null on [" + type.name() + "] as there is a @DefaultValue");
+                }
             }
             return false;
         }

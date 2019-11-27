@@ -51,7 +51,7 @@ import graphql.schema.GraphQLSchema;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@RequestScoped
+@RequestScoped // TODO: Dependent ?
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
@@ -70,14 +70,14 @@ public class ExecutionService {
 
     public JsonObject execute(JsonObject jsonInput) {
 
-        LOG.error("======================================================");
+        //LOG.error("======================================================");
 
         String query = jsonInput.getString("query");
 
-        LOG.error(query);
+        //LOG.error(query);
 
         Map<String, Object> variables = toMap(jsonInput.getJsonObject("variables"));
-        LOG.error(variables);
+        //LOG.error(variables);
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(query)
@@ -94,9 +94,9 @@ public class ExecutionService {
 
         //        Map<String, Object> specificationResult = executionResult.toSpecification();
 
-        LOG.error("\n\n\n");
+        //LOG.error("\n\n\n");
         Object pojo = executionResult.getData();
-        LOG.error(pojo);
+        //LOG.error(pojo);
 
         JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
 

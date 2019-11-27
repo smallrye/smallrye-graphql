@@ -84,20 +84,29 @@ public class ObjectMappingInitializer {
     @PostConstruct
     void init() {
         // Traverse all the types and create referenced types
-        // TODO: Scan for Enum
-        scanClassLevelAnnotations(Direction.OUT, Annotations.TYPE);
-        scanClassLevelAnnotations(Direction.IN, Annotations.INPUT);
+        scanClassLevelAnnotations(Annotations.ENUM);
+        scanClassLevelAnnotations(Annotations.TYPE);
+        scanClassLevelAnnotations(Annotations.INPUT);
         scanMethodLevelAnnotations(Annotations.QUERY);
         scanMethodLevelAnnotations(Annotations.MUTATION);
     }
 
-    private void scanClassLevelAnnotations(Direction direction, DotName annotationName) {
+    private void scanClassLevelAnnotations(DotName annotationName) {
         List<AnnotationInstance> annotations = this.index.getAnnotations(annotationName);
         for (AnnotationInstance annotation : annotations) {
 
             if (annotation.target().kind().equals(AnnotationTarget.Kind.CLASS)) {
                 ClassInfo classInfo = annotation.target().asClass();
-                scanClass(direction, classInfo);
+
+                if (Classes.isEnum(classInfo)) {
+                    scanEnum(classInfo);
+                } else {
+                    if (annotationName.equals(Annotations.TYPE)) {
+                        scanClass(Direction.OUT, classInfo);
+                    } else if (annotationName.equals(Annotations.INPUT)) {
+                        scanClass(Direction.IN, classInfo);
+                    }
+                }
             }
         }
     }
@@ -126,20 +135,30 @@ public class ObjectMappingInitializer {
 
     private void scanClass(Direction direction, ClassInfo classInfo) {
 
-        // Annotations on the field and getter
-        AnnotationsHolder annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
         if (Classes.isEnum(classInfo)) {
-            if (!enums.containsKey(classInfo.name())) {
-                enums.put(classInfo.name(), new TypeHolder(classInfo, annotationsForThisClass));
-            }
+            scanEnum(classInfo);
         } else {
+            // Annotations on the field and getter
+            AnnotationsHolder annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
+
             if (Direction.OUT.equals(direction) && !outputClasses.containsKey(classInfo.name())) {
                 outputClasses.put(classInfo.name(), new TypeHolder(classInfo, annotationsForThisClass));
                 scanFieldsAndMethods(direction, classInfo);
             } else if (Direction.IN.equals(direction) && !inputClasses.containsKey(classInfo.name())) {
                 inputClasses.put(classInfo.name(), new TypeHolder(classInfo, annotationsForThisClass));
                 scanFieldsAndMethods(direction, classInfo);
+            }
+        }
+    }
+
+    private void scanEnum(ClassInfo classInfo) {
+
+        // Annotations on the field and getter
+        AnnotationsHolder annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
+
+        if (Classes.isEnum(classInfo)) {
+            if (!enums.containsKey(classInfo.name())) {
+                enums.put(classInfo.name(), new TypeHolder(classInfo, annotationsForThisClass));
             }
         }
     }

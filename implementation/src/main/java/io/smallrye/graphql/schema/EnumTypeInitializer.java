@@ -69,7 +69,6 @@ public class EnumTypeInitializer {
             this.enumMap.put(e.getKey(), createEnumType(e.getValue()));
             LOG.debug("adding [" + e.getKey() + "] to the enums list");
         }
-
     }
 
     private GraphQLEnumType createEnumType(TypeHolder typeHolder) {

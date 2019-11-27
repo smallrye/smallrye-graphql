@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -63,7 +63,7 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
+@ApplicationScoped
 public class OutputTypeCreator {
     private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 

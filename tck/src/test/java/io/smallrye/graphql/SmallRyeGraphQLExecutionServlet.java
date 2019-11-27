@@ -59,9 +59,6 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
         final JsonWriter jsonWriter = Json.createWriter(out);
         jsonWriter.writeObject(outputJson);
         out.flush();
-
-        LOG.error("======================================================");
-
     }
 
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
