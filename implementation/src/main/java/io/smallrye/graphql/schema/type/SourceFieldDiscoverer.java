@@ -58,7 +58,8 @@ public class SourceFieldDiscoverer {
             AnnotationTarget target = ai.target();
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
                 MethodParameterInfo methodParameter = target.asMethodParameter();
-                DotName name = methodParameter.method().parameters().get(0).name();
+                short position = methodParameter.position();
+                DotName name = methodParameter.method().parameters().get(position).name();
                 if (sourceFields.containsKey(name)) {
                     sourceFields.get(name).add(methodParameter);
                 } else {

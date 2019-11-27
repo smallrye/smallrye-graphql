@@ -58,7 +58,7 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     public Object get(DataFetchingEnvironment environment) {
 
         Object o = super.get(environment);
-        LOG.error(super.getPropertyName() + " of type [" + type + "]");
+        //LOG.error(super.getPropertyName() + " of type [" + type + "]");
         // Date
         if (dateTimeFormatter != null) {
             return dateTimeFormatter.format((TemporalAccessor) o);

@@ -29,6 +29,7 @@ import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputType;
+import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 import io.smallrye.graphql.schema.type.InputTypeCreator;
 
@@ -54,29 +55,41 @@ public class ArgumentsHelper {
     private AnnotationsHelper annotationsHelper;
 
     public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations) {
+        return toGraphQLArguments(methodInfo, annotations, false);
+    }
+
+    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations,
+            boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
         List<GraphQLArgument> r = new ArrayList<>();
         short cnt = 0;
         for (Type parameter : parameters) {
-            r.add(toGraphQLArgument(methodInfo, cnt, parameter, annotations));
+            Optional<GraphQLArgument> graphQLArgument = toGraphQLArgument(methodInfo, cnt, parameter, annotations,
+                    ignoreSourceArgument);
+            if (graphQLArgument.isPresent())
+                r.add(graphQLArgument.get());
             cnt++;
         }
         return r;
     }
 
-    private GraphQLArgument toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
-            AnnotationsHolder annotations) {
+    private Optional<GraphQLArgument> toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
+            AnnotationsHolder annotations, boolean ignoreSourceArgument) {
         AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
-        String argName = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
-        GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotations);
+        if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
+            return Optional.empty();
+        } else {
+            String argName = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
+            GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotations);
 
-        GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
-        argumentBuilder = argumentBuilder.name(argName);
-        argumentBuilder = argumentBuilder.type(inputType);
-        Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument);
-        argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.orElse(null));
+            GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
+            argumentBuilder = argumentBuilder.name(argName);
+            argumentBuilder = argumentBuilder.type(inputType);
+            Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument);
+            argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.orElse(null));
 
-        return argumentBuilder.build();
+            return Optional.of(argumentBuilder.build());
+        }
     }
 }

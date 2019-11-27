@@ -27,6 +27,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -176,15 +177,19 @@ public class OutputTypeCreator {
                 MethodInfo methodInfo = methodParameterInfo.method();
 
                 // Annotations on this method
-                AnnotationsHolder annotations = annotationsHelper.getAnnotationsForMethod(methodInfo);
-                if (!ignoreHelper.shouldIgnore(annotations)) {
+                AnnotationsHolder methodAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
+                        AnnotationTarget.Kind.METHOD);
+                if (!ignoreHelper.shouldIgnore(methodAnnotations)) {
 
                     Type type = methodParameterInfo.method().returnType();
-                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, methodInfo.name(),
+                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(methodAnnotations,
+                            methodInfo.name(),
                             type);
 
-                    // Arguments (input) TODO: Remove @source and add others
-                    // builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
+                    // Arguments (input) except @Source
+                    AnnotationsHolder parameterAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
+                            AnnotationTarget.Kind.METHOD_PARAMETER);
+                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, parameterAnnotations, true));
 
                     // TODO: Check that the receiver is a CDI Bean ?
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),

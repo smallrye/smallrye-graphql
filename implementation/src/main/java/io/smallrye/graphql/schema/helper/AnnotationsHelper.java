@@ -16,7 +16,9 @@
 
 package io.smallrye.graphql.schema.helper;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.Dependent;
@@ -95,13 +97,17 @@ public class AnnotationsHelper {
         return new AnnotationsHolder(annotationMap);
     }
 
-    public AnnotationsHolder getAnnotationsForMethod(MethodInfo methodInfo) {
-
+    public AnnotationsHolder getAnnotationsForMethod(MethodInfo methodInfo, AnnotationTarget.Kind... kindsFilter) {
+        List<AnnotationTarget.Kind> kinds = Arrays.asList(kindsFilter);
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance annotationInstance : methodInfo.annotations()) {
             DotName name = annotationInstance.name();
-            annotationMap.put(name, annotationInstance);
+            AnnotationTarget.Kind kind = annotationInstance.target().kind();
+
+            if (kinds.isEmpty() || kinds.contains(kind)) {
+                annotationMap.put(name, annotationInstance);
+            }
         }
 
         return new AnnotationsHolder(annotationMap);
