@@ -9,13 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql</artifactId>
-
     <name>SmallRye: MicroProfile GraphQL Implementation</name>
-
-    <properties>
-        <spqr.version>1.0.0-SNAPSHOT</spqr.version>
-        <!--<graphql.servlet.version>7.5.0</graphql.servlet.version>-->
-    </properties>
 
     <dependencies>
         
@@ -57,7 +51,6 @@
             <scope>provided</scope>
         </dependency>
         
-
         <!-- GraphQL Java -->
         <dependency>
             <groupId>com.graphql-java</groupId>
