@@ -169,7 +169,7 @@ public class GraphQLSchemaInitializer {
                     queryTypeBuilder = queryTypeBuilder.field(graphQLFieldDefinition);
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
-                            new ReflectionDataFetcher(methodInfo));
+                            new ReflectionDataFetcher(methodInfo, argumentsHelper.toArgumentHolders(methodInfo)));
                     //        new LambdaMetafactoryDataFetcher(methodInfo));
                     //                    PropertyDataFetcher.fetching(methodInfo.name()));
 

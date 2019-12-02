@@ -35,6 +35,29 @@ public interface Classes {
         return classInfo.superName().equals(ENUM);
     }
 
+    public static Class getPrimativeClassType(String primativeName) {
+        switch (primativeName) {
+            case "boolean":
+                return boolean.class;
+            case "byte":
+                return byte.class;
+            case "char":
+                return char.class;
+            case "short":
+                return short.class;
+            case "int":
+                return int.class;
+            case "long":
+                return long.class;
+            case "float":
+                return float.class;
+            case "double":
+                return double.class;
+            default:
+                throw new RuntimeException("Unknown primative type [" + primativeName + "]");
+        }
+    }
+
     public static final DotName ENUM = DotName.createSimple(Enum.class.getName());
 
     public static final DotName LOCALDATE = DotName.createSimple(LocalDate.class.getName());

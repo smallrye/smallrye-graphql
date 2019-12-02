@@ -192,8 +192,10 @@ public class OutputTypeCreator {
                     builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, parameterAnnotations, true));
 
                     // TODO: Check that the receiver is a CDI Bean ?
+
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
-                            new ReflectionDataFetcher(methodParameterInfo.method()));
+                            new ReflectionDataFetcher(methodParameterInfo.method(),
+                                    argumentsHelper.toArgumentHolders(methodInfo)));
 
                     fieldDefinitions.add(builder.build());
                 }

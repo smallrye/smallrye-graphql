@@ -17,16 +17,22 @@
 package io.smallrye.graphql.execution;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.inject.spi.CDI;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.index.Classes;
+import io.smallrye.graphql.schema.holder.ArgumentHolder;
 
 /**
  * Fetch data using Reflection
@@ -34,18 +40,20 @@ import graphql.schema.DataFetchingEnvironment;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
+    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final Method method;
     private final Class declaringClass;
     private final Class returnType;
-    private final Class[] parameterClasses;
+    private List<ArgumentHolder> arguments;
     private final boolean hasArguments;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo) {
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<ArgumentHolder> arguments) {
         try {
+            this.arguments = arguments;
             this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
             this.returnType = getReturnType(methodInfo);
-            this.parameterClasses = getParameterClasses(methodInfo);
+            Class[] parameterClasses = getParameterClasses(arguments);
             this.hasArguments = parameterClasses.length != 0;
 
             if (hasArguments) {
@@ -55,22 +63,67 @@ public class ReflectionDataFetcher implements DataFetcher {
             }
             this.method.setAccessible(true);
 
-        } catch (NoSuchMethodException | SecurityException | ClassNotFoundException ex) {
+        } catch (NoSuchMethodException | SecurityException ex) {
             throw new RuntimeException(ex);
         }
-
     }
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
         Object declaringObject = CDI.current().select(declaringClass).get();
-        Map<String, Object> arguments = dfe.getArguments();
+        return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+    }
 
-        if (hasArguments) {
-            return returnType.cast(method.invoke(declaringObject, arguments.values().toArray()));
-        } else {
-            return returnType.cast(method.invoke(declaringObject));
+    private ArrayList getArguments(DataFetchingEnvironment dfe) {
+        ArrayList argumentObjects = new ArrayList();
+        for (ArgumentHolder argumentHolder : arguments) {
+
+            String name = argumentHolder.getName();
+            LOG.error("-------- Name : " + name);
+
+            Class type = argumentHolder.getArgumentClass();
+            LOG.error("-------- type : " + type);
+
+            Object argument = dfe.getArgument(name);
+            LOG.error("-------- argument : " + argument);
+
+            boolean containsArgument = dfe.containsArgument(name);
+            LOG.error("-------- containsArgument : " + containsArgument);
+
+            Type.Kind kind = argumentHolder.getType().kind();
+            LOG.error("-------- kind : " + kind);
+            if (kind.equals(Type.Kind.PRIMITIVE)) {
+                argumentObjects.add(argument);
+            } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
+            } else if (kind.equals(Type.Kind.CLASS)) {
+                Class givenClass = argument.getClass();
+                if (givenClass.equals(type)) {
+                    argumentObjects.add(argument);
+                } else if (Map.class.isAssignableFrom(argument.getClass())) {
+                    argumentObjects.add(toPojo(Map.class.cast(argument), type));
+                } else if (givenClass.equals(String.class)) {
+                    // We go a String, but not expecting one. Let bind to Pojo with JsonB
+                    argumentObjects.add(toPojo(argument.toString(), type));
+                }
+
+            } else {
+                LOG.warn("Not sure what to do with [" + kind.name() + "] kind");
+                argumentObjects.add(argument);
+            }
         }
+        return argumentObjects;
+    }
+
+    private Object toPojo(String json, Class type) {
+        Jsonb jsonb = JsonbBuilder.create();
+        return jsonb.fromJson(json, type);
+    }
+
+    private Object toPojo(Map m, Class type) {
+        Jsonb jsonb = JsonbBuilder.create();
+        String json = jsonb.toJson(m);
+        return jsonb.fromJson(json, type);
     }
 
     private Class loadClass(String className) {
@@ -89,48 +142,17 @@ public class ReflectionDataFetcher implements DataFetcher {
         Type.Kind kind = type.kind();
         String typename = type.name().toString();
         if (kind.equals(Type.Kind.PRIMITIVE)) {
-            return getPrimativeClassType(typename);
+            return Classes.getPrimativeClassType(typename);
         } else {
             return loadClass(typename);
         }
     }
 
-    private Class[] getParameterClasses(MethodInfo methodInfo) throws ClassNotFoundException {
-        List<Type> parameters = methodInfo.parameters();
-        Class[] inputParameters = new Class[parameters.size()];
-        for (int cnt = 0; cnt < parameters.size(); cnt++) {
-            Type type = parameters.get(cnt);
-            Type.Kind kind = type.kind();
-            String typename = type.name().toString();
-            if (kind.equals(Type.Kind.PRIMITIVE)) {
-                inputParameters[cnt] = getPrimativeClassType(typename);
-            } else {
-                inputParameters[cnt] = Class.forName(typename);
-            }
+    private Class[] getParameterClasses(List<ArgumentHolder> arguments) {
+        List<Class> cl = new ArrayList<>();
+        for (ArgumentHolder argumentHolder : arguments) {
+            cl.add(argumentHolder.getArgumentClass());
         }
-        return inputParameters;
-    }
-
-    private Class getPrimativeClassType(String primativeName) {
-        switch (primativeName) {
-            case "boolean":
-                return boolean.class;
-            case "byte":
-                return byte.class;
-            case "char":
-                return char.class;
-            case "short":
-                return short.class;
-            case "int":
-                return int.class;
-            case "long":
-                return long.class;
-            case "float":
-                return float.class;
-            case "double":
-                return double.class;
-            default:
-                throw new RuntimeException("Unknown primative type [" + primativeName + "]");
-        }
+        return cl.toArray(new Class[] {});
     }
 }

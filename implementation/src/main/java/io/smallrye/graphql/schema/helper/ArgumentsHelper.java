@@ -31,6 +31,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputType;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.holder.ArgumentHolder;
 import io.smallrye.graphql.schema.type.InputTypeCreator;
 
 /**
@@ -92,4 +93,38 @@ public class ArgumentsHelper {
             return Optional.of(argumentBuilder.build());
         }
     }
+
+    public List<ArgumentHolder> toArgumentHolders(MethodInfo methodInfo) {
+        return toArgumentHolders(methodInfo, false);
+    }
+
+    public List<ArgumentHolder> toArgumentHolders(MethodInfo methodInfo, boolean ignoreSourceArgument) {
+        List<Type> parameters = methodInfo.parameters();
+        List<ArgumentHolder> r = new ArrayList<>();
+        short cnt = 0;
+        for (Type parameter : parameters) {
+            Optional<ArgumentHolder> graphQLArgument = toArgumentHolder(methodInfo, cnt, parameter,
+                    ignoreSourceArgument);
+            if (graphQLArgument.isPresent())
+                r.add(graphQLArgument.get());
+            cnt++;
+        }
+        return r;
+    }
+
+    private Optional<ArgumentHolder> toArgumentHolder(MethodInfo methodInfo, short argCount, Type parameter,
+            boolean ignoreSourceArgument) {
+        AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
+
+        if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
+            return Optional.empty();
+        } else {
+            ArgumentHolder argumentHolder = new ArgumentHolder();
+            String name = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
+            argumentHolder.setName(name);
+            argumentHolder.setType(parameter);
+            return Optional.of(argumentHolder);
+        }
+    }
+
 }

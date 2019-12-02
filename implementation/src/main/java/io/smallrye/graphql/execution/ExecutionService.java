@@ -70,14 +70,21 @@ public class ExecutionService {
 
     public JsonObject execute(JsonObject jsonInput) {
 
-        //LOG.error("======================================================");
+        LOG.error("======================================================");
+
+        LOG.error(jsonInput);
+
+        //        {
+        //            "query":"mutation addHeroToTeam($heroName:String, $teamName:String) {\n    addHeroToTeam(hero: $heroName, team: $teamName) {\n        name\n        members {\n            name\n        }\n    }\n}",
+        //            "variables":{"heroName":"Starlord","teamName":"Avengers"}
+        //        }
 
         String query = jsonInput.getString("query");
 
-        //LOG.error(query);
+        LOG.error(query);
 
         Map<String, Object> variables = toMap(jsonInput.getJsonObject("variables"));
-        //LOG.error(variables);
+        LOG.error(variables);
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(query)
@@ -94,7 +101,7 @@ public class ExecutionService {
 
         //        Map<String, Object> specificationResult = executionResult.toSpecification();
 
-        //LOG.error("\n\n\n");
+        LOG.error("\n\n\n");
         Object pojo = executionResult.getData();
         //LOG.error(pojo);
 
