@@ -9,13 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql</artifactId>
-
     <name>SmallRye: MicroProfile GraphQL Implementation</name>
-
-    <properties>
-        <spqr.version>1.0.0-SNAPSHOT</spqr.version>
-        <graphql.servlet.version>7.5.0</graphql.servlet.version>
-    </properties>
 
     <dependencies>
         
@@ -23,6 +17,11 @@
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-api</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jandex</artifactId>
         </dependency>
         
         <!-- What we use from MicroProfile -->
@@ -37,24 +36,28 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.json.bind</groupId>
+            <artifactId>javax.json.bind-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.json</groupId>
             <artifactId>javax.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <!-- The GraphQL Libraries we are wrapping for the implementation -->
-        <!-- TODO: Once release use the version from io.leangen.graphql and add excludes -->
-        <dependency>
-            <groupId>io.leangen.graphql</groupId>
-            <artifactId>spqr</artifactId>
-            <version>${spqr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.graphql-java-kickstart</groupId>
-            <artifactId>graphql-java-servlet</artifactId>
-            <version>${graphql.servlet.version}</version>
-        </dependency>
         
+        <!-- GraphQL Java -->
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java</artifactId>
+            <version>13.0</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.jboss.logging</groupId>

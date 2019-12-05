@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.smallrye.graphql;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.inject.Inject;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,30 +31,31 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
 
 /**
- * To make the schema available over HTTP
+ * Serving the GraphQL schema
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class GraphQLSchemaServlet extends HttpServlet {
+@WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "graphql/schema.graphql" }, loadOnStartup = 2)
+public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
 
-    private final GraphQLSchema schema;
+    @Inject
+    private GraphQLSchema graphQLSchema;
 
-    public GraphQLSchemaServlet(GraphQLSchema schema) {
-        this.schema = schema;
+    private String schema;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        SchemaPrinter schemaPrinter = new SchemaPrinter();
+        this.schema = schemaPrinter.print(graphQLSchema);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        SchemaPrinter schemaPrinter = new SchemaPrinter(SchemaPrinter.Options.defaultOptions());
-        String json = schemaPrinter.print(schema);
         response.setContentType("plain/text"); //TODO: Check the content type in the spec
         PrintWriter out = response.getWriter();
-        out.print(json);
+        out.print(this.schema);
         out.flush();
     }
 
-    @Override
-    public String getServletInfo() {
-        return "The GraphQL schema";
-    }
 }
