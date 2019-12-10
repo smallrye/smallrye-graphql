@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.execution;
+package io.smallrye.graphql.execution.datafetchers;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ import java.util.Map;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
 
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
@@ -48,9 +48,12 @@ public class ReflectionDataFetcher implements DataFetcher {
     private List<ArgumentHolder> arguments;
     private final boolean hasArguments;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo, List<ArgumentHolder> arguments) {
+    private final Map<DotName, Jsonb> inputJsonbMap;
+
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<ArgumentHolder> arguments, Map<DotName, Jsonb> inputJsonbMap) {
         try {
             this.arguments = arguments;
+            this.inputJsonbMap = inputJsonbMap;
             this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
             this.returnType = getReturnType(methodInfo);
             Class[] parameterClasses = getParameterClasses(arguments);
@@ -79,21 +82,22 @@ public class ReflectionDataFetcher implements DataFetcher {
         for (ArgumentHolder argumentHolder : arguments) {
 
             String name = argumentHolder.getName();
-            LOG.error("-------- Name : " + name);
-
             Class type = argumentHolder.getArgumentClass();
-            LOG.error("-------- type : " + type);
-
             Object argument = dfe.getArgument(name);
-            LOG.error("-------- argument : " + argument);
-
-            boolean containsArgument = dfe.containsArgument(name);
-            LOG.error("-------- containsArgument : " + containsArgument);
-
             Type.Kind kind = argumentHolder.getType().kind();
-            LOG.error("-------- kind : " + kind);
             if (kind.equals(Type.Kind.PRIMITIVE)) {
-                argumentObjects.add(argument);
+                // First make sure we have a primative type
+                Class givenClass = argument.getClass();
+                if (!givenClass.isPrimitive()) {
+                    givenClass = Classes.toPrimativeClassType(givenClass);
+                }
+
+                if (givenClass.equals(type)) {
+                    argumentObjects.add(argument);
+                } else if (givenClass.equals(String.class)) {
+                    // We go a String, but not expecting one. Lets create new primative
+                    argumentObjects.add(Classes.stringToPrimative(argument.toString(), type));
+                }
             } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
                 argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
             } else if (kind.equals(Type.Kind.CLASS)) {
@@ -103,7 +107,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                 } else if (Map.class.isAssignableFrom(argument.getClass())) {
                     argumentObjects.add(toPojo(Map.class.cast(argument), type));
                 } else if (givenClass.equals(String.class)) {
-                    // We go a String, but not expecting one. Let bind to Pojo with JsonB
+                    // We go a String, but not expecting one. Lets bind to Pojo with JsonB
                     argumentObjects.add(toPojo(argument.toString(), type));
                 }
 
@@ -116,14 +120,20 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Object toPojo(String json, Class type) {
-        Jsonb jsonb = JsonbBuilder.create();
+        Jsonb jsonb = getJsonbForType(type);
         return jsonb.fromJson(json, type);
     }
 
     private Object toPojo(Map m, Class type) {
-        Jsonb jsonb = JsonbBuilder.create();
+        Jsonb jsonb = getJsonbForType(type);
         String json = jsonb.toJson(m);
-        return jsonb.fromJson(json, type);
+        Object o = jsonb.fromJson(json, type);
+        return o;
+    }
+
+    private Jsonb getJsonbForType(Class type) {
+        DotName key = DotName.createSimple(type.getName());
+        return inputJsonbMap.get(key);
     }
 
     private Class loadClass(String className) {

@@ -22,13 +22,10 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.FieldInfo;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 import io.smallrye.graphql.schema.holder.TypeHolder;
-import io.smallrye.graphql.schema.type.OutputTypeCreator;
 
 /**
  * Helping with Name of types in the schema
@@ -37,7 +34,6 @@ import io.smallrye.graphql.schema.type.OutputTypeCreator;
  */
 @Dependent
 public class NameHelper {
-    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     public String getEnumName(TypeHolder typeHolder) {
         AnnotationsHolder annotations = typeHolder.getAnnotations();
@@ -72,7 +68,7 @@ public class NameHelper {
         return typeHolder.getClassInfo().name().local() + INPUT;
     }
 
-    public String getInputNameForField(AnnotationsHolder annotationsForThisField, FieldInfo field) {
+    public String getInputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
@@ -82,7 +78,7 @@ public class NameHelper {
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
         }
-        return field.name();
+        return fieldName;
     }
 
     public String getOutputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {

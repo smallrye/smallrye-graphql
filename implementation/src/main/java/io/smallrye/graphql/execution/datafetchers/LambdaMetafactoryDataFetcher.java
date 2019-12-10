@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.execution;
+package io.smallrye.graphql.execution.datafetchers;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -33,6 +33,8 @@ import graphql.schema.DataFetchingEnvironment;
  * Fetch data using LambdaMetafactory
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * 
+ *         TODO: Implement this after speed test is in place
  */
 public class LambdaMetafactoryDataFetcher implements DataFetcher {
     private static final Logger LOG = Logger.getLogger(LambdaMetafactoryDataFetcher.class.getName());
