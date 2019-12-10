@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.execution;
+package io.smallrye.graphql.execution.datafetchers;
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -40,11 +40,9 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     private final DateHelper dateHelper = new DateHelper();
 
     private DateTimeFormatter dateTimeFormatter = null;
-    private final Type type;
 
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, AnnotationsHolder annotations) {
         super(propertyName);
-        this.type = type;
 
         if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
             if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
@@ -56,9 +54,8 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-
         Object o = super.get(environment);
-        //LOG.error(super.getPropertyName() + " of type [" + type + "]");
+
         // Date
         if (dateTimeFormatter != null) {
             return dateTimeFormatter.format((TemporalAccessor) o);
@@ -67,5 +64,4 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
         }
 
     }
-
 }

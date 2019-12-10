@@ -26,6 +26,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.json.bind.Jsonb;
 
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
@@ -47,8 +48,8 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.execution.AnnotatedPropertyDataFetcher;
-import io.smallrye.graphql.execution.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
+import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.ArgumentsHelper;
@@ -70,6 +71,9 @@ public class OutputTypeCreator {
 
     @Produces
     private final Map<DotName, GraphQLObjectType> outputObjectMap = new HashMap<>();
+
+    @Inject
+    private Map<DotName, Jsonb> inputJsonbMap;
 
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
@@ -195,7 +199,7 @@ public class OutputTypeCreator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArgumentHolders(methodInfo)));
+                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap));
 
                     fieldDefinitions.add(builder.build());
                 }

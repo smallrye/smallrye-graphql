@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.json.bind.Jsonb;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.AnnotationInstance;
@@ -42,7 +43,7 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import io.smallrye.graphql.execution.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.ArgumentsHelper;
@@ -99,6 +100,9 @@ public class GraphQLSchemaInitializer {
 
     @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
+
+    @Inject
+    private Map<DotName, Jsonb> inputJsonbMap;
 
     private GraphQLSchema graphQLSchema;
 
@@ -169,7 +173,8 @@ public class GraphQLSchemaInitializer {
                     queryTypeBuilder = queryTypeBuilder.field(graphQLFieldDefinition);
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
-                            new ReflectionDataFetcher(methodInfo, argumentsHelper.toArgumentHolders(methodInfo)));
+                            new ReflectionDataFetcher(methodInfo, argumentsHelper.toArgumentHolders(methodInfo),
+                                    inputJsonbMap));
                     //        new LambdaMetafactoryDataFetcher(methodInfo));
                     //                    PropertyDataFetcher.fetching(methodInfo.name()));
 

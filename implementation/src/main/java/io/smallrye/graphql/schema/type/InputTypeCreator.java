@@ -26,6 +26,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -45,7 +48,8 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.execution.AnnotatedPropertyDataFetcher;
+import io.smallrye.graphql.execution.GraphQLNamingStrategy;
+import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
@@ -67,6 +71,9 @@ public class InputTypeCreator {
 
     @Produces
     private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();
+
+    @Produces
+    private final Map<DotName, Jsonb> inputJsonbMap = new HashMap<>();
 
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
@@ -117,6 +124,7 @@ public class InputTypeCreator {
     void init() {
         for (Map.Entry<DotName, TypeHolder> e : inputClasses.entrySet()) {
             this.inputObjectMap.put(e.getKey(), createInputObjectType(e.getValue()));
+            //this.inputJsonbMap.put(e.getKey(), createJsonb(inputObjectType));
         }
     }
 
@@ -141,6 +149,7 @@ public class InputTypeCreator {
         // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
         short count = 0;
+        Map<String, String> customFieldNameMapping = new HashMap<>();
         for (FieldInfo field : fields) {
             // Check if there is a setter (for input) 
             Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), classInfo);
@@ -152,7 +161,7 @@ public class InputTypeCreator {
                     GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
                     // Name
-                    String fieldName = nameHelper.getInputNameForField(annotations, field);
+                    String fieldName = nameHelper.getInputNameForField(annotations, field.name());
                     builder = builder.name(fieldName);
 
                     // Description
@@ -173,12 +182,31 @@ public class InputTypeCreator {
                     builder = builder.defaultValue(maybeDefaultValue.orElse(null));
 
                     inputObjectFields.add(builder.build());
+
+                    if (!field.name().equals(fieldName)) {
+                        customFieldNameMapping.put(field.name(), fieldName);
+                    }
                 }
             }
 
             count++;
         }
+
+        this.inputJsonbMap.put(classInfo.name(), createJsonb(customFieldNameMapping));
+
         return inputObjectFields;
+    }
+
+    private Jsonb createJsonb(Map<String, String> customFieldNameMapping) {
+        JsonbConfig config = new JsonbConfig()
+                .withNullValues(Boolean.TRUE)
+                .withFormatting(Boolean.TRUE);
+
+        if (!customFieldNameMapping.isEmpty()) {
+            config = config.withPropertyNamingStrategy(new GraphQLNamingStrategy(customFieldNameMapping));
+        }
+
+        return JsonbBuilder.create(config);
     }
 
     private GraphQLInputType toGraphQLInputType(Type type, AnnotationsHolder annotations) {

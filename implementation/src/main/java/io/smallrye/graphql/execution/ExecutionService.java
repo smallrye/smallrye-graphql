@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -44,7 +43,6 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.execution.ExecutionId;
-import graphql.schema.GraphQLSchema;
 
 /**
  * Executing the GraphQL request
@@ -56,70 +54,45 @@ public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
     @Inject
-    private GraphQLSchema graphQLSchema;
-
     private GraphQL graphQL;
 
-    @PostConstruct
-    void init() {
-        // TODO: We should only need this once.
-        this.graphQL = GraphQL
-                .newGraphQL(graphQLSchema)
-                .build();
-    }
-
     public JsonObject execute(JsonObject jsonInput) {
+        String query = jsonInput.getString(QUERY);
 
-        LOG.error("======================================================");
-
-        LOG.error(jsonInput);
-
-        //        {
-        //            "query":"mutation addHeroToTeam($heroName:String, $teamName:String) {\n    addHeroToTeam(hero: $heroName, team: $teamName) {\n        name\n        members {\n            name\n        }\n    }\n}",
-        //            "variables":{"heroName":"Starlord","teamName":"Avengers"}
-        //        }
-
-        String query = jsonInput.getString("query");
-
-        LOG.error(query);
-
-        Map<String, Object> variables = toMap(jsonInput.getJsonObject("variables"));
-        LOG.error(variables);
+        Map<String, Object> variables = toMap(jsonInput.getJsonObject(VARIABLES));
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(query)
-
-                //.operationName(graphQLRequest.getOperationName())
-                //.context(context)
-                //.root(root)
                 .variables(variables)
-                //.dataLoaderRegistry(context.getDataLoaderRegistry().orElse(new DataLoaderRegistry()))
                 .executionId(ExecutionId.generate())
                 .build();
 
         ExecutionResult executionResult = this.graphQL.execute(executionInput);
 
-        //        Map<String, Object> specificationResult = executionResult.toSpecification();
-
-        LOG.error("\n\n\n");
-        Object pojo = executionResult.getData();
-        //LOG.error(pojo);
+        Object pojoData = executionResult.getData();
 
         JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
 
-        if (pojo != null) {
-            JsonObject data = getJsonObject(pojo);
-            returnObjectBuilder = returnObjectBuilder.add("data", data);
+        LOG.error(pojoData);
+
+        if (pojoData != null) {
+            JsonObject data = getJsonObject(pojoData);
+            returnObjectBuilder = returnObjectBuilder.add(DATA, data);
         } else {
-            returnObjectBuilder = returnObjectBuilder.addNull("data");
+            returnObjectBuilder = returnObjectBuilder.addNull(DATA);
         }
         return returnObjectBuilder.build();
     }
 
     private JsonObject getJsonObject(Object pojo) {
-        JsonbConfig jsonbConfig = new JsonbConfig();
-        Jsonb jsonb = JsonbBuilder.create(jsonbConfig);
+        JsonbConfig config = new JsonbConfig()
+                .withNullValues(Boolean.TRUE)
+                .withFormatting(Boolean.TRUE);
+
+        Jsonb jsonb = JsonbBuilder.create(config);
+
         String json = jsonb.toJson(pojo);
+
         final JsonReader reader = Json.createReader(new StringReader(json));
         return reader.readObject();
     }
@@ -168,4 +141,8 @@ public class ExecutionService {
             }
         return ret;
     }
+
+    private static final String QUERY = "query";
+    private static final String VARIABLES = "variables";
+    private static final String DATA = "data";
 }

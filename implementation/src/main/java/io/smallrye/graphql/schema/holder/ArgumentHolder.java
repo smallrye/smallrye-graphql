@@ -17,6 +17,7 @@
 package io.smallrye.graphql.schema.holder;
 
 import org.jboss.jandex.Type;
+
 import io.smallrye.graphql.index.Classes;
 
 /**
