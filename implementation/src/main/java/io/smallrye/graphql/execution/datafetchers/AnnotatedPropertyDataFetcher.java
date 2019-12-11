@@ -63,5 +63,6 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
             return o;
         }
 
+        // TODO: Add tests for other types
     }
 }
