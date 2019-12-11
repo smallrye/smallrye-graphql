@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
@@ -83,40 +84,54 @@ public class ReflectionDataFetcher implements DataFetcher {
 
             String name = argumentHolder.getName();
             Class type = argumentHolder.getArgumentClass();
-            Object argument = dfe.getArgument(name);
-            Type.Kind kind = argumentHolder.getType().kind();
-            if (kind.equals(Type.Kind.PRIMITIVE)) {
-                // First make sure we have a primative type
-                Class givenClass = argument.getClass();
-                if (!givenClass.isPrimitive()) {
-                    givenClass = Classes.toPrimativeClassType(givenClass);
-                }
+            Object argument = getArgument(dfe, name);
+            if (argument != null) {
+                Type.Kind kind = argumentHolder.getType().kind();
+                if (kind.equals(Type.Kind.PRIMITIVE)) {
+                    // First make sure we have a primative type
+                    Class givenClass = argument.getClass();
+                    if (!givenClass.isPrimitive()) {
+                        givenClass = Classes.toPrimativeClassType(givenClass);
+                    }
 
-                if (givenClass.equals(type)) {
-                    argumentObjects.add(argument);
-                } else if (givenClass.equals(String.class)) {
-                    // We go a String, but not expecting one. Lets create new primative
-                    argumentObjects.add(Classes.stringToPrimative(argument.toString(), type));
-                }
-            } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
-                argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
-            } else if (kind.equals(Type.Kind.CLASS)) {
-                Class givenClass = argument.getClass();
-                if (givenClass.equals(type)) {
-                    argumentObjects.add(argument);
-                } else if (Map.class.isAssignableFrom(argument.getClass())) {
-                    argumentObjects.add(toPojo(Map.class.cast(argument), type));
-                } else if (givenClass.equals(String.class)) {
-                    // We go a String, but not expecting one. Lets bind to Pojo with JsonB
-                    argumentObjects.add(toPojo(argument.toString(), type));
-                }
+                    if (givenClass.equals(type)) {
+                        argumentObjects.add(argument);
+                    } else if (givenClass.equals(String.class)) {
+                        // We go a String, but not expecting one. Lets create new primative
+                        argumentObjects.add(Classes.stringToPrimative(argument.toString(), type));
+                    }
+                } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                    argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
+                } else if (kind.equals(Type.Kind.CLASS)) {
+                    Class givenClass = argument.getClass();
+                    if (givenClass.equals(type)) {
+                        argumentObjects.add(argument);
+                    } else if (Map.class.isAssignableFrom(argument.getClass())) {
+                        argumentObjects.add(toPojo(Map.class.cast(argument), type));
+                    } else if (givenClass.equals(String.class)) {
+                        // We go a String, but not expecting one. Lets bind to Pojo with JsonB
+                        argumentObjects.add(toPojo(argument.toString(), type));
+                    }
 
-            } else {
-                LOG.warn("Not sure what to do with [" + kind.name() + "] kind");
-                argumentObjects.add(argument);
+                } else {
+                    LOG.warn("Not sure what to do with [" + kind.name() + "] kind");
+                    argumentObjects.add(argument);
+                }
             }
         }
         return argumentObjects;
+    }
+
+    private Object getArgument(DataFetchingEnvironment dfe, String name) {
+        Object argument = dfe.getArgument(name);
+        if (argument != null) {
+            return argument;
+        }
+        Object source = dfe.getSource();
+        if (source != null) {
+            return source;
+        }
+        return null;
     }
 
     private Object toPojo(String json, Class type) {
