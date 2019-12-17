@@ -1,0 +1,15 @@
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Validation error of type FieldUndefined: Field 'allHeroesWhoLikeIceCream' in type 'Query' is undefined @ 'allHeroesWhoLikeIceCream'",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": null
+    }
+  ]
+}

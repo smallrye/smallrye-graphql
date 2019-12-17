@@ -16,20 +16,24 @@
 
 package io.smallrye.graphql.execution.datafetchers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
 
+import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import graphql.GraphQLError;
+import graphql.GraphqlErrorBuilder;
+import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.index.Classes;
@@ -74,8 +78,32 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
-        Object declaringObject = CDI.current().select(declaringClass).get();
-        return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+        try {
+            Object declaringObject = CDI.current().select(declaringClass).get();
+            return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+        } catch (InvocationTargetException ite) {
+            Throwable throwable = ite.getCause();
+            if (throwable == null) {
+                throw new RuntimeException(ite);
+            } else {
+                if (throwable instanceof Error) {
+                    throw new RuntimeException(throwable);
+                } else if (throwable instanceof GraphQLException) {
+                    GraphQLException graphQLException = (GraphQLException) throwable;
+                    //throw graphQLException;
+                    GraphQLError e = GraphqlErrorBuilder.newError(dfe)
+                            .message(graphQLException.getMessage())
+                            .build();
+                    return DataFetcherResult.newResult()
+                            .data(graphQLException.getPartialResults())
+                            .error(e)
+                            .build();
+
+                } else {
+                    throw (Exception) throwable;
+                }
+            }
+        }
     }
 
     private ArrayList getArguments(DataFetchingEnvironment dfe) {

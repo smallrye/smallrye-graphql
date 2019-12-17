@@ -42,7 +42,10 @@ public class ExecutionInitializer {
     void init() {
         this.graphQL = GraphQL
                 .newGraphQL(graphQLSchema)
+                .queryExecutionStrategy(new QueryExecutionStrategy())
+                .mutationExecutionStrategy(new MutationExecutionStrategy())
                 .build();
+
     }
 
 }
