@@ -89,7 +89,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                 throw new RuntimeException(ite);
             } else {
                 if (throwable instanceof Error) {
-                    throw new RuntimeException(throwable);
+                    throw (Error) throwable;
                 } else if (throwable instanceof GraphQLException) {
                     GraphQLException graphQLException = (GraphQLException) throwable;
                     return getPartialResult(dfe, graphQLException);

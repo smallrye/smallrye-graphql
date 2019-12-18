@@ -23,6 +23,7 @@ import javax.inject.Inject;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.execution.error.ExceptionHandler;
 
 /**
  * Initialize GraphQL
@@ -35,6 +36,9 @@ public class ExecutionInitializer {
     @Inject
     private GraphQLSchema graphQLSchema;
 
+    @Inject
+    private ExceptionHandler exceptionHandler;
+
     @Produces
     private GraphQL graphQL;
 
@@ -42,6 +46,8 @@ public class ExecutionInitializer {
     void init() {
         this.graphQL = GraphQL
                 .newGraphQL(graphQLSchema)
+                .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
+                .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                 .build();
 
     }
