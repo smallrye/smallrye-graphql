@@ -31,11 +31,13 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import graphql.GraphQLError;
-import graphql.GraphqlErrorBuilder;
+import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
+import graphql.execution.ExecutionPath;
+import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.index.Classes;
 import io.smallrye.graphql.schema.holder.ArgumentHolder;
 
@@ -90,20 +92,30 @@ public class ReflectionDataFetcher implements DataFetcher {
                     throw new RuntimeException(throwable);
                 } else if (throwable instanceof GraphQLException) {
                     GraphQLException graphQLException = (GraphQLException) throwable;
-                    //throw graphQLException;
-                    GraphQLError e = GraphqlErrorBuilder.newError(dfe)
-                            .message(graphQLException.getMessage())
-                            .build();
-                    return DataFetcherResult.newResult()
-                            .data(graphQLException.getPartialResults())
-                            .error(e)
-                            .build();
-
+                    return getPartialResult(dfe, graphQLException);
                 } else {
                     throw (Exception) throwable;
                 }
             }
         }
+    }
+
+    private DataFetcherResult<Object> getPartialResult(DataFetchingEnvironment dfe, GraphQLException graphQLException) {
+        DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
+                .newExceptionParameters()
+                .dataFetchingEnvironment(dfe)
+                .exception(graphQLException)
+                .build();
+
+        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
+        ExecutionPath path = handlerParameters.getPath();
+        GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
+                sourceLocation);
+
+        return DataFetcherResult.newResult()
+                .data(graphQLException.getPartialResults())
+                .error(error)
+                .build();
     }
 
     private ArrayList getArguments(DataFetchingEnvironment dfe) {

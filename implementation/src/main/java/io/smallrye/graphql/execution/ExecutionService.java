@@ -44,7 +44,6 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
-import io.smallrye.graphql.execution.error.ErrorData;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
 /**
@@ -101,15 +100,10 @@ public class ExecutionService {
 
     private JsonObjectBuilder addErrorsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
         List<GraphQLError> errors = executionResult.getErrors();
-
         if (errors != null) {
-            ErrorData errorData = errorsService.getErrorData(errors);
-            JsonArray jsonArray = errorData.getErrorsInJsonArrayFormat();
-            if (errorData.hasErrors()) {
+            JsonArray jsonArray = errorsService.toJsonErrors(errors);
+            if (!jsonArray.isEmpty()) {
                 returnObjectBuilder = returnObjectBuilder.add(ERRORS, jsonArray);
-            }
-            if (errorData.hasPartialResults()) {
-                //returnObjectBuilder = addDataToResponse(returnObjectBuilder, errorData.getPartialResults());
             }
             return returnObjectBuilder;
         } else {

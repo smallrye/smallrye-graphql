@@ -16,26 +16,27 @@
 
 package io.smallrye.graphql.execution.error;
 
+import java.io.StringReader;
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonValue;
+import javax.json.JsonReader;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
 import graphql.ErrorType;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
-import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.execution.datafetchers.DataFetcherException;
 
 /**
  * Help to create the exceptions
@@ -46,204 +47,85 @@ import io.smallrye.graphql.execution.datafetchers.DataFetcherException;
 public class ExecutionErrorsService {
     private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
 
-    @Inject
-    @ConfigProperty(name = "mp.graphql.defaultErrorMessage")
-    private String defaultErrorMessage;
+    //@Inject
+    //@ConfigProperty(name = "mp.graphql.defaultErrorMessage")
+    //private String defaultErrorMessage;
 
-    public ErrorData getErrorData(List<GraphQLError> errors) {
-        ErrorData errorData = new ErrorData();
-        for (GraphQLError e : errors) {
-            populate(errorData, e);
-        }
-        return errorData;
-    }
-
-    //    TODO: Is this not the correct way to do this ?    
-    //    private JsonObject toJsonObjectError(GraphQLError error) {
-    //        return toJsonObject(error.toSpecification());
-    //    }
-
-    private void populate(ErrorData errorData, GraphQLError error) {
-        if (error.getErrorType().equals(ErrorType.ValidationError)) {
-            handleValidationError(errorData, error);
-        } else if (error.getErrorType().equals(ErrorType.DataFetchingException)) {
-            handleDataFetchingError(errorData, error);
-        } else {
-            handleOtherError(errorData, error);
-        }
-    }
-
-    private void handleDataFetchingError(ErrorData errorData, GraphQLError graphQLError) {
-        if (graphQLError.getClass().isAssignableFrom(ExceptionWhileDataFetching.class)) {
-            handleExceptionWhileDataFetching(errorData, graphQLError);
-        } else {
-            handleOtherError(errorData, graphQLError);
-        }
-    }
-
-    private void handleOtherError(ErrorData errorData, GraphQLError error) {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        // Message
-        addKeyValue(objectBuilder, MESSAGE, error.getMessage());
-        // Location
-        if (error.getLocations() != null) {
-            objectBuilder.add(LOCATIONS, toJsonArrayLocations(error.getLocations()));
-        } else {
-            objectBuilder.addNull(LOCATIONS);
-        }
-        // Error Type
-        addKeyValue(objectBuilder, ERROR_TYPE, error.getErrorType().toString());
-        // Path
-        if (error.getPath() != null) {
-            objectBuilder.add(PATH, toJsonArrayPath(error.getPath()));
-        } else {
-            objectBuilder.addNull(PATH);
-        }
-        // Extensions (TODO: What is this ?)
-        objectBuilder.addNull(EXTENSIONS);
-
-        errorData.add(objectBuilder.build());
-    }
-
-    private void handleExceptionWhileDataFetching(ErrorData errorData, GraphQLError graphQLError) {
-        ExceptionWhileDataFetching error = (ExceptionWhileDataFetching) graphQLError;
-        Throwable exception = error.getException();
-        handleExceptionWhileDataFetching(errorData, error, exception);
-    }
-
-    private void handleExceptionWhileDataFetching(ErrorData errorData, ExceptionWhileDataFetching error, Throwable exception) {
-
-        if (exception instanceof DataFetcherException) {
-            DataFetcherException dataFetcherException = (DataFetcherException) error.getException();
-            Throwable cause = dataFetcherException.getCause();
-            if (cause != null && (cause instanceof GraphQLException)) {
-                handleExceptionWhileDataFetching(errorData, error, cause);
-            } else {
-
-                LOG.warn(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> handleExceptionWhileDataFetching 1 "
-                        + error.getException().getClass().getName());
-                handleUnknownError(errorData, error);
-            }
-        } else if (exception instanceof GraphQLException) {
-            LOG.warn(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> handleExceptionWhileDataFetching 2 "
-                    + error.getException().getClass().getName());
-            handleGraphQLException(errorData, error, (GraphQLException) exception);
-        } else {
-            LOG.warn(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> handleExceptionWhileDataFetching 3 "
-                    + error.getException().getClass().getName());
-            handleUnknownError(errorData, error);
-        }
-    }
-
-    private void handleGraphQLException(ErrorData errorData, ExceptionWhileDataFetching error,
-            GraphQLException graphQLException) {
-
-        Object partialResults = graphQLException.getPartialResults();
-
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        // Message
-        addKeyValue(objectBuilder, MESSAGE, graphQLException.getMessage());
-        // Location
-        if (error.getLocations() != null) {
-            objectBuilder.add(LOCATIONS, toJsonArrayLocations(error.getLocations()));
-        } else {
-            objectBuilder.addNull(LOCATIONS);
-        }
-        // Error Type
-        addKeyValue(objectBuilder, ERROR_TYPE, error.getErrorType().toString());
-        // Path
-        //if (error.getPath() != null) {
-        //    objectBuilder.add(PATH, toJsonArrayPath(error.getPath()));
-        //} else {
-        objectBuilder.addNull(PATH);
-        //}
-        // Extensions (TODO: What is this ?)
-        //objectBuilder.addNull(EXTENSIONS);
-
-        errorData.add(objectBuilder.build(), partialResults);
-    }
-
-    private void handleUnknownError(ErrorData errorData, ExceptionWhileDataFetching error) {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        // Message
-        addKeyValue(objectBuilder, MESSAGE, defaultErrorMessage);
-        // Location
-        if (error.getLocations() != null) {
-            objectBuilder.add(LOCATIONS, toJsonArrayLocations(error.getLocations()));
-        } else {
-            objectBuilder.addNull(LOCATIONS);
-        }
-        //LOG.warn(">>>>>>>>>>>> " + error.getException().getClass().getName());
-        //LOG.warn(">>>>>>>>>>>> " + error.getException().getMessage());
-        //LOG.warn(">>>>>>>>>>>> " + error.getClass().getName());
-
-        // Error Type
-        //addKeyValue(objectBuilder, ERROR_TYPE, error.getErrorType().toString());
-
-        // Path
-        //if (error.getPath() != null) {
-        //    objectBuilder.add(PATH, toJsonArrayPath(error.getPath()));
-        //} else {
-        objectBuilder.addNull(PATH);
-        //}
-
-        // Extensions (TODO: What is this ?)
-        //objectBuilder.addNull(EXTENSIONS);
-
-        errorData.add(objectBuilder.build());
-    }
-
-    private void handleValidationError(ErrorData errorData, GraphQLError graphQLError) {
-        ValidationError error = (ValidationError) graphQLError;
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        // Message
-        addKeyValue(objectBuilder, MESSAGE, error.getMessage());
-        // Location
-        if (error.getLocations() != null) {
-            objectBuilder.add(LOCATIONS, toJsonArrayLocations(error.getLocations()));
-        } else {
-            objectBuilder.addNull(LOCATIONS);
-        }
-
-        addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
-        addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
-        objectBuilder.add(QUERYPATH, toJsonArrayPath(error.getQueryPath()));
-
-        // Error Type
-        addKeyValue(objectBuilder, ERROR_TYPE, error.getErrorType().toString());
-
-        // Path
-        if (error.getPath() != null) {
-            objectBuilder.add(PATH, toJsonArrayPath(error.getPath()));
-        } else {
-            objectBuilder.addNull(PATH);
-        }
-
-        // Extensions (TODO: What is this ?)
-        objectBuilder.addNull(EXTENSIONS);
-
-        errorData.add(objectBuilder.build());
-    }
-
-    private JsonArray toJsonArrayLocations(List<SourceLocation> locations) {
+    public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        for (SourceLocation s : locations) {
-            arrayBuilder.add(toJsonObjectLocation(s));
+        for (GraphQLError e : errors) {
+            arrayBuilder.add(toJsonError(e));
         }
         return arrayBuilder.build();
     }
 
-    private JsonValue toJsonObjectLocation(SourceLocation s) {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        objectBuilder.add(LINE, s.getLine());
-        objectBuilder.add(COLUMN, s.getColumn());
-        addKeyValue(objectBuilder, SOURCENAME, s.getSourceName());
-        return objectBuilder.build();
+    private JsonObject toJsonError(GraphQLError error) {
+        JsonbConfig config = new JsonbConfig()
+                .withNullValues(Boolean.TRUE)
+                .withFormatting(Boolean.TRUE);
+
+        Jsonb jsonb = JsonbBuilder.create(config);
+        String json = jsonb.toJson(error.toSpecification());
+        final JsonReader reader = Json.createReader(new StringReader(json));
+
+        JsonObject jsonErrors = reader.readObject();
+
+        JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
+
+        // TODO: Make this configurable
+        Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
+        if (optionalExtensions.isPresent()) {
+            resultBuilder.add(EXTENSIONS, optionalExtensions.get());
+        }
+
+        return resultBuilder.build();
     }
 
-    private JsonArray toJsonArrayPath(List path) {
+    private Optional<JsonObject> getOptionalExtensions(GraphQLError error) {
+        if (error.getErrorType().equals(ErrorType.ValidationError)) {
+            return getValidationExtensions(error);
+        } else if (error.getErrorType().equals(ErrorType.DataFetchingException)) {
+            return getDataFetchingExtensions(error);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<JsonObject> getValidationExtensions(GraphQLError graphQLError) {
+        ValidationError error = (ValidationError) graphQLError;
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+
+        addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
+        addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
+        objectBuilder.add(QUERYPATH, toJsonArray(error.getQueryPath()));
+        addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
+
+        return Optional.of(objectBuilder.build());
+    }
+
+    private Optional<JsonObject> getDataFetchingExtensions(GraphQLError graphQLError) {
+        if (graphQLError instanceof ExceptionWhileDataFetching) {
+            ExceptionWhileDataFetching error = (ExceptionWhileDataFetching) graphQLError;
+            Throwable exception = error.getException();
+
+            JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+
+            addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
+            addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
+
+            if (graphQLError instanceof GraphQLExceptionWhileDataFetching) {
+                GraphQLExceptionWhileDataFetching gerror = (GraphQLExceptionWhileDataFetching) graphQLError;
+                addKeyValue(objectBuilder, MESSAGE, gerror.getOriginalMessage());
+            }
+
+            return Optional.of(objectBuilder.build());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private JsonArray toJsonArray(List list) {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        for (Object o : path) {
+        for (Object o : list) {
             if (o != null)
                 arrayBuilder.add(o.toString());
         }
@@ -253,21 +135,15 @@ public class ExecutionErrorsService {
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, String value) {
         if (value != null) {
             objectBuilder.add(key, value);
-        } else {
-            objectBuilder.addNull(key);
         }
     }
 
+    private static final String EXCEPTION = "exception";
     private static final String MESSAGE = "message";
-    private static final String LOCATIONS = "locations";
-    private static final String LINE = "line";
-    private static final String COLUMN = "column";
-    private static final String SOURCENAME = "sourceName";
     private static final String DESCRIPTION = "description";
     private static final String VALIDATION_ERROR_TYPE = "validationErrorType";
     private static final String QUERYPATH = "queryPath";
-    private static final String ERROR_TYPE = "errorType";
-    private static final String PATH = "path";
+    private static final String CLASSIFICATION = "classification";
     private static final String EXTENSIONS = "extensions";
 
 }

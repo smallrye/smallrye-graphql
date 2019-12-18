@@ -1,6 +1,0 @@
-query unknownQuery {
-  allHeroesWhoLikeIceCream {
-    name
-    primaryLocation
-  }
-}
