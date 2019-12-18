@@ -16,22 +16,28 @@
 
 package io.smallrye.graphql.execution.datafetchers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
 
+import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import graphql.execution.DataFetcherExceptionHandlerParameters;
+import graphql.execution.DataFetcherResult;
+import graphql.execution.ExecutionPath;
+import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.index.Classes;
 import io.smallrye.graphql.schema.holder.ArgumentHolder;
 
@@ -74,8 +80,42 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
-        Object declaringObject = CDI.current().select(declaringClass).get();
-        return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+        try {
+            Object declaringObject = CDI.current().select(declaringClass).get();
+            return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+        } catch (InvocationTargetException ite) {
+            Throwable throwable = ite.getCause();
+            if (throwable == null) {
+                throw new RuntimeException(ite);
+            } else {
+                if (throwable instanceof Error) {
+                    throw new RuntimeException(throwable);
+                } else if (throwable instanceof GraphQLException) {
+                    GraphQLException graphQLException = (GraphQLException) throwable;
+                    return getPartialResult(dfe, graphQLException);
+                } else {
+                    throw (Exception) throwable;
+                }
+            }
+        }
+    }
+
+    private DataFetcherResult<Object> getPartialResult(DataFetchingEnvironment dfe, GraphQLException graphQLException) {
+        DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
+                .newExceptionParameters()
+                .dataFetchingEnvironment(dfe)
+                .exception(graphQLException)
+                .build();
+
+        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
+        ExecutionPath path = handlerParameters.getPath();
+        GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
+                sourceLocation);
+
+        return DataFetcherResult.newResult()
+                .data(graphQLException.getPartialResults())
+                .error(error)
+                .build();
     }
 
     private ArrayList getArguments(DataFetchingEnvironment dfe) {

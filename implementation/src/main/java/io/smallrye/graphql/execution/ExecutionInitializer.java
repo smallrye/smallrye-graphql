@@ -43,6 +43,7 @@ public class ExecutionInitializer {
         this.graphQL = GraphQL
                 .newGraphQL(graphQLSchema)
                 .build();
+
     }
 
 }

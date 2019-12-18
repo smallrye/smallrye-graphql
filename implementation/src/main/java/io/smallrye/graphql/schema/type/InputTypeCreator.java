@@ -48,7 +48,6 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.execution.GraphQLNamingStrategy;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.index.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
@@ -124,7 +123,6 @@ public class InputTypeCreator {
     void init() {
         for (Map.Entry<DotName, TypeHolder> e : inputClasses.entrySet()) {
             this.inputObjectMap.put(e.getKey(), createInputObjectType(e.getValue()));
-            //this.inputJsonbMap.put(e.getKey(), createJsonb(inputObjectType));
         }
     }
 

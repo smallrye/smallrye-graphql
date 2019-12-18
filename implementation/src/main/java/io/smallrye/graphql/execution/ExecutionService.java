@@ -42,7 +42,9 @@ import org.jboss.logging.Logger;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
+import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
 /**
  * Executing the GraphQL request
@@ -55,6 +57,9 @@ public class ExecutionService {
 
     @Inject
     private GraphQL graphQL;
+
+    @Inject
+    private ExecutionErrorsService errorsService;
 
     public JsonObject execute(JsonObject jsonInput) {
         String query = jsonInput.getString(QUERY);
@@ -69,32 +74,53 @@ public class ExecutionService {
 
         ExecutionResult executionResult = this.graphQL.execute(executionInput);
 
-        Object pojoData = executionResult.getData();
-
         JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
 
-        LOG.error(pojoData);
+        // Errors
+        returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
+        // Data
+        returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
 
-        if (pojoData != null) {
-            JsonObject data = getJsonObject(pojoData);
-            returnObjectBuilder = returnObjectBuilder.add(DATA, data);
-        } else {
-            returnObjectBuilder = returnObjectBuilder.addNull(DATA);
-        }
         return returnObjectBuilder.build();
     }
 
-    private JsonObject getJsonObject(Object pojo) {
+    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
+        Object pojoData = executionResult.getData();
+        return addDataToResponse(returnObjectBuilder, pojoData);
+    }
+
+    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, Object pojoData) {
+        if (pojoData != null) {
+            JsonValue data = toJsonValue(pojoData);
+            return returnObjectBuilder.add(DATA, data);
+        } else {
+            return returnObjectBuilder.addNull(DATA);
+        }
+    }
+
+    private JsonObjectBuilder addErrorsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
+        List<GraphQLError> errors = executionResult.getErrors();
+        if (errors != null) {
+            JsonArray jsonArray = errorsService.toJsonErrors(errors);
+            if (!jsonArray.isEmpty()) {
+                returnObjectBuilder = returnObjectBuilder.add(ERRORS, jsonArray);
+            }
+            return returnObjectBuilder;
+        } else {
+            return returnObjectBuilder;
+        }
+
+    }
+
+    private JsonValue toJsonValue(Object pojo) {
         JsonbConfig config = new JsonbConfig()
                 .withNullValues(Boolean.TRUE)
                 .withFormatting(Boolean.TRUE);
 
         Jsonb jsonb = JsonbBuilder.create(config);
-
         String json = jsonb.toJson(pojo);
-
         final JsonReader reader = Json.createReader(new StringReader(json));
-        return reader.readObject();
+        return reader.readValue();
     }
 
     private Map<String, Object> toMap(JsonObject jo) {
@@ -145,4 +171,6 @@ public class ExecutionService {
     private static final String QUERY = "query";
     private static final String VARIABLES = "variables";
     private static final String DATA = "data";
+    private static final String ERRORS = "errors";
+
 }
