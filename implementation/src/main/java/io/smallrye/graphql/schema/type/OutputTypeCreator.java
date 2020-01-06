@@ -110,17 +110,7 @@ public class OutputTypeCreator {
     private Map<DotName, List<MethodParameterInfo>> sourceFields;
 
     public GraphQLOutputType createGraphQLOutputType(Type type, AnnotationsHolder annotations) {
-        if (nonNullHelper.markAsNonNull(type, annotations)) {
-            return GraphQLNonNull.nonNull(toGraphQLOutputType(type, annotations));
-        } else {
-            return toGraphQLOutputType(type, annotations);
-        }
-
-        // TODO: Deprecate
-        // fieldDefinitionBuilder.deprecate(description)
-
-        // TODO: Directives ?
-        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+        return createGraphQLOutputType(type, type, annotations);
     }
 
     @PostConstruct
@@ -161,7 +151,7 @@ public class OutputTypeCreator {
 
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, field.name(),
-                            field.type());
+                            field.type(), getter.returnType());
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
@@ -188,7 +178,7 @@ public class OutputTypeCreator {
                     Type type = methodParameterInfo.method().returnType();
                     GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(methodAnnotations,
                             methodInfo.name(),
-                            type);
+                            type, methodInfo.returnType());
 
                     // Arguments (input) except @Source
                     AnnotationsHolder parameterAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
@@ -210,7 +200,7 @@ public class OutputTypeCreator {
     }
 
     private GraphQLFieldDefinition.Builder getGraphQLFieldDefinitionBuilder(AnnotationsHolder annotations, String fieldName,
-            Type fieldType) {
+            Type fieldType, Type getterReturnType) {
         GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
         // Name
         builder = builder.name(nameHelper.getOutputNameForField(annotations, fieldName));
@@ -221,12 +211,26 @@ public class OutputTypeCreator {
 
         // Type
         builder = builder
-                .type(createGraphQLOutputType(fieldType, annotations));
+                .type(createGraphQLOutputType(fieldType, getterReturnType, annotations));
 
         return builder;
     }
 
-    private GraphQLOutputType toGraphQLOutputType(Type type, AnnotationsHolder annotations) {
+    private GraphQLOutputType createGraphQLOutputType(Type type, Type getterReturnType, AnnotationsHolder annotations) {
+        if (nonNullHelper.markAsNonNull(type, annotations)) {
+            return GraphQLNonNull.nonNull(toGraphQLOutputType(type, getterReturnType, annotations));
+        } else {
+            return toGraphQLOutputType(type, getterReturnType, annotations);
+        }
+
+        // TODO: Deprecate
+        // fieldDefinitionBuilder.deprecate(description)
+
+        // TODO: Directives ?
+        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+    }
+
+    private GraphQLOutputType toGraphQLOutputType(Type type, Type methodReturnType, AnnotationsHolder annotations) {
 
         DotName fieldTypeName = type.name();
 
@@ -242,17 +246,32 @@ public class OutputTypeCreator {
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
-            return GraphQLList.list(toGraphQLOutputType(typeInArray, annotations));
+            Type typeInReturnList = methodReturnType.asArrayType().component();
+            return toParameterizedGraphQLOutputType(typeInArray, typeInReturnList, annotations);
         } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Collections
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
-            return GraphQLList.list(toGraphQLOutputType(typeInCollection, annotations));
+            Type typeInReturnList = methodReturnType.asParameterizedType().arguments().get(0);
+            return toParameterizedGraphQLOutputType(typeInCollection, typeInReturnList, annotations);
         } else if (outputClasses.containsKey(type.name())) {
             String name = nameHelper.getOutputTypeName(outputClasses.get(type.name()));
             return GraphQLTypeReference.typeRef(name);
         } else {
             // Maps ? Intefaces ? Generics ?
             throw new RuntimeException("Don't know what to do with " + type);
+        }
+    }
+
+    private GraphQLOutputType toParameterizedGraphQLOutputType(Type typeInCollection, Type getterReturnType,
+            AnnotationsHolder annotations) {
+        AnnotationsHolder annotationsInParameterizedType = annotationsHelper.getAnnotationsForType(typeInCollection,
+                getterReturnType);
+
+        if (nonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, true)) {
+            return GraphQLList
+                    .list(GraphQLNonNull.nonNull(toGraphQLOutputType(typeInCollection, getterReturnType, annotations)));
+        } else {
+            return GraphQLList.list(toGraphQLOutputType(typeInCollection, getterReturnType, annotations));
         }
     }
 

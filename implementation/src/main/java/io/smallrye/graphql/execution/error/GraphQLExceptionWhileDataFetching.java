@@ -15,8 +15,6 @@
  */
 package io.smallrye.graphql.execution.error;
 
-import org.eclipse.microprofile.graphql.GraphQLException;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
@@ -28,16 +26,21 @@ import graphql.language.SourceLocation;
  */
 public class GraphQLExceptionWhileDataFetching extends ExceptionWhileDataFetching {
 
-    public GraphQLExceptionWhileDataFetching(ExecutionPath path, GraphQLException exception, SourceLocation sourceLocation) {
+    private final String message;
+
+    public GraphQLExceptionWhileDataFetching(ExecutionPath path, Throwable exception, SourceLocation sourceLocation) {
         super(path, exception, sourceLocation);
+        this.message = super.getException().getMessage();
+    }
+
+    public GraphQLExceptionWhileDataFetching(String message, ExecutionPath path, Throwable exception,
+            SourceLocation sourceLocation) {
+        super(path, exception, sourceLocation);
+        this.message = message;
     }
 
     @Override
     public String getMessage() {
-        return super.getException().getMessage();
-    }
-
-    public String getOriginalMessage() {
-        return super.getMessage();
+        return message;
     }
 }

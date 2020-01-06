@@ -47,10 +47,6 @@ import graphql.validation.ValidationError;
 public class ExecutionErrorsService {
     private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
 
-    //@Inject
-    //@ConfigProperty(name = "mp.graphql.defaultErrorMessage")
-    //private String defaultErrorMessage;
-
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
         for (GraphQLError e : errors) {
@@ -112,11 +108,6 @@ public class ExecutionErrorsService {
             addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
             addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
 
-            if (graphQLError instanceof GraphQLExceptionWhileDataFetching) {
-                GraphQLExceptionWhileDataFetching gerror = (GraphQLExceptionWhileDataFetching) graphQLError;
-                addKeyValue(objectBuilder, MESSAGE, gerror.getOriginalMessage());
-            }
-
             return Optional.of(objectBuilder.build());
         } else {
             return Optional.empty();
@@ -139,7 +130,6 @@ public class ExecutionErrorsService {
     }
 
     private static final String EXCEPTION = "exception";
-    private static final String MESSAGE = "message";
     private static final String DESCRIPTION = "description";
     private static final String VALIDATION_ERROR_TYPE = "validationErrorType";
     private static final String QUERYPATH = "queryPath";
