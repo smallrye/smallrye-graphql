@@ -30,6 +30,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.holder.AnnotationsHolder;
@@ -108,6 +109,22 @@ public class AnnotationsHelper {
             if (kinds.isEmpty() || kinds.contains(kind)) {
                 annotationMap.put(name, annotationInstance);
             }
+        }
+
+        return new AnnotationsHolder(annotationMap);
+    }
+
+    public AnnotationsHolder getAnnotationsForType(Type type, Type methodType) {
+        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
+
+        for (AnnotationInstance annotationInstance : type.annotations()) {
+            DotName name = annotationInstance.name();
+            annotationMap.put(name, annotationInstance);
+        }
+
+        for (AnnotationInstance annotationInstance : methodType.annotations()) {
+            DotName name = annotationInstance.name();
+            annotationMap.put(name, annotationInstance);
         }
 
         return new AnnotationsHolder(annotationMap);

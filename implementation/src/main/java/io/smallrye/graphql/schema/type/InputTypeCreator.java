@@ -106,17 +106,7 @@ public class InputTypeCreator {
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
     public GraphQLInputType createGraphQLInputType(Type type, AnnotationsHolder annotations) {
-        if (nonNullHelper.markAsNonNull(type, annotations)) {
-            return GraphQLNonNull.nonNull(toGraphQLInputType(type, annotations));
-        } else {
-            return toGraphQLInputType(type, annotations);
-        }
-
-        // TODO: Deprecate
-        // fieldDefinitionBuilder.deprecate(description)
-
-        // TODO: Directives ?
-        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+        return createGraphQLInputType(type, type, annotations);
     }
 
     @PostConstruct
@@ -168,7 +158,7 @@ public class InputTypeCreator {
 
                     // Type
                     builder = builder
-                            .type(createGraphQLInputType(field.type(), annotations));
+                            .type(createGraphQLInputType(field.type(), setter.parameters().get(0), annotations));
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
@@ -195,6 +185,20 @@ public class InputTypeCreator {
         return inputObjectFields;
     }
 
+    private GraphQLInputType createGraphQLInputType(Type type, Type setterParameterType, AnnotationsHolder annotations) {
+        if (nonNullHelper.markAsNonNull(type, annotations)) {
+            return GraphQLNonNull.nonNull(toGraphQLInputType(type, setterParameterType, annotations));
+        } else {
+            return toGraphQLInputType(type, setterParameterType, annotations);
+        }
+
+        // TODO: Deprecate
+        // fieldDefinitionBuilder.deprecate(description)
+
+        // TODO: Directives ?
+        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+    }
+
     private Jsonb createJsonb(Map<String, String> customFieldNameMapping) {
         JsonbConfig config = new JsonbConfig()
                 .withNullValues(Boolean.TRUE)
@@ -207,7 +211,7 @@ public class InputTypeCreator {
         return JsonbBuilder.create(config);
     }
 
-    private GraphQLInputType toGraphQLInputType(Type type, AnnotationsHolder annotations) {
+    private GraphQLInputType toGraphQLInputType(Type type, Type setterParameterType, AnnotationsHolder annotations) {
 
         DotName fieldTypeName = type.name();
 
@@ -223,17 +227,31 @@ public class InputTypeCreator {
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
-            return GraphQLList.list(toGraphQLInputType(typeInArray, annotations));
+            Type typeInParameter = setterParameterType.asArrayType().component();
+            return toParameterizedGraphQLInputType(typeInArray, typeInParameter, annotations);
         } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Collections
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
-            return GraphQLList.list(toGraphQLInputType(typeInCollection, annotations));
+            Type typeInParameter = setterParameterType.asParameterizedType().arguments().get(0);
+            return toParameterizedGraphQLInputType(typeInCollection, typeInParameter, annotations);
         } else if (inputClasses.containsKey(type.name())) {
             String name = nameHelper.getInputTypeName(inputClasses.get(type.name()));
             return GraphQLTypeReference.typeRef(name);
         } else {
             // Maps ? Intefaces ? Generics ?
             throw new RuntimeException("Don't know what to do with " + type);
+        }
+    }
+
+    private GraphQLInputType toParameterizedGraphQLInputType(Type typeInCollection, Type setterParameterType,
+            AnnotationsHolder annotations) {
+        AnnotationsHolder annotationsInParameterizedType = annotationsHelper.getAnnotationsForType(typeInCollection,
+                setterParameterType);
+        if (nonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, true)) {
+            return GraphQLList
+                    .list(GraphQLNonNull.nonNull(toGraphQLInputType(typeInCollection, setterParameterType, annotations)));
+        } else {
+            return GraphQLList.list(toGraphQLInputType(typeInCollection, setterParameterType, annotations));
         }
     }
 

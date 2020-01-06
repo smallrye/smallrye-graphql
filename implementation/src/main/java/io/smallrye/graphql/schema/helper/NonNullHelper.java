@@ -34,10 +34,14 @@ public class NonNullHelper {
     private static final Logger LOG = Logger.getLogger(NonNullHelper.class.getName());
 
     public boolean markAsNonNull(Type type, AnnotationsHolder annotations) {
+        return markAsNonNull(type, annotations, false);
+    }
+
+    public boolean markAsNonNull(Type type, AnnotationsHolder annotations, boolean ignorePrimativeCheck) {
         // check if the @NonNull annotation is present
         boolean hasNonNull = hasNonNull(annotations);
         // true if this is a primitive
-        if (type.kind().equals(Type.Kind.PRIMITIVE)) {
+        if (!ignorePrimativeCheck && type.kind().equals(Type.Kind.PRIMITIVE)) {
             hasNonNull = true; // By implication
         }
 
