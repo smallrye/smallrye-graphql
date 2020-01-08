@@ -21,8 +21,7 @@ import javax.enterprise.context.Dependent;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helping to figure out of some should be marked as Non null
@@ -33,11 +32,11 @@ import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 public class NonNullHelper {
     private static final Logger LOG = Logger.getLogger(NonNullHelper.class.getName());
 
-    public boolean markAsNonNull(Type type, AnnotationsHolder annotations) {
+    public boolean markAsNonNull(Type type, Annotations annotations) {
         return markAsNonNull(type, annotations, false);
     }
 
-    public boolean markAsNonNull(Type type, AnnotationsHolder annotations, boolean ignorePrimativeCheck) {
+    public boolean markAsNonNull(Type type, Annotations annotations, boolean ignorePrimativeCheck) {
         // check if the @NonNull annotation is present
         boolean hasNonNull = hasNonNull(annotations);
         // true if this is a primitive
@@ -57,7 +56,7 @@ public class NonNullHelper {
         return hasNonNull;
     }
 
-    private boolean hasNonNull(AnnotationsHolder annotations) {
+    private boolean hasNonNull(Annotations annotations) {
 
         return annotations.containsOnOfTheseKeys(Annotations.NON_NULL,
                 Annotations.BEAN_VALIDATION_NOT_NULL,
@@ -65,7 +64,7 @@ public class NonNullHelper {
                 Annotations.BEAN_VALIDATION_NOT_BLANK);
     }
 
-    private boolean hasDefaultValue(AnnotationsHolder annotations) {
+    private boolean hasDefaultValue(Annotations annotations) {
         return annotations.containsKeyAndValidValue(Annotations.DEFAULT_VALUE);
     }
 }

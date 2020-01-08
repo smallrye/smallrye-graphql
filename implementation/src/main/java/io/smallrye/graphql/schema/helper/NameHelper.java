@@ -21,11 +21,10 @@ import javax.enterprise.context.Dependent;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
-import io.smallrye.graphql.schema.holder.TypeHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helping with Name of types in the schema
@@ -35,40 +34,38 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
 @Dependent
 public class NameHelper {
 
-    public String getEnumName(TypeHolder typeHolder) {
-        AnnotationsHolder annotations = typeHolder.getAnnotations();
+    public String getEnumName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.ENUM)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ENUM);
             return annotationValue.asString();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        return typeHolder.getClassInfo().name().local();
+        return classInfo.name().local();
+
     }
 
-    public String getOutputTypeName(TypeHolder typeHolder) {
-        AnnotationsHolder annotations = typeHolder.getAnnotations();
+    public String getOutputTypeName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.TYPE)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TYPE);
             return annotationValue.asString();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        return typeHolder.getClassInfo().name().local();
+        return classInfo.name().local();
     }
 
-    public String getInputTypeName(TypeHolder typeHolder) {
-        AnnotationsHolder annotations = typeHolder.getAnnotations();
+    public String getInputTypeName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.INPUT)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUT);
             return annotationValue.asString();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotation(Annotations.NAME).value().asString();
         }
-        return typeHolder.getClassInfo().name().local() + INPUT;
+        return classInfo.name().local() + INPUT;
     }
 
-    public String getInputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {
+    public String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
@@ -81,7 +78,7 @@ public class NameHelper {
         return fieldName;
     }
 
-    public String getOutputNameForField(AnnotationsHolder annotationsForThisField, String fieldName) {
+    public String getOutputNameForField(Annotations annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
@@ -96,14 +93,14 @@ public class NameHelper {
         return fieldName;
     }
 
-    public String getArgumentName(AnnotationsHolder annotations, short argCount) {
+    public String getArgumentName(Annotations annotations, short argCount) {
         if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotationValue(Annotations.NAME).asString();
         }
         return "arg" + argCount;
     }
 
-    public String getExecutionTypeName(AnnotationInstance annotation, AnnotationsHolder otherAnnotations) {
+    public String getExecutionTypeName(AnnotationInstance annotation, Annotations otherAnnotations) {
         if (annotation.value() != null && !annotation.value().asString().isEmpty()) {
             // If the @Query or @Mutation annotation has a value, use that.
             return annotation.value().asString();
@@ -141,7 +138,7 @@ public class NameHelper {
         return original.substring(0, 1).toLowerCase() + original.substring(1);
     }
 
-    private boolean hasValidExecutionTypeAnnotation(DotName annotation, AnnotationsHolder otherAnnotations) {
+    private boolean hasValidExecutionTypeAnnotation(DotName annotation, Annotations otherAnnotations) {
         if (otherAnnotations.containsKeyAndValidValue(annotation)) {
             AnnotationInstance annotationInstance = otherAnnotations.getAnnotation(annotation);
             if (isMethodAnnotation(annotationInstance)) {
@@ -151,7 +148,7 @@ public class NameHelper {
         return false;
     }
 
-    private String getValueAsString(DotName annotation, AnnotationsHolder otherAnnotations) {
+    private String getValueAsString(DotName annotation, Annotations otherAnnotations) {
         return otherAnnotations.getAnnotation(annotation).value().asString();
     }
 

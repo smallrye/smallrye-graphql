@@ -32,7 +32,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Finds all @Source fields.
@@ -60,13 +60,7 @@ public class SourceFieldDiscoverer {
                 MethodParameterInfo methodParameter = target.asMethodParameter();
                 short position = methodParameter.position();
                 DotName name = methodParameter.method().parameters().get(position).name();
-                if (sourceFields.containsKey(name)) {
-                    sourceFields.get(name).add(methodParameter);
-                } else {
-                    List<MethodParameterInfo> l = new ArrayList<>();
-                    l.add(methodParameter);
-                    sourceFields.put(name, l);
-                }
+                sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
             } else {
                 LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind() + ". Only expecting @"
                         + Annotations.SOURCE.local() + " on Method parameters");

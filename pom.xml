@@ -18,7 +18,7 @@
     <properties>
         <version.eclipse.microprofile.config>1.3</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.0-SNAPSHOT</version.eclipse.microprofile.graphql>
-        <version.smallrye-config>1.5.0</version.smallrye-config>
+        <version.smallrye-config>1.5.1</version.smallrye-config>
     </properties>
 
     <licenses>
@@ -40,7 +40,7 @@
         <tag>HEAD</tag>
     </scm>
 
-    <modules><!-- Getting the source from here for now as graphql-spqr is not yet released -->
+    <modules>
         <module>implementation</module>
         <module>tck</module>
     </modules>

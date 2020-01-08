@@ -18,6 +18,11 @@ package io.smallrye.graphql.schema.type.scalar;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +32,6 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -37,11 +40,6 @@ import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
 import graphql.Scalars;
-import graphql.language.StringValue;
-import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
 
 /**
@@ -53,12 +51,10 @@ import graphql.schema.GraphQLScalarType;
 public class ScalarMappingInitializer {
     private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
 
+    // Provide your own list like this > SomeName:some.class.Name,...
     @Inject
-    @ConfigProperty(name = "mp.graphql.passthroughScalars", defaultValue = "Date:java.time.LocalDate,Time:java.time.LocalTime,DateTime:java.time.LocalDateTime")
+    @ConfigProperty(name = "mp.graphql.passthroughScalars", defaultValue = "")
     private List<String> passthroughScalars;
-
-    @Inject
-    private BeanManager beanManager;
 
     @Produces
     private final Map<DotName, GraphQLScalarType> scalarMap = new HashMap<>();
@@ -67,7 +63,6 @@ public class ScalarMappingInitializer {
     void init() {
         scalarMap.putAll(MAPPING);
         addPassthroughScalars();
-        addCustomScalars();
     }
 
     @Produces
@@ -77,66 +72,37 @@ public class ScalarMappingInitializer {
     }
 
     private void addPassthroughScalars() {
-        LOG.debug("Finding all passthrough scalars...");
-        for (String kv : passthroughScalars) {
-            String[] keyValue = kv.split(":");
-            String name = keyValue[0];
-            String className = keyValue[1];
-            LOG.debug("\t found scalar type [" + name + "] that maps to [" + className + "]");
+        LOG.info("Adding all default passthrough scalars...");
+        for (Map.Entry<String, List<String>> entry : PASS_THROUGH_SCALARS.entrySet()) {
+            String name = entry.getKey();
+            List<String> values = entry.getValue();
+            for (String className : values) {
+                addToScalarMap(name, className);
+            }
+        }
 
-            PassthroughScalar passthroughScalar = new PassthroughScalar(name,
-                    "Scalar for " + className + "that just let the value pass though");
-
-            scalarMap.put(DotName.createSimple(className), passthroughScalar);
+        if (passthroughScalars != null && !passthroughScalars.isEmpty()) {
+            LOG.info("Adding all user configured passthrough scalars...");
+            for (String kv : passthroughScalars) {
+                String[] keyValue = kv.split(":");
+                String name = keyValue[0];
+                String className = keyValue[1];
+                addToScalarMap(name, className);
+            }
         }
     }
 
-    private void addCustomScalars() {
-        LOG.debug("Finding all custom scalars...");
+    private void addToScalarMap(String name, String className) {
+        LOG.info("\t found scalar type [" + name + "] that maps to [" + className + "]");
 
-        Set<Bean<?>> beans = beanManager.getBeans(Object.class, new CustomScalarLiteral() {
-        });
+        PassthroughScalar passthroughScalar = new PassthroughScalar(name,
+                "Scalar for " + className + "that just let the value pass though");
 
-        for (Bean bean : beans) {
-            CustomScalar customScalar = (CustomScalar) beanManager.getContext(bean.getScope()).get(bean,
-                    beanManager.createCreationalContext(bean));
-
-            LOG.debug("\t found " + bean.getBeanClass() + " for scalar type [" + customScalar.getName() + "] that maps to ["
-                    + customScalar.forClass() + "]");
-
-            scalarMap.put(DotName.createSimple(customScalar.forClass().getName()), newGraphQLScalarType(customScalar));
-
-        }
-    }
-
-    private GraphQLScalarType newGraphQLScalarType(CustomScalar customScalar) {
-        return GraphQLScalarType.newScalar()
-                .name(customScalar.getName())
-                .description(customScalar.getDescription())
-                .coercing(new Coercing() {
-                    @Override
-                    public Object serialize(Object o) throws CoercingSerializeException {
-                        return customScalar.serialize(o);
-                    }
-
-                    @Override
-                    public Object parseValue(Object o) throws CoercingParseValueException {
-                        return customScalar.deserialize(o);
-                    }
-
-                    @Override
-                    public Object parseLiteral(Object o) throws CoercingParseLiteralException {
-                        if (o.getClass().getName().equals(StringValue.class.getName())) {
-                            StringValue stringValue = StringValue.class.cast(o);
-                            String value = stringValue.getValue();
-                            return parseValue(value);
-                        } // TODO: Other types ? ArrayValue, BooleanValue, EnumValue, FloatValue, IntValue, NullValue, ObjectValue, ScalarValue;
-                        return parseValue(o);
-                    }
-                }).build();
+        scalarMap.put(DotName.createSimple(className), passthroughScalar);
     }
 
     private static final Map<DotName, GraphQLScalarType> MAPPING = new HashMap<>();
+    private static final Map<String, List<String>> PASS_THROUGH_SCALARS = new HashMap<>();
 
     static {
         MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLChar);
@@ -167,5 +133,12 @@ public class ScalarMappingInitializer {
 
         MAPPING.put(DotName.createSimple(Byte.class.getName()), Scalars.GraphQLByte);
         MAPPING.put(DotName.createSimple(byte.class.getName()), Scalars.GraphQLByte);
+
+        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(LocalDate.class.getName());
+        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(Date.class.getName());
+        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(java.sql.Date.class.getName());
+        PASS_THROUGH_SCALARS.computeIfAbsent("Time", k -> new ArrayList<>()).add(LocalTime.class.getName());
+        PASS_THROUGH_SCALARS.computeIfAbsent("DateTime", k -> new ArrayList<>()).add(LocalDateTime.class.getName());
     }
+
 }

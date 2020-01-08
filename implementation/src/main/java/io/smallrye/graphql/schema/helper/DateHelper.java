@@ -20,7 +20,7 @@ import javax.enterprise.context.Dependent;
 
 import org.jboss.jandex.Type;
 
-import io.smallrye.graphql.index.Classes;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Helping with dates
@@ -43,13 +43,16 @@ public class DateHelper {
             default:
                 return type.name().equals(Classes.LOCALDATE)
                         || type.name().equals(Classes.LOCALTIME)
-                        || type.name().equals(Classes.LOCALDATETIME);
+                        || type.name().equals(Classes.LOCALDATETIME)
+                        || type.name().equals(Classes.UTIL_DATE)
+                        || type.name().equals(Classes.SQL_DATE);
         }
     }
 
     public String getDefaultFormat(Type type) {
         // return the default dates format
-        if (type.name().equals(Classes.LOCALDATE)) {
+        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
+                || type.name().equals(Classes.SQL_DATE)) {
             return ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME)) {
             return ISO_TIME;

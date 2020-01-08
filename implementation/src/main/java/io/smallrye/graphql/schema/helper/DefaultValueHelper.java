@@ -20,8 +20,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.Dependent;
 
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helping to figure out if there is a default value.
@@ -32,10 +31,10 @@ import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 @Dependent
 public class DefaultValueHelper {
 
-    public Optional<Object> getDefaultValue(AnnotationsHolder... annotationsHolder) {
-        for (AnnotationsHolder holder : annotationsHolder) {
-            if (holder.containsKeyAndValidValue(Annotations.DEFAULT_VALUE)) {
-                return Optional.of(holder.getAnnotationValue(Annotations.DEFAULT_VALUE).value());
+    public Optional<Object> getDefaultValue(Annotations... annotations) {
+        for (Annotations a : annotations) {
+            if (a.containsKeyAndValidValue(Annotations.DEFAULT_VALUE)) {
+                return Optional.of(a.getAnnotationValue(Annotations.DEFAULT_VALUE).value());
             }
         }
         return Optional.empty();
