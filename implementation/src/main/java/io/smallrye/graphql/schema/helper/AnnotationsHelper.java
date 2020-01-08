@@ -33,7 +33,7 @@ import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Getting all the annotations for something.
@@ -50,7 +50,7 @@ public class AnnotationsHelper {
      * @param classInfo
      * @return All annotations on this class.
      */
-    public AnnotationsHolder getAnnotationsForClass(ClassInfo classInfo) {
+    public Annotations getAnnotationsForClass(ClassInfo classInfo) {
 
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
@@ -59,10 +59,10 @@ public class AnnotationsHelper {
             annotationMap.put(name, annotationInstance);
         }
 
-        return new AnnotationsHolder(annotationMap);
+        return new Annotations(annotationMap);
     }
 
-    public AnnotationsHolder getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
+    public Annotations getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
 
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
@@ -76,10 +76,10 @@ public class AnnotationsHelper {
             annotationMap.put(name, annotationInstance);
         }
 
-        return new AnnotationsHolder(annotationMap);
+        return new Annotations(annotationMap);
     }
 
-    public AnnotationsHolder getAnnotationsForArgument(MethodInfo methodInfo, short pos) {
+    public Annotations getAnnotationsForArgument(MethodInfo methodInfo, short pos) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance anno : methodInfo.annotations()) {
@@ -95,10 +95,10 @@ public class AnnotationsHelper {
             }
 
         }
-        return new AnnotationsHolder(annotationMap);
+        return new Annotations(annotationMap);
     }
 
-    public AnnotationsHolder getAnnotationsForMethod(MethodInfo methodInfo, AnnotationTarget.Kind... kindsFilter) {
+    public Annotations getAnnotationsForMethod(MethodInfo methodInfo, AnnotationTarget.Kind... kindsFilter) {
         List<AnnotationTarget.Kind> kinds = Arrays.asList(kindsFilter);
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
@@ -111,10 +111,10 @@ public class AnnotationsHelper {
             }
         }
 
-        return new AnnotationsHolder(annotationMap);
+        return new Annotations(annotationMap);
     }
 
-    public AnnotationsHolder getAnnotationsForType(Type type, Type methodType) {
+    public Annotations getAnnotationsForType(Type type, Type methodType) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance annotationInstance : type.annotations()) {
@@ -127,6 +127,7 @@ public class AnnotationsHelper {
             annotationMap.put(name, annotationInstance);
         }
 
-        return new AnnotationsHolder(annotationMap);
+        return new Annotations(annotationMap);
     }
+
 }

@@ -21,11 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
@@ -33,6 +31,7 @@ import javax.json.bind.JsonbConfig;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
+import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
@@ -40,24 +39,23 @@ import org.jboss.logging.Logger;
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
-import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
-import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
-import io.smallrye.graphql.schema.holder.TypeHolder;
 
 /**
  * Create a graphql-java GraphQLInputType
@@ -65,11 +63,11 @@ import io.smallrye.graphql.schema.holder.TypeHolder;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class InputTypeCreator {
+public class InputTypeCreator implements Creator {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
-    @Produces
-    private final Map<DotName, GraphQLInputObjectType> inputObjectMap = new HashMap<>();
+    @Inject
+    private EnumTypeCreator enumTypeCreator;
 
     @Produces
     private final Map<DotName, Jsonb> inputJsonbMap = new HashMap<>();
@@ -78,11 +76,7 @@ public class InputTypeCreator {
     private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
-    private Map<DotName, GraphQLEnumType> enumMap;
-
-    @Inject
-    @Named("input")
-    private Map<DotName, TypeHolder> inputClasses;
+    private Index index;
 
     @Inject
     private NameHelper nameHelper;
@@ -105,31 +99,24 @@ public class InputTypeCreator {
     @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
-    public GraphQLInputType createGraphQLInputType(Type type, AnnotationsHolder annotations) {
-        return createGraphQLInputType(type, type, annotations);
-    }
-
-    @PostConstruct
-    void init() {
-        for (Map.Entry<DotName, TypeHolder> e : inputClasses.entrySet()) {
-            this.inputObjectMap.put(e.getKey(), createInputObjectType(e.getValue()));
-        }
-    }
-
-    private GraphQLInputObjectType createInputObjectType(TypeHolder typeHolder) {
-        String name = nameHelper.getInputTypeName(typeHolder);
-        ClassInfo classInfo = typeHolder.getClassInfo();
+    @Override
+    public GraphQLType create(ClassInfo classInfo, Annotations annotations) {
+        String name = nameHelper.getInputTypeName(classInfo, annotations);
 
         GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject().name(name);
 
         // Description
-        Optional<String> maybeDescription = descriptionHelper.getDescription(typeHolder);
+        Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
         inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.orElse(null));
 
         // Fields
         inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
 
         return inputObjectTypeBuilder.build();
+    }
+
+    public GraphQLInputType createGraphQLInputType(Type type, Annotations annotations) {
+        return createGraphQLInputType(type, type, annotations);
     }
 
     private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo, String name) {
@@ -144,7 +131,7 @@ public class InputTypeCreator {
             if (maybeSetter.isPresent()) {
                 MethodInfo setter = maybeSetter.get();
                 // Annotations on the field and setter
-                AnnotationsHolder annotations = annotationsHelper.getAnnotationsForField(field, setter);
+                Annotations annotations = annotationsHelper.getAnnotationsForField(field, setter);
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
@@ -164,7 +151,7 @@ public class InputTypeCreator {
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     // Default value (on method)
-                    AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);
+                    Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);
                     Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument,
                             annotations);
                     builder = builder.defaultValue(maybeDefaultValue.orElse(null));
@@ -185,7 +172,7 @@ public class InputTypeCreator {
         return inputObjectFields;
     }
 
-    private GraphQLInputType createGraphQLInputType(Type type, Type setterParameterType, AnnotationsHolder annotations) {
+    private GraphQLInputType createGraphQLInputType(Type type, Type setterParameterType, Annotations annotations) {
         if (nonNullHelper.markAsNonNull(type, annotations)) {
             return GraphQLNonNull.nonNull(toGraphQLInputType(type, setterParameterType, annotations));
         } else {
@@ -211,7 +198,7 @@ public class InputTypeCreator {
         return JsonbBuilder.create(config);
     }
 
-    private GraphQLInputType toGraphQLInputType(Type type, Type setterParameterType, AnnotationsHolder annotations) {
+    private GraphQLInputType toGraphQLInputType(Type type, Type setterParameterType, Annotations annotations) {
 
         DotName fieldTypeName = type.name();
 
@@ -221,9 +208,6 @@ public class InputTypeCreator {
         } else if (scalarMap.containsKey(fieldTypeName)) {
             // Scalar
             return scalarMap.get(fieldTypeName);
-        } else if (enumMap.containsKey(fieldTypeName)) {
-            // Enum  
-            return enumMap.get(fieldTypeName);
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
@@ -234,18 +218,26 @@ public class InputTypeCreator {
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
             Type typeInParameter = setterParameterType.asParameterizedType().arguments().get(0);
             return toParameterizedGraphQLInputType(typeInCollection, typeInParameter, annotations);
-        } else if (inputClasses.containsKey(type.name())) {
-            String name = nameHelper.getInputTypeName(inputClasses.get(type.name()));
-            return GraphQLTypeReference.typeRef(name);
+        } else if (type.kind().equals(Type.Kind.CLASS)) {
+
+            ClassInfo classInfo = index.getClassByName(type.name());
+            Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
+
+            if (Classes.isEnum(classInfo)) {
+                return enumTypeCreator.create(classInfo, annotationsForThisClass);
+            } else {
+                String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);
+                return GraphQLTypeReference.typeRef(name);
+            }
         } else {
             // Maps ? Intefaces ? Generics ?
-            throw new RuntimeException("Don't know what to do with " + type);
+            throw new RuntimeException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
         }
     }
 
     private GraphQLInputType toParameterizedGraphQLInputType(Type typeInCollection, Type setterParameterType,
-            AnnotationsHolder annotations) {
-        AnnotationsHolder annotationsInParameterizedType = annotationsHelper.getAnnotationsForType(typeInCollection,
+            Annotations annotations) {
+        Annotations annotationsInParameterizedType = annotationsHelper.getAnnotationsForType(typeInCollection,
                 setterParameterType);
         if (nonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, true)) {
             return GraphQLList

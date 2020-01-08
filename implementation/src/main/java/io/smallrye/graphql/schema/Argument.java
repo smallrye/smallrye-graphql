@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.schema.holder;
+package io.smallrye.graphql.schema;
 
 import org.jboss.jandex.Type;
-
-import io.smallrye.graphql.index.Classes;
 
 /**
  * Simple Argument Holder that contains meta data about an argument
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ArgumentHolder {
+public class Argument {
     private String name;
     private Type type;
-
-    public ArgumentHolder() {
-    }
 
     public String getName() {
         return name;

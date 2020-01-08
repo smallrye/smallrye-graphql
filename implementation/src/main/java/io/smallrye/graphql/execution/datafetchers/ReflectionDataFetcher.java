@@ -38,8 +38,8 @@ import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.index.Classes;
-import io.smallrye.graphql.schema.holder.ArgumentHolder;
+import io.smallrye.graphql.schema.Argument;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Fetch data using Reflection
@@ -52,12 +52,12 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final Method method;
     private final Class declaringClass;
     private final Class returnType;
-    private List<ArgumentHolder> arguments;
+    private List<Argument> arguments;
     private final boolean hasArguments;
 
     private final Map<DotName, Jsonb> inputJsonbMap;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo, List<ArgumentHolder> arguments, Map<DotName, Jsonb> inputJsonbMap) {
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Map<DotName, Jsonb> inputJsonbMap) {
         try {
             this.arguments = arguments;
             this.inputJsonbMap = inputJsonbMap;
@@ -120,7 +120,7 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private ArrayList getArguments(DataFetchingEnvironment dfe) {
         ArrayList argumentObjects = new ArrayList();
-        for (ArgumentHolder argumentHolder : arguments) {
+        for (Argument argumentHolder : arguments) {
 
             String name = argumentHolder.getName();
             Class type = argumentHolder.getArgumentClass();
@@ -213,9 +213,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
     }
 
-    private Class[] getParameterClasses(List<ArgumentHolder> arguments) {
+    private Class[] getParameterClasses(List<Argument> arguments) {
         List<Class> cl = new ArrayList<>();
-        for (ArgumentHolder argumentHolder : arguments) {
+        for (Argument argumentHolder : arguments) {
             cl.add(argumentHolder.getArgumentClass());
         }
         return cl.toArray(new Class[] {});

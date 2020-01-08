@@ -29,9 +29,8 @@ import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputType;
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
-import io.smallrye.graphql.schema.holder.ArgumentHolder;
+import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.type.InputTypeCreator;
 
 /**
@@ -55,11 +54,11 @@ public class ArgumentsHelper {
     @Inject
     private AnnotationsHelper annotationsHelper;
 
-    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations) {
+    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, Annotations annotations) {
         return toGraphQLArguments(methodInfo, annotations, false);
     }
 
-    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, AnnotationsHolder annotations,
+    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, Annotations annotations,
             boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
         List<GraphQLArgument> r = new ArrayList<>();
@@ -75,8 +74,8 @@ public class ArgumentsHelper {
     }
 
     private Optional<GraphQLArgument> toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
-            AnnotationsHolder annotations, boolean ignoreSourceArgument) {
-        AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
+            Annotations annotations, boolean ignoreSourceArgument) {
+        Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
         if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
             return Optional.empty();
@@ -94,16 +93,16 @@ public class ArgumentsHelper {
         }
     }
 
-    public List<ArgumentHolder> toArgumentHolders(MethodInfo methodInfo) {
+    public List<Argument> toArgumentHolders(MethodInfo methodInfo) {
         return toArgumentHolders(methodInfo, false);
     }
 
-    public List<ArgumentHolder> toArgumentHolders(MethodInfo methodInfo, boolean ignoreSourceArgument) {
+    public List<Argument> toArgumentHolders(MethodInfo methodInfo, boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
-        List<ArgumentHolder> r = new ArrayList<>();
+        List<Argument> r = new ArrayList<>();
         short cnt = 0;
         for (Type parameter : parameters) {
-            Optional<ArgumentHolder> graphQLArgument = toArgumentHolder(methodInfo, cnt, parameter,
+            Optional<Argument> graphQLArgument = toArgument(methodInfo, cnt, parameter,
                     ignoreSourceArgument);
             if (graphQLArgument.isPresent())
                 r.add(graphQLArgument.get());
@@ -112,18 +111,18 @@ public class ArgumentsHelper {
         return r;
     }
 
-    private Optional<ArgumentHolder> toArgumentHolder(MethodInfo methodInfo, short argCount, Type parameter,
+    private Optional<Argument> toArgument(MethodInfo methodInfo, short argCount, Type parameter,
             boolean ignoreSourceArgument) {
-        AnnotationsHolder annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
+        Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
         if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
             return Optional.empty();
         } else {
-            ArgumentHolder argumentHolder = new ArgumentHolder();
+            Argument argument = new Argument();
             String name = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
-            argumentHolder.setName(name);
-            argumentHolder.setType(parameter);
-            return Optional.of(argumentHolder);
+            argument.setName(name);
+            argument.setType(parameter);
+            return Optional.of(argument);
         }
     }
 

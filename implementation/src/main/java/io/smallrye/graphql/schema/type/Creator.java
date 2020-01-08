@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.smallrye.graphql.schema.type;
 
-package io.smallrye.graphql.schema.type.scalar;
+import org.jboss.jandex.ClassInfo;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import javax.inject.Qualifier;
+import graphql.schema.GraphQLType;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
- * Marks a class as a custom scalar definition
+ * Interface for all creators
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface CustomScalarMarker {
-
+public interface Creator {
+    public GraphQLType create(ClassInfo classInfo, Annotations annotations);
 }

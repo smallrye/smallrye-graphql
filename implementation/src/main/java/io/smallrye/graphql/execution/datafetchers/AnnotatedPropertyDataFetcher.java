@@ -24,9 +24,8 @@ import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
-import io.smallrye.graphql.index.Annotations;
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DateHelper;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 
 /**
  * Extending the default property data fetcher and take the annotations into account
@@ -41,7 +40,7 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
 
     private DateTimeFormatter dateTimeFormatter = null;
 
-    public AnnotatedPropertyDataFetcher(String propertyName, Type type, AnnotationsHolder annotations) {
+    public AnnotatedPropertyDataFetcher(String propertyName, Type type, Annotations annotations) {
         super(propertyName);
 
         if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {

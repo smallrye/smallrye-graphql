@@ -24,9 +24,7 @@ import javax.inject.Inject;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
-import io.smallrye.graphql.schema.holder.TypeHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helper to get the correct Description.
@@ -40,33 +38,42 @@ public class DescriptionHelper {
     @Inject
     private DateHelper dateHelper;
 
-    public Optional<String> getDescription(TypeHolder typeHolder) {
-        return getDescription(typeHolder.getAnnotations());
-    }
-
-    public Optional<String> getDescription(AnnotationsHolder annotationsHolder) {
-        if (annotationsHolder.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
-            return Optional.of(annotationsHolder.getAnnotationValue(Annotations.DESCRIPTION).asString());
+    public Optional<String> getDescription(Annotations annotations) {
+        if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
+            return Optional.of(annotations.getAnnotationValue(Annotations.DESCRIPTION).asString());
         }
-
         return Optional.empty();
     }
 
-    public Optional<String> getDescription(AnnotationsHolder annotationsHolder, FieldInfo field) {
-        return getDescription(annotationsHolder, field.type());
+    public Optional<String> getDescription(Annotations annotations, FieldInfo field) {
+        return getDescription(annotations, field.type());
     }
 
-    public Optional<String> getDescription(AnnotationsHolder annotationsHolder, Type type) {
-        if (annotationsHolder.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
-            return Optional.of(annotationsHolder.getAnnotation(Annotations.DESCRIPTION).value().asString());
-        } else if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
-            if (annotationsHolder.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
-                return Optional.of(annotationsHolder.getAnnotation(Annotations.JSONB_DATE_FORMAT).value().asString());
+    public Optional<String> getDescription(Annotations annotations, Type type) {
+        if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
+            String dateFormat = getDateFormat(annotations, type);
+            if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
+                return Optional.of(getGivenDescription(annotations) + " (" + dateFormat + ")");
             } else {
-                // return the default dates format
-                return Optional.of(dateHelper.getDefaultFormat(type));
+                return Optional.of(dateFormat);
             }
+        } else if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
+            return Optional.of(getGivenDescription(annotations));
+        } else {
+            return Optional.empty();
         }
-        return Optional.empty();
+    }
+
+    private String getDateFormat(Annotations annotations, Type type) {
+        if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
+            return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT).value().asString();
+        } else {
+            // return the default dates format
+            return dateHelper.getDefaultFormat(type);
+        }
+    }
+
+    private String getGivenDescription(Annotations annotations) {
+        return annotations.getAnnotation(Annotations.DESCRIPTION).value().asString();
     }
 }

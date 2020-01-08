@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.index;
+package io.smallrye.graphql.schema;
+
+import java.util.Map;
 
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbProperty;
@@ -22,6 +24,7 @@ import javax.json.bind.annotation.JsonbTransient;
 
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.Input;
@@ -31,14 +34,49 @@ import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.eclipse.microprofile.graphql.Type;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 
 /**
- * All the annotations we care about
+ * All the annotations we care about for a certain context
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public interface Annotations {
+public class Annotations {
+
+    private final Map<DotName, AnnotationInstance> annotations;
+
+    public Annotations(Map<DotName, AnnotationInstance> annotations) {
+        this.annotations = annotations;
+    }
+
+    public Map<DotName, AnnotationInstance> getAnnotations() {
+        return this.annotations;
+    }
+
+    public AnnotationInstance getAnnotation(DotName key) {
+        return this.annotations.get(key);
+    }
+
+    public AnnotationValue getAnnotationValue(DotName key) {
+        return this.annotations.get(key).value();
+    }
+
+    public boolean containsOnOfTheseKeys(DotName... key) {
+        for (DotName name : key) {
+            if (this.annotations.containsKey(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean containsKeyAndValidValue(DotName key) {
+        return this.annotations.containsKey(key) && this.annotations.get(key).value() != null;
+    }
+
+    public static final DotName GRAPHQL_API = DotName.createSimple(GraphQLApi.class.getName());
     public static final DotName QUERY = DotName.createSimple(Query.class.getName());
     public static final DotName MUTATION = DotName.createSimple(Mutation.class.getName());
     public static final DotName INPUT = DotName.createSimple(Input.class.getName());

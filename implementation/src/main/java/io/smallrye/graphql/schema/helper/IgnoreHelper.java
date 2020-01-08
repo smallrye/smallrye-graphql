@@ -18,8 +18,7 @@ package io.smallrye.graphql.schema.helper;
 
 import javax.enterprise.context.Dependent;
 
-import io.smallrye.graphql.index.Annotations;
-import io.smallrye.graphql.schema.holder.AnnotationsHolder;
+import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helping to figure out if we should ignore a field.
@@ -30,7 +29,7 @@ import io.smallrye.graphql.schema.holder.AnnotationsHolder;
 @Dependent
 public class IgnoreHelper {
 
-    public boolean shouldIgnore(AnnotationsHolder annotations) {
+    public boolean shouldIgnore(Annotations annotations) {
         return annotations.containsOnOfTheseKeys(Annotations.IGNORE,
                 Annotations.JSONB_TRANSIENT);
     }
