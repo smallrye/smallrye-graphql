@@ -36,7 +36,7 @@ import io.smallrye.graphql.schema.Annotations;
 public class DescriptionHelper {
 
     @Inject
-    private DateHelper dateHelper;
+    private FormatHelper formatHelper;
 
     public Optional<String> getDescription(Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
@@ -50,13 +50,14 @@ public class DescriptionHelper {
     }
 
     public Optional<String> getDescription(Annotations annotations, Type type) {
-        if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
+        if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
             String dateFormat = getDateFormat(annotations, type);
             if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
                 return Optional.of(getGivenDescription(annotations) + " (" + dateFormat + ")");
             } else {
                 return Optional.of(dateFormat);
             }
+            // TODO: Add Number formatting    
         } else if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
             return Optional.of(getGivenDescription(annotations));
         } else {
@@ -69,7 +70,7 @@ public class DescriptionHelper {
             return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT).value().asString();
         } else {
             // return the default dates format
-            return dateHelper.getDefaultFormat(type);
+            return formatHelper.getDefaultFormat(type);
         }
     }
 

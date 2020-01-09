@@ -50,7 +50,10 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             testDeployment.addClass(SmallRyeGraphQLSchemaServlet.class);
             testDeployment.addClass(SmallRyeGraphQLExecutionServlet.class);
             testDeployment.addClass(SmallRyeGraphQLContextListener.class);
-
+            testDeployment.addAsResource(
+                    SmallRyeGraphQLArchiveProcessor.class.getClassLoader()
+                            .getResource("META-INF/microprofile-config.properties"),
+                    "META-INF/microprofile-config.properties");
         }
     }
 

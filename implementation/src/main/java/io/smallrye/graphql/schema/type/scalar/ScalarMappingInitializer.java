@@ -21,10 +21,8 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -32,10 +30,8 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
@@ -51,18 +47,12 @@ import graphql.schema.GraphQLScalarType;
 public class ScalarMappingInitializer {
     private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
 
-    // Provide your own list like this > SomeName:some.class.Name,...
-    @Inject
-    @ConfigProperty(name = "mp.graphql.passthroughScalars", defaultValue = "")
-    private List<String> passthroughScalars;
-
     @Produces
     private final Map<DotName, GraphQLScalarType> scalarMap = new HashMap<>();
 
     @PostConstruct
     void init() {
         scalarMap.putAll(MAPPING);
-        addPassthroughScalars();
     }
 
     @Produces
@@ -71,38 +61,11 @@ public class ScalarMappingInitializer {
         return scalarMap.keySet();
     }
 
-    private void addPassthroughScalars() {
-        LOG.info("Adding all default passthrough scalars...");
-        for (Map.Entry<String, List<String>> entry : PASS_THROUGH_SCALARS.entrySet()) {
-            String name = entry.getKey();
-            List<String> values = entry.getValue();
-            for (String className : values) {
-                addToScalarMap(name, className);
-            }
-        }
-
-        if (passthroughScalars != null && !passthroughScalars.isEmpty()) {
-            LOG.info("Adding all user configured passthrough scalars...");
-            for (String kv : passthroughScalars) {
-                String[] keyValue = kv.split(":");
-                String name = keyValue[0];
-                String className = keyValue[1];
-                addToScalarMap(name, className);
-            }
-        }
-    }
-
-    private void addToScalarMap(String name, String className) {
-        LOG.info("\t found scalar type [" + name + "] that maps to [" + className + "]");
-
-        PassthroughScalar passthroughScalar = new PassthroughScalar(name,
-                "Scalar for " + className + "that just let the value pass though");
-
-        scalarMap.put(DotName.createSimple(className), passthroughScalar);
-    }
-
     private static final Map<DotName, GraphQLScalarType> MAPPING = new HashMap<>();
-    private static final Map<String, List<String>> PASS_THROUGH_SCALARS = new HashMap<>();
+
+    private static PassthroughScalar passthroughScalar(String name) {
+        return new PassthroughScalar(name, "Scalar for " + name + "that just let the value pass though");
+    }
 
     static {
         MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLChar);
@@ -111,34 +74,48 @@ public class ScalarMappingInitializer {
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(UUID.class.getName()), Scalars.GraphQLString);
 
-        MAPPING.put(DotName.createSimple(Short.class.getName()), Scalars.GraphQLShort);
-        MAPPING.put(DotName.createSimple(short.class.getName()), Scalars.GraphQLShort);
+        ShortScalar shortScalar = new ShortScalar();
+        MAPPING.put(DotName.createSimple(Short.class.getName()), shortScalar);
+        MAPPING.put(DotName.createSimple(short.class.getName()), shortScalar);
 
-        MAPPING.put(DotName.createSimple(Integer.class.getName()), Scalars.GraphQLInt);
-        MAPPING.put(DotName.createSimple(int.class.getName()), Scalars.GraphQLInt);
+        IntegerScalar integerScalar = new IntegerScalar();
+        MAPPING.put(DotName.createSimple(Integer.class.getName()), integerScalar);
+        MAPPING.put(DotName.createSimple(int.class.getName()), integerScalar);
 
-        MAPPING.put(DotName.createSimple(Long.class.getName()), Scalars.GraphQLLong);
-        MAPPING.put(DotName.createSimple(long.class.getName()), Scalars.GraphQLLong);
-
-        MAPPING.put(DotName.createSimple(BigInteger.class.getName()), Scalars.GraphQLBigInteger);
-        MAPPING.put(DotName.createSimple(BigDecimal.class.getName()), Scalars.GraphQLBigDecimal);
-
-        MAPPING.put(DotName.createSimple(Float.class.getName()), Scalars.GraphQLFloat);
-        MAPPING.put(DotName.createSimple(float.class.getName()), Scalars.GraphQLFloat);
-        MAPPING.put(DotName.createSimple(Double.class.getName()), Scalars.GraphQLFloat);
-        MAPPING.put(DotName.createSimple(double.class.getName()), Scalars.GraphQLFloat);
+        FloatScalar floatScalar = new FloatScalar();
+        MAPPING.put(DotName.createSimple(Float.class.getName()), floatScalar);
+        MAPPING.put(DotName.createSimple(float.class.getName()), floatScalar);
+        MAPPING.put(DotName.createSimple(Double.class.getName()), floatScalar);
+        MAPPING.put(DotName.createSimple(double.class.getName()), floatScalar);
 
         MAPPING.put(DotName.createSimple(Boolean.class.getName()), Scalars.GraphQLBoolean);
         MAPPING.put(DotName.createSimple(boolean.class.getName()), Scalars.GraphQLBoolean);
 
-        MAPPING.put(DotName.createSimple(Byte.class.getName()), Scalars.GraphQLByte);
-        MAPPING.put(DotName.createSimple(byte.class.getName()), Scalars.GraphQLByte);
+        ByteScalar byteScalar = new ByteScalar();
+        MAPPING.put(DotName.createSimple(Byte.class.getName()), byteScalar);
+        MAPPING.put(DotName.createSimple(byte.class.getName()), byteScalar);
 
-        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(LocalDate.class.getName());
-        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(Date.class.getName());
-        PASS_THROUGH_SCALARS.computeIfAbsent("Date", k -> new ArrayList<>()).add(java.sql.Date.class.getName());
-        PASS_THROUGH_SCALARS.computeIfAbsent("Time", k -> new ArrayList<>()).add(LocalTime.class.getName());
-        PASS_THROUGH_SCALARS.computeIfAbsent("DateTime", k -> new ArrayList<>()).add(LocalDateTime.class.getName());
+        BigIntegerScalar bigIntegerScalar = new BigIntegerScalar();
+        MAPPING.put(DotName.createSimple(BigInteger.class.getName()), bigIntegerScalar);
+
+        BigDecimalScalar bigDecimalScalar = new BigDecimalScalar();
+        MAPPING.put(DotName.createSimple(BigDecimal.class.getName()), bigDecimalScalar);
+
+        LongScalar longScalar = new LongScalar();
+        MAPPING.put(DotName.createSimple(Long.class.getName()), longScalar);
+        MAPPING.put(DotName.createSimple(long.class.getName()), longScalar);
+
+        PassthroughScalar dateScalar = passthroughScalar("Date");
+        MAPPING.put(DotName.createSimple(LocalDate.class.getName()), dateScalar);
+        MAPPING.put(DotName.createSimple(Date.class.getName()), dateScalar);
+        MAPPING.put(DotName.createSimple(java.sql.Date.class.getName()), dateScalar);
+
+        PassthroughScalar timeScalar = passthroughScalar("Time");
+        MAPPING.put(DotName.createSimple(LocalTime.class.getName()), timeScalar);
+
+        PassthroughScalar dateTimeScalar = passthroughScalar("DateTime");
+        MAPPING.put(DotName.createSimple(LocalDateTime.class.getName()), dateTimeScalar);
+
     }
 
 }

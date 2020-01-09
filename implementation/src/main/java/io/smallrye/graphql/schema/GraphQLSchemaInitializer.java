@@ -179,16 +179,18 @@ public class GraphQLSchemaInitializer {
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
+        //schemaBuilder = schemaBuilder.clearAdditionalTypes();
+
         Set<GraphQLType> additionalTypes = new HashSet<>();
         additionalTypes.addAll(enumMap.values());
         additionalTypes.addAll(typeMap.values());
         additionalTypes.addAll(inputMap.values());
-        schemaBuilder.additionalTypes(additionalTypes);
+        schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
-        schemaBuilder.query(query);
-        schemaBuilder.mutation(mutation);
+        schemaBuilder = schemaBuilder.query(query);
+        schemaBuilder = schemaBuilder.mutation(mutation);
 
-        schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+        schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         return schemaBuilder.build();
     }

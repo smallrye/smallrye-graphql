@@ -15,6 +15,12 @@
  */
 package io.smallrye.graphql.schema.type.scalar;
 
+import java.math.BigInteger;
+
+import org.jboss.logging.Logger;
+
+import graphql.language.IntValue;
+import graphql.language.NullValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
@@ -29,27 +35,40 @@ import graphql.schema.GraphQLScalarType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class PassthroughScalar extends GraphQLScalarType {
+    private static final Logger LOG = Logger.getLogger(PassthroughScalar.class.getName());
 
     public PassthroughScalar(String name, String description) {
         super(name, description, new Coercing() {
+
             @Override
-            public Object serialize(Object o) throws CoercingSerializeException {
-                return o;
+            public Object serialize(Object input) throws CoercingSerializeException {
+                return input;
             }
 
             @Override
-            public Object parseValue(Object o) throws CoercingParseValueException {
-                return o;
+            public Object parseValue(Object input) throws CoercingParseValueException {
+                return input;
             }
 
             @Override
-            public Object parseLiteral(Object o) throws CoercingParseLiteralException {
-                if (o.getClass().getName().equals(StringValue.class.getName())) {
-                    StringValue stringValue = StringValue.class.cast(o);
+            public Object parseLiteral(Object input) throws CoercingParseLiteralException {
+                if (input == null || input.getClass().getName().equals(NullValue.class.getName())) {
+                    return null;
+                } else if (input.getClass().getName().equals(StringValue.class.getName())) {
+                    StringValue stringValue = StringValue.class.cast(input);
                     String value = stringValue.getValue();
                     return parseValue(value);
-                } // TODO: Other types ? ArrayValue, BooleanValue, EnumValue, FloatValue, IntValue, NullValue, ObjectValue, ScalarValue;
-                return parseValue(o);
+                } else if (input.getClass().getName().equals(IntValue.class.getName())) {
+                    IntValue intValue = IntValue.class.cast(input);
+                    BigInteger value = intValue.getValue();
+                    return parseValue(value);
+                } else {
+                    // TODO: Other types ? ArrayValue, BooleanValue, EnumValue, FloatValue, ObjectValue, ScalarValue;
+
+                    LOG.warn("Not handling literal [" + input + "] of type [" + input.getClass().getName()
+                            + "] - returning default");
+                    return parseValue(input);
+                }
             }
 
         });

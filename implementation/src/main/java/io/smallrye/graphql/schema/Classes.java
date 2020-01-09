@@ -16,6 +16,8 @@
 
 package io.smallrye.graphql.schema;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -111,4 +113,25 @@ public interface Classes {
     public static final DotName LOCALTIME = DotName.createSimple(LocalTime.class.getName());
     public static final DotName UTIL_DATE = DotName.createSimple(Date.class.getName());
     public static final DotName SQL_DATE = DotName.createSimple(java.sql.Date.class.getName());
+
+    public static final DotName BYTE = DotName.createSimple(Byte.class.getName());
+    public static final DotName BYTE_PRIMATIVE = DotName.createSimple(byte.class.getName());
+
+    public static final DotName SHORT = DotName.createSimple(Short.class.getName());
+    public static final DotName SHORT_PRIMATIVE = DotName.createSimple(short.class.getName());
+
+    public static final DotName INTEGER = DotName.createSimple(Integer.class.getName());
+    public static final DotName INTEGER_PRIMATIVE = DotName.createSimple(int.class.getName());
+    public static final DotName BIG_INTEGER = DotName.createSimple(BigInteger.class.getName());
+
+    public static final DotName DOUBLE = DotName.createSimple(Double.class.getName());
+    public static final DotName DOUBLE_PRIMATIVE = DotName.createSimple(double.class.getName());
+    public static final DotName BIG_DECIMAL = DotName.createSimple(BigDecimal.class.getName());
+
+    public static final DotName LONG = DotName.createSimple(Long.class.getName());
+    public static final DotName LONG_PRIMATIVE = DotName.createSimple(long.class.getName());
+
+    public static final DotName FLOAT = DotName.createSimple(Float.class.getName());
+    public static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
+
 }

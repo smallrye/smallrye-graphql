@@ -16,16 +16,18 @@
 
 package io.smallrye.graphql.execution.datafetchers;
 
+import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 
+import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.helper.DateHelper;
+import io.smallrye.graphql.schema.helper.FormatHelper;
 
 /**
  * Extending the default property data fetcher and take the annotations into account
@@ -36,17 +38,27 @@ import io.smallrye.graphql.schema.helper.DateHelper;
 public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     private static final Logger LOG = Logger.getLogger(AnnotatedPropertyDataFetcher.class.getName());
 
-    private final DateHelper dateHelper = new DateHelper();
+    private final FormatHelper formatHelper = new FormatHelper();
 
     private DateTimeFormatter dateTimeFormatter = null;
+    private NumberFormat numberFormat = null;
+    private Type type;
 
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, Annotations annotations) {
         super(propertyName);
-
-        if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
+        this.type = type;
+        if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
+            // TODO: Support without format and with locale
             if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
                 String format = annotations.getAnnotationValue(Annotations.JSONB_DATE_FORMAT).asString();
                 this.dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+            }
+        }
+
+        if (formatHelper.isNumberLikeTypeOrCollectionThereOf(type)) {
+            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_NUMBER_FORMAT)) {
+                AnnotationInstance jsonbNumberFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_NUMBER_FORMAT);
+                this.numberFormat = formatHelper.getNumberFormat(jsonbNumberFormatAnnotation);
             }
         }
     }
@@ -55,13 +67,14 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     public Object get(DataFetchingEnvironment environment) {
         Object o = super.get(environment);
 
-        // Date
         if (dateTimeFormatter != null) {
             return dateTimeFormatter.format((TemporalAccessor) o);
+        } else if (numberFormat != null) {
+            Number number = (Number) o;
+            return numberFormat.format(number);
         } else {
             return o;
         }
-
-        // TODO: Add tests for other types
     }
+
 }

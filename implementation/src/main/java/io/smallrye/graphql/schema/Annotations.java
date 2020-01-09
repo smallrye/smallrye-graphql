@@ -19,6 +19,7 @@ package io.smallrye.graphql.schema;
 import java.util.Map;
 
 import javax.json.bind.annotation.JsonbDateFormat;
+import javax.json.bind.annotation.JsonbNumberFormat;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 
@@ -86,7 +87,7 @@ public class Annotations {
     public static final DotName ID = DotName.createSimple(Id.class.getName());
     public static final DotName DESCRIPTION = DotName.createSimple(Description.class.getName());
     public static final DotName JSONB_DATE_FORMAT = DotName.createSimple(JsonbDateFormat.class.getName());
-
+    public static final DotName JSONB_NUMBER_FORMAT = DotName.createSimple(JsonbNumberFormat.class.getName());
     public static final DotName JSONB_PROPERTY = DotName.createSimple(JsonbProperty.class.getName());
 
     public static final DotName IGNORE = DotName.createSimple(Ignore.class.getName());
