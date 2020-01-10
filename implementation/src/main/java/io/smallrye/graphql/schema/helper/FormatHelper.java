@@ -19,6 +19,7 @@ package io.smallrye.graphql.schema.helper;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import javax.enterprise.context.Dependent;
@@ -80,7 +81,35 @@ public class FormatHelper {
                 Classes.SQL_DATE);
     }
 
-    public String getDefaultFormat(Type type) {
+    public DateTimeFormatter getDateFormat(Type type, AnnotationInstance jsonbDateFormatAnnotation) {
+        AnnotationValue locale = jsonbDateFormatAnnotation.value("locale");
+        AnnotationValue format = jsonbDateFormatAnnotation.value();
+
+        if (format == null && locale == null) {
+            return getDefaultDateTimeFormatter(type);
+        } else if (format == null) {
+            return getDefaultDateTimeFormatter(type).withLocale(toLocale(locale.asString()));
+        } else if (locale == null) {
+            return DateTimeFormatter.ofPattern(format.asString());
+        } else {
+            return DateTimeFormatter.ofPattern(format.asString()).withLocale(toLocale(locale.asString()));
+        }
+    }
+
+    public DateTimeFormatter getDefaultDateTimeFormatter(Type type) {
+        // return the default dates format
+        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
+                || type.name().equals(Classes.SQL_DATE)) {
+            return DateTimeFormatter.ISO_DATE;
+        } else if (type.name().equals(Classes.LOCALTIME)) {
+            return DateTimeFormatter.ISO_TIME;
+        } else if (type.name().equals(Classes.LOCALDATETIME)) {
+            return DateTimeFormatter.ISO_DATE_TIME;
+        }
+        throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
+    }
+
+    public String getDefaultDateTimeFormat(Type type) {
         // return the default dates format
         if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
                 || type.name().equals(Classes.SQL_DATE)) {
@@ -152,4 +181,5 @@ public class FormatHelper {
     private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final String ISO_DATE = "yyyy-MM-dd";
     private static final String ISO_TIME = "HH:mm:ss";
+
 }

@@ -21,6 +21,8 @@ import java.util.Optional;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 
@@ -57,8 +59,18 @@ public class DescriptionHelper {
             } else {
                 return Optional.of(dateFormat);
             }
-            // TODO: Add Number formatting    
-        } else if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
+        } else if (formatHelper.isNumberLikeTypeOrCollectionThereOf(type)) {
+            Optional<String> numberFormat = getNumberFormat(annotations);
+            if (numberFormat.isPresent()) {
+                if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
+                    return Optional.of(getGivenDescription(annotations) + " (" + numberFormat.get() + ")");
+                } else {
+                    return numberFormat;
+                }
+            }
+        }
+
+        if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
             return Optional.of(getGivenDescription(annotations));
         } else {
             return Optional.empty();
@@ -66,11 +78,40 @@ public class DescriptionHelper {
     }
 
     private String getDateFormat(Annotations annotations, Type type) {
-        if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
-            return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT).value().asString();
+
+        if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
+            AnnotationInstance jsonbDateFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
+
+            Optional<String> format = getFormat(jsonbDateFormatAnnotation);
+            if (format.isPresent()) {
+                return format.get();
+            }
+        }
+        // return the default dates format
+        return formatHelper.getDefaultDateTimeFormat(type);
+
+    }
+
+    private Optional<String> getNumberFormat(Annotations annotations) {
+        if (annotations.containsOnOfTheseKeys(Annotations.JSONB_NUMBER_FORMAT)) {
+            AnnotationInstance jsonbNumberFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_NUMBER_FORMAT);
+            return getFormat(jsonbNumberFormatAnnotation);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> getFormat(AnnotationInstance annotationInstance) {
+        AnnotationValue locale = annotationInstance.value("locale");
+        AnnotationValue format = annotationInstance.value();
+
+        if (format == null && locale == null) {
+            return Optional.empty();
+        } else if (format == null) {
+            return Optional.of(locale.asString());
+        } else if (locale == null) {
+            return Optional.of(format.asString());
         } else {
-            // return the default dates format
-            return formatHelper.getDefaultFormat(type);
+            return Optional.of(format.asString() + " " + locale.asString());
         }
     }
 

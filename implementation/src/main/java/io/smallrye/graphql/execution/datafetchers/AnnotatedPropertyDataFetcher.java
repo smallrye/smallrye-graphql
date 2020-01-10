@@ -48,10 +48,9 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
         super(propertyName);
         this.type = type;
         if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
-            // TODO: Support without format and with locale
-            if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
-                String format = annotations.getAnnotationValue(Annotations.JSONB_DATE_FORMAT).asString();
-                this.dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
+                AnnotationInstance jsonbDateFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
+                this.dateTimeFormatter = formatHelper.getDateFormat(type, jsonbDateFormatAnnotation);
             }
         }
 
