@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
@@ -34,6 +35,7 @@ import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 
@@ -109,11 +111,9 @@ public class DateTimeScalar extends GraphQLScalarType implements Transformable {
     }
 
     @Override
-    public Object transform(String name, String input, Type type) {
-
-        // TODO: Check if there is a formatting annotation and apply
+    public Object transform(String name, String input, Type type, Annotations annotations) {
         try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, null);
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
             LocalDateTime localDateTime = LocalDateTime.parse(input, dateFormat);
             if (type.name().equals(Classes.LOCALDATETIME)) {
                 return localDateTime;
@@ -129,6 +129,13 @@ public class DateTimeScalar extends GraphQLScalarType implements Transformable {
             throw new TransformException(dtpe, this, name, input);
         }
 
+    }
+
+    private AnnotationInstance getJsonBAnnotation(Annotations annotations) {
+        if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
+            return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
+        }
+        return null;
     }
 
     private java.sql.Timestamp toSqlDate(LocalDateTime dateToConvert) {

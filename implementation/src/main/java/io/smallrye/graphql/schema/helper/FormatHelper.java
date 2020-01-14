@@ -58,18 +58,21 @@ public class FormatHelper {
     }
 
     public NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
-        AnnotationValue locale = jsonbNumberFormatAnnotation.value("locale");
-        AnnotationValue format = jsonbNumberFormatAnnotation.value();
+        if (jsonbNumberFormatAnnotation != null) {
+            AnnotationValue locale = jsonbNumberFormatAnnotation.value("locale");
+            AnnotationValue format = jsonbNumberFormatAnnotation.value();
 
-        if (format == null && locale == null) {
-            return NumberFormat.getInstance();
-        } else if (format == null) {
-            return NumberFormat.getInstance(toLocale(locale.asString()));
-        } else if (locale == null) {
-            return new DecimalFormat(format.asString());
-        } else {
-            return new DecimalFormat(format.asString(), DecimalFormatSymbols.getInstance(toLocale(locale.asString())));
+            if (format == null && locale == null) {
+                return NumberFormat.getInstance();
+            } else if (format == null) {
+                return NumberFormat.getInstance(toLocale(locale.asString()));
+            } else if (locale == null) {
+                return new DecimalFormat(format.asString());
+            } else {
+                return new DecimalFormat(format.asString(), DecimalFormatSymbols.getInstance(toLocale(locale.asString())));
+            }
         }
+        return null;
     }
 
     public boolean isDateLikeTypeOrCollectionThereOf(Type type) {

@@ -17,6 +17,8 @@ package io.smallrye.graphql.schema.type.scalar;
 
 import org.jboss.jandex.Type;
 
+import io.smallrye.graphql.schema.Annotations;
+
 /**
  * Interface for transformable scalars
  * (Default is no transformation)
@@ -25,7 +27,7 @@ import org.jboss.jandex.Type;
  */
 public interface Transformable {
 
-    default Object transform(String name, String input, Type type) {
+    default Object transform(String name, String input, Type type, Annotations annotations) {
         return input;
     }
 

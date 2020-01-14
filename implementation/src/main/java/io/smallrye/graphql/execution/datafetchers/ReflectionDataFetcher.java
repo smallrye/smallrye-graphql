@@ -39,6 +39,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.type.scalar.TransformException;
@@ -166,7 +167,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                         argumentObjects.add(toPojo(Map.class.cast(argument), type, clazz));
                     } else if (givenClass.equals(String.class)) {
                         // We got a String, but not expecting one. Lets bind to Pojo with JsonB or transformation
-                        argumentObjects.add(toPojo(name, argument.toString(), type, clazz));
+                        argumentObjects.add(toPojo(name, argument.toString(), type, clazz, a.getAnnotations()));
                     }
 
                 } else {
@@ -190,7 +191,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         return null;
     }
 
-    private Object toPojo(String name, String input, Type type, Class clazz) throws GraphQLException {
+    private Object toPojo(String name, String input, Type type, Class clazz, Annotations annotations) throws GraphQLException {
         LOG.error("------ toPojo ------");
         LOG.error("name = " + name);
         LOG.error("input = " + input);
@@ -207,7 +208,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         if (scalar != null && Transformable.class.isInstance(scalar)) {
             LOG.error("We need to transform !!");
             Transformable transformable = Transformable.class.cast(scalar);
-            return clazz.cast(transformable.transform(name, input, type));
+            return clazz.cast(transformable.transform(name, input, type, annotations));
 
         }
 

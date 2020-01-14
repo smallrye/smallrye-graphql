@@ -83,8 +83,9 @@ public class ScalarMappingInitializer {
         MAPPING.put(DotName.createSimple(BigDecimal.class.getName()), bigDecimalScalar);
 
         LongScalar longScalar = new LongScalar();
-        MAPPING.put(DotName.createSimple(Long.class.getName()), longScalar);
-        MAPPING.put(DotName.createSimple(long.class.getName()), longScalar);
+        for (Class c : LongScalar.SUPPORTED_TYPES) {
+            MAPPING.put(DotName.createSimple(c.getName()), longScalar);
+        }
 
         DateScalar dateScalar = new DateScalar();
         for (Class c : DateScalar.SUPPORTED_TYPES) {
