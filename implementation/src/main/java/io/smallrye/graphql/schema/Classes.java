@@ -113,6 +113,8 @@ public interface Classes {
     public static final DotName LOCALTIME = DotName.createSimple(LocalTime.class.getName());
     public static final DotName UTIL_DATE = DotName.createSimple(Date.class.getName());
     public static final DotName SQL_DATE = DotName.createSimple(java.sql.Date.class.getName());
+    public static final DotName SQL_TIMESTAMP = DotName.createSimple(java.sql.Timestamp.class.getName());
+    public static final DotName SQL_TIME = DotName.createSimple(java.sql.Time.class.getName());
 
     public static final DotName BYTE = DotName.createSimple(Byte.class.getName());
     public static final DotName BYTE_PRIMATIVE = DotName.createSimple(byte.class.getName());

@@ -36,7 +36,7 @@ import graphql.schema.GraphQLScalarType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class BigIntegerScalar extends GraphQLScalarType {
+public class BigIntegerScalar extends GraphQLScalarType implements Transformable {
     private static final Logger LOG = Logger.getLogger(BigIntegerScalar.class.getName());
 
     public BigIntegerScalar() {

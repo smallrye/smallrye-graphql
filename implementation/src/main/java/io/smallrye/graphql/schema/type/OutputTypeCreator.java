@@ -72,7 +72,7 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, Jsonb> inputJsonbMap;
 
     @Inject
-    private Map<DotName, GraphQLScalarType> scalarMap;
+    Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
     private Index index;
@@ -174,7 +174,7 @@ public class OutputTypeCreator implements Creator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap));
+                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap, scalarMap));
 
                     fieldDefinitions.add(builder.build());
                 }

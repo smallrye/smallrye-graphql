@@ -37,9 +37,12 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.type.scalar.TransformException;
+import io.smallrye.graphql.schema.type.scalar.Transformable;
 
 /**
  * Fetch data using Reflection
@@ -53,14 +56,18 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final Class declaringClass;
     private final Class returnType;
     private List<Argument> arguments;
+
     private final boolean hasArguments;
 
     private final Map<DotName, Jsonb> inputJsonbMap;
+    private final Map<DotName, GraphQLScalarType> scalarMap;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Map<DotName, Jsonb> inputJsonbMap) {
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Map<DotName, Jsonb> inputJsonbMap,
+            Map<DotName, GraphQLScalarType> scalarMap) {
         try {
             this.arguments = arguments;
             this.inputJsonbMap = inputJsonbMap;
+            this.scalarMap = scalarMap;
             this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
             this.returnType = getReturnType(methodInfo);
             Class[] parameterClasses = getParameterClasses(arguments);
@@ -83,19 +90,26 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             Object declaringObject = CDI.current().select(declaringClass).get();
             return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+        } catch (TransformException pe) {
+            return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException ite) {
-            Throwable throwable = ite.getCause();
-            if (throwable == null) {
-                throw new RuntimeException(ite);
+            return handle(ite, dfe);
+        }
+    }
+
+    private DataFetcherResult<Object> handle(InvocationTargetException ite, DataFetchingEnvironment dfe) throws Exception {
+        Throwable throwable = ite.getCause();
+
+        if (throwable == null) {
+            throw new RuntimeException(ite);
+        } else {
+            if (throwable instanceof Error) {
+                throw (Error) throwable;
+            } else if (throwable instanceof GraphQLException) {
+                GraphQLException graphQLException = (GraphQLException) throwable;
+                return getPartialResult(dfe, graphQLException);
             } else {
-                if (throwable instanceof Error) {
-                    throw (Error) throwable;
-                } else if (throwable instanceof GraphQLException) {
-                    GraphQLException graphQLException = (GraphQLException) throwable;
-                    return getPartialResult(dfe, graphQLException);
-                } else {
-                    throw (Exception) throwable;
-                }
+                throw (Exception) throwable;
             }
         }
     }
@@ -116,17 +130,19 @@ public class ReflectionDataFetcher implements DataFetcher {
                 .data(graphQLException.getPartialResults())
                 .error(error)
                 .build();
+
     }
 
-    private ArrayList getArguments(DataFetchingEnvironment dfe) {
+    private ArrayList getArguments(DataFetchingEnvironment dfe) throws GraphQLException {
         ArrayList argumentObjects = new ArrayList();
-        for (Argument argumentHolder : arguments) {
+        for (Argument a : arguments) {
 
-            String name = argumentHolder.getName();
-            Class type = argumentHolder.getArgumentClass();
+            String name = a.getName();
+            Class clazz = a.getArgumentClass();
+            Type type = a.getType();
             Object argument = getArgument(dfe, name);
             if (argument != null) {
-                Type.Kind kind = argumentHolder.getType().kind();
+                Type.Kind kind = type.kind();
                 if (kind.equals(Type.Kind.PRIMITIVE)) {
                     // First make sure we have a primative type
                     Class givenClass = argument.getClass();
@@ -134,23 +150,23 @@ public class ReflectionDataFetcher implements DataFetcher {
                         givenClass = Classes.toPrimativeClassType(givenClass);
                     }
 
-                    if (givenClass.equals(type)) {
+                    if (givenClass.equals(clazz)) {
                         argumentObjects.add(argument);
                     } else if (givenClass.equals(String.class)) {
                         // We go a String, but not expecting one. Lets create new primative
-                        argumentObjects.add(Classes.stringToPrimative(argument.toString(), type));
+                        argumentObjects.add(Classes.stringToPrimative(argument.toString(), clazz));
                     }
                 } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
                     argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
                 } else if (kind.equals(Type.Kind.CLASS)) {
                     Class givenClass = argument.getClass();
-                    if (givenClass.equals(type)) {
+                    if (givenClass.equals(clazz)) {
                         argumentObjects.add(argument);
                     } else if (Map.class.isAssignableFrom(argument.getClass())) {
-                        argumentObjects.add(toPojo(Map.class.cast(argument), type));
+                        argumentObjects.add(toPojo(Map.class.cast(argument), type, clazz));
                     } else if (givenClass.equals(String.class)) {
-                        // We go a String, but not expecting one. Lets bind to Pojo with JsonB
-                        argumentObjects.add(toPojo(argument.toString(), type));
+                        // We got a String, but not expecting one. Lets bind to Pojo with JsonB or transformation
+                        argumentObjects.add(toPojo(name, argument.toString(), type, clazz));
                     }
 
                 } else {
@@ -174,21 +190,52 @@ public class ReflectionDataFetcher implements DataFetcher {
         return null;
     }
 
-    private Object toPojo(String json, Class type) {
+    private Object toPojo(String name, String input, Type type, Class clazz) throws GraphQLException {
+        LOG.error("------ toPojo ------");
+        LOG.error("name = " + name);
+        LOG.error("input = " + input);
+        LOG.error("type = " + type);
+        LOG.error("clazz = " + clazz);
+
+        // For Objects
         Jsonb jsonb = getJsonbForType(type);
-        return jsonb.fromJson(json, type);
+        if (jsonb != null) {
+            return jsonb.fromJson(input, clazz);
+        }
+        // For transformable scalars.
+        GraphQLScalarType scalar = getScalarType(type);
+        if (scalar != null && Transformable.class.isInstance(scalar)) {
+            LOG.error("We need to transform !!");
+            Transformable transformable = Transformable.class.cast(scalar);
+            return clazz.cast(transformable.transform(name, input, type));
+
+        }
+
+        return input;
     }
 
-    private Object toPojo(Map m, Class type) {
+    private Object toPojo(Map m, Type type, Class clazz) {
         Jsonb jsonb = getJsonbForType(type);
-        String json = jsonb.toJson(m);
-        Object o = jsonb.fromJson(json, type);
-        return o;
+        if (jsonb != null) {
+            String json = jsonb.toJson(m);
+            Object o = jsonb.fromJson(json, clazz);
+            return o;
+        }
+        return m;
     }
 
-    private Jsonb getJsonbForType(Class type) {
-        DotName key = DotName.createSimple(type.getName());
-        return inputJsonbMap.get(key);
+    private Jsonb getJsonbForType(Type type) {
+        if (inputJsonbMap.containsKey(type.name())) {
+            return inputJsonbMap.get(type.name());
+        }
+        return null;
+    }
+
+    private GraphQLScalarType getScalarType(Type type) {
+        if (scalarMap.containsKey(type.name())) {
+            return scalarMap.get(type.name());
+        }
+        return null;
     }
 
     private Class loadClass(String className) {
@@ -215,8 +262,8 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private Class[] getParameterClasses(List<Argument> arguments) {
         List<Class> cl = new ArrayList<>();
-        for (Argument argumentHolder : arguments) {
-            cl.add(argumentHolder.getArgumentClass());
+        for (Argument argument : arguments) {
+            cl.add(argument.getArgumentClass());
         }
         return cl.toArray(new Class[] {});
     }

@@ -34,7 +34,7 @@ import graphql.schema.GraphQLScalarType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ByteScalar extends GraphQLScalarType {
+public class ByteScalar extends GraphQLScalarType implements Transformable {
     private static final Logger LOG = Logger.getLogger(ByteScalar.class.getName());
 
     public ByteScalar() {

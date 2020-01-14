@@ -35,7 +35,7 @@ import graphql.schema.GraphQLScalarType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class LongScalar extends GraphQLScalarType {
+public class LongScalar extends GraphQLScalarType implements Transformable {
     private static final Logger LOG = Logger.getLogger(LongScalar.class.getName());
 
     public LongScalar() {

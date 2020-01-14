@@ -35,7 +35,7 @@ import graphql.schema.GraphQLScalarType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class BigDecimalScalar extends GraphQLScalarType {
+public class BigDecimalScalar extends GraphQLScalarType implements Transformable {
     private static final Logger LOG = Logger.getLogger(BigDecimalScalar.class.getName());
 
     public BigDecimalScalar() {

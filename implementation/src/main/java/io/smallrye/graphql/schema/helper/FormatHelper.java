@@ -82,18 +82,21 @@ public class FormatHelper {
     }
 
     public DateTimeFormatter getDateFormat(Type type, AnnotationInstance jsonbDateFormatAnnotation) {
-        AnnotationValue locale = jsonbDateFormatAnnotation.value("locale");
-        AnnotationValue format = jsonbDateFormatAnnotation.value();
+        if (jsonbDateFormatAnnotation != null) {
+            AnnotationValue locale = jsonbDateFormatAnnotation.value("locale");
+            AnnotationValue format = jsonbDateFormatAnnotation.value();
 
-        if (format == null && locale == null) {
-            return getDefaultDateTimeFormatter(type);
-        } else if (format == null) {
-            return getDefaultDateTimeFormatter(type).withLocale(toLocale(locale.asString()));
-        } else if (locale == null) {
-            return DateTimeFormatter.ofPattern(format.asString());
-        } else {
-            return DateTimeFormatter.ofPattern(format.asString()).withLocale(toLocale(locale.asString()));
+            if (format == null && locale == null) {
+                return getDefaultDateTimeFormatter(type);
+            } else if (format == null) {
+                return getDefaultDateTimeFormatter(type).withLocale(toLocale(locale.asString()));
+            } else if (locale == null) {
+                return DateTimeFormatter.ofPattern(format.asString());
+            } else {
+                return DateTimeFormatter.ofPattern(format.asString()).withLocale(toLocale(locale.asString()));
+            }
         }
+        return getDefaultDateTimeFormatter(type);
     }
 
     public DateTimeFormatter getDefaultDateTimeFormatter(Type type) {

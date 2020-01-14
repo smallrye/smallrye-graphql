@@ -18,19 +18,12 @@ package io.smallrye.graphql.schema.type.scalar;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-import javax.inject.Named;
 
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
@@ -48,26 +41,14 @@ public class ScalarMappingInitializer {
     private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
 
     @Produces
-    private final Map<DotName, GraphQLScalarType> scalarMap = new HashMap<>();
-
-    @PostConstruct
-    void init() {
-        scalarMap.putAll(MAPPING);
-    }
-
-    @Produces
-    @Named("scalars")
-    public Set<DotName> getKnownScalars() {
-        return scalarMap.keySet();
+    public Map<DotName, GraphQLScalarType> getScalarMap() {
+        return MAPPING;
     }
 
     private static final Map<DotName, GraphQLScalarType> MAPPING = new HashMap<>();
 
-    private static PassthroughScalar passthroughScalar(String name) {
-        return new PassthroughScalar(name, "Scalar for " + name + "that just let the value pass though");
-    }
-
     static {
+
         MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLChar);
         MAPPING.put(DotName.createSimple(Character.class.getName()), Scalars.GraphQLChar);
 
@@ -105,16 +86,20 @@ public class ScalarMappingInitializer {
         MAPPING.put(DotName.createSimple(Long.class.getName()), longScalar);
         MAPPING.put(DotName.createSimple(long.class.getName()), longScalar);
 
-        PassthroughScalar dateScalar = passthroughScalar("Date");
-        MAPPING.put(DotName.createSimple(LocalDate.class.getName()), dateScalar);
-        MAPPING.put(DotName.createSimple(Date.class.getName()), dateScalar);
-        MAPPING.put(DotName.createSimple(java.sql.Date.class.getName()), dateScalar);
+        DateScalar dateScalar = new DateScalar();
+        for (Class c : DateScalar.SUPPORTED_TYPES) {
+            MAPPING.put(DotName.createSimple(c.getName()), dateScalar);
+        }
 
-        PassthroughScalar timeScalar = passthroughScalar("Time");
-        MAPPING.put(DotName.createSimple(LocalTime.class.getName()), timeScalar);
+        TimeScalar timeScalar = new TimeScalar();
+        for (Class c : TimeScalar.SUPPORTED_TYPES) {
+            MAPPING.put(DotName.createSimple(c.getName()), timeScalar);
+        }
 
-        PassthroughScalar dateTimeScalar = passthroughScalar("DateTime");
-        MAPPING.put(DotName.createSimple(LocalDateTime.class.getName()), dateTimeScalar);
+        DateTimeScalar dateTimeScalar = new DateTimeScalar();
+        for (Class c : DateTimeScalar.SUPPORTED_TYPES) {
+            MAPPING.put(DotName.createSimple(c.getName()), dateTimeScalar);
+        }
 
     }
 

@@ -34,7 +34,7 @@ import graphql.schema.GraphQLScalarType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ShortScalar extends GraphQLScalarType {
+public class ShortScalar extends GraphQLScalarType implements Transformable {
     private static final Logger LOG = Logger.getLogger(ShortScalar.class.getName());
 
     public ShortScalar() {
