@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type.scalar;
+package io.smallrye.graphql.schema.type.scalar.number;
 
-import java.util.List;
-
-import io.smallrye.graphql.schema.Argument;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
- * Interface for transformable scalars
- * (Default is no transformation)
+ * Convert to the correct Type
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public interface Transformable {
+public interface Converter {
 
-    default Object transform(Object input, Argument argument) {
-        return input;
+    public Object fromBigDecimal(BigDecimal bigDecimal);
+
+    default boolean isInRange(BigInteger value) {
+        return true;
     }
 
-    public List<Class> getSupportedClasses();
+    public Object fromBigInteger(BigInteger value);
+
+    public Object fromNumber(Number number);
 
 }

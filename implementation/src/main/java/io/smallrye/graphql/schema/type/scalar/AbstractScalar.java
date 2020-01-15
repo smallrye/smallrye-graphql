@@ -15,22 +15,32 @@
  */
 package io.smallrye.graphql.schema.type.scalar;
 
+import java.util.Arrays;
 import java.util.List;
 
-import io.smallrye.graphql.schema.Argument;
+import graphql.schema.Coercing;
+import graphql.schema.GraphQLScalarType;
 
 /**
- * Interface for transformable scalars
- * (Default is no transformation)
+ * Base Scalar
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public interface Transformable {
+public abstract class AbstractScalar extends GraphQLScalarType implements Transformable {
+    private final List<Class> supportedTypes;
 
-    default Object transform(Object input, Argument argument) {
-        return input;
+    public <T> AbstractScalar(String name,
+            Coercing coercing,
+            Class... supportedTypes) {
+
+        super(name, "Scalar for " + name, coercing);
+        this.supportedTypes = Arrays.asList(supportedTypes);
+
     }
 
-    public List<Class> getSupportedClasses();
+    @Override
+    public List<Class> getSupportedClasses() {
+        return this.supportedTypes;
+    }
 
 }

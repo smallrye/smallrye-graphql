@@ -59,11 +59,11 @@ public class FormatHelper {
 
     public NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
         if (jsonbNumberFormatAnnotation != null) {
-            AnnotationValue locale = jsonbNumberFormatAnnotation.value("locale");
+            AnnotationValue locale = jsonbNumberFormatAnnotation.value(LOCALE);
             AnnotationValue format = jsonbNumberFormatAnnotation.value();
 
             if (format == null && locale == null) {
-                return NumberFormat.getInstance();
+                return null;
             } else if (format == null) {
                 return NumberFormat.getInstance(toLocale(locale.asString()));
             } else if (locale == null) {
@@ -86,7 +86,7 @@ public class FormatHelper {
 
     public DateTimeFormatter getDateFormat(Type type, AnnotationInstance jsonbDateFormatAnnotation) {
         if (jsonbDateFormatAnnotation != null) {
-            AnnotationValue locale = jsonbDateFormatAnnotation.value("locale");
+            AnnotationValue locale = jsonbDateFormatAnnotation.value(LOCALE);
             AnnotationValue format = jsonbDateFormatAnnotation.value();
 
             if (format == null && locale == null) {
@@ -187,5 +187,5 @@ public class FormatHelper {
     private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final String ISO_DATE = "yyyy-MM-dd";
     private static final String ISO_TIME = "HH:mm:ss";
-
+    private static final String LOCALE = "locale";
 }

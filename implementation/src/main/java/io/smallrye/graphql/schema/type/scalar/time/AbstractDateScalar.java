@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type.scalar;
+package io.smallrye.graphql.schema.type.scalar.time;
 
 import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
@@ -31,27 +31,26 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
-import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
+import io.smallrye.graphql.schema.type.scalar.TransformException;
 
 /**
- * Scalar for Time.
+ * Base Scalar for Dates.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class TimeScalar extends GraphQLScalarType implements Transformable {
-    private static final Logger LOG = Logger.getLogger(TimeScalar.class.getName());
+public abstract class AbstractDateScalar extends AbstractScalar {
+    private static final Logger LOG = Logger.getLogger(AbstractDateScalar.class.getName());
 
     private FormatHelper formatHelper = new FormatHelper();
 
-    public TimeScalar() {
-        super("Time", "Scalar for " + LocalTime.class.getName(), new Coercing() {
+    public AbstractDateScalar(String name, Class... supportedTypes) {
+        super(name, new Coercing() {
 
             private Object convertImpl(Object input) throws DateTimeException {
-                LOG.error(">>>>>>>>> convertImpl = " + input.getClass().getName());
-                for (Class supportedType : SUPPORTED_TYPES) {
+                for (Class supportedType : supportedTypes) {
                     if (supportedType.isInstance(input)) {
                         return supportedType.cast(input);
                     }
@@ -67,35 +66,30 @@ public class TimeScalar extends GraphQLScalarType implements Transformable {
             // Get's called on startup for @DefaultValue
             @Override
             public Object serialize(Object input) throws CoercingSerializeException {
-                LOG.error("===== serialize [" + input + "]");
                 if (input == null)
                     return null;
                 try {
                     return convertImpl(input);
                 } catch (DateTimeException e) {
                     throw new CoercingSerializeException(
-                            "Expected type 'Date' but was '" + input.getClass().getSimpleName() + "'.", e);
+                            "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.", e);
                 }
             }
 
             @Override
             public Object parseValue(Object input) throws CoercingParseValueException {
-                LOG.error("===== parseValue [" + input + "]");
                 try {
                     return convertImpl(input);
                 } catch (DateTimeException e) {
                     throw new CoercingParseValueException(
-                            "Expected type 'Date' but was '" + input.getClass().getSimpleName() + "'.");
+                            "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.");
                 }
             }
 
             @Override
             public Object parseLiteral(Object input) throws CoercingParseLiteralException {
-                LOG.error("===== parseLiteral [" + input + "]");
                 if (input == null)
                     return null;
-
-                LOG.error(">>>>>>>>> parseLiteral = " + input.getClass().getName());
 
                 if (!(input instanceof StringValue)) {
                     throw new CoercingParseLiteralException(
@@ -103,23 +97,32 @@ public class TimeScalar extends GraphQLScalarType implements Transformable {
                 }
                 return ((StringValue) input).getValue();
             }
-
-        });
+        }, supportedTypes);
     }
 
-    @Override
-    public Object transform(String name, String input, Type type, Annotations annotations) {
+    protected LocalDate transformToLocalDate(String name, String input, Type type, Annotations annotations) {
         try {
             DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
-            LocalTime localTime = LocalTime.parse(input, dateFormat);
-            if (type.name().equals(Classes.LOCALTIME)) {
-                return localTime;
-            } else if (type.name().equals(Classes.SQL_TIME)) {
-                return toSqlDate(localTime);
-            } else {
-                LOG.warn("Can not transform type [" + type.name() + "] with TimeScalar");
-                return input;
-            }
+            return LocalDate.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+
+    }
+
+    protected LocalDateTime transformToLocalDateTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
+            return LocalDateTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+    }
+
+    public LocalTime transformToLocalTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
+            return LocalTime.parse(input, dateFormat);
         } catch (DateTimeParseException dtpe) {
             throw new TransformException(dtpe, this, name, input);
         }
@@ -131,17 +134,6 @@ public class TimeScalar extends GraphQLScalarType implements Transformable {
             return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
         }
         return null;
-    }
-
-    private java.sql.Time toSqlDate(LocalTime dateToConvert) {
-        return java.sql.Time.valueOf(dateToConvert);
-    }
-
-    public static final List<Class> SUPPORTED_TYPES = new ArrayList<>();
-
-    static {
-        SUPPORTED_TYPES.add(LocalTime.class);
-        SUPPORTED_TYPES.add(java.sql.Time.class);
     }
 
 }

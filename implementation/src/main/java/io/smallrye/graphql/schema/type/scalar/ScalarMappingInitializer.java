@@ -16,8 +16,6 @@
 
 package io.smallrye.graphql.schema.type.scalar;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +28,16 @@ import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
+import io.smallrye.graphql.schema.type.scalar.number.BigDecimalScalar;
+import io.smallrye.graphql.schema.type.scalar.number.BigIntegerScalar;
+import io.smallrye.graphql.schema.type.scalar.number.ByteScalar;
+import io.smallrye.graphql.schema.type.scalar.number.FloatScalar;
+import io.smallrye.graphql.schema.type.scalar.number.IntegerScalar;
+import io.smallrye.graphql.schema.type.scalar.number.LongScalar;
+import io.smallrye.graphql.schema.type.scalar.number.ShortScalar;
+import io.smallrye.graphql.schema.type.scalar.time.DateScalar;
+import io.smallrye.graphql.schema.type.scalar.time.DateTimeScalar;
+import io.smallrye.graphql.schema.type.scalar.time.TimeScalar;
 
 /**
  * Creating the scalars as needed
@@ -55,53 +63,25 @@ public class ScalarMappingInitializer {
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(UUID.class.getName()), Scalars.GraphQLString);
 
-        ShortScalar shortScalar = new ShortScalar();
-        MAPPING.put(DotName.createSimple(Short.class.getName()), shortScalar);
-        MAPPING.put(DotName.createSimple(short.class.getName()), shortScalar);
-
-        IntegerScalar integerScalar = new IntegerScalar();
-        MAPPING.put(DotName.createSimple(Integer.class.getName()), integerScalar);
-        MAPPING.put(DotName.createSimple(int.class.getName()), integerScalar);
-
-        FloatScalar floatScalar = new FloatScalar();
-        MAPPING.put(DotName.createSimple(Float.class.getName()), floatScalar);
-        MAPPING.put(DotName.createSimple(float.class.getName()), floatScalar);
-        MAPPING.put(DotName.createSimple(Double.class.getName()), floatScalar);
-        MAPPING.put(DotName.createSimple(double.class.getName()), floatScalar);
-
         MAPPING.put(DotName.createSimple(Boolean.class.getName()), Scalars.GraphQLBoolean);
         MAPPING.put(DotName.createSimple(boolean.class.getName()), Scalars.GraphQLBoolean);
 
-        ByteScalar byteScalar = new ByteScalar();
-        MAPPING.put(DotName.createSimple(Byte.class.getName()), byteScalar);
-        MAPPING.put(DotName.createSimple(byte.class.getName()), byteScalar);
+        mapType(new ShortScalar());
+        mapType(new IntegerScalar());
+        mapType(new FloatScalar());
+        mapType(new ByteScalar());
+        mapType(new BigIntegerScalar());
+        mapType(new BigDecimalScalar());
+        mapType(new LongScalar());
+        mapType(new DateScalar());
+        mapType(new TimeScalar());
+        mapType(new DateTimeScalar());
+    }
 
-        BigIntegerScalar bigIntegerScalar = new BigIntegerScalar();
-        MAPPING.put(DotName.createSimple(BigInteger.class.getName()), bigIntegerScalar);
-
-        BigDecimalScalar bigDecimalScalar = new BigDecimalScalar();
-        MAPPING.put(DotName.createSimple(BigDecimal.class.getName()), bigDecimalScalar);
-
-        LongScalar longScalar = new LongScalar();
-        for (Class c : LongScalar.SUPPORTED_TYPES) {
-            MAPPING.put(DotName.createSimple(c.getName()), longScalar);
+    private static void mapType(Transformable transformable) {
+        for (Class c : transformable.getSupportedClasses()) {
+            MAPPING.put(DotName.createSimple(c.getName()), (GraphQLScalarType) transformable);
         }
-
-        DateScalar dateScalar = new DateScalar();
-        for (Class c : DateScalar.SUPPORTED_TYPES) {
-            MAPPING.put(DotName.createSimple(c.getName()), dateScalar);
-        }
-
-        TimeScalar timeScalar = new TimeScalar();
-        for (Class c : TimeScalar.SUPPORTED_TYPES) {
-            MAPPING.put(DotName.createSimple(c.getName()), timeScalar);
-        }
-
-        DateTimeScalar dateTimeScalar = new DateTimeScalar();
-        for (Class c : DateTimeScalar.SUPPORTED_TYPES) {
-            MAPPING.put(DotName.createSimple(c.getName()), dateTimeScalar);
-        }
-
     }
 
 }

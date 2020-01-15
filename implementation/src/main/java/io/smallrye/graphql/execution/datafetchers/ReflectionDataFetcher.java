@@ -39,7 +39,6 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.type.scalar.TransformException;
@@ -150,12 +149,11 @@ public class ReflectionDataFetcher implements DataFetcher {
                     if (!givenClass.isPrimitive()) {
                         givenClass = Classes.toPrimativeClassType(givenClass);
                     }
-
                     if (givenClass.equals(clazz)) {
                         argumentObjects.add(argument);
                     } else if (givenClass.equals(String.class)) {
                         // We go a String, but not expecting one. Lets create new primative
-                        argumentObjects.add(Classes.stringToPrimative(argument.toString(), clazz));
+                        argumentObjects.add(toPrimative(argument, a, clazz));
                     }
                 } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
                     argumentObjects.add(argument); // TODO: Test propper Map<Pojo> and List<Pojo>
@@ -167,7 +165,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                         argumentObjects.add(toPojo(Map.class.cast(argument), type, clazz));
                     } else if (givenClass.equals(String.class)) {
                         // We got a String, but not expecting one. Lets bind to Pojo with JsonB or transformation
-                        argumentObjects.add(toPojo(name, argument.toString(), type, clazz, a.getAnnotations()));
+                        argumentObjects.add(toPojo(argument, a, clazz));
                     }
 
                 } else {
@@ -191,24 +189,32 @@ public class ReflectionDataFetcher implements DataFetcher {
         return null;
     }
 
-    private Object toPojo(String name, String input, Type type, Class clazz, Annotations annotations) throws GraphQLException {
-        LOG.error("------ toPojo ------");
-        LOG.error("name = " + name);
-        LOG.error("input = " + input);
-        LOG.error("type = " + type);
-        LOG.error("clazz = " + clazz);
+    private Object toPrimative(Object input, Argument argument, Class clazz) {
+        GraphQLScalarType scalar = getScalarType(argument.getType());
+        try {
+            // For transformable scalars.
+            if (scalar != null && Transformable.class.isInstance(scalar)) {
+                Transformable transformable = Transformable.class.cast(scalar);
+                input = transformable.transform(input, argument);
+            }
+            return Classes.stringToPrimative(input.toString(), clazz);
 
+        } catch (NumberFormatException nfe) {
+            throw new TransformException(nfe, scalar, argument.getName(), input.toString());
+        }
+    }
+
+    private Object toPojo(Object input, Argument argument, Class clazz) throws GraphQLException {
         // For Objects
-        Jsonb jsonb = getJsonbForType(type);
+        Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
-            return jsonb.fromJson(input, clazz);
+            return jsonb.fromJson(input.toString(), clazz);
         }
         // For transformable scalars.
-        GraphQLScalarType scalar = getScalarType(type);
+        GraphQLScalarType scalar = getScalarType(argument.getType());
         if (scalar != null && Transformable.class.isInstance(scalar)) {
-            LOG.error("We need to transform !!");
             Transformable transformable = Transformable.class.cast(scalar);
-            return clazz.cast(transformable.transform(name, input, type, annotations));
+            return clazz.cast(transformable.transform(input, argument));
 
         }
 
