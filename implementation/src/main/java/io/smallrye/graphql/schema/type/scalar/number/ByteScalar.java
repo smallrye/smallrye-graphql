@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import graphql.Scalars;
+import io.smallrye.graphql.schema.Argument;
 
 /**
  * Scalar for Byte.
@@ -43,7 +44,7 @@ public class ByteScalar extends AbstractNumberScalar {
                     }
 
                     @Override
-                    public Object fromNumber(Number number) {
+                    public Object fromNumber(Number number, Argument argument) {
                         return number.byteValue();
                     }
 

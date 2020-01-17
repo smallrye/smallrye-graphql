@@ -18,7 +18,11 @@ package io.smallrye.graphql.schema.type.scalar.number;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.jboss.jandex.DotName;
+
 import graphql.Scalars;
+import io.smallrye.graphql.schema.Argument;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Scalar for Float.
@@ -43,11 +47,17 @@ public class FloatScalar extends AbstractNumberScalar {
                     }
 
                     @Override
-                    public Object fromNumber(Number number) {
-                        return number.floatValue();
+                    public Object fromNumber(Number number, Argument argument) {
+                        DotName argumentName = argument.getType().name();
+
+                        if (argumentName.equals(Classes.FLOAT) || argumentName.equals(Classes.FLOAT_PRIMATIVE)) {
+                            return number.floatValue();
+                        } else {
+                            return number.doubleValue();
+                        }
                     }
                 },
-                Float.class, float.class);
+                Float.class, float.class, Double.class, double.class);
     }
 
 }

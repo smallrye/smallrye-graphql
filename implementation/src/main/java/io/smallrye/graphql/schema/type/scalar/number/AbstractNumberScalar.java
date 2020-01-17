@@ -131,7 +131,7 @@ public abstract class AbstractNumberScalar extends AbstractScalar {
         if (numberFormat != null) {
             try {
                 Number number = numberFormat.parse(input.toString());
-                return converter.fromNumber(number);
+                return converter.fromNumber(number, argument);
             } catch (ParseException ex) {
                 throw new TransformException(ex, this, argument.getName(), input.toString());
             }

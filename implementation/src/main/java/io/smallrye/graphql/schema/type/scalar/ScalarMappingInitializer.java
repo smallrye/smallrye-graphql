@@ -31,7 +31,6 @@ import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.schema.type.scalar.number.BigDecimalScalar;
 import io.smallrye.graphql.schema.type.scalar.number.BigIntegerScalar;
 import io.smallrye.graphql.schema.type.scalar.number.ByteScalar;
-import io.smallrye.graphql.schema.type.scalar.number.DoubleScalar;
 import io.smallrye.graphql.schema.type.scalar.number.FloatScalar;
 import io.smallrye.graphql.schema.type.scalar.number.IntegerScalar;
 import io.smallrye.graphql.schema.type.scalar.number.LongScalar;
@@ -70,7 +69,6 @@ public class ScalarMappingInitializer {
         mapType(new ShortScalar());
         mapType(new IntegerScalar());
         mapType(new FloatScalar());
-        mapType(new DoubleScalar());
         mapType(new ByteScalar());
         mapType(new BigIntegerScalar());
         mapType(new BigDecimalScalar());
