@@ -32,7 +32,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
@@ -63,7 +62,6 @@ import io.smallrye.graphql.schema.helper.NonNullHelper;
  */
 @ApplicationScoped
 public class OutputTypeCreator implements Creator {
-    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     @Inject
     private EnumTypeCreator enumTypeCreator;

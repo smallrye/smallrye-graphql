@@ -132,12 +132,12 @@ public class FormatHelper {
         switch (type.kind()) {
             case PARAMETERIZED_TYPE:
                 // Collections
-                Type typeInCollection = type.asParameterizedType().arguments().get(0);
-                return isDateLikeTypeOrCollectionThereOf(typeInCollection);
+                Type typeInCollection = type.asParameterizedType().arguments().get(0); // TODO: Check for null
+                return isTypeOrCollectionThereOf(typeInCollection, valid);
             case ARRAY:
                 // Array
                 Type typeInArray = type.asArrayType().component();
-                return isDateLikeTypeOrCollectionThereOf(typeInArray);
+                return isTypeOrCollectionThereOf(typeInArray, valid);
             default:
                 for (DotName dotName : valid) {
                     if (type.name().equals(dotName)) {

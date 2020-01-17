@@ -18,36 +18,33 @@ package io.smallrye.graphql.schema.type.scalar.number;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import graphql.Scalars;
-
 /**
- * Scalar for Float.
- * Based on graphql-java's Scalars.GraphQLFloat
+ * Scalar for Double.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class FloatScalar extends AbstractNumberScalar {
+public class DoubleScalar extends AbstractNumberScalar {
 
-    public FloatScalar() {
+    public DoubleScalar() {
 
-        super(Scalars.GraphQLFloat.getName(),
+        super("Double",
                 new Converter() {
                     @Override
                     public Object fromBigDecimal(BigDecimal bigDecimal) {
-                        return bigDecimal.floatValue();
+                        return bigDecimal.doubleValue();
                     }
 
                     @Override
                     public Object fromBigInteger(BigInteger bigInteger) {
-                        return bigInteger.floatValue();
+                        return bigInteger.doubleValue();
                     }
 
                     @Override
                     public Object fromNumber(Number number) {
-                        return number.floatValue();
+                        return number.doubleValue();
                     }
                 },
-                Float.class, float.class);
+                Double.class, double.class);
     }
 
 }
