@@ -16,16 +16,20 @@
 
 package io.smallrye.graphql.execution.datafetchers;
 
+import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Collections;
+import java.util.Optional;
 
+import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.helper.DateHelper;
+import io.smallrye.graphql.schema.helper.FormatHelper;
 
 /**
  * Extending the default property data fetcher and take the annotations into account
@@ -35,18 +39,26 @@ import io.smallrye.graphql.schema.helper.DateHelper;
  */
 public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     private static final Logger LOG = Logger.getLogger(AnnotatedPropertyDataFetcher.class.getName());
-
-    private final DateHelper dateHelper = new DateHelper();
+    private final FormatHelper formatHelper = new FormatHelper();
 
     private DateTimeFormatter dateTimeFormatter = null;
+    private NumberFormat numberFormat = null;
+    private final Type type;
 
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, Annotations annotations) {
         super(propertyName);
+        this.type = type;
+        if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
+            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
+                AnnotationInstance jsonbDateFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
+                this.dateTimeFormatter = formatHelper.getDateFormat(type, jsonbDateFormatAnnotation);
+            }
+        }
 
-        if (dateHelper.isDateLikeTypeOrCollectionThereOf(type)) {
-            if (annotations.containsKeyAndValidValue(Annotations.JSONB_DATE_FORMAT)) {
-                String format = annotations.getAnnotationValue(Annotations.JSONB_DATE_FORMAT).asString();
-                this.dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+        if (formatHelper.isNumberLikeTypeOrCollectionThereOf(type)) {
+            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_NUMBER_FORMAT)) {
+                AnnotationInstance jsonbNumberFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_NUMBER_FORMAT);
+                this.numberFormat = formatHelper.getNumberFormat(jsonbNumberFormatAnnotation);
             }
         }
     }
@@ -55,13 +67,48 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     public Object get(DataFetchingEnvironment environment) {
         Object o = super.get(environment);
 
-        // Date
+        if (Optional.class.isInstance(o)) {
+            LOG.error("type = " + type.kind());
+
+            Optional optional = Optional.class.cast(o);
+            if (optional.isPresent()) {
+                Object value = optional.get();
+                return Collections.singletonList(handleFormatting(value));
+            } else {
+                return Collections.emptyList();
+            }
+        } else {
+            return handleFormatting(o);
+        }
+    }
+
+    private Object handleFormatting(Object o) {
         if (dateTimeFormatter != null) {
-            return dateTimeFormatter.format((TemporalAccessor) o);
+            return handleDateFormatting(o);
+        } else if (numberFormat != null) {
+            return handleNumberFormatting(o);
         } else {
             return o;
         }
+    }
 
-        // TODO: Add tests for other types
+    private Object handleDateFormatting(Object o) {
+        if (TemporalAccessor.class.isInstance(o)) {
+            TemporalAccessor temporalAccessor = (TemporalAccessor) o;
+            return dateTimeFormatter.format(temporalAccessor);
+        } else {
+            // TODO: Either split input and output fetchers, or here see if you can make a date from the String
+            return o;
+        }
+    }
+
+    private Object handleNumberFormatting(Object o) {
+        if (Number.class.isInstance(o)) {
+            Number number = (Number) o;
+            return numberFormat.format(number);
+        } else {
+            // TODO: Either split input and output fetchers, or here see if you can make a number from the String
+            return o;
+        }
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql;
+package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,8 +30,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jboss.logging.Logger;
-
 import io.smallrye.graphql.execution.ExecutionService;
 
 /**
@@ -39,10 +37,8 @@ import io.smallrye.graphql.execution.ExecutionService;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "graphql/*" }, loadOnStartup = 1)
+@WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
-    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLExecutionServlet.class.getName());
-
     @Inject
     private ExecutionService executionService;
 
@@ -52,13 +48,14 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
         JsonObject jsonInput = jsonReader.readObject();
 
         JsonObject outputJson = executionService.execute(jsonInput);
+        if (outputJson != null) {
+            PrintWriter out = response.getWriter();
+            response.setContentType(APPLICATION_JSON_UTF8);
 
-        PrintWriter out = response.getWriter();
-        response.setContentType(APPLICATION_JSON_UTF8);
-
-        final JsonWriter jsonWriter = Json.createWriter(out);
-        jsonWriter.writeObject(outputJson);
-        out.flush();
+            final JsonWriter jsonWriter = Json.createWriter(out);
+            jsonWriter.writeObject(outputJson);
+            out.flush();
+        }
     }
 
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";

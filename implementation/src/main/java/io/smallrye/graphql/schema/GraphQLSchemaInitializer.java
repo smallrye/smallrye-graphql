@@ -26,7 +26,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.json.bind.Jsonb;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -44,6 +43,7 @@ import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
@@ -77,6 +77,9 @@ public class GraphQLSchemaInitializer {
     @Inject
     private EnumTypeCreator enumTypeCreator;
 
+    @Inject
+    private Map<DotName, GraphQLScalarType> scalarMap;
+
     private final Map<DotName, GraphQLType> inputMap = new HashMap<>();
     private final Map<DotName, GraphQLType> typeMap = new HashMap<>();
     private final Map<DotName, GraphQLType> enumMap = new HashMap<>();
@@ -108,10 +111,6 @@ public class GraphQLSchemaInitializer {
     private Map<DotName, Jsonb> inputJsonbMap;
 
     private GraphQLSchema graphQLSchema;
-
-    @Inject
-    @Named("scalars")
-    private Set<DotName> knownScalars;
 
     @PostConstruct
     public void init() {
@@ -158,7 +157,7 @@ public class GraphQLSchemaInitializer {
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
                 new ReflectionDataFetcher(methodInfo, argumentsHelper.toArgumentHolders(methodInfo),
-                        inputJsonbMap));
+                        inputJsonbMap, scalarMap));
         //        new LambdaMetafactoryDataFetcher(methodInfo));
         //                    PropertyDataFetcher.fetching(methodInfo.name()));
 
@@ -179,16 +178,18 @@ public class GraphQLSchemaInitializer {
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
+        //schemaBuilder = schemaBuilder.clearAdditionalTypes();
+
         Set<GraphQLType> additionalTypes = new HashSet<>();
         additionalTypes.addAll(enumMap.values());
         additionalTypes.addAll(typeMap.values());
         additionalTypes.addAll(inputMap.values());
-        schemaBuilder.additionalTypes(additionalTypes);
+        schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
-        schemaBuilder.query(query);
-        schemaBuilder.mutation(mutation);
+        schemaBuilder = schemaBuilder.query(query);
+        schemaBuilder = schemaBuilder.mutation(mutation);
 
-        schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+        schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         return schemaBuilder.build();
     }
@@ -233,12 +234,12 @@ public class GraphQLSchemaInitializer {
                 scanType(typeInCollection, map, creator);
                 break;
             case PRIMITIVE:
-                if (!knownScalars.contains(type.name())) {
+                if (!scalarMap.containsKey(type.name())) {
                     LOG.warn("No scalar mapping for " + type.name() + " with kind " + type.kind());
                 }
                 break;
             case CLASS:
-                if (!knownScalars.contains(type.name())) {
+                if (!scalarMap.containsKey(type.name())) {
                     ClassInfo classInfo = index.getClassByName(type.name());
                     if (classInfo != null) {
                         scanClass(classInfo, map, creator);

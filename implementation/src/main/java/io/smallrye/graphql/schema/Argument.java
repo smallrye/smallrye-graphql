@@ -26,6 +26,18 @@ import org.jboss.jandex.Type;
 public class Argument {
     private String name;
     private Type type;
+    private Annotations annotations;
+
+    public Argument() {
+        super();
+    }
+
+    public Argument(String name, Type type, Annotations annotations) {
+        super();
+        this.name = name;
+        this.type = type;
+        this.annotations = annotations;
+    }
 
     public String getName() {
         return name;
@@ -41,6 +53,14 @@ public class Argument {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Annotations getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(Annotations annotations) {
+        this.annotations = annotations;
     }
 
     public Class getArgumentClass() {

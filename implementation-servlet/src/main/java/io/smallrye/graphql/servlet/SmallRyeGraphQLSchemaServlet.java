@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql;
+package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.servlet.ServletConfig;
@@ -35,9 +36,9 @@ import graphql.schema.idl.SchemaPrinter;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "graphql/schema.graphql" }, loadOnStartup = 2)
+@WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "/graphql/schema.graphql" }, loadOnStartup = 2)
 public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
-
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
     @Inject
     private GraphQLSchema graphQLSchema;
 
@@ -46,8 +47,12 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        SchemaPrinter schemaPrinter = new SchemaPrinter();
-        this.schema = schemaPrinter.print(graphQLSchema);
+        if (graphQLSchema != null) {
+            SchemaPrinter schemaPrinter = new SchemaPrinter();
+            this.schema = schemaPrinter.print(graphQLSchema);
+        } else {
+            LOG.warning("Can not create GraphQL Schema (null)");
+        }
     }
 
     @Override

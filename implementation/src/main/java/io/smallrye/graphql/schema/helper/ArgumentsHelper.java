@@ -122,6 +122,7 @@ public class ArgumentsHelper {
             String name = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
             argument.setName(name);
             argument.setType(parameter);
+            argument.setAnnotations(annotationsForThisArgument);
             return Optional.of(argument);
         }
     }

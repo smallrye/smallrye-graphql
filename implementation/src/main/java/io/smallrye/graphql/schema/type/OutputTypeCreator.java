@@ -32,7 +32,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
@@ -63,7 +62,6 @@ import io.smallrye.graphql.schema.helper.NonNullHelper;
  */
 @ApplicationScoped
 public class OutputTypeCreator implements Creator {
-    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     @Inject
     private EnumTypeCreator enumTypeCreator;
@@ -72,7 +70,7 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, Jsonb> inputJsonbMap;
 
     @Inject
-    private Map<DotName, GraphQLScalarType> scalarMap;
+    Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
     private Index index;
@@ -174,7 +172,7 @@ public class OutputTypeCreator implements Creator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap));
+                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap, scalarMap));
 
                     fieldDefinitions.add(builder.build());
                 }

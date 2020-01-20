@@ -31,7 +31,6 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 
@@ -42,7 +41,6 @@ import io.smallrye.graphql.schema.Annotations;
  */
 @Dependent
 public class AnnotationsHelper {
-    private static final Logger LOG = Logger.getLogger(AnnotationsHelper.class.getName());
 
     /**
      * Get the annotations on the class.
@@ -63,7 +61,6 @@ public class AnnotationsHelper {
     }
 
     public Annotations getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
-
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance annotationInstance : fieldInfo.annotations()) {
