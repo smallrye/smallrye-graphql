@@ -45,11 +45,11 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     private String defaultErrorMessage;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST)
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
     private List<String> blackList;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST)
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
     private List<String> whiteList;
 
     @Inject

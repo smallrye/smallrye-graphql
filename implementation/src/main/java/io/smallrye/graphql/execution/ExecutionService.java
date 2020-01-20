@@ -64,24 +64,38 @@ public class ExecutionService {
     public JsonObject execute(JsonObject jsonInput) {
         String query = jsonInput.getString(QUERY);
 
-        Map<String, Object> variables = toMap(jsonInput.getJsonObject(VARIABLES));
+        if (this.graphQL != null) {
+            Map<String, Object> variables = new HashMap<>();
+            if (jsonInput.containsKey(VARIABLES)) {
+                JsonValue jvariables = jsonInput.get(VARIABLES);
+                if (!jvariables.equals(JsonValue.NULL)
+                        && !jvariables.equals(JsonValue.EMPTY_JSON_OBJECT)
+                        && !jvariables.equals(JsonValue.EMPTY_JSON_ARRAY)) {
+                    variables = toMap(jsonInput.getJsonObject(VARIABLES));
+                }
+            }
 
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                .query(query)
-                .variables(variables)
-                .executionId(ExecutionId.generate())
-                .build();
+            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                    .query(query)
+                    .variables(variables)
+                    .executionId(ExecutionId.generate())
+                    .build();
 
-        ExecutionResult executionResult = this.graphQL.execute(executionInput);
+            ExecutionResult executionResult = this.graphQL.execute(executionInput);
 
-        JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
+            JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
 
-        // Errors
-        returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
-        // Data
-        returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
+            // Errors
+            returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
+            // Data
+            returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
 
-        return returnObjectBuilder.build();
+            return returnObjectBuilder.build();
+        } else {
+            LOG.warn("Are you sure you have annotated your methods with @Query or @Mutation ?");
+            LOG.warn("\t" + query);
+            return null;
+        }
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
@@ -125,9 +139,11 @@ public class ExecutionService {
 
     private Map<String, Object> toMap(JsonObject jo) {
         Map<String, Object> ro = new HashMap<>();
-        Set<Map.Entry<String, JsonValue>> entrySet = jo.entrySet();
-        for (Map.Entry<String, JsonValue> es : entrySet) {
-            ro.put(es.getKey(), toObject(es.getValue()));
+        if (jo != null) {
+            Set<Map.Entry<String, JsonValue>> entrySet = jo.entrySet();
+            for (Map.Entry<String, JsonValue> es : entrySet) {
+                ro.put(es.getKey(), toObject(es.getValue()));
+            }
         }
         return ro;
     }

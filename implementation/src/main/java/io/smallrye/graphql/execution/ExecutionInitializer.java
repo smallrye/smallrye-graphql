@@ -21,6 +21,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import org.jboss.logging.Logger;
+
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
@@ -32,6 +34,7 @@ import io.smallrye.graphql.execution.error.ExceptionHandler;
  */
 @ApplicationScoped
 public class ExecutionInitializer {
+    private static final Logger LOG = Logger.getLogger(ExecutionInitializer.class.getName());
 
     @Inject
     private GraphQLSchema graphQLSchema;
@@ -44,12 +47,15 @@ public class ExecutionInitializer {
 
     @PostConstruct
     void init() {
-        this.graphQL = GraphQL
-                .newGraphQL(graphQLSchema)
-                .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
-                .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
-                .build();
-
+        if (graphQLSchema != null) {
+            this.graphQL = GraphQL
+                    .newGraphQL(graphQLSchema)
+                    .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
+                    .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
+                    .build();
+        } else {
+            LOG.warn("No GraphQL methods found. Try annotating your methods with @Query");
+        }
     }
 
 }
