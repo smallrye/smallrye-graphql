@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package io.smallrye.graphql.schema;
 
 import java.util.Map;
+import java.util.Optional;
 
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbNumberFormat;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 
+import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -32,6 +34,7 @@ import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.NumberFormat;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.eclipse.microprofile.graphql.Type;
@@ -64,13 +67,22 @@ public class Annotations {
         return this.annotations.get(key).value();
     }
 
-    public boolean containsOnOfTheseKeys(DotName... key) {
+    public boolean containsOneOfTheseKeys(DotName... key) {
         for (DotName name : key) {
             if (this.annotations.containsKey(name)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public Optional<AnnotationInstance> getOneOfTheseAnnotation(DotName... key) {
+        for (DotName name : key) {
+            if (this.annotations.containsKey(name)) {
+                return Optional.of(this.annotations.get(name));
+            }
+        }
+        return Optional.empty();
     }
 
     public boolean containsKeyAndValidValue(DotName key) {
@@ -89,6 +101,9 @@ public class Annotations {
     public static final DotName JSONB_DATE_FORMAT = DotName.createSimple(JsonbDateFormat.class.getName());
     public static final DotName JSONB_NUMBER_FORMAT = DotName.createSimple(JsonbNumberFormat.class.getName());
     public static final DotName JSONB_PROPERTY = DotName.createSimple(JsonbProperty.class.getName());
+
+    public static final DotName DATE_FORMAT = DotName.createSimple(DateFormat.class.getName());
+    public static final DotName NUMBER_FORMAT = DotName.createSimple(NumberFormat.class.getName());
 
     public static final DotName IGNORE = DotName.createSimple(Ignore.class.getName());
     public static final DotName JSONB_TRANSIENT = DotName.createSimple(JsonbTransient.class.getName());

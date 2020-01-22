@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 
 import javax.enterprise.context.Dependent;
 
@@ -29,6 +30,7 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
 
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 
 /**
@@ -57,7 +59,15 @@ public class FormatHelper {
                 Classes.FLOAT_PRIMATIVE);
     }
 
-    public NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
+    public NumberFormat getNumberFormat(Annotations annotations) {
+        Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
+        if (numberFormatAnnotation.isPresent()) {
+            return getNumberFormat(numberFormatAnnotation.get());
+        }
+        return null;
+    }
+
+    private NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
         if (jsonbNumberFormatAnnotation != null) {
             AnnotationValue locale = jsonbNumberFormatAnnotation.value(LOCALE);
             AnnotationValue format = jsonbNumberFormatAnnotation.value();
@@ -82,6 +92,14 @@ public class FormatHelper {
                 Classes.LOCALDATETIME,
                 Classes.UTIL_DATE,
                 Classes.SQL_DATE);
+    }
+
+    public DateTimeFormatter getDateFormat(Type type, Annotations annotations) {
+        Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
+        if (dateFormatAnnotation.isPresent()) {
+            return getDateFormat(type, dateFormatAnnotation.get());
+        }
+        return getDefaultDateTimeFormatter(type);
     }
 
     public DateTimeFormatter getDateFormat(Type type, AnnotationInstance jsonbDateFormatAnnotation) {
@@ -126,6 +144,55 @@ public class FormatHelper {
             return ISO_DATE_TIME;
         }
         throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
+    }
+
+    public Optional<String> getNumberFormatValue(Annotations annotations) {
+        Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
+        if (numberFormatAnnotation.isPresent()) {
+            AnnotationInstance a = numberFormatAnnotation.get();
+            return getFormat(a);
+        }
+        return Optional.empty();
+    }
+
+    public String getDateFormat(Annotations annotations, Type type) {
+        Optional<String> format = Optional.empty();
+
+        Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
+        if (dateFormatAnnotation.isPresent()) {
+            format = getFormat(dateFormatAnnotation.get());
+        }
+
+        if (format.isPresent()) {
+            return format.get();
+        } else {
+            // return the default dates format
+            return getDefaultDateTimeFormat(type);
+        }
+
+    }
+
+    private Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {
+        return annotations.getOneOfTheseAnnotation(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT);
+    }
+
+    private Optional<AnnotationInstance> getNumberFormatAnnotation(Annotations annotations) {
+        return annotations.getOneOfTheseAnnotation(Annotations.NUMBER_FORMAT, Annotations.JSONB_NUMBER_FORMAT);
+    }
+
+    private Optional<String> getFormat(AnnotationInstance annotationInstance) {
+        AnnotationValue locale = annotationInstance.value("locale");
+        AnnotationValue format = annotationInstance.value();
+
+        if (format == null && locale == null) {
+            return Optional.empty();
+        } else if (format == null) {
+            return Optional.of(locale.asString());
+        } else if (locale == null) {
+            return Optional.of(format.asString());
+        } else {
+            return Optional.of(format.asString() + " " + locale.asString());
+        }
     }
 
     private boolean isTypeOrCollectionThereOf(Type type, DotName... valid) {

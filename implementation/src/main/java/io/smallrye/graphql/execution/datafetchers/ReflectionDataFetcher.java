@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
@@ -46,6 +44,7 @@ import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.helper.CollectionHelper;
 import io.smallrye.graphql.schema.type.scalar.TransformException;
 import io.smallrye.graphql.schema.type.scalar.Transformable;
 
@@ -66,6 +65,7 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private final Map<DotName, Jsonb> inputJsonbMap;
     private final Map<DotName, GraphQLScalarType> scalarMap;
+    private final CollectionHelper collectionHelper = new CollectionHelper();
 
     public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Map<DotName, Jsonb> inputJsonbMap,
             Map<DotName, GraphQLScalarType> scalarMap) {
@@ -147,7 +147,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         return argumentObjects;
     }
 
-    private <T> Object toArgumentInputParameter(Object argumentValue, Argument a) throws GraphQLException {
+    private Object toArgumentInputParameter(Object argumentValue, Argument a) throws GraphQLException {
         Type type = a.getType();
 
         if (argumentValue != null) {
@@ -223,7 +223,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     private Object handleCollection(Object argumentValue, Argument a) throws GraphQLException {
         Class clazz = a.getArgumentClass();
         Type type = a.getType();
-        Collection convertedList = getCorrectCollectionType(clazz);
+        Collection convertedList = collectionHelper.getCorrectCollectionType(clazz);
 
         Collection givenCollection = (Collection) argumentValue;
 
@@ -265,23 +265,6 @@ public class ReflectionDataFetcher implements DataFetcher {
         return argumentValue;
     }
 
-    private Collection getCorrectCollectionType(Class type) {
-
-        if (type.equals(Collection.class) || type.equals(List.class)) {
-            return new ArrayList();
-        } else if (type.equals(Set.class)) {
-            return new HashSet();
-        } else {
-            try {
-                return (Collection) type.newInstance();
-            } catch (InstantiationException | IllegalAccessException ex) {
-                LOG.error("Can not create new collection of [" + type.getName() + "]", ex);
-                return new ArrayList(); // default ?
-            }
-        }
-
-    }
-
     private Object getArgument(DataFetchingEnvironment dfe, String name) {
         Object argument = dfe.getArgument(name);
         if (argument != null) {
@@ -320,7 +303,6 @@ public class ReflectionDataFetcher implements DataFetcher {
         if (scalar != null && Transformable.class.isInstance(scalar)) {
             Transformable transformable = Transformable.class.cast(scalar);
             return clazz.cast(transformable.transform(input, argument));
-
         }
 
         return input;

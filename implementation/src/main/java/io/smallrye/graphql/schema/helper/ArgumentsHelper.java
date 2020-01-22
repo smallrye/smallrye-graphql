@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import javax.inject.Inject;
 
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputType;
@@ -40,8 +39,6 @@ import io.smallrye.graphql.schema.type.InputTypeCreator;
  */
 @Dependent
 public class ArgumentsHelper {
-    private static final Logger LOG = Logger.getLogger(ArgumentsHelper.class.getName());
-
     @Inject
     private InputTypeCreator inputTypeCreator;
 
@@ -66,8 +63,9 @@ public class ArgumentsHelper {
         for (Type parameter : parameters) {
             Optional<GraphQLArgument> graphQLArgument = toGraphQLArgument(methodInfo, cnt, parameter, annotations,
                     ignoreSourceArgument);
-            if (graphQLArgument.isPresent())
+            if (graphQLArgument.isPresent()) {
                 r.add(graphQLArgument.get());
+            }
             cnt++;
         }
         return r;
@@ -77,10 +75,11 @@ public class ArgumentsHelper {
             Annotations annotations, boolean ignoreSourceArgument) {
         Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
-        if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
+        if (ignoreSourceArgument && annotationsForThisArgument.containsOneOfTheseKeys(Annotations.SOURCE)) {
             return Optional.empty();
         } else {
-            String argName = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
+            String defaultName = methodInfo.parameterName(argCount);
+            String argName = nameHelper.getArgumentName(annotationsForThisArgument, defaultName);
             GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotations);
 
             GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
@@ -93,19 +92,20 @@ public class ArgumentsHelper {
         }
     }
 
-    public List<Argument> toArgumentHolders(MethodInfo methodInfo) {
-        return toArgumentHolders(methodInfo, false);
+    public List<Argument> toArguments(MethodInfo methodInfo) {
+        return toArguments(methodInfo, false);
     }
 
-    public List<Argument> toArgumentHolders(MethodInfo methodInfo, boolean ignoreSourceArgument) {
+    public List<Argument> toArguments(MethodInfo methodInfo, boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
         List<Argument> r = new ArrayList<>();
         short cnt = 0;
         for (Type parameter : parameters) {
             Optional<Argument> graphQLArgument = toArgument(methodInfo, cnt, parameter,
                     ignoreSourceArgument);
-            if (graphQLArgument.isPresent())
+            if (graphQLArgument.isPresent()) {
                 r.add(graphQLArgument.get());
+            }
             cnt++;
         }
         return r;
@@ -115,11 +115,12 @@ public class ArgumentsHelper {
             boolean ignoreSourceArgument) {
         Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
-        if (ignoreSourceArgument && annotationsForThisArgument.containsOnOfTheseKeys(Annotations.SOURCE)) {
+        if (ignoreSourceArgument && annotationsForThisArgument.containsOneOfTheseKeys(Annotations.SOURCE)) {
             return Optional.empty();
         } else {
             Argument argument = new Argument();
-            String name = nameHelper.getArgumentName(annotationsForThisArgument, argCount);
+            String defaultName = methodInfo.parameterName(argCount);
+            String name = nameHelper.getArgumentName(annotationsForThisArgument, defaultName);
             argument.setName(name);
             argument.setType(parameter);
             argument.setAnnotations(annotationsForThisArgument);

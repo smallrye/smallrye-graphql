@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,17 @@ package io.smallrye.graphql.execution.datafetchers;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.helper.CollectionHelper;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 
 /**
@@ -44,32 +45,27 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
     private DateTimeFormatter dateTimeFormatter = null;
     private NumberFormat numberFormat = null;
     private final Type type;
+    private final CollectionHelper collectionHelper = new CollectionHelper();
 
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, Annotations annotations) {
         super(propertyName);
         this.type = type;
         if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
-            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
-                AnnotationInstance jsonbDateFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
-                this.dateTimeFormatter = formatHelper.getDateFormat(type, jsonbDateFormatAnnotation);
-            }
+            this.dateTimeFormatter = formatHelper.getDateFormat(type, annotations);
         }
-
         if (formatHelper.isNumberLikeTypeOrCollectionThereOf(type)) {
-            if (annotations.containsOnOfTheseKeys(Annotations.JSONB_NUMBER_FORMAT)) {
-                AnnotationInstance jsonbNumberFormatAnnotation = annotations.getAnnotation(Annotations.JSONB_NUMBER_FORMAT);
-                this.numberFormat = formatHelper.getNumberFormat(jsonbNumberFormatAnnotation);
-            }
+            this.numberFormat = formatHelper.getNumberFormat(annotations);
         }
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Object o = super.get(environment);
+        return get(o);
+    }
 
+    public Object get(Object o) {
         if (Optional.class.isInstance(o)) {
-            LOG.error("type = " + type.kind());
-
             Optional optional = Optional.class.cast(o);
             if (optional.isPresent()) {
                 Object value = optional.get();
@@ -77,6 +73,13 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
             } else {
                 return Collections.emptyList();
             }
+        } else if (Collection.class.isInstance(o)) {
+            Collection collection = Collection.class.cast(o);
+            Collection transformedCollection = collectionHelper.getCorrectCollectionType(o.getClass());
+            for (Object oo : collection) {
+                transformedCollection.add(get(oo));
+            }
+            return transformedCollection;
         } else {
             return handleFormatting(o);
         }

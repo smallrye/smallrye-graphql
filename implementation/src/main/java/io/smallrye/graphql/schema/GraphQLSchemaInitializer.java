@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,10 +131,10 @@ public class GraphQLSchemaInitializer {
 
                 Annotations annotationsForMethod = annotationsHelper.getAnnotationsForMethod(method,
                         AnnotationTarget.Kind.METHOD);
-                if (annotationsForMethod.containsOnOfTheseKeys(Annotations.QUERY)) {
+                if (annotationsForMethod.containsOneOfTheseKeys(Annotations.QUERY)) {
                     queryBuilder = addField(queryBuilder, annotationsForMethod, Annotations.QUERY);
                 }
-                if (annotationsForMethod.containsOnOfTheseKeys(Annotations.MUTATION)) {
+                if (annotationsForMethod.containsOneOfTheseKeys(Annotations.MUTATION)) {
                     mutationBuilder = addField(mutationBuilder, annotationsForMethod, Annotations.MUTATION);
                 }
             }
@@ -156,7 +156,7 @@ public class GraphQLSchemaInitializer {
         codeRegistryBuilder.dataFetcher(
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
-                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArgumentHolders(methodInfo),
+                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo),
                         inputJsonbMap, scalarMap));
         //        new LambdaMetafactoryDataFetcher(methodInfo));
         //                    PropertyDataFetcher.fetching(methodInfo.name()));

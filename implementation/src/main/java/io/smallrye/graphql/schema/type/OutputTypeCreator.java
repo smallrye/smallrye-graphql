@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ public class OutputTypeCreator implements Creator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArgumentHolders(methodInfo), inputJsonbMap, scalarMap));
+                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, scalarMap));
 
                     fieldDefinitions.add(builder.build());
                 }
@@ -217,7 +217,7 @@ public class OutputTypeCreator implements Creator {
 
         DotName fieldTypeName = type.name();
 
-        if (annotations.containsOnOfTheseKeys(Annotations.ID)) {
+        if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
             // ID
             return Scalars.GraphQLID;
         } else if (scalarMap.containsKey(fieldTypeName)) {

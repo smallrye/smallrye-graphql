@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc.
+ * Copyright 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.math.BigInteger;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
-import org.jboss.jandex.AnnotationInstance;
-
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
@@ -29,7 +27,6 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
-import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
@@ -127,7 +124,7 @@ public abstract class AbstractNumberScalar extends AbstractScalar {
 
     @Override
     public Object transform(Object input, Argument argument) {
-        NumberFormat numberFormat = formatHelper.getNumberFormat(getJsonBAnnotation(argument.getAnnotations()));
+        NumberFormat numberFormat = formatHelper.getNumberFormat(argument.getAnnotations());
         if (numberFormat != null) {
             try {
                 Number number = numberFormat.parse(input.toString());
@@ -138,12 +135,5 @@ public abstract class AbstractNumberScalar extends AbstractScalar {
         }
         return input;
 
-    }
-
-    private AnnotationInstance getJsonBAnnotation(Annotations annotations) {
-        if (annotations.containsOnOfTheseKeys(Annotations.JSONB_NUMBER_FORMAT)) {
-            return annotations.getAnnotation(Annotations.JSONB_NUMBER_FORMAT);
-        }
-        return null;
     }
 }

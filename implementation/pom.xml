@@ -11,6 +11,11 @@
     <artifactId>smallrye-graphql</artifactId>
     <name>SmallRye: MicroProfile GraphQL Implementation</name>
 
+    <properties>
+        <!--<graphql-java.version>14.0</graphql-java.version>-->
+        <graphql-java.version>13.0</graphql-java.version>
+    </properties>
+
     <dependencies>
         
         <!-- The API -->
@@ -56,7 +61,7 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>13.0</version>
+            <version>${graphql-java.version}</version>
         </dependency>
 
         <!-- Logging -->
