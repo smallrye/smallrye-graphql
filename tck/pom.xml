@@ -92,12 +92,16 @@
                 </property>
             </activation>
             
+            <properties>
+                <version.thorntail>2.6.0.Final</version.thorntail>
+            </properties>
+            
             <dependencyManagement>
                 <dependencies>
                     <dependency>
                         <groupId>io.thorntail</groupId>
                         <artifactId>bom-all</artifactId>
-                        <version>2.6.0.Final</version>
+                        <version>${version.thorntail}</version>
                         <type>pom</type>
                         <scope>import</scope>
                     </dependency>    

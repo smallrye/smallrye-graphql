@@ -93,11 +93,11 @@ public class NameHelper {
         return fieldName;
     }
 
-    public String getArgumentName(Annotations annotations, short argCount) {
+    public String getArgumentName(Annotations annotations, String defaultName) {
         if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             return annotations.getAnnotationValue(Annotations.NAME).asString();
         }
-        return "arg" + argCount;
+        return defaultName;
     }
 
     public String getExecutionTypeName(AnnotationInstance annotation, Annotations otherAnnotations) {

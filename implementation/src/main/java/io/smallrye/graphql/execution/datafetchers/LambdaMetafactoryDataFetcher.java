@@ -20,7 +20,6 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.jboss.jandex.MethodInfo;
@@ -53,7 +52,7 @@ public class LambdaMetafactoryDataFetcher implements DataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
-        printInfo(dfe);
+
         Class declaringClass = loadClass(this.methodInfo.declaringClass().name().toString());
         Class returnType = loadClass(this.methodInfo.returnType().name().toString());
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -67,11 +66,9 @@ public class LambdaMetafactoryDataFetcher implements DataFetcher {
 
         try {
             Function function = (Function) site.getTarget().invokeWithArguments(methodInfo.parameters());
-            //LOG.error("=============================================================");
-            //LOG.error("====> " + function.apply(declaringClass.cast(dfe.getSource())));
-            //LOG.error("=============================================================");
+
         } catch (Throwable ex) {
-            LOG.error("Poo poo", ex);
+            LOG.error(ex);
         }
 
         return null;
@@ -86,34 +83,6 @@ public class LambdaMetafactoryDataFetcher implements DataFetcher {
             throw new RuntimeException("COULD NOT FIND " + className, ex);
         }
         return clazz;
-    }
-
-    private void printInfo(DataFetchingEnvironment dfe) {
-        LOG.error("========================= [" + this.methodInfo.name() + "] ====================================");
-        LOG.error("====> CONTEXT: " + dfe.getContext().getClass().getName());
-        LOG.error("====> LOCALCONTEXT: " + dfe.getLocalContext().getClass().getName());
-        LOG.error("====> ROOT: " + dfe.getRoot().getClass().getName());
-        LOG.error("====> SOURCE: " + dfe.getSource().getClass().getName());
-        LOG.error("====> DOCUMENT: " + dfe.getDocument().toString());
-        LOG.error("====> EXECUTION ID: " + dfe.getExecutionId());
-        LOG.error("====> EXECUTION STEP INFO: " + dfe.getExecutionStepInfo().simplePrint());
-        LOG.error("====> FIELD: " + dfe.getField());
-        LOG.error("====> FIELD DEFINITION: " + dfe.getFieldDefinition());
-        LOG.error("====> FIELD TYPE: " + dfe.getFieldType());
-        LOG.error("====> FRAGMENTS: " + dfe.getFragmentsByName());
-        LOG.error("====> OPERATION DEFINITION: " + dfe.getOperationDefinition());
-        LOG.error("====> PARENT TYPE: " + dfe.getParentType().getName());
-        LOG.error("====> MERGED FIELD: " + dfe.getMergedField());
-        LOG.error("====> QUERY DIRECTIVES: " + dfe.getQueryDirectives());
-        LOG.error("====> SELECTION SET: " + dfe.getSelectionSet());
-        LOG.error("====> VARIABLES: " + dfe.getVariables());
-        LOG.error("==== ARGUMENTS ====");
-        Map<String, Object> arguments = dfe.getArguments();
-        for (Map.Entry<String, Object> argument : arguments.entrySet()) {
-            LOG.error("\t" + argument.getKey() + " = " + argument.getValue());
-        }
-
-        LOG.error("=============================================================");
     }
 
 }

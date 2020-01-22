@@ -30,7 +30,7 @@ import io.smallrye.graphql.schema.Annotations;
 public class IgnoreHelper {
 
     public boolean shouldIgnore(Annotations annotations) {
-        return annotations.containsOnOfTheseKeys(Annotations.IGNORE,
+        return annotations.containsOneOfTheseKeys(Annotations.IGNORE,
                 Annotations.JSONB_TRANSIENT);
     }
 }

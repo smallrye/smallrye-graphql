@@ -76,23 +76,44 @@ public class AnnotationsHelper {
         return new Annotations(annotationMap);
     }
 
+    public Annotations getAnnotationsForArgument(MethodInfo methodInfo) {
+        return getAnnotationsForArgument(methodInfo, ZERO); // Default to ZERO for normal setters in Beans
+    }
+
     public Annotations getAnnotationsForArgument(MethodInfo methodInfo, short pos) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance anno : methodInfo.annotations()) {
 
+            List<Type> parameters = methodInfo.parameters();
+            Type type = parameters.get(pos);
             if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
                 MethodParameterInfo methodParameter = anno.target().asMethodParameter();
                 short position = methodParameter.position();
                 if (position == pos) {
                     annotationMap.put(anno.name(), anno);
+                    Map<DotName, AnnotationInstance> annotations = getAnnotations(type);
+                    annotationMap.putAll(annotations);
                 }
-            } else if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
-                annotationMap.put(anno.name(), anno);
             }
-
         }
         return new Annotations(annotationMap);
+    }
+
+    private Map<DotName, AnnotationInstance> getAnnotations(Type type) {
+        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
+
+        if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            annotationMap.putAll(getAnnotations(typeInCollection));
+        } else {
+            List<AnnotationInstance> annotations = type.annotations();
+            for (AnnotationInstance annotationInstance : annotations) {
+                annotationMap.put(annotationInstance.name(), annotationInstance);
+            }
+        }
+
+        return annotationMap;
     }
 
     public Annotations getAnnotationsForMethod(MethodInfo methodInfo, AnnotationTarget.Kind... kindsFilter) {
@@ -127,4 +148,5 @@ public class AnnotationsHelper {
         return new Annotations(annotationMap);
     }
 
+    private static final short ZERO = 0;
 }

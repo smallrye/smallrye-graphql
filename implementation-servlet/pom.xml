@@ -11,6 +11,10 @@
     <artifactId>smallrye-graphql-servlet</artifactId>
     <name>SmallRye: MicroProfile GraphQL Implementation :: Servlet</name>
 
+    <properties>
+        <jakarta.servlet.version>4.0.3</jakarta.servlet.version>
+    </properties>
+
     <dependencies>
         
         <!-- The Implementation -->
@@ -42,7 +46,7 @@
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>4.0.3</version>
+            <version>${jakarta.servlet.version}</version>
             <scope>provided</scope>
         </dependency>
         

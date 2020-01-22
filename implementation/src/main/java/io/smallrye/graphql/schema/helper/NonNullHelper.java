@@ -58,7 +58,7 @@ public class NonNullHelper {
 
     private boolean hasNonNull(Annotations annotations) {
 
-        return annotations.containsOnOfTheseKeys(Annotations.NON_NULL,
+        return annotations.containsOneOfTheseKeys(Annotations.NON_NULL,
                 Annotations.BEAN_VALIDATION_NOT_NULL,
                 Annotations.BEAN_VALIDATION_NOT_EMPTY,
                 Annotations.BEAN_VALIDATION_NOT_BLANK);

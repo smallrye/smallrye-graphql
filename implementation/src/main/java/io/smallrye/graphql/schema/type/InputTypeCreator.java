@@ -123,7 +123,7 @@ public class InputTypeCreator implements Creator {
         List<GraphQLInputObjectField> inputObjectFields = new ArrayList<>();
         // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
-        short count = 0;
+
         Map<String, String> customFieldNameMapping = new HashMap<>();
         for (FieldInfo field : fields) {
             // Check if there is a setter (for input) 
@@ -151,7 +151,7 @@ public class InputTypeCreator implements Creator {
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     // Default value (on method)
-                    Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter, count);
+                    Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(setter);
                     Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument,
                             annotations);
                     builder = builder.defaultValue(maybeDefaultValue.orElse(null));
@@ -163,8 +163,6 @@ public class InputTypeCreator implements Creator {
                     }
                 }
             }
-
-            count++;
         }
 
         this.inputJsonbMap.put(classInfo.name(), createJsonb(customFieldNameMapping));
@@ -202,7 +200,7 @@ public class InputTypeCreator implements Creator {
 
         DotName fieldTypeName = type.name();
 
-        if (annotations.containsOnOfTheseKeys(Annotations.ID)) {
+        if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
             // ID
             return Scalars.GraphQLID;
         } else if (scalarMap.containsKey(fieldTypeName)) {

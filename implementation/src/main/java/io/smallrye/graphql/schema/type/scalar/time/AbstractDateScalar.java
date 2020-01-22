@@ -22,7 +22,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
@@ -102,7 +101,7 @@ public abstract class AbstractDateScalar extends AbstractScalar {
 
     protected LocalDate transformToLocalDate(String name, String input, Type type, Annotations annotations) {
         try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
             return LocalDate.parse(input, dateFormat);
         } catch (DateTimeParseException dtpe) {
             throw new TransformException(dtpe, this, name, input);
@@ -112,7 +111,7 @@ public abstract class AbstractDateScalar extends AbstractScalar {
 
     protected LocalDateTime transformToLocalDateTime(String name, String input, Type type, Annotations annotations) {
         try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
             return LocalDateTime.parse(input, dateFormat);
         } catch (DateTimeParseException dtpe) {
             throw new TransformException(dtpe, this, name, input);
@@ -121,19 +120,11 @@ public abstract class AbstractDateScalar extends AbstractScalar {
 
     public LocalTime transformToLocalTime(String name, String input, Type type, Annotations annotations) {
         try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, getJsonBAnnotation(annotations));
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
             return LocalTime.parse(input, dateFormat);
         } catch (DateTimeParseException dtpe) {
             throw new TransformException(dtpe, this, name, input);
         }
 
     }
-
-    private AnnotationInstance getJsonBAnnotation(Annotations annotations) {
-        if (annotations.containsOnOfTheseKeys(Annotations.JSONB_DATE_FORMAT)) {
-            return annotations.getAnnotation(Annotations.JSONB_DATE_FORMAT);
-        }
-        return null;
-    }
-
 }
