@@ -32,6 +32,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
@@ -62,6 +63,7 @@ import io.smallrye.graphql.schema.helper.NonNullHelper;
  */
 @ApplicationScoped
 public class OutputTypeCreator implements Creator {
+    private static final Logger LOG = Logger.getLogger(OutputTypeCreator.class.getName());
 
     @Inject
     private EnumTypeCreator enumTypeCreator;
@@ -236,13 +238,19 @@ public class OutputTypeCreator implements Creator {
         } else if (type.kind().equals(Type.Kind.CLASS)) {
 
             ClassInfo classInfo = index.getClassByName(type.name());
-            Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
+            if (classInfo != null) {
+                Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
 
-            if (Classes.isEnum(classInfo)) {
-                return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                if (Classes.isEnum(classInfo)) {
+                    return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                } else {
+                    String name = nameHelper.getOutputTypeName(classInfo, annotationsForThisClass);
+                    return GraphQLTypeReference.typeRef(name);
+                }
             } else {
-                String name = nameHelper.getOutputTypeName(classInfo, annotationsForThisClass);
-                return GraphQLTypeReference.typeRef(name);
+                LOG.warn("Class [" + type.name()
+                        + "] in not indexed in Jandex. Can not create Type, defaulting to String Scalar");
+                return Scalars.GraphQLString; // default
             }
         } else {
             // Maps ? Intefaces ? Generics ?

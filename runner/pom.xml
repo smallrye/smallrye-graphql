@@ -41,6 +41,34 @@
         <finalName>${project.artifactId}</finalName>
 
         <plugins>
+            <!-- This will get the app part of the tck so that we can deploy it, ignoring all the test stuff -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.eclipse.microprofile.graphql</groupId>
+                                    <artifactId>microprofile-graphql-tck</artifactId>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- This is the Runtime we run against (Thorntail) -->
             <plugin>
                 <groupId>io.thorntail</groupId>
                 <artifactId>thorntail-maven-plugin</artifactId>
@@ -86,11 +114,6 @@
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-servlet</artifactId>
-        </dependency>
-        <!-- The test application -->
-        <dependency>
-            <groupId>org.eclipse.microprofile.graphql</groupId>
-            <artifactId>microprofile-graphql-tck</artifactId>
         </dependency>
         
     </dependencies>
