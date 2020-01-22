@@ -219,13 +219,19 @@ public class InputTypeCreator implements Creator {
         } else if (type.kind().equals(Type.Kind.CLASS)) {
 
             ClassInfo classInfo = index.getClassByName(type.name());
-            Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
+            if (classInfo != null) {
+                Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
 
-            if (Classes.isEnum(classInfo)) {
-                return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                if (Classes.isEnum(classInfo)) {
+                    return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                } else {
+                    String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);
+                    return GraphQLTypeReference.typeRef(name);
+                }
             } else {
-                String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);
-                return GraphQLTypeReference.typeRef(name);
+                LOG.warn("Class [" + type.name()
+                        + "] in not indexed in Jandex. Can not create Input, defaulting to String Scalar");
+                return Scalars.GraphQLString; // default
             }
         } else {
             // Maps ? Intefaces ? Generics ?

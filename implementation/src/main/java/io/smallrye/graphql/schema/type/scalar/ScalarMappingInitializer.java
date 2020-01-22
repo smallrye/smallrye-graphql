@@ -16,6 +16,7 @@
 
 package io.smallrye.graphql.schema.type.scalar;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -62,6 +63,7 @@ public class ScalarMappingInitializer {
 
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(UUID.class.getName()), Scalars.GraphQLString);
+        MAPPING.put(DotName.createSimple(URL.class.getName()), Scalars.GraphQLString);
 
         MAPPING.put(DotName.createSimple(Boolean.class.getName()), Scalars.GraphQLBoolean);
         MAPPING.put(DotName.createSimple(boolean.class.getName()), Scalars.GraphQLBoolean);
