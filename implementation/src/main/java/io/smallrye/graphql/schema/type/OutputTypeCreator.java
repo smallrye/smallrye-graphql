@@ -170,13 +170,13 @@ public class OutputTypeCreator implements Creator {
                             AnnotationTarget.Kind.METHOD_PARAMETER);
                     builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, parameterAnnotations, true));
 
-                    // TODO: Check that the receiver is a CDI Bean ?
+                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, methodInfo.name()),
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
                                     argumentsHelper.toArguments(methodInfo), inputJsonbMap, scalarMap));
 
-                    fieldDefinitions.add(builder.build());
+                    fieldDefinitions.add(graphQLFieldDefinition);
                 }
             }
         }

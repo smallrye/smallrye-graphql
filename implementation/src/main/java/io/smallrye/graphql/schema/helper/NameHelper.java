@@ -37,9 +37,9 @@ public class NameHelper {
     public String getEnumName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.ENUM)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ENUM);
-            return annotationValue.asString();
+            return annotationValue.asString().trim();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString();
+            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
         }
         return classInfo.name().local();
 
@@ -48,9 +48,9 @@ public class NameHelper {
     public String getOutputTypeName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.TYPE)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TYPE);
-            return annotationValue.asString();
+            return annotationValue.asString().trim();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString();
+            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
         }
         return classInfo.name().local();
     }
@@ -58,9 +58,9 @@ public class NameHelper {
     public String getInputTypeName(ClassInfo classInfo, Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.INPUT)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUT);
-            return annotationValue.asString();
+            return annotationValue.asString().trim();
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString();
+            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
         }
         return classInfo.name().local() + INPUT;
     }
@@ -69,11 +69,11 @@ public class NameHelper {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
-                return nameAnnotation.value().asString();
+                return nameAnnotation.value().asString().trim();
             }
-            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString();
+            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
-            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
+            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString().trim();
         }
         return fieldName;
     }
@@ -82,20 +82,20 @@ public class NameHelper {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
             AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
-                return nameAnnotation.value().asString();
+                return nameAnnotation.value().asString().trim();
             }
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
-            return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString();
+            return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
-            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString();
+            return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString().trim();
         }
 
-        return fieldName;
+        return toNameFromGetter(fieldName);
     }
 
     public String getArgumentName(Annotations annotations, String defaultName) {
         if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotationValue(Annotations.NAME).asString();
+            return annotations.getAnnotationValue(Annotations.NAME).asString().trim();
         }
         return defaultName;
     }
@@ -103,7 +103,7 @@ public class NameHelper {
     public String getExecutionTypeName(AnnotationInstance annotation, Annotations otherAnnotations) {
         if (annotation.value() != null && !annotation.value().asString().isEmpty()) {
             // If the @Query or @Mutation annotation has a value, use that.
-            return annotation.value().asString();
+            return annotation.value().asString().trim();
         } else if (hasValidExecutionTypeAnnotation(Annotations.NAME, otherAnnotations)) {
             return getValueAsString(Annotations.NAME, otherAnnotations);
         } else if (hasValidExecutionTypeAnnotation(Annotations.JSONB_PROPERTY, otherAnnotations)) {
@@ -118,19 +118,32 @@ public class NameHelper {
         String methodName = annotation.target().asMethod().name();
         // TODO: Also check that the word start with a capital ?
         if (annotation.name().equals(Annotations.QUERY)) {
-            if (methodName.startsWith(GET) && methodName.length() > 3) {
-                methodName = removeAndLowerCase(methodName, 3);
-            } else if (methodName.startsWith(IS) && methodName.length() > 2) {
-                methodName = removeAndLowerCase(methodName, 2);
-            }
+            methodName = toNameFromGetter(methodName);
         } else if (annotation.name().equals(Annotations.MUTATION)) {
-            if (methodName.startsWith(SET) && methodName.length() > 3) {
-                methodName = removeAndLowerCase(methodName, 3);
-            }
+            methodName = toNameFromSetter(methodName);
         }
-
         return methodName;
+    }
 
+    private String toNameFromGetter(String methodName) {
+        if (methodName.startsWith(GET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
+            methodName = removeAndLowerCase(methodName, 3);
+        } else if (methodName.startsWith(IS) && methodName.length() > 2 && hasCapitalAt(methodName, 2)) {
+            methodName = removeAndLowerCase(methodName, 2);
+        }
+        return methodName;
+    }
+
+    private String toNameFromSetter(String methodName) {
+        if (methodName.startsWith(SET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
+            methodName = removeAndLowerCase(methodName, 3);
+        }
+        return methodName;
+    }
+
+    private boolean hasCapitalAt(String name, int pos) {
+        String letter = new String(new char[] { name.charAt(pos) });
+        return !letter.equals(letter.toLowerCase());
     }
 
     private String removeAndLowerCase(String original, int pre) {
@@ -149,7 +162,7 @@ public class NameHelper {
     }
 
     private String getValueAsString(DotName annotation, Annotations otherAnnotations) {
-        return otherAnnotations.getAnnotation(annotation).value().asString();
+        return otherAnnotations.getAnnotation(annotation).value().asString().trim();
     }
 
     private boolean isMethodAnnotation(AnnotationInstance instance) {
