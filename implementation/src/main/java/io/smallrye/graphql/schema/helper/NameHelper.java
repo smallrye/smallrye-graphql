@@ -90,7 +90,7 @@ public class NameHelper {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString().trim();
         }
 
-        return fieldName;
+        return toNameFromGetter(fieldName);
     }
 
     public String getArgumentName(Annotations annotations, String defaultName) {
@@ -118,19 +118,32 @@ public class NameHelper {
         String methodName = annotation.target().asMethod().name();
         // TODO: Also check that the word start with a capital ?
         if (annotation.name().equals(Annotations.QUERY)) {
-            if (methodName.startsWith(GET) && methodName.length() > 3) {
-                methodName = removeAndLowerCase(methodName, 3);
-            } else if (methodName.startsWith(IS) && methodName.length() > 2) {
-                methodName = removeAndLowerCase(methodName, 2);
-            }
+            methodName = toNameFromGetter(methodName);
         } else if (annotation.name().equals(Annotations.MUTATION)) {
-            if (methodName.startsWith(SET) && methodName.length() > 3) {
-                methodName = removeAndLowerCase(methodName, 3);
-            }
+            methodName = toNameFromSetter(methodName);
         }
-
         return methodName;
+    }
 
+    private String toNameFromGetter(String methodName) {
+        if (methodName.startsWith(GET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
+            methodName = removeAndLowerCase(methodName, 3);
+        } else if (methodName.startsWith(IS) && methodName.length() > 2 && hasCapitalAt(methodName, 2)) {
+            methodName = removeAndLowerCase(methodName, 2);
+        }
+        return methodName;
+    }
+
+    private String toNameFromSetter(String methodName) {
+        if (methodName.startsWith(SET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
+            methodName = removeAndLowerCase(methodName, 3);
+        }
+        return methodName;
+    }
+
+    private boolean hasCapitalAt(String name, int pos) {
+        String letter = new String(new char[] { name.charAt(pos) });
+        return !letter.equals(letter.toLowerCase());
     }
 
     private String removeAndLowerCase(String original, int pre) {
