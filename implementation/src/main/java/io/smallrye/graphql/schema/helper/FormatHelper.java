@@ -122,6 +122,7 @@ public class FormatHelper {
 
     public DateTimeFormatter getDefaultDateTimeFormatter(Type type) {
         // return the default dates format
+        type = getCorrectType(type);
         if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
                 || type.name().equals(Classes.SQL_DATE)) {
             return DateTimeFormatter.ISO_DATE;
@@ -135,6 +136,7 @@ public class FormatHelper {
 
     public String getDefaultDateTimeFormat(Type type) {
         // return the default dates format
+        type = getCorrectType(type);
         if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
                 || type.name().equals(Classes.SQL_DATE)) {
             return ISO_DATE;
@@ -212,6 +214,22 @@ public class FormatHelper {
                     }
                 }
                 return false;
+        }
+    }
+
+    private Type getCorrectType(Type type) {
+
+        switch (type.kind()) {
+            case PARAMETERIZED_TYPE:
+                // Collections
+                Type typeInCollection = type.asParameterizedType().arguments().get(0); // TODO: Check for null
+                return getCorrectType(typeInCollection);
+            case ARRAY:
+                // Array
+                Type typeInArray = type.asArrayType().component();
+                return getCorrectType(typeInArray);
+            default:
+                return type;
         }
     }
 

@@ -48,6 +48,7 @@ import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.ArgumentsHelper;
@@ -70,6 +71,9 @@ public class OutputTypeCreator implements Creator {
 
     @Inject
     private Map<DotName, Jsonb> inputJsonbMap;
+
+    @Inject
+    private Map<DotName, Map<String, Argument>> argumentMap;
 
     @Inject
     Map<DotName, GraphQLScalarType> scalarMap;
@@ -132,7 +136,7 @@ public class OutputTypeCreator implements Creator {
             if (maybeGetter.isPresent()) {
                 MethodInfo getter = maybeGetter.get();
                 // Annotations on the field and getter
-                Annotations annotations = annotationsHelper.getAnnotationsForField(field, getter);
+                Annotations annotations = annotationsHelper.getAnnotationsForOutputField(field, getter);
 
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, field.name(),
@@ -174,7 +178,7 @@ public class OutputTypeCreator implements Creator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, scalarMap));
+                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, argumentMap, scalarMap));
 
                     fieldDefinitions.add(graphQLFieldDefinition);
                 }

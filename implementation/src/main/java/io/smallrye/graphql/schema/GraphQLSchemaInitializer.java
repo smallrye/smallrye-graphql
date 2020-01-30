@@ -110,6 +110,9 @@ public class GraphQLSchemaInitializer {
     @Inject
     private Map<DotName, Jsonb> inputJsonbMap;
 
+    @Inject
+    private Map<DotName, Map<String, Argument>> argumentMap;
+
     private GraphQLSchema graphQLSchema;
 
     @PostConstruct
@@ -157,7 +160,7 @@ public class GraphQLSchemaInitializer {
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
                 new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo),
-                        inputJsonbMap, scalarMap));
+                        inputJsonbMap, argumentMap, scalarMap));
         //        new LambdaMetafactoryDataFetcher(methodInfo));
         //                    PropertyDataFetcher.fetching(methodInfo.name()));
 

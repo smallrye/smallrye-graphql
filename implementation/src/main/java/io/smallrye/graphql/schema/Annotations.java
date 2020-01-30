@@ -76,6 +76,27 @@ public class Annotations {
         return false;
     }
 
+    public boolean hasGraphQLAnnotations() {
+        for (DotName dotName : annotations.keySet()) {
+            if (dotName.toString().startsWith(GRAPHQL_PACKAGE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // TODO: See if we can also use name for this, then at least less classes
+    public boolean hasGraphQLFormatingAnnotations() {
+        for (DotName dotName : annotations.keySet()) {
+            if (dotName.equals(DATE_FORMAT) ||
+                    dotName.equals(NUMBER_FORMAT)) {//||
+                //dotName.equals(NAME)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Optional<AnnotationInstance> getOneOfTheseAnnotation(DotName... key) {
         for (DotName name : key) {
             if (this.annotations.containsKey(name)) {
@@ -117,4 +138,6 @@ public class Annotations {
     public static final DotName NAME = DotName.createSimple(Name.class.getName());
 
     public static final DotName SOURCE = DotName.createSimple(Source.class.getName());
+
+    private static final String GRAPHQL_PACKAGE = "org.eclipse.microprofile.graphql.";
 }

@@ -49,6 +49,7 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
@@ -71,6 +72,9 @@ public class InputTypeCreator implements Creator {
 
     @Produces
     private final Map<DotName, Jsonb> inputJsonbMap = new HashMap<>();
+
+    @Produces
+    private final Map<DotName, Map<String, Argument>> argumentMap = new HashMap<>();
 
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
@@ -124,14 +128,15 @@ public class InputTypeCreator implements Creator {
         // Fields (TODO: Look at methods rather ? Or both ?)
         List<FieldInfo> fields = classInfo.fields();
 
-        Map<String, String> customFieldNameMapping = new HashMap<>();
+        final Map<String, String> customFieldNameMapping = new HashMap<>();
+        final Map<String, Argument> fieldAnnotationsMapping = new HashMap<>();
         for (FieldInfo field : fields) {
             // Check if there is a setter (for input) 
             Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), classInfo);
             if (maybeSetter.isPresent()) {
                 MethodInfo setter = maybeSetter.get();
                 // Annotations on the field and setter
-                Annotations annotations = annotationsHelper.getAnnotationsForField(field, setter);
+                Annotations annotations = annotationsHelper.getAnnotationsForInputField(field, setter);
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
 
@@ -158,13 +163,25 @@ public class InputTypeCreator implements Creator {
 
                     inputObjectFields.add(builder.build());
 
+                    // Name mapping for input transformation
                     if (!field.name().equals(fieldName)) {
                         customFieldNameMapping.put(field.name(), fieldName);
+                    }
+                    // Other annotation for other transformation
+                    if (annotations.hasGraphQLFormatingAnnotations()) {
+                        fieldAnnotationsMapping.put(fieldName, new Argument(fieldName, field.type(), annotations));
                     }
                 }
             }
         }
+        // TODO: See if we can combine the 2 maps below.
 
+        // So that we can do transformations on input that can not be done with Jsonb
+        if (!fieldAnnotationsMapping.isEmpty()) {
+            this.argumentMap.put(classInfo.name(), fieldAnnotationsMapping);
+        }
+
+        // So that we can rename fields
         this.inputJsonbMap.put(classInfo.name(), createJsonb(customFieldNameMapping));
 
         return inputObjectFields;

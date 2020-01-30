@@ -60,20 +60,50 @@ public class AnnotationsHelper {
         return new Annotations(annotationMap);
     }
 
-    public Annotations getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
+    public Annotations getAnnotationsForOutputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
+        Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
+        Type returnType = methodInfo.returnType();
+        if (returnType != null) {
+            Map<DotName, AnnotationInstance> returnTypeAnnotations = getAnnotationsWithFilter(returnType,
+                    Annotations.DATE_FORMAT,
+                    Annotations.NUMBER_FORMAT);
+            if (!returnTypeAnnotations.isEmpty()) {
+                annotationsForField.putAll(returnTypeAnnotations);
+            }
+        }
+        return new Annotations(annotationsForField);
+    }
+
+    public Annotations getAnnotationsForInputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
+        Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
+
+        List<Type> parameters = methodInfo.parameters();
+        if (parameters != null && !parameters.isEmpty()) {
+            Type param = parameters.get(ZERO);
+            Map<DotName, AnnotationInstance> parameterAnnotations = getAnnotationsWithFilter(param, Annotations.DATE_FORMAT,
+                    Annotations.NUMBER_FORMAT);
+            if (!parameterAnnotations.isEmpty()) {
+                annotationsForField.putAll(parameterAnnotations);
+            }
+        }
+        return new Annotations(annotationsForField);
+    }
+
+    private Map<DotName, AnnotationInstance> getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
+        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
+        annotationMap.putAll(listToMap(fieldInfo.annotations()));
+        annotationMap.putAll(listToMap(methodInfo.annotations()));
+        return annotationMap;
+    }
+
+    private Map<DotName, AnnotationInstance> listToMap(List<AnnotationInstance> annotationInstances) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
-        for (AnnotationInstance annotationInstance : fieldInfo.annotations()) {
+        for (AnnotationInstance annotationInstance : annotationInstances) {
             DotName name = annotationInstance.name();
             annotationMap.put(name, annotationInstance);
         }
-
-        for (AnnotationInstance annotationInstance : methodInfo.annotations()) {
-            DotName name = annotationInstance.name();
-            annotationMap.put(name, annotationInstance);
-        }
-
-        return new Annotations(annotationMap);
+        return annotationMap;
     }
 
     public Annotations getAnnotationsForArgument(MethodInfo methodInfo) {
@@ -86,14 +116,16 @@ public class AnnotationsHelper {
         for (AnnotationInstance anno : methodInfo.annotations()) {
 
             List<Type> parameters = methodInfo.parameters();
-            Type type = parameters.get(pos);
-            if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
-                MethodParameterInfo methodParameter = anno.target().asMethodParameter();
-                short position = methodParameter.position();
-                if (position == pos) {
-                    annotationMap.put(anno.name(), anno);
-                    Map<DotName, AnnotationInstance> annotations = getAnnotations(type);
-                    annotationMap.putAll(annotations);
+            if (!parameters.isEmpty()) {
+                Type type = parameters.get(pos);
+                if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
+                    MethodParameterInfo methodParameter = anno.target().asMethodParameter();
+                    short position = methodParameter.position();
+                    if (position == pos) {
+                        annotationMap.put(anno.name(), anno);
+                        Map<DotName, AnnotationInstance> annotations = getAnnotations(type);
+                        annotationMap.putAll(annotations);
+                    }
                 }
             }
         }
@@ -110,6 +142,24 @@ public class AnnotationsHelper {
             List<AnnotationInstance> annotations = type.annotations();
             for (AnnotationInstance annotationInstance : annotations) {
                 annotationMap.put(annotationInstance.name(), annotationInstance);
+            }
+        }
+
+        return annotationMap;
+    }
+
+    private Map<DotName, AnnotationInstance> getAnnotationsWithFilter(Type type, DotName... filter) {
+        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
+
+        if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            annotationMap.putAll(getAnnotationsWithFilter(typeInCollection, filter));
+        } else {
+            List<AnnotationInstance> annotations = type.annotations();
+            for (AnnotationInstance annotationInstance : annotations) {
+                if (Arrays.asList(filter).contains(annotationInstance.name())) {
+                    annotationMap.put(annotationInstance.name(), annotationInstance);
+                }
             }
         }
 
@@ -133,19 +183,18 @@ public class AnnotationsHelper {
     }
 
     public Annotations getAnnotationsForType(Type type, Type methodType) {
-        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
+        Map<DotName, AnnotationInstance> annotationMap = getAnnotationsForType(type);
+        annotationMap.putAll(getAnnotationsForType(methodType));
+        return new Annotations(annotationMap);
+    }
 
+    private Map<DotName, AnnotationInstance> getAnnotationsForType(Type type) {
+        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
         for (AnnotationInstance annotationInstance : type.annotations()) {
             DotName name = annotationInstance.name();
             annotationMap.put(name, annotationInstance);
         }
-
-        for (AnnotationInstance annotationInstance : methodType.annotations()) {
-            DotName name = annotationInstance.name();
-            annotationMap.put(name, annotationInstance);
-        }
-
-        return new Annotations(annotationMap);
+        return annotationMap;
     }
 
     private static final short ZERO = 0;
