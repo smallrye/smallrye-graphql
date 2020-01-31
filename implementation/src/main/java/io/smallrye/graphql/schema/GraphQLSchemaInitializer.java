@@ -164,10 +164,14 @@ public class GraphQLSchemaInitializer {
         //        new LambdaMetafactoryDataFetcher(methodInfo));
         //                    PropertyDataFetcher.fetching(methodInfo.name()));
 
-        // TODO: What if getting has void ?
+        // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
             scanType(methodInfo.returnType(), this.typeMap, this.outputTypeCreator);
+        } else {
+            throw new RuntimeException("Can not have a void return for [" + annotationToScan.withoutPackagePrefix()
+                    + "] on method [" + methodInfo.name() + "]");
         }
+
         // arguments on getters and setter
         List<Type> parameters = methodInfo.parameters();
         for (Type parameter : parameters) {
@@ -262,24 +266,24 @@ public class GraphQLSchemaInitializer {
         if (Classes.isEnum(classInfo)) {
             scanEnum(classInfo);
         } else {
-            // Annotations on the field and getter
-            Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
             if (!map.containsKey(classInfo.name())) {
-                map.put(classInfo.name(), creator.create(classInfo, annotationsForThisClass));
-                scanFieldsAndMethods(classInfo, map, creator);
+                Map<DotName, GraphQLType> types = creator.createTree(classInfo);
+                for (Map.Entry<DotName, GraphQLType> t : types.entrySet()) {
+                    map.putIfAbsent(t.getKey(), t.getValue());
+                    ClassInfo classByName = index.getClassByName(t.getKey());
+                    scanFieldsAndMethods(classByName, map, creator);
+                }
             }
         }
     }
 
     private void scanEnum(ClassInfo classInfo) {
-
-        // Annotations on the field and getter
-        Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
         if (Classes.isEnum(classInfo)) {
             if (!enumMap.containsKey(classInfo.name())) {
-                enumMap.put(classInfo.name(), enumTypeCreator.create(classInfo, annotationsForThisClass));
+                Map<DotName, GraphQLType> created = enumTypeCreator.createTree(classInfo);
+                for (Map.Entry<DotName, GraphQLType> t : created.entrySet()) {
+                    enumMap.putIfAbsent(t.getKey(), t.getValue());
+                }
             }
         }
     }
@@ -298,7 +302,7 @@ public class GraphQLSchemaInitializer {
             String methodName = methodInfo.name();
 
             // return types on getters and setters
-            if (isSetter(methodName) || isGetter(methodName)) {
+            if (nameHelper.isSetter(methodName) || nameHelper.isGetter(methodName)) {
                 // TODO: What if getting has void ?
                 if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
                     scanType(methodInfo.returnType(), map, creator);
@@ -312,17 +316,4 @@ public class GraphQLSchemaInitializer {
             }
         }
     }
-
-    private boolean isSetter(String methodName) {
-        return methodName.length() > 3 && methodName.startsWith(SET);
-    }
-
-    private boolean isGetter(String methodName) {
-        return (methodName.length() > 3 && methodName.startsWith(GET))
-                || (methodName.length() > 2 && methodName.startsWith(IS));
-    }
-
-    private static final String SET = "set";
-    private static final String GET = "get";
-    private static final String IS = "is";
 }

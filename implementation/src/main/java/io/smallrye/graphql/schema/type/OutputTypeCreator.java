@@ -15,10 +15,13 @@
  */
 package io.smallrye.graphql.schema.type;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -35,9 +38,11 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.Scalars;
+import graphql.TypeResolutionEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
@@ -45,6 +50,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.TypeResolver;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
@@ -106,9 +112,20 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, List<MethodParameterInfo>> sourceFields;
 
     @Override
-    public GraphQLType create(ClassInfo classInfo, Annotations annotations) {
-        String name = nameHelper.getOutputTypeName(classInfo, annotations);
+    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo) {
+        boolean isInterface = Modifier.isInterface(classInfo.flags()); // TODO: Also check annotations (@interface) etc
+        if (isInterface) {
+            return createInterface(classInfo);
+        } else {
+            return createClass(classInfo);
+        }
+    }
 
+    private Map<DotName, GraphQLType> createClass(ClassInfo classInfo) {
+        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
+
+        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+        String name = nameHelper.getOutputTypeName(classInfo, annotations);
         GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject();
         objectTypeBuilder = objectTypeBuilder.name(name);
 
@@ -119,11 +136,133 @@ public class OutputTypeCreator implements Creator {
         // Fields
         objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
 
-        return objectTypeBuilder.build();
+        GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
+
+        // TODO: Check if this object extends an interface...
+
+        createdObjects.put(classInfo.name(), graphQLObjectType);
+
+        return createdObjects;
+    }
+
+    private Map<DotName, GraphQLType> createInterface(ClassInfo classInfo) {
+        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
+
+        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+        // Get all implementations
+        Set<ClassInfo> allKnownImplementors = index.getAllKnownImplementors(classInfo.name());
+        if (allKnownImplementors != null && !allKnownImplementors.isEmpty()) {
+            Map<DotName, GraphQLType> concreteMap = new HashMap<>();
+            // Create concreate 
+            for (ClassInfo concrete : allKnownImplementors) {
+                Map<DotName, GraphQLType> created = createTree(concrete);
+                for (Map.Entry<DotName, GraphQLType> t : created.entrySet()) {
+                    concreteMap.putIfAbsent(t.getKey(), t.getValue());
+                }
+            }
+
+            String name = nameHelper.getInterfaceName(classInfo, annotations);
+            GraphQLInterfaceType.Builder interfaceTypeBuilder = GraphQLInterfaceType.newInterface();
+            interfaceTypeBuilder = interfaceTypeBuilder.name(name);
+
+            // Description
+            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            interfaceTypeBuilder = interfaceTypeBuilder.description(maybeDescription.orElse(null));
+
+            // Fields
+            interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLMethodDefinitions(classInfo, name));
+
+            GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
+
+            // To resolve the concrete class
+            codeRegistryBuilder.typeResolver(graphQLInterfaceType, new TypeResolver() {
+                @Override
+                public GraphQLObjectType getType(TypeResolutionEnvironment tre) {
+                    DotName lookingForContrete = DotName.createSimple(tre.getObject().getClass().getName());
+                    if (concreteMap.containsKey(lookingForContrete)) {
+                        return GraphQLObjectType.class.cast(concreteMap.get(lookingForContrete));
+                    } else {
+                        throw new RuntimeException("No concrete class named [" + lookingForContrete + "] found for interface ["
+                                + classInfo.name() + "]");
+                    }
+                }
+            });
+
+            createdObjects.put(classInfo.name(), graphQLInterfaceType);
+            createdObjects.putAll(concreteMap);
+
+            return createdObjects;
+
+        } else {
+            // There is an interface without any concrete classes. 
+            // For now we throw an exception. 
+            // TODO: Maybe later we can create our own implementation ?
+            throw new RuntimeException("No concrete class found for interface [" + classInfo.name() + "]");
+        }
+
     }
 
     public GraphQLOutputType createGraphQLOutputType(Type type, Annotations annotations) {
         return createGraphQLOutputType(type, type, annotations);
+    }
+
+    private List<GraphQLFieldDefinition> createGraphQLMethodDefinitions(ClassInfo classInfo, String name) {
+        List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
+        List<MethodInfo> methods = classInfo.methods();
+
+        for (MethodInfo method : methods) {
+            if (nameHelper.isGetter(method.name())) {
+                String fieldName = nameHelper.toNameFromGetter(method.name());
+                // Annotations on the getter
+                Annotations annotations = annotationsHelper.getAnnotationsForOutputField(method);
+
+                if (!ignoreHelper.shouldIgnore(annotations)) {
+                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, fieldName,
+                            method.returnType(), method.returnType());
+
+                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
+
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
+                            new AnnotatedPropertyDataFetcher(fieldName, method.returnType(), annotations));
+
+                    fieldDefinitions.add(graphQLFieldDefinition);
+                }
+            }
+        }
+
+        // TODO: Also check for @Source fields
+        //        if (sourceFields.containsKey(classInfo.name())) {
+        //            List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
+        //            for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+        //                MethodInfo methodInfo = methodParameterInfo.method();
+        //
+        //                // Annotations on this method
+        //                Annotations methodAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
+        //                        AnnotationTarget.Kind.METHOD);
+        //                if (!ignoreHelper.shouldIgnore(methodAnnotations)) {
+        //
+        //                    Type type = methodParameterInfo.method().returnType();
+        //                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(methodAnnotations,
+        //                            methodInfo.name(),
+        //                            type, methodInfo.returnType());
+        //
+        //                    // Arguments (input) except @Source
+        //                    Annotations parameterAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
+        //                            AnnotationTarget.Kind.METHOD_PARAMETER);
+        //                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, parameterAnnotations, true));
+        //
+        //                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
+        //
+        //                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
+        //                            new ReflectionDataFetcher(methodParameterInfo.method(),
+        //                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, argumentMap, scalarMap));
+        //
+        //                    fieldDefinitions.add(graphQLFieldDefinition);
+        //                }
+        //            }
+        //        }
+
+        return fieldDefinitions;
     }
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo, String name) {
@@ -243,11 +382,10 @@ public class OutputTypeCreator implements Creator {
 
             ClassInfo classInfo = index.getClassByName(type.name());
             if (classInfo != null) {
-                Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
                 if (Classes.isEnum(classInfo)) {
-                    return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                    return enumTypeCreator.create(classInfo);
                 } else {
+                    Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getOutputTypeName(classInfo, annotationsForThisClass);
                     return GraphQLTypeReference.typeRef(name);
                 }

@@ -60,6 +60,10 @@ public class AnnotationsHelper {
         return new Annotations(annotationMap);
     }
 
+    public Annotations getAnnotationsForOutputField(MethodInfo methodInfo) {
+        return getAnnotationsForOutputField(null, methodInfo);
+    }
+
     public Annotations getAnnotationsForOutputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
         Type returnType = methodInfo.returnType();
@@ -91,8 +95,10 @@ public class AnnotationsHelper {
 
     private Map<DotName, AnnotationInstance> getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
-        annotationMap.putAll(listToMap(fieldInfo.annotations()));
-        annotationMap.putAll(listToMap(methodInfo.annotations()));
+        if (fieldInfo != null)
+            annotationMap.putAll(listToMap(fieldInfo.annotations()));
+        if (methodInfo != null)
+            annotationMap.putAll(listToMap(methodInfo.annotations()));
         return annotationMap;
     }
 

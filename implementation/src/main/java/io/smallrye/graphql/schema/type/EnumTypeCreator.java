@@ -25,12 +25,15 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLType;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 
@@ -54,8 +57,21 @@ public class EnumTypeCreator implements Creator {
     @Inject
     private DescriptionHelper descriptionHelper;
 
+    @Inject
+    private AnnotationsHelper annotationsHelper;
+
     @Override
-    public GraphQLEnumType create(ClassInfo classInfo, Annotations annotations) {
+    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo) {
+        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
+
+        GraphQLType enumType = create(classInfo);
+
+        createdObjects.put(classInfo.name(), enumType);
+        return createdObjects;
+    }
+
+    public GraphQLEnumType create(ClassInfo classInfo) {
+        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
         String name = nameHelper.getEnumName(classInfo, annotations);
 
         if (cache.containsKey(name)) {

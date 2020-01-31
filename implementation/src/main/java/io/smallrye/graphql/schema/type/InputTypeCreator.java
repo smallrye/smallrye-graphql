@@ -104,7 +104,16 @@ public class InputTypeCreator implements Creator {
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
     @Override
-    public GraphQLType create(ClassInfo classInfo, Annotations annotations) {
+    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo) {
+        // TODO: Interfaces ?
+        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
+        GraphQLType graphQLType = create(classInfo);
+        createdObjects.put(classInfo.name(), graphQLType);
+        return createdObjects;
+    }
+
+    private GraphQLType create(ClassInfo classInfo) {
+        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
         String name = nameHelper.getInputTypeName(classInfo, annotations);
 
         GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject().name(name);
@@ -237,11 +246,10 @@ public class InputTypeCreator implements Creator {
 
             ClassInfo classInfo = index.getClassByName(type.name());
             if (classInfo != null) {
-                Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
                 if (Classes.isEnum(classInfo)) {
-                    return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                    return enumTypeCreator.create(classInfo);
                 } else {
+                    Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);
                     return GraphQLTypeReference.typeRef(name);
                 }

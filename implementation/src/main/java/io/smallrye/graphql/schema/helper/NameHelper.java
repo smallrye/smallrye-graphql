@@ -35,34 +35,19 @@ import io.smallrye.graphql.schema.Annotations;
 public class NameHelper {
 
     public String getEnumName(ClassInfo classInfo, Annotations annotations) {
-        if (annotations.containsKeyAndValidValue(Annotations.ENUM)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ENUM);
-            return annotationValue.asString().trim();
-        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
-        }
-        return classInfo.name().local();
-
+        return getNameForClassType(classInfo, annotations, Annotations.ENUM);
     }
 
     public String getOutputTypeName(ClassInfo classInfo, Annotations annotations) {
-        if (annotations.containsKeyAndValidValue(Annotations.TYPE)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TYPE);
-            return annotationValue.asString().trim();
-        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
-        }
-        return classInfo.name().local();
+        return getNameForClassType(classInfo, annotations, Annotations.TYPE);
+    }
+
+    public String getInterfaceName(ClassInfo classInfo, Annotations annotations) {
+        return getNameForClassType(classInfo, annotations, Annotations.INTERFACE);
     }
 
     public String getInputTypeName(ClassInfo classInfo, Annotations annotations) {
-        if (annotations.containsKeyAndValidValue(Annotations.INPUT)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.INPUT);
-            return annotationValue.asString().trim();
-        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
-        }
-        return classInfo.name().local() + INPUT;
+        return getNameForClassType(classInfo, annotations, Annotations.INPUT, INPUT);
     }
 
     public String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
@@ -114,18 +99,16 @@ public class NameHelper {
 
     }
 
-    private String getDefaultExecutionTypeName(AnnotationInstance annotation) {
-        String methodName = annotation.target().asMethod().name();
-        // TODO: Also check that the word start with a capital ?
-        if (annotation.name().equals(Annotations.QUERY)) {
-            methodName = toNameFromGetter(methodName);
-        } else if (annotation.name().equals(Annotations.MUTATION)) {
-            methodName = toNameFromSetter(methodName);
-        }
-        return methodName;
+    public boolean isSetter(String methodName) {
+        return methodName.length() > 3 && methodName.startsWith(SET) && hasCapitalAt(methodName, 3);
     }
 
-    private String toNameFromGetter(String methodName) {
+    public boolean isGetter(String methodName) {
+        return (methodName.length() > 3 && methodName.startsWith(GET) && hasCapitalAt(methodName, 3))
+                || (methodName.length() > 2 && methodName.startsWith(IS) && hasCapitalAt(methodName, 2));
+    }
+
+    public String toNameFromGetter(String methodName) {
         if (methodName.startsWith(GET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
             methodName = removeAndLowerCase(methodName, 3);
         } else if (methodName.startsWith(IS) && methodName.length() > 2 && hasCapitalAt(methodName, 2)) {
@@ -134,9 +117,35 @@ public class NameHelper {
         return methodName;
     }
 
-    private String toNameFromSetter(String methodName) {
+    public String toNameFromSetter(String methodName) {
         if (methodName.startsWith(SET) && methodName.length() > 3 && hasCapitalAt(methodName, 3)) {
             methodName = removeAndLowerCase(methodName, 3);
+        }
+        return methodName;
+    }
+
+    private String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName) {
+        return getNameForClassType(classInfo, annotations, typeName, "");
+    }
+
+    private String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName, String postFix) {
+        if (annotations.containsKeyAndValidValue(typeName)) {
+            AnnotationValue annotationValue = annotations.getAnnotationValue(typeName);
+            return annotationValue.asString().trim();
+        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            return annotations.getAnnotation(Annotations.NAME).value().asString().trim();
+        }
+
+        return classInfo.name().local() + postFix;
+    }
+
+    private String getDefaultExecutionTypeName(AnnotationInstance annotation) {
+        String methodName = annotation.target().asMethod().name();
+        // TODO: Also check that the word start with a capital ?
+        if (annotation.name().equals(Annotations.QUERY)) {
+            methodName = toNameFromGetter(methodName);
+        } else if (annotation.name().equals(Annotations.MUTATION)) {
+            methodName = toNameFromSetter(methodName);
         }
         return methodName;
     }
@@ -169,8 +178,8 @@ public class NameHelper {
         return instance.target().kind().equals(AnnotationTarget.Kind.METHOD);
     }
 
+    private static final String SET = "set";
     private static final String GET = "get";
     private static final String IS = "is";
-    private static final String SET = "set";
     private static final String INPUT = "Input";
 }
