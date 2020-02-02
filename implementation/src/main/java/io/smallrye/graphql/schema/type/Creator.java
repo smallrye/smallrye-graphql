@@ -18,7 +18,6 @@ package io.smallrye.graphql.schema.type;
 import org.jboss.jandex.ClassInfo;
 
 import graphql.schema.GraphQLType;
-import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Interface for all creators
@@ -26,5 +25,7 @@ import io.smallrye.graphql.schema.Annotations;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface Creator {
-    public GraphQLType create(ClassInfo classInfo, Annotations annotations);
+
+    public GraphQLType create(ClassInfo classInfo);
+
 }

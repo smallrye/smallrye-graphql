@@ -31,6 +31,7 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.Input;
+import org.eclipse.microprofile.graphql.Interface;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -76,6 +77,27 @@ public class Annotations {
         return false;
     }
 
+    public boolean hasGraphQLAnnotations() {
+        for (DotName dotName : annotations.keySet()) {
+            if (dotName.toString().startsWith(GRAPHQL_PACKAGE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // TODO: See if we can also use name for this, then at least less classes
+    public boolean hasGraphQLFormatingAnnotations() {
+        for (DotName dotName : annotations.keySet()) {
+            if (dotName.equals(DATE_FORMAT) ||
+                    dotName.equals(NUMBER_FORMAT)) {//||
+                //dotName.equals(NAME)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Optional<AnnotationInstance> getOneOfTheseAnnotation(DotName... key) {
         for (DotName name : key) {
             if (this.annotations.containsKey(name)) {
@@ -94,6 +116,7 @@ public class Annotations {
     public static final DotName MUTATION = DotName.createSimple(Mutation.class.getName());
     public static final DotName INPUT = DotName.createSimple(Input.class.getName());
     public static final DotName TYPE = DotName.createSimple(Type.class.getName());
+    public static final DotName INTERFACE = DotName.createSimple(Interface.class.getName());
     public static final DotName ENUM = DotName.createSimple(org.eclipse.microprofile.graphql.Enum.class.getName());
 
     public static final DotName ID = DotName.createSimple(Id.class.getName());
@@ -117,4 +140,6 @@ public class Annotations {
     public static final DotName NAME = DotName.createSimple(Name.class.getName());
 
     public static final DotName SOURCE = DotName.createSimple(Source.class.getName());
+
+    private static final String GRAPHQL_PACKAGE = "org.eclipse.microprofile.graphql.";
 }

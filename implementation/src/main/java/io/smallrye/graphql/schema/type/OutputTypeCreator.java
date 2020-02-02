@@ -15,6 +15,7 @@
  */
 package io.smallrye.graphql.schema.type;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
@@ -47,7 +49,9 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.typeResolvers.OutputTypeResolver;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.ArgumentsHelper;
@@ -72,7 +76,10 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, Jsonb> inputJsonbMap;
 
     @Inject
-    Map<DotName, GraphQLScalarType> scalarMap;
+    private Map<DotName, Map<String, Argument>> argumentMap;
+
+    @Inject
+    private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
     private Index index;
@@ -101,25 +108,141 @@ public class OutputTypeCreator implements Creator {
     @Inject
     private Map<DotName, List<MethodParameterInfo>> sourceFields;
 
+    @Inject
+    private Map<DotName, GraphQLInterfaceType> interfaceMap;
+
+    @Inject
+    private Map<DotName, GraphQLOutputType> typeMap;
+
+    @Inject
+    private List<ClassInfo> typeTodoList;
+
     @Override
-    public GraphQLType create(ClassInfo classInfo, Annotations annotations) {
-        String name = nameHelper.getOutputTypeName(classInfo, annotations);
-
-        GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject();
-        objectTypeBuilder = objectTypeBuilder.name(name);
-
-        // Description
-        Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
-        objectTypeBuilder = objectTypeBuilder.description(maybeDescription.orElse(null));
-
-        // Fields
-        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
-
-        return objectTypeBuilder.build();
+    public GraphQLType create(ClassInfo classInfo) {
+        boolean isInterface = Modifier.isInterface(classInfo.flags()); // TODO: Also check annotations (@interface) etc
+        if (isInterface) {
+            return createInterface(classInfo);
+        } else {
+            return createClass(classInfo);
+        }
     }
 
     public GraphQLOutputType createGraphQLOutputType(Type type, Annotations annotations) {
         return createGraphQLOutputType(type, type, annotations);
+    }
+
+    private GraphQLOutputType createClass(ClassInfo classInfo) {
+        if (typeMap.containsKey(classInfo.name())) {
+            return typeMap.get(classInfo.name());
+        } else {
+            Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+            String name = nameHelper.getOutputTypeName(classInfo, annotations);
+            GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject();
+            objectTypeBuilder = objectTypeBuilder.name(name);
+
+            // Description
+            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            objectTypeBuilder = objectTypeBuilder.description(maybeDescription.orElse(null));
+
+            // Fields
+            objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
+
+            // TODO: Superclass ??
+            //Type superClassType = classInfo.superClassType();
+            //LOG.warn("[" + classInfo.simpleName() + "] extends [" + superClassType.name().withoutPackagePrefix() + "]");
+
+            // Interfaces
+            List<DotName> interfaceNames = classInfo.interfaceNames();
+            for (DotName interfaceName : interfaceNames) {
+                LOG.warn("[" + classInfo.simpleName() + "] implements [" + interfaceName.withoutPackagePrefix() + "]");
+                ClassInfo c = index.getClassByName(interfaceName);
+                GraphQLInterfaceType i = createInterface(c);
+                objectTypeBuilder = objectTypeBuilder.withInterface(i);
+            }
+            GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
+            typeMap.put(classInfo.name(), graphQLObjectType);
+
+            return graphQLObjectType;
+        }
+    }
+
+    private GraphQLInterfaceType createInterface(ClassInfo classInfo) {
+        if (interfaceMap.containsKey(classInfo.name())) {
+            return interfaceMap.get(classInfo.name());
+        } else {
+
+            Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+
+            String name = nameHelper.getInterfaceName(classInfo, annotations);
+            GraphQLInterfaceType.Builder interfaceTypeBuilder = GraphQLInterfaceType.newInterface();
+            interfaceTypeBuilder = interfaceTypeBuilder.name(name);
+
+            // Description
+            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            interfaceTypeBuilder = interfaceTypeBuilder.description(maybeDescription.orElse(null));
+
+            // Fields
+            interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLMethodDefinitions(classInfo, name));
+
+            GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
+
+            // To resolve the concrete class
+            codeRegistryBuilder.typeResolver(graphQLInterfaceType, new OutputTypeResolver(typeMap, classInfo.name()));
+
+            interfaceMap.put(classInfo.name(), graphQLInterfaceType);
+
+            // Also check that we create all implementations
+            List<ClassInfo> knownDirectImplementors = index.getKnownDirectImplementors(classInfo.name());
+            for (ClassInfo impl : knownDirectImplementors) {
+                if (!typeMap.containsKey(impl.name())) {
+                    typeTodoList.add(impl);
+                }
+            }
+
+            return graphQLInterfaceType;
+        }
+
+    }
+
+    private GraphQLOutputType createGraphQLOutputType(Type type, Type getterReturnType, Annotations annotations) {
+        if (nonNullHelper.markAsNonNull(type, annotations)) {
+            return GraphQLNonNull.nonNull(toGraphQLOutputType(type, getterReturnType, annotations));
+        } else {
+            return toGraphQLOutputType(type, getterReturnType, annotations);
+        }
+
+        // TODO: Deprecate
+        // fieldDefinitionBuilder.deprecate(description)
+
+        // TODO: Directives ?
+        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
+    }
+
+    private List<GraphQLFieldDefinition> createGraphQLMethodDefinitions(ClassInfo classInfo, String name) {
+        List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
+        List<MethodInfo> methods = classInfo.methods();
+
+        for (MethodInfo method : methods) {
+            if (nameHelper.isGetter(method.name())) {
+                String fieldName = nameHelper.toNameFromGetter(method.name());
+                // Annotations on the getter
+                Annotations annotations = annotationsHelper.getAnnotationsForOutputField(method);
+
+                if (!ignoreHelper.shouldIgnore(annotations)) {
+                    GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, fieldName,
+                            method.returnType(), method.returnType());
+
+                    GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
+
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
+                            new AnnotatedPropertyDataFetcher(fieldName, method.returnType(), annotations));
+
+                    fieldDefinitions.add(graphQLFieldDefinition);
+                }
+            }
+        }
+
+        return fieldDefinitions;
     }
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo, String name) {
@@ -132,7 +255,7 @@ public class OutputTypeCreator implements Creator {
             if (maybeGetter.isPresent()) {
                 MethodInfo getter = maybeGetter.get();
                 // Annotations on the field and getter
-                Annotations annotations = annotationsHelper.getAnnotationsForField(field, getter);
+                Annotations annotations = annotationsHelper.getAnnotationsForOutputField(field, getter);
 
                 if (!ignoreHelper.shouldIgnore(annotations)) {
                     GraphQLFieldDefinition.Builder builder = getGraphQLFieldDefinitionBuilder(annotations, field.name(),
@@ -174,7 +297,7 @@ public class OutputTypeCreator implements Creator {
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, scalarMap));
+                                    argumentsHelper.toArguments(methodInfo), inputJsonbMap, argumentMap, scalarMap));
 
                     fieldDefinitions.add(graphQLFieldDefinition);
                 }
@@ -201,22 +324,7 @@ public class OutputTypeCreator implements Creator {
         return builder;
     }
 
-    private GraphQLOutputType createGraphQLOutputType(Type type, Type getterReturnType, Annotations annotations) {
-        if (nonNullHelper.markAsNonNull(type, annotations)) {
-            return GraphQLNonNull.nonNull(toGraphQLOutputType(type, getterReturnType, annotations));
-        } else {
-            return toGraphQLOutputType(type, getterReturnType, annotations);
-        }
-
-        // TODO: Deprecate
-        // fieldDefinitionBuilder.deprecate(description)
-
-        // TODO: Directives ?
-        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
-    }
-
     private GraphQLOutputType toGraphQLOutputType(Type type, Type methodReturnType, Annotations annotations) {
-
         DotName fieldTypeName = type.name();
 
         if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
@@ -237,13 +345,15 @@ public class OutputTypeCreator implements Creator {
             return toParameterizedGraphQLOutputType(typeInCollection, typeInReturnList, annotations);
         } else if (type.kind().equals(Type.Kind.CLASS)) {
 
-            ClassInfo classInfo = index.getClassByName(type.name());
+            ClassInfo classInfo = index.getClassByName(fieldTypeName);
             if (classInfo != null) {
-                Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
                 if (Classes.isEnum(classInfo)) {
-                    return enumTypeCreator.create(classInfo, annotationsForThisClass);
+                    return enumTypeCreator.create(classInfo);
+                } else if (typeMap.containsKey(fieldTypeName)) {
+                    return typeMap.get(fieldTypeName);
                 } else {
+                    typeTodoList.add(classInfo);
+                    Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getOutputTypeName(classInfo, annotationsForThisClass);
                     return GraphQLTypeReference.typeRef(name);
                 }
@@ -256,6 +366,7 @@ public class OutputTypeCreator implements Creator {
             // Maps ? Intefaces ? Generics ?
             throw new RuntimeException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
         }
+
     }
 
     private GraphQLOutputType toParameterizedGraphQLOutputType(Type typeInCollection, Type getterReturnType,

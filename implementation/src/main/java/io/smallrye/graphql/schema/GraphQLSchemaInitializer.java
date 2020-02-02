@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.schema;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,12 @@ import org.jboss.logging.Logger;
 
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
@@ -80,9 +83,17 @@ public class GraphQLSchemaInitializer {
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
 
-    private final Map<DotName, GraphQLType> inputMap = new HashMap<>();
-    private final Map<DotName, GraphQLType> typeMap = new HashMap<>();
-    private final Map<DotName, GraphQLType> enumMap = new HashMap<>();
+    @Inject
+    private Map<DotName, GraphQLInputType> inputMap;
+    @Inject
+    private Map<DotName, GraphQLOutputType> typeMap;
+    @Inject
+    private Map<DotName, GraphQLEnumType> enumMap;
+    @Inject
+    private Map<DotName, GraphQLInterfaceType> interfaceMap;
+
+    @Inject
+    private List<ClassInfo> typeTodoList;
 
     @Inject
     @ConfigProperty(name = "mp.graphql.queryRootDescription", defaultValue = "Query root")
@@ -109,6 +120,9 @@ public class GraphQLSchemaInitializer {
 
     @Inject
     private Map<DotName, Jsonb> inputJsonbMap;
+
+    @Inject
+    private Map<DotName, Map<String, Argument>> argumentMap;
 
     private GraphQLSchema graphQLSchema;
 
@@ -140,6 +154,13 @@ public class GraphQLSchemaInitializer {
             }
         }
 
+        // Let's see what still needs to be done.
+        for (ClassInfo todo : typeTodoList) {
+            if (!typeMap.containsKey(todo.name())) {
+                outputTypeCreator.create(todo);
+            }
+        }
+
         this.graphQLSchema = createGraphQLSchema(queryBuilder.build(), mutationBuilder.build());
     }
 
@@ -157,14 +178,18 @@ public class GraphQLSchemaInitializer {
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
                 new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo),
-                        inputJsonbMap, scalarMap));
+                        inputJsonbMap, argumentMap, scalarMap));
         //        new LambdaMetafactoryDataFetcher(methodInfo));
         //                    PropertyDataFetcher.fetching(methodInfo.name()));
 
-        // TODO: What if getting has void ?
+        // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
             scanType(methodInfo.returnType(), this.typeMap, this.outputTypeCreator);
+        } else {
+            throw new RuntimeException("Can not have a void return for [" + annotationToScan.withoutPackagePrefix()
+                    + "] on method [" + methodInfo.name() + "]");
         }
+
         // arguments on getters and setter
         List<Type> parameters = methodInfo.parameters();
         for (Type parameter : parameters) {
@@ -178,12 +203,11 @@ public class GraphQLSchemaInitializer {
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        //schemaBuilder = schemaBuilder.clearAdditionalTypes();
-
         Set<GraphQLType> additionalTypes = new HashSet<>();
         additionalTypes.addAll(enumMap.values());
         additionalTypes.addAll(typeMap.values());
         additionalTypes.addAll(inputMap.values());
+        additionalTypes.addAll(interfaceMap.values());
         schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
         schemaBuilder = schemaBuilder.query(query);
@@ -222,7 +246,7 @@ public class GraphQLSchemaInitializer {
         return builder.build();
     }
 
-    private void scanType(Type type, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanType(Type type, Map<DotName, T> map, Creator creator) {
         switch (type.kind()) {
             case ARRAY:
                 Type typeInArray = type.asArrayType().component();
@@ -254,34 +278,30 @@ public class GraphQLSchemaInitializer {
         }
     }
 
-    private void scanClass(ClassInfo classInfo, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanClass(ClassInfo classInfo, Map<DotName, T> map, Creator creator) {
 
         if (Classes.isEnum(classInfo)) {
             scanEnum(classInfo);
         } else {
-            // Annotations on the field and getter
-            Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
 
             if (!map.containsKey(classInfo.name())) {
-                map.put(classInfo.name(), creator.create(classInfo, annotationsForThisClass));
+                GraphQLType type = creator.create(classInfo);
+                map.putIfAbsent(classInfo.name(), (T) type);
                 scanFieldsAndMethods(classInfo, map, creator);
             }
         }
     }
 
     private void scanEnum(ClassInfo classInfo) {
-
-        // Annotations on the field and getter
-        Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
-
         if (Classes.isEnum(classInfo)) {
             if (!enumMap.containsKey(classInfo.name())) {
-                enumMap.put(classInfo.name(), enumTypeCreator.create(classInfo, annotationsForThisClass));
+                GraphQLEnumType created = enumTypeCreator.create(classInfo);
+                enumMap.putIfAbsent(classInfo.name(), created);
             }
         }
     }
 
-    private void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, T> map, Creator creator) {
         // fields
         List<FieldInfo> fieldInfos = classInfo.fields();
         for (FieldInfo fieldInfo : fieldInfos) {
@@ -295,7 +315,7 @@ public class GraphQLSchemaInitializer {
             String methodName = methodInfo.name();
 
             // return types on getters and setters
-            if (isSetter(methodName) || isGetter(methodName)) {
+            if (nameHelper.isSetter(methodName) || nameHelper.isGetter(methodName)) {
                 // TODO: What if getting has void ?
                 if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
                     scanType(methodInfo.returnType(), map, creator);
@@ -309,17 +329,4 @@ public class GraphQLSchemaInitializer {
             }
         }
     }
-
-    private boolean isSetter(String methodName) {
-        return methodName.length() > 3 && methodName.startsWith(SET);
-    }
-
-    private boolean isGetter(String methodName) {
-        return (methodName.length() > 3 && methodName.startsWith(GET))
-                || (methodName.length() > 2 && methodName.startsWith(IS));
-    }
-
-    private static final String SET = "set";
-    private static final String GET = "get";
-    private static final String IS = "is";
 }

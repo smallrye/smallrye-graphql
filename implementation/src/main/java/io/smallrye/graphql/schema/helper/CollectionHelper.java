@@ -36,7 +36,7 @@ public class CollectionHelper {
 
     public Collection getCorrectCollectionType(Class type) {
 
-        if (type.equals(Collection.class) || type.equals(List.class)) {
+        if (type.equals(Collection.class) || type.equals(List.class) || type.getName().equals(ARRAYS_ARRAYLIST)) {
             return new ArrayList();
         } else if (type.equals(Set.class)) {
             return new HashSet();
@@ -44,10 +44,11 @@ public class CollectionHelper {
             try {
                 return (Collection) type.newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
-                LOG.error("Can not create new collection of [" + type.getName() + "]", ex);
+                LOG.error("Can not create new collection of [" + type.getName() + "]");
                 return new ArrayList(); // default ?
             }
         }
     }
 
+    private static final String ARRAYS_ARRAYLIST = "java.util.Arrays$ArrayList";
 }

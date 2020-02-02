@@ -29,7 +29,7 @@ import graphql.schema.GraphQLScalarType;
 public abstract class AbstractScalar extends GraphQLScalarType implements Transformable {
     private final List<Class> supportedTypes;
 
-    public <T> AbstractScalar(String name,
+    public AbstractScalar(String name,
             Coercing coercing,
             Class... supportedTypes) {
 

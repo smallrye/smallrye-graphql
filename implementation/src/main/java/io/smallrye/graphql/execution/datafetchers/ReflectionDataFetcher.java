@@ -24,9 +24,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.jandex.DotName;
@@ -64,13 +66,16 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final boolean hasArguments;
 
     private final Map<DotName, Jsonb> inputJsonbMap;
+    private final Map<DotName, Map<String, Argument>> argumentMap;
     private final Map<DotName, GraphQLScalarType> scalarMap;
     private final CollectionHelper collectionHelper = new CollectionHelper();
 
     public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Map<DotName, Jsonb> inputJsonbMap,
+            Map<DotName, Map<String, Argument>> argumentMap,
             Map<DotName, GraphQLScalarType> scalarMap) {
         try {
             this.arguments = arguments;
+            this.argumentMap = argumentMap;
             this.inputJsonbMap = inputJsonbMap;
             this.scalarMap = scalarMap;
             this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
@@ -187,19 +192,20 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
     }
 
-    private Object handleClass(Object argumentValue, Argument a) throws GraphQLException {
-        Class clazz = a.getArgumentClass();
-        Type type = a.getType();
+    private Object handleClass(Object argumentValue, Argument argument) throws GraphQLException {
+        Class clazz = argument.getArgumentClass();
         Class givenClass = argumentValue.getClass();
         if (givenClass.equals(clazz)) {
             return argumentValue;
         } else if (Map.class.isAssignableFrom(argumentValue.getClass())) {
-            return toPojo(Map.class.cast(argumentValue), type, clazz);
+            return mapToPojo(Map.class.cast(argumentValue), argument);
         } else if (givenClass.equals(String.class)) {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB or transformation
-            return toPojo(argumentValue, a, clazz);
+            // This happens with @DefaultValue and Transformable (Passthrough) Scalars
+            return objectToPojo(argumentValue, argument);
         }
-        return handleDefault(argumentValue, a, "Expected a Class");
+
+        return handleDefault(argumentValue, argument, "Expected a Class");
     }
 
     private <T> Object handleArray(Object argumentValue, Argument a) throws GraphQLException {
@@ -292,8 +298,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
     }
 
-    private Object toPojo(Object input, Argument argument, Class clazz) throws GraphQLException {
-        // For Objects
+    private Object objectToPojo(Object input, Argument argument) throws GraphQLException {
+        Class clazz = argument.getArgumentClass();
+        // For Objects (from @DefaultValue)
         Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
             return jsonb.fromJson(input.toString(), clazz);
@@ -302,20 +309,54 @@ public class ReflectionDataFetcher implements DataFetcher {
         GraphQLScalarType scalar = getScalarType(argument.getType());
         if (scalar != null && Transformable.class.isInstance(scalar)) {
             Transformable transformable = Transformable.class.cast(scalar);
-            return clazz.cast(transformable.transform(input, argument));
+            Object transformed = transformable.transform(input, argument);
+            return clazz.cast(transformed);
         }
-
         return input;
     }
 
-    private Object toPojo(Map m, Type type, Class clazz) {
-        Jsonb jsonb = getJsonbForType(type);
+    private Object mapToPojo(Map m, Argument argument) throws GraphQLException {
+        String jsonString = toJsonString(m, argument);
+        Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
-            String json = jsonb.toJson(m);
-            Object o = jsonb.fromJson(json, clazz);
+            Object o = jsonb.fromJson(jsonString, argument.getArgumentClass());
             return o;
         }
         return m;
+    }
+
+    private String toJsonString(Map inputMap, Argument argument) throws GraphQLException {
+        DotName className = DotName.createSimple(argument.getArgumentClass().getName());
+        Jsonb jsonb = JsonbBuilder.create();
+
+        // See if there are any formatting type annotations of this class definition.
+        if (this.argumentMap.containsKey(className)) {
+            // See if any of the input fields needs formatting.
+            if (hasInputFieldsThatNeedsFormatting(className, inputMap)) {
+                Map<String, Argument> fieldsThatShouldBeFormatted = this.argumentMap.get(className);
+                Set<Map.Entry> inputValues = inputMap.entrySet();
+                for (Map.Entry keyValue : inputValues) {
+                    String key = String.valueOf(keyValue.getKey());
+                    if (fieldsThatShouldBeFormatted.containsKey(key)) {
+                        Argument fieldArgument = fieldsThatShouldBeFormatted.get(key);
+                        Object o = toArgumentInputParameter(keyValue.getValue(), fieldArgument);
+                        inputMap.put(keyValue.getKey(), o);
+                    }
+                }
+            }
+        }
+
+        return jsonb.toJson(inputMap);
+    }
+
+    private boolean hasInputFieldsThatNeedsFormatting(DotName className, Map input) {
+        Set<String> fieldsThatShouldBeFormatted = this.argumentMap.get(className).keySet();
+        for (String fieldName : fieldsThatShouldBeFormatted) {
+            if (input.containsKey(fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Jsonb getJsonbForType(Type type) {
