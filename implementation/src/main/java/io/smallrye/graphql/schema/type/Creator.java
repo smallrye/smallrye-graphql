@@ -15,10 +15,7 @@
  */
 package io.smallrye.graphql.schema.type;
 
-import java.util.Map;
-
 import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
 
 import graphql.schema.GraphQLType;
 
@@ -29,5 +26,6 @@ import graphql.schema.GraphQLType;
  */
 public interface Creator {
 
-    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo);
+    public GraphQLType create(ClassInfo classInfo);
+
 }

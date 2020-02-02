@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.schema.type;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +30,6 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLType;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -49,7 +47,8 @@ import io.smallrye.graphql.schema.helper.NameHelper;
 public class EnumTypeCreator implements Creator {
     private static final Logger LOG = Logger.getLogger(EnumTypeCreator.class.getName());
 
-    private final Map<String, GraphQLEnumType> cache = new HashMap<>();
+    @Inject
+    private Map<DotName, GraphQLEnumType> enumMap;
 
     @Inject
     private NameHelper nameHelper;
@@ -61,22 +60,13 @@ public class EnumTypeCreator implements Creator {
     private AnnotationsHelper annotationsHelper;
 
     @Override
-    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo) {
-        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
-
-        GraphQLType enumType = create(classInfo);
-
-        createdObjects.put(classInfo.name(), enumType);
-        return createdObjects;
-    }
-
     public GraphQLEnumType create(ClassInfo classInfo) {
-        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
-        String name = nameHelper.getEnumName(classInfo, annotations);
-
-        if (cache.containsKey(name)) {
-            return cache.get(name);
+        if (enumMap.containsKey(classInfo.name())) {
+            return enumMap.get(classInfo.name());
         } else {
+            Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+            String name = nameHelper.getEnumName(classInfo, annotations);
+
             GraphQLEnumType.Builder builder = GraphQLEnumType.newEnum()
                     .name(name);
 
@@ -92,7 +82,7 @@ public class EnumTypeCreator implements Creator {
                 }
             }
             GraphQLEnumType enumType = builder.build();
-            cache.put(name, enumType);
+            enumMap.put(classInfo.name(), enumType);
             return enumType;
         }
     }

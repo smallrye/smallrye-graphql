@@ -103,29 +103,31 @@ public class InputTypeCreator implements Creator {
     @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
+    @Inject
+    private Map<DotName, GraphQLInputType> inputMap;
+
     @Override
-    public Map<DotName, GraphQLType> createTree(ClassInfo classInfo) {
-        // TODO: Interfaces ?
-        Map<DotName, GraphQLType> createdObjects = new HashMap<>();
-        GraphQLType graphQLType = create(classInfo);
-        createdObjects.put(classInfo.name(), graphQLType);
-        return createdObjects;
-    }
+    public GraphQLType create(ClassInfo classInfo) {
+        if (inputMap.containsKey(classInfo.name())) {
+            return inputMap.get(classInfo.name());
+        } else {
+            Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
+            String name = nameHelper.getInputTypeName(classInfo, annotations);
 
-    private GraphQLType create(ClassInfo classInfo) {
-        Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
-        String name = nameHelper.getInputTypeName(classInfo, annotations);
+            GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject().name(name);
 
-        GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject().name(name);
+            // Description
+            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.orElse(null));
 
-        // Description
-        Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
-        inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.orElse(null));
+            // Fields
+            inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
 
-        // Fields
-        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
+            GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
+            inputMap.put(classInfo.name(), graphQLInputObjectType);
 
-        return inputObjectTypeBuilder.build();
+            return graphQLInputObjectType;
+        }
     }
 
     public GraphQLInputType createGraphQLInputType(Type type, Annotations annotations) {
@@ -248,6 +250,8 @@ public class InputTypeCreator implements Creator {
             if (classInfo != null) {
                 if (Classes.isEnum(classInfo)) {
                     return enumTypeCreator.create(classInfo);
+                } else if (inputMap.containsKey(classInfo.name())) {
+                    return inputMap.get(classInfo.name());
                 } else {
                     Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);

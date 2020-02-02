@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.schema;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,12 @@ import org.jboss.logging.Logger;
 
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
@@ -80,9 +83,17 @@ public class GraphQLSchemaInitializer {
     @Inject
     private Map<DotName, GraphQLScalarType> scalarMap;
 
-    private final Map<DotName, GraphQLType> inputMap = new HashMap<>();
-    private final Map<DotName, GraphQLType> typeMap = new HashMap<>();
-    private final Map<DotName, GraphQLType> enumMap = new HashMap<>();
+    @Inject
+    private Map<DotName, GraphQLInputType> inputMap;
+    @Inject
+    private Map<DotName, GraphQLOutputType> typeMap;
+    @Inject
+    private Map<DotName, GraphQLEnumType> enumMap;
+    @Inject
+    private Map<DotName, GraphQLInterfaceType> interfaceMap;
+
+    @Inject
+    private List<ClassInfo> typeTodoList;
 
     @Inject
     @ConfigProperty(name = "mp.graphql.queryRootDescription", defaultValue = "Query root")
@@ -143,6 +154,13 @@ public class GraphQLSchemaInitializer {
             }
         }
 
+        // Let's see what still needs to be done.
+        for (ClassInfo todo : typeTodoList) {
+            if (!typeMap.containsKey(todo.name())) {
+                outputTypeCreator.create(todo);
+            }
+        }
+
         this.graphQLSchema = createGraphQLSchema(queryBuilder.build(), mutationBuilder.build());
     }
 
@@ -185,12 +203,11 @@ public class GraphQLSchemaInitializer {
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        //schemaBuilder = schemaBuilder.clearAdditionalTypes();
-
         Set<GraphQLType> additionalTypes = new HashSet<>();
         additionalTypes.addAll(enumMap.values());
         additionalTypes.addAll(typeMap.values());
         additionalTypes.addAll(inputMap.values());
+        additionalTypes.addAll(interfaceMap.values());
         schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
         schemaBuilder = schemaBuilder.query(query);
@@ -229,7 +246,7 @@ public class GraphQLSchemaInitializer {
         return builder.build();
     }
 
-    private void scanType(Type type, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanType(Type type, Map<DotName, T> map, Creator creator) {
         switch (type.kind()) {
             case ARRAY:
                 Type typeInArray = type.asArrayType().component();
@@ -261,18 +278,16 @@ public class GraphQLSchemaInitializer {
         }
     }
 
-    private void scanClass(ClassInfo classInfo, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanClass(ClassInfo classInfo, Map<DotName, T> map, Creator creator) {
 
         if (Classes.isEnum(classInfo)) {
             scanEnum(classInfo);
         } else {
+
             if (!map.containsKey(classInfo.name())) {
-                Map<DotName, GraphQLType> types = creator.createTree(classInfo);
-                for (Map.Entry<DotName, GraphQLType> t : types.entrySet()) {
-                    map.putIfAbsent(t.getKey(), t.getValue());
-                    ClassInfo classByName = index.getClassByName(t.getKey());
-                    scanFieldsAndMethods(classByName, map, creator);
-                }
+                GraphQLType type = creator.create(classInfo);
+                map.putIfAbsent(classInfo.name(), (T) type);
+                scanFieldsAndMethods(classInfo, map, creator);
             }
         }
     }
@@ -280,15 +295,13 @@ public class GraphQLSchemaInitializer {
     private void scanEnum(ClassInfo classInfo) {
         if (Classes.isEnum(classInfo)) {
             if (!enumMap.containsKey(classInfo.name())) {
-                Map<DotName, GraphQLType> created = enumTypeCreator.createTree(classInfo);
-                for (Map.Entry<DotName, GraphQLType> t : created.entrySet()) {
-                    enumMap.putIfAbsent(t.getKey(), t.getValue());
-                }
+                GraphQLEnumType created = enumTypeCreator.create(classInfo);
+                enumMap.putIfAbsent(classInfo.name(), created);
             }
         }
     }
 
-    private void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, GraphQLType> map, Creator creator) {
+    private <T extends GraphQLType> void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, T> map, Creator creator) {
         // fields
         List<FieldInfo> fieldInfos = classInfo.fields();
         for (FieldInfo fieldInfo : fieldInfos) {
