@@ -12,8 +12,7 @@
     <name>SmallRye: MicroProfile GraphQL Implementation</name>
 
     <properties>
-        <!--<graphql-java.version>14.0</graphql-java.version>-->
-        <graphql-java.version>13.0</graphql-java.version>
+        <graphql-java.version>14.0</graphql-java.version>
     </properties>
 
     <dependencies>
