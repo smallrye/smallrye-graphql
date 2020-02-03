@@ -154,7 +154,6 @@ public class OutputTypeCreator implements Creator {
             // Interfaces
             List<DotName> interfaceNames = classInfo.interfaceNames();
             for (DotName interfaceName : interfaceNames) {
-                LOG.warn("[" + classInfo.simpleName() + "] implements [" + interfaceName.withoutPackagePrefix() + "]");
                 ClassInfo c = index.getClassByName(interfaceName);
                 GraphQLInterfaceType i = createInterface(c);
                 objectTypeBuilder = objectTypeBuilder.withInterface(i);

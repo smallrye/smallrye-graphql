@@ -16,24 +16,13 @@
 package io.smallrye.graphql.schema.type.scalar.time;
 
 import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-
-import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
-import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
-import io.smallrye.graphql.schema.type.scalar.TransformException;
 
 /**
  * Base Scalar for Dates.
@@ -41,9 +30,6 @@ import io.smallrye.graphql.schema.type.scalar.TransformException;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractDateScalar extends AbstractScalar {
-    private static final Logger LOG = Logger.getLogger(AbstractDateScalar.class.getName());
-
-    private FormatHelper formatHelper = new FormatHelper();
 
     public AbstractDateScalar(String name, Class... supportedTypes) {
         super(name, new Coercing() {
@@ -97,34 +83,5 @@ public abstract class AbstractDateScalar extends AbstractScalar {
                 return ((StringValue) input).getValue();
             }
         }, supportedTypes);
-    }
-
-    protected LocalDate transformToLocalDate(String name, String input, Type type, Annotations annotations) {
-        try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
-            return LocalDate.parse(input, dateFormat);
-        } catch (DateTimeParseException dtpe) {
-            throw new TransformException(dtpe, this, name, input);
-        }
-
-    }
-
-    protected LocalDateTime transformToLocalDateTime(String name, String input, Type type, Annotations annotations) {
-        try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
-            return LocalDateTime.parse(input, dateFormat);
-        } catch (DateTimeParseException dtpe) {
-            throw new TransformException(dtpe, this, name, input);
-        }
-    }
-
-    public LocalTime transformToLocalTime(String name, String input, Type type, Annotations annotations) {
-        try {
-            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
-            return LocalTime.parse(input, dateFormat);
-        } catch (DateTimeParseException dtpe) {
-            throw new TransformException(dtpe, this, name, input);
-        }
-
     }
 }
