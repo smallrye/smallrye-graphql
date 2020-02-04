@@ -92,10 +92,6 @@
         </dependency>
         <dependency>
             <groupId>io.thorntail</groupId>
-            <artifactId>cdi-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.thorntail</groupId>
             <artifactId>cdi</artifactId>
         </dependency>
         <dependency>
@@ -104,13 +100,9 @@
         </dependency>
         <dependency>
             <groupId>io.thorntail</groupId>
-            <artifactId>jsonp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.thorntail</groupId>
             <artifactId>jsonb</artifactId>
         </dependency>
-        <!-- The implementation -->
+        <!-- The implementation (We just use Servlet for now)-->
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-servlet</artifactId>

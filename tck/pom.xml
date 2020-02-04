@@ -43,44 +43,11 @@
     </build>
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.jboss.arquillian.container</groupId>
-            <artifactId>arquillian-container-spi</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.arquillian.container</groupId>
-            <artifactId>arquillian-container-test-spi</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.shrinkwrap.resolver</groupId>
-            <artifactId>shrinkwrap-resolver-depchain</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.smallrye</groupId>
-            <artifactId>smallrye-graphql-servlet</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-tck</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.jboss.arquillian.testng</groupId>
-            <artifactId>arquillian-testng-container</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
     </dependencies>
 
     <profiles>
@@ -109,32 +76,30 @@
             </dependencyManagement>
             
             <dependencies>
-
                 <dependency>
                     <groupId>io.thorntail</groupId>
                     <artifactId>undertow</artifactId>
                 </dependency>
-
                 <dependency>
                     <groupId>io.thorntail</groupId>
                     <artifactId>cdi</artifactId>
                 </dependency>
-
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>jsonb</artifactId>
-                </dependency>
-
                 <dependency>
                     <groupId>io.thorntail</groupId>
                     <artifactId>microprofile-config</artifactId>
                 </dependency>
-
+                <dependency>
+                    <groupId>io.thorntail</groupId>
+                    <artifactId>jsonb</artifactId>
+                </dependency>
                 <dependency>
                     <groupId>io.thorntail</groupId>
                     <artifactId>arquillian</artifactId>
                 </dependency>
-                
+                <dependency>
+                    <groupId>io.smallrye</groupId>
+                    <artifactId>smallrye-graphql-servlet</artifactId>
+                </dependency>
             </dependencies>
         </profile>  
 
