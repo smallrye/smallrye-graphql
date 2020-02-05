@@ -17,11 +17,18 @@ package io.smallrye.graphql.schema.type.scalar.time;
 
 import java.sql.Time;
 import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.type.scalar.TransformException;
 
 /**
  * Scalar for Time.
@@ -30,22 +37,48 @@ import io.smallrye.graphql.schema.Classes;
  */
 public class TimeScalar extends AbstractDateScalar {
     private static final Logger LOG = Logger.getLogger(TimeScalar.class.getName());
+    private final FormatHelper formatHelper = new FormatHelper();
 
     public TimeScalar() {
-        super("Time", LocalTime.class, Time.class);
+        super("Time", LocalTime.class, Time.class, OffsetTime.class);
     }
 
     @Override
     public Object transform(Object input, Argument argument) {
-        LocalTime localTime = transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
-                argument.getAnnotations());
+
         if (argument.getType().name().equals(Classes.LOCALTIME)) {
+            LocalTime localTime = transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
             return localTime;
         } else if (argument.getType().name().equals(Classes.SQL_TIME)) {
+            LocalTime localTime = transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
             return java.sql.Time.valueOf(localTime);
+        } else if (argument.getType().name().equals(Classes.OFFSETTIME)) {
+            OffsetTime offsetTime = transformToOffsetTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
+            return offsetTime;
         } else {
             LOG.warn("Can not transform type [" + argument.getType().name() + "] with TimeScalar");
             return input;
+        }
+    }
+
+    private LocalTime transformToLocalTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return LocalTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+    }
+
+    private OffsetTime transformToOffsetTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return OffsetTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
         }
     }
 }

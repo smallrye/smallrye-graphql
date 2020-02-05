@@ -90,6 +90,9 @@ public class FormatHelper {
                 Classes.LOCALDATE,
                 Classes.LOCALTIME,
                 Classes.LOCALDATETIME,
+                Classes.ZONEDDATETIME,
+                Classes.OFFSETDATETIME,
+                Classes.OFFSETTIME,
                 Classes.UTIL_DATE,
                 Classes.SQL_DATE);
     }
@@ -128,12 +131,19 @@ public class FormatHelper {
             return DateTimeFormatter.ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME)) {
             return DateTimeFormatter.ISO_TIME;
+        } else if (type.name().equals(Classes.OFFSETTIME)) {
+            return DateTimeFormatter.ISO_OFFSET_TIME;
         } else if (type.name().equals(Classes.LOCALDATETIME)) {
             return DateTimeFormatter.ISO_DATE_TIME;
+        } else if (type.name().equals(Classes.ZONEDDATETIME)) {
+            return DateTimeFormatter.ISO_ZONED_DATE_TIME;
+        } else if (type.name().equals(Classes.OFFSETDATETIME)) {
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
         throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
     }
 
+    // '10:15:30+01:00'
     public String getDefaultDateTimeFormat(Type type) {
         // return the default dates format
         type = getCorrectType(type);
@@ -142,8 +152,14 @@ public class FormatHelper {
             return ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME)) {
             return ISO_TIME;
+        } else if (type.name().equals(Classes.OFFSETTIME)) {
+            return ISO_OFFSET_TIME;
         } else if (type.name().equals(Classes.LOCALDATETIME)) {
             return ISO_DATE_TIME;
+        } else if (type.name().equals(Classes.OFFSETDATETIME)) {
+            return ISO_OFFSET_DATE_TIME;
+        } else if (type.name().equals(Classes.ZONEDDATETIME)) {
+            return ISO_ZONED_DATE_TIME;
         }
         throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
     }
@@ -269,8 +285,12 @@ public class FormatHelper {
         return new Locale(locale.substring(0, 2), locale.substring(3, 5), locale.substring(6));
     }
 
-    private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String ISO_OFFSET_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ";
+    private static final String ISO_ZONED_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ'['VV']'";
     private static final String ISO_DATE = "yyyy-MM-dd";
     private static final String ISO_TIME = "HH:mm:ss";
+    private static final String ISO_OFFSET_TIME = "HH:mm:ssZ";
+
     private static final String LOCALE = "locale";
 }

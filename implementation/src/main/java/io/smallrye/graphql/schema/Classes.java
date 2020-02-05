@@ -21,6 +21,9 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.jboss.jandex.ClassInfo;
@@ -111,6 +114,10 @@ public interface Classes {
     public static final DotName LOCALDATE = DotName.createSimple(LocalDate.class.getName());
     public static final DotName LOCALDATETIME = DotName.createSimple(LocalDateTime.class.getName());
     public static final DotName LOCALTIME = DotName.createSimple(LocalTime.class.getName());
+    public static final DotName ZONEDDATETIME = DotName.createSimple(ZonedDateTime.class.getName());
+    public static final DotName OFFSETDATETIME = DotName.createSimple(OffsetDateTime.class.getName());
+    public static final DotName OFFSETTIME = DotName.createSimple(OffsetTime.class.getName());
+
     public static final DotName UTIL_DATE = DotName.createSimple(Date.class.getName());
     public static final DotName SQL_DATE = DotName.createSimple(java.sql.Date.class.getName());
     public static final DotName SQL_TIMESTAMP = DotName.createSimple(java.sql.Timestamp.class.getName());

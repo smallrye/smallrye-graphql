@@ -17,13 +17,21 @@ package io.smallrye.graphql.schema.type.scalar.time;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.type.scalar.TransformException;
 
 /**
  * Scalar for DateTime.
@@ -32,21 +40,35 @@ import io.smallrye.graphql.schema.Classes;
  */
 public class DateTimeScalar extends AbstractDateScalar {
     private static final Logger LOG = Logger.getLogger(DateTimeScalar.class.getName());
+    private final FormatHelper formatHelper = new FormatHelper();
 
     public DateTimeScalar() {
-        super("DateTime", LocalDateTime.class, Date.class, Timestamp.class);
+        super("DateTime", LocalDateTime.class, Date.class, Timestamp.class, ZonedDateTime.class, OffsetDateTime.class);
     }
 
     @Override
     public Object transform(Object input, Argument argument) {
-        LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
-                argument.getAnnotations());
+
         if (argument.getType().name().equals(Classes.LOCALDATETIME)) {
+            LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
             return localDateTime;
         } else if (argument.getType().name().equals(Classes.UTIL_DATE)) {
+            LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
             return toUtilDate(localDateTime);
         } else if (argument.getType().name().equals(Classes.SQL_TIMESTAMP)) {
+            LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
             return java.sql.Timestamp.valueOf(localDateTime);
+        } else if (argument.getType().name().equals(Classes.OFFSETDATETIME)) {
+            OffsetDateTime offsetDateTime = transformToOffsetDateTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
+            return offsetDateTime;
+        } else if (argument.getType().name().equals(Classes.ZONEDDATETIME)) {
+            ZonedDateTime zonedDateTime = transformToZonedDateTime(argument.getName(), input.toString(), argument.getType(),
+                    argument.getAnnotations());
+            return zonedDateTime;
         } else {
             LOG.warn("Can not transform type [" + argument.getType().name() + "] with DateTimeScalar");
             return input;
@@ -58,4 +80,32 @@ public class DateTimeScalar extends AbstractDateScalar {
                 .from(dateToConvert.atZone(ZoneId.systemDefault())
                         .toInstant());
     }
+
+    private LocalDateTime transformToLocalDateTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return LocalDateTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+    }
+
+    private ZonedDateTime transformToZonedDateTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return ZonedDateTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+    }
+
+    private OffsetDateTime transformToOffsetDateTime(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return OffsetDateTime.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+    }
+
 }

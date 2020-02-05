@@ -17,11 +17,17 @@ package io.smallrye.graphql.schema.type.scalar.time;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.type.scalar.TransformException;
 
 /**
  * Scalar for Date.
@@ -30,6 +36,7 @@ import io.smallrye.graphql.schema.Classes;
  */
 public class DateScalar extends AbstractDateScalar {
     private static final Logger LOG = Logger.getLogger(DateScalar.class.getName());
+    private final FormatHelper formatHelper = new FormatHelper();
 
     public DateScalar() {
         super("Date", LocalDate.class, Date.class);
@@ -37,7 +44,7 @@ public class DateScalar extends AbstractDateScalar {
 
     @Override
     public Object transform(Object input, Argument argument) {
-        LocalDate localDate = super.transformToLocalDate(argument.getName(), input.toString(), argument.getType(),
+        LocalDate localDate = transformToLocalDate(argument.getName(), input.toString(), argument.getType(),
                 argument.getAnnotations());
 
         if (argument.getType().name().equals(Classes.LOCALDATE)) {
@@ -48,6 +55,16 @@ public class DateScalar extends AbstractDateScalar {
             LOG.warn("Can not transform type [" + argument.getType().name() + "] with DateScalar");
             return input;
         }
+    }
+
+    private LocalDate transformToLocalDate(String name, String input, Type type, Annotations annotations) {
+        try {
+            DateTimeFormatter dateFormat = formatHelper.getDateFormat(type, annotations);
+            return LocalDate.parse(input, dateFormat);
+        } catch (DateTimeParseException dtpe) {
+            throw new TransformException(dtpe, this, name, input);
+        }
+
     }
 
 }
