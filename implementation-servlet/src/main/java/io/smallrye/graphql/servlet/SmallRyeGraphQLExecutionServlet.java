@@ -39,6 +39,7 @@ import io.smallrye.graphql.execution.ExecutionService;
  */
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
+
     @Inject
     private ExecutionService executionService;
 

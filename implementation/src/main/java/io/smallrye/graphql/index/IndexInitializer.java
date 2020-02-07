@@ -124,7 +124,7 @@ public class IndexInitializer {
 
     private void processFile(String fileName, InputStream is, Indexer indexer) throws IOException {
         if (fileName.endsWith(DOT_CLASS)) {
-            LOG.debug("Indexing [" + fileName + "]");
+            LOG.info("Indexing [" + fileName + "]");
             indexer.index(is);
         } else if (fileName.endsWith(DOT_WAR)) {
             // necessary because of the thorntail arquillian adapter

@@ -16,17 +16,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <dependenciesToScan>
-                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency>
-                    </dependenciesToScan>
-                    <detail>true</detail>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
@@ -112,6 +101,21 @@
                     <artifactId>smallrye-graphql-servlet</artifactId>
                 </dependency>
             </dependencies>
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <dependenciesToScan>
+                                <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency>
+                            </dependenciesToScan>
+                            <detail>true</detail>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile> 
 
         <profile>
