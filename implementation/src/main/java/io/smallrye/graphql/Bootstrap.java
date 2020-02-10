@@ -53,8 +53,7 @@ public class Bootstrap {
     private GraphQLSchema graphQLSchema;
 
     public GraphQLSchema generateSchema() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try (InputStream stream = classLoader.getResourceAsStream("META-INF/jandex.idx")) {
+        try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
             IndexReader reader = new IndexReader(stream);
             Index i = reader.read();
             LOG.info("Loaded index from [META-INF/jandex.idx]");

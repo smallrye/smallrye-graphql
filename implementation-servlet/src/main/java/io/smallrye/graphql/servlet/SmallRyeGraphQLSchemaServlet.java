@@ -39,6 +39,7 @@ import graphql.schema.idl.SchemaPrinter;
 @WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "/graphql/schema.graphql" }, loadOnStartup = 2)
 public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
+
     @Inject
     private GraphQLSchema graphQLSchema;
 

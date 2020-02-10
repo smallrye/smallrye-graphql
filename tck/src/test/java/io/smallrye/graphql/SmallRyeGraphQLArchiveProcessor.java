@@ -16,7 +16,6 @@
 package io.smallrye.graphql;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -53,13 +52,6 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     SmallRyeGraphQLArchiveProcessor.class.getClassLoader()
                             .getResource("META-INF/microprofile-config.properties"),
                     "META-INF/microprofile-config.properties");
-            // Possible Jandex Index
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            URL jandexUrl = classLoader.getResource("META-INF/jandex.idx");
-            if (jandexUrl != null) {
-                testDeployment.addAsResource(jandexUrl,
-                        "META-INF/jandex.idx");
-            }
         }
     }
 }
