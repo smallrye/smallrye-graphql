@@ -42,6 +42,8 @@
     <modules>
         <module>implementation</module>
         <module>implementation-servlet</module>
+        <module>implementation-vertx</module>
+        <module>implementation-jaxrs</module>
         <module>tck</module>
         <module>runner</module>
     </modules>
@@ -81,6 +83,11 @@
             <dependency>
                 <groupId>io.smallrye</groupId>
                 <artifactId>smallrye-graphql-servlet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>smallrye-graphql-vertx</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

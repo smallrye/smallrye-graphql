@@ -47,11 +47,11 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             // Make sure it's unique
             Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));
             testDeployment.addAsLibraries(dependenciesSet.toArray(new File[] {}));
+            // MicroProfile properties
             testDeployment.addAsResource(
                     SmallRyeGraphQLArchiveProcessor.class.getClassLoader()
                             .getResource("META-INF/microprofile-config.properties"),
                     "META-INF/microprofile-config.properties");
         }
     }
-
 }
