@@ -75,11 +75,12 @@ public class FormatHelper {
             if (format == null && locale == null) {
                 return null;
             } else if (format == null) {
-                return NumberFormat.getInstance(toLocale(locale.asString()));
+                return NumberFormat.getInstance(Locale.forLanguageTag(locale.asString()));
             } else if (locale == null) {
                 return new DecimalFormat(format.asString());
             } else {
-                return new DecimalFormat(format.asString(), DecimalFormatSymbols.getInstance(toLocale(locale.asString())));
+                return new DecimalFormat(format.asString(),
+                        DecimalFormatSymbols.getInstance(Locale.forLanguageTag(locale.asString())));
             }
         }
         return null;
@@ -113,11 +114,11 @@ public class FormatHelper {
             if (format == null && locale == null) {
                 return getDefaultDateTimeFormatter(type);
             } else if (format == null) {
-                return getDefaultDateTimeFormatter(type).withLocale(toLocale(locale.asString()));
+                return getDefaultDateTimeFormatter(type).withLocale(Locale.forLanguageTag(locale.asString()));
             } else if (locale == null) {
                 return DateTimeFormatter.ofPattern(format.asString());
             } else {
-                return DateTimeFormatter.ofPattern(format.asString()).withLocale(toLocale(locale.asString()));
+                return DateTimeFormatter.ofPattern(format.asString()).withLocale(Locale.forLanguageTag(locale.asString()));
             }
         }
         return getDefaultDateTimeFormatter(type);
@@ -247,42 +248,6 @@ public class FormatHelper {
             default:
                 return type;
         }
-    }
-
-    private Locale toLocale(final String locale) {
-        if (locale == null) {
-            return null;
-        }
-        final int len = locale.length();
-        if (len != 2 && len != 5 && len < 7) {
-            throw new IllegalArgumentException("Invalid locale format: " + locale);
-        }
-        final char ch0 = locale.charAt(0);
-        final char ch1 = locale.charAt(1);
-        if (ch0 < 'a' || ch0 > 'z' || ch1 < 'a' || ch1 > 'z') {
-            throw new IllegalArgumentException("Invalid locale format: " + locale);
-        }
-        if (len == 2) {
-            return new Locale(locale, "");
-        }
-        if (locale.charAt(2) != '_') {
-            throw new IllegalArgumentException("Invalid locale format: " + locale);
-        }
-        final char ch3 = locale.charAt(3);
-        if (ch3 == '_') {
-            return new Locale(locale.substring(0, 2), "", locale.substring(4));
-        }
-        final char ch4 = locale.charAt(4);
-        if (ch3 < 'A' || ch3 > 'Z' || ch4 < 'A' || ch4 > 'Z') {
-            throw new IllegalArgumentException("Invalid locale format: " + locale);
-        }
-        if (len == 5) {
-            return new Locale(locale.substring(0, 2), locale.substring(3, 5));
-        }
-        if (locale.charAt(5) != '_') {
-            throw new IllegalArgumentException("Invalid locale format: " + locale);
-        }
-        return new Locale(locale.substring(0, 2), locale.substring(3, 5), locale.substring(6));
     }
 
     private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
