@@ -49,7 +49,7 @@
         <dependency>
             <groupId>io.smallrye.config</groupId>
             <artifactId>smallrye-config</artifactId>
-            <version>1.6.0</version>
+            <version>1.6.1</version>
         </dependency>
     </dependencies>
 
