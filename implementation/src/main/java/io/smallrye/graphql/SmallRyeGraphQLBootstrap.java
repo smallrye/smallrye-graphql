@@ -34,6 +34,7 @@ import io.smallrye.graphql.schema.GraphQLSchemaInitializer;
 /**
  * Bootstrap MicroProfile GraphQL
  * This scan all classes for annotations and create the GraphQL Schema.
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped

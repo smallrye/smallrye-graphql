@@ -45,7 +45,7 @@ import io.vertx.ext.web.RoutingContext;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class SmallRyeGraphQLHandler {
+public class SmallRyeGraphQLInitilizer {
 
     @Inject
     private SmallRyeGraphQLBootstrap bootstrap;
