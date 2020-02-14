@@ -16,6 +16,7 @@
 
 package io.smallrye.graphql.schema;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
@@ -69,7 +70,7 @@ public class GraphQLSchemaInitializer {
     private static final Logger LOG = Logger.getLogger(GraphQLSchemaInitializer.class.getName());
 
     @Inject
-    private Index index;
+    private IndexView index;
 
     @Inject
     private OutputTypeCreator outputTypeCreator;
@@ -136,7 +137,7 @@ public class GraphQLSchemaInitializer {
                 .name(Annotations.MUTATION.withoutPackagePrefix())
                 .description(mutationRootDescription);
 
-        List<AnnotationInstance> graphQLApiAnnotations = this.index.getAnnotations(Annotations.GRAPHQL_API);
+        Collection<AnnotationInstance> graphQLApiAnnotations = this.index.getAnnotations(Annotations.GRAPHQL_API);
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();

@@ -23,7 +23,7 @@ import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import io.smallrye.graphql.Bootstrap;
+import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 
 /**
  * Handler for the schema and the execution
@@ -35,7 +35,7 @@ public class SmallRyeGraphQLInitilizer {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLInitilizer.class.getName());
 
     @Inject
-    private Bootstrap bootstrap;
+    private SmallRyeGraphQLBootstrap bootstrap;
 
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
         bootstrap.generateSchema();

@@ -34,7 +34,7 @@ import org.jboss.weld.vertx.web.WebRoute;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
-import io.smallrye.graphql.Bootstrap;
+import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
@@ -48,7 +48,7 @@ import io.vertx.ext.web.RoutingContext;
 public class SmallRyeGraphQLHandler {
 
     @Inject
-    private Bootstrap bootstrap;
+    private SmallRyeGraphQLBootstrap bootstrap;
 
     @Inject
     private ExecutionService executionService;

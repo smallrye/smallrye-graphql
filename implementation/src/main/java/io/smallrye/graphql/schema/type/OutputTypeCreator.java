@@ -17,6 +17,7 @@ package io.smallrye.graphql.schema.type;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +30,7 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
@@ -82,7 +83,7 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
-    private Index index;
+    private IndexView index;
 
     @Inject
     private NameHelper nameHelper;
@@ -191,7 +192,7 @@ public class OutputTypeCreator implements Creator {
             interfaceMap.put(classInfo.name(), graphQLInterfaceType);
 
             // Also check that we create all implementations
-            List<ClassInfo> knownDirectImplementors = index.getKnownDirectImplementors(classInfo.name());
+            Collection<ClassInfo> knownDirectImplementors = index.getAllKnownImplementors(classInfo.name());
             for (ClassInfo impl : knownDirectImplementors) {
                 if (!typeMap.containsKey(impl.name())) {
                     typeTodoList.add(impl);

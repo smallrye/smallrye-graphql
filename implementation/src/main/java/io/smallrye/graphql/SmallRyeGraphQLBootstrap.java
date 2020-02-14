@@ -23,8 +23,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
-import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
+import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
@@ -33,12 +33,12 @@ import io.smallrye.graphql.schema.GraphQLSchemaInitializer;
 
 /**
  * Bootstrap MicroProfile GraphQL
- * 
+ * This scan all classes for annotations and create the GraphQL Schema.
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class Bootstrap {
-    private static final Logger LOG = Logger.getLogger(Bootstrap.class.getName());
+public class SmallRyeGraphQLBootstrap {
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLBootstrap.class.getName());
 
     @Inject
     private IndexInitializer indexInitializer;
@@ -47,7 +47,7 @@ public class Bootstrap {
     private GraphQLSchemaInitializer graphQLSchemaInitializer;
 
     @Produces
-    private Index index;
+    private IndexView index;
 
     @Produces
     private GraphQLSchema graphQLSchema;
@@ -55,22 +55,22 @@ public class Bootstrap {
     public GraphQLSchema generateSchema() {
         try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
             IndexReader reader = new IndexReader(stream);
-            Index i = reader.read();
+            IndexView i = reader.read();
             LOG.info("Loaded index from [META-INF/jandex.idx]");
             return indexToGraphQLSchema(i);
         } catch (IOException ex) {
-            Index i = indexInitializer.createIndex();
+            IndexView i = indexInitializer.createIndex();
             LOG.info("Loaded index from generation via classpath");
             return indexToGraphQLSchema(i);
         }
     }
 
-    public GraphQLSchema generateSchema(Index i) {
+    public GraphQLSchema generateSchema(IndexView i) {
         LOG.info("Loaded index from provided index");
         return indexToGraphQLSchema(i);
     }
 
-    private GraphQLSchema indexToGraphQLSchema(Index index) {
+    private GraphQLSchema indexToGraphQLSchema(IndexView index) {
         this.index = index;
         this.graphQLSchema = graphQLSchemaInitializer.getGraphQLSchema();
         return this.graphQLSchema;

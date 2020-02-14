@@ -16,6 +16,7 @@
 package io.smallrye.graphql.schema.type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import javax.inject.Inject;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
@@ -45,7 +46,7 @@ public class SourceFieldDiscoverer {
     private static final Logger LOG = Logger.getLogger(SourceFieldDiscoverer.class.getName());
 
     @Inject
-    private Index index;
+    private IndexView index;
 
     @Produces
     private final Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
@@ -53,7 +54,7 @@ public class SourceFieldDiscoverer {
     @PostConstruct
     void scanForSourceAnnotations() {
 
-        List<AnnotationInstance> sourceAnnotations = this.index.getAnnotations(Annotations.SOURCE);
+        Collection<AnnotationInstance> sourceAnnotations = this.index.getAnnotations(Annotations.SOURCE);
         for (AnnotationInstance ai : sourceAnnotations) {
             AnnotationTarget target = ai.target();
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {

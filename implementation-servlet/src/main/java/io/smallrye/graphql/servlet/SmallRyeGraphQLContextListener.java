@@ -23,10 +23,10 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import io.smallrye.graphql.Bootstrap;
+import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 
 /**
- * Bootstrap the GraphQL Runtime
+ * SmallRyeGraphQLBootstrap the GraphQL Runtime
  * TODO: Check for config on index location
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
@@ -36,7 +36,7 @@ public class SmallRyeGraphQLContextListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLContextListener.class.getName());
 
     @Inject
-    private Bootstrap bootstrap;
+    private SmallRyeGraphQLBootstrap bootstrap;
 
     @Override
     public void contextInitialized(ServletContextEvent event) {

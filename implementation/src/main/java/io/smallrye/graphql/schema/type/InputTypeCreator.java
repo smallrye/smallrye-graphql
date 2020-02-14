@@ -31,7 +31,7 @@ import javax.json.bind.JsonbConfig;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
@@ -80,7 +80,7 @@ public class InputTypeCreator implements Creator {
     private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
-    private Index index;
+    private IndexView index;
 
     @Inject
     private NameHelper nameHelper;
