@@ -20,16 +20,16 @@ import org.jboss.weld.vertx.web.WeldWebVerticle;
 import io.vertx.core.Vertx;
 
 /**
- *  Starting the Vertx web endpoint
+ * Starting the Vertx web endpoint
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLVertx {
 
-    
     public static void main(String[] args) {
-        
+
         Vertx vertx = Vertx.vertx();
-        
+
         WeldWebVerticle weldVerticle = new WeldWebVerticle();
         vertx.deployVerticle(weldVerticle, result -> {
             if (result.succeeded()) {
@@ -38,6 +38,6 @@ public class SmallRyeGraphQLVertx {
                 throw new IllegalStateException("VertX Weld - creating the HTTP Endpoint failed: " + result.cause());
             }
         });
-        
+
     }
 }

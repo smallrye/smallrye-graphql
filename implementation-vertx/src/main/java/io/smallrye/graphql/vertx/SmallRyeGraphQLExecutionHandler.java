@@ -15,20 +15,23 @@
  */
 package io.smallrye.graphql.vertx;
 
-import io.smallrye.graphql.execution.ExecutionService;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
+import io.smallrye.graphql.execution.ExecutionService;
+import io.vertx.core.Handler;
+import io.vertx.ext.web.RoutingContext;
+
 /**
  * Handle all execution requests
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 
@@ -36,13 +39,13 @@ public class SmallRyeGraphQLExecutionHandler implements Handler<RoutingContext> 
 
     @Inject
     private ExecutionService executionService;
-    
+
     @Override
     public void handle(RoutingContext context) {
         String body = context.getBodyAsString();
-        try(StringReader sr = new StringReader(body)){
+        try (StringReader sr = new StringReader(body)) {
             final JsonReader jsonReader = Json.createReader(sr);
-            
+
             JsonObject jsonInput = jsonReader.readObject();
 
             JsonObject outputJson = executionService.execute(jsonInput);
@@ -52,9 +55,9 @@ public class SmallRyeGraphQLExecutionHandler implements Handler<RoutingContext> 
             }
         }
     }
-    
-    private String jsonToString(JsonObject outputJson){
-        try(StringWriter sw = new StringWriter()){
+
+    private String jsonToString(JsonObject outputJson) {
+        try (StringWriter sw = new StringWriter()) {
             final JsonWriter jsonWriter = Json.createWriter(sw);
             jsonWriter.writeObject(outputJson);
             sw.flush();

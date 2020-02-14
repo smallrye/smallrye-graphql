@@ -36,7 +36,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
 
@@ -51,7 +51,7 @@ import org.jboss.logging.Logger;
 public class IndexInitializer {
     private static final Logger LOG = Logger.getLogger(IndexInitializer.class.getName());
 
-    public Index createIndex() {
+    public IndexView createIndex() {
         Indexer indexer = new Indexer();
         List<URL> urls = new ArrayList<>();
 
