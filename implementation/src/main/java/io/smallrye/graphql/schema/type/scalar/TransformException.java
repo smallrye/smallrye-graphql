@@ -18,9 +18,12 @@ package io.smallrye.graphql.schema.type.scalar;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.logging.Logger;
+
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
 import graphql.execution.ExecutionPath;
+import graphql.language.Argument;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
@@ -33,6 +36,8 @@ import graphql.validation.ValidationErrorType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TransformException extends RuntimeException {
+    private static final Logger LOG = Logger.getLogger(TransformException.class.getName());
+
     private final String parameterName;
     private final String parameterValue;
     private final GraphQLScalarType scalar;
@@ -52,7 +57,7 @@ public class TransformException extends RuntimeException {
                 .exception(super.getCause())
                 .build();
 
-        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
+        SourceLocation sourceLocation = getSourceLocation(dfe, handlerParameters);
 
         List<String> paths = toPathList(handlerParameters.getPath());
 
@@ -64,6 +69,18 @@ public class TransformException extends RuntimeException {
         return DataFetcherResult.newResult()
                 .error(error)
                 .build();
+    }
+
+    private SourceLocation getSourceLocation(DataFetchingEnvironment dfe,
+            DataFetcherExceptionHandlerParameters handlerParameters) {
+        List<Argument> arguments = dfe.getField().getArguments();
+        for (Argument a : arguments) {
+            if (a.getName().equals(this.parameterName)) {
+                return a.getSourceLocation();
+            }
+        }
+        // Else fallback to more general
+        return handlerParameters.getSourceLocation();
     }
 
     private List<String> toPathList(ExecutionPath path) {

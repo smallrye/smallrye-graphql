@@ -86,26 +86,42 @@ public interface Classes {
         }
     }
 
-    public static Object stringToPrimative(String primativeInput, Class type) {
+    public static Object stringToScalar(String input, Class type) {
 
         if (type.equals(boolean.class)) {
-            return Boolean.valueOf(primativeInput).booleanValue();
+            return Boolean.valueOf(input).booleanValue();
         } else if (type.equals(byte.class)) {
-            return Byte.valueOf(primativeInput).byteValue();
+            return Byte.valueOf(input).byteValue();
         } else if (type.equals(char.class)) {
-            return Character.valueOf(primativeInput.charAt(0)).charValue();
+            return Character.valueOf(input.charAt(0)).charValue();
         } else if (type.equals(short.class)) {
-            return Short.valueOf(primativeInput).shortValue();
+            return Short.valueOf(input).shortValue();
         } else if (type.equals(int.class)) {
-            return Integer.valueOf(primativeInput).intValue();
+            return Integer.valueOf(input).intValue();
         } else if (type.equals(long.class)) {
-            return Long.valueOf(primativeInput).longValue();
+            return Long.valueOf(input).longValue();
         } else if (type.equals(float.class)) {
-            return Float.valueOf(primativeInput).floatValue();
+            return Float.valueOf(input).floatValue();
         } else if (type.equals(double.class)) {
-            return Double.valueOf(primativeInput).doubleValue();
+            return Double.valueOf(input).doubleValue();
+        } else if (type.equals(Boolean.class)) {
+            return Boolean.valueOf(input);
+        } else if (type.equals(Byte.class)) {
+            return Byte.valueOf(input);
+        } else if (type.equals(Character.class)) {
+            return Character.valueOf(input.charAt(0));
+        } else if (type.equals(Short.class)) {
+            return Short.valueOf(input);
+        } else if (type.equals(Integer.class)) {
+            return Integer.valueOf(input);
+        } else if (type.equals(Long.class)) {
+            return Long.valueOf(input);
+        } else if (type.equals(Float.class)) {
+            return Float.valueOf(input);
+        } else if (type.equals(Double.class)) {
+            return Double.valueOf(input);
         } else {
-            throw new RuntimeException("Can not create new primative type [" + type + "] from input [" + primativeInput + "]");
+            throw new RuntimeException("Can not create new scalar type [" + type + "] from input [" + input + "]");
         }
     }
 
