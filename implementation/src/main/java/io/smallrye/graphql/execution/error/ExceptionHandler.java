@@ -57,7 +57,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
         ExceptionWhileDataFetching error = getExceptionWhileDataFetching(throwable, sourceLocation, path);
 
         if (printDataFetcherException) {
-            throwable.printStackTrace();
+            LOG.log(Logger.Level.ERROR, "Data Fetching Error", throwable);
         }
 
         return DataFetcherExceptionHandlerResult.newResult().error(error).build();

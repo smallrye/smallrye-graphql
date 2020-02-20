@@ -18,13 +18,14 @@ package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -39,23 +40,28 @@ import io.smallrye.graphql.execution.ExecutionService;
  */
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLExecutionServlet.class.getName());
 
     @Inject
     private ExecutionService executionService;
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        final JsonReader jsonReader = Json.createReader(request.getReader());
-        JsonObject jsonInput = jsonReader.readObject();
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        try (JsonReader jsonReader = Json.createReader(request.getReader())) {
+            JsonObject jsonInput = jsonReader.readObject();
 
-        JsonObject outputJson = executionService.execute(jsonInput);
-        if (outputJson != null) {
-            PrintWriter out = response.getWriter();
-            response.setContentType(APPLICATION_JSON_UTF8);
+            JsonObject outputJson = executionService.execute(jsonInput);
+            if (outputJson != null) {
+                PrintWriter out = response.getWriter();
+                response.setContentType(APPLICATION_JSON_UTF8);
 
-            final JsonWriter jsonWriter = Json.createWriter(out);
-            jsonWriter.writeObject(outputJson);
-            out.flush();
+                try (JsonWriter jsonWriter = Json.createWriter(out)) {
+                    jsonWriter.writeObject(outputJson);
+                    out.flush();
+                }
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 

@@ -75,14 +75,15 @@ public class SmallRyeGraphQLJaxRsEndpoint {
 
     @POST
     public Response execute(String input) {
-        try (StringReader sr = new StringReader(input)) {
-            final JsonReader jsonReader = Json.createReader(sr);
+        try (StringReader sr = new StringReader(input);
+                JsonReader jsonReader = Json.createReader(sr)) {
+
             JsonObject jsonInput = jsonReader.readObject();
 
             JsonObject outputJson = executionService.execute(jsonInput);
             if (outputJson != null) {
-                try (StringWriter sw = new StringWriter()) {
-                    final JsonWriter jsonWriter = Json.createWriter(sw);
+                try (StringWriter sw = new StringWriter();
+                        JsonWriter jsonWriter = Json.createWriter(sw)) {
                     jsonWriter.writeObject(outputJson);
                     sw.flush();
                     return Response.ok(sw.toString()).build();

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -97,13 +98,16 @@ public class IndexInitializer {
         try {
             Path folderPath = Paths.get(url.toURI());
 
-            List<Path> collected = Files.walk(folderPath)
-                    .filter(Files::isRegularFile)
-                    .collect(Collectors.toList());
+            try (Stream<Path> walk = Files.walk(folderPath)) {
 
-            for (Path c : collected) {
-                String entryName = c.getFileName().toString();
-                processFile(entryName, Files.newInputStream(c), indexer);
+                List<Path> collected = walk
+                        .filter(Files::isRegularFile)
+                        .collect(Collectors.toList());
+
+                for (Path c : collected) {
+                    String entryName = c.getFileName().toString();
+                    processFile(entryName, Files.newInputStream(c), indexer);
+                }
             }
 
         } catch (URISyntaxException ex) {
@@ -118,7 +122,18 @@ public class IndexInitializer {
 
         while ((ze = zis.getNextEntry()) != null) {
             String entryName = ze.getName();
+            validateFilename(entryName, ".");
             processFile(entryName, zis, indexer);
+        }
+    }
+
+    private void validateFilename(String filename, String intendedDir) throws java.io.IOException {
+        File f = new File(filename);
+        String canonicalPath = f.getCanonicalPath();
+        File iD = new File(intendedDir);
+        String canonicalID = iD.getCanonicalPath();
+        if (!canonicalPath.startsWith(canonicalID)) {
+            throw new IllegalStateException("File is outside extraction target directory.");
         }
     }
 

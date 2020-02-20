@@ -43,8 +43,8 @@ public class SmallRyeGraphQLExecutionHandler implements Handler<RoutingContext> 
     @Override
     public void handle(RoutingContext context) {
         String body = context.getBodyAsString();
-        try (StringReader sr = new StringReader(body)) {
-            final JsonReader jsonReader = Json.createReader(sr);
+        try (StringReader sr = new StringReader(body);
+                JsonReader jsonReader = Json.createReader(sr)) {
 
             JsonObject jsonInput = jsonReader.readObject();
 
@@ -57,8 +57,8 @@ public class SmallRyeGraphQLExecutionHandler implements Handler<RoutingContext> 
     }
 
     private String jsonToString(JsonObject outputJson) {
-        try (StringWriter sw = new StringWriter()) {
-            final JsonWriter jsonWriter = Json.createWriter(sw);
+        try (StringWriter sw = new StringWriter();
+                JsonWriter jsonWriter = Json.createWriter(sw)) {
             jsonWriter.writeObject(outputJson);
             sw.flush();
             return sw.toString();
