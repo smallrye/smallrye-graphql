@@ -16,6 +16,7 @@
 
 package io.smallrye.graphql.schema.type.scalar;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,11 +32,8 @@ import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.schema.type.scalar.number.BigDecimalScalar;
 import io.smallrye.graphql.schema.type.scalar.number.BigIntegerScalar;
-import io.smallrye.graphql.schema.type.scalar.number.ByteScalar;
 import io.smallrye.graphql.schema.type.scalar.number.FloatScalar;
 import io.smallrye.graphql.schema.type.scalar.number.IntegerScalar;
-import io.smallrye.graphql.schema.type.scalar.number.LongScalar;
-import io.smallrye.graphql.schema.type.scalar.number.ShortScalar;
 import io.smallrye.graphql.schema.type.scalar.time.DateScalar;
 import io.smallrye.graphql.schema.type.scalar.time.DateTimeScalar;
 import io.smallrye.graphql.schema.type.scalar.time.TimeScalar;
@@ -58,23 +56,21 @@ public class ScalarMappingInitializer {
 
     static {
 
-        MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLChar);
-        MAPPING.put(DotName.createSimple(Character.class.getName()), Scalars.GraphQLChar);
+        MAPPING.put(DotName.createSimple(char.class.getName()), Scalars.GraphQLString);
+        MAPPING.put(DotName.createSimple(Character.class.getName()), Scalars.GraphQLString);
 
         MAPPING.put(DotName.createSimple(String.class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(UUID.class.getName()), Scalars.GraphQLString);
         MAPPING.put(DotName.createSimple(URL.class.getName()), Scalars.GraphQLString);
+        MAPPING.put(DotName.createSimple(URI.class.getName()), Scalars.GraphQLString);
 
         MAPPING.put(DotName.createSimple(Boolean.class.getName()), Scalars.GraphQLBoolean);
         MAPPING.put(DotName.createSimple(boolean.class.getName()), Scalars.GraphQLBoolean);
 
-        mapType(new ShortScalar());
         mapType(new IntegerScalar());
         mapType(new FloatScalar());
-        mapType(new ByteScalar());
         mapType(new BigIntegerScalar());
         mapType(new BigDecimalScalar());
-        mapType(new LongScalar());
         mapType(new DateScalar());
         mapType(new TimeScalar());
         mapType(new DateTimeScalar());

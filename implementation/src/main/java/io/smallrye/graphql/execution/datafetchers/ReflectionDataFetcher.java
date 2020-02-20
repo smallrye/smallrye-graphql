@@ -99,7 +99,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     public Object get(DataFetchingEnvironment dfe) throws Exception {
         try {
             Object declaringObject = CDI.current().select(declaringClass).get();
-            return returnType.cast(method.invoke(declaringObject, getArguments(dfe).toArray()));
+            return method.invoke(declaringObject, getArguments(dfe).toArray());
         } catch (TransformException pe) {
             return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException ite) {
@@ -184,11 +184,8 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
         if (givenClass.equals(clazz)) {
             return argumentValue;
-        } else if (givenClass.equals(String.class)) {
-            // We go a String, but not expecting one. Lets create new primative
-            return toPrimative(argumentValue, a, clazz);
         } else {
-            return handleDefault(argumentValue, a, "Expected a Primative");
+            return toScalar(argumentValue, a, clazz);
         }
     }
 
@@ -203,9 +200,9 @@ public class ReflectionDataFetcher implements DataFetcher {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB or transformation
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return objectToPojo(argumentValue, argument);
+        } else {
+            return toScalar(argumentValue, argument, clazz);
         }
-
-        return handleDefault(argumentValue, argument, "Expected a Class");
     }
 
     private <T> Object handleArray(Object argumentValue, Argument a) throws GraphQLException {
@@ -265,9 +262,12 @@ public class ReflectionDataFetcher implements DataFetcher {
         return type.equals(Optional.class);
     }
 
-    private Object handleDefault(Object argumentValue, Argument a, String message) {
-        Type type = a.getType();
-        LOG.warn(message + " | argument [" + argumentValue + "] and kind [" + type.kind().name() + "]");
+    private Object handleDefault(Object argumentValue, Argument argument, String message) {
+        if (argumentValue == null)
+            return null;
+        Type type = argument.getType();
+        LOG.warn(message + " | argument [" + argumentValue + "] of kind [" + argumentValue.getClass().getName()
+                + "] but expecting kind [" + type.kind().name() + "]");
         return argumentValue;
     }
 
@@ -283,18 +283,22 @@ public class ReflectionDataFetcher implements DataFetcher {
         return null;
     }
 
-    private Object toPrimative(Object input, Argument argument, Class clazz) {
+    private Object toScalar(Object input, Argument argument, Class clazz) {
         GraphQLScalarType scalar = getScalarType(argument.getType());
-        try {
-            // For transformable scalars.
-            if (scalar != null && Transformable.class.isInstance(scalar)) {
-                Transformable transformable = Transformable.class.cast(scalar);
-                input = transformable.transform(input, argument);
-            }
-            return Classes.stringToPrimative(input.toString(), clazz);
+        if (scalar != null) {
+            try {
+                // For transformable scalars.
+                if (Transformable.class.isInstance(scalar)) {
+                    Transformable transformable = Transformable.class.cast(scalar);
+                    input = transformable.transform(input, argument);
+                }
+                return Classes.stringToScalar(input.toString(), clazz);
 
-        } catch (NumberFormatException nfe) {
-            throw new TransformException(nfe, scalar, argument.getName(), input.toString());
+            } catch (NumberFormatException nfe) {
+                throw new TransformException(nfe, scalar, argument.getName(), input.toString());
+            }
+        } else {
+            return handleDefault(input, argument, "Expected type [" + clazz.getName() + "]");
         }
     }
 

@@ -15,8 +15,6 @@
  */
 package io.smallrye.graphql.execution.error;
 
-import java.util.List;
-
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
@@ -45,12 +43,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     private String defaultErrorMessage;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
-    private List<String> blackList;
-
-    @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
-    private List<String> whiteList;
+    ExceptionLists exceptionLists;
 
     @Inject
     @ConfigProperty(name = "mp.graphql.printDataFetcherException", defaultValue = "false")
@@ -74,26 +67,18 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
             ExecutionPath path) {
         if (throwable instanceof RuntimeException) {
             // Check for whitelist
-            if (isWhitelisted(throwable.getClass().getName())) {
+            if (exceptionLists.isWhitelisted(throwable)) {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);
             } else {
                 return new GraphQLExceptionWhileDataFetching(defaultErrorMessage, path, throwable, sourceLocation);
             }
         } else {
             // Check for blacklist
-            if (isBlacklisted(throwable.getClass().getName())) {
+            if (exceptionLists.isBlacklisted(throwable)) {
                 return new GraphQLExceptionWhileDataFetching(defaultErrorMessage, path, throwable, sourceLocation);
             } else {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);
             }
         }
-    }
-
-    private boolean isBlacklisted(String exceptionClassName) {
-        return (blackList != null && blackList.contains(exceptionClassName));
-    }
-
-    private boolean isWhitelisted(String exceptionClassName) {
-        return (whiteList != null && whiteList.contains(exceptionClassName));
     }
 }

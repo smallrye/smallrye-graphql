@@ -18,8 +18,11 @@ package io.smallrye.graphql.schema.type.scalar.number;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.jboss.jandex.DotName;
+
 import graphql.Scalars;
 import io.smallrye.graphql.schema.Argument;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Scalar for Integer.
@@ -45,7 +48,16 @@ public class IntegerScalar extends AbstractNumberScalar {
 
                     @Override
                     public Object fromNumber(Number number, Argument argument) {
-                        return number.intValue();
+                        DotName argumentName = argument.getType().name();
+
+                        if (argumentName.equals(Classes.SHORT) || argumentName.equals(Classes.SHORT_PRIMATIVE)) {
+                            return number.shortValue();
+                        } else if (argumentName.equals(Classes.BYTE) || argumentName.equals(Classes.BYTE_PRIMATIVE)) {
+                            return number.byteValue();
+                        } else if (argumentName.equals(Classes.INTEGER) || argumentName.equals(Classes.INTEGER_PRIMATIVE)) {
+                            return number.intValue();
+                        }
+                        return number;
                     }
 
                     @Override
@@ -55,7 +67,7 @@ public class IntegerScalar extends AbstractNumberScalar {
                     }
 
                 },
-                Integer.class, int.class);
+                Integer.class, int.class, Short.class, short.class, Byte.class, byte.class);
     }
 
 }
