@@ -131,10 +131,16 @@ public class ExecutionService {
                 .withNullValues(Boolean.TRUE)
                 .withFormatting(Boolean.TRUE);
 
-        Jsonb jsonb = JsonbBuilder.create(config);
-        String json = jsonb.toJson(pojo);
-        final JsonReader reader = Json.createReader(new StringReader(json));
-        return reader.readValue();
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            String json = jsonb.toJson(pojo);
+            try (StringReader sr = new StringReader(json);
+                    JsonReader reader = Json.createReader(sr)) {
+                return reader.readValue();
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not close Jsonb object");
+            return null;
+        }
     }
 
     private Map<String, Object> toMap(JsonObject jo) {

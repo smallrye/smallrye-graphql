@@ -77,14 +77,15 @@ public class SmallRyeGraphQLInitilizer {
     @WebRoute(value = "/graphql", methods = HttpMethod.POST)
     public void executeRequest(@Observes RoutingContext ctx) {
         String body = ctx.getBodyAsString();
-        try (Reader input = new StringReader(body)) {
-            final JsonReader jsonReader = Json.createReader(input);
+        try (Reader input = new StringReader(body);
+                JsonReader jsonReader = Json.createReader(input)) {
+
             JsonObject jsonInput = jsonReader.readObject();
 
             JsonObject outputJson = executionService.execute(jsonInput);
             if (outputJson != null) {
-                try (StringWriter output = new StringWriter()) {
-                    final JsonWriter jsonWriter = Json.createWriter(output);
+                try (StringWriter output = new StringWriter();
+                        JsonWriter jsonWriter = Json.createWriter(output)) {
                     jsonWriter.writeObject(outputJson);
                     output.flush();
 

@@ -93,7 +93,7 @@ public interface Classes {
         } else if (type.equals(byte.class)) {
             return Byte.valueOf(input).byteValue();
         } else if (type.equals(char.class)) {
-            return Character.valueOf(input.charAt(0)).charValue();
+            return input.charAt(0);
         } else if (type.equals(short.class)) {
             return Short.valueOf(input).shortValue();
         } else if (type.equals(int.class)) {

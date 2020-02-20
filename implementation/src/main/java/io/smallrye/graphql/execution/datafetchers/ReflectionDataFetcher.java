@@ -88,8 +88,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             } else {
                 this.method = this.declaringClass.getMethod(methodInfo.name());
             }
-            this.method.setAccessible(true);
-
         } catch (NoSuchMethodException | SecurityException ex) {
             throw new RuntimeException(ex);
         }
@@ -331,26 +329,30 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private String toJsonString(Map inputMap, Argument argument) throws GraphQLException {
         DotName className = DotName.createSimple(argument.getArgumentClass().getName());
-        Jsonb jsonb = JsonbBuilder.create();
+        try (Jsonb jsonb = JsonbBuilder.create()) {
 
-        // See if there are any formatting type annotations of this class definition.
-        if (this.argumentMap.containsKey(className)) {
-            // See if any of the input fields needs formatting.
-            if (hasInputFieldsThatNeedsFormatting(className, inputMap)) {
-                Map<String, Argument> fieldsThatShouldBeFormatted = this.argumentMap.get(className);
-                Set<Map.Entry> inputValues = inputMap.entrySet();
-                for (Map.Entry keyValue : inputValues) {
-                    String key = String.valueOf(keyValue.getKey());
-                    if (fieldsThatShouldBeFormatted.containsKey(key)) {
-                        Argument fieldArgument = fieldsThatShouldBeFormatted.get(key);
-                        Object o = toArgumentInputParameter(keyValue.getValue(), fieldArgument);
-                        inputMap.put(keyValue.getKey(), o);
+            // See if there are any formatting type annotations of this class definition.
+            if (this.argumentMap.containsKey(className)) {
+                // See if any of the input fields needs formatting.
+                if (hasInputFieldsThatNeedsFormatting(className, inputMap)) {
+                    Map<String, Argument> fieldsThatShouldBeFormatted = this.argumentMap.get(className);
+                    Set<Map.Entry> inputValues = inputMap.entrySet();
+                    for (Map.Entry keyValue : inputValues) {
+                        String key = String.valueOf(keyValue.getKey());
+                        if (fieldsThatShouldBeFormatted.containsKey(key)) {
+                            Argument fieldArgument = fieldsThatShouldBeFormatted.get(key);
+                            Object o = toArgumentInputParameter(keyValue.getValue(), fieldArgument);
+                            inputMap.put(keyValue.getKey(), o);
+                        }
                     }
                 }
             }
-        }
 
-        return jsonb.toJson(inputMap);
+            return jsonb.toJson(inputMap);
+        } catch (Exception e) {
+            LOG.warn("Could not close Jsonb");
+            return null;
+        }
     }
 
     private boolean hasInputFieldsThatNeedsFormatting(DotName className, Map input) {

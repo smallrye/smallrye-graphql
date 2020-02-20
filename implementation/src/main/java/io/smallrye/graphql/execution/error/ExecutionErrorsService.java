@@ -60,21 +60,26 @@ public class ExecutionErrorsService {
                 .withNullValues(Boolean.TRUE)
                 .withFormatting(Boolean.TRUE);
 
-        Jsonb jsonb = JsonbBuilder.create(config);
-        String json = jsonb.toJson(error.toSpecification());
-        final JsonReader reader = Json.createReader(new StringReader(json));
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            String json = jsonb.toJson(error.toSpecification());
+            try (StringReader sr = new StringReader(json);
+                    JsonReader reader = Json.createReader(sr)) {
 
-        JsonObject jsonErrors = reader.readObject();
+                JsonObject jsonErrors = reader.readObject();
 
-        JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
+                JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
 
-        // TODO: Make this configurable
-        Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
-        if (optionalExtensions.isPresent()) {
-            resultBuilder.add(EXTENSIONS, optionalExtensions.get());
+                // TODO: Make this configurable
+                Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
+                if (optionalExtensions.isPresent()) {
+                    resultBuilder.add(EXTENSIONS, optionalExtensions.get());
+                }
+                return resultBuilder.build();
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not close Jsonb");
+            return null;
         }
-
-        return resultBuilder.build();
     }
 
     private Optional<JsonObject> getOptionalExtensions(GraphQLError error) {
