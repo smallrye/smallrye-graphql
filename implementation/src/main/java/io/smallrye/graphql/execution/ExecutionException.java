@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type.scalar.time;
-
-import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
+package io.smallrye.graphql.execution;
 
 /**
- * Base Scalar for Dates.
+ * Error while executing a request
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class AbstractDateScalar extends AbstractScalar {
+public class ExecutionException extends RuntimeException {
 
-    public AbstractDateScalar(String name, Class... supportedTypes) {
-        super(name, new DateCoercing(name, supportedTypes), supportedTypes);
+    public ExecutionException() {
     }
+
+    public ExecutionException(String string) {
+        super(string);
+    }
+
+    public ExecutionException(String string, Throwable thrwbl) {
+        super(string, thrwbl);
+    }
+
+    public ExecutionException(Throwable thrwbl) {
+        super(thrwbl);
+    }
+
+    public ExecutionException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
+        super(string, thrwbl, bln, bln1);
+    }
+
 }

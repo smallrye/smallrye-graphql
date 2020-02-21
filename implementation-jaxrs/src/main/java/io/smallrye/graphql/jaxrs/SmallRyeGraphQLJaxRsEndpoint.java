@@ -33,6 +33,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.smallrye.graphql.execution.ExecutionException;
 import io.smallrye.graphql.execution.ExecutionService;
 
 /**
@@ -73,7 +74,7 @@ public class SmallRyeGraphQLJaxRsEndpoint {
                     sw.flush();
                     return Response.ok(sw.toString()).build();
                 } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                    throw new ExecutionException(ex);
                 }
             }
             return Response.noContent().build();

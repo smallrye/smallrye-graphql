@@ -36,7 +36,7 @@ import graphql.validation.ValidationErrorType;
 public class TransformException extends RuntimeException {
     private final String parameterName;
     private final String parameterValue;
-    private final GraphQLScalarType scalar;
+    private final transient GraphQLScalarType scalar;
 
     public TransformException(Throwable original, GraphQLScalarType forScalar, String parameterName, String parameterValue) {
         super(original);

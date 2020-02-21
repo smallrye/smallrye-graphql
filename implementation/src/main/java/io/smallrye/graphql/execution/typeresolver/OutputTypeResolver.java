@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.execution.typeResolvers;
+package io.smallrye.graphql.execution.typeresolver;
 
 import java.util.Map;
 
@@ -46,8 +46,9 @@ public class OutputTypeResolver implements TypeResolver {
         if (typeMap.containsKey(lookingForContrete)) {
             return GraphQLObjectType.class.cast(typeMap.get(lookingForContrete));
         } else {
-            throw new RuntimeException("No concrete class named [" + lookingForContrete + "] found for interface ["
-                    + interfaceName + "]");
+            throw new ConcreteImplementationNotFoundException(
+                    "No concrete class named [" + lookingForContrete + "] found for interface ["
+                            + interfaceName + "]");
         }
     }
 

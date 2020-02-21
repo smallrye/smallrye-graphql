@@ -51,7 +51,7 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@RequestScoped // TODO: Dependent ?
+@RequestScoped
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 

@@ -25,6 +25,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
+import io.smallrye.graphql.execution.ExecutionException;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -53,17 +54,17 @@ public class SmallRyeGraphQLExecutionHandler implements Handler<RoutingContext> 
                 String jsonString = jsonToString(outputJson);
                 context.response().setStatusCode(200).end(jsonString);
             }
+        } catch (IOException ex) {
+            throw new ExecutionException(ex);
         }
     }
 
-    private String jsonToString(JsonObject outputJson) {
+    private String jsonToString(JsonObject outputJson) throws IOException {
         try (StringWriter sw = new StringWriter();
                 JsonWriter jsonWriter = Json.createWriter(sw)) {
             jsonWriter.writeObject(outputJson);
             sw.flush();
             return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
     }
 }

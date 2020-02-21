@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.execution.datafetchers;
+package io.smallrye.graphql.execution.datafetcher;
 
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +33,6 @@ import io.smallrye.graphql.schema.helper.FormatHelper;
 
 /**
  * Extending the default property data fetcher and take the annotations into account
- * TODO: Make a general annotation for marshaling/unmarshaling
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -42,12 +41,10 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
 
     private DateTimeFormatter dateTimeFormatter = null;
     private NumberFormat numberFormat = null;
-    private final Type type;
     private final CollectionHelper collectionHelper = new CollectionHelper();
 
     public AnnotatedPropertyDataFetcher(String propertyName, Type type, Annotations annotations) {
         super(propertyName);
-        this.type = type;
         if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
             this.dateTimeFormatter = formatHelper.getDateFormat(type, annotations);
         }
@@ -98,7 +95,6 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
             TemporalAccessor temporalAccessor = (TemporalAccessor) o;
             return dateTimeFormatter.format(temporalAccessor);
         } else {
-            // TODO: Either split input and output fetchers, or here see if you can make a date from the String
             return o;
         }
     }
@@ -108,7 +104,6 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
             Number number = (Number) o;
             return numberFormat.format(number);
         } else {
-            // TODO: Either split input and output fetchers, or here see if you can make a number from the String
             return o;
         }
     }

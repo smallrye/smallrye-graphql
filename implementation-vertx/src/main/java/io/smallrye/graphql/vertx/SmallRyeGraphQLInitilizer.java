@@ -36,6 +36,7 @@ import org.jboss.weld.vertx.web.WebRoute;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
 import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.execution.ExecutionException;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
@@ -95,7 +96,7 @@ public class SmallRyeGraphQLInitilizer {
                 }
             }
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new ExecutionException(ex);
         }
     }
 }

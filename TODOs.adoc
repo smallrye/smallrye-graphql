@@ -15,4 +15,9 @@ This is a list of things we should still look at. Not yet an issue on the issue 
 * Add Directives support (fieldDefinitionBuilder.withDirectives(...))
 * Add TCK and impl for @interface that is not on an interface... so class in Java but interface in graphql.
 * Add support for superclass when build the types.
+* Double check the Execution service current request scope. Should that maybe be Dependent ?
+* See if we can use Jandex in the Exception List (rather than reflection)
+* Make the inclusion of the extension in the error a configurable option ?
+* Use beanutil or something to create implementation on the fly for interfaces without concrete implementations
+
 

@@ -71,7 +71,7 @@ public class Argument {
             try {
                 return Class.forName(typename);
             } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
+                throw new ArgumentTypeNotFoundException(ex);
             }
         }
     }

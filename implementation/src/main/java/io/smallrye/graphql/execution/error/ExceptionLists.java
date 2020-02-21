@@ -28,13 +28,12 @@ import org.jboss.logging.Logger;
 
 /**
  * Class that hold the exceptions to the exceptions
- * TODO: See if this can not be done better with Jandex ?
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
 public class ExceptionLists {
-    private static final Logger LOG = Logger.getLogger(ExceptionHandler.class.getName());
+    private static final Logger LOG = Logger.getLogger(ExceptionLists.class.getName());
 
     @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
