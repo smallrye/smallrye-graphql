@@ -122,20 +122,7 @@ public class IndexInitializer {
 
         while ((ze = zis.getNextEntry()) != null) {
             String entryName = ze.getName();
-            validateFilename(entryName);
             processFile(entryName, zis, indexer);
-        }
-    }
-
-    private void validateFilename(String filename) throws java.io.IOException {
-        Path currentRelativePath = Paths.get("");
-        File iD = currentRelativePath.toAbsolutePath().toFile();
-
-        File f = new File(filename);
-        String canonicalPath = f.getCanonicalPath();
-        String canonicalID = iD.getCanonicalPath();
-        if (!canonicalPath.startsWith(canonicalID)) {
-            throw new IllegalStateException("File is outside extraction target directory.");
         }
     }
 

@@ -43,7 +43,7 @@ public class NumberCoercing implements Coercing {
         this.supportedTypes = supportedTypes;
     }
 
-    private Object convertImpl(Object input) throws NumberFormatException {
+    private Object convertImpl(Object input) {
 
         for (Class supportedClass : supportedTypes) {
             if (supportedClass.isInstance(input)) {

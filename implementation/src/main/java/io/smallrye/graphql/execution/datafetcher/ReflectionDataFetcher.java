@@ -99,23 +99,19 @@ public class ReflectionDataFetcher implements DataFetcher {
         } catch (TransformException pe) {
             return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException ite) {
-            return handle(ite, dfe);
-        }
-    }
+            Throwable throwable = ite.getCause();
 
-    private DataFetcherResult<Object> handle(InvocationTargetException ite, DataFetchingEnvironment dfe) throws Exception {
-        Throwable throwable = ite.getCause();
-
-        if (throwable == null) {
-            throw new ReflectionDataFetcherException(ite);
-        } else {
-            if (throwable instanceof Error) {
-                throw (Error) throwable;
-            } else if (throwable instanceof GraphQLException) {
-                GraphQLException graphQLException = (GraphQLException) throwable;
-                return getPartialResult(dfe, graphQLException);
+            if (throwable == null) {
+                throw new ReflectionDataFetcherException(ite);
             } else {
-                throw (Exception) throwable;
+                if (throwable instanceof Error) {
+                    throw (Error) throwable;
+                } else if (throwable instanceof GraphQLException) {
+                    GraphQLException graphQLException = (GraphQLException) throwable;
+                    return getPartialResult(dfe, graphQLException);
+                } else {
+                    throw (Exception) throwable;
+                }
             }
         }
     }
@@ -158,7 +154,7 @@ public class ReflectionDataFetcher implements DataFetcher {
             } else if (kind.equals(Type.Kind.ARRAY)) {
                 return handleArray(argumentValue, a);
             } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE) && isOptionalType(a.getArgumentClass())) {
-                return handleOptional(argumentValue, a);
+                return handleOptional(argumentValue);
             } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
                 return handleCollection(argumentValue, a);
             } else if (kind.equals(Type.Kind.CLASS)) {
@@ -236,7 +232,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         return convertedList;
     }
 
-    private Object handleOptional(Object argumentValue, Argument a) {
+    private Object handleOptional(Object argumentValue) {
         // Check the type and maybe apply transformation
         if (argumentValue == null) {
             return Optional.empty();
