@@ -35,6 +35,10 @@ import org.jboss.jandex.DotName;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
+
+    private Classes() {
+    }
+
     public static boolean isEnum(ClassInfo classInfo) {
         if (classInfo == null)
             return false;
@@ -87,7 +91,14 @@ public class Classes {
     }
 
     public static Object stringToScalar(String input, Class type) {
+        if (type.isPrimitive()) {
+            return stringToPrimativeScalar(input, type);
+        } else {
+            return stringToObjectScalar(input, type);
+        }
+    }
 
+    private static Object stringToPrimativeScalar(String input, Class type) {
         if (type.equals(boolean.class)) {
             return Boolean.parseBoolean(input);
         } else if (type.equals(byte.class)) {
@@ -104,7 +115,14 @@ public class Classes {
             return Float.parseFloat(input);
         } else if (type.equals(double.class)) {
             return Double.parseDouble(input);
-        } else if (type.equals(Boolean.class)) {
+        } else {
+            throw new ScalarTypeNotFoundException(
+                    "Can not create new primative scalar type [" + type + "] from input [" + input + "]");
+        }
+    }
+
+    private static Object stringToObjectScalar(String input, Class type) {
+        if (type.equals(Boolean.class)) {
             return Boolean.valueOf(input);
         } else if (type.equals(Byte.class)) {
             return Byte.valueOf(input);
@@ -120,8 +138,13 @@ public class Classes {
             return Float.valueOf(input);
         } else if (type.equals(Double.class)) {
             return Double.valueOf(input);
+        } else if (type.equals(BigDecimal.class)) {
+            return new BigDecimal(input);
+        } else if (type.equals(BigInteger.class)) {
+            return new BigInteger(input);
         } else {
-            throw new ScalarTypeNotFoundException("Can not create new scalar type [" + type + "] from input [" + input + "]");
+            throw new ScalarTypeNotFoundException(
+                    "Can not create new object scalar type [" + type + "] from input [" + input + "]");
         }
     }
 

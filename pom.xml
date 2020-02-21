@@ -18,11 +18,7 @@
     <properties>
         <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.0-RC4</version.eclipse.microprofile.graphql>
-        
-         <sonar.coverage.jacoco.xmlReportPaths>
-             ${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,
-             ${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml
-         </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <licenses>
