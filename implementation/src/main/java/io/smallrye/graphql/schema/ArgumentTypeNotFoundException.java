@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type.scalar.time;
-
-import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
+package io.smallrye.graphql.schema;
 
 /**
- * Base Scalar for Dates.
+ * Argument class is not found
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class AbstractDateScalar extends AbstractScalar {
+public class ArgumentTypeNotFoundException extends RuntimeException {
 
-    public AbstractDateScalar(String name, Class... supportedTypes) {
-        super(name, new DateCoercing(name, supportedTypes), supportedTypes);
+    public ArgumentTypeNotFoundException() {
     }
+
+    public ArgumentTypeNotFoundException(String string) {
+        super(string);
+    }
+
+    public ArgumentTypeNotFoundException(String string, Throwable thrwbl) {
+        super(string, thrwbl);
+    }
+
+    public ArgumentTypeNotFoundException(Throwable thrwbl) {
+        super(thrwbl);
+    }
+
+    public ArgumentTypeNotFoundException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
+        super(string, thrwbl, bln, bln1);
+    }
+
 }

@@ -47,7 +47,7 @@ import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.execution.datafetchers.AnnotatedPropertyDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.AnnotatedPropertyDataFetcher;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Argument;
 import io.smallrye.graphql.schema.Classes;

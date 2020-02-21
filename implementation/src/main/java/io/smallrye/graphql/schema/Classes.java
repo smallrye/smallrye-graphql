@@ -34,7 +34,7 @@ import org.jboss.jandex.DotName;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public interface Classes {
+public class Classes {
     public static boolean isEnum(ClassInfo classInfo) {
         if (classInfo == null)
             return false;
@@ -60,7 +60,7 @@ public interface Classes {
             case "double":
                 return double.class;
             default:
-                throw new RuntimeException("Unknown primative type [" + primativeName + "]");
+                throw new PrimitiveTypeNotFoundException("Unknown primative type [" + primativeName + "]");
         }
     }
 
@@ -89,21 +89,21 @@ public interface Classes {
     public static Object stringToScalar(String input, Class type) {
 
         if (type.equals(boolean.class)) {
-            return Boolean.valueOf(input).booleanValue();
+            return Boolean.parseBoolean(input);
         } else if (type.equals(byte.class)) {
-            return Byte.valueOf(input).byteValue();
+            return Byte.parseByte(input);
         } else if (type.equals(char.class)) {
             return input.charAt(0);
         } else if (type.equals(short.class)) {
-            return Short.valueOf(input).shortValue();
+            return Short.parseShort(input);
         } else if (type.equals(int.class)) {
-            return Integer.valueOf(input).intValue();
+            return Integer.parseInt(input);
         } else if (type.equals(long.class)) {
-            return Long.valueOf(input).longValue();
+            return Long.parseLong(input);
         } else if (type.equals(float.class)) {
-            return Float.valueOf(input).floatValue();
+            return Float.parseFloat(input);
         } else if (type.equals(double.class)) {
-            return Double.valueOf(input).doubleValue();
+            return Double.parseDouble(input);
         } else if (type.equals(Boolean.class)) {
             return Boolean.valueOf(input);
         } else if (type.equals(Byte.class)) {
@@ -121,7 +121,7 @@ public interface Classes {
         } else if (type.equals(Double.class)) {
             return Double.valueOf(input);
         } else {
-            throw new RuntimeException("Can not create new scalar type [" + type + "] from input [" + input + "]");
+            throw new ScalarTypeNotFoundException("Can not create new scalar type [" + type + "] from input [" + input + "]");
         }
     }
 

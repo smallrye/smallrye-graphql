@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.execution.datafetchers;
+package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -107,7 +107,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         Throwable throwable = ite.getCause();
 
         if (throwable == null) {
-            throw new RuntimeException(ite);
+            throw new ReflectionDataFetcherException(ite);
         } else {
             if (throwable instanceof Error) {
                 throw (Error) throwable;
@@ -225,7 +225,7 @@ public class ReflectionDataFetcher implements DataFetcher {
 
         Collection givenCollection = (Collection) argumentValue;
 
-        Type typeInCollection = type.asParameterizedType().arguments().get(0); // TODO: Check for empty list !
+        Type typeInCollection = type.asParameterizedType().arguments().get(0);
         Argument argumentInCollection = new Argument(typeInCollection.name().local(), typeInCollection,
                 a.getAnnotations());
 
@@ -238,7 +238,6 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private Object handleOptional(Object argumentValue, Argument a) {
         // Check the type and maybe apply transformation
-        // Type type = a.getType();
         if (argumentValue == null) {
             return Optional.empty();
         } else {
@@ -247,7 +246,6 @@ public class ReflectionDataFetcher implements DataFetcher {
                 return Optional.empty();
             } else {
                 Object o = givenCollection.iterator().next();
-                //Type typeInCollection = type.asParameterizedType().arguments().get(0);
                 return Optional.of(o);
             }
         }
@@ -297,7 +295,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
     }
 
-    private Object objectToPojo(Object input, Argument argument) throws GraphQLException {
+    private Object objectToPojo(Object input, Argument argument) {
         Class clazz = argument.getArgumentClass();
         // For Objects (from @DefaultValue)
         Jsonb jsonb = getJsonbForType(argument.getType());
@@ -318,8 +316,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         String jsonString = toJsonString(m, argument);
         Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
-            Object o = jsonb.fromJson(jsonString, argument.getArgumentClass());
-            return o;
+            return jsonb.fromJson(jsonString, argument.getArgumentClass());
         }
         return m;
     }
@@ -328,19 +325,17 @@ public class ReflectionDataFetcher implements DataFetcher {
         DotName className = DotName.createSimple(argument.getArgumentClass().getName());
         try (Jsonb jsonb = JsonbBuilder.create()) {
 
-            // See if there are any formatting type annotations of this class definition.
-            if (this.argumentMap.containsKey(className)) {
-                // See if any of the input fields needs formatting.
-                if (hasInputFieldsThatNeedsFormatting(className, inputMap)) {
-                    Map<String, Argument> fieldsThatShouldBeFormatted = this.argumentMap.get(className);
-                    Set<Map.Entry> inputValues = inputMap.entrySet();
-                    for (Map.Entry keyValue : inputValues) {
-                        String key = String.valueOf(keyValue.getKey());
-                        if (fieldsThatShouldBeFormatted.containsKey(key)) {
-                            Argument fieldArgument = fieldsThatShouldBeFormatted.get(key);
-                            Object o = toArgumentInputParameter(keyValue.getValue(), fieldArgument);
-                            inputMap.put(keyValue.getKey(), o);
-                        }
+            // See if there are any formatting type annotations of this class definition and if any of the input fields needs formatting.
+            if (this.argumentMap.containsKey(className) &&
+                    hasInputFieldsThatNeedsFormatting(className, inputMap)) {
+                Map<String, Argument> fieldsThatShouldBeFormatted = this.argumentMap.get(className);
+                Set<Map.Entry> inputValues = inputMap.entrySet();
+                for (Map.Entry keyValue : inputValues) {
+                    String key = String.valueOf(keyValue.getKey());
+                    if (fieldsThatShouldBeFormatted.containsKey(key)) {
+                        Argument fieldArgument = fieldsThatShouldBeFormatted.get(key);
+                        Object o = toArgumentInputParameter(keyValue.getValue(), fieldArgument);
+                        inputMap.put(keyValue.getKey(), o);
                     }
                 }
             }

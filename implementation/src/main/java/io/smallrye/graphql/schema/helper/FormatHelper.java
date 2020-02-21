@@ -141,7 +141,7 @@ public class FormatHelper {
         } else if (type.name().equals(Classes.OFFSETDATETIME)) {
             return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
-        throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
+        throw new InvalidDateTypeException(type);
     }
 
     // '10:15:30+01:00'
@@ -162,7 +162,7 @@ public class FormatHelper {
         } else if (type.name().equals(Classes.ZONEDDATETIME)) {
             return ISO_ZONED_DATE_TIME;
         }
-        throw new RuntimeException("Not a valid Date Type [" + type.name().toString() + "]");
+        throw new InvalidDateTypeException(type);
     }
 
     public Optional<String> getNumberFormatValue(Annotations annotations) {
@@ -200,7 +200,7 @@ public class FormatHelper {
     }
 
     private Optional<String> getFormat(AnnotationInstance annotationInstance) {
-        AnnotationValue locale = annotationInstance.value("locale");
+        AnnotationValue locale = annotationInstance.value(LOCALE);
         AnnotationValue format = annotationInstance.value();
 
         if (format == null && locale == null) {

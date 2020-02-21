@@ -50,9 +50,8 @@ public class DateTimeScalar extends AbstractDateScalar {
     public Object transform(Object input, Argument argument) {
 
         if (argument.getType().name().equals(Classes.LOCALDATETIME)) {
-            LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
+            return transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
-            return localDateTime;
         } else if (argument.getType().name().equals(Classes.UTIL_DATE)) {
             LocalDateTime localDateTime = transformToLocalDateTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
@@ -62,13 +61,11 @@ public class DateTimeScalar extends AbstractDateScalar {
                     argument.getAnnotations());
             return java.sql.Timestamp.valueOf(localDateTime);
         } else if (argument.getType().name().equals(Classes.OFFSETDATETIME)) {
-            OffsetDateTime offsetDateTime = transformToOffsetDateTime(argument.getName(), input.toString(), argument.getType(),
+            return transformToOffsetDateTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
-            return offsetDateTime;
         } else if (argument.getType().name().equals(Classes.ZONEDDATETIME)) {
-            ZonedDateTime zonedDateTime = transformToZonedDateTime(argument.getName(), input.toString(), argument.getType(),
+            return transformToZonedDateTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
-            return zonedDateTime;
         } else {
             LOG.warn("Can not transform type [" + argument.getType().name() + "] with DateTimeScalar");
             return input;
@@ -107,5 +104,4 @@ public class DateTimeScalar extends AbstractDateScalar {
             throw new TransformException(dtpe, this, name, input);
         }
     }
-
 }

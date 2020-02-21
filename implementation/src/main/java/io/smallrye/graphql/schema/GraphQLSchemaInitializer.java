@@ -50,7 +50,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import io.smallrye.graphql.execution.datafetchers.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.ArgumentsHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -258,7 +258,7 @@ public class GraphQLSchemaInitializer {
                 break;
             case PRIMITIVE:
                 if (!scalarMap.containsKey(type.name())) {
-                    LOG.warn("No scalar mapping for " + type.name() + " with kind " + type.kind());
+                    LOG.warn("No scalar mapping for " + type.name() + WITH_KIND + type.kind());
                 }
                 break;
             case CLASS:
@@ -267,12 +267,12 @@ public class GraphQLSchemaInitializer {
                     if (classInfo != null) {
                         scanClass(classInfo, map, creator);
                     } else {
-                        LOG.warn("Not indexed class " + type.name() + " with kind " + type.kind());
+                        LOG.warn("Not indexed class " + type.name() + WITH_KIND + type.kind());
                     }
                 }
                 break;
             default:
-                LOG.error("What should we do with field type of " + type.name() + " with kind " + type.kind());
+                LOG.error("What should we do with field type of " + type.name() + WITH_KIND + type.kind());
                 break;
         }
     }
@@ -292,11 +292,10 @@ public class GraphQLSchemaInitializer {
     }
 
     private void scanEnum(ClassInfo classInfo) {
-        if (Classes.isEnum(classInfo)) {
-            if (!enumMap.containsKey(classInfo.name())) {
-                GraphQLEnumType created = enumTypeCreator.create(classInfo);
-                enumMap.putIfAbsent(classInfo.name(), created);
-            }
+        if (Classes.isEnum(classInfo) &&
+                !enumMap.containsKey(classInfo.name())) {
+            GraphQLEnumType created = enumTypeCreator.create(classInfo);
+            enumMap.putIfAbsent(classInfo.name(), created);
         }
     }
 
@@ -332,4 +331,6 @@ public class GraphQLSchemaInitializer {
             }
         }
     }
+
+    private static final String WITH_KIND = " with kind ";
 }

@@ -47,17 +47,15 @@ public class TimeScalar extends AbstractDateScalar {
     public Object transform(Object input, Argument argument) {
 
         if (argument.getType().name().equals(Classes.LOCALTIME)) {
-            LocalTime localTime = transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
+            return transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
-            return localTime;
         } else if (argument.getType().name().equals(Classes.SQL_TIME)) {
             LocalTime localTime = transformToLocalTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
             return java.sql.Time.valueOf(localTime);
         } else if (argument.getType().name().equals(Classes.OFFSETTIME)) {
-            OffsetTime offsetTime = transformToOffsetTime(argument.getName(), input.toString(), argument.getType(),
+            return transformToOffsetTime(argument.getName(), input.toString(), argument.getType(),
                     argument.getAnnotations());
-            return offsetTime;
         } else {
             LOG.warn("Can not transform type [" + argument.getType().name() + "] with TimeScalar");
             return input;

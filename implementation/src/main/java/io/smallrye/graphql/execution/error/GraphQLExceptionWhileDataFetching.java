@@ -16,6 +16,7 @@
 package io.smallrye.graphql.execution.error;
 
 import graphql.ExceptionWhileDataFetching;
+import graphql.GraphqlErrorHelper;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 
@@ -42,5 +43,16 @@ public class GraphQLExceptionWhileDataFetching extends ExceptionWhileDataFetchin
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @Override
+    public boolean equals(Object o) {
+        return GraphqlErrorHelper.equals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return GraphqlErrorHelper.hashCode(this);
     }
 }

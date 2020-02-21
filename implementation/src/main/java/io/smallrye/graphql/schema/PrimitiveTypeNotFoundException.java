@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.execution.datafetchers;
+package io.smallrye.graphql.schema;
 
 /**
- * There was an issue with the reflection when fetching data.
+ * When we can not create a primitive type
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ReflectionDataFetcherException extends RuntimeException {
+public class PrimitiveTypeNotFoundException extends RuntimeException {
 
-    public ReflectionDataFetcherException() {
+    public PrimitiveTypeNotFoundException() {
     }
 
-    public ReflectionDataFetcherException(String string) {
+    public PrimitiveTypeNotFoundException(String string) {
         super(string);
     }
 
-    public ReflectionDataFetcherException(String string, Throwable thrwbl) {
+    public PrimitiveTypeNotFoundException(String string, Throwable thrwbl) {
         super(string, thrwbl);
     }
 
-    public ReflectionDataFetcherException(Throwable thrwbl) {
+    public PrimitiveTypeNotFoundException(Throwable thrwbl) {
         super(thrwbl);
     }
 
-    public ReflectionDataFetcherException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
+    public PrimitiveTypeNotFoundException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
         super(string, thrwbl, bln, bln1);
     }
 

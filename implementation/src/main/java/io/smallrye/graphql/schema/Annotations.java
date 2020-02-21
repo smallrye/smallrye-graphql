@@ -50,27 +50,27 @@ import org.jboss.jandex.DotName;
  */
 public class Annotations {
 
-    private final Map<DotName, AnnotationInstance> annotations;
+    private final Map<DotName, AnnotationInstance> annotationsMap;
 
     public Annotations(Map<DotName, AnnotationInstance> annotations) {
-        this.annotations = annotations;
+        this.annotationsMap = annotations;
     }
 
     public Map<DotName, AnnotationInstance> getAnnotations() {
-        return this.annotations;
+        return this.annotationsMap;
     }
 
     public AnnotationInstance getAnnotation(DotName key) {
-        return this.annotations.get(key);
+        return this.annotationsMap.get(key);
     }
 
     public AnnotationValue getAnnotationValue(DotName key) {
-        return this.annotations.get(key).value();
+        return this.annotationsMap.get(key).value();
     }
 
     public boolean containsOneOfTheseKeys(DotName... key) {
         for (DotName name : key) {
-            if (this.annotations.containsKey(name)) {
+            if (this.annotationsMap.containsKey(name)) {
                 return true;
             }
         }
@@ -78,7 +78,7 @@ public class Annotations {
     }
 
     public boolean hasGraphQLAnnotations() {
-        for (DotName dotName : annotations.keySet()) {
+        for (DotName dotName : annotationsMap.keySet()) {
             if (dotName.toString().startsWith(GRAPHQL_PACKAGE)) {
                 return true;
             }
@@ -87,7 +87,7 @@ public class Annotations {
     }
 
     public boolean hasGraphQLFormatingAnnotations() {
-        for (DotName dotName : annotations.keySet()) {
+        for (DotName dotName : annotationsMap.keySet()) {
             if (dotName.equals(DATE_FORMAT) ||
                     dotName.equals(NUMBER_FORMAT)) {
                 return true;
@@ -98,15 +98,15 @@ public class Annotations {
 
     public Optional<AnnotationInstance> getOneOfTheseAnnotation(DotName... key) {
         for (DotName name : key) {
-            if (this.annotations.containsKey(name)) {
-                return Optional.of(this.annotations.get(name));
+            if (this.annotationsMap.containsKey(name)) {
+                return Optional.of(this.annotationsMap.get(name));
             }
         }
         return Optional.empty();
     }
 
     public boolean containsKeyAndValidValue(DotName key) {
-        return this.annotations.containsKey(key) && this.annotations.get(key).value() != null;
+        return this.annotationsMap.containsKey(key) && this.annotationsMap.get(key).value() != null;
     }
 
     public static final DotName GRAPHQL_API = DotName.createSimple(GraphQLApi.class.getName());

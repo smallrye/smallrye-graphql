@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type.scalar.time;
-
-import io.smallrye.graphql.schema.type.scalar.AbstractScalar;
+package io.smallrye.graphql.schema;
 
 /**
- * Base Scalar for Dates.
+ * When we can not create a scalar type
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class AbstractDateScalar extends AbstractScalar {
+public class ScalarTypeNotFoundException extends RuntimeException {
 
-    public AbstractDateScalar(String name, Class... supportedTypes) {
-        super(name, new DateCoercing(name, supportedTypes), supportedTypes);
+    public ScalarTypeNotFoundException() {
     }
+
+    public ScalarTypeNotFoundException(String string) {
+        super(string);
+    }
+
+    public ScalarTypeNotFoundException(String string, Throwable thrwbl) {
+        super(string, thrwbl);
+    }
+
+    public ScalarTypeNotFoundException(Throwable thrwbl) {
+        super(thrwbl);
+    }
+
+    public ScalarTypeNotFoundException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
+        super(string, thrwbl, bln, bln1);
+    }
+
 }

@@ -69,7 +69,6 @@ public class ExecutionErrorsService {
 
                 JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
 
-                // TODO: Make this configurable
                 Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
                 if (optionalExtensions.isPresent()) {
                     resultBuilder.add(EXTENSIONS, optionalExtensions.get());
