@@ -1,0 +1,18 @@
+= SmallRye GraphQL TODOs
+
+This is a list of things we should still look at. Not yet an issue on the issue board, just here a a reminder.
+
+* Implement and test Optional<>
+* Check the Content type for the response of the schema request. It's "plain/text" at the moment
+* Check if the Jandex index is available when scanning. There might be Jandex indexes in other jars in the lib. See https://docs.wildfly.org/jandex/org/jboss/jandex/CompositeIndex.html
+* Add support (if possible) for Generics (apart from collections)
+* See if there is a way to merge the formatting annotation mechanism with the JsonB name one, so there is only one way of doing things
+** At the moment there are 2 maps, basically see if we can reduce to one.
+* What if a collection is not typed (generics) ? Add a test case with just Collection. Do we get object as the parametered type ?
+* When scanning POJO we look at fields first. Potentially change to look at methods first, so that we have more reuse with interfaces (that only has methods)
+** Might also help with duplication of Get/Set method checking
+* Add Deprecate support (fieldDefinitionBuilder.deprecate(...))
+* Add Directives support (fieldDefinitionBuilder.withDirectives(...))
+* Add TCK and impl for @interface that is not on an interface... so class in Java but interface in graphql.
+* Add support for superclass when build the types.
+

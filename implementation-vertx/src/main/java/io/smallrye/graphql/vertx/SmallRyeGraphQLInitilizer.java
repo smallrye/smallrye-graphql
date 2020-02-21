@@ -30,6 +30,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
+import org.jboss.logging.Logger;
 import org.jboss.weld.vertx.web.WebRoute;
 
 import graphql.schema.GraphQLSchema;
@@ -46,6 +47,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 @ApplicationScoped
 public class SmallRyeGraphQLInitilizer {
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLInitilizer.class.getName());
 
     @Inject
     private SmallRyeGraphQLBootstrap bootstrap;
@@ -60,13 +62,13 @@ public class SmallRyeGraphQLInitilizer {
         if (graphQLSchema != null) {
             SchemaPrinter schemaPrinter = new SchemaPrinter();
             this.schema = schemaPrinter.print(graphQLSchema);
-            System.err.println("SmallRye GraphQL Server started");
+            LOG.info("SmallRye GraphQL Server started");
         }
 
     }
 
     public void destroy(@Observes @Destroyed(ApplicationScoped.class) Object init) {
-        System.err.println("SmallRye GraphQL Server stoped");
+        LOG.info("SmallRye GraphQL Server stoped");
     }
 
     @WebRoute(value = "/graphql/schema.graphql", methods = HttpMethod.GET)

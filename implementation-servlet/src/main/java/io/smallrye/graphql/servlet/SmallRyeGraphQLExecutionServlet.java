@@ -18,8 +18,6 @@ package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.json.Json;
@@ -30,6 +28,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.ExecutionService;
 
@@ -61,7 +61,7 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
                 }
             }
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.log(Logger.Level.ERROR, null, ex);
         }
     }
 

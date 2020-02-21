@@ -54,7 +54,7 @@ public class ExecutionInitializer {
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();
         } else {
-            LOG.warn("No GraphQL methods found. Try annotating your methods with @Query");
+            LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");
         }
     }
 

@@ -136,7 +136,7 @@ public class InputTypeCreator implements Creator {
 
     private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo, String name) {
         List<GraphQLInputObjectField> inputObjectFields = new ArrayList<>();
-        // Fields (TODO: Look at methods rather ? Or both ?)
+        // Fields
         List<FieldInfo> fields = classInfo.fields();
 
         final Map<String, String> customFieldNameMapping = new HashMap<>();
@@ -185,7 +185,6 @@ public class InputTypeCreator implements Creator {
                 }
             }
         }
-        // TODO: See if we can combine the 2 maps below.
 
         // So that we can do transformations on input that can not be done with Jsonb
         if (!fieldAnnotationsMapping.isEmpty()) {
@@ -204,12 +203,6 @@ public class InputTypeCreator implements Creator {
         } else {
             return toGraphQLInputType(type, setterParameterType, annotations);
         }
-
-        // TODO: Deprecate
-        // fieldDefinitionBuilder.deprecate(description)
-
-        // TODO: Directives ?
-        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
     }
 
     private Jsonb createJsonb(Map<String, String> customFieldNameMapping) {
@@ -263,8 +256,7 @@ public class InputTypeCreator implements Creator {
                 return Scalars.GraphQLString; // default
             }
         } else {
-            // Maps ? Intefaces ? Generics ?
-            throw new RuntimeException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
+            throw new SchemaTypeCreateException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
         }
     }
 

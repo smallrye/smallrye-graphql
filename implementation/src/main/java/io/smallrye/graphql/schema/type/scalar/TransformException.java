@@ -18,8 +18,6 @@ package io.smallrye.graphql.schema.type.scalar;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.logging.Logger;
-
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
 import graphql.execution.ExecutionPath;
@@ -36,8 +34,6 @@ import graphql.validation.ValidationErrorType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TransformException extends RuntimeException {
-    private static final Logger LOG = Logger.getLogger(TransformException.class.getName());
-
     private final String parameterName;
     private final String parameterValue;
     private final GraphQLScalarType scalar;

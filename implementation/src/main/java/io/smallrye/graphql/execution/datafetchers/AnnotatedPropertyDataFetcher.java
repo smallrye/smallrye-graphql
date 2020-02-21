@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.PropertyDataFetcher;
@@ -39,7 +38,6 @@ import io.smallrye.graphql.schema.helper.FormatHelper;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
-    private static final Logger LOG = Logger.getLogger(AnnotatedPropertyDataFetcher.class.getName());
     private final FormatHelper formatHelper = new FormatHelper();
 
     private DateTimeFormatter dateTimeFormatter = null;
