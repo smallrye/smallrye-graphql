@@ -6,18 +6,9 @@
         <version>0.9.0-SNAPSHOT</version>
     </parent>
     
-    <groupId>io.smallrye</groupId>
     <artifactId>smallrye-graphql-vertx</artifactId>
     <name>SmallRye: MicroProfile GraphQL Implementation :: VertX</name>
-    <version>1.0.0-SNAPSHOT</version>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
-    </properties>
-
+    
     <dependencies>
 
         <dependency>
@@ -28,7 +19,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>jakarta.json.bind</groupId>
