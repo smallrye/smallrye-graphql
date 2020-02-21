@@ -1,7 +1,7 @@
 :microprofile-graphql: https://github.com/eclipse/microprofile-graphql/
 
 image:https://github.com/smallrye/smallrye-graphql/workflows/SmallRye%20CI/badge.svg?branch=master[link="https://github.com/smallrye/smallrye-graphql/actions?query=workflow%3A%22SmallRye+CI%22"]
-image:https://semaphoreci.com/api/v1/smallrye/smallrye-graphql/branches/master/badge.svg["Semaphore CI", link="https://semaphoreci.com/smallrye/smallrye-graphql"]
+image:https://semaphoreci.com/api/v1/smallrye/smallrye-graphql/branches/master/shields_badge.svg["Semaphore CI", link="https://semaphoreci.com/smallrye/smallrye-graphql"]
 image:https://sonarcloud.io/api/project_badges/measure?project=smallrye_smallrye-graphql&metric=alert_status["Quality Gate Status", link="https://sonarcloud.io/dashboard?id=smallrye_smallrye-graphql"]
 image:https://img.shields.io/github/license/thorntail/thorntail.svg["License", link="http://www.apache.org/licenses/LICENSE-2.0"]
 
