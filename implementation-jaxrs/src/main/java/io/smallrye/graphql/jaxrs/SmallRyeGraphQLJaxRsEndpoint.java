@@ -18,11 +18,10 @@ package io.smallrye.graphql.jaxrs;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -34,8 +33,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.SchemaPrinter;
 import io.smallrye.graphql.execution.ExecutionService;
 
 /**
@@ -47,30 +44,18 @@ import io.smallrye.graphql.execution.ExecutionService;
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class SmallRyeGraphQLJaxRsEndpoint {
-    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLJaxRsEndpoint.class.getName());
 
     @Inject
     private ExecutionService executionService;
 
     @Inject
-    private GraphQLSchema graphQLSchema;
-
-    private String schema = null;
-
-    @PostConstruct
-    public void init() {
-        if (graphQLSchema != null) {
-            SchemaPrinter schemaPrinter = new SchemaPrinter();
-            this.schema = schemaPrinter.print(graphQLSchema);
-        } else {
-            LOG.warning("Can not create GraphQL Schema (null)");
-        }
-    }
+    @Named("graphQLSchema")
+    private String graphQLSchemaString;
 
     @GET
     @Path("schema.graphql")
     public Response getSchema() {
-        return Response.ok(schema).build();
+        return Response.ok(graphQLSchemaString).build();
     }
 
     @POST

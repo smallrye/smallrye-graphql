@@ -27,7 +27,6 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLEnumType;
 import io.smallrye.graphql.schema.Annotations;
@@ -45,7 +44,6 @@ import io.smallrye.graphql.schema.helper.NameHelper;
  */
 @ApplicationScoped
 public class EnumTypeCreator implements Creator {
-    private static final Logger LOG = Logger.getLogger(EnumTypeCreator.class.getName());
 
     @Inject
     private Map<DotName, GraphQLEnumType> enumMap;

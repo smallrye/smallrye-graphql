@@ -18,19 +18,15 @@ package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.inject.Inject;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
+import javax.inject.Named;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.SchemaPrinter;
+import org.jboss.logging.Logger;
 
 /**
  * Serving the GraphQL schema
@@ -42,29 +38,17 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
 
     @Inject
-    private GraphQLSchema graphQLSchema;
-
-    private static String SCHEMA;
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-        if (graphQLSchema != null) {
-            SchemaPrinter schemaPrinter = new SchemaPrinter();
-            this.SCHEMA = schemaPrinter.print(graphQLSchema);
-        } else {
-            LOG.warning("Can not create GraphQL Schema (null)");
-        }
-    }
+    @Named("graphQLSchema")
+    private String graphQLSchemaString;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        response.setContentType("plain/text"); //TODO: Check the content type in the spec
+        response.setContentType("plain/text");
         try (PrintWriter out = response.getWriter()) {
-            out.print(this.SCHEMA);
+            out.print(graphQLSchemaString);
             out.flush();
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.log(Logger.Level.ERROR, null, ex);
         }
     }
 

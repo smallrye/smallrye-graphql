@@ -60,7 +60,6 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private final Method method;
     private final Class declaringClass;
-    private final Class returnType;
     private List<Argument> arguments;
 
     private final boolean hasArguments;
@@ -79,7 +78,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             this.inputJsonbMap = inputJsonbMap;
             this.scalarMap = scalarMap;
             this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
-            this.returnType = getReturnType(methodInfo);
             Class[] parameterClasses = getParameterClasses(arguments);
             this.hasArguments = parameterClasses.length != 0;
 
@@ -89,7 +87,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                 this.method = this.declaringClass.getMethod(methodInfo.name());
             }
         } catch (NoSuchMethodException | SecurityException ex) {
-            throw new RuntimeException(ex);
+            throw new ReflectionDataFetcherException(ex);
         }
     }
 
@@ -168,7 +166,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             } else {
                 return handleDefault(argumentValue, a, "Not sure what to do with this kind");
             }
-            // TODO: Handle Generics
         }
         return handleDefault(argumentValue, a, "Argument is NULL");
     }
@@ -240,7 +237,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Object handleOptional(Object argumentValue, Argument a) {
-        // TODO: Check the type and maybe apply transformation
+        // Check the type and maybe apply transformation
         // Type type = a.getType();
         if (argumentValue == null) {
             return Optional.empty();
@@ -385,20 +382,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             clazz = classLoader.loadClass(className);
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException("Could not find class [" + className + "]", ex);
+            throw new ReflectionDataFetcherException("Could not find class [" + className + "]", ex);
         }
         return clazz;
-    }
-
-    private Class getReturnType(MethodInfo methodInfo) {
-        Type type = methodInfo.returnType();
-        Type.Kind kind = type.kind();
-        String typename = type.name().toString();
-        if (kind.equals(Type.Kind.PRIMITIVE)) {
-            return Classes.getPrimativeClassType(typename);
-        } else {
-            return loadClass(typename);
-        }
     }
 
     private Class[] getParameterClasses(List<Argument> arguments) {

@@ -26,7 +26,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
 import org.jboss.jandex.DotName;
-import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
@@ -45,7 +44,6 @@ import io.smallrye.graphql.schema.type.scalar.time.TimeScalar;
  */
 @ApplicationScoped
 public class ScalarMappingInitializer {
-    private static final Logger LOG = Logger.getLogger(ScalarMappingInitializer.class.getName());
 
     @Produces
     public Map<DotName, GraphQLScalarType> getScalarMap() {

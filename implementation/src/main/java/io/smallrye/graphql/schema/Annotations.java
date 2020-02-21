@@ -86,12 +86,10 @@ public class Annotations {
         return false;
     }
 
-    // TODO: See if we can also use name for this, then at least less classes
     public boolean hasGraphQLFormatingAnnotations() {
         for (DotName dotName : annotations.keySet()) {
             if (dotName.equals(DATE_FORMAT) ||
-                    dotName.equals(NUMBER_FORMAT)) {//||
-                //dotName.equals(NAME)) {
+                    dotName.equals(NUMBER_FORMAT)) {
                 return true;
             }
         }

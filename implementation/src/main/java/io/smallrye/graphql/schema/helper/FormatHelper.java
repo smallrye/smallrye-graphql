@@ -218,7 +218,7 @@ public class FormatHelper {
         switch (type.kind()) {
             case PARAMETERIZED_TYPE:
                 // Collections
-                Type typeInCollection = type.asParameterizedType().arguments().get(0); // TODO: Check for null
+                Type typeInCollection = type.asParameterizedType().arguments().get(0);
                 return isTypeOrCollectionThereOf(typeInCollection, valid);
             case ARRAY:
                 // Array
@@ -239,7 +239,7 @@ public class FormatHelper {
         switch (type.kind()) {
             case PARAMETERIZED_TYPE:
                 // Collections
-                Type typeInCollection = type.asParameterizedType().arguments().get(0); // TODO: Check for null
+                Type typeInCollection = type.asParameterizedType().arguments().get(0);
                 return getCorrectType(typeInCollection);
             case ARRAY:
                 // Array

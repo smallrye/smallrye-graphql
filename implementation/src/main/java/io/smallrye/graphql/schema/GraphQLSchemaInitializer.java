@@ -180,14 +180,12 @@ public class GraphQLSchemaInitializer {
                         graphQLFieldDefinition.getName()),
                 new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo),
                         inputJsonbMap, argumentMap, scalarMap));
-        //        new LambdaMetafactoryDataFetcher(methodInfo));
-        //                    PropertyDataFetcher.fetching(methodInfo.name()));
 
         // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
             scanType(methodInfo.returnType(), this.typeMap, this.outputTypeCreator);
         } else {
-            throw new RuntimeException("Can not have a void return for [" + annotationToScan.withoutPackagePrefix()
+            throw new VoidReturnNotAllowedException("Can not have a void return for [" + annotationToScan.withoutPackagePrefix()
                     + "] on method [" + methodInfo.name() + "]");
         }
 
@@ -229,7 +227,8 @@ public class GraphQLSchemaInitializer {
 
         // Fields
         GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition.newFieldDefinition();
-        // Name // TODO: Need test cases for this
+
+        // Name
         String fieldName = nameHelper.getExecutionTypeName(graphQLAnnotation, annotations);
         builder = builder.name(fieldName);
 
@@ -254,7 +253,6 @@ public class GraphQLSchemaInitializer {
                 scanType(typeInArray, map, creator);
                 break;
             case PARAMETERIZED_TYPE:
-                // TODO: Check if there is more than one type in the Collection, throw an exception ?
                 Type typeInCollection = type.asParameterizedType().arguments().get(0);
                 scanType(typeInCollection, map, creator);
                 break;
@@ -316,9 +314,13 @@ public class GraphQLSchemaInitializer {
             String methodName = methodInfo.name();
 
             // return types on getters and setters
-            if (nameHelper.isSetter(methodName) || nameHelper.isGetter(methodName)) {
-                // TODO: What if getting has void ?
-                if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
+            boolean isGetter = nameHelper.isGetter(methodName);
+            boolean isSetter = nameHelper.isSetter(methodName);
+            boolean isVoid = methodInfo.returnType().kind().equals(Type.Kind.VOID);
+            if (isSetter || isGetter) {
+                if (isVoid && isGetter) {
+                    throw new VoidReturnNotAllowedException("Getter method [" + methodName + "] can not hava a void return");
+                } else if (!isVoid) {
                     scanType(methodInfo.returnType(), map, creator);
                 }
 

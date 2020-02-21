@@ -16,18 +16,17 @@
 
 package io.smallrye.graphql.servlet;
 
-import java.util.logging.Logger;
-
 import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.jboss.logging.Logger;
+
 import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 
 /**
  * SmallRyeGraphQLBootstrap the GraphQL Runtime
- * TODO: Check for config on index location
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -40,7 +39,6 @@ public class SmallRyeGraphQLContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        // TODO: Check if the Jandex index is available.
         bootstrap.generateSchema();
         LOG.info("SmallRye GraphQL Server started");
     }

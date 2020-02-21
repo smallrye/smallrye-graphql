@@ -141,7 +141,6 @@ public class NameHelper {
 
     private String getDefaultExecutionTypeName(AnnotationInstance annotation) {
         String methodName = annotation.target().asMethod().name();
-        // TODO: Also check that the word start with a capital ?
         if (annotation.name().equals(Annotations.QUERY)) {
             methodName = toNameFromGetter(methodName);
         } else if (annotation.name().equals(Annotations.MUTATION)) {

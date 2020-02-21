@@ -15,13 +15,13 @@
  */
 package io.smallrye.graphql.jaxrs;
 
-import java.util.logging.Logger;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 

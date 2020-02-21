@@ -22,12 +22,14 @@ import java.io.InputStream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
+import graphql.schema.idl.SchemaPrinter;
 import io.smallrye.graphql.index.IndexInitializer;
 import io.smallrye.graphql.schema.GraphQLSchemaInitializer;
 
@@ -53,6 +55,10 @@ public class SmallRyeGraphQLBootstrap {
     @Produces
     private GraphQLSchema graphQLSchema;
 
+    @Produces
+    @Named("graphQLSchema")
+    private String graphQLSchemaString;
+
     public GraphQLSchema generateSchema() {
         try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
             IndexReader reader = new IndexReader(stream);
@@ -71,9 +77,22 @@ public class SmallRyeGraphQLBootstrap {
         return indexToGraphQLSchema(i);
     }
 
+    public String getGraphQLSchemaString() {
+        if (this.graphQLSchema == null) {
+            generateSchema();
+        }
+        return this.graphQLSchemaString;
+    }
+
     private GraphQLSchema indexToGraphQLSchema(IndexView index) {
         this.index = index;
         this.graphQLSchema = graphQLSchemaInitializer.getGraphQLSchema();
+
+        if (graphQLSchema != null) {
+            SchemaPrinter schemaPrinter = new SchemaPrinter();
+            this.graphQLSchemaString = schemaPrinter.print(graphQLSchema);
+        }
+
         return this.graphQLSchema;
     }
 

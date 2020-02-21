@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <name>SmallRye: MicroProfile GraphQL Parent</name>
@@ -18,6 +18,11 @@
     <properties>
         <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.0-RC4</version.eclipse.microprofile.graphql>
+        
+         <sonar.coverage.jacoco.xmlReportPaths>
+             ${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,
+             ${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml
+         </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <licenses>
@@ -98,36 +103,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.asciidoctor</groupId>
-                    <artifactId>asciidoctor-maven-plugin</artifactId>
-                    <configuration>
-                        <sourceHighlighter>coderay</sourceHighlighter>
-                        <attributes>
-                            <icons>font</icons>
-                            <pagenums />
-                            <version>${project.version}</version>
-                            <idprefix />
-                            <idseparator>-</idseparator>
-                            <allow-uri-read>true</allow-uri-read>
-                            <revnumber>${project.version}</revnumber>
-                            <revdate>${maven.build.timestamp}</revdate>
-                            <organization>${project.organization.name}</organization>
-                        </attributes>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
     <profiles>
         <profile>
@@ -141,5 +116,6 @@
                 <module>release</module>
             </modules>
         </profile>
+        
     </profiles>
 </project>

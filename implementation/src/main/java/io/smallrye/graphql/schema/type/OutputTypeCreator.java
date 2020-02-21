@@ -120,7 +120,7 @@ public class OutputTypeCreator implements Creator {
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {
-        boolean isInterface = Modifier.isInterface(classInfo.flags()); // TODO: Also check annotations (@interface) etc
+        boolean isInterface = Modifier.isInterface(classInfo.flags());
         if (isInterface) {
             return createInterface(classInfo);
         } else {
@@ -147,10 +147,6 @@ public class OutputTypeCreator implements Creator {
 
             // Fields
             objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
-
-            // TODO: Superclass ??
-            //Type superClassType = classInfo.superClassType();
-            //LOG.warn("[" + classInfo.simpleName() + "] extends [" + superClassType.name().withoutPackagePrefix() + "]");
 
             // Interfaces
             List<DotName> interfaceNames = classInfo.interfaceNames();
@@ -210,12 +206,6 @@ public class OutputTypeCreator implements Creator {
         } else {
             return toGraphQLOutputType(type, getterReturnType, annotations);
         }
-
-        // TODO: Deprecate
-        // fieldDefinitionBuilder.deprecate(description)
-
-        // TODO: Directives ?
-        // fieldDefinitionBuilder.withDirectives(directives) // TODO ?
     }
 
     private List<GraphQLFieldDefinition> createGraphQLMethodDefinitions(ClassInfo classInfo, String name) {
@@ -364,7 +354,7 @@ public class OutputTypeCreator implements Creator {
             }
         } else {
             // Maps ? Intefaces ? Generics ?
-            throw new RuntimeException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
+            throw new SchemaTypeCreateException("Don't know what to do with [" + type + "] of kind [" + type.kind() + "]");
         }
 
     }
