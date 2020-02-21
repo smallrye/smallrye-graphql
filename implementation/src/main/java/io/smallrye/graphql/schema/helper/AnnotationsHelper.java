@@ -42,12 +42,6 @@ import io.smallrye.graphql.schema.Annotations;
 @Dependent
 public class AnnotationsHelper {
 
-    /**
-     * Get the annotations on the class.
-     * 
-     * @param classInfo
-     * @return All annotations on this class.
-     */
     public Annotations getAnnotationsForClass(ClassInfo classInfo) {
 
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();

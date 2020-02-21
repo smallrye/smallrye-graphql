@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-parent</artifactId>
-        <version>0.9.0</version>
+        <version>0.9.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>smallrye-graphql-vertx</artifactId>
