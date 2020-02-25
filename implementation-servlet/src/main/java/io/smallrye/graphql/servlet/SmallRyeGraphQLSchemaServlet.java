@@ -43,7 +43,7 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        response.setContentType("plain/text");
+        response.setContentType("text/plain");
         try (PrintWriter out = response.getWriter()) {
             out.print(graphQLSchemaString);
             out.flush();
