@@ -65,21 +65,30 @@ public class ExecutionService {
         String query = jsonInput.getString(QUERY);
 
         if (this.graphQL != null) {
-            Map<String, Object> variables = new HashMap<>();
+            // Query
+            ExecutionInput.Builder executionBuilder = ExecutionInput.newExecutionInput()
+                    .query(query)
+                    .executionId(ExecutionId.generate());
+
+            // Variables
             if (jsonInput.containsKey(VARIABLES)) {
+                Map<String, Object> variables = new HashMap<>();
                 JsonValue jvariables = jsonInput.get(VARIABLES);
                 if (!jvariables.equals(JsonValue.NULL)
                         && !jvariables.equals(JsonValue.EMPTY_JSON_OBJECT)
                         && !jvariables.equals(JsonValue.EMPTY_JSON_ARRAY)) {
                     variables = toMap(jsonInput.getJsonObject(VARIABLES));
+                    executionBuilder.variables(variables);
                 }
             }
 
-            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                    .query(query)
-                    .variables(variables)
-                    .executionId(ExecutionId.generate())
-                    .build();
+            // Operation name
+            if (jsonInput.containsKey(OPERATION_NAME)) {
+                String operationName = jsonInput.getString(OPERATION_NAME);
+                executionBuilder.operationName(operationName);
+            }
+
+            ExecutionInput executionInput = executionBuilder.build();
 
             ExecutionResult executionResult = this.graphQL.execute(executionInput);
 
@@ -192,6 +201,7 @@ public class ExecutionService {
 
     private static final String QUERY = "query";
     private static final String VARIABLES = "variables";
+    private static final String OPERATION_NAME = "operationName";
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
 

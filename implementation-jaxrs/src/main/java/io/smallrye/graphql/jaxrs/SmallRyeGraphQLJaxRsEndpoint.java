@@ -21,7 +21,6 @@ import java.io.StringWriter;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -33,6 +32,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.smallrye.graphql.execution.BootstrapResults;
 import io.smallrye.graphql.execution.ExecutionException;
 import io.smallrye.graphql.execution.ExecutionService;
 
@@ -49,15 +49,11 @@ public class SmallRyeGraphQLJaxRsEndpoint {
     @Inject
     private ExecutionService executionService;
 
-    @Inject
-    @Named("graphQLSchema")
-    private String graphQLSchemaString;
-
     @GET
     @Path("schema.graphql")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getSchema() {
-        return Response.ok(graphQLSchemaString).build();
+        return Response.ok(BootstrapResults.graphQLSchemaString).build();
     }
 
     @POST

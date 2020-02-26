@@ -19,11 +19,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 
 /**
  * Handler for the schema and the execution
@@ -34,11 +33,9 @@ import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 public class SmallRyeGraphQLInitilizer {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLInitilizer.class.getName());
 
-    @Inject
-    private SmallRyeGraphQLBootstrap bootstrap;
-
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
-        bootstrap.generateSchema();
+        SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
+        bootstrap.bootstrap();
         LOG.info("SmallRye GraphQL Server started");
     }
 

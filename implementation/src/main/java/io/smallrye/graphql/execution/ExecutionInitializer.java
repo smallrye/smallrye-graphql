@@ -24,7 +24,6 @@ import javax.inject.Inject;
 import org.jboss.logging.Logger;
 
 import graphql.GraphQL;
-import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 
 /**
@@ -37,9 +36,6 @@ public class ExecutionInitializer {
     private static final Logger LOG = Logger.getLogger(ExecutionInitializer.class.getName());
 
     @Inject
-    private GraphQLSchema graphQLSchema;
-
-    @Inject
     private ExceptionHandler exceptionHandler;
 
     @Produces
@@ -47,9 +43,9 @@ public class ExecutionInitializer {
 
     @PostConstruct
     void init() {
-        if (graphQLSchema != null) {
+        if (BootstrapResults.graphQLSchema != null) {
             this.graphQL = GraphQL
-                    .newGraphQL(graphQLSchema)
+                    .newGraphQL(BootstrapResults.graphQLSchema)
                     .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();

@@ -33,9 +33,8 @@ import javax.json.JsonWriter;
 import org.jboss.logging.Logger;
 import org.jboss.weld.vertx.web.WebRoute;
 
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.SchemaPrinter;
-import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.execution.BootstrapResults;
 import io.smallrye.graphql.execution.ExecutionException;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.vertx.core.http.HttpMethod;
@@ -51,21 +50,11 @@ public class SmallRyeGraphQLInitilizer {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLInitilizer.class.getName());
 
     @Inject
-    private SmallRyeGraphQLBootstrap bootstrap;
-
-    @Inject
     private ExecutionService executionService;
 
-    private String schema;
-
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
-        GraphQLSchema graphQLSchema = bootstrap.generateSchema();
-        if (graphQLSchema != null) {
-            SchemaPrinter schemaPrinter = new SchemaPrinter();
-            this.schema = schemaPrinter.print(graphQLSchema);
-            LOG.info("SmallRye GraphQL Server started");
-        }
-
+        SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
+        bootstrap.bootstrap();
     }
 
     public void destroy(@Observes @Destroyed(ApplicationScoped.class) Object init) {
@@ -74,7 +63,7 @@ public class SmallRyeGraphQLInitilizer {
 
     @WebRoute(value = "/graphql/schema.graphql", methods = HttpMethod.GET)
     public void getSchema(@Observes RoutingContext ctx) {
-        ctx.response().setStatusCode(200).end(schema);
+        ctx.response().setStatusCode(200).end(BootstrapResults.graphQLSchemaString);
     }
 
     @WebRoute(value = "/graphql", methods = HttpMethod.POST)
