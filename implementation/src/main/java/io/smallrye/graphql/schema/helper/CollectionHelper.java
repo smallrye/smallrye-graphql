@@ -21,8 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.enterprise.context.Dependent;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -30,7 +28,6 @@ import org.jboss.logging.Logger;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class CollectionHelper {
     private static final Logger LOG = Logger.getLogger(CollectionHelper.class.getName());
 

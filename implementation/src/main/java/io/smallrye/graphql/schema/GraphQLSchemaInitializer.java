@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
@@ -97,26 +96,6 @@ public class GraphQLSchemaInitializer {
     private List<ClassInfo> typeTodoList;
 
     @Inject
-    @ConfigProperty(name = "mp.graphql.queryRootDescription", defaultValue = "Query root")
-    private String queryRootDescription;
-
-    @Inject
-    @ConfigProperty(name = "mp.graphql.mutationRootDescription", defaultValue = "Mutation root")
-    private String mutationRootDescription;
-
-    @Inject
-    private AnnotationsHelper annotationsHelper;
-
-    @Inject
-    private ArgumentsHelper argumentsHelper;
-
-    @Inject
-    private NameHelper nameHelper;
-
-    @Inject
-    private DescriptionHelper descriptionHelper;
-
-    @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
     @Inject
@@ -125,10 +104,20 @@ public class GraphQLSchemaInitializer {
     @Inject
     private Map<DotName, Map<String, Argument>> argumentMap;
 
-    private GraphQLSchema graphQLSchema;
+    @Inject
+    @ConfigProperty(name = "mp.graphql.queryRootDescription", defaultValue = "Query root")
+    private String queryRootDescription;
 
-    @PostConstruct
-    public void init() {
+    @Inject
+    @ConfigProperty(name = "mp.graphql.mutationRootDescription", defaultValue = "Mutation root")
+    private String mutationRootDescription;
+
+    private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
+    private final ArgumentsHelper argumentsHelper = new ArgumentsHelper();
+    private final NameHelper nameHelper = new NameHelper();
+    private final DescriptionHelper descriptionHelper = new DescriptionHelper();
+
+    public GraphQLSchema generateGraphQLSchema() {
         GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
                 .name(Annotations.QUERY.withoutPackagePrefix())
                 .description(queryRootDescription);
@@ -162,14 +151,11 @@ public class GraphQLSchemaInitializer {
             }
         }
 
-        this.graphQLSchema = createGraphQLSchema(queryBuilder.build(), mutationBuilder.build());
+        return createGraphQLSchema(queryBuilder.build(), mutationBuilder.build());
     }
 
-    public GraphQLSchema getGraphQLSchema() {
-        return this.graphQLSchema;
-    }
-
-    private GraphQLObjectType.Builder addField(GraphQLObjectType.Builder builder, Annotations annotationsForMethod,
+    private GraphQLObjectType.Builder addField(GraphQLObjectType.Builder builder,
+            Annotations annotationsForMethod,
             DotName annotationToScan) {
         AnnotationInstance queryAnnotation = annotationsForMethod.getAnnotation(annotationToScan);
         GraphQLFieldDefinition graphQLFieldDefinition = getGraphQLFieldDefinition(queryAnnotation);
@@ -241,7 +227,7 @@ public class GraphQLSchemaInitializer {
                 .type(outputTypeCreator.createGraphQLOutputType(returnType, annotations));
 
         // Arguments (input)
-        builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, annotations));
+        builder.arguments(argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo, annotations));
 
         return builder.build();
     }
@@ -299,7 +285,8 @@ public class GraphQLSchemaInitializer {
         }
     }
 
-    private <T extends GraphQLType> void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, T> map, Creator creator) {
+    private <T extends GraphQLType> void scanFieldsAndMethods(ClassInfo classInfo, Map<DotName, T> map,
+            Creator creator) {
         // fields
         List<FieldInfo> fieldInfos = classInfo.fields();
         for (FieldInfo fieldInfo : fieldInfos) {

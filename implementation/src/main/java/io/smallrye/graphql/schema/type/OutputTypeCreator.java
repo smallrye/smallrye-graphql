@@ -60,6 +60,7 @@ import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.helper.SourceFieldHelper;
 
 /**
  * Create a graphql-java GraphQLOutputType
@@ -83,31 +84,7 @@ public class OutputTypeCreator implements Creator {
     private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
-    private IndexView index;
-
-    @Inject
-    private NameHelper nameHelper;
-
-    @Inject
-    private NonNullHelper nonNullHelper;
-
-    @Inject
-    private DescriptionHelper descriptionHelper;
-
-    @Inject
-    private IgnoreHelper ignoreHelper;
-
-    @Inject
-    private AnnotationsHelper annotationsHelper;
-
-    @Inject
-    private ArgumentsHelper argumentsHelper;
-
-    @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
-
-    @Inject
-    private Map<DotName, List<MethodParameterInfo>> sourceFields;
 
     @Inject
     private Map<DotName, GraphQLInterfaceType> interfaceMap;
@@ -117,6 +94,20 @@ public class OutputTypeCreator implements Creator {
 
     @Inject
     private List<ClassInfo> typeTodoList;
+
+    @Inject
+    private InputTypeCreator inputTypeCreator;
+
+    @Inject
+    private IndexView index;
+
+    private final NameHelper nameHelper = new NameHelper();
+    private final NonNullHelper nonNullHelper = new NonNullHelper();
+    private final DescriptionHelper descriptionHelper = new DescriptionHelper();
+    private final IgnoreHelper ignoreHelper = new IgnoreHelper();
+    private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
+    private final ArgumentsHelper argumentsHelper = new ArgumentsHelper();
+    private final SourceFieldHelper sourceFieldHelper = new SourceFieldHelper();
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {
@@ -263,6 +254,7 @@ public class OutputTypeCreator implements Creator {
         }
 
         // Also check for @Source fields
+        Map<DotName, List<MethodParameterInfo>> sourceFields = sourceFieldHelper.getAllSourceAnnotations(index);
         if (sourceFields.containsKey(classInfo.name())) {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
@@ -281,7 +273,8 @@ public class OutputTypeCreator implements Creator {
                     // Arguments (input) except @Source
                     Annotations parameterAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
                             AnnotationTarget.Kind.METHOD_PARAMETER);
-                    builder.arguments(argumentsHelper.toGraphQLArguments(methodInfo, parameterAnnotations, true));
+                    builder.arguments(
+                            argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo, parameterAnnotations, true));
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 

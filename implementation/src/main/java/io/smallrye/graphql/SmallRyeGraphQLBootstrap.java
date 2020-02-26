@@ -44,9 +44,6 @@ public class SmallRyeGraphQLBootstrap {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLBootstrap.class.getName());
 
     @Inject
-    private IndexInitializer indexInitializer;
-
-    @Inject
     private GraphQLSchemaInitializer graphQLSchemaInitializer;
 
     @Produces
@@ -59,22 +56,26 @@ public class SmallRyeGraphQLBootstrap {
     @Named("graphQLSchema")
     private String graphQLSchemaString;
 
-    public GraphQLSchema generateSchema() {
-        try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
-            IndexReader reader = new IndexReader(stream);
-            IndexView i = reader.read();
-            LOG.info("Loaded index from [META-INF/jandex.idx]");
-            return indexToGraphQLSchema(i);
-        } catch (IOException ex) {
-            IndexView i = indexInitializer.createIndex();
-            LOG.info("Loaded index from generation via classpath");
-            return indexToGraphQLSchema(i);
-        }
+    public SmallRyeGraphQLBootstrap() {
     }
 
-    public GraphQLSchema generateSchema(IndexView i) {
-        LOG.info("Loaded index from provided index");
-        return indexToGraphQLSchema(i);
+    public SmallRyeGraphQLBootstrap(IndexView index) {
+        this.index = index;
+    }
+
+    public GraphQLSchema generateSchema() {
+        if (this.index == null) {
+            try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
+                IndexReader reader = new IndexReader(stream);
+                this.index = reader.read();
+                LOG.info("Loaded index from [META-INF/jandex.idx]");
+            } catch (IOException ex) {
+                IndexInitializer indexInitializer = new IndexInitializer();
+                this.index = indexInitializer.createIndex();
+                LOG.info("Loaded index from generation via classpath");
+            }
+        }
+        return indexToGraphQLSchema();
     }
 
     public String getGraphQLSchemaString() {
@@ -84,9 +85,8 @@ public class SmallRyeGraphQLBootstrap {
         return this.graphQLSchemaString;
     }
 
-    private GraphQLSchema indexToGraphQLSchema(IndexView index) {
-        this.index = index;
-        this.graphQLSchema = graphQLSchemaInitializer.getGraphQLSchema();
+    private GraphQLSchema indexToGraphQLSchema() {
+        this.graphQLSchema = graphQLSchemaInitializer.generateGraphQLSchema();
 
         if (graphQLSchema != null) {
             SchemaPrinter schemaPrinter = new SchemaPrinter();

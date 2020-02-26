@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
@@ -37,31 +34,22 @@ import io.smallrye.graphql.schema.type.InputTypeCreator;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class ArgumentsHelper {
-    @Inject
-    private InputTypeCreator inputTypeCreator;
 
-    @Inject
-    private DefaultValueHelper defaultValueHelper;
-
-    @Inject
-    private NameHelper nameHelper;
-
-    @Inject
-    private AnnotationsHelper annotationsHelper;
-
-    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, Annotations annotations) {
-        return toGraphQLArguments(methodInfo, annotations, false);
+    public List<GraphQLArgument> toGraphQLArguments(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
+            Annotations annotations) {
+        return toGraphQLArguments(inputTypeCreator, methodInfo, annotations, false);
     }
 
-    public List<GraphQLArgument> toGraphQLArguments(MethodInfo methodInfo, Annotations annotations,
+    public List<GraphQLArgument> toGraphQLArguments(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
+            Annotations annotations,
             boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
         List<GraphQLArgument> r = new ArrayList<>();
         short cnt = 0;
         for (Type parameter : parameters) {
-            Optional<GraphQLArgument> graphQLArgument = toGraphQLArgument(methodInfo, cnt, parameter, annotations,
+            Optional<GraphQLArgument> graphQLArgument = toGraphQLArgument(inputTypeCreator, methodInfo, cnt, parameter,
+                    annotations,
                     ignoreSourceArgument);
             if (graphQLArgument.isPresent()) {
                 r.add(graphQLArgument.get());
@@ -71,7 +59,8 @@ public class ArgumentsHelper {
         return r;
     }
 
-    private Optional<GraphQLArgument> toGraphQLArgument(MethodInfo methodInfo, short argCount, Type parameter,
+    private Optional<GraphQLArgument> toGraphQLArgument(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
+            short argCount, Type parameter,
             Annotations annotations, boolean ignoreSourceArgument) {
         Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
@@ -128,4 +117,7 @@ public class ArgumentsHelper {
         }
     }
 
+    private final DefaultValueHelper defaultValueHelper = new DefaultValueHelper();
+    private final NameHelper nameHelper = new NameHelper();
+    private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
 }

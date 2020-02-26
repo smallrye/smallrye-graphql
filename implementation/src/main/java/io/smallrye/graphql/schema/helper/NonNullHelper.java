@@ -16,8 +16,6 @@
 
 package io.smallrye.graphql.schema.helper;
 
-import javax.enterprise.context.Dependent;
-
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
@@ -28,7 +26,6 @@ import io.smallrye.graphql.schema.Annotations;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class NonNullHelper {
     private static final Logger LOG = Logger.getLogger(NonNullHelper.class.getName());
 

@@ -23,8 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
@@ -38,7 +36,6 @@ import io.smallrye.graphql.schema.Classes;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class FormatHelper {
 
     public boolean isNumberLikeTypeOrCollectionThereOf(Type type) {
@@ -63,25 +60,6 @@ public class FormatHelper {
         Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
-        }
-        return null;
-    }
-
-    private NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
-        if (jsonbNumberFormatAnnotation != null) {
-            AnnotationValue locale = jsonbNumberFormatAnnotation.value(LOCALE);
-            AnnotationValue format = jsonbNumberFormatAnnotation.value();
-
-            if (format == null && locale == null) {
-                return null;
-            } else if (format == null) {
-                return NumberFormat.getInstance(Locale.forLanguageTag(locale.asString()));
-            } else if (locale == null) {
-                return new DecimalFormat(format.asString());
-            } else {
-                return new DecimalFormat(format.asString(),
-                        DecimalFormatSymbols.getInstance(Locale.forLanguageTag(locale.asString())));
-            }
         }
         return null;
     }
@@ -189,6 +167,25 @@ public class FormatHelper {
             return getDefaultDateTimeFormat(type);
         }
 
+    }
+
+    private NumberFormat getNumberFormat(AnnotationInstance jsonbNumberFormatAnnotation) {
+        if (jsonbNumberFormatAnnotation != null) {
+            AnnotationValue locale = jsonbNumberFormatAnnotation.value(LOCALE);
+            AnnotationValue format = jsonbNumberFormatAnnotation.value();
+
+            if (format == null && locale == null) {
+                return null;
+            } else if (format == null) {
+                return NumberFormat.getInstance(Locale.forLanguageTag(locale.asString()));
+            } else if (locale == null) {
+                return new DecimalFormat(format.asString());
+            } else {
+                return new DecimalFormat(format.asString(),
+                        DecimalFormatSymbols.getInstance(Locale.forLanguageTag(locale.asString())));
+            }
+        }
+        return null;
     }
 
     private Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {

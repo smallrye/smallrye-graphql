@@ -22,7 +22,6 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
-import io.smallrye.graphql.schema.type.scalar.number.*;
 
 /**
  * The Coercing used by numbers

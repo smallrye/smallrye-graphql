@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.jandex.ClassInfo;
@@ -37,27 +36,17 @@ import io.smallrye.graphql.schema.helper.NameHelper;
 /**
  * Create a map of all Enums.
  * 
- * It produces a maps, that can be injected anywhere in the code:
- * - enumMap - contains all enum types.
- * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class EnumTypeCreator implements Creator {
+public class EnumTypeCreator {
 
     @Inject
     private Map<DotName, GraphQLEnumType> enumMap;
 
-    @Inject
-    private NameHelper nameHelper;
+    private final NameHelper nameHelper = new NameHelper();
+    private final DescriptionHelper descriptionHelper = new DescriptionHelper();
+    private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
 
-    @Inject
-    private DescriptionHelper descriptionHelper;
-
-    @Inject
-    private AnnotationsHelper annotationsHelper;
-
-    @Override
     public GraphQLEnumType create(ClassInfo classInfo) {
         if (enumMap.containsKey(classInfo.name())) {
             return enumMap.get(classInfo.name());
