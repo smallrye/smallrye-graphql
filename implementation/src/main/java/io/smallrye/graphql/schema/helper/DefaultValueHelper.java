@@ -18,8 +18,6 @@ package io.smallrye.graphql.schema.helper;
 
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-
 import io.smallrye.graphql.schema.Annotations;
 
 /**
@@ -28,7 +26,6 @@ import io.smallrye.graphql.schema.Annotations;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class DefaultValueHelper {
 
     public Optional<Object> getDefaultValue(Annotations... annotations) {

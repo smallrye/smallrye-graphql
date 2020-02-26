@@ -18,9 +18,6 @@ package io.smallrye.graphql.schema.helper;
 
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 
@@ -32,11 +29,7 @@ import io.smallrye.graphql.schema.Annotations;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class DescriptionHelper {
-
-    @Inject
-    private FormatHelper formatHelper;
 
     public Optional<String> getDescription(Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
@@ -78,4 +71,6 @@ public class DescriptionHelper {
     private String getGivenDescription(Annotations annotations) {
         return annotations.getAnnotation(Annotations.DESCRIPTION).value().asString();
     }
+
+    private final FormatHelper formatHelper = new FormatHelper();
 }

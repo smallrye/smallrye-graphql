@@ -35,8 +35,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
@@ -48,7 +46,6 @@ import org.jboss.logging.Logger;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
 public class IndexInitializer {
     private static final Logger LOG = Logger.getLogger(IndexInitializer.class.getName());
 

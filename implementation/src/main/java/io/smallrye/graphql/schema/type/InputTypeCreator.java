@@ -80,31 +80,20 @@ public class InputTypeCreator implements Creator {
     private Map<DotName, GraphQLScalarType> scalarMap;
 
     @Inject
-    private IndexView index;
-
-    @Inject
-    private NameHelper nameHelper;
-
-    @Inject
-    private DescriptionHelper descriptionHelper;
-
-    @Inject
-    private NonNullHelper nonNullHelper;
-
-    @Inject
-    private IgnoreHelper ignoreHelper;
-
-    @Inject
-    private AnnotationsHelper annotationsHelper;
-
-    @Inject
-    private DefaultValueHelper defaultValueHelper;
-
-    @Inject
     private GraphQLCodeRegistry.Builder codeRegistryBuilder;
 
     @Inject
     private Map<DotName, GraphQLInputType> inputMap;
+
+    @Inject
+    private IndexView index;
+
+    private final NameHelper nameHelper = new NameHelper();
+    private final DescriptionHelper descriptionHelper = new DescriptionHelper();
+    private final NonNullHelper nonNullHelper = new NonNullHelper();
+    private final IgnoreHelper ignoreHelper = new IgnoreHelper();
+    private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
+    private final DefaultValueHelper defaultValueHelper = new DefaultValueHelper();
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {

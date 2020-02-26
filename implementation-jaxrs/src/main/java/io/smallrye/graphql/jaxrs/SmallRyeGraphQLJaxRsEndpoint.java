@@ -55,6 +55,7 @@ public class SmallRyeGraphQLJaxRsEndpoint {
 
     @GET
     @Path("schema.graphql")
+    @Produces(MediaType.TEXT_PLAIN)
     public Response getSchema() {
         return Response.ok(graphQLSchemaString).build();
     }

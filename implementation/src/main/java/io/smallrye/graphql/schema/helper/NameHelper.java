@@ -16,8 +16,6 @@
 
 package io.smallrye.graphql.schema.helper;
 
-import javax.enterprise.context.Dependent;
-
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
@@ -31,7 +29,6 @@ import io.smallrye.graphql.schema.Annotations;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class NameHelper {
 
     public String getEnumName(ClassInfo classInfo, Annotations annotations) {

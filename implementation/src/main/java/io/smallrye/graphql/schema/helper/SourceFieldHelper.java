@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.schema.type;
+package io.smallrye.graphql.schema.helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -41,20 +36,12 @@ import io.smallrye.graphql.schema.Annotations;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
-public class SourceFieldDiscoverer {
-    private static final Logger LOG = Logger.getLogger(SourceFieldDiscoverer.class.getName());
+public class SourceFieldHelper {
+    private static final Logger LOG = Logger.getLogger(SourceFieldHelper.class.getName());
 
-    @Inject
-    private IndexView index;
-
-    @Produces
-    private final Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
-
-    @PostConstruct
-    void scanForSourceAnnotations() {
-
-        Collection<AnnotationInstance> sourceAnnotations = this.index.getAnnotations(Annotations.SOURCE);
+    public Map<DotName, List<MethodParameterInfo>> getAllSourceAnnotations(IndexView index) {
+        Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
+        Collection<AnnotationInstance> sourceAnnotations = index.getAnnotations(Annotations.SOURCE);
         for (AnnotationInstance ai : sourceAnnotations) {
             AnnotationTarget target = ai.target();
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
@@ -67,6 +54,7 @@ public class SourceFieldDiscoverer {
                         + Annotations.SOURCE.local() + " on Method parameters");
             }
         }
+        return sourceFields;
     }
 
 }
