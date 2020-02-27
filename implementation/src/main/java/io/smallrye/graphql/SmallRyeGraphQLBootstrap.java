@@ -65,7 +65,7 @@ public class SmallRyeGraphQLBootstrap {
 
     public GraphQLSchema generateSchema() {
         if (this.index == null) {
-            try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
+            try (InputStream stream = getClass().getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
                 IndexReader reader = new IndexReader(stream);
                 this.index = reader.read();
                 LOG.info("Loaded index from [META-INF/jandex.idx]");
