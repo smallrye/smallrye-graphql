@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.boostrap.datafetcher;
+package io.smallrye.graphql.bootstrap.datafetcher;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;

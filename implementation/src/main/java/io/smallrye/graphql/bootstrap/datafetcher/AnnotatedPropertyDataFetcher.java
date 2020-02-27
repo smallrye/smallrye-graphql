@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.boostrap.datafetcher;
+package io.smallrye.graphql.bootstrap.datafetcher;
 
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;

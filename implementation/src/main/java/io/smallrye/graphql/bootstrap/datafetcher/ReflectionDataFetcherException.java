@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.boostrap.datafetcher;
+package io.smallrye.graphql.bootstrap.datafetcher;
 
 /**
  * There was an issue with the reflection when fetching data.
