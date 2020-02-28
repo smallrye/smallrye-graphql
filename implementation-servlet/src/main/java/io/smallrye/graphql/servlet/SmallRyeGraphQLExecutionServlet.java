@@ -43,7 +43,7 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLExecutionServlet.class.getName());
 
     @Inject
-    private ExecutionService executionService;
+    ExecutionService executionService;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {

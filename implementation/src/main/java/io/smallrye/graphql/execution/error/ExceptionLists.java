@@ -18,12 +18,6 @@ package io.smallrye.graphql.execution.error;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.graphql.ConfigKey;
 import org.jboss.logging.Logger;
 
 /**
@@ -31,20 +25,20 @@ import org.jboss.logging.Logger;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
 public class ExceptionLists {
     private static final Logger LOG = Logger.getLogger(ExceptionLists.class.getName());
 
-    @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
-    private List<String> blackList;
+    private final List<String> blackList;
+    private final List<String> whiteList;
+    private final List<Class> blackListClasses;
+    private final List<Class> whiteListClasses;
 
-    @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
-    private List<String> whiteList;
-
-    private List<Class> blackListClasses;
-    private List<Class> whiteListClasses;
+    public ExceptionLists(List<String> blackList, List<String> whiteList) {
+        this.blackList = blackList;
+        this.whiteList = whiteList;
+        this.blackListClasses = populateClassInstances(blackList);
+        this.whiteListClasses = populateClassInstances(whiteList);
+    }
 
     boolean isBlacklisted(Throwable throwable) {
         return isListed(throwable, blackList, blackListClasses);
@@ -73,12 +67,6 @@ public class ExceptionLists {
         }
 
         return false;
-    }
-
-    @PostConstruct
-    void init() {
-        blackListClasses = populateClassInstances(blackList);
-        whiteListClasses = populateClassInstances(whiteList);
     }
 
     private List<Class> populateClassInstances(List<String> classNames) {
