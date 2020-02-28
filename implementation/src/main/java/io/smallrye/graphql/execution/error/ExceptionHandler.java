@@ -15,11 +15,6 @@
  */
 package io.smallrye.graphql.execution.error;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.graphql.ConfigKey;
 import org.jboss.logging.Logger;
 
 import graphql.ExceptionWhileDataFetching;
@@ -28,26 +23,23 @@ import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
+import io.smallrye.graphql.execution.GraphQLConfig;
 
 /**
  * Here we have the ability to mask certain messages to the client (for security reasons)
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class ExceptionHandler implements DataFetcherExceptionHandler {
     private static final Logger LOG = Logger.getLogger(ExceptionHandler.class.getName());
 
-    @Inject
-    @ConfigProperty(name = ConfigKey.DEFAULT_ERROR_MESSAGE, defaultValue = "Server Error")
-    private String defaultErrorMessage;
+    private final GraphQLConfig config;
+    private final ExceptionLists exceptionLists;
 
-    @Inject
-    ExceptionLists exceptionLists;
-
-    @Inject
-    @ConfigProperty(name = "mp.graphql.printDataFetcherException", defaultValue = "false")
-    private boolean printDataFetcherException;
+    public ExceptionHandler(GraphQLConfig config) {
+        this.config = config;
+        this.exceptionLists = new ExceptionLists(config.getBlackList(), config.getWhiteList());
+    }
 
     @Override
     public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {
@@ -56,7 +48,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
         ExecutionPath path = handlerParameters.getPath();
         ExceptionWhileDataFetching error = getExceptionWhileDataFetching(throwable, sourceLocation, path);
 
-        if (printDataFetcherException) {
+        if (config.isPrintDataFetcherException()) {
             LOG.log(Logger.Level.ERROR, "Data Fetching Error", throwable);
         }
 
@@ -70,12 +62,12 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
             if (exceptionLists.isWhitelisted(throwable)) {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);
             } else {
-                return new GraphQLExceptionWhileDataFetching(defaultErrorMessage, path, throwable, sourceLocation);
+                return new GraphQLExceptionWhileDataFetching(config.getDefaultErrorMessage(), path, throwable, sourceLocation);
             }
         } else {
             // Check for blacklist
             if (exceptionLists.isBlacklisted(throwable)) {
-                return new GraphQLExceptionWhileDataFetching(defaultErrorMessage, path, throwable, sourceLocation);
+                return new GraphQLExceptionWhileDataFetching(config.getDefaultErrorMessage(), path, throwable, sourceLocation);
             } else {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);
             }

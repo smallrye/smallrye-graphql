@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -44,6 +42,8 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
+import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
 /**
@@ -51,15 +51,20 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@RequestScoped
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
-    @Inject
-    private GraphQL graphQL;
+    private final GraphQL graphQL;
+    private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    @Inject
-    private ExecutionErrorsService errorsService;
+    public ExecutionService(GraphQLSchema graphQLSchema) {
+        this(graphQLSchema, new GraphQLConfig());
+    }
+
+    public ExecutionService(GraphQLSchema graphQLSchema, GraphQLConfig config) {
+        ExceptionHandler exceptionHandler = new ExceptionHandler(config);
+        this.graphQL = getGraphQL(graphQLSchema, exceptionHandler);
+    }
 
     public JsonObject execute(JsonObject jsonInput) {
         String query = jsonInput.getString(QUERY);
@@ -72,12 +77,11 @@ public class ExecutionService {
 
             // Variables
             if (jsonInput.containsKey(VARIABLES)) {
-                Map<String, Object> variables = new HashMap<>();
                 JsonValue jvariables = jsonInput.get(VARIABLES);
                 if (!jvariables.equals(JsonValue.NULL)
                         && !jvariables.equals(JsonValue.EMPTY_JSON_OBJECT)
                         && !jvariables.equals(JsonValue.EMPTY_JSON_ARRAY)) {
-                    variables = toMap(jsonInput.getJsonObject(VARIABLES));
+                    Map<String, Object> variables = toMap(jsonInput.getJsonObject(VARIABLES));
                     executionBuilder.variables(variables);
                 }
             }
@@ -197,6 +201,19 @@ public class ExecutionService {
                     break;
             }
         return ret;
+    }
+
+    private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
+        if (graphQLSchema != null) {
+            return GraphQL
+                    .newGraphQL(BootstrapResults.graphQLSchema)
+                    .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
+                    .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
+                    .build();
+        } else {
+            LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");
+        }
+        return null;
     }
 
     private static final String QUERY = "query";

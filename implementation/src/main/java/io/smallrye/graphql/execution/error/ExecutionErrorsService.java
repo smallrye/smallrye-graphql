@@ -20,7 +20,6 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -43,7 +42,6 @@ import graphql.validation.ValidationError;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@Dependent
 public class ExecutionErrorsService {
     private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
 
