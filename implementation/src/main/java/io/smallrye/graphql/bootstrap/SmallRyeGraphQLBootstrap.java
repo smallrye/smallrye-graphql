@@ -50,7 +50,7 @@ public class SmallRyeGraphQLBootstrap {
     }
 
     private IndexView createIndex() {
-        try (InputStream stream = getClass().getResourceAsStream("META-INF/jandex.idx")) {
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
             IndexReader reader = new IndexReader(stream);
             IndexView i = reader.read();
             LOG.info("Loaded index from [META-INF/jandex.idx]");
