@@ -19,14 +19,14 @@ package io.smallrye.graphql.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jboss.logging.Logger;
+
+import io.smallrye.graphql.execution.BootstrapResults;
 
 /**
  * Serving the GraphQL schema
@@ -37,15 +37,11 @@ import org.jboss.logging.Logger;
 public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
 
-    @Inject
-    @Named("graphQLSchema")
-    private String graphQLSchemaString;
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType("text/plain");
         try (PrintWriter out = response.getWriter()) {
-            out.print(graphQLSchemaString);
+            out.print(BootstrapResults.graphQLSchemaString);
             out.flush();
         } catch (IOException ex) {
             LOG.log(Logger.Level.ERROR, null, ex);

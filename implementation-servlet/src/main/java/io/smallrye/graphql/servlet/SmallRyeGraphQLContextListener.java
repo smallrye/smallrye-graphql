@@ -16,14 +16,13 @@
 
 package io.smallrye.graphql.servlet;
 
-import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 
 /**
  * SmallRyeGraphQLBootstrap the GraphQL Runtime
@@ -34,12 +33,10 @@ import io.smallrye.graphql.SmallRyeGraphQLBootstrap;
 public class SmallRyeGraphQLContextListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLContextListener.class.getName());
 
-    @Inject
-    private SmallRyeGraphQLBootstrap bootstrap;
-
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        bootstrap.generateSchema();
+        SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
+        bootstrap.bootstrap();
         LOG.info("SmallRye GraphQL Server started");
     }
 

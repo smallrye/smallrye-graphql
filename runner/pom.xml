@@ -108,4 +108,16 @@
         </dependency>
         
     </dependencies>
+    
+    <profiles>
+        <profile>
+            <id>jdk11plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
+            </properties>
+        </profile>
+    </profiles>
 </project>

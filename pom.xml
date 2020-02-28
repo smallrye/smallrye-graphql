@@ -43,12 +43,10 @@
     <modules>
         <module>implementation</module>
         <module>implementation-servlet</module>
-        <module>implementation-vertx</module>
-        <module>implementation-jaxrs</module>
         <module>tck</module>
         <module>runner</module>
     </modules>
-
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
