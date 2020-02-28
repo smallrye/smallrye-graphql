@@ -16,8 +16,11 @@
 
 package io.smallrye.graphql.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 
 import javax.inject.Inject;
 import javax.json.Json;
@@ -46,8 +49,31 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     ExecutionService executionService;
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        if (executionService.getGraphQLConfig().isAllowGet()) {
+            try (StringReader reader = new StringReader(request.getParameter(QUERY))) {
+                handleInput(reader, response);
+            }
+        } else {
+            try {
+                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
+            } catch (IOException ex) {
+                LOG.log(Logger.Level.ERROR, null, ex);
+            }
+        }
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        try (JsonReader jsonReader = Json.createReader(request.getReader())) {
+        try (BufferedReader reader = request.getReader()) {
+            handleInput(reader, response);
+        } catch (IOException ex) {
+            LOG.log(Logger.Level.ERROR, null, ex);
+        }
+    }
+
+    private void handleInput(Reader inputReader, HttpServletResponse response) {
+        try (JsonReader jsonReader = Json.createReader(inputReader)) {
             JsonObject jsonInput = jsonReader.readObject();
 
             JsonObject outputJson = executionService.execute(jsonInput);
@@ -66,4 +92,6 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     }
 
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
+
+    private static final String QUERY = "query";
 }

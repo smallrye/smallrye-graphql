@@ -18,15 +18,17 @@ package io.smallrye.graphql.servlet;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.ConfigKey;
+import org.jboss.logging.Logger;
 
+import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
-import io.smallrye.graphql.execution.BootstrapResults;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.GraphQLConfig;
 
@@ -37,6 +39,7 @@ import io.smallrye.graphql.execution.GraphQLConfig;
  */
 @ApplicationScoped
 public class BeansProducer {
+    private static final Logger LOG = Logger.getLogger(BeansProducer.class.getName());
 
     @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
@@ -54,19 +57,33 @@ public class BeansProducer {
     @ConfigProperty(name = "mp.graphql.printDataFetcherException", defaultValue = "false")
     private boolean printDataFetcherException;
 
-    @Produces
-    ExecutionService produceExecutionService() {
-        GraphQLConfig config = new GraphQLConfig();
+    private GraphQLConfig config;
+
+    @PostConstruct
+    void init() {
+        this.config = new GraphQLConfig();
         config.setBlackList(blackList);
         config.setWhiteList(whiteList);
         config.setPrintDataFetcherException(printDataFetcherException);
         config.setDefaultErrorMessage(defaultErrorMessage);
-        return new ExecutionService(BootstrapResults.graphQLSchema, config);
+
+    }
+
+    @Produces
+    ExecutionService produceExecutionService() {
+        return new ExecutionService(graphQLSchema, config);
+    }
+
+    @Produces
+    GraphQLSchema produceGraphQLSchema() {
+        return graphQLSchema;
     }
 
     static {
         SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
-        bootstrap.bootstrap();
+        graphQLSchema = bootstrap.bootstrap();
+        LOG.info("SmallRye GraphQL Bootstrapped");
     }
 
+    private static final GraphQLSchema graphQLSchema;
 }

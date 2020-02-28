@@ -24,17 +24,20 @@ import java.util.List;
  */
 public class GraphQLConfig {
 
-    // mp.graphql.defaultErrorMessage
+    // mp.graphql.defaultErrorMessage (MicroProfile)
     private String defaultErrorMessage = "Server Error";
 
-    // mp.graphql.printDataFetcherException
-    private boolean printDataFetcherException = false;
-
-    // mp.graphql.exceptionsBlackList
+    // mp.graphql.exceptionsBlackList (MicroProfile)
     private List<String> blackList = null;
 
-    // mp.graphql.exceptionsWhiteList
+    // mp.graphql.exceptionsWhiteList (MicroProfile)
     private List<String> whiteList = null;
+
+    // mp.graphql.printDataFetcherException (SmallRye)
+    private boolean printDataFetcherException = false;
+
+    // mp.graphql.allowGet (SmallRye)
+    private boolean allowGet = false;
 
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
@@ -66,6 +69,14 @@ public class GraphQLConfig {
 
     public void setWhiteList(List<String> whiteList) {
         this.whiteList = whiteList;
+    }
+
+    public boolean isAllowGet() {
+        return allowGet;
+    }
+
+    public void setAllowGet(boolean allowGet) {
+        this.allowGet = allowGet;
     }
 
 }
