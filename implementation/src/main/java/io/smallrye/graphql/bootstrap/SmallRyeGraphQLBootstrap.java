@@ -23,10 +23,9 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
-import graphql.schema.idl.SchemaPrinter;
+import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
-import io.smallrye.graphql.execution.BootstrapResults;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -37,16 +36,13 @@ import io.smallrye.graphql.execution.BootstrapResults;
 public class SmallRyeGraphQLBootstrap {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLBootstrap.class.getName());
 
-    public void bootstrap() {
-        bootstrap(createIndex());
+    public GraphQLSchema bootstrap() {
+        return bootstrap(createIndex());
     }
 
-    public void bootstrap(IndexView index) {
+    public GraphQLSchema bootstrap(IndexView index) {
         GraphQLSchemaInitializer graphQLSchemaInitializer = new GraphQLSchemaInitializer(index);
-        BootstrapResults.graphQLSchema = graphQLSchemaInitializer.generateGraphQLSchema();
-
-        SchemaPrinter schemaPrinter = new SchemaPrinter();
-        BootstrapResults.graphQLSchemaString = schemaPrinter.print(BootstrapResults.graphQLSchema);
+        return graphQLSchemaInitializer.generateGraphQLSchema();
     }
 
     private IndexView createIndex() {

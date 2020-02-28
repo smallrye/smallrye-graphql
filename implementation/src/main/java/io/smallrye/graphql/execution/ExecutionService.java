@@ -54,14 +54,17 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
-    private final GraphQL graphQL;
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
+
+    private final GraphQL graphQL;
+    private final GraphQLConfig config;
 
     public ExecutionService(GraphQLSchema graphQLSchema) {
         this(graphQLSchema, new GraphQLConfig());
     }
 
     public ExecutionService(GraphQLSchema graphQLSchema, GraphQLConfig config) {
+        this.config = config;
         ExceptionHandler exceptionHandler = new ExceptionHandler(config);
         this.graphQL = getGraphQL(graphQLSchema, exceptionHandler);
     }
@@ -109,6 +112,10 @@ public class ExecutionService {
             LOG.warn("\t" + query);
             return null;
         }
+    }
+
+    public GraphQLConfig getGraphQLConfig() {
+        return this.config;
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
@@ -206,7 +213,7 @@ public class ExecutionService {
     private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
         if (graphQLSchema != null) {
             return GraphQL
-                    .newGraphQL(BootstrapResults.graphQLSchema)
+                    .newGraphQL(graphQLSchema)
                     .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();
