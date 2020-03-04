@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -43,6 +46,7 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
@@ -51,22 +55,21 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@ApplicationScoped
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    private final GraphQL graphQL;
-    private final GraphQLConfig config;
+    private GraphQL graphQL;
 
-    public ExecutionService(GraphQLSchema graphQLSchema) {
-        this(graphQLSchema, new GraphQLConfig());
-    }
+    @Inject
+    private GraphQLConfig config;
 
-    public ExecutionService(GraphQLSchema graphQLSchema, GraphQLConfig config) {
-        this.config = config;
+    @PostConstruct
+    public void init() {
         ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-        this.graphQL = getGraphQL(graphQLSchema, exceptionHandler);
+        this.graphQL = getGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA, exceptionHandler);
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -112,10 +115,6 @@ public class ExecutionService {
             LOG.warn("\t" + query);
             return null;
         }
-    }
-
-    public GraphQLConfig getGraphQLConfig() {
-        return this.config;
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
@@ -213,7 +212,7 @@ public class ExecutionService {
     private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
         if (graphQLSchema != null) {
             return GraphQL
-                    .newGraphQL(graphQLSchema)
+                    .newGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA)
                     .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();

@@ -36,13 +36,16 @@ import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
 public class SmallRyeGraphQLBootstrap {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLBootstrap.class.getName());
 
+    public static GraphQLSchema GRAPHQL_SCHEMA;
+
     public GraphQLSchema bootstrap() {
         return bootstrap(createIndex());
     }
 
     public GraphQLSchema bootstrap(IndexView index) {
         GraphQLSchemaInitializer graphQLSchemaInitializer = new GraphQLSchemaInitializer(index);
-        return graphQLSchemaInitializer.generateGraphQLSchema();
+        GRAPHQL_SCHEMA = graphQLSchemaInitializer.generateGraphQLSchema();
+        return GRAPHQL_SCHEMA;
     }
 
     private IndexView createIndex() {

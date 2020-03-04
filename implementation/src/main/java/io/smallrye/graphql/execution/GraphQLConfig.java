@@ -17,27 +17,39 @@ package io.smallrye.graphql.execution;
 
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.graphql.ConfigKey;
+
 /**
  * Configuration for GraphQL
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@ApplicationScoped
 public class GraphQLConfig {
 
-    // mp.graphql.defaultErrorMessage (MicroProfile)
-    private String defaultErrorMessage = "Server Error";
+    @Inject
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
+    private List<String> blackList;
 
-    // mp.graphql.exceptionsBlackList (MicroProfile)
-    private List<String> blackList = null;
+    @Inject
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
+    private List<String> whiteList;
 
-    // mp.graphql.exceptionsWhiteList (MicroProfile)
-    private List<String> whiteList = null;
+    @Inject
+    @ConfigProperty(name = ConfigKey.DEFAULT_ERROR_MESSAGE, defaultValue = "Server Error")
+    private String defaultErrorMessage;
 
-    // mp.graphql.printDataFetcherException (SmallRye)
-    private boolean printDataFetcherException = false;
+    @Inject
+    @ConfigProperty(name = "mp.graphql.printDataFetcherException", defaultValue = "false")
+    private boolean printDataFetcherException;
 
-    // mp.graphql.allowGet (SmallRye)
-    private boolean allowGet = false;
+    @Inject
+    @ConfigProperty(name = "mp.graphql.allowGet", defaultValue = "false")
+    private boolean allowGet;
 
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;

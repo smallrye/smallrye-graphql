@@ -71,17 +71,26 @@ public class ExceptionLists {
 
     private List<Class> populateClassInstances(List<String> classNames) {
         List<Class> classes = new ArrayList<>();
-        if (classNames != null) {
+        if (classNames != null && !classNames.isEmpty()) {
             for (String className : classNames) {
-                try {
-                    classes.add(Class.forName(className));
-                } catch (ClassNotFoundException ex) {
-                    LOG.warn("Could not create instance of exception class [" + className
-                            + "]. Can not do transitive black/whitelist check for this class");
+                Class c = loadClass(className);
+                if (c != null) {
+                    classes.add(c);
                 }
             }
         }
         return classes;
+    }
+
+    private Class loadClass(String className) {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            return classLoader.loadClass(className);
+        } catch (ClassNotFoundException ex) {
+            LOG.warn("Could not create instance of exception class [" + className
+                    + "]. Can not do transitive black/whitelist check for this class");
+        }
+        return null;
     }
 
 }

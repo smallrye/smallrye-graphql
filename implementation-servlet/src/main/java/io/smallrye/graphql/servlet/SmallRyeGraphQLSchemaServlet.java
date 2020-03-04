@@ -19,7 +19,6 @@ package io.smallrye.graphql.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.inject.Inject;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,8 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jboss.logging.Logger;
 
-import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
+import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 
 /**
  * Serving the GraphQL schema
@@ -39,12 +38,9 @@ import graphql.schema.idl.SchemaPrinter;
 public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
 
-    @Inject
-    GraphQLSchema graphQLSchema;
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        response.setContentType("text/plain");
+        response.setContentType(CONTENT_TYPE);
         try (PrintWriter out = response.getWriter()) {
             out.print(graphQLSchemaToString());
             out.flush();
@@ -54,8 +50,20 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     }
 
     private String graphQLSchemaToString() {
-        return schemaPrinter.print(graphQLSchema);
+        return SCHEMA_PRINTER.print(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA);
     }
 
-    private final SchemaPrinter schemaPrinter = new SchemaPrinter();
+    private static final String CONTENT_TYPE = "text/plain";
+    private static SchemaPrinter SCHEMA_PRINTER;
+    static {
+        SchemaPrinter.Options options = SchemaPrinter.Options.defaultOptions();
+        options = options.descriptionsAsHashComments(false);
+        options = options.includeDirectives(false);
+        options = options.includeExtendedScalarTypes(false);
+        options = options.includeIntrospectionTypes(false);
+        options = options.includeScalarTypes(false);
+        options = options.includeSchemaDefinition(false);
+        options = options.useAstDefinitions(false);
+        SCHEMA_PRINTER = new SchemaPrinter(options);
+    }
 }
