@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.ExecutionService;
+import io.smallrye.graphql.execution.GraphQLConfig;
 
 /**
  * Executing the GraphQL request
@@ -48,9 +49,12 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     @Inject
     ExecutionService executionService;
 
+    @Inject
+    GraphQLConfig config;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        if (executionService.getGraphQLConfig().isAllowGet()) {
+        if (config.isAllowGet()) {
             try (StringReader reader = new StringReader(request.getParameter(QUERY))) {
                 handleInput(reader, response);
             }

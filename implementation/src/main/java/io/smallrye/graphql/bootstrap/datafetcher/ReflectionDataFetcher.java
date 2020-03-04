@@ -59,37 +59,35 @@ import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 public class ReflectionDataFetcher implements DataFetcher {
     private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
-    private final Method method;
-    private final Class declaringClass;
-    private List<Argument> arguments;
-
+    private final List<Argument> arguments;
     private final boolean hasArguments;
-
+    private final String methodName;
     private final CollectionHelper collectionHelper = new CollectionHelper();
 
+    private final Class declaringClass;
+    private final Class[] parameterClasses;
+
     public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments) {
-        try {
-            this.arguments = arguments;
-
-            this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
-            Class[] parameterClasses = getParameterClasses(arguments);
-            this.hasArguments = parameterClasses.length != 0;
-
-            if (hasArguments) {
-                this.method = this.declaringClass.getMethod(methodInfo.name(), parameterClasses);
-            } else {
-                this.method = this.declaringClass.getMethod(methodInfo.name());
-            }
-        } catch (NoSuchMethodException | SecurityException ex) {
-            throw new ReflectionDataFetcherException(ex);
-        }
+        this.methodName = methodInfo.name();
+        this.arguments = arguments;
+        this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
+        this.parameterClasses = getParameterClasses(arguments);
+        this.hasArguments = parameterClasses.length != 0;
     }
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
+
         try {
             Object declaringObject = CDI.current().select(declaringClass).get();
-            return method.invoke(declaringObject, getArguments(dfe).toArray());
+            Class cdiClass = declaringObject.getClass();
+            if (hasArguments) {
+                Method method = cdiClass.getMethod(methodName, parameterClasses);
+                return method.invoke(declaringObject, getArguments(dfe).toArray());
+            } else {
+                Method method = cdiClass.getMethod(methodName);
+                return method.invoke(declaringObject, getArguments(dfe).toArray());
+            }
         } catch (TransformException pe) {
             return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException ite) {
@@ -312,13 +310,13 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private String toJsonString(Map inputMap, Argument argument) throws GraphQLException {
-        DotName className = DotName.createSimple(argument.getArgumentClass().getName());
+        DotName classDotName = DotName.createSimple(argument.getArgumentClass().getName());
         try (Jsonb jsonb = JsonbBuilder.create()) {
 
             // See if there are any formatting type annotations of this class definition and if any of the input fields needs formatting.
-            if (ObjectBag.ARGUMENT_MAP.containsKey(className) &&
-                    hasInputFieldsThatNeedsFormatting(className, inputMap)) {
-                Map<String, Argument> fieldsThatShouldBeFormatted = ObjectBag.ARGUMENT_MAP.get(className);
+            if (ObjectBag.ARGUMENT_MAP.containsKey(classDotName) &&
+                    hasInputFieldsThatNeedsFormatting(classDotName, inputMap)) {
+                Map<String, Argument> fieldsThatShouldBeFormatted = ObjectBag.ARGUMENT_MAP.get(classDotName);
                 Set<Map.Entry> inputValues = inputMap.entrySet();
                 for (Map.Entry keyValue : inputValues) {
                     String key = String.valueOf(keyValue.getKey());
@@ -362,14 +360,12 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Class loadClass(String className) {
-        ClassLoader classLoader = ReflectionDataFetcher.class.getClassLoader();
-        Class clazz = null;
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
-            clazz = classLoader.loadClass(className);
+            return classLoader.loadClass(className);
         } catch (ClassNotFoundException ex) {
             throw new ReflectionDataFetcherException("Could not find class [" + className + "]", ex);
         }
-        return clazz;
     }
 
     private Class[] getParameterClasses(List<Argument> arguments) {
