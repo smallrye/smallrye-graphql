@@ -25,18 +25,18 @@ import org.eclipse.microprofile.graphql.ConfigKey;
 
 /**
  * Configuration for GraphQL
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
 public class GraphQLConfig {
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = ",")
     private List<String> blackList;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = ",")
     private List<String> whiteList;
 
     @Inject
