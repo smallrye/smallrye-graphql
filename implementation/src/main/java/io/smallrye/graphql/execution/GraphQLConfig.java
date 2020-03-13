@@ -15,7 +15,10 @@
  */
 package io.smallrye.graphql.execution;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -25,19 +28,19 @@ import org.eclipse.microprofile.graphql.ConfigKey;
 
 /**
  * Configuration for GraphQL
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
 public class GraphQLConfig {
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
-    private List<String> blackList;
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST)
+    private Optional<List<String>> blackList;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
-    private List<String> whiteList;
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST)
+    private Optional<List<String>> whiteList;
 
     @Inject
     @ConfigProperty(name = ConfigKey.DEFAULT_ERROR_MESSAGE, defaultValue = "Server Error")
@@ -68,19 +71,19 @@ public class GraphQLConfig {
     }
 
     public List<String> getBlackList() {
-        return blackList;
+        return blackList.orElse(emptyList());
     }
 
     public void setBlackList(List<String> blackList) {
-        this.blackList = blackList;
+        this.blackList = Optional.ofNullable(blackList);
     }
 
     public List<String> getWhiteList() {
-        return whiteList;
+        return whiteList.orElse(emptyList());
     }
 
     public void setWhiteList(List<String> whiteList) {
-        this.whiteList = whiteList;
+        this.whiteList = Optional.ofNullable(whiteList);
     }
 
     public boolean isAllowGet() {
