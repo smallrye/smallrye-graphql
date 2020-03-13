@@ -111,7 +111,16 @@ public class OutputTypeCreator implements Creator {
 
             // Fields
             objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
-
+            
+            // Super class
+            DotName superClassName = classInfo.superName();
+            if (superClassName != null) {
+                ClassInfo sc = index.getClassByName(superClassName);
+                if (sc != null) {
+                    objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(sc, name));
+                }
+            }
+            
             // Interfaces
             List<DotName> interfaceNames = classInfo.interfaceNames();
             for (DotName interfaceName : interfaceNames) {
