@@ -15,6 +15,9 @@
  */
 package io.smallrye.graphql.execution;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -31,12 +34,15 @@ import org.eclipse.microprofile.graphql.ConfigKey;
 @ApplicationScoped
 public class GraphQLConfig {
 
+    private static final String SUPPOSED_EMPTY_STRING = "**empty**";
+    private static final List<String> SUPPOSED_EMPTY_LIST = singletonList(SUPPOSED_EMPTY_STRING);
+
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "[]")
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = SUPPOSED_EMPTY_STRING)
     private List<String> blackList;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "[]")
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = SUPPOSED_EMPTY_STRING)
     private List<String> whiteList;
 
     @Inject
@@ -68,6 +74,9 @@ public class GraphQLConfig {
     }
 
     public List<String> getBlackList() {
+        if (SUPPOSED_EMPTY_LIST.equals(blackList)) {
+            blackList = emptyList();
+        }
         return blackList;
     }
 
@@ -76,6 +85,9 @@ public class GraphQLConfig {
     }
 
     public List<String> getWhiteList() {
+        if (SUPPOSED_EMPTY_LIST.equals(whiteList)) {
+            whiteList = emptyList();
+        }
         return whiteList;
     }
 
