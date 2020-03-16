@@ -196,7 +196,7 @@ public class ReflectionDataFetcher implements DataFetcher {
 
         List convertedList = new ArrayList();
 
-        Argument argumentInCollection = new Argument(typeInCollection.name().local(), typeInCollection,
+        Argument argumentInCollection = new Argument(typeInCollection.name().local(), a.getDescription(), typeInCollection,
                 a.getAnnotations());
 
         for (Object o : givenCollection) {
@@ -214,7 +214,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         Collection givenCollection = (Collection) argumentValue;
 
         Type typeInCollection = type.asParameterizedType().arguments().get(0);
-        Argument argumentInCollection = new Argument(typeInCollection.name().local(), typeInCollection,
+        Argument argumentInCollection = new Argument(typeInCollection.name().local(), a.getDescription(), typeInCollection,
                 a.getAnnotations());
 
         for (Object o : givenCollection) {

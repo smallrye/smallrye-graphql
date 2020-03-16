@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -93,8 +92,7 @@ public class GraphQLSchemaInitializer {
             List<MethodInfo> methods = apiClass.methods();
             for (MethodInfo method : methods) {
 
-                Annotations annotationsForMethod = annotationsHelper.getAnnotationsForMethod(method,
-                        AnnotationTarget.Kind.METHOD);
+                Annotations annotationsForMethod = annotationsHelper.getAnnotationsForMethod(method);
                 if (annotationsForMethod.containsOneOfTheseKeys(Annotations.QUERY)) {
                     queryBuilder = addField(queryBuilder, annotationsForMethod, Annotations.QUERY);
                 }
@@ -177,16 +175,16 @@ public class GraphQLSchemaInitializer {
         String fieldName = nameHelper.getExecutionTypeName(graphQLAnnotation, annotations);
         builder = builder.name(fieldName);
 
-        // Description
-        Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
-        builder = builder.description(maybeDescription.orElse(null));
-
         // Type (output)
         builder = builder
                 .type(outputTypeCreator.createGraphQLOutputType(returnType, annotations));
 
         // Arguments (input)
-        builder.arguments(argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo, annotations));
+        builder.arguments(argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo));
+
+        // Description
+        Optional<String> maybeDescription = descriptionHelper.getDescriptionForType(annotations);
+        builder = builder.description(maybeDescription.orElse(null));
 
         return builder.build();
     }

@@ -36,20 +36,17 @@ import io.smallrye.graphql.bootstrap.type.InputTypeCreator;
  */
 public class ArgumentsHelper {
 
-    public List<GraphQLArgument> toGraphQLArguments(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
-            Annotations annotations) {
-        return toGraphQLArguments(inputTypeCreator, methodInfo, annotations, false);
+    public List<GraphQLArgument> toGraphQLArguments(InputTypeCreator inputTypeCreator, MethodInfo methodInfo) {
+        return toGraphQLArguments(inputTypeCreator, methodInfo, false);
     }
 
     public List<GraphQLArgument> toGraphQLArguments(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
-            Annotations annotations,
             boolean ignoreSourceArgument) {
         List<Type> parameters = methodInfo.parameters();
         List<GraphQLArgument> r = new ArrayList<>();
         short cnt = 0;
         for (Type parameter : parameters) {
             Optional<GraphQLArgument> graphQLArgument = toGraphQLArgument(inputTypeCreator, methodInfo, cnt, parameter,
-                    annotations,
                     ignoreSourceArgument);
             if (graphQLArgument.isPresent()) {
                 r.add(graphQLArgument.get());
@@ -59,9 +56,11 @@ public class ArgumentsHelper {
         return r;
     }
 
-    private Optional<GraphQLArgument> toGraphQLArgument(InputTypeCreator inputTypeCreator, MethodInfo methodInfo,
-            short argCount, Type parameter,
-            Annotations annotations, boolean ignoreSourceArgument) {
+    private Optional<GraphQLArgument> toGraphQLArgument(InputTypeCreator inputTypeCreator,
+            MethodInfo methodInfo,
+            short argCount,
+            Type parameter,
+            boolean ignoreSourceArgument) {
         Annotations annotationsForThisArgument = annotationsHelper.getAnnotationsForArgument(methodInfo, argCount);
 
         if (ignoreSourceArgument && annotationsForThisArgument.containsOneOfTheseKeys(Annotations.SOURCE)) {
@@ -69,13 +68,15 @@ public class ArgumentsHelper {
         } else {
             String defaultName = methodInfo.parameterName(argCount);
             String argName = nameHelper.getArgumentName(annotationsForThisArgument, defaultName);
-            GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotations);
+            GraphQLInputType inputType = inputTypeCreator.createGraphQLInputType(parameter, annotationsForThisArgument);
 
             GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument();
             argumentBuilder = argumentBuilder.name(argName);
             argumentBuilder = argumentBuilder.type(inputType);
             Optional<Object> maybeDefaultValue = defaultValueHelper.getDefaultValue(annotationsForThisArgument);
             argumentBuilder = argumentBuilder.defaultValue(maybeDefaultValue.orElse(null));
+            Optional<String> maybeDescription = descriptionHelper.getDescriptionForField(annotationsForThisArgument, parameter);
+            argumentBuilder = argumentBuilder.description(maybeDescription.orElse(null));
 
             return Optional.of(argumentBuilder.build());
         }
@@ -110,7 +111,9 @@ public class ArgumentsHelper {
             Argument argument = new Argument();
             String defaultName = methodInfo.parameterName(argCount);
             String name = nameHelper.getArgumentName(annotationsForThisArgument, defaultName);
+            Optional<String> description = descriptionHelper.getDescriptionForField(annotationsForThisArgument, parameter);
             argument.setName(name);
+            argument.setDescription(description.orElse(null));
             argument.setType(parameter);
             argument.setAnnotations(annotationsForThisArgument);
             return Optional.of(argument);
@@ -120,4 +123,5 @@ public class ArgumentsHelper {
     private final DefaultValueHelper defaultValueHelper = new DefaultValueHelper();
     private final NameHelper nameHelper = new NameHelper();
     private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
+    private final DescriptionHelper descriptionHelper = new DescriptionHelper();
 }

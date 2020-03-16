@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -106,12 +105,12 @@ public class OutputTypeCreator implements Creator {
             objectTypeBuilder = objectTypeBuilder.name(name);
 
             // Description
-            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            Optional<String> maybeDescription = descriptionHelper.getDescriptionForType(annotations);
             objectTypeBuilder = objectTypeBuilder.description(maybeDescription.orElse(null));
 
             // Fields
             objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
-            
+
             // Super class
             DotName superClassName = classInfo.superName();
             if (superClassName != null) {
@@ -120,7 +119,7 @@ public class OutputTypeCreator implements Creator {
                     objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(sc, name));
                 }
             }
-            
+
             // Interfaces
             List<DotName> interfaceNames = classInfo.interfaceNames();
             for (DotName interfaceName : interfaceNames) {
@@ -147,7 +146,7 @@ public class OutputTypeCreator implements Creator {
             interfaceTypeBuilder = interfaceTypeBuilder.name(name);
 
             // Description
-            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            Optional<String> maybeDescription = descriptionHelper.getDescriptionForType(annotations);
             interfaceTypeBuilder = interfaceTypeBuilder.description(maybeDescription.orElse(null));
 
             // Fields
@@ -245,8 +244,7 @@ public class OutputTypeCreator implements Creator {
                 MethodInfo methodInfo = methodParameterInfo.method();
 
                 // Annotations on this method
-                Annotations methodAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
-                        AnnotationTarget.Kind.METHOD);
+                Annotations methodAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo);
                 if (!ignoreHelper.shouldIgnore(methodAnnotations)) {
 
                     Type type = methodParameterInfo.method().returnType();
@@ -255,10 +253,8 @@ public class OutputTypeCreator implements Creator {
                             type, methodInfo.returnType());
 
                     // Arguments (input) except @Source
-                    Annotations parameterAnnotations = annotationsHelper.getAnnotationsForMethod(methodInfo,
-                            AnnotationTarget.Kind.METHOD_PARAMETER);
                     builder.arguments(
-                            argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo, parameterAnnotations, true));
+                            argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo, true));
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
@@ -282,7 +278,7 @@ public class OutputTypeCreator implements Creator {
         builder = builder.name(nameHelper.getOutputNameForField(annotations, fieldName));
 
         // Description
-        Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, fieldType);
+        Optional<String> maybeFieldDescription = descriptionHelper.getDescriptionForField(annotations, fieldType);
         builder = builder.description(maybeFieldDescription.orElse(null));
 
         // Type
