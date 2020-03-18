@@ -122,7 +122,7 @@ public class GraphQLSchemaInitializer {
         ObjectBag.CODE_REGISTRY_BUILDER.dataFetcher(
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
-                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo)));
+                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo), annotationsForMethod));
 
         // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {

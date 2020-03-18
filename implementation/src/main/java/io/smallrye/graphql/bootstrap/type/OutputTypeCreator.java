@@ -261,7 +261,7 @@ public class OutputTypeCreator implements Creator {
                     ObjectBag.CODE_REGISTRY_BUILDER.dataFetcher(
                             FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArguments(methodInfo)));
+                                    argumentsHelper.toArguments(methodInfo), methodAnnotations));
 
                     fieldDefinitions.add(graphQLFieldDefinition);
                 }

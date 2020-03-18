@@ -43,6 +43,7 @@ import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
+import io.smallrye.graphql.bootstrap.Annotations;
 import io.smallrye.graphql.bootstrap.Argument;
 import io.smallrye.graphql.bootstrap.Classes;
 import io.smallrye.graphql.bootstrap.ObjectBag;
@@ -59,6 +60,8 @@ import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 public class ReflectionDataFetcher implements DataFetcher {
     private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
+    private final TransformableDataFetcherHelper transformableDataFetcherHelper;
+
     private final List<Argument> arguments;
     private final boolean hasArguments;
     private final String methodName;
@@ -67,26 +70,26 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final Class declaringClass;
     private final Class[] parameterClasses;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments) {
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Annotations annotations) {
         this.methodName = methodInfo.name();
         this.arguments = arguments;
         this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
         this.parameterClasses = getParameterClasses(arguments);
         this.hasArguments = parameterClasses.length != 0;
+        this.transformableDataFetcherHelper = new TransformableDataFetcherHelper(methodInfo.returnType(), annotations);
     }
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
-
         try {
             Object declaringObject = CDI.current().select(declaringClass).get();
             Class cdiClass = declaringObject.getClass();
             if (hasArguments) {
                 Method method = cdiClass.getMethod(methodName, parameterClasses);
-                return method.invoke(declaringObject, getArguments(dfe).toArray());
+                return transformableDataFetcherHelper.transform(method.invoke(declaringObject, getArguments(dfe).toArray()));
             } else {
                 Method method = cdiClass.getMethod(methodName);
-                return method.invoke(declaringObject, getArguments(dfe).toArray());
+                return transformableDataFetcherHelper.transform(method.invoke(declaringObject, getArguments(dfe).toArray()));
             }
         } catch (TransformException pe) {
             return pe.getDataFetcherResult(dfe);
@@ -375,5 +378,4 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
         return cl.toArray(new Class[] {});
     }
-
 }
