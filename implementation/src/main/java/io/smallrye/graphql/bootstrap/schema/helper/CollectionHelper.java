@@ -27,7 +27,7 @@ import org.jboss.logging.Logger;
 
 /**
  * Helping with collections
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CollectionHelper {
