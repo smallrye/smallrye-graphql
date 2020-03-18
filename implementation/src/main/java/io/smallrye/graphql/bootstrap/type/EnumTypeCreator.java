@@ -52,7 +52,7 @@ public class EnumTypeCreator {
                     .name(name);
 
             // Description
-            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            Optional<String> maybeDescription = descriptionHelper.getDescriptionForType(annotations);
             builder = builder.description(maybeDescription.orElse(null));
 
             // Values

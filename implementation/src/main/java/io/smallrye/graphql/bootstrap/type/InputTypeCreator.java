@@ -86,7 +86,7 @@ public class InputTypeCreator implements Creator {
             GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject().name(name);
 
             // Description
-            Optional<String> maybeDescription = descriptionHelper.getDescription(annotations);
+            Optional<String> maybeDescription = descriptionHelper.getDescriptionForType(annotations);
             inputObjectTypeBuilder = inputObjectTypeBuilder.description(maybeDescription.orElse(null));
 
             // Fields
@@ -125,7 +125,8 @@ public class InputTypeCreator implements Creator {
                     builder = builder.name(fieldName);
 
                     // Description
-                    Optional<String> maybeFieldDescription = descriptionHelper.getDescription(annotations, field);
+                    Optional<String> maybeFieldDescription = descriptionHelper.getDescriptionForField(annotations,
+                            field.type());
                     builder = builder.description(maybeFieldDescription.orElse(null));
 
                     // Type
@@ -149,7 +150,14 @@ public class InputTypeCreator implements Creator {
                     }
                     // Other annotation for other transformation
                     if (annotations.hasGraphQLFormatingAnnotations()) {
-                        fieldAnnotationsMapping.put(fieldName, new Argument(fieldName, field.type(), annotations));
+                        Optional<String> description = descriptionHelper.getDescriptionForField(annotationsForThisArgument,
+                                field.type());
+                        Argument a = new Argument();
+                        a.setName(fieldName);
+                        a.setAnnotations(annotations); // TODO: Should this not be annotationsForThisArgument
+                        a.setType(field.type());
+                        a.setDescription(description.orElse(null));
+                        fieldAnnotationsMapping.put(fieldName, a);
                     }
                 }
             }

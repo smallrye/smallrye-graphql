@@ -26,6 +26,7 @@ import io.smallrye.graphql.bootstrap.schema.ArgumentTypeNotFoundException;
  */
 public class Argument {
     private String name;
+    private String description;
     private Type type;
     private Annotations annotations;
 
@@ -33,7 +34,7 @@ public class Argument {
         super();
     }
 
-    public Argument(String name, Type type, Annotations annotations) {
+    public Argument(String name, String description, Type type, Annotations annotations) {
         super();
         this.name = name;
         this.type = type;
@@ -46,6 +47,14 @@ public class Argument {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Type getType() {

@@ -18,7 +18,6 @@ package io.smallrye.graphql.bootstrap.schema.helper;
 
 import java.util.Optional;
 
-import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.bootstrap.Annotations;
@@ -31,18 +30,16 @@ import io.smallrye.graphql.bootstrap.Annotations;
  */
 public class DescriptionHelper {
 
-    public Optional<String> getDescription(Annotations annotations) {
+    // Used by types (Enum, Input and Output)
+    public Optional<String> getDescriptionForType(Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
             return Optional.of(annotations.getAnnotationValue(Annotations.DESCRIPTION).asString());
         }
         return Optional.empty();
     }
 
-    public Optional<String> getDescription(Annotations annotations, FieldInfo field) {
-        return getDescription(annotations, field.type());
-    }
-
-    public Optional<String> getDescription(Annotations annotations, Type type) {
+    // Used by return types and input parameters, on types
+    public Optional<String> getDescriptionForField(Annotations annotations, Type type) {
         if (formatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
             String dateFormat = formatHelper.getDateFormat(annotations, type);
             if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {

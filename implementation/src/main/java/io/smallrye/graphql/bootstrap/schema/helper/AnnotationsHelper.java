@@ -29,6 +29,7 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.bootstrap.Annotations;
 
@@ -38,6 +39,7 @@ import io.smallrye.graphql.bootstrap.Annotations;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AnnotationsHelper {
+    private static final Logger LOG = Logger.getLogger(AnnotationsHelper.class.getName());
 
     public Annotations getAnnotationsForClass(ClassInfo classInfo) {
 
@@ -163,19 +165,16 @@ public class AnnotationsHelper {
         return annotationMap;
     }
 
-    public Annotations getAnnotationsForMethod(MethodInfo methodInfo, AnnotationTarget.Kind... kindsFilter) {
-        List<AnnotationTarget.Kind> kinds = Arrays.asList(kindsFilter);
+    public Annotations getAnnotationsForMethod(MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
         for (AnnotationInstance annotationInstance : methodInfo.annotations()) {
             DotName name = annotationInstance.name();
             AnnotationTarget.Kind kind = annotationInstance.target().kind();
-
-            if (kinds.isEmpty() || kinds.contains(kind)) {
+            if (kind.equals(AnnotationTarget.Kind.METHOD)) {
                 annotationMap.put(name, annotationInstance);
             }
         }
-
         return new Annotations(annotationMap);
     }
 
