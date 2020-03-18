@@ -70,7 +70,7 @@ public class AnnotatedPropertyDataFetcher extends PropertyDataFetcher {
             }
         } else if (Collection.class.isInstance(o)) {
             Collection collection = Collection.class.cast(o);
-            Collection transformedCollection = collectionHelper.getCorrectCollectionType(o.getClass());
+            Collection transformedCollection = collectionHelper.newCollection(o.getClass());
             for (Object oo : collection) {
                 transformedCollection.add(get(oo));
             }

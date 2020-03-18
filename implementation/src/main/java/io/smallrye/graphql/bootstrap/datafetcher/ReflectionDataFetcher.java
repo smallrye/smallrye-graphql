@@ -209,7 +209,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     private Object handleCollection(Object argumentValue, Argument a) throws GraphQLException {
         Class clazz = a.getArgumentClass();
         Type type = a.getType();
-        Collection convertedList = collectionHelper.getCorrectCollectionType(clazz);
+        Collection convertedList = collectionHelper.newCollection(clazz);
 
         Collection givenCollection = (Collection) argumentValue;
 
