@@ -15,6 +15,8 @@
  */
 package io.smallrye.graphql.bootstrap.schema.helper;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,27 +27,30 @@ import org.jboss.logging.Logger;
 
 /**
  * Helping with collections
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CollectionHelper {
     private static final Logger LOG = Logger.getLogger(CollectionHelper.class.getName());
 
-    public Collection getCorrectCollectionType(Class type) {
-
-        if (type.equals(Collection.class) || type.equals(List.class) || type.getName().equals(ARRAYS_ARRAYLIST)) {
+    /**
+     * Creates an empty instance of a non-interface type of collection, or a suitable subclass of
+     * the interfaces {@link List}, {@link Collection}, or {@link Set}.
+     */
+    public Collection newCollection(Class type) {
+        if (type.equals(Collection.class) || type.equals(List.class)) {
             return new ArrayList();
         } else if (type.equals(Set.class)) {
             return new HashSet();
         } else {
             try {
-                return (Collection) type.newInstance();
-            } catch (InstantiationException | IllegalAccessException ex) {
-                LOG.error("Can not create new collection of [" + type.getName() + "]");
+                Constructor constructor = type.getConstructor();
+                constructor.setAccessible(true);
+                return (Collection) constructor.newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
+                LOG.error("Can not create new collection of [" + type.getName() + "]", ex);
                 return new ArrayList(); // default ?
             }
         }
     }
-
-    private static final String ARRAYS_ARRAYLIST = "java.util.Arrays$ArrayList";
 }
