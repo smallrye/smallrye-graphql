@@ -36,6 +36,7 @@ public class CollectionHelper {
     /**
      * Creates an empty instance of a non-interface type of collection, or a suitable subclass of
      * the interfaces {@link List}, {@link Collection}, or {@link Set}.
+     * 
      * @param type the collection class
      * @return the collection
      */

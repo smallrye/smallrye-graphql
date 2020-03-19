@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.bootstrap.index;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -62,9 +61,10 @@ public class IndexInitializer {
 
         for (URL url : urls) {
             try {
-                if (url.toString().endsWith(DOT_JAR)) {
+                if (url.toString().endsWith(DOT_JAR) || url.toString().endsWith(DOT_WAR)) {
+                    LOG.debug("processing archive [" + url.toString() + "]");
                     processJar(url.openStream(), indexer);
-                } else if (url.toString().endsWith(SLASH)) {
+                } else {
                     processFolder(url, indexer);
                 }
             } catch (IOException ex) {
@@ -79,12 +79,10 @@ public class IndexInitializer {
         List<URL> urls = new ArrayList<>();
 
         for (String s : System.getProperty(JAVA_CLASS_PATH).split(System.getProperty(PATH_SEPARATOR))) {
-            if (s.endsWith(DOT_JAR)) {
-                try {
-                    urls.add(new File(s).toURI().toURL());
-                } catch (MalformedURLException e) {
-                    LOG.warn("Cannot create URL from a JAR file included in the classpath", e);
-                }
+            try {
+                urls.add(Paths.get(s).toUri().toURL());
+            } catch (MalformedURLException e) {
+                LOG.warn("Cannot create URL from a JAR/WAR file included in the classpath", e);
             }
         }
 
@@ -94,21 +92,24 @@ public class IndexInitializer {
     private void processFolder(URL url, Indexer indexer) throws IOException {
         try {
             Path folderPath = Paths.get(url.toURI());
+            if (Files.isDirectory(folderPath)) {
+                try (Stream<Path> walk = Files.walk(folderPath)) {
 
-            try (Stream<Path> walk = Files.walk(folderPath)) {
+                    List<Path> collected = walk
+                            .filter(Files::isRegularFile)
+                            .collect(Collectors.toList());
 
-                List<Path> collected = walk
-                        .filter(Files::isRegularFile)
-                        .collect(Collectors.toList());
-
-                for (Path c : collected) {
-                    String entryName = c.getFileName().toString();
-                    processFile(entryName, Files.newInputStream(c), indexer);
+                    for (Path c : collected) {
+                        String entryName = c.getFileName().toString();
+                        processFile(entryName, Files.newInputStream(c), indexer);
+                    }
                 }
+            } else {
+                LOG.debug("Ignoring url [" + url + "] as it's not a jar, war or folder");
             }
 
         } catch (URISyntaxException ex) {
-            LOG.error("Could not process url [" + url + "] while indexing files", ex);
+            LOG.debug("Could not process url [" + url + "] while indexing files", ex);
         }
     }
 
@@ -125,7 +126,7 @@ public class IndexInitializer {
 
     private void processFile(String fileName, InputStream is, Indexer indexer) throws IOException {
         if (fileName.endsWith(DOT_CLASS)) {
-            LOG.debug("Indexing [" + fileName + "]");
+            LOG.debug("\t indexing [" + fileName + "]");
             indexer.index(is);
         } else if (fileName.endsWith(DOT_WAR)) {
             // necessary because of the thorntail arquillian adapter
@@ -136,8 +137,6 @@ public class IndexInitializer {
     private static final String DOT_JAR = ".jar";
     private static final String DOT_WAR = ".war";
     private static final String DOT_CLASS = ".class";
-    private static final String SLASH = "/";
-
     private static final String JAVA_CLASS_PATH = "java.class.path";
     private static final String PATH_SEPARATOR = "path.separator";
 }
