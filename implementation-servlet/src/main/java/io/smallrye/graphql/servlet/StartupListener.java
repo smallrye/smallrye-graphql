@@ -16,13 +16,19 @@
 
 package io.smallrye.graphql.servlet;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Paths;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 
 /**
  * Bootstrap the application on startup
@@ -35,10 +41,20 @@ public class StartupListener implements ServletContextListener {
 
     private final SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
 
+    private final IndexInitializer indexInitializer = new IndexInitializer();
+
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        bootstrap.bootstrap();
-        LOG.info("SmallRye GraphQL initialized");
+
+        try {
+            String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
+            URL url = Paths.get(realPath).toUri().toURL();
+            IndexView index = indexInitializer.createIndex(url);
+            bootstrap.bootstrap(index);
+            LOG.info("SmallRye GraphQL initialized");
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
