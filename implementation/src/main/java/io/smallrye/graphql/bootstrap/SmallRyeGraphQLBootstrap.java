@@ -16,15 +16,9 @@
 
 package io.smallrye.graphql.bootstrap;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
-import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
 
 /**
@@ -34,32 +28,11 @@ import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLBootstrap {
-    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLBootstrap.class.getName());
-
     public static GraphQLSchema GRAPHQL_SCHEMA;
-
-    public GraphQLSchema bootstrap() {
-        return bootstrap(createIndex());
-    }
 
     public GraphQLSchema bootstrap(IndexView index) {
         GraphQLSchemaInitializer graphQLSchemaInitializer = new GraphQLSchemaInitializer(index);
         GRAPHQL_SCHEMA = graphQLSchemaInitializer.generateGraphQLSchema();
         return GRAPHQL_SCHEMA;
     }
-
-    private IndexView createIndex() {
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
-            IndexReader reader = new IndexReader(stream);
-            IndexView i = reader.read();
-            LOG.info("Loaded index from [META-INF/jandex.idx]");
-            return i;
-        } catch (IOException ex) {
-            IndexInitializer indexInitializer = new IndexInitializer();
-            IndexView i = indexInitializer.createIndex();
-            LOG.info("Loaded index from generation via classpath");
-            return i;
-        }
-    }
-
 }

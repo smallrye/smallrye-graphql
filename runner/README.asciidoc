@@ -2,22 +2,35 @@
 
 image:/runner/graphiql.png[link="/master/runner/graphiql.png"]
 
-== Using the running
+== Starting the runner
 
 The running allow you to test the TCK app against a running server using https://github.com/graphql/graphiql[GraphiQL].
 
-You can run the server using maven:
+You can run the server (Wildfly or Thorntail) using maven:
+
+=== Using Wildfly
 
 [source,bash]
 ----
- mvn clean install thorntail:run
+ mvn clean install -Pwildfly
 ----
+
+=== Using Thorntail
+
+[source,bash]
+----
+ mvn clean install -Pthorntail
+----
+
+== Using the runner
 
 You can then navigate to http://localhost:8080/graphiql[http://localhost:8080/graphiql]
 
 To stop the server simply `ctrl-c` the maven process.
 
-== Example query:
+== Example queries:
+
+=== Get all heroes
 
 [source,graphql]
 ----
@@ -28,5 +41,21 @@ query allHeroes {
         superPowers
         realName
     }
+}
+----
+
+=== Test the `@Source` function
+
+[source,graphql]
+----
+{
+  superHero(name:"Iron Man"){
+    realName
+    currentLocation
+    secretToken {
+      value
+    }
+  }
+  
 }
 ----

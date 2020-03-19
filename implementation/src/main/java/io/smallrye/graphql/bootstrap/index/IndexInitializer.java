@@ -28,12 +28,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.jboss.jandex.CompositeIndex;
+import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
@@ -48,9 +54,36 @@ import org.jboss.logging.Logger;
 public class IndexInitializer {
     private static final Logger LOG = Logger.getLogger(IndexInitializer.class.getName());
 
+    public IndexView createIndex(URL realPath) {
+        List<IndexView> indexes = new ArrayList<>();
+
+        // TODO: Read all jandex.idx in the classpath: 
+        // something like Enumeration<URL> systemResources = ClassLoader.getSystemResources(JANDEX_IDX);
+
+        // Check in this war
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream(JANDEX_IDX)) {
+            IndexReader reader = new IndexReader(stream);
+            IndexView i = reader.read();
+            LOG.info("Loaded index from [" + JANDEX_IDX + "]");
+            indexes.add(i);
+        } catch (IOException ex) {
+            LOG.info("No jandex index available, let's generate one...");
+        }
+
+        // Classes in this artifact
+        Set<URL> urls = Collections.singleton(realPath);
+
+        // TODO: lib in the war ?
+
+        IndexView i = createIndex(urls);
+        indexes.add(i);
+
+        return merge(indexes);
+    }
+
     public IndexView createIndex() {
-        Indexer indexer = new Indexer();
-        List<URL> urls = new ArrayList<>();
+
+        Set<URL> urls = new HashSet<>();
 
         ClassLoader cl = ClassLoader.getSystemClassLoader();
         if (cl instanceof URLClassLoader) {
@@ -59,6 +92,11 @@ public class IndexInitializer {
             urls.addAll(collectURLsFromClassPath());
         }
 
+        return createIndex(urls);
+    }
+
+    private IndexView createIndex(Set<URL> urls) {
+        Indexer indexer = new Indexer();
         for (URL url : urls) {
             try {
                 if (url.toString().endsWith(DOT_JAR) || url.toString().endsWith(DOT_WAR)) {
@@ -75,9 +113,8 @@ public class IndexInitializer {
         return indexer.complete();
     }
 
-    private List<URL> collectURLsFromClassPath() {
-        List<URL> urls = new ArrayList<>();
-
+    private Set<URL> collectURLsFromClassPath() {
+        Set<URL> urls = new HashSet<>();
         for (String s : System.getProperty(JAVA_CLASS_PATH).split(System.getProperty(PATH_SEPARATOR))) {
             try {
                 urls.add(Paths.get(s).toUri().toURL());
@@ -105,11 +142,11 @@ public class IndexInitializer {
                     }
                 }
             } else {
-                LOG.debug("Ignoring url [" + url + "] as it's not a jar, war or folder");
+                LOG.warn("Ignoring url [" + url + "] as it's not a jar, war or folder");
             }
 
         } catch (URISyntaxException ex) {
-            LOG.debug("Could not process url [" + url + "] while indexing files", ex);
+            LOG.warn("Could not process url [" + url + "] while indexing files", ex);
         }
     }
 
@@ -134,9 +171,14 @@ public class IndexInitializer {
         }
     }
 
+    private IndexView merge(Collection<IndexView> indexes) {
+        return CompositeIndex.create(indexes);
+    }
+
     private static final String DOT_JAR = ".jar";
     private static final String DOT_WAR = ".war";
     private static final String DOT_CLASS = ".class";
     private static final String JAVA_CLASS_PATH = "java.class.path";
     private static final String PATH_SEPARATOR = "path.separator";
+    private static final String JANDEX_IDX = "META-INF/jandex.idx";
 }
