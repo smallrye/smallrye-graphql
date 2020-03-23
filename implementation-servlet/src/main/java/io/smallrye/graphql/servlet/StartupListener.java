@@ -39,8 +39,6 @@ import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 public class StartupListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(StartupListener.class.getName());
 
-    private final SmallRyeGraphQLBootstrap bootstrap = new SmallRyeGraphQLBootstrap();
-
     private final IndexInitializer indexInitializer = new IndexInitializer();
 
     @Override
@@ -50,7 +48,7 @@ public class StartupListener implements ServletContextListener {
             String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
-            bootstrap.bootstrap(index);
+            SmallRyeGraphQLBootstrap.bootstrap(index);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);

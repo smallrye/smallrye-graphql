@@ -37,6 +37,7 @@ public class Argument {
     public Argument(String name, String description, Type type, Annotations annotations) {
         super();
         this.name = name;
+        this.description = description;
         this.type = type;
         this.annotations = annotations;
     }

@@ -30,9 +30,12 @@ import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
 public class SmallRyeGraphQLBootstrap {
     public static GraphQLSchema GRAPHQL_SCHEMA;
 
-    public GraphQLSchema bootstrap(IndexView index) {
+    public static GraphQLSchema bootstrap(IndexView index) {
         GraphQLSchemaInitializer graphQLSchemaInitializer = new GraphQLSchemaInitializer(index);
         GRAPHQL_SCHEMA = graphQLSchemaInitializer.generateGraphQLSchema();
         return GRAPHQL_SCHEMA;
+    }
+
+    private SmallRyeGraphQLBootstrap() {
     }
 }

@@ -39,8 +39,8 @@ public class OutputTypeResolver implements TypeResolver {
     public GraphQLObjectType getType(TypeResolutionEnvironment tre) {
 
         DotName lookingForContrete = DotName.createSimple(tre.getObject().getClass().getName());
-        if (ObjectBag.TYPE_MAP.containsKey(lookingForContrete)) {
-            return GraphQLObjectType.class.cast(ObjectBag.TYPE_MAP.get(lookingForContrete));
+        if (ObjectBag.getTypeMap().containsKey(lookingForContrete)) {
+            return GraphQLObjectType.class.cast(ObjectBag.getTypeMap().get(lookingForContrete));
         } else {
             throw new ConcreteImplementationNotFoundException(
                     "No concrete class named [" + lookingForContrete + "] found for interface ["

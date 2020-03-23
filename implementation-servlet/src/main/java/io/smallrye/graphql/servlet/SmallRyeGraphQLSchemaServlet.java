@@ -50,11 +50,11 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     }
 
     private String graphQLSchemaToString() {
-        return SCHEMA_PRINTER.print(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA);
+        return SCHEMAPRINTER.print(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA);
     }
 
     private static final String CONTENT_TYPE = "text/plain";
-    private static SchemaPrinter SCHEMA_PRINTER;
+    private static final SchemaPrinter SCHEMAPRINTER;
     static {
         SchemaPrinter.Options options = SchemaPrinter.Options.defaultOptions();
         options = options.descriptionsAsHashComments(false);
@@ -64,6 +64,6 @@ public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
         options = options.includeScalarTypes(false);
         options = options.includeSchemaDefinition(false);
         options = options.useAstDefinitions(false);
-        SCHEMA_PRINTER = new SchemaPrinter(options);
+        SCHEMAPRINTER = new SchemaPrinter(options);
     }
 }
