@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
@@ -50,6 +49,7 @@ import io.smallrye.graphql.bootstrap.ObjectBag;
 import io.smallrye.graphql.bootstrap.TransformException;
 import io.smallrye.graphql.bootstrap.Transformable;
 import io.smallrye.graphql.bootstrap.schema.helper.CollectionHelper;
+import io.smallrye.graphql.cdi.CDIDelegate;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 
 /**
@@ -70,19 +70,25 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final Class declaringClass;
     private final Class[] parameterClasses;
 
-    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Annotations annotations) {
+    private final ObjectBag objectBag;
+
+    private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
+
+    public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Annotations annotations,
+            ObjectBag objectBag) {
         this.methodName = methodInfo.name();
         this.arguments = arguments;
         this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
         this.parameterClasses = getParameterClasses(arguments);
         this.hasArguments = parameterClasses.length != 0;
         this.transformableDataFetcherHelper = new TransformableDataFetcherHelper(methodInfo.returnType(), annotations);
+        this.objectBag = objectBag;
     }
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
         try {
-            Object declaringObject = CDI.current().select(declaringClass).get();
+            Object declaringObject = cdiDelegate.getInstanceFromCDI(declaringClass);
             Class cdiClass = declaringObject.getClass();
             if (hasArguments) {
                 Method method = cdiClass.getMethod(methodName, parameterClasses);
@@ -317,9 +323,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         try (Jsonb jsonb = JsonbBuilder.create()) {
 
             // See if there are any formatting type annotations of this class definition and if any of the input fields needs formatting.
-            if (ObjectBag.getArgumentMap().containsKey(classDotName) &&
+            if (objectBag.getArgumentMap().containsKey(classDotName) &&
                     hasInputFieldsThatNeedsFormatting(classDotName, inputMap)) {
-                Map<String, Argument> fieldsThatShouldBeFormatted = ObjectBag.getArgumentMap().get(classDotName);
+                Map<String, Argument> fieldsThatShouldBeFormatted = objectBag.getArgumentMap().get(classDotName);
                 Set<Map.Entry> inputValues = inputMap.entrySet();
                 for (Map.Entry keyValue : inputValues) {
                     String key = String.valueOf(keyValue.getKey());
@@ -339,7 +345,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private boolean hasInputFieldsThatNeedsFormatting(DotName className, Map input) {
-        Set<String> fieldsThatShouldBeFormatted = ObjectBag.getArgumentMap().get(className).keySet();
+        Set<String> fieldsThatShouldBeFormatted = objectBag.getArgumentMap().get(className).keySet();
         for (String fieldName : fieldsThatShouldBeFormatted) {
             if (input.containsKey(fieldName)) {
                 return true;
@@ -349,15 +355,15 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Jsonb getJsonbForType(Type type) {
-        if (ObjectBag.getInputJsonMap().containsKey(type.name())) {
-            return ObjectBag.getInputJsonMap().get(type.name());
+        if (objectBag.getInputJsonMap().containsKey(type.name())) {
+            return objectBag.getInputJsonMap().get(type.name());
         }
         return null;
     }
 
     private GraphQLScalarType getScalarType(Type type) {
-        if (ObjectBag.getScalarMap().containsKey(type.name())) {
-            return ObjectBag.getScalarMap().get(type.name());
+        if (objectBag.getScalarMap().containsKey(type.name())) {
+            return objectBag.getScalarMap().get(type.name());
         }
         return null;
     }

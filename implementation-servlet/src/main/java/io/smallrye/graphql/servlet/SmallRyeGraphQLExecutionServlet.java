@@ -52,6 +52,14 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     @Inject
     GraphQLConfig config;
 
+    public SmallRyeGraphQLExecutionServlet() {
+    }
+
+    public SmallRyeGraphQLExecutionServlet(ExecutionService executionService, GraphQLConfig config) {
+        this.executionService = executionService;
+        this.config = config;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         if (config.isAllowGet()) {

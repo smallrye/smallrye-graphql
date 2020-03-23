@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 
+import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -39,6 +40,9 @@ import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 public class StartupListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(StartupListener.class.getName());
 
+    @Inject
+    private SmallRyeGraphQLBootstrap bootstrap;
+
     private final IndexInitializer indexInitializer = new IndexInitializer();
 
     @Override
@@ -48,7 +52,7 @@ public class StartupListener implements ServletContextListener {
             String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
-            SmallRyeGraphQLBootstrap.bootstrap(index);
+            sce.getServletContext().setAttribute(SmallRyeGraphQLSchemaServlet.SCHEMA_PROP, bootstrap.bootstrap(index));
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);

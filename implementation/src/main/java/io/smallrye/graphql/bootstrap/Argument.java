@@ -15,7 +15,12 @@
  */
 package io.smallrye.graphql.bootstrap;
 
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.bootstrap.schema.ArgumentTypeNotFoundException;
 
@@ -25,6 +30,8 @@ import io.smallrye.graphql.bootstrap.schema.ArgumentTypeNotFoundException;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Argument {
+    private static final Logger LOG = Logger.getLogger(Argument.class);
+
     private String name;
     private String description;
     private Type type;
@@ -81,11 +88,31 @@ public class Argument {
             return Classes.getPrimativeClassType(typename);
         } else {
             try {
-                return Class.forName(typename);
+                return forName(typename);
             } catch (ClassNotFoundException ex) {
                 throw new ArgumentTypeNotFoundException(ex);
             }
         }
     }
 
+    private static Class<?> forName(String className) throws ClassNotFoundException {
+        try {
+            return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
+                ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                if (loader != null) {
+                    try {
+                        return Class.forName(className, false, loader);
+                    } catch (ClassNotFoundException cnfe) {
+                        // try using this class's classloader
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Failed to load class, " + className + " using TCCL, " + loader, cnfe);
+                        }
+                    }
+                }
+                return Class.forName(className, false, Argument.class.getClassLoader());
+            });
+        } catch (PrivilegedActionException pae) {
+            throw new ClassNotFoundException(className, pae.getCause());
+        }
+    }
 }

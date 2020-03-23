@@ -66,7 +66,7 @@ public class OutputTypeCreator implements Creator {
     private final IndexView index;
 
     private final InputTypeCreator inputTypeCreator;
-    private final EnumTypeCreator enumTypeCreator = new EnumTypeCreator();
+    private final EnumTypeCreator enumTypeCreator;
 
     private final NameHelper nameHelper = new NameHelper();
     private final NonNullHelper nonNullHelper = new NonNullHelper();
@@ -76,9 +76,13 @@ public class OutputTypeCreator implements Creator {
     private final ArgumentsHelper argumentsHelper = new ArgumentsHelper();
     private final SourceFieldHelper sourceFieldHelper = new SourceFieldHelper();
 
-    public OutputTypeCreator(IndexView index, InputTypeCreator inputTypeCreator) {
+    private final ObjectBag objectBag;
+
+    public OutputTypeCreator(IndexView index, InputTypeCreator inputTypeCreator, ObjectBag objectBag) {
         this.index = index;
         this.inputTypeCreator = inputTypeCreator;
+        this.objectBag = objectBag;
+        this.enumTypeCreator = new EnumTypeCreator(objectBag);
     }
 
     @Override
@@ -96,8 +100,8 @@ public class OutputTypeCreator implements Creator {
     }
 
     private GraphQLOutputType createClass(ClassInfo classInfo) {
-        if (ObjectBag.getTypeMap().containsKey(classInfo.name())) {
-            return ObjectBag.getTypeMap().get(classInfo.name());
+        if (objectBag.getTypeMap().containsKey(classInfo.name())) {
+            return objectBag.getTypeMap().get(classInfo.name());
         } else {
             Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
             String name = nameHelper.getOutputTypeName(classInfo, annotations);
@@ -128,15 +132,15 @@ public class OutputTypeCreator implements Creator {
                 objectTypeBuilder = objectTypeBuilder.withInterface(i);
             }
             GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
-            ObjectBag.getTypeMap().put(classInfo.name(), graphQLObjectType);
+            objectBag.getTypeMap().put(classInfo.name(), graphQLObjectType);
 
             return graphQLObjectType;
         }
     }
 
     private GraphQLInterfaceType createInterface(ClassInfo classInfo) {
-        if (ObjectBag.getInterfaceMap().containsKey(classInfo.name())) {
-            return ObjectBag.getInterfaceMap().get(classInfo.name());
+        if (objectBag.getInterfaceMap().containsKey(classInfo.name())) {
+            return objectBag.getInterfaceMap().get(classInfo.name());
         } else {
 
             Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
@@ -155,15 +159,16 @@ public class OutputTypeCreator implements Creator {
             GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
 
             // To resolve the concrete class
-            ObjectBag.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType, new OutputTypeResolver(classInfo.name()));
+            objectBag.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
+                    new OutputTypeResolver(classInfo.name(), objectBag));
 
-            ObjectBag.getInterfaceMap().put(classInfo.name(), graphQLInterfaceType);
+            objectBag.getInterfaceMap().put(classInfo.name(), graphQLInterfaceType);
 
             // Also check that we create all implementations
             Collection<ClassInfo> knownDirectImplementors = index.getAllKnownImplementors(classInfo.name());
             for (ClassInfo impl : knownDirectImplementors) {
-                if (!ObjectBag.getTypeMap().containsKey(impl.name())) {
-                    ObjectBag.getTypeTodoList().add(impl);
+                if (!objectBag.getTypeMap().containsKey(impl.name())) {
+                    objectBag.getTypeTodoList().add(impl);
                 }
             }
 
@@ -196,7 +201,7 @@ public class OutputTypeCreator implements Creator {
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    ObjectBag.getCodeRegistryBuilder().dataFetcher(
+                    objectBag.getCodeRegistryBuilder().dataFetcher(
                             FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new AnnotatedPropertyDataFetcher(fieldName, method.returnType(), annotations));
 
@@ -226,7 +231,7 @@ public class OutputTypeCreator implements Creator {
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    ObjectBag.getCodeRegistryBuilder().dataFetcher(
+                    objectBag.getCodeRegistryBuilder().dataFetcher(
                             FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
@@ -258,10 +263,10 @@ public class OutputTypeCreator implements Creator {
 
                     GraphQLFieldDefinition graphQLFieldDefinition = builder.build();
 
-                    ObjectBag.getCodeRegistryBuilder().dataFetcher(
+                    objectBag.getCodeRegistryBuilder().dataFetcher(
                             FieldCoordinates.coordinates(name, graphQLFieldDefinition.getName()),
                             new ReflectionDataFetcher(methodParameterInfo.method(),
-                                    argumentsHelper.toArguments(methodInfo), methodAnnotations));
+                                    argumentsHelper.toArguments(methodInfo), methodAnnotations, objectBag));
 
                     fieldDefinitions.add(graphQLFieldDefinition);
                 }
@@ -294,9 +299,9 @@ public class OutputTypeCreator implements Creator {
         if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
             // ID
             return Scalars.GraphQLID;
-        } else if (ObjectBag.getScalarMap().containsKey(fieldTypeName)) {
+        } else if (objectBag.getScalarMap().containsKey(fieldTypeName)) {
             // Scalar
-            return ObjectBag.getScalarMap().get(fieldTypeName);
+            return objectBag.getScalarMap().get(fieldTypeName);
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
@@ -313,10 +318,10 @@ public class OutputTypeCreator implements Creator {
             if (classInfo != null) {
                 if (Classes.isEnum(classInfo)) {
                     return enumTypeCreator.create(classInfo);
-                } else if (ObjectBag.getTypeMap().containsKey(fieldTypeName)) {
-                    return ObjectBag.getTypeMap().get(fieldTypeName);
+                } else if (objectBag.getTypeMap().containsKey(fieldTypeName)) {
+                    return objectBag.getTypeMap().get(fieldTypeName);
                 } else {
-                    ObjectBag.getTypeTodoList().add(classInfo);
+                    objectBag.getTypeTodoList().add(classInfo);
                     Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getOutputTypeName(classInfo, annotationsForThisClass);
                     return GraphQLTypeReference.typeRef(name);

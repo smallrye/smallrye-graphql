@@ -66,10 +66,21 @@ public class ExecutionService {
     @Inject
     private GraphQLConfig config;
 
+    @Inject
+    private SmallRyeGraphQLBootstrap bootstrap;
+
+    public ExecutionService() {
+    }
+
+    public ExecutionService(GraphQLConfig config, SmallRyeGraphQLBootstrap bootstrap) {
+        this.config = config;
+        this.bootstrap = bootstrap;
+    }
+
     @PostConstruct
     public void init() {
         ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-        this.graphQL = getGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA, exceptionHandler);
+        this.graphQL = getGraphQL(bootstrap.getSchema(), exceptionHandler);
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -212,7 +223,7 @@ public class ExecutionService {
     private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
         if (graphQLSchema != null) {
             return GraphQL
-                    .newGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA)
+                    .newGraphQL(graphQLSchema)
                     .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();

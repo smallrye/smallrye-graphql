@@ -26,8 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jboss.logging.Logger;
 
+import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
-import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 
 /**
  * Serving the GraphQL schema
@@ -38,19 +38,22 @@ import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 public class SmallRyeGraphQLSchemaServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLSchemaServlet.class.getName());
 
+    public static final String SCHEMA_PROP = "io.smallrye.graphql.servlet.bootstrap";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType(CONTENT_TYPE);
         try (PrintWriter out = response.getWriter()) {
-            out.print(graphQLSchemaToString());
+            GraphQLSchema schema = (GraphQLSchema) request.getServletContext().getAttribute(SCHEMA_PROP);
+            out.print(graphQLSchemaToString(schema));
             out.flush();
         } catch (IOException ex) {
             LOG.log(Logger.Level.ERROR, null, ex);
         }
     }
 
-    private String graphQLSchemaToString() {
-        return SCHEMAPRINTER.print(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA);
+    private String graphQLSchemaToString(GraphQLSchema schema) {
+        return SCHEMAPRINTER.print(schema);
     }
 
     private static final String CONTENT_TYPE = "text/plain";
