@@ -42,8 +42,8 @@ public class EnumTypeCreator {
     private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
 
     public GraphQLEnumType create(ClassInfo classInfo) {
-        if (ObjectBag.ENUM_MAP.containsKey(classInfo.name())) {
-            return ObjectBag.ENUM_MAP.get(classInfo.name());
+        if (ObjectBag.getEnumMap().containsKey(classInfo.name())) {
+            return ObjectBag.getEnumMap().get(classInfo.name());
         } else {
             Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
             String name = nameHelper.getEnumName(classInfo, annotations);
@@ -63,7 +63,7 @@ public class EnumTypeCreator {
                 }
             }
             GraphQLEnumType enumType = builder.build();
-            ObjectBag.ENUM_MAP.put(classInfo.name(), enumType);
+            ObjectBag.getEnumMap().put(classInfo.name(), enumType);
             return enumType;
         }
     }

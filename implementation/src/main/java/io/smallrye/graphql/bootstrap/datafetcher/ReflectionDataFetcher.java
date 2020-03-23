@@ -317,9 +317,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         try (Jsonb jsonb = JsonbBuilder.create()) {
 
             // See if there are any formatting type annotations of this class definition and if any of the input fields needs formatting.
-            if (ObjectBag.ARGUMENT_MAP.containsKey(classDotName) &&
+            if (ObjectBag.getArgumentMap().containsKey(classDotName) &&
                     hasInputFieldsThatNeedsFormatting(classDotName, inputMap)) {
-                Map<String, Argument> fieldsThatShouldBeFormatted = ObjectBag.ARGUMENT_MAP.get(classDotName);
+                Map<String, Argument> fieldsThatShouldBeFormatted = ObjectBag.getArgumentMap().get(classDotName);
                 Set<Map.Entry> inputValues = inputMap.entrySet();
                 for (Map.Entry keyValue : inputValues) {
                     String key = String.valueOf(keyValue.getKey());
@@ -339,7 +339,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private boolean hasInputFieldsThatNeedsFormatting(DotName className, Map input) {
-        Set<String> fieldsThatShouldBeFormatted = ObjectBag.ARGUMENT_MAP.get(className).keySet();
+        Set<String> fieldsThatShouldBeFormatted = ObjectBag.getArgumentMap().get(className).keySet();
         for (String fieldName : fieldsThatShouldBeFormatted) {
             if (input.containsKey(fieldName)) {
                 return true;
@@ -349,15 +349,15 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Jsonb getJsonbForType(Type type) {
-        if (ObjectBag.INPUT_JSON_MAP.containsKey(type.name())) {
-            return ObjectBag.INPUT_JSON_MAP.get(type.name());
+        if (ObjectBag.getInputJsonMap().containsKey(type.name())) {
+            return ObjectBag.getInputJsonMap().get(type.name());
         }
         return null;
     }
 
     private GraphQLScalarType getScalarType(Type type) {
-        if (ObjectBag.SCALAR_MAP.containsKey(type.name())) {
-            return ObjectBag.SCALAR_MAP.get(type.name());
+        if (ObjectBag.getScalarMap().containsKey(type.name())) {
+            return ObjectBag.getScalarMap().get(type.name());
         }
         return null;
     }

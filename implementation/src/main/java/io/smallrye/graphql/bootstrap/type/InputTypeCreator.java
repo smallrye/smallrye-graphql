@@ -77,8 +77,8 @@ public class InputTypeCreator implements Creator {
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {
-        if (ObjectBag.INPUT_MAP.containsKey(classInfo.name())) {
-            return ObjectBag.INPUT_MAP.get(classInfo.name());
+        if (ObjectBag.getInputMap().containsKey(classInfo.name())) {
+            return ObjectBag.getInputMap().get(classInfo.name());
         } else {
             Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
             String name = nameHelper.getInputTypeName(classInfo, annotations);
@@ -93,7 +93,7 @@ public class InputTypeCreator implements Creator {
             inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
 
             GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
-            ObjectBag.INPUT_MAP.put(classInfo.name(), graphQLInputObjectType);
+            ObjectBag.getInputMap().put(classInfo.name(), graphQLInputObjectType);
 
             return graphQLInputObjectType;
         }
@@ -133,7 +133,7 @@ public class InputTypeCreator implements Creator {
                     builder = builder
                             .type(createGraphQLInputType(field.type(), setter.parameters().get(0), annotations));
 
-                    ObjectBag.CODE_REGISTRY_BUILDER.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                    ObjectBag.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(name, fieldName),
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     // Default value (on method)
@@ -165,11 +165,11 @@ public class InputTypeCreator implements Creator {
 
         // So that we can do transformations on input that can not be done with Jsonb
         if (!fieldAnnotationsMapping.isEmpty()) {
-            ObjectBag.ARGUMENT_MAP.put(classInfo.name(), fieldAnnotationsMapping);
+            ObjectBag.getArgumentMap().put(classInfo.name(), fieldAnnotationsMapping);
         }
 
         // So that we can rename fields
-        ObjectBag.INPUT_JSON_MAP.put(classInfo.name(), createJsonb(customFieldNameMapping));
+        ObjectBag.getInputJsonMap().put(classInfo.name(), createJsonb(customFieldNameMapping));
 
         return inputObjectFields;
     }
@@ -201,9 +201,9 @@ public class InputTypeCreator implements Creator {
         if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
             // ID
             return Scalars.GraphQLID;
-        } else if (ObjectBag.SCALAR_MAP.containsKey(fieldTypeName)) {
+        } else if (ObjectBag.getScalarMap().containsKey(fieldTypeName)) {
             // Scalar
-            return ObjectBag.SCALAR_MAP.get(fieldTypeName);
+            return ObjectBag.getScalarMap().get(fieldTypeName);
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
@@ -220,8 +220,8 @@ public class InputTypeCreator implements Creator {
             if (classInfo != null) {
                 if (Classes.isEnum(classInfo)) {
                     return enumTypeCreator.create(classInfo);
-                } else if (ObjectBag.INPUT_MAP.containsKey(classInfo.name())) {
-                    return ObjectBag.INPUT_MAP.get(classInfo.name());
+                } else if (ObjectBag.getInputMap().containsKey(classInfo.name())) {
+                    return ObjectBag.getInputMap().get(classInfo.name());
                 } else {
                     Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);

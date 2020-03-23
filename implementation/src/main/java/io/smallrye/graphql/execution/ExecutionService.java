@@ -146,11 +146,11 @@ public class ExecutionService {
     }
 
     private JsonValue toJsonValue(Object pojo) {
-        JsonbConfig config = new JsonbConfig()
+        JsonbConfig jsonbConfig = new JsonbConfig()
                 .withNullValues(Boolean.TRUE)
                 .withFormatting(Boolean.TRUE);
 
-        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+        try (Jsonb jsonb = JsonbBuilder.create(jsonbConfig)) {
             String json = jsonb.toJson(pojo);
             try (StringReader sr = new StringReader(json);
                     JsonReader reader = Json.createReader(sr)) {

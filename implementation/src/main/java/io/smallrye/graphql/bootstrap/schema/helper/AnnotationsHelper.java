@@ -29,7 +29,6 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.bootstrap.Annotations;
 
@@ -39,7 +38,6 @@ import io.smallrye.graphql.bootstrap.Annotations;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AnnotationsHelper {
-    private static final Logger LOG = Logger.getLogger(AnnotationsHelper.class.getName());
 
     public Annotations getAnnotationsForClass(ClassInfo classInfo) {
 

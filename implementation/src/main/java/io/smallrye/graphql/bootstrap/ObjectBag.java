@@ -52,18 +52,21 @@ import io.smallrye.graphql.bootstrap.type.time.TimeScalar;
  */
 public class ObjectBag {
 
+    private ObjectBag() {
+    }
+
     // Some maps we populate during scanning
-    public static final Map<DotName, GraphQLInputType> INPUT_MAP = new HashMap<>();
-    public static final Map<DotName, GraphQLOutputType> TYPE_MAP = new HashMap<>();
-    public static final Map<DotName, GraphQLEnumType> ENUM_MAP = new HashMap<>();
-    public static final Map<DotName, GraphQLInterfaceType> INTERFACE_MAP = new HashMap<>();
-    public static final List<ClassInfo> TYPE_TODO_LIST = new ArrayList<>();
-    public static final Map<DotName, Jsonb> INPUT_JSON_MAP = new HashMap<>();
-    public static final Map<DotName, Map<String, Argument>> ARGUMENT_MAP = new HashMap<>();
-    public static final GraphQLCodeRegistry.Builder CODE_REGISTRY_BUILDER = GraphQLCodeRegistry.newCodeRegistry();
+    private static final Map<DotName, GraphQLInputType> INPUT_MAP = new HashMap<>();
+    private static final Map<DotName, GraphQLOutputType> TYPE_MAP = new HashMap<>();
+    private static final Map<DotName, GraphQLEnumType> ENUM_MAP = new HashMap<>();
+    private static final Map<DotName, GraphQLInterfaceType> INTERFACE_MAP = new HashMap<>();
+    private static final List<ClassInfo> TYPE_TODO_LIST = new ArrayList<>();
+    private static final Map<DotName, Jsonb> INPUT_JSON_MAP = new HashMap<>();
+    private static final Map<DotName, Map<String, Argument>> ARGUMENT_MAP = new HashMap<>();
+    private static final GraphQLCodeRegistry.Builder CODE_REGISTRY_BUILDER = GraphQLCodeRegistry.newCodeRegistry();
 
     // Scalar map we can just create now.
-    public static final Map<DotName, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
+    private static final Map<DotName, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
 
     static {
 
@@ -91,5 +94,41 @@ public class ObjectBag {
         for (Class c : transformable.getSupportedClasses()) {
             SCALAR_MAP.put(DotName.createSimple(c.getName()), (GraphQLScalarType) transformable);
         }
+    }
+
+    public static Map<DotName, GraphQLInputType> getInputMap() {
+        return INPUT_MAP;
+    }
+
+    public static Map<DotName, GraphQLOutputType> getTypeMap() {
+        return TYPE_MAP;
+    }
+
+    public static Map<DotName, GraphQLEnumType> getEnumMap() {
+        return ENUM_MAP;
+    }
+
+    public static Map<DotName, GraphQLInterfaceType> getInterfaceMap() {
+        return INTERFACE_MAP;
+    }
+
+    public static List<ClassInfo> getTypeTodoList() {
+        return TYPE_TODO_LIST;
+    }
+
+    public static Map<DotName, Jsonb> getInputJsonMap() {
+        return INPUT_JSON_MAP;
+    }
+
+    public static Map<DotName, Map<String, Argument>> getArgumentMap() {
+        return ARGUMENT_MAP;
+    }
+
+    public static GraphQLCodeRegistry.Builder getCodeRegistryBuilder() {
+        return CODE_REGISTRY_BUILDER;
+    }
+
+    public static Map<DotName, GraphQLScalarType> getScalarMap() {
+        return SCALAR_MAP;
     }
 }
