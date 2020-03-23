@@ -152,8 +152,12 @@ public class GraphQLSchemaInitializer {
         additionalTypes.addAll(ObjectBag.getInterfaceMap().values());
         schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
-        schemaBuilder = schemaBuilder.query(query);
-        schemaBuilder = schemaBuilder.mutation(mutation);
+        if (!query.getFieldDefinitions().isEmpty()) {
+            schemaBuilder = schemaBuilder.query(query);
+        }
+        if (!mutation.getFieldDefinitions().isEmpty()) {
+            schemaBuilder = schemaBuilder.mutation(mutation);
+        }
 
         schemaBuilder = schemaBuilder.codeRegistry(ObjectBag.getCodeRegistryBuilder().build());
 
