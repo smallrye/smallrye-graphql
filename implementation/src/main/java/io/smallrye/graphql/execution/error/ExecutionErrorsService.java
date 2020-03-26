@@ -32,7 +32,6 @@ import javax.json.bind.JsonbConfig;
 
 import org.jboss.logging.Logger;
 
-import graphql.ErrorType;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
@@ -74,22 +73,21 @@ public class ExecutionErrorsService {
                 return resultBuilder.build();
             }
         } catch (Exception e) {
-            LOG.warn("Could not close Jsonb");
+            LOG.warn("Could not close Jsonb", e);
             return null;
         }
     }
 
     private Optional<JsonObject> getOptionalExtensions(GraphQLError error) {
-        if (error.getErrorType().equals(ErrorType.ValidationError)) {
-            return getValidationExtensions(error);
-        } else if (error.getErrorType().equals(ErrorType.DataFetchingException)) {
-            return getDataFetchingExtensions(error);
+        if (error instanceof ValidationError) {
+            return getValidationExtensions((ValidationError) error);
+        } else if (error instanceof ExceptionWhileDataFetching) {
+            return getDataFetchingExtensions((ExceptionWhileDataFetching) error);
         }
         return Optional.empty();
     }
 
-    private Optional<JsonObject> getValidationExtensions(GraphQLError graphQLError) {
-        ValidationError error = (ValidationError) graphQLError;
+    private Optional<JsonObject> getValidationExtensions(ValidationError error) {
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
 
         addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
@@ -100,23 +98,18 @@ public class ExecutionErrorsService {
         return Optional.of(objectBuilder.build());
     }
 
-    private Optional<JsonObject> getDataFetchingExtensions(GraphQLError graphQLError) {
-        if (graphQLError instanceof ExceptionWhileDataFetching) {
-            ExceptionWhileDataFetching error = (ExceptionWhileDataFetching) graphQLError;
-            Throwable exception = error.getException();
+    private Optional<JsonObject> getDataFetchingExtensions(ExceptionWhileDataFetching error) {
+        Throwable exception = error.getException();
 
-            JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
 
-            addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
-            addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
+        addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
+        addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
 
-            return Optional.of(objectBuilder.build());
-        } else {
-            return Optional.empty();
-        }
+        return Optional.of(objectBuilder.build());
     }
 
-    private JsonArray toJsonArray(List list) {
+    private JsonArray toJsonArray(List<?> list) {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
         for (Object o : list) {
             if (o != null)
