@@ -85,7 +85,12 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
     }
 
     private void handleInput(Reader inputReader, HttpServletResponse response) {
+        if (LOG.isDebugEnabled()) {
+            inputReader = logInputReader(inputReader);
+        }
+
         try (JsonReader jsonReader = Json.createReader(inputReader)) {
+
             JsonObject jsonInput = jsonReader.readObject();
 
             JsonObject outputJson = executionService.execute(jsonInput);
@@ -101,6 +106,23 @@ public class SmallRyeGraphQLExecutionServlet extends HttpServlet {
         } catch (IOException ex) {
             LOG.log(Logger.Level.ERROR, null, ex);
         }
+    }
+
+    private static Reader logInputReader(Reader inputReader) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            char[] buf = new char[4096];
+            int len;
+            while ((len = inputReader.read(buf)) > -1) {
+                sb.append(buf, 0, len);
+            }
+            String jsonInput = sb.toString();
+            LOG.debugf("JSON input: {0}", jsonInput);
+            inputReader = new StringReader(jsonInput);
+        } catch (Throwable t) {
+            LOG.warnf("Unable to log reader, {0}", inputReader);
+        }
+        return inputReader;
     }
 
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";

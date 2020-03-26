@@ -93,14 +93,14 @@ public class ExecutionService {
                     .executionId(ExecutionId.generate());
 
             // Variables
-            if (jsonInput.containsKey(VARIABLES)) {
-                JsonValue jvariables = jsonInput.get(VARIABLES);
-                if (!jvariables.equals(JsonValue.NULL)
-                        && !jvariables.equals(JsonValue.EMPTY_JSON_OBJECT)
-                        && !jvariables.equals(JsonValue.EMPTY_JSON_ARRAY)) {
-                    Map<String, Object> variables = toMap(jsonInput.getJsonObject(VARIABLES));
-                    executionBuilder.variables(variables);
-                }
+            JsonValue jvariables = jsonInput.get(VARIABLES);
+            if (null != jvariables
+                    && !JsonValue.NULL.equals(jvariables)
+                    && !JsonValue.EMPTY_JSON_OBJECT.equals(jvariables)
+                    && !JsonValue.EMPTY_JSON_ARRAY.equals(jvariables)) {
+
+                Map<String, Object> variables = toMap(jvariables.asJsonObject());
+                executionBuilder.variables(variables);
             }
 
             // Operation name
