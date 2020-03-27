@@ -63,7 +63,7 @@ public class InputTypeCreator implements Creator {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     private final IndexView index;
-    private final EnumTypeCreator enumTypeCreator = new EnumTypeCreator();
+    private final EnumTypeCreator enumTypeCreator;
     private final NameHelper nameHelper = new NameHelper();
     private final DescriptionHelper descriptionHelper = new DescriptionHelper();
     private final NonNullHelper nonNullHelper = new NonNullHelper();
@@ -71,14 +71,18 @@ public class InputTypeCreator implements Creator {
     private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
     private final DefaultValueHelper defaultValueHelper = new DefaultValueHelper();
 
-    public InputTypeCreator(IndexView index) {
+    private final ObjectBag objectBag;
+
+    public InputTypeCreator(IndexView index, ObjectBag objectBag) {
         this.index = index;
+        this.objectBag = objectBag;
+        this.enumTypeCreator = new EnumTypeCreator(objectBag);
     }
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {
-        if (ObjectBag.getInputMap().containsKey(classInfo.name())) {
-            return ObjectBag.getInputMap().get(classInfo.name());
+        if (objectBag.getInputMap().containsKey(classInfo.name())) {
+            return objectBag.getInputMap().get(classInfo.name());
         } else {
             Annotations annotations = annotationsHelper.getAnnotationsForClass(classInfo);
             String name = nameHelper.getInputTypeName(classInfo, annotations);
@@ -93,7 +97,7 @@ public class InputTypeCreator implements Creator {
             inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectField(classInfo, name));
 
             GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
-            ObjectBag.getInputMap().put(classInfo.name(), graphQLInputObjectType);
+            objectBag.getInputMap().put(classInfo.name(), graphQLInputObjectType);
 
             return graphQLInputObjectType;
         }
@@ -133,7 +137,7 @@ public class InputTypeCreator implements Creator {
                     builder = builder
                             .type(createGraphQLInputType(field.type(), setter.parameters().get(0), annotations));
 
-                    ObjectBag.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(name, fieldName),
+                    objectBag.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(name, fieldName),
                             new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
 
                     // Default value (on method)
@@ -165,11 +169,11 @@ public class InputTypeCreator implements Creator {
 
         // So that we can do transformations on input that can not be done with Jsonb
         if (!fieldAnnotationsMapping.isEmpty()) {
-            ObjectBag.getArgumentMap().put(classInfo.name(), fieldAnnotationsMapping);
+            objectBag.getArgumentMap().put(classInfo.name(), fieldAnnotationsMapping);
         }
 
         // So that we can rename fields
-        ObjectBag.getInputJsonMap().put(classInfo.name(), createJsonb(customFieldNameMapping));
+        objectBag.getInputJsonMap().put(classInfo.name(), createJsonb(customFieldNameMapping));
 
         return inputObjectFields;
     }
@@ -201,9 +205,9 @@ public class InputTypeCreator implements Creator {
         if (annotations.containsOneOfTheseKeys(Annotations.ID)) {
             // ID
             return Scalars.GraphQLID;
-        } else if (ObjectBag.getScalarMap().containsKey(fieldTypeName)) {
+        } else if (objectBag.getScalarMap().containsKey(fieldTypeName)) {
             // Scalar
-            return ObjectBag.getScalarMap().get(fieldTypeName);
+            return objectBag.getScalarMap().get(fieldTypeName);
         } else if (type.kind().equals(Type.Kind.ARRAY)) {
             // Array 
             Type typeInArray = type.asArrayType().component();
@@ -220,8 +224,8 @@ public class InputTypeCreator implements Creator {
             if (classInfo != null) {
                 if (Classes.isEnum(classInfo)) {
                     return enumTypeCreator.create(classInfo);
-                } else if (ObjectBag.getInputMap().containsKey(classInfo.name())) {
-                    return ObjectBag.getInputMap().get(classInfo.name());
+                } else if (objectBag.getInputMap().containsKey(classInfo.name())) {
+                    return objectBag.getInputMap().get(classInfo.name());
                 } else {
                     Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);

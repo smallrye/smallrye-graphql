@@ -31,16 +31,19 @@ public class OutputTypeResolver implements TypeResolver {
 
     private final DotName interfaceName;
 
-    public OutputTypeResolver(DotName interfaceName) {
+    private final ObjectBag objectBag;
+
+    public OutputTypeResolver(DotName interfaceName, ObjectBag objectBag) {
         this.interfaceName = interfaceName;
+        this.objectBag = objectBag;
     }
 
     @Override
     public GraphQLObjectType getType(TypeResolutionEnvironment tre) {
 
         DotName lookingForContrete = DotName.createSimple(tre.getObject().getClass().getName());
-        if (ObjectBag.getTypeMap().containsKey(lookingForContrete)) {
-            return GraphQLObjectType.class.cast(ObjectBag.getTypeMap().get(lookingForContrete));
+        if (objectBag.getTypeMap().containsKey(lookingForContrete)) {
+            return GraphQLObjectType.class.cast(objectBag.getTypeMap().get(lookingForContrete));
         } else {
             throw new ConcreteImplementationNotFoundException(
                     "No concrete class named [" + lookingForContrete + "] found for interface ["

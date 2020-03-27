@@ -16,6 +16,8 @@
 
 package io.smallrye.graphql.bootstrap;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.jboss.jandex.IndexView;
 
 import graphql.schema.GraphQLSchema;
@@ -27,15 +29,17 @@ import io.smallrye.graphql.bootstrap.schema.GraphQLSchemaInitializer;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@ApplicationScoped
 public class SmallRyeGraphQLBootstrap {
-    public static GraphQLSchema GRAPHQL_SCHEMA;
+    private GraphQLSchema graphQLSchema;
 
-    public static GraphQLSchema bootstrap(IndexView index) {
+    public GraphQLSchema bootstrap(IndexView index) {
         GraphQLSchemaInitializer graphQLSchemaInitializer = new GraphQLSchemaInitializer(index);
-        GRAPHQL_SCHEMA = graphQLSchemaInitializer.generateGraphQLSchema();
-        return GRAPHQL_SCHEMA;
+        graphQLSchema = graphQLSchemaInitializer.generateGraphQLSchema();
+        return graphQLSchema;
     }
 
-    private SmallRyeGraphQLBootstrap() {
+    public GraphQLSchema getSchema() {
+        return graphQLSchema;
     }
 }

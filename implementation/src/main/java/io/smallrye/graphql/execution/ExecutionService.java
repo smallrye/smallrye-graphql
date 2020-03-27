@@ -66,10 +66,21 @@ public class ExecutionService {
     @Inject
     private GraphQLConfig config;
 
+    @Inject
+    private SmallRyeGraphQLBootstrap bootstrap;
+
+    public ExecutionService() {
+    }
+
+    public ExecutionService(GraphQLConfig config, SmallRyeGraphQLBootstrap bootstrap) {
+        this.config = config;
+        this.bootstrap = bootstrap;
+    }
+
     @PostConstruct
     public void init() {
         ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-        this.graphQL = getGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA, exceptionHandler);
+        this.graphQL = getGraphQL(bootstrap.getSchema(), exceptionHandler);
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -82,14 +93,14 @@ public class ExecutionService {
                     .executionId(ExecutionId.generate());
 
             // Variables
-            if (jsonInput.containsKey(VARIABLES)) {
-                JsonValue jvariables = jsonInput.get(VARIABLES);
-                if (!jvariables.equals(JsonValue.NULL)
-                        && !jvariables.equals(JsonValue.EMPTY_JSON_OBJECT)
-                        && !jvariables.equals(JsonValue.EMPTY_JSON_ARRAY)) {
-                    Map<String, Object> variables = toMap(jsonInput.getJsonObject(VARIABLES));
-                    executionBuilder.variables(variables);
-                }
+            JsonValue jvariables = jsonInput.get(VARIABLES);
+            if (null != jvariables
+                    && !JsonValue.NULL.equals(jvariables)
+                    && !JsonValue.EMPTY_JSON_OBJECT.equals(jvariables)
+                    && !JsonValue.EMPTY_JSON_ARRAY.equals(jvariables)) {
+
+                Map<String, Object> variables = toMap(jvariables.asJsonObject());
+                executionBuilder.variables(variables);
             }
 
             // Operation name
@@ -212,7 +223,7 @@ public class ExecutionService {
     private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
         if (graphQLSchema != null) {
             return GraphQL
-                    .newGraphQL(SmallRyeGraphQLBootstrap.GRAPHQL_SCHEMA)
+                    .newGraphQL(graphQLSchema)
                     .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                     .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
                     .build();

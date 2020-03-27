@@ -59,7 +59,7 @@ import io.smallrye.graphql.bootstrap.type.OutputTypeCreator;
 public class GraphQLSchemaInitializer {
     private static final Logger LOG = Logger.getLogger(GraphQLSchemaInitializer.class.getName());
 
-    private final EnumTypeCreator enumTypeCreator = new EnumTypeCreator();
+    private final EnumTypeCreator enumTypeCreator;
 
     private final AnnotationsHelper annotationsHelper = new AnnotationsHelper();
     private final ArgumentsHelper argumentsHelper = new ArgumentsHelper();
@@ -70,10 +70,13 @@ public class GraphQLSchemaInitializer {
     private final OutputTypeCreator outputTypeCreator;
     private final InputTypeCreator inputTypeCreator;
 
+    private final ObjectBag objectBag = new ObjectBag();
+
     public GraphQLSchemaInitializer(IndexView index) {
         this.index = index;
-        this.inputTypeCreator = new InputTypeCreator(index);
-        this.outputTypeCreator = new OutputTypeCreator(index, inputTypeCreator);
+        this.inputTypeCreator = new InputTypeCreator(index, objectBag);
+        this.outputTypeCreator = new OutputTypeCreator(index, inputTypeCreator, objectBag);
+        this.enumTypeCreator = new EnumTypeCreator(objectBag);
     }
 
     public GraphQLSchema generateGraphQLSchema() {
@@ -103,8 +106,8 @@ public class GraphQLSchemaInitializer {
         }
 
         // Let's see what still needs to be done.
-        for (ClassInfo todo : ObjectBag.getTypeTodoList()) {
-            if (!ObjectBag.getTypeMap().containsKey(todo.name())) {
+        for (ClassInfo todo : objectBag.getTypeTodoList()) {
+            if (!objectBag.getTypeMap().containsKey(todo.name())) {
                 outputTypeCreator.create(todo);
             }
         }
@@ -119,14 +122,15 @@ public class GraphQLSchemaInitializer {
         GraphQLFieldDefinition graphQLFieldDefinition = getGraphQLFieldDefinition(queryAnnotation);
         builder = builder.field(graphQLFieldDefinition);
         MethodInfo methodInfo = queryAnnotation.target().asMethod();
-        ObjectBag.getCodeRegistryBuilder().dataFetcher(
+        objectBag.getCodeRegistryBuilder().dataFetcher(
                 FieldCoordinates.coordinates(annotationToScan.withoutPackagePrefix(),
                         graphQLFieldDefinition.getName()),
-                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo), annotationsForMethod));
+                new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo), annotationsForMethod,
+                        objectBag));
 
         // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
-            scanType(methodInfo.returnType(), ObjectBag.getTypeMap(), this.outputTypeCreator);
+            scanType(methodInfo.returnType(), objectBag.getTypeMap(), this.outputTypeCreator);
         } else {
             throw new VoidReturnNotAllowedException("Can not have a void return for [" + annotationToScan.withoutPackagePrefix()
                     + "] on method [" + methodInfo.name() + "]");
@@ -135,7 +139,7 @@ public class GraphQLSchemaInitializer {
         // arguments on getters and setter
         List<Type> parameters = methodInfo.parameters();
         for (Type parameter : parameters) {
-            scanType(parameter, ObjectBag.getInputMap(), this.inputTypeCreator);
+            scanType(parameter, objectBag.getInputMap(), this.inputTypeCreator);
         }
 
         return builder;
@@ -146,10 +150,10 @@ public class GraphQLSchemaInitializer {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         Set<GraphQLType> additionalTypes = new HashSet<>();
-        additionalTypes.addAll(ObjectBag.getEnumMap().values());
-        additionalTypes.addAll(ObjectBag.getTypeMap().values());
-        additionalTypes.addAll(ObjectBag.getInputMap().values());
-        additionalTypes.addAll(ObjectBag.getInterfaceMap().values());
+        additionalTypes.addAll(objectBag.getEnumMap().values());
+        additionalTypes.addAll(objectBag.getTypeMap().values());
+        additionalTypes.addAll(objectBag.getInputMap().values());
+        additionalTypes.addAll(objectBag.getInterfaceMap().values());
         schemaBuilder = schemaBuilder.additionalTypes(additionalTypes);
 
         if (!query.getFieldDefinitions().isEmpty()) {
@@ -159,7 +163,7 @@ public class GraphQLSchemaInitializer {
             schemaBuilder = schemaBuilder.mutation(mutation);
         }
 
-        schemaBuilder = schemaBuilder.codeRegistry(ObjectBag.getCodeRegistryBuilder().build());
+        schemaBuilder = schemaBuilder.codeRegistry(objectBag.getCodeRegistryBuilder().build());
 
         return schemaBuilder.build();
     }
@@ -204,12 +208,12 @@ public class GraphQLSchemaInitializer {
                 scanType(typeInCollection, map, creator);
                 break;
             case PRIMITIVE:
-                if (!ObjectBag.getScalarMap().containsKey(type.name())) {
+                if (!objectBag.getScalarMap().containsKey(type.name())) {
                     LOG.warn("No scalar mapping for " + type.name() + WITH_KIND + type.kind());
                 }
                 break;
             case CLASS:
-                if (!ObjectBag.getScalarMap().containsKey(type.name())) {
+                if (!objectBag.getScalarMap().containsKey(type.name())) {
                     ClassInfo classInfo = index.getClassByName(type.name());
                     if (classInfo != null) {
                         scanClass(classInfo, map, creator);
@@ -240,9 +244,9 @@ public class GraphQLSchemaInitializer {
 
     private void scanEnum(ClassInfo classInfo) {
         if (Classes.isEnum(classInfo) &&
-                !ObjectBag.getEnumMap().containsKey(classInfo.name())) {
+                !objectBag.getEnumMap().containsKey(classInfo.name())) {
             GraphQLEnumType created = enumTypeCreator.create(classInfo);
-            ObjectBag.getEnumMap().putIfAbsent(classInfo.name(), created);
+            objectBag.getEnumMap().putIfAbsent(classInfo.name(), created);
         }
     }
 
