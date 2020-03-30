@@ -46,7 +46,6 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
@@ -67,20 +66,19 @@ public class ExecutionService {
     private GraphQLConfig config;
 
     @Inject
-    private SmallRyeGraphQLBootstrap bootstrap;
+    private GraphQLSchema graphQLSchema;
 
     public ExecutionService() {
     }
 
-    public ExecutionService(GraphQLConfig config, SmallRyeGraphQLBootstrap bootstrap) {
+    public ExecutionService(GraphQLConfig config, GraphQLSchema graphQLSchema) {
         this.config = config;
-        this.bootstrap = bootstrap;
+        this.graphQLSchema = graphQLSchema;
     }
 
     @PostConstruct
     public void init() {
-        ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-        this.graphQL = getGraphQL(bootstrap.getSchema(), exceptionHandler);
+        this.graphQL = getGraphQL();
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -220,7 +218,8 @@ public class ExecutionService {
         return ret;
     }
 
-    private GraphQL getGraphQL(GraphQLSchema graphQLSchema, ExceptionHandler exceptionHandler) {
+    private GraphQL getGraphQL() {
+        ExceptionHandler exceptionHandler = new ExceptionHandler(config);
         if (graphQLSchema != null) {
             return GraphQL
                     .newGraphQL(graphQLSchema)

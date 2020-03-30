@@ -28,8 +28,10 @@ import javax.servlet.annotation.WebListener;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
+import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.bootstrap.index.IndexInitializer;
+import io.smallrye.graphql.execution.GraphQLProducer;
 
 /**
  * Bootstrap the application on startup
@@ -37,11 +39,11 @@ import io.smallrye.graphql.bootstrap.index.IndexInitializer;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @WebListener
-public class StartupListener implements ServletContextListener {
-    private static final Logger LOG = Logger.getLogger(StartupListener.class.getName());
+public class SmallRyeGraphQLStartupListener implements ServletContextListener {
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLStartupListener.class.getName());
 
     @Inject
-    private SmallRyeGraphQLBootstrap bootstrap;
+    private GraphQLProducer graphQLProducer;
 
     private final IndexInitializer indexInitializer = new IndexInitializer();
 
@@ -52,7 +54,9 @@ public class StartupListener implements ServletContextListener {
             String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
-            sce.getServletContext().setAttribute(SmallRyeGraphQLSchemaServlet.SCHEMA_PROP, bootstrap.bootstrap(index));
+            GraphQLSchema graphQLSchema = SmallRyeGraphQLBootstrap.bootstrap(index);
+            graphQLProducer.setGraphQLSchema(graphQLSchema);
+            sce.getServletContext().setAttribute(SmallRyeGraphQLSchemaServlet.SCHEMA_PROP, graphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
