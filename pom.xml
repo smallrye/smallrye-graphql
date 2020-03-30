@@ -44,6 +44,7 @@
     <modules>
         <module>implementation</module>
         <module>implementation-servlet</module>
+        <module>metrics</module>
         <module>tck</module>
         <module>runner</module>
     </modules>
