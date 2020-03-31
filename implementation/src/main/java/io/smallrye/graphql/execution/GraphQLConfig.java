@@ -57,6 +57,10 @@ public class GraphQLConfig {
     @ConfigProperty(name = "mp.graphql.allowGet", defaultValue = "false")
     private boolean allowGet;
 
+    @Inject
+    @ConfigProperty(name = "smallrye.graphql.metrics.enabled", defaultValue = "false")
+    private boolean metricsEnabled;
+
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
     }
@@ -103,4 +107,7 @@ public class GraphQLConfig {
         this.allowGet = allowGet;
     }
 
+    public boolean isMetricsEnabled() {
+        return metricsEnabled;
+    }
 }

@@ -19,6 +19,7 @@ package io.smallrye.graphql.bootstrap.datafetcher;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +31,7 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
@@ -50,7 +52,9 @@ import io.smallrye.graphql.bootstrap.TransformException;
 import io.smallrye.graphql.bootstrap.Transformable;
 import io.smallrye.graphql.bootstrap.schema.helper.CollectionHelper;
 import io.smallrye.graphql.cdi.CDIDelegate;
+import io.smallrye.graphql.execution.GraphQLConfig;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
+import io.smallrye.metrics.MetricRegistries;
 
 /**
  * Fetch data using Reflection
@@ -73,6 +77,8 @@ public class ReflectionDataFetcher implements DataFetcher {
 
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
+    private final boolean metricsEnabled;
+
     public ReflectionDataFetcher(MethodInfo methodInfo, List<Argument> arguments, Annotations annotations,
             ObjectBag objectBag) {
         this.methodName = methodInfo.name();
@@ -82,13 +88,18 @@ public class ReflectionDataFetcher implements DataFetcher {
         this.hasArguments = parameterClasses.length != 0;
         this.transformableDataFetcherHelper = new TransformableDataFetcherHelper(methodInfo.returnType(), annotations);
         this.objectBag = objectBag;
+        this.metricsEnabled = ((GraphQLConfig) cdiDelegate.getInstanceFromCDI(GraphQLConfig.class)).isMetricsEnabled();
     }
 
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
+        Long start = null;
         try {
             Object declaringObject = cdiDelegate.getInstanceFromCDI(declaringClass);
             Class cdiClass = declaringObject.getClass();
+            if (metricsEnabled) {
+                start = System.nanoTime();
+            }
             if (hasArguments) {
                 Method method = cdiClass.getMethod(methodName, parameterClasses);
                 return transformableDataFetcherHelper.transform(method.invoke(declaringObject, getArguments(dfe).toArray()));
@@ -112,6 +123,12 @@ public class ReflectionDataFetcher implements DataFetcher {
                 } else {
                     throw (Exception) throwable;
                 }
+            }
+        } finally {
+            if (metricsEnabled) {
+                long duration = System.nanoTime() - start;
+                MetricRegistries.get(MetricRegistry.Type.VENDOR).simpleTimer("mp_graphql_" + dfe.getFieldDefinition().getName())
+                        .update(Duration.ofNanos(duration));
             }
         }
     }

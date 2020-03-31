@@ -23,6 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -48,6 +52,7 @@ import io.smallrye.graphql.bootstrap.type.Creator;
 import io.smallrye.graphql.bootstrap.type.EnumTypeCreator;
 import io.smallrye.graphql.bootstrap.type.InputTypeCreator;
 import io.smallrye.graphql.bootstrap.type.OutputTypeCreator;
+import io.smallrye.metrics.MetricRegistries;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -140,6 +145,15 @@ public class SmallRyeGraphQLBootstrap {
                         graphQLFieldDefinition.getName()),
                 new ReflectionDataFetcher(methodInfo, argumentsHelper.toArguments(methodInfo), annotationsForMethod,
                         objectBag));
+        // if metrics are enabled, register a metric for this field eagerly
+        if (ConfigProvider.getConfig().getOptionalValue("smallrye.graphql.metrics.enabled", boolean.class).orElse(false)) {
+            Metadata metadata = Metadata.builder()
+                    .withName("mp_graphql_" + graphQLFieldDefinition.getName())
+                    .withType(MetricType.SIMPLE_TIMER)
+                    .withDescription("Call statistics for the query '" + graphQLFieldDefinition.getName() + "'")
+                    .build();
+            MetricRegistries.get(MetricRegistry.Type.VENDOR).simpleTimer(metadata);
+        }
 
         // return type
         if (!methodInfo.returnType().kind().equals(Type.Kind.VOID)) {
