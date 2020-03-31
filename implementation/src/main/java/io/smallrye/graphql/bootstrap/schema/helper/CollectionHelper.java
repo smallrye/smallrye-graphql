@@ -42,9 +42,7 @@ public class CollectionHelper {
         try {
             return (Collection<?>) type.newInstance();
         } catch (Exception ex) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Can not create no-arg collection instance of [" + type + "]", ex);
-            }
+            LOG.debug("Cannot create no-arg instance of [" + (type == null ? "null" : type.getName()) + "]", ex);
         }
         if (Set.class.isAssignableFrom(type)) {
             return new HashSet<>();
