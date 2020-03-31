@@ -64,6 +64,14 @@
             <artifactId>jboss-logging</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Testing -->
+        <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <version>4.13</version>
+             <scope>test</scope>
+         </dependency>
     </dependencies>
 
     <profiles>
