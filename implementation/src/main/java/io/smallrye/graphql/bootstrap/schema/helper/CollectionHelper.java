@@ -15,8 +15,6 @@
  */
 package io.smallrye.graphql.bootstrap.schema.helper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,20 +38,15 @@ public class CollectionHelper {
      * @param type the collection class
      * @return the collection
      */
-    public Collection newCollection(Class type) {
-        if (type.equals(Collection.class) || type.equals(List.class)) {
-            return new ArrayList();
-        } else if (type.equals(Set.class)) {
-            return new HashSet();
-        } else {
-            try {
-                Constructor constructor = type.getConstructor();
-                constructor.setAccessible(true);
-                return (Collection) constructor.newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
-                LOG.error("Can not create new collection of [" + type.getName() + "]", ex);
-                return new ArrayList(); // default ?
-            }
+    public static Collection<?> newCollection(Class<?> type) {
+        try {
+            return (Collection<?>) type.newInstance();
+        } catch (Exception ex) {
+            LOG.debug("Cannot create no-arg instance of [" + (type == null ? "null" : type.getName()) + "]", ex);
         }
+        if (Set.class.isAssignableFrom(type)) {
+            return new HashSet<>();
+        }
+        return new ArrayList<>();
     }
 }

@@ -20,7 +20,6 @@ import io.smallrye.graphql.bootstrap.schema.helper.FormatHelper;
  */
 public class TransformableDataFetcherHelper {
     private final FormatHelper formatHelper = new FormatHelper();
-    private final CollectionHelper collectionHelper = new CollectionHelper();
 
     private DateTimeFormatter dateTimeFormatter = null;
     private NumberFormat numberFormat = null;
@@ -45,7 +44,7 @@ public class TransformableDataFetcherHelper {
             }
         } else if (Collection.class.isInstance(o)) {
             Collection collection = Collection.class.cast(o);
-            Collection transformedCollection = collectionHelper.newCollection(o.getClass());
+            Collection transformedCollection = CollectionHelper.newCollection(o.getClass());
             for (Object oo : collection) {
                 transformedCollection.add(transform(oo));
             }

@@ -65,7 +65,6 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final List<Argument> arguments;
     private final boolean hasArguments;
     private final String methodName;
-    private final CollectionHelper collectionHelper = new CollectionHelper();
 
     private final Class declaringClass;
     private final Class[] parameterClasses;
@@ -218,7 +217,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     private Object handleCollection(Object argumentValue, Argument a) throws GraphQLException {
         Class clazz = a.getArgumentClass();
         Type type = a.getType();
-        Collection convertedList = collectionHelper.newCollection(clazz);
+        Collection convertedList = CollectionHelper.newCollection(clazz);
 
         Collection givenCollection = (Collection) argumentValue;
 
