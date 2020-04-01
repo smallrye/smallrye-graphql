@@ -118,6 +118,13 @@ public class SmallRyeGraphQLBootstrap {
             }
         }
 
+        while (!objectBag.getInputTypeTodoList().isEmpty()) { // Don't iterate to prevent ConcurrentModificationException
+            ClassInfo todo = objectBag.getInputTypeTodoList().remove(0);
+            if (!objectBag.getInputMap().containsKey(todo.name())) {
+                inputTypeCreator.create(todo);
+            }
+        }
+
         return createGraphQLSchema(queryBuilder.build(), mutationBuilder.build());
     }
 

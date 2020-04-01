@@ -58,6 +58,7 @@ public class ObjectBag {
     private final Map<DotName, GraphQLEnumType> ENUM_MAP = new HashMap<>();
     private final Map<DotName, GraphQLInterfaceType> INTERFACE_MAP = new HashMap<>();
     private final List<ClassInfo> TYPE_TODO_LIST = new ArrayList<>();
+    private final List<ClassInfo> INPUT_TYPE_TODO_LIST = new ArrayList<>();
     private final Map<DotName, Jsonb> INPUT_JSON_MAP = new HashMap<>();
     private final Map<DotName, Map<String, Argument>> ARGUMENT_MAP = new HashMap<>();
     private final GraphQLCodeRegistry.Builder CODE_REGISTRY_BUILDER = GraphQLCodeRegistry.newCodeRegistry();
@@ -111,6 +112,10 @@ public class ObjectBag {
 
     public List<ClassInfo> getTypeTodoList() {
         return TYPE_TODO_LIST;
+    }
+
+    public List<ClassInfo> getInputTypeTodoList() {
+        return INPUT_TYPE_TODO_LIST;
     }
 
     public Map<DotName, Jsonb> getInputJsonMap() {
