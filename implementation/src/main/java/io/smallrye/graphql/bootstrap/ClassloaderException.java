@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.smallrye.graphql.bootstrap.schema;
+package io.smallrye.graphql.bootstrap;
 
 /**
- * Argument class is not found
+ * a Class is not found
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ArgumentTypeNotFoundException extends RuntimeException {
+public class ClassloaderException extends RuntimeException {
 
-    public ArgumentTypeNotFoundException() {
+    public ClassloaderException() {
     }
 
-    public ArgumentTypeNotFoundException(String string) {
+    public ClassloaderException(String string) {
         super(string);
     }
 
-    public ArgumentTypeNotFoundException(String string, Throwable thrwbl) {
+    public ClassloaderException(String string, Throwable thrwbl) {
         super(string, thrwbl);
     }
 
-    public ArgumentTypeNotFoundException(Throwable thrwbl) {
+    public ClassloaderException(Throwable thrwbl) {
         super(thrwbl);
     }
 
-    public ArgumentTypeNotFoundException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
+    public ClassloaderException(String string, Throwable thrwbl, boolean bln, boolean bln1) {
         super(string, thrwbl, bln, bln1);
     }
 

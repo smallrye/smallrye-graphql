@@ -23,6 +23,8 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.bootstrap.Classes;
+
 /**
  * Helping with collections
  *
@@ -31,6 +33,11 @@ import org.jboss.logging.Logger;
 public class CollectionHelper {
     private static final Logger LOG = Logger.getLogger(CollectionHelper.class.getName());
 
+    public static Collection<?> newCollection(String className) {
+        Class<?> type = Classes.loadClass(className);
+        return newCollection(type);
+    }
+
     /**
      * Creates an empty instance of a non-interface type of collection, or a suitable subclass of
      * the interfaces {@link List}, {@link Collection}, or {@link Set}.
@@ -38,9 +45,9 @@ public class CollectionHelper {
      * @param type the collection class
      * @return the collection
      */
-    public static Collection<?> newCollection(Class<?> type) {
+    private static Collection<?> newCollection(Class<?> type) {
         try {
-            return (Collection<?>) type.newInstance();
+            return (Collection<?>) type.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             LOG.debug("Cannot create no-arg instance of [" + (type == null ? "null" : type.getName()) + "]", ex);
         }

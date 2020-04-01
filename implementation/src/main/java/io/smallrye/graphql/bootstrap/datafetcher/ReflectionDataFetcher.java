@@ -77,7 +77,7 @@ public class ReflectionDataFetcher implements DataFetcher {
             ObjectBag objectBag) {
         this.methodName = methodInfo.name();
         this.arguments = arguments;
-        this.declaringClass = loadClass(methodInfo.declaringClass().name().toString());
+        this.declaringClass = Classes.loadClass(methodInfo.declaringClass().name().toString());
         this.parameterClasses = getParameterClasses(arguments);
         this.hasArguments = parameterClasses.length != 0;
         this.transformableDataFetcherHelper = new TransformableDataFetcherHelper(methodInfo.returnType(), annotations);
@@ -153,7 +153,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                 return handlePrimative(argumentValue, a);
             } else if (kind.equals(Type.Kind.ARRAY)) {
                 return handleArray(argumentValue, a);
-            } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE) && isOptionalType(a.getArgumentClass())) {
+            } else if (Classes.isOptional(type)) {
                 return handleOptional(argumentValue);
             } else if (kind.equals(Type.Kind.PARAMETERIZED_TYPE)) {
                 return handleCollection(argumentValue, a);
@@ -215,9 +215,8 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Object handleCollection(Object argumentValue, Argument a) throws GraphQLException {
-        Class clazz = a.getArgumentClass();
         Type type = a.getType();
-        Collection convertedList = CollectionHelper.newCollection(clazz);
+        Collection convertedList = CollectionHelper.newCollection(type.name().toString());
 
         Collection givenCollection = (Collection) argumentValue;
 
@@ -245,10 +244,6 @@ public class ReflectionDataFetcher implements DataFetcher {
                 return Optional.of(o);
             }
         }
-    }
-
-    private boolean isOptionalType(Class type) {
-        return type.equals(Optional.class);
     }
 
     private Object handleDefault(Object argumentValue, Argument argument, String message) {
@@ -365,15 +360,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             return objectBag.getScalarMap().get(type.name());
         }
         return null;
-    }
-
-    private Class loadClass(String className) {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            return classLoader.loadClass(className);
-        } catch (ClassNotFoundException ex) {
-            throw new ReflectionDataFetcherException("Could not find class [" + className + "]", ex);
-        }
     }
 
     private Class[] getParameterClasses(List<Argument> arguments) {

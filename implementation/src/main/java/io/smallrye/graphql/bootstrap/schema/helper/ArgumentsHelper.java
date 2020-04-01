@@ -108,14 +108,11 @@ public class ArgumentsHelper {
         if (ignoreSourceArgument && annotationsForThisArgument.containsOneOfTheseKeys(Annotations.SOURCE)) {
             return Optional.empty();
         } else {
-            Argument argument = new Argument();
+
             String defaultName = methodInfo.parameterName(argCount);
             String name = nameHelper.getArgumentName(annotationsForThisArgument, defaultName);
             Optional<String> description = descriptionHelper.getDescriptionForField(annotationsForThisArgument, parameter);
-            argument.setName(name);
-            argument.setDescription(description.orElse(null));
-            argument.setType(parameter);
-            argument.setAnnotations(annotationsForThisArgument);
+            Argument argument = new Argument(name, description.orElse(null), parameter, annotationsForThisArgument);
             return Optional.of(argument);
         }
     }
