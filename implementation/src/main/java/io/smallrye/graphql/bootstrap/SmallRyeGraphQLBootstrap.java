@@ -111,7 +111,8 @@ public class SmallRyeGraphQLBootstrap {
         }
 
         // Let's see what still needs to be done.
-        for (ClassInfo todo : objectBag.getTypeTodoList()) {
+        while (!objectBag.getTypeTodoList().isEmpty()) { // Don't iterate to prevent ConcurrentModificationException
+            ClassInfo todo = objectBag.getTypeTodoList().remove(0);
             if (!objectBag.getTypeMap().containsKey(todo.name())) {
                 outputTypeCreator.create(todo);
             }
