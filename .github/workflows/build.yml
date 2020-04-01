@@ -6,9 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        java: [8, 11]
         max-parallel: 1
+    matrix:
+        java: [8, 11]
+        
     name: build with jdk ${{matrix.java}}
 
     steps:
