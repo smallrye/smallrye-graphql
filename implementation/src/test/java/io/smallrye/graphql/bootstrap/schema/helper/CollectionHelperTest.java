@@ -15,8 +15,7 @@
  */
 package io.smallrye.graphql.bootstrap.schema.helper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,115 +33,93 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class CollectionHelperTest {
+class CollectionHelperTest {
 
     private void test(Collection<?> c, Class<?> expected) {
-        assertTrue("Return value is null", c != null);
-        assertEquals("Unexpected type returned, expected " + expected + ", found: " + c.getClass(),
-                expected, c.getClass());
-        assertTrue("Unexpected non-empty collection returned: " + c, c.isEmpty());
+        assertThat(c).isNotNull();
+        assertThat(c.getClass()).isEqualTo(expected);
+        assertThat(c).isEmpty();
     }
 
-    @Test
-    public void newCollection_Set() throws Exception {
+    @Test void newCollection_Set() {
         test(CollectionHelper.newCollection(Set.class), HashSet.class);
-
     }
 
-    @Test
-    public void newCollection_HashSet() throws Exception {
+    @Test void newCollection_HashSet() {
         test(CollectionHelper.newCollection(HashSet.class), HashSet.class);
     }
 
-    @Test
-    public void newCollection_LinkedHashSet() throws Exception {
+    @Test void newCollection_LinkedHashSet() {
         test(CollectionHelper.newCollection(LinkedHashSet.class), LinkedHashSet.class);
     }
 
-    @Test
-    public void newCollection_TreeSet() throws Exception {
+    @Test void newCollection_TreeSet() {
         test(CollectionHelper.newCollection(TreeSet.class), TreeSet.class);
     }
 
-    @Test
-    public void newCollection_ConcurrentSkipListSet() throws Exception {
+    @Test void newCollection_ConcurrentSkipListSet() {
         test(CollectionHelper.newCollection(ConcurrentSkipListSet.class), ConcurrentSkipListSet.class);
     }
 
-    @Test
-    public void newCollection_CustomSet() throws Exception {
+    @Test void newCollection_CustomSet() {
         test(CollectionHelper.newCollection(CustomSet.class), HashSet.class);
     }
 
-    @Test
-    public void newCollection_EmptySet() throws Exception {
+    @Test void newCollection_EmptySet() {
         test(CollectionHelper.newCollection(Collections.EMPTY_SET.getClass()), HashSet.class);
     }
 
-    @Test
-    public void newCollection_EmptySetMethod() throws Exception {
+    @Test void newCollection_EmptySetMethod() {
         test(CollectionHelper.newCollection(Collections.emptySet().getClass()), HashSet.class);
     }
 
-    @Test
-    public void newCollection_CollectionsSingleton() throws Exception {
+    @Test void newCollection_CollectionsSingleton() {
         test(CollectionHelper.newCollection(Collections.singleton("foo").getClass()), HashSet.class);
     }
 
-    @Test
-    public void newCollection_Collection() throws Exception {
+    @Test void newCollection_Collection() {
         test(CollectionHelper.newCollection(Collection.class), ArrayList.class);
     }
 
-    @Test
-    public void newCollection_List() throws Exception {
+    @Test void newCollection_List() {
         test(CollectionHelper.newCollection(List.class), ArrayList.class);
     }
 
-    @Test
-    public void newCollection_ArrayList() throws Exception {
+    @Test void newCollection_ArrayList() {
         test(CollectionHelper.newCollection(ArrayList.class), ArrayList.class);
     }
 
-    @Test
-    public void newCollection_LinkedList() throws Exception {
+    @Test void newCollection_LinkedList() {
         test(CollectionHelper.newCollection(LinkedList.class), LinkedList.class);
     }
 
-    @Test
-    public void newCollection_Stack() throws Exception {
+    @Test void newCollection_Stack() {
         test(CollectionHelper.newCollection(Stack.class), Stack.class);
     }
 
-    @Test
-    public void newCollection_Vector() throws Exception {
+    @Test void newCollection_Vector() {
         test(CollectionHelper.newCollection(Vector.class), Vector.class);
     }
 
-    @Test
-    public void newCollection_CopyOnWriteArrayList() throws Exception {
+    @Test void newCollection_CopyOnWriteArrayList() {
         test(CollectionHelper.newCollection(CopyOnWriteArrayList.class), CopyOnWriteArrayList.class);
     }
 
-    @Test
-    public void newCollection_CustomList() throws Exception {
+    @Test void newCollection_CustomList() {
         test(CollectionHelper.newCollection(CustomList.class), CustomList.class);
     }
 
-    @Test
-    public void newCollection_EmptyList() throws Exception {
+    @Test void newCollection_EmptyList() {
         test(CollectionHelper.newCollection(Collections.EMPTY_LIST.getClass()), ArrayList.class);
     }
 
-    @Test
-    public void newCollection_EmptyListMethod() throws Exception {
+    @Test void newCollection_EmptyListMethod() {
         test(CollectionHelper.newCollection(Collections.emptyList().getClass()), ArrayList.class);
     }
 
-    @Test
-    public void newCollection_CollectionsSingletonList() throws Exception {
+    @Test void newCollection_CollectionsSingletonList() {
         test(CollectionHelper.newCollection(Collections.singletonList("foo").getClass()), ArrayList.class);
     }
 
