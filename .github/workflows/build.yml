@@ -4,11 +4,11 @@ on: [push,pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     strategy:
       max-parallel: 1
       matrix:
-        java: [11]
+        java: [8, 11]
         
     name: build with jdk ${{matrix.java}}
 
