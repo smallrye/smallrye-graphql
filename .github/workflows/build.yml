@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8.0.241,11]
+        java: [11]
         
     name: build with jdk ${{matrix.java}}
 
