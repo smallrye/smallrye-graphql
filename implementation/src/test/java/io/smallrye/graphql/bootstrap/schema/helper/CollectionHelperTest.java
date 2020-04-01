@@ -47,103 +47,103 @@ public class CollectionHelperTest {
 
     @Test
     public void newCollection_Set() throws Exception {
-        test(CollectionHelper.newCollection(Set.class), HashSet.class);
+        test(CollectionHelper.newCollection(Set.class.getName()), HashSet.class);
 
     }
 
     @Test
     public void newCollection_HashSet() throws Exception {
-        test(CollectionHelper.newCollection(HashSet.class), HashSet.class);
+        test(CollectionHelper.newCollection(HashSet.class.getName()), HashSet.class);
     }
 
     @Test
     public void newCollection_LinkedHashSet() throws Exception {
-        test(CollectionHelper.newCollection(LinkedHashSet.class), LinkedHashSet.class);
+        test(CollectionHelper.newCollection(LinkedHashSet.class.getName()), LinkedHashSet.class);
     }
 
     @Test
     public void newCollection_TreeSet() throws Exception {
-        test(CollectionHelper.newCollection(TreeSet.class), TreeSet.class);
+        test(CollectionHelper.newCollection(TreeSet.class.getName()), TreeSet.class);
     }
 
     @Test
     public void newCollection_ConcurrentSkipListSet() throws Exception {
-        test(CollectionHelper.newCollection(ConcurrentSkipListSet.class), ConcurrentSkipListSet.class);
+        test(CollectionHelper.newCollection(ConcurrentSkipListSet.class.getName()), ConcurrentSkipListSet.class);
     }
 
     @Test
     public void newCollection_CustomSet() throws Exception {
-        test(CollectionHelper.newCollection(CustomSet.class), HashSet.class);
+        test(CollectionHelper.newCollection(CustomSet.class.getName()), HashSet.class);
     }
 
     @Test
     public void newCollection_EmptySet() throws Exception {
-        test(CollectionHelper.newCollection(Collections.EMPTY_SET.getClass()), HashSet.class);
+        test(CollectionHelper.newCollection(Collections.EMPTY_SET.getClass().getName()), HashSet.class);
     }
 
     @Test
     public void newCollection_EmptySetMethod() throws Exception {
-        test(CollectionHelper.newCollection(Collections.emptySet().getClass()), HashSet.class);
+        test(CollectionHelper.newCollection(Collections.emptySet().getClass().getName()), HashSet.class);
     }
 
     @Test
     public void newCollection_CollectionsSingleton() throws Exception {
-        test(CollectionHelper.newCollection(Collections.singleton("foo").getClass()), HashSet.class);
+        test(CollectionHelper.newCollection(Collections.singleton("foo").getClass().getName()), HashSet.class);
     }
 
     @Test
     public void newCollection_Collection() throws Exception {
-        test(CollectionHelper.newCollection(Collection.class), ArrayList.class);
+        test(CollectionHelper.newCollection(Collection.class.getName()), ArrayList.class);
     }
 
     @Test
     public void newCollection_List() throws Exception {
-        test(CollectionHelper.newCollection(List.class), ArrayList.class);
+        test(CollectionHelper.newCollection(List.class.getName()), ArrayList.class);
     }
 
     @Test
     public void newCollection_ArrayList() throws Exception {
-        test(CollectionHelper.newCollection(ArrayList.class), ArrayList.class);
+        test(CollectionHelper.newCollection(ArrayList.class.getName()), ArrayList.class);
     }
 
     @Test
     public void newCollection_LinkedList() throws Exception {
-        test(CollectionHelper.newCollection(LinkedList.class), LinkedList.class);
+        test(CollectionHelper.newCollection(LinkedList.class.getName()), LinkedList.class);
     }
 
     @Test
     public void newCollection_Stack() throws Exception {
-        test(CollectionHelper.newCollection(Stack.class), Stack.class);
+        test(CollectionHelper.newCollection(Stack.class.getName()), Stack.class);
     }
 
     @Test
     public void newCollection_Vector() throws Exception {
-        test(CollectionHelper.newCollection(Vector.class), Vector.class);
+        test(CollectionHelper.newCollection(Vector.class.getName()), Vector.class);
     }
 
     @Test
     public void newCollection_CopyOnWriteArrayList() throws Exception {
-        test(CollectionHelper.newCollection(CopyOnWriteArrayList.class), CopyOnWriteArrayList.class);
+        test(CollectionHelper.newCollection(CopyOnWriteArrayList.class.getName()), CopyOnWriteArrayList.class);
     }
 
     @Test
     public void newCollection_CustomList() throws Exception {
-        test(CollectionHelper.newCollection(CustomList.class), CustomList.class);
+        test(CollectionHelper.newCollection(CustomList.class.getName()), CustomList.class);
     }
 
     @Test
     public void newCollection_EmptyList() throws Exception {
-        test(CollectionHelper.newCollection(Collections.EMPTY_LIST.getClass()), ArrayList.class);
+        test(CollectionHelper.newCollection(Collections.EMPTY_LIST.getClass().getName()), ArrayList.class);
     }
 
     @Test
     public void newCollection_EmptyListMethod() throws Exception {
-        test(CollectionHelper.newCollection(Collections.emptyList().getClass()), ArrayList.class);
+        test(CollectionHelper.newCollection(Collections.emptyList().getClass().getName()), ArrayList.class);
     }
 
     @Test
     public void newCollection_CollectionsSingletonList() throws Exception {
-        test(CollectionHelper.newCollection(Collections.singletonList("foo").getClass()), ArrayList.class);
+        test(CollectionHelper.newCollection(Collections.singletonList("foo").getClass().getName()), ArrayList.class);
     }
 
     static class CustomSet implements Set<Object> {

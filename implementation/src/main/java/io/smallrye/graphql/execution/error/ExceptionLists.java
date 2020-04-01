@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.bootstrap.Classes;
+
 /**
  * Class that hold the exceptions to the exceptions
  * 
@@ -73,7 +75,7 @@ public class ExceptionLists {
         List<Class> classes = new ArrayList<>();
         if (classNames != null && !classNames.isEmpty()) {
             for (String className : classNames) {
-                Class c = loadClass(className);
+                Class c = Classes.loadClass(className);
                 if (c != null) {
                     classes.add(c);
                 }
@@ -81,16 +83,4 @@ public class ExceptionLists {
         }
         return classes;
     }
-
-    private Class loadClass(String className) {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            return classLoader.loadClass(className);
-        } catch (ClassNotFoundException ex) {
-            LOG.warn("Could not create instance of exception class [" + className
-                    + "]. Can not do transitive black/whitelist check for this class");
-        }
-        return null;
-    }
-
 }

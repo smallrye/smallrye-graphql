@@ -156,11 +156,8 @@ public class InputTypeCreator implements Creator {
                     if (annotations.hasGraphQLFormatingAnnotations()) {
                         Optional<String> description = descriptionHelper.getDescriptionForField(annotationsForThisArgument,
                                 field.type());
-                        Argument a = new Argument();
-                        a.setName(fieldName);
-                        a.setAnnotations(annotations); // TODO: Should this not be annotationsForThisArgument
-                        a.setType(field.type());
-                        a.setDescription(description.orElse(null));
+                        Argument a = new Argument(fieldName, description.orElse(null), field.type(), annotations);// TODO: Should this not be annotationsForThisArgument
+
                         fieldAnnotationsMapping.put(fieldName, a);
                     }
                 }
