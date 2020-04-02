@@ -18,7 +18,9 @@ package io.smallrye.graphql.bootstrap.type;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -115,15 +117,6 @@ public class OutputTypeCreator implements Creator {
             // Fields
             objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(classInfo, name));
 
-            // Super class
-            DotName superClassName = classInfo.superName();
-            if (superClassName != null) {
-                ClassInfo sc = index.getClassByName(superClassName);
-                if (sc != null) {
-                    objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(sc, name));
-                }
-            }
-
             // Interfaces
             List<DotName> interfaceNames = classInfo.interfaceNames();
             for (DotName interfaceName : interfaceNames) {
@@ -215,11 +208,18 @@ public class OutputTypeCreator implements Creator {
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(ClassInfo classInfo, String name) {
         List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
-        List<FieldInfo> fields = classInfo.fields();
+        List<FieldInfo> fields = new ArrayList<>();
+        Map<String, MethodInfo> allMethods = new HashMap<>();
+        for (ClassInfo c = classInfo; c != null; c = index.getClassByName(c.superName())) {
+            fields.addAll(c.fields());
+            for (final MethodInfo method : c.methods()) {
+                allMethods.putIfAbsent(method.name().toLowerCase(Locale.ENGLISH), method);
+            }
+        }
 
         for (FieldInfo field : fields) {
             // Check if there is a getter (for output) 
-            Optional<MethodInfo> maybeGetter = getGetMethod(field.name(), classInfo);
+            Optional<MethodInfo> maybeGetter = getGetMethod(field.name(), allMethods);
             if (maybeGetter.isPresent()) {
                 MethodInfo getter = maybeGetter.get();
                 // Annotations on the field and getter
@@ -351,15 +351,16 @@ public class OutputTypeCreator implements Creator {
         }
     }
 
-    private Optional<MethodInfo> getGetMethod(String forField, ClassInfo classInfo) {
-        String get = GET + forField;
-        String is = IS + forField;
-        List<MethodInfo> methods = classInfo.methods();
-        for (MethodInfo methodInfo : methods) {
-            if (methodInfo.name().equalsIgnoreCase(get) || methodInfo.name().equalsIgnoreCase(is)) {
-                return Optional.of(methodInfo);
-            }
+    private Optional<MethodInfo> getGetMethod(String forField, Map<String, MethodInfo> classInfo) {
+        String get = (GET + forField).toLowerCase(Locale.ENGLISH);
+        String is = (IS + forField).toLowerCase(Locale.ENGLISH);
+        if (classInfo.containsKey(get)) {
+            return Optional.of(classInfo.get(get));
         }
+        if (classInfo.containsKey(is)) {
+            return Optional.of(classInfo.get(is));
+        }
+
         return Optional.empty();
     }
 

@@ -18,6 +18,7 @@ package io.smallrye.graphql.bootstrap.type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -110,13 +111,20 @@ public class InputTypeCreator implements Creator {
     private List<GraphQLInputObjectField> createGraphQLInputObjectField(ClassInfo classInfo, String name) {
         List<GraphQLInputObjectField> inputObjectFields = new ArrayList<>();
         // Fields
-        List<FieldInfo> fields = classInfo.fields();
+        List<FieldInfo> fields = new ArrayList<>();
+        Map<String, MethodInfo> allMethods = new HashMap<>();
+        for (ClassInfo c = classInfo; c != null; c = index.getClassByName(c.superName())) {
+            fields.addAll(c.fields());
+            for (final MethodInfo method : c.methods()) {
+                allMethods.putIfAbsent(method.name().toLowerCase(Locale.ENGLISH), method);
+            }
+        }
 
         final Map<String, String> customFieldNameMapping = new HashMap<>();
         final Map<String, Argument> fieldAnnotationsMapping = new HashMap<>();
         for (FieldInfo field : fields) {
             // Check if there is a setter (for input) 
-            Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), classInfo);
+            Optional<MethodInfo> maybeSetter = getSetMethod(field.name(), allMethods);
             if (maybeSetter.isPresent()) {
                 MethodInfo setter = maybeSetter.get();
                 // Annotations on the field and setter
@@ -250,14 +258,12 @@ public class InputTypeCreator implements Creator {
         }
     }
 
-    private Optional<MethodInfo> getSetMethod(String forField, ClassInfo classInfo) {
-        String name = SET + forField;
-        List<MethodInfo> methods = classInfo.methods();
-        for (MethodInfo methodInfo : methods) {
-            if (methodInfo.name().equalsIgnoreCase(name)) {
-                return Optional.of(methodInfo);
-            }
+    private Optional<MethodInfo> getSetMethod(String forField, Map<String, MethodInfo> methods) {
+        String name = (SET + forField).toLowerCase(Locale.ENGLISH);
+        if (methods.containsKey(name)) {
+            return Optional.of(methods.get(name));
         }
+
         return Optional.empty();
     }
 
