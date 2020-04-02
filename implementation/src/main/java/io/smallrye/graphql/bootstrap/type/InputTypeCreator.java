@@ -224,6 +224,7 @@ public class InputTypeCreator implements Creator {
                 } else if (objectBag.getInputMap().containsKey(classInfo.name())) {
                     return objectBag.getInputMap().get(classInfo.name());
                 } else {
+                    objectBag.getInputTypeTodoList().add(classInfo);
                     Annotations annotationsForThisClass = annotationsHelper.getAnnotationsForClass(classInfo);
                     String name = nameHelper.getInputTypeName(classInfo, annotationsForThisClass);
                     return GraphQLTypeReference.typeRef(name);
