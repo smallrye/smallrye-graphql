@@ -138,7 +138,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     private ArrayList getArguments(DataFetchingEnvironment dfe) throws GraphQLException {
         ArrayList argumentObjects = new ArrayList();
         for (Argument a : arguments) {
-            Object argument = getArgument(dfe, a.getName());
+            Object argument = getArgument(dfe, a);
             argumentObjects.add(toArgumentInputParameter(argument, a));
         }
         return argumentObjects;
@@ -255,14 +255,18 @@ public class ReflectionDataFetcher implements DataFetcher {
         return argumentValue;
     }
 
-    private Object getArgument(DataFetchingEnvironment dfe, String name) {
-        Object argument = dfe.getArgument(name);
+    private Object getArgument(DataFetchingEnvironment dfe, Argument a) {
+        // Only use source if argument ist annotated as source
+        if (a.getAnnotations().containsOneOfTheseKeys(Annotations.SOURCE)) {
+            Object source = dfe.getSource();
+            if (source != null) {
+                return source;
+            }
+        }
+
+        Object argument = dfe.getArgument(a.getName());
         if (argument != null) {
             return argument;
-        }
-        Object source = dfe.getSource();
-        if (source != null) {
-            return source;
         }
         return null;
     }
