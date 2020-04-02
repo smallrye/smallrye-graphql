@@ -171,7 +171,7 @@ public class ExecutionService {
         }
     }
 
-    private Map<String, Object> toMap(JsonObject jo) {
+    Map<String, Object> toMap(JsonObject jo) {
         Map<String, Object> ro = new HashMap<>();
         if (jo != null) {
             Set<Map.Entry<String, JsonValue>> entrySet = jo.entrySet();
@@ -182,7 +182,7 @@ public class ExecutionService {
         return ro;
     }
 
-    private Object toObject(JsonValue jsonValue) {
+    Object toObject(JsonValue jsonValue) {
         Object ret = null;
         JsonValue.ValueType typ = jsonValue.getValueType();
         if (null != typ)
@@ -210,7 +210,7 @@ public class ExecutionService {
                     ret = vals;
                     break;
                 case OBJECT:
-                    ret = jsonValue.toString();
+                    ret = toMap((JsonObject) jsonValue);
                     break;
                 default:
                     break;
