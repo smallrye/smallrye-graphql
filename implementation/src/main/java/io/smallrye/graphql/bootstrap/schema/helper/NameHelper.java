@@ -49,10 +49,6 @@ public class NameHelper {
 
     public String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
-            AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
-            if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
-                return nameAnnotation.value().asString().trim();
-            }
             return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString().trim();
@@ -62,11 +58,7 @@ public class NameHelper {
 
     public String getOutputNameForField(Annotations annotationsForThisField, String fieldName) {
         if (annotationsForThisField.containsKeyAndValidValue(Annotations.NAME)) {
-            AnnotationInstance nameAnnotation = annotationsForThisField.getAnnotation(Annotations.NAME);
-            if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
-                return nameAnnotation.value().asString().trim();
-            }
-            return nameAnnotation.value().asString().trim();
+            return annotationsForThisField.getAnnotation(Annotations.NAME).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
             return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
