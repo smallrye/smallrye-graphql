@@ -3,19 +3,15 @@ package io.smallrye.graphql.schema;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jboss.logging.Logger;
-
-import io.smallrye.graphql.schema.model.DefinitionType;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
- * Here we keep all the objects we know about
+ * Here we keep all references to things we know about
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ObjectBag {
-    private static final Logger LOG = Logger.getLogger(ObjectBag.class.getName());
-
     // Some maps we populate during scanning
     private static final Map<String, Reference> inputReferenceMap = new HashMap<>();
     private static final Map<String, Reference> typeReferenceMap = new HashMap<>();
@@ -25,7 +21,7 @@ public class ObjectBag {
     private ObjectBag() {
     }
 
-    public static Map<String, Reference> getReferenceMap(DefinitionType definitionType) {
+    public static Map<String, Reference> getReferenceMap(ReferenceType definitionType) {
         switch (definitionType) {
             case ENUM:
                 return enumReferenceMap;

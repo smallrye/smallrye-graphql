@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import io.smallrye.graphql.schema.model.DefinitionType;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Here we keep all the scalars we know about
@@ -100,7 +100,7 @@ public class Scalars {
     }
 
     private static void populateScalar(String className, String scalarName) {
-        scalarMap.put(className, new Reference(className, scalarName, DefinitionType.SCALAR));
+        scalarMap.put(className, new Reference(className, scalarName, ReferenceType.SCALAR));
     }
 
 }

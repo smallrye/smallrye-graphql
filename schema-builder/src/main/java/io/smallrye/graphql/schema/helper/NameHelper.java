@@ -9,7 +9,7 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
-import io.smallrye.graphql.schema.model.DefinitionType;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Helping with Name of types in the schema
@@ -22,33 +22,33 @@ public class NameHelper {
     private NameHelper() {
     }
 
-    public static boolean isPojoMethod(DefinitionType definitionType, String methodName) {
-        if (definitionType.equals(DefinitionType.INTERFACE) || definitionType.equals(DefinitionType.TYPE)) {
+    public static boolean isPojoMethod(ReferenceType referenceType, String methodName) {
+        if (referenceType.equals(ReferenceType.INTERFACE) || referenceType.equals(ReferenceType.TYPE)) {
             return isGetter(methodName);
-        } else if (definitionType.equals(DefinitionType.INPUT)) {
+        } else if (referenceType.equals(ReferenceType.INPUT)) {
             return isSetter(methodName);
         }
         return false;
     }
 
-    public static String toNameFromPojoMethod(DefinitionType definitionType, String methodName) {
-        if (definitionType.equals(DefinitionType.INTERFACE) || definitionType.equals(DefinitionType.TYPE)) {
+    public static String toNameFromPojoMethod(ReferenceType referenceType, String methodName) {
+        if (referenceType.equals(ReferenceType.INTERFACE) || referenceType.equals(ReferenceType.TYPE)) {
             return toNameFromGetter(methodName);
-        } else if (definitionType.equals(DefinitionType.INPUT)) {
+        } else if (referenceType.equals(ReferenceType.INPUT)) {
             return toNameFromSetter(methodName);
         }
         return null;
     }
 
-    public static String getAnyTypeName(DefinitionType definitionType, ClassInfo classInfo,
+    public static String getAnyTypeName(ReferenceType referenceType, ClassInfo classInfo,
             Annotations annotationsForThisClass) {
         if (Classes.isEnum(classInfo)) {
             return getEnumName(classInfo, annotationsForThisClass);
         } else if (Classes.isInterface(classInfo)) {
             return getInterfaceName(classInfo, annotationsForThisClass);
-        } else if (definitionType.equals(DefinitionType.TYPE)) {
+        } else if (referenceType.equals(ReferenceType.TYPE)) {
             return getOutputTypeName(classInfo, annotationsForThisClass);
-        } else if (definitionType.equals(DefinitionType.INPUT)) {
+        } else if (referenceType.equals(ReferenceType.INPUT)) {
             return getInputTypeName(classInfo, annotationsForThisClass);
         } else {
             LOG.warn("Using default name for [" + classInfo.name().toString() + "]");
@@ -86,14 +86,14 @@ public class NameHelper {
 
     }
 
-    public static String getAnyNameForField(DefinitionType definitionType, Annotations annotationsForThisField,
+    public static String getAnyNameForField(ReferenceType referenceType, Annotations annotationsForThisField,
             String fieldName) {
-        if (definitionType.equals(DefinitionType.INTERFACE) || definitionType.equals(DefinitionType.TYPE)) {
+        if (referenceType.equals(ReferenceType.INTERFACE) || referenceType.equals(ReferenceType.TYPE)) {
             return getOutputNameForField(annotationsForThisField, fieldName);
-        } else if (definitionType.equals(DefinitionType.INPUT)) {
+        } else if (referenceType.equals(ReferenceType.INPUT)) {
             return getInputNameForField(annotationsForThisField, fieldName);
         } else {
-            LOG.warn("Using default name for [" + definitionType.name() + "]");
+            LOG.warn("Using default name for [" + referenceType.name() + "]");
             return fieldName;
         }
     }

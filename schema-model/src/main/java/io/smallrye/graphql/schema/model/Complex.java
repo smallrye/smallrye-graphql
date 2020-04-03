@@ -5,37 +5,37 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Represent a root element in the Schema
+ * Represent a complex root element (type/input/interface) in the Schema
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class Definition extends Entry {
-    private Set<Field> fields;
+public final class Complex extends Root {
+    private Set<Method> methods;
     private Set<Reference> interfaces;
 
-    public Definition(String className) {
+    public Complex(String className) {
         super.setClassName(className);
     }
 
-    public Definition(String className, String name, String description) {
+    public Complex(String className, String name, String description) {
         super.setName(name);
         super.setDescription(description);
         super.setClassName(className);
     }
 
-    public Set<Field> getFields() {
-        return fields;
+    public Set<Method> getMethods() {
+        return methods;
     }
 
-    public void addField(Field field) {
-        if (this.fields == null) {
-            this.fields = new TreeSet<>(comparator);
+    public void addMethod(Method method) {
+        if (this.methods == null) {
+            this.methods = new TreeSet<>(comparator);
         }
-        this.fields.add(field);
+        this.methods.add(method);
     }
 
-    public boolean hasFields() {
-        return this.fields != null && !this.fields.isEmpty();
+    public boolean hasMethods() {
+        return this.methods != null && !this.methods.isEmpty();
     }
 
     public Set<Reference> getInterfaces() {

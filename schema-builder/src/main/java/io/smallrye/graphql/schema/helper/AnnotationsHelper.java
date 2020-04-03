@@ -15,7 +15,7 @@ import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.model.DefinitionType;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Getting all the annotations for something.
@@ -27,14 +27,14 @@ public class AnnotationsHelper {
     private AnnotationsHelper() {
     }
 
-    public static Annotations getAnnotationsForAnyField(DefinitionType definitionType, FieldInfo fieldInfo,
+    public static Annotations getAnnotationsForAnyField(ReferenceType referenceType, FieldInfo fieldInfo,
             MethodInfo methodInfo) {
 
-        if (definitionType.equals(DefinitionType.INTERFACE)) {
+        if (referenceType.equals(ReferenceType.INTERFACE)) {
             return getAnnotationsForInterfaceField(methodInfo);
-        } else if (definitionType.equals(DefinitionType.TYPE)) {
+        } else if (referenceType.equals(ReferenceType.TYPE)) {
             return getAnnotationsForOutputField(fieldInfo, methodInfo);
-        } else if (definitionType.equals(DefinitionType.INPUT)) {
+        } else if (referenceType.equals(ReferenceType.INPUT)) {
             return getAnnotationsForInputField(fieldInfo, methodInfo);
         } else {
             return null;

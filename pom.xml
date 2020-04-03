@@ -78,17 +78,27 @@
 
             <!-- Dependencies provided by the project -->
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-schema-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-schema-builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-servlet</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-tck</artifactId>
                 <version>${project.version}</version>
             </dependency>
