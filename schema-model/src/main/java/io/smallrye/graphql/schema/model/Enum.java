@@ -4,11 +4,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Represent an enum in the Schema
+ * Represent an enum type in the Schema
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class Enum extends Entry {
+public final class Enum extends Root {
     private Set<String> values;
 
     public Enum(String className) {

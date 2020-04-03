@@ -14,9 +14,9 @@ import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.CreationException;
 import io.smallrye.graphql.schema.ObjectBag;
 import io.smallrye.graphql.schema.Scalars;
-import io.smallrye.graphql.schema.model.DefinitionType;
 import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Shared code between model creators and schema creator.
@@ -33,12 +33,12 @@ public class CreatorHelper {
         return type.kind().equals(Type.Kind.ARRAY) || type.kind().equals(Type.Kind.PARAMETERIZED_TYPE);
     }
 
-    public static Reference getReference(IndexView index, DefinitionType definitionType, Type methodType,
+    public static Reference getReference(IndexView index, ReferenceType referenceType, Type methodType,
             Annotations annotations) {
-        return getReference(index, definitionType, null, methodType, annotations);
+        return getReference(index, referenceType, null, methodType, annotations);
     }
 
-    public static Reference getReference(IndexView index, DefinitionType definitionType, Type fieldType, Type methodType,
+    public static Reference getReference(IndexView index, ReferenceType referenceType, Type fieldType, Type methodType,
             Annotations annotations) {
 
         if (fieldType == null)
@@ -56,22 +56,22 @@ public class CreatorHelper {
             // Array 
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
-            return getReference(index, definitionType, typeInArray, typeInMethodArray, annotations);
+            return getReference(index, referenceType, typeInArray, typeInMethodArray, annotations);
         } else if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Collections
             Type typeInCollection = fieldType.asParameterizedType().arguments().get(0);
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
-            return getReference(index, definitionType, typeInCollection, typeInMethodCollection, annotations);
+            return getReference(index, referenceType, typeInCollection, typeInMethodCollection, annotations);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = index.getClassByName(fieldType.name());
             if (classInfo != null) {
                 Annotations annotationsForThisClass = AnnotationsHelper.getAnnotationsForClass(classInfo);
                 if (Classes.isEnum(classInfo)) {
-                    String name = NameHelper.getAnyTypeName(DefinitionType.ENUM, classInfo, annotationsForThisClass);
-                    return toBeScanned(DefinitionType.ENUM, classInfo, name);
+                    String name = NameHelper.getAnyTypeName(ReferenceType.ENUM, classInfo, annotationsForThisClass);
+                    return toBeScanned(ReferenceType.ENUM, classInfo, name);
                 } else {
-                    String name = NameHelper.getAnyTypeName(definitionType, classInfo, annotationsForThisClass);
-                    return toBeScanned(definitionType, classInfo, name);
+                    String name = NameHelper.getAnyTypeName(referenceType, classInfo, annotationsForThisClass);
+                    return toBeScanned(referenceType, classInfo, name);
                 }
             } else {
                 LOG.warn("Class [" + fieldType.name()
@@ -92,7 +92,7 @@ public class CreatorHelper {
             methodParameter = methodInfo.parameters().get(position);
         }
         Annotations annotationsForThisArgument = AnnotationsHelper.getAnnotationsForArgument(methodInfo, position);
-        Reference parameterRef = getReference(index, DefinitionType.INPUT, type,
+        Reference parameterRef = getReference(index, ReferenceType.INPUT, type,
                 methodParameter, annotationsForThisArgument);
         parameter.setParameterType(parameterRef);
         if (CreatorHelper.isParameterized(type)) {
@@ -121,15 +121,15 @@ public class CreatorHelper {
     }
 
     // Add to the correct map to be scanned later.
-    public static Reference toBeScanned(DefinitionType definitionType, ClassInfo classInfo, String name) {
+    public static Reference toBeScanned(ReferenceType referenceType, ClassInfo classInfo, String name) {
         String className = classInfo.name().toString();
         // First check if this is an interface
         if (Classes.isInterface(classInfo)) {
-            definitionType = DefinitionType.INTERFACE;
+            referenceType = ReferenceType.INTERFACE;
         }
 
-        Reference reference = new Reference(className, name, definitionType);
-        Map<String, Reference> map = ObjectBag.getReferenceMap(definitionType);
+        Reference reference = new Reference(className, name, referenceType);
+        Map<String, Reference> map = ObjectBag.getReferenceMap(referenceType);
         if (!map.containsKey(className)) {
             map.put(className, reference);
         }

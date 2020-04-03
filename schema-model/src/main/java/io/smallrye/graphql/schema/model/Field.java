@@ -1,42 +1,13 @@
 package io.smallrye.graphql.schema.model;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
- * Represents a field on a type/input/interface
+ * Represents a return (output) to a method
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class Field extends Entry {
-    private Reference returnType;
-    private List<Parameter> parameters;
-
+public abstract class Field extends Root {
     private boolean mandatory = false;
     private boolean collection = false;
-
-    public Reference getReturnType() {
-        return returnType;
-    }
-
-    public void setReturnType(Reference returnType) {
-        this.returnType = returnType;
-    }
-
-    public List<Parameter> getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(List<Parameter> parameters) {
-        this.parameters = parameters;
-    }
-
-    public void addParameter(Parameter parameter) {
-        if (this.parameters == null) {
-            this.parameters = new LinkedList<>();
-        }
-        this.parameters.add(parameter);
-    }
 
     public boolean isMandatory() {
         return mandatory;

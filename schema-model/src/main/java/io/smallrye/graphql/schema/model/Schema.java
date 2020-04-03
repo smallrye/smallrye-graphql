@@ -13,39 +13,39 @@ import java.util.TreeSet;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Set<Definition> queries;
-    private Set<Definition> mutations;
+    private Set<Complex> queries;
+    private Set<Complex> mutations;
 
-    private Map<String, Definition> inputs;
-    private Map<String, Definition> types;
-    private Map<String, Definition> interfaces;
+    private Map<String, Complex> inputs;
+    private Map<String, Complex> types;
+    private Map<String, Complex> interfaces;
     private Map<String, Enum> enums;
 
-    public Set<Definition> getQueries() {
+    public Set<Complex> getQueries() {
         return queries;
     }
 
-    public void addQuery(Definition query) {
+    public void addQuery(Complex query) {
         if (this.queries == null)
             this.queries = newTreeSet();
         this.queries.add(query);
     }
 
-    public Set<Definition> getMutations() {
+    public Set<Complex> getMutations() {
         return mutations;
     }
 
-    public void addMutation(Definition mutation) {
+    public void addMutation(Complex mutation) {
         if (this.mutations == null)
             this.mutations = newTreeSet();
         this.mutations.add(mutation);
     }
 
-    public Map<String, Definition> getInputs() {
+    public Map<String, Complex> getInputs() {
         return inputs;
     }
 
-    public void addInput(Definition input) {
+    public void addInput(Complex input) {
         if (this.inputs == null)
             this.inputs = new TreeMap();
         this.inputs.put(input.getName(), input);
@@ -55,11 +55,11 @@ public final class Schema implements Serializable {
         return this.inputs != null && this.inputs.containsKey(name);
     }
 
-    public Map<String, Definition> getTypes() {
+    public Map<String, Complex> getTypes() {
         return types;
     }
 
-    public void addType(Definition type) {
+    public void addType(Complex type) {
         if (this.types == null)
             this.types = new TreeMap();
         this.types.put(type.getName(), type);
@@ -69,11 +69,11 @@ public final class Schema implements Serializable {
         return this.types != null && this.types.containsKey(name);
     }
 
-    public Map<String, Definition> getInterfaces() {
+    public Map<String, Complex> getInterfaces() {
         return interfaces;
     }
 
-    public void addInterface(Definition interfaceType) {
+    public void addInterface(Complex interfaceType) {
         if (this.interfaces == null)
             this.interfaces = new TreeMap();
         this.interfaces.put(interfaceType.getName(), interfaceType);
@@ -97,10 +97,10 @@ public final class Schema implements Serializable {
         return this.enums != null && this.enums.containsKey(name);
     }
 
-    private TreeSet<Definition> newTreeSet() {
-        return new TreeSet<>(new Comparator<Definition>() {
+    private TreeSet<Complex> newTreeSet() {
+        return new TreeSet<>(new Comparator<Complex>() {
             @Override
-            public int compare(Definition o1, Definition o2) {
+            public int compare(Complex o1, Complex o2) {
                 if (o1 != null && o2 != null) {
                     return o1.getClassName().compareTo(o2.getClassName());
                 }

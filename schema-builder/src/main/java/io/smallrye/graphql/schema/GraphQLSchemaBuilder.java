@@ -17,38 +17,39 @@ import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
-import io.smallrye.graphql.schema.model.Definition;
-import io.smallrye.graphql.schema.model.DefinitionType;
-import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Complex;
+import io.smallrye.graphql.schema.model.Method;
 import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.Return;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.type.ComplexCreator;
 import io.smallrye.graphql.schema.type.EnumCreator;
-import io.smallrye.graphql.schema.type.ObjectCreator;
 
 /**
  * Creates a model from the Jandex index
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class GraphQLCreator {
+public class GraphQLSchemaBuilder {
 
     private final IndexView index;
-    private final ObjectCreator inputCreator;
-    private final ObjectCreator typeCreator;
-    private final ObjectCreator interfaceCreator;
+    private final ComplexCreator inputCreator;
+    private final ComplexCreator typeCreator;
+    private final ComplexCreator interfaceCreator;
     private final EnumCreator enumCreator;
 
-    public static Schema bootstrap(IndexView index) {
-        GraphQLCreator graphQLBootstrap = new GraphQLCreator(index);
+    public static Schema build(IndexView index) {
+        GraphQLSchemaBuilder graphQLBootstrap = new GraphQLSchemaBuilder(index);
         return graphQLBootstrap.generateSchema();
     }
 
-    private GraphQLCreator(IndexView index) {
+    private GraphQLSchemaBuilder(IndexView index) {
         this.index = index;
-        this.inputCreator = new ObjectCreator(DefinitionType.INPUT, index);
-        this.typeCreator = new ObjectCreator(DefinitionType.TYPE, index);
-        this.interfaceCreator = new ObjectCreator(DefinitionType.INTERFACE, index);
+        this.inputCreator = new ComplexCreator(ReferenceType.INPUT, index);
+        this.typeCreator = new ComplexCreator(ReferenceType.TYPE, index);
+        this.interfaceCreator = new ComplexCreator(ReferenceType.INTERFACE, index);
         this.enumCreator = new EnumCreator();
     }
 
@@ -61,16 +62,19 @@ public class GraphQLCreator {
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
-            Definition query = new Definition(apiClass.name().toString(), "Query", "Query root");
-            Definition mutation = new Definition(apiClass.name().toString(), "Mutation", "Mutation root");
+            Complex query = new Complex(apiClass.name().toString(), apiClass.name().withoutPackagePrefix() + " Query",
+                    "Queries defined in " + apiClass.name().withoutPackagePrefix());
+            Complex mutation = new Complex(apiClass.name().toString(),
+                    apiClass.name().withoutPackagePrefix() + " Mutation",
+                    "Mutations defined in " + apiClass.name().withoutPackagePrefix());
             List<MethodInfo> methods = apiClass.methods();
 
-            addFields(methods, query, mutation);
+            addMethods(methods, query, mutation);
 
-            if (query.hasFields()) {
+            if (query.hasMethods()) {
                 schema.addQuery(query);
             }
-            if (mutation.hasFields()) {
+            if (mutation.hasMethods()) {
                 schema.addMutation(mutation);
             }
         }
@@ -78,28 +82,28 @@ public class GraphQLCreator {
         // Now create the actual schema model
 
         // Add the input types
-        Map<String, Reference> inputMap = ObjectBag.getReferenceMap(DefinitionType.INPUT);
+        Map<String, Reference> inputMap = ObjectBag.getReferenceMap(ReferenceType.INPUT);
         for (Reference reference : inputMap.values()) {
             ClassInfo inputClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
             schema.addInput(inputCreator.create(inputClass));
         }
 
         // Add the output types
-        Map<String, Reference> typeMap = ObjectBag.getReferenceMap(DefinitionType.TYPE);
+        Map<String, Reference> typeMap = ObjectBag.getReferenceMap(ReferenceType.TYPE);
         for (Reference reference : typeMap.values()) {
             ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
             schema.addType(typeCreator.create(typeClass));
         }
 
         // Add the interface types
-        Map<String, Reference> interfaceMap = ObjectBag.getReferenceMap(DefinitionType.INTERFACE);
+        Map<String, Reference> interfaceMap = ObjectBag.getReferenceMap(ReferenceType.INTERFACE);
         for (Reference reference : interfaceMap.values()) {
             ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
             schema.addInterface(interfaceCreator.create(typeClass));
         }
 
         // Add the interface types
-        Map<String, Reference> enumMap = ObjectBag.getReferenceMap(DefinitionType.ENUM);
+        Map<String, Reference> enumMap = ObjectBag.getReferenceMap(ReferenceType.ENUM);
         for (Reference reference : enumMap.values()) {
             ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
             schema.addEnum(enumCreator.create(typeClass));
@@ -113,60 +117,65 @@ public class GraphQLCreator {
         return schema;
     }
 
-    private void addFields(List<MethodInfo> methods, Definition query, Definition mutation) {
-        for (MethodInfo method : methods) {
-            Annotations annotationsForMethod = AnnotationsHelper.getAnnotationsForMethod(method);
+    private void addMethods(List<MethodInfo> methodInfoList, Complex query, Complex mutation) {
+        for (MethodInfo methodInfo : methodInfoList) {
+            Annotations annotationsForMethod = AnnotationsHelper.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseKeys(Annotations.QUERY)) {
                 AnnotationInstance queryAnnotation = annotationsForMethod.getAnnotation(Annotations.QUERY);
-                Field field = createField(method, queryAnnotation, annotationsForMethod);
-                query.addField(field);
+                Method method = createMethod(methodInfo, queryAnnotation, annotationsForMethod);
+                query.addMethod(method);
             }
             if (annotationsForMethod.containsOneOfTheseKeys(Annotations.MUTATION)) {
                 AnnotationInstance queryAnnotation = annotationsForMethod.getAnnotation(Annotations.MUTATION);
-                Field field = createField(method, queryAnnotation, annotationsForMethod);
-                mutation.addField(field);
+                Method method = createMethod(methodInfo, queryAnnotation, annotationsForMethod);
+                mutation.addMethod(method);
             }
         }
     }
 
-    private Field createField(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation,
+    private Method createMethod(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation,
             Annotations annotationsForMethod) {
 
-        Field field = new Field();
+        Method method = new Method();
 
         // Name
         String fieldName = NameHelper.getExecutionTypeName(graphQLAnnotation, annotationsForMethod);
-        field.setName(fieldName);
+        method.setName(fieldName);
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
-        field.setDescription(maybeDescription.orElse(null));
+        method.setDescription(maybeDescription.orElse(null));
 
-        // DefinitionType (output)
+        // Type (output)
         validateReturnType(methodInfo, graphQLAnnotation);
-        Type returnType = methodInfo.returnType();
-        if (CreatorHelper.isParameterized(returnType)) {
-            field.setCollection(true);
-        }
-
-        Reference returnTypeRef = CreatorHelper.getReference(index, DefinitionType.TYPE, returnType,
-                annotationsForMethod);
-        field.setReturnType(returnTypeRef);
-
-        // NotNull
-        if (NonNullHelper.markAsNonNull(returnType, annotationsForMethod)) {
-            field.setMandatory(true);
-        }
+        method.setReturn(getReturnField(methodInfo.returnType(), annotationsForMethod));
 
         // Arguments (input)
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
-            // DefinitionType
+            // ReferenceType
             Parameter parameter = CreatorHelper.getParameter(index, parameters.get(i), methodInfo, i);
-            field.addParameter(parameter);
+            method.addParameter(parameter);
         }
 
-        return field;
+        return method;
+    }
+
+    private Return getReturnField(Type methodType, Annotations annotations) {
+        Return returnField = new Return();
+        if (CreatorHelper.isParameterized(methodType)) {
+            returnField.setCollection(true);
+        }
+
+        Reference returnTypeRef = CreatorHelper.getReference(index, ReferenceType.TYPE, methodType,
+                annotations);
+        returnField.setReturnType(returnTypeRef);
+
+        // NotNull
+        if (NonNullHelper.markAsNonNull(methodType, annotations)) {
+            returnField.setMandatory(true);
+        }
+        return returnField;
     }
 
     private void validateReturnType(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation) {

@@ -1,11 +1,11 @@
 package io.smallrye.graphql.schema.model;
 
 /**
- * DefinitionType of object / collection of objects
+ * ReferenceType of reference / collection of references
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public enum DefinitionType {
+public enum ReferenceType {
     INPUT,
     TYPE,
     ENUM,
