@@ -66,6 +66,7 @@ public class NameHelper {
             if (nameAnnotation.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
                 return nameAnnotation.value().asString().trim();
             }
+            return nameAnnotation.value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.QUERY)) {
             return annotationsForThisField.getAnnotation(Annotations.QUERY).value().asString().trim();
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
