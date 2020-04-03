@@ -42,6 +42,8 @@
     </scm>
 
     <modules>
+        <module>schema-model</module>
+        <module>schema-builder</module>
         <module>implementation</module>
         <module>implementation-servlet</module>
         <module>tck</module>

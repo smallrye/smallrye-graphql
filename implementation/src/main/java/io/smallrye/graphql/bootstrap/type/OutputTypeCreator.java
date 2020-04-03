@@ -15,7 +15,6 @@
  */
 package io.smallrye.graphql.bootstrap.type;
 
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -89,8 +88,7 @@ public class OutputTypeCreator implements Creator {
 
     @Override
     public GraphQLType create(ClassInfo classInfo) {
-        boolean isInterface = Modifier.isInterface(classInfo.flags());
-        if (isInterface) {
+        if (Classes.isInterface(classInfo)) {
             return createInterface(classInfo);
         } else {
             return createClass(classInfo);

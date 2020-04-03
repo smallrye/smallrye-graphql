@@ -23,6 +23,13 @@
             <artifactId>microprofile-graphql-api</artifactId>
         </dependency>
         
+        <!-- The model -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-schema-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jandex</artifactId>

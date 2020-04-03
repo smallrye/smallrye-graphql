@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.bootstrap;
+package io.smallrye.graphql.schema;
 
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -36,9 +36,6 @@ import java.util.Optional;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
-
-import io.smallrye.graphql.bootstrap.schema.PrimitiveTypeNotFoundException;
-import io.smallrye.graphql.bootstrap.schema.ScalarTypeNotFoundException;
 
 /**
  * Class helper
@@ -72,7 +69,7 @@ public class Classes {
                         return loadClass(className, Classes.class.getClassLoader());
                     });
                 } catch (PrivilegedActionException pae) {
-                    throw new ClassloaderException("Can not load class [" + className + "]", pae);
+                    throw new CreationException("Can not load class [" + className + "]", pae);
                 }
             }
         }
@@ -107,7 +104,7 @@ public class Classes {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);
         }
-        throw new PrimitiveTypeNotFoundException("Unknown primative type [" + primitiveName + "]");
+        throw new CreationException("Unknown primative type [" + primitiveName + "]");
     }
 
     public static Class toPrimativeClassType(Class objectType) {
@@ -143,7 +140,7 @@ public class Classes {
         } else if (type.equals(double.class)) {
             return Double.parseDouble(input);
         } else {
-            throw new ScalarTypeNotFoundException(
+            throw new CreationException(
                     "Can not create new primative scalar type [" + type + "] from input [" + input + "]");
         }
     }
@@ -170,7 +167,7 @@ public class Classes {
         } else if (type.equals(BigInteger.class)) {
             return new BigInteger(input);
         } else {
-            throw new ScalarTypeNotFoundException(
+            throw new CreationException(
                     "Can not create new object scalar type [" + type + "] from input [" + input + "]");
         }
     }
