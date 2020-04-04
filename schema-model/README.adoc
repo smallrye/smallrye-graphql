@@ -1,0 +1,86 @@
+= SmallRye GraphQL Schema Model
+
+This is a representation of a GraphQL Schema. It gets build using Jandex scanning and passed into the implementation to create a executable endpoint.
+
+image:/schema-model/classdiagram.png[link="schema-model/classdiagram.png"]
+
+== Schema
+
+A Schema contains:
+
+- a list of queries, grouped by the class that host them
+- a list of mutations, grouped by the class that host them
+- a map of interfaces, mapped by classname
+- a map of types, mapped by classname
+- a map of inputs, mapped by classname
+- a map of enums, mapped by classname
+
+=== Reference
+
+During scanning certain object reference other objects that might not have been scanned yet, 
+so we always just have reference to that (potential future) object.
+
+A Reference contains:
+
+- the classname
+- the graphql name
+- the reference type
+
+=== Reference Type
+
+Enum that indicate the type of object. Valid options are:
+
+- INPUT
+- TYPE
+- INTERFACE
+- ENUM
+- SCALAR
+
+=== Root
+The Header for all object. It extends reference and get create when one of the underlying concrete classes are create during scanning.
+It typically represent a "root" element in the schema (enum/input/type/interface)
+
+It contains:
+
+- all fields from Reference
+- a description
+
+=== Enum
+
+A basic entry in the schema that represent an enum. It extends Root and adds:
+
+- list of valid values
+
+=== Complex
+
+A complex entry in the schema. Represents Interface, Input and Type. It extends Root and adds:
+
+- set of methods (or operations) on the complex type.
+- set of interfaces that this complex type implements.
+
+=== Method
+
+A method (of operation) on a complex object (input/type/interface). It extends Root and adds:
+
+- a return field
+- a list of parameters
+
+=== Field
+
+A abstract object that extends Root and adds:
+
+- a boolean to indicate that this field is mandatory
+- a boolean to indicate that this field is a collection
+
+=== Return
+
+Represents the return field on a Method. It extends Field and adds:
+
+- a reference to the return type.
+
+=== Parameter
+
+Represents the parameter (of list of) on a Method. It extends Field and adds:
+
+- a reference to the parameter type.
+- the defaultValue.

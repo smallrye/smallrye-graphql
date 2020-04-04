@@ -10,11 +10,20 @@ SmallRye GraphQL is an implementation of {microprofile-graphql}[Eclipse MicroPro
 
 == Instructions
 
-Compile and install this project:
+=== Testing against the released v 1.0.1 of MicroProfile GraphQL
 
 [source,bash]
 ----
 mvn clean install
+----
+
+=== Testing against the unreleased v 1.1-SNAPSHOT of MicroProfile GraphQL
+
+(You need to build that version of MicroProfile GraphQL locally first to make the snapshot versions available in your repository)
+
+[source,bash]
+----
+mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 ----
 
 === Project structure

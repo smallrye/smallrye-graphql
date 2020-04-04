@@ -42,6 +42,8 @@
     </scm>
 
     <modules>
+        <module>schema-model</module>
+        <module>schema-builder</module>
         <module>implementation</module>
         <module>implementation-servlet</module>
         <module>tck</module>
@@ -69,6 +71,12 @@
             </dependency>
             
             <dependency>
+                <groupId>org.eclipse.microprofile.graphql</groupId>
+                <artifactId>microprofile-graphql-server-tck</artifactId>
+                <version>${version.eclipse.microprofile.graphql}</version>
+            </dependency>
+            
+            <dependency>
                 <groupId>org.eclipse.microprofile.config</groupId>
                 <artifactId>microprofile-config-api</artifactId>
                 <version>${version.eclipse.microprofile.config}</version>
@@ -76,17 +84,27 @@
 
             <!-- Dependencies provided by the project -->
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-schema-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-schema-builder</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-servlet</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.smallrye</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-tck</artifactId>
                 <version>${project.version}</version>
             </dependency>
