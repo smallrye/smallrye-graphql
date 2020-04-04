@@ -308,9 +308,9 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Object mapToPojo(Map m, Argument argument) throws GraphQLException {
-        String jsonString = toJsonString(m, argument);
         Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
+            String jsonString = toJsonString(m, argument);
             return jsonb.fromJson(jsonString, argument.getArgumentClass());
         }
         return m;
