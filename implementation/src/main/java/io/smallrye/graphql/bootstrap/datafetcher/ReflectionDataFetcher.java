@@ -336,6 +336,8 @@ public class ReflectionDataFetcher implements DataFetcher {
             }
 
             return jsonb.toJson(inputMap);
+        } catch (TransformException te) {
+            throw te;
         } catch (Exception e) {
             LOG.warn("Could not close Jsonb");
             return null;
