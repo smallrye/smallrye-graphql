@@ -60,41 +60,93 @@
         </dependency>
     </dependencies>
 
-    <build>
-    
-        <plugins>
-            <!-- This will get the app part of the tck so that we can deploy it, ignoring all the test stuff -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.2</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.eclipse.microprofile.graphql</groupId>
-                                    <artifactId>microprofile-graphql-tck</artifactId>
-                                    <type>jar</type>
+    <profiles>
+        
+        <!-- Run against the current released version -->
+        <profile>
+            <id>v1.0.1</id>
+            <activation>
+                <property>
+                    <name>!version.eclipse.microprofile.graphql</name>
+                </property>
+            </activation>
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                            <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            
-        </plugins>
-    </build>
-
-    <profiles>
+                                    <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                    
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.eclipse.microprofile.graphql</groupId>
+                                            <artifactId>microprofile-graphql-tck</artifactId>
+                                            <type>jar</type>
+                                        </artifactItem>        
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- Run against the snapshot version -->
+        <profile>
+            <id>v1.1-SNAPSHOT</id>
+            <activation>
+                <property>
+                    <name>version.eclipse.microprofile.graphql</name>
+                    <value>1.1-SNAPSHOT</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                                    <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                    
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.eclipse.microprofile.graphql</groupId>
+                                            <artifactId>microprofile-graphql-server-tck</artifactId>
+                                            <type>jar</type>
+                                        </artifactItem>        
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        
         <profile>
             <id>coverage</id>
             <properties>

@@ -53,7 +53,7 @@ public final class Complex extends Root {
         return this.interfaces != null && !this.interfaces.isEmpty();
     }
 
-    private Comparator comparator = new Comparator<Reference>() {
+    private final Comparator comparator = new Comparator<Reference>() {
         @Override
         public int compare(Reference o1, Reference o2) {
             if (o1 != null && o2 != null) {
