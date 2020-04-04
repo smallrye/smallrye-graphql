@@ -71,6 +71,12 @@
             </dependency>
             
             <dependency>
+                <groupId>org.eclipse.microprofile.graphql</groupId>
+                <artifactId>microprofile-graphql-server-tck</artifactId>
+                <version>${version.eclipse.microprofile.graphql}</version>
+            </dependency>
+            
+            <dependency>
                 <groupId>org.eclipse.microprofile.config</groupId>
                 <artifactId>microprofile-config-api</artifactId>
                 <version>${version.eclipse.microprofile.config}</version>

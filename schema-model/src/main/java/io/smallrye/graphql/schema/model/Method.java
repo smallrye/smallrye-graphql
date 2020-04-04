@@ -34,20 +34,4 @@ public final class Method extends Root {
         }
         this.parameters.add(parameter);
     }
-
-    //    public boolean isMandatory() {
-    //        return mandatory;
-    //    }
-    //
-    //    public void setMandatory(boolean mandatory) {
-    //        this.mandatory = mandatory;
-    //    }
-    //
-    //    public boolean isCollection() {
-    //        return collection;
-    //    }
-    //
-    //    public void setCollection(boolean collection) {
-    //        this.collection = collection;
-    //    }
 }
