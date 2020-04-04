@@ -339,7 +339,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         } catch (TransformException te) {
             throw te;
         } catch (Exception e) {
-            LOG.warn("Could not close Jsonb");
+            LOG.error("Could not close Jsonb", e);
             return null;
         }
     }
