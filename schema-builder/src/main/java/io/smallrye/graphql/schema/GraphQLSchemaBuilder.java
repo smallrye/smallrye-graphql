@@ -16,13 +16,11 @@ import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
-import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Complex;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
-import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.Return;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.type.ComplexCreator;
 import io.smallrye.graphql.schema.type.EnumCreator;
@@ -148,34 +146,17 @@ public class GraphQLSchemaBuilder {
 
         // Type (output)
         validateReturnType(methodInfo, graphQLAnnotation);
-        method.setReturn(getReturnField(methodInfo.returnType(), annotationsForMethod));
+        method.setReturn(CreatorHelper.getReturnField(index, methodInfo.returnType(), annotationsForMethod));
 
         // Arguments (input)
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
             // ReferenceType
-            Parameter parameter = CreatorHelper.getParameter(index, parameters.get(i), methodInfo, i);
+            Field parameter = CreatorHelper.getParameter(index, parameters.get(i), methodInfo, i);
             method.addParameter(parameter);
         }
 
         return method;
-    }
-
-    private Return getReturnField(Type methodType, Annotations annotations) {
-        Return returnField = new Return();
-        if (CreatorHelper.isParameterized(methodType)) {
-            returnField.setCollection(true);
-        }
-
-        Reference returnTypeRef = CreatorHelper.getReference(index, ReferenceType.TYPE, methodType,
-                annotations);
-        returnField.setReturnType(returnTypeRef);
-
-        // NotNull
-        if (NonNullHelper.markAsNonNull(methodType, annotations)) {
-            returnField.setMandatory(true);
-        }
-        return returnField;
     }
 
     private void validateReturnType(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation) {

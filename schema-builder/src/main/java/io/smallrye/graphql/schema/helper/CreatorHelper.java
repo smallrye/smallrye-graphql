@@ -14,7 +14,7 @@ import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.CreationException;
 import io.smallrye.graphql.schema.ObjectBag;
 import io.smallrye.graphql.schema.Scalars;
-import io.smallrye.graphql.schema.model.Parameter;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
@@ -31,6 +31,19 @@ public class CreatorHelper {
 
     public static boolean isParameterized(Type type) {
         return type.kind().equals(Type.Kind.ARRAY) || type.kind().equals(Type.Kind.PARAMETERIZED_TYPE);
+    }
+
+    public static Field getReturnField(IndexView index, Type methodType, Annotations annotations) {
+        Reference returnTypeRef = getReference(index, ReferenceType.TYPE, methodType,
+                annotations);
+        return getReturnField(returnTypeRef, methodType, annotations);
+    }
+
+    public static Field getReturnField(IndexView index, Type fieldType, Type methodType, Annotations annotations) {
+        Reference returnTypeRef = getReference(index, ReferenceType.TYPE, fieldType,
+                methodType, annotations);
+
+        return getReturnField(returnTypeRef, methodType, annotations);
     }
 
     public static Reference getReference(IndexView index, ReferenceType referenceType, Type methodType,
@@ -83,18 +96,20 @@ public class CreatorHelper {
         }
     }
 
-    public static Parameter getParameter(IndexView index, Type type, MethodInfo methodInfo, short position) {
-        Parameter parameter = new Parameter();
+    public static Field getParameter(IndexView index, Type type, MethodInfo methodInfo, short position) {
 
         // Type
         Type methodParameter = type;
         if (methodInfo.parameters() != null && !methodInfo.parameters().isEmpty()) {
             methodParameter = methodInfo.parameters().get(position);
         }
+
         Annotations annotationsForThisArgument = AnnotationsHelper.getAnnotationsForArgument(methodInfo, position);
         Reference parameterRef = getReference(index, ReferenceType.INPUT, type,
                 methodParameter, annotationsForThisArgument);
-        parameter.setParameterType(parameterRef);
+
+        Field parameter = new Field(parameterRef);
+
         if (CreatorHelper.isParameterized(type)) {
             parameter.setCollection(true);
         }
@@ -134,6 +149,20 @@ public class CreatorHelper {
             map.put(className, reference);
         }
         return reference;
+    }
+
+    private static Field getReturnField(Reference returnTypeRef, Type methodType, Annotations annotations) {
+        Field returnField = new Field(returnTypeRef);
+
+        if (CreatorHelper.isParameterized(methodType)) {
+            returnField.setCollection(true);
+        }
+
+        // NotNull
+        if (NonNullHelper.markAsNonNull(methodType, annotations)) {
+            returnField.setMandatory(true);
+        }
+        return returnField;
     }
 
 }

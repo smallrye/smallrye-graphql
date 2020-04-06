@@ -20,12 +20,10 @@ import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
-import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Complex;
 import io.smallrye.graphql.schema.model.Method;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.Return;
 
 /**
  * Create a complex type (input/type/interface) in the schema
@@ -105,26 +103,10 @@ public final class ComplexCreator {
             method.setDescription(maybeFieldDescription.orElse(null));
 
             // Type
-            method.setReturn(getReturnField(fieldType, methodType, annotations));
+            method.setReturn(CreatorHelper.getReturnField(index, fieldType, methodType, annotations));
 
             complex.addMethod(method);
         }
-    }
-
-    private Return getReturnField(Type fieldType, Type methodType, Annotations annotations) {
-        Return returnField = new Return();
-        if (CreatorHelper.isParameterized(methodType)) {
-            returnField.setCollection(true);
-        }
-        Reference returnTypeRef = CreatorHelper.getReference(index, ReferenceType.TYPE, fieldType,
-                methodType, annotations);
-        returnField.setReturnType(returnTypeRef);
-
-        // NotNull
-        if (NonNullHelper.markAsNonNull(methodType, annotations)) {
-            returnField.setMandatory(true);
-        }
-        return returnField;
     }
 
     private Type getFieldType(FieldInfo fieldInfo) {

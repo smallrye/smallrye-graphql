@@ -20,6 +20,8 @@ import java.util.ServiceLoader;
 
 import javax.enterprise.inject.spi.CDI;
 
+import io.smallrye.graphql.bootstrap.Classes;
+
 public interface CDIDelegate {
 
     public static CDIDelegate delegate() {
@@ -39,6 +41,12 @@ public interface CDIDelegate {
                 public Object getInstanceFromCDI(Class<?> declaringClass) {
                     return CDI.current().select(declaringClass).get();
                 }
+
+                @Override
+                public Object getInstanceFromCDI(String declaringClass) {
+                    Class<?> loadedClass = Classes.loadClass(declaringClass);
+                    return getInstanceFromCDI(loadedClass);
+                }
             };
         }
     }
@@ -46,5 +54,7 @@ public interface CDIDelegate {
     Class<?> getClassFromCDI(Class<?> declaringClass);
 
     Object getInstanceFromCDI(Class<?> declaringClass);
+
+    Object getInstanceFromCDI(String declaringClass);
 
 }
