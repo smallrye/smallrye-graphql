@@ -22,12 +22,11 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql</artifactId>
         </dependency>
+        <!-- The model builder -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-schema-builder</artifactId>
         </dependency>
-        <!-- The model builder -->
-        
         
         <!-- From MicroProfile -->
         <dependency>

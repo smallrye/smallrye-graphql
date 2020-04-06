@@ -13,9 +13,13 @@ import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.execution.GraphQLProducer;
+import io.smallrye.graphql.execution.SchemaPrinter;
+import io.smallrye.graphql.schema.GraphQLSchemaBuilder;
+import io.smallrye.graphql.schema.model.Schema;
 
 /**
  * Bootstrap the application on startup
@@ -39,15 +43,11 @@ public class StartupListener implements ServletContextListener {
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
             GraphQLSchema graphQLSchema = SmallRyeGraphQLBootstrap.bootstrap(index);
-            //Schema schema = GraphQLSchemaBuilder.build(index);
-            //GraphQLSchema graphQLSchema2 = GraphQLBootstrap.bootstrap(schema);
-
-            //            LOG.error("=============== New Schema !! ===============");
-            //            LOG.error(SchemaPrinter.print(graphQLSchema2));
-
             graphQLProducer.setGraphQLSchema(graphQLSchema);
             sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
+
+            printNewSchema(index);
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }
@@ -56,5 +56,17 @@ public class StartupListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOG.info("SmallRye GraphQL destroyed");
+    }
+
+    private void printNewSchema(IndexView index) {
+        LOG.error("=============== New Schema !! ===============");
+        try {
+            Schema schema = GraphQLSchemaBuilder.build(index);
+            GraphQLSchema graphQLSchema2 = Bootstrap.bootstrap(schema);
+            LOG.error(SchemaPrinter.print(graphQLSchema2));
+        } catch (Throwable t) {
+            LOG.error(t.getMessage());
+        }
+        LOG.error("=============================================");
     }
 }

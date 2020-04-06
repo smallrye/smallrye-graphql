@@ -155,7 +155,7 @@ public class NameHelper {
         } else if (annotationsForThisField.containsKeyAndValidValue(Annotations.JSONB_PROPERTY)) {
             return annotationsForThisField.getAnnotation(Annotations.JSONB_PROPERTY).value().asString().trim();
         }
-        return fieldName;
+        return toNameFromSetter(fieldName);
     }
 
     private static String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName) {
