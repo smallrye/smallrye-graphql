@@ -308,9 +308,9 @@ public class ReflectionDataFetcher implements DataFetcher {
     }
 
     private Object mapToPojo(Map m, Argument argument) throws GraphQLException {
-        String jsonString = toJsonString(m, argument);
         Jsonb jsonb = getJsonbForType(argument.getType());
         if (jsonb != null) {
+            String jsonString = toJsonString(m, argument);
             return jsonb.fromJson(jsonString, argument.getArgumentClass());
         }
         return m;
@@ -336,8 +336,10 @@ public class ReflectionDataFetcher implements DataFetcher {
             }
 
             return jsonb.toJson(inputMap);
+        } catch (TransformException te) {
+            throw te;
         } catch (Exception e) {
-            LOG.warn("Could not close Jsonb");
+            LOG.error("Could not close Jsonb", e);
             return null;
         }
     }
