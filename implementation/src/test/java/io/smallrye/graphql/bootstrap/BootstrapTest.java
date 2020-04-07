@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.execution.SchemaPrinter;
-import io.smallrye.graphql.schema.GraphQLSchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -31,7 +31,7 @@ public class BootstrapTest {
     @Before
     public void init() {
         IndexView index = getTCKIndex();
-        this.schema = GraphQLSchemaBuilder.build(index);
+        this.schema = SchemaBuilder.build(index);
         Assert.assertNotNull(schema);
     }
 

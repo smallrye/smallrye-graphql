@@ -16,7 +16,7 @@ import org.jboss.logging.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import io.smallrye.graphql.schema.GraphQLSchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -32,7 +32,7 @@ public class GraphQLCreatorTest {
 
         IndexView index = getTCKIndex();
         LOG.error(">>>>>>>> index = " + index);
-        Schema schema = GraphQLSchemaBuilder.build(index);
+        Schema schema = SchemaBuilder.build(index);
 
         Assert.assertNotNull(schema);
         LOG.error(">>>>>>>> " + toString(schema));

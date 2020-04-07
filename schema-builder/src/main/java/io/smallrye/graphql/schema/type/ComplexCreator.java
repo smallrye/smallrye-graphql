@@ -18,6 +18,7 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.AnnotationsHelper;
 import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.model.Complex;
@@ -35,10 +36,16 @@ public final class ComplexCreator {
 
     private final IndexView index;
     private final ReferenceType referenceType;
+    private final Direction direction;
 
     public ComplexCreator(ReferenceType referenceType, IndexView index) {
         this.index = index;
         this.referenceType = referenceType;
+        if (this.referenceType.equals(referenceType.INPUT)) {
+            this.direction = Direction.IN;
+        } else {
+            this.direction = Direction.OUT;
+        }
     }
 
     public Complex create(ClassInfo classInfo) {
@@ -95,7 +102,7 @@ public final class ComplexCreator {
             Method method = new Method();
 
             // Name
-            String fieldName = NameHelper.getAnyNameForField(referenceType, annotations, methodInfo.name());
+            String fieldName = NameHelper.getAnyNameForField(direction, annotations, methodInfo.name());
             method.setName(fieldName);
 
             // Description
@@ -103,7 +110,7 @@ public final class ComplexCreator {
             method.setDescription(maybeFieldDescription.orElse(null));
 
             // Type
-            method.setReturn(CreatorHelper.getReturnField(index, fieldType, methodType, annotations));
+            method.setReturn(CreatorHelper.getReturnField(index, referenceType, fieldType, methodType, annotations));
 
             complex.addMethod(method);
         }

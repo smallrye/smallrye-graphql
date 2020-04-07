@@ -18,7 +18,7 @@ import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.execution.GraphQLProducer;
 import io.smallrye.graphql.execution.SchemaPrinter;
-import io.smallrye.graphql.schema.GraphQLSchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -61,7 +61,7 @@ public class StartupListener implements ServletContextListener {
     private void printNewSchema(IndexView index) {
         LOG.error("=============== New Schema !! ===============");
         try {
-            Schema schema = GraphQLSchemaBuilder.build(index);
+            Schema schema = SchemaBuilder.build(index);
             GraphQLSchema graphQLSchema2 = Bootstrap.bootstrap(schema);
             LOG.error(SchemaPrinter.print(graphQLSchema2));
         } catch (Throwable t) {

@@ -1,19 +1,30 @@
 package io.smallrye.graphql.schema.model;
 
 /**
- * Represents a return (output) or parameters to a method
+ * Represents a return (output) to a method
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class Field extends Root {
+public abstract class Field {
+    private String name;
+    private String description;
     private boolean mandatory = false;
     private boolean collection = false;
-    private Object defaultValue;
 
-    public Field(Reference reference) {
-        super.setClassName(reference.getClassName());
-        super.setName(reference.getName());
-        super.setType(reference.getType());
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public boolean isMandatory() {
@@ -30,13 +41,5 @@ public class Field extends Root {
 
     public void setCollection(boolean collection) {
         this.collection = collection;
-    }
-
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(Object defaultValue) {
-        this.defaultValue = defaultValue;
     }
 }
