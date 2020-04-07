@@ -17,8 +17,8 @@ import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.model.Complex;
-import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
+import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -30,7 +30,7 @@ import io.smallrye.graphql.schema.type.EnumCreator;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class GraphQLSchemaBuilder {
+public class SchemaBuilder {
 
     private final IndexView index;
     private final ComplexCreator inputCreator;
@@ -39,11 +39,11 @@ public class GraphQLSchemaBuilder {
     private final EnumCreator enumCreator;
 
     public static Schema build(IndexView index) {
-        GraphQLSchemaBuilder graphQLBootstrap = new GraphQLSchemaBuilder(index);
+        SchemaBuilder graphQLBootstrap = new SchemaBuilder(index);
         return graphQLBootstrap.generateSchema();
     }
 
-    private GraphQLSchemaBuilder(IndexView index) {
+    private SchemaBuilder(IndexView index) {
         this.index = index;
         this.inputCreator = new ComplexCreator(ReferenceType.INPUT, index);
         this.typeCreator = new ComplexCreator(ReferenceType.TYPE, index);
@@ -146,13 +146,14 @@ public class GraphQLSchemaBuilder {
 
         // Type (output)
         validateReturnType(methodInfo, graphQLAnnotation);
-        method.setReturn(CreatorHelper.getReturnField(index, methodInfo.returnType(), annotationsForMethod));
+        method.setReturn(
+                CreatorHelper.getReturnField(index, ReferenceType.TYPE, methodInfo.returnType(), annotationsForMethod));
 
         // Arguments (input)
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
             // ReferenceType
-            Field parameter = CreatorHelper.getParameter(index, parameters.get(i), methodInfo, i);
+            Parameter parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
             method.addParameter(parameter);
         }
 

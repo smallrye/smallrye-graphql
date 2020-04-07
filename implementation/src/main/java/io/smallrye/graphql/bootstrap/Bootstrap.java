@@ -1,12 +1,17 @@
 package io.smallrye.graphql.bootstrap;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
@@ -19,14 +24,16 @@ import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.bootstrap.datafetcher.CdiReflectionDataFetcher;
 import io.smallrye.graphql.bootstrap.typeresolver.InterfaceResolver;
 import io.smallrye.graphql.schema.model.Complex;
 import io.smallrye.graphql.schema.model.Enum;
-import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
+import io.smallrye.graphql.schema.model.Parameter;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.Return;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -41,6 +48,11 @@ public class Bootstrap {
     private final Schema schema;
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
+    private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
+    private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
+    private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
+    private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
+
     public static GraphQLSchema bootstrap(Schema schema) {
         Bootstrap graphQLBootstrap = new Bootstrap(schema);
         return graphQLBootstrap.generateGraphQLSchema();
@@ -53,85 +65,111 @@ public class Bootstrap {
     private GraphQLSchema generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        addEnums(schemaBuilder);
-        addInterfaces(schemaBuilder);
-        addInputs(schemaBuilder);
-        addTypes(schemaBuilder);
+        createGraphQLEnumTypes();
+        createGraphQLInterfaceTypes();
+        createGraphQLObjectTypes();
+        createGraphQLInputObjectTypes();
+
         addQueries(schemaBuilder);
         addMutations(schemaBuilder);
+
+        schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
+        schemaBuilder.additionalTypes(new HashSet<>(interfaceMap.values()));
+        schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
+        schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
         schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         return schemaBuilder.build();
     }
 
-    private void addEnums(GraphQLSchema.Builder schemaBuilder) {
+    // Create all enums and map them
+    private void createGraphQLEnumTypes() {
         for (Enum enumType : schema.getEnums().values()) {
-
-            GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum()
-                    .name(enumType.getName())
-                    .description(enumType.getDescription());
-            // Values
-            for (String value : enumType.getValues()) {
-                enumBuilder = enumBuilder.value(value);
-            }
-            schemaBuilder = schemaBuilder.additionalType(enumBuilder.build());
+            createGraphQLEnumType(enumType);
         }
     }
 
-    private void addInterfaces(GraphQLSchema.Builder schemaBuilder) {
+    private void createGraphQLEnumType(Enum enumType) {
+        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum()
+                .name(enumType.getName())
+                .description(enumType.getDescription());
+        // Values
+        for (String value : enumType.getValues()) {
+            enumBuilder = enumBuilder.value(value);
+        }
+        GraphQLEnumType graphQLEnumType = enumBuilder.build();
+        enumMap.put(enumType.getClassName(), graphQLEnumType);
+    }
+
+    private void createGraphQLInterfaceTypes() {
         for (Complex interfaceType : schema.getInterfaces().values()) {
-
-            GraphQLInterfaceType.Builder interfaceTypeBuilder = GraphQLInterfaceType.newInterface()
-                    .name(interfaceType.getName())
-                    .description(interfaceType.getDescription());
-
-            // Fields
-            Set<Method> methods = interfaceType.getMethods();
-            for (Method method : methods) {
-                interfaceTypeBuilder = interfaceTypeBuilder.field(toGraphQLFieldDefinition(method));
-            }
-            GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
-            // To resolve the concrete class
-            codeRegistryBuilder.typeResolver(graphQLInterfaceType,
-                    new InterfaceResolver(interfaceType.getClassName()));
-
-            schemaBuilder = schemaBuilder.additionalType(graphQLInterfaceType);
+            createGraphQLInterfaceType(interfaceType);
         }
     }
 
-    private void addInputs(GraphQLSchema.Builder schemaBuilder) {
+    private void createGraphQLInterfaceType(Complex interfaceType) {
+        GraphQLInterfaceType.Builder interfaceTypeBuilder = GraphQLInterfaceType.newInterface()
+                .name(interfaceType.getName())
+                .description(interfaceType.getDescription());
+
+        // Fields
+        Set<Method> methods = interfaceType.getMethods();
+        interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+
+        GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
+        // To resolve the concrete class
+        codeRegistryBuilder.typeResolver(graphQLInterfaceType,
+                new InterfaceResolver(interfaceType.getClassName()));
+
+        interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
+    }
+
+    private void createGraphQLInputObjectTypes() {
         for (Complex inputType : schema.getInputs().values()) {
-
-            GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject()
-                    .name(inputType.getName())
-                    .description(inputType.getDescription());
-
-            // Fields
-            Set<Method> methods = inputType.getMethods();
-            for (Method method : methods) {
-                inputObjectTypeBuilder = inputObjectTypeBuilder.field(toGraphQLInputObjectField(method));
-            }
-
-            schemaBuilder = schemaBuilder.additionalType(inputObjectTypeBuilder.build());
+            createGraphQLInputObjectType(inputType);
         }
     }
 
-    private void addTypes(GraphQLSchema.Builder schemaBuilder) {
+    private void createGraphQLInputObjectType(Complex inputType) {
+        GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject()
+                .name(inputType.getName())
+                .description(inputType.getDescription());
+
+        // Fields
+        Set<Method> methods = inputType.getMethods();
+        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectFields(methods));
+
+        GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
+        inputMap.put(inputType.getClassName(), graphQLInputObjectType);
+    }
+
+    private void createGraphQLObjectTypes() {
         for (Complex type : schema.getTypes().values()) {
-
-            GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject()
-                    .name(type.getName())
-                    .description(type.getDescription());
-
-            // Fields
-            Set<Method> methods = type.getMethods();
-            for (Method method : methods) {
-                objectTypeBuilder = objectTypeBuilder.field(toGraphQLFieldDefinition(method));
-            }
-
-            schemaBuilder = schemaBuilder.additionalType(objectTypeBuilder.build());
+            createGraphQLObjectType(type);
         }
+    }
+
+    private void createGraphQLObjectType(Complex type) {
+        GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject()
+                .name(type.getName())
+                .description(type.getDescription());
+
+        // Fields
+        Set<Method> methods = type.getMethods();
+        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+
+        // Interfaces
+        if (type.hasInterfaces()) {
+            Set<Reference> interfaces = type.getInterfaces();
+            for (Reference i : interfaces) {
+                GraphQLInterfaceType graphQLInterfaceType = interfaceMap.get(i.getClassName());
+                objectTypeBuilder = objectTypeBuilder.withInterface(graphQLInterfaceType);
+            }
+        }
+
+        GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
+        typeMap.put(type.getClassName(), graphQLObjectType);
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -142,19 +180,13 @@ public class Bootstrap {
 
         Set<Complex> queries = schema.getQueries();
         for (Complex queryDefinition : queries) {
-
             Set<Method> methods = queryDefinition.getMethods();
             for (Method method : methods) {
-
-                GraphQLFieldDefinition graphQLFieldDefinition = toGraphQLFieldDefinition(method);
-
+                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                 queryBuilder = queryBuilder.field(graphQLFieldDefinition);
-
                 CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName());
-
                 codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(QUERY,
                         graphQLFieldDefinition.getName()), datafetcher);
-
             }
 
         }
@@ -177,7 +209,7 @@ public class Bootstrap {
             Set<Method> methods = mutationDefinition.getMethods();
             for (Method method : methods) {
 
-                GraphQLFieldDefinition graphQLFieldDefinition = toGraphQLFieldDefinition(method);
+                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                 mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
 
                 CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName());
@@ -194,35 +226,52 @@ public class Bootstrap {
         }
     }
 
-    private GraphQLFieldDefinition toGraphQLFieldDefinition(Method method) {
+    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitions(Set<Method> methods) {
+        List<GraphQLFieldDefinition> graphQLFieldDefinitions = new ArrayList<>();
+
+        for (Method method : methods) {
+            graphQLFieldDefinitions.add(createGraphQLFieldDefinition(method));
+        }
+        return graphQLFieldDefinitions;
+    }
+
+    private GraphQLFieldDefinition createGraphQLFieldDefinition(Method method) {
         // Fields
         GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
                 .name(method.getName())
                 .description(method.getDescription());
 
         // Type (output)
-        Field returnObject = method.getReturn();
-        fieldBuilder = fieldBuilder.type(toGraphQLOutputType(returnObject));
+        Return returnObject = method.getReturn();
+        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(returnObject));
 
         // Arguments (queries and mutations)
         if (method.hasParameters()) {
-            List<Field> parameters = method.getParameters();
-            for (Field parameter : parameters) {
-                //builder.argument(argumentsHelper.toGraphQLArguments(inputTypeCreator, methodInfo));
+            List<Parameter> parameters = method.getParameters();
+            for (Parameter parameter : parameters) {
+                fieldBuilder = fieldBuilder.argument(createGraphQLArgument(parameter));
             }
         }
 
         return fieldBuilder.build();
     }
 
-    private GraphQLInputObjectField toGraphQLInputObjectField(Method method) {
+    private List<GraphQLInputObjectField> createGraphQLInputObjectFields(Set<Method> methods) {
+        List<GraphQLInputObjectField> graphQLInputObjectFields = new ArrayList<>();
+        for (Method method : methods) {
+            graphQLInputObjectFields.add(createGraphQLInputObjectField(method));
+        }
+        return graphQLInputObjectFields;
+    }
+
+    private GraphQLInputObjectField createGraphQLInputObjectField(Method method) {
         GraphQLInputObjectField.Builder inputFieldBuilder = GraphQLInputObjectField.newInputObjectField()
                 .name(method.getName())
                 .description(method.getDescription());
 
         // Type
-        Field returnObject = method.getReturn();
-        inputFieldBuilder = inputFieldBuilder.type(toGraphQLInputType(returnObject));
+        Return returnObject = method.getReturn();
+        inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(returnObject));
 
         GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
 
@@ -248,8 +297,9 @@ public class Bootstrap {
         //        }
     }
 
-    private GraphQLInputType toGraphQLInputType(Field returnObject) {
-        GraphQLInputType graphQLInputType = (GraphQLInputType) toGraphQLType(returnObject);
+    private GraphQLInputType createGraphQLInputType(Return returnObject) {
+
+        GraphQLInputType graphQLInputType = (GraphQLInputType) createGraphQLInputType(returnObject.getReturnType());
 
         // Mandatory
         if (returnObject.isMandatory()) {
@@ -263,8 +313,8 @@ public class Bootstrap {
         return graphQLInputType;
     }
 
-    private GraphQLOutputType toGraphQLOutputType(Field returnObject) {
-        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) toGraphQLType(returnObject);
+    private GraphQLOutputType createGraphQLOutputType(Return returnObject) {
+        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) createGraphQLOutputType(returnObject.getReturnType());
 
         // Mandatory
         if (returnObject.isMandatory()) {
@@ -278,21 +328,50 @@ public class Bootstrap {
         return graphQLOutputType;
     }
 
-    private GraphQLType toGraphQLType(Field returnObject) {
-        ReferenceType type = returnObject.getType();
+    private GraphQLOutputType createGraphQLOutputType(Reference reference) {
+        ReferenceType type = reference.getType();
+        String className = reference.getClassName();
+        String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return ScalarHolder.getGraphQLScalarType(returnObject.getClassName());
+                return ScalarHolder.getGraphQLScalarType(className);
             case ENUM:
-                LOG.warn(">>>>>> Enum " + returnObject.getName());
-            case INTERFACE:
-                LOG.warn(">>>>>> Interface " + returnObject.getName());
-            case TYPE:
-                LOG.warn(">>>>>> Type " + returnObject.getName());
-                // Throw something ?
-            default:
+                return enumMap.get(className);
+            case INPUT:
                 return Scalars.GraphQLString;
+            default:
+                return GraphQLTypeReference.typeRef(name);
         }
+    }
+
+    private GraphQLInputType createGraphQLInputType(Reference reference) {
+        ReferenceType type = reference.getType();
+        String className = reference.getClassName();
+        String name = reference.getName();
+        switch (type) {
+            case SCALAR:
+                return ScalarHolder.getGraphQLScalarType(className);
+            case ENUM:
+                return enumMap.get(className);
+            case TYPE:
+                return Scalars.GraphQLID;
+            default:
+                return GraphQLTypeReference.typeRef(name);
+        }
+    }
+
+    private GraphQLArgument createGraphQLArgument(Parameter parameter) {
+        GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
+                .name(parameter.getName())
+                .description(parameter.getDescription())
+                .defaultValue(parameter.getDefaultValue());
+
+        GraphQLInputType createGraphQLType = createGraphQLInputType(parameter.getParameterType());
+
+        argumentBuilder = argumentBuilder.type(createGraphQLType);
+
+        return argumentBuilder.build();
+
     }
 
     private static final String QUERY = "Query";

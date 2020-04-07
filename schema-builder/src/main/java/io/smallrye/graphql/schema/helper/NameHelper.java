@@ -50,8 +50,10 @@ public class NameHelper {
             return getOutputTypeName(classInfo, annotationsForThisClass);
         } else if (referenceType.equals(ReferenceType.INPUT)) {
             return getInputTypeName(classInfo, annotationsForThisClass);
+        } else if (referenceType.equals(ReferenceType.SCALAR)) {
+            return classInfo.name().withoutPackagePrefix();
         } else {
-            LOG.warn("Using default name for [" + classInfo.name().toString() + "]");
+            LOG.warn("Using default name for " + classInfo.simpleName() + " [" + referenceType.name() + "]");
             return classInfo.name().withoutPackagePrefix();
         }
     }
@@ -86,14 +88,14 @@ public class NameHelper {
 
     }
 
-    public static String getAnyNameForField(ReferenceType referenceType, Annotations annotationsForThisField,
+    public static String getAnyNameForField(Direction direction, Annotations annotationsForThisField,
             String fieldName) {
-        if (referenceType.equals(ReferenceType.INTERFACE) || referenceType.equals(ReferenceType.TYPE)) {
+        if (direction.equals(Direction.OUT)) {
             return getOutputNameForField(annotationsForThisField, fieldName);
-        } else if (referenceType.equals(ReferenceType.INPUT)) {
+        } else if (direction.equals(Direction.IN)) {
             return getInputNameForField(annotationsForThisField, fieldName);
         } else {
-            LOG.warn("Using default name for [" + referenceType.name() + "]");
+            LOG.warn("Using default name for " + fieldName + " [" + direction.name() + "]");
             return fieldName;
         }
     }

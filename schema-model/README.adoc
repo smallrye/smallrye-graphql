@@ -69,12 +69,26 @@ A complex entry in the schema. Represents Interface, Input and Type. It extends 
 A method (of operation) on a complex object (input/type/interface). It extends Root and adds:
 
 - a return field
-- a list of parameters (fields)
+- a list of parameters
 
 === Field
 
-A object that extends Root and adds:
+A abstract object that extends Root and adds:
 
+- a field name
+- an optional description
 - a boolean to indicate that this field is mandatory
 - a boolean to indicate that this field is a collection
-- a optional defaultValue.
+
+=== Return
+
+Represents the return field on a Method. It extends Field and adds:
+
+- a reference to the return type.
+
+=== Parameter
+
+Represents the parameter (of list of) on a Method. It extends Field and adds:
+
+- a reference to the parameter type.
+- the defaultValue.

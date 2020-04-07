@@ -9,26 +9,26 @@ import java.util.List;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Method extends Root {
-    private Field returnField;
-    private List<Field> parameters;
+    private Return returnField;
+    private List<Parameter> parameters;
 
-    public Field getReturn() {
+    public Return getReturn() {
         return returnField;
     }
 
-    public void setReturn(Field returnField) {
+    public void setReturn(Return returnField) {
         this.returnField = returnField;
     }
 
-    public List<Field> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
     }
 
-    public void setParameters(List<Field> parameters) {
+    public void setParameters(List<Parameter> parameters) {
         this.parameters = parameters;
     }
 
-    public void addParameter(Field parameter) {
+    public void addParameter(Parameter parameter) {
         if (this.parameters == null) {
             this.parameters = new LinkedList<>();
         }
