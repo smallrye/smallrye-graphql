@@ -38,7 +38,7 @@ public class CreatorHelper {
             Annotations annotations) {
         Reference returnTypeRef = getReference(index, referenceType, methodType,
                 annotations);
-        return getReturnField(returnTypeRef, methodType, annotations);
+        return createReturnField(returnTypeRef, methodType, methodType, annotations);
     }
 
     public static Return getReturnField(IndexView index, ReferenceType referenceType, Type fieldType, Type methodType,
@@ -47,7 +47,7 @@ public class CreatorHelper {
         Reference returnTypeRef = getReference(index, referenceType, fieldType,
                 methodType, annotations);
 
-        return getReturnField(returnTypeRef, methodType, annotations);
+        return createReturnField(returnTypeRef, fieldType, methodType, annotations);
     }
 
     public static Reference getReference(IndexView index, ReferenceType referenceType, Type methodType,
@@ -127,14 +127,16 @@ public class CreatorHelper {
         parameter.setDefaultValue(defaultValue.orElse(null));
 
         // Collection
-        if (CreatorHelper.isParameterized(type)) {
-            parameter.setCollection(true);
+        if (isParameterized(type)) {
+            int depth = getParameterizedDepth(type);
+            parameter.setCollectionDepth(depth);
         }
 
         // NotNull
         if (NonNullHelper.markAsNonNull(type, annotationsForThisArgument)) {
             parameter.setMandatory(true);
         }
+        parameter.setMandatoryInCollection(markParameterizedTypeNonNull(type, methodParameter));
 
         return parameter;
     }
@@ -155,7 +157,7 @@ public class CreatorHelper {
         return reference;
     }
 
-    private static Return getReturnField(Reference returnTypeRef, Type methodType, Annotations annotations) {
+    private static Return createReturnField(Reference returnTypeRef, Type fieldType, Type methodType, Annotations annotations) {
         // Name
         String name = NameHelper.getAnyNameForField(Direction.OUT, annotations, methodType.name().toString());
         // Description
@@ -164,15 +166,68 @@ public class CreatorHelper {
         Return returnField = new Return(name, maybeFieldDescription.orElse(null), returnTypeRef);
 
         // Collection
-        if (CreatorHelper.isParameterized(methodType)) {
-            returnField.setCollection(true);
+        if (isParameterized(methodType)) {
+            int depth = getParameterizedDepth(methodType);
+            returnField.setCollectionDepth(depth);
         }
 
         // NotNull
         if (NonNullHelper.markAsNonNull(methodType, annotations)) {
             returnField.setMandatory(true);
         }
+        returnField.setMandatoryInCollection(markParameterizedTypeNonNull(fieldType, methodType));
+
+        // Default value (on method)
+        Optional<Object> maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotations);
+        returnField.setDefaultValue(maybeDefaultValue.orElse(null));
+
         return returnField;
+    }
+
+    private static int getParameterizedDepth(Type type) {
+        return getParameterizedDepth(type, 0);
+    }
+
+    private static int getParameterizedDepth(Type type, int depth) {
+        if (type.kind().equals(Type.Kind.ARRAY)) {
+            depth = depth + 1;
+            Type typeInArray = type.asArrayType().component();
+            return getParameterizedDepth(typeInArray, depth);
+        } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            depth = depth + 1;
+            Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            return getParameterizedDepth(typeInCollection, depth);
+        }
+        return depth;
+    }
+
+    private static Type getTypeInCollection(Type type) {
+        if (isParameterized(type)) {
+            if (type.kind().equals(Type.Kind.ARRAY)) {
+                Type typeInArray = type.asArrayType().component();
+                return getTypeInCollection(typeInArray);
+            } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                Type typeInCollection = type.asParameterizedType().arguments().get(0);
+                return getTypeInCollection(typeInCollection);
+            }
+        }
+        return type;
+
+    }
+
+    public static boolean markParameterizedTypeNonNull(Type type, Type methodType) {
+        if (type == null)
+            type = methodType;
+        if (isParameterized(type)) {
+            Type typeInCollection = getTypeInCollection(type);
+            Type methodTypeInCollection = getTypeInCollection(methodType);
+            Annotations annotationsInParameterizedType = AnnotationsHelper.getAnnotationsForType(typeInCollection,
+                    methodTypeInCollection);
+
+            return NonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, true);
+        }
+        return false;
+
     }
 
 }

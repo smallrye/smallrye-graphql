@@ -273,13 +273,13 @@ public class Bootstrap {
         Return returnObject = method.getReturn();
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(returnObject));
 
+        // Default value (on method)
+        inputFieldBuilder = inputFieldBuilder.defaultValue(returnObject.getDefaultValue());
+
         GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
 
         //        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(name, fieldName),
         //                new AnnotatedPropertyDataFetcher(field.name(), field.type(), annotations));
-
-        // Default value (on method)
-        //builder = builder.defaultValue(maybeDefaultValue.orElse(null));
 
         return graphQLInputObjectField;
 
@@ -301,29 +301,45 @@ public class Bootstrap {
 
         GraphQLInputType graphQLInputType = (GraphQLInputType) createGraphQLInputType(returnObject.getReturnType());
 
+        // Collection
+        if (returnObject.isCollection()) {
+            // Mandatory in the collection
+            if (returnObject.isMandatoryInCollection()) {
+                graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
+            }
+            // Collection depth
+            int depth = returnObject.getCollectionDepth();
+            for (int i = 0; i < depth; i++) {
+                graphQLInputType = GraphQLList.list(graphQLInputType);
+            }
+        }
+
         // Mandatory
         if (returnObject.isMandatory()) {
             graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
         }
-        // Collection
-        if (returnObject.isCollection()) {
-            // TODO: Add Mandatory for collection
-            graphQLInputType = GraphQLList.list(graphQLInputType);
-        }
+
         return graphQLInputType;
     }
 
     private GraphQLOutputType createGraphQLOutputType(Return returnObject) {
         GraphQLOutputType graphQLOutputType = (GraphQLOutputType) createGraphQLOutputType(returnObject.getReturnType());
 
+        // Collection
+        if (returnObject.isCollection()) {
+            // Mandatory in the collection
+            if (returnObject.isMandatoryInCollection()) {
+                graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
+            }
+            // Collection depth
+            int depth = returnObject.getCollectionDepth();
+            for (int i = 0; i < depth; i++) {
+                graphQLOutputType = GraphQLList.list(graphQLOutputType);
+            }
+        }
         // Mandatory
         if (returnObject.isMandatory()) {
             graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
-        }
-        // Collection
-        if (returnObject.isCollection()) {
-            // TODO: Add Mandatory for collection
-            graphQLOutputType = GraphQLList.list(graphQLOutputType);
         }
         return graphQLOutputType;
     }

@@ -7,7 +7,6 @@ package io.smallrye.graphql.schema.model;
  */
 public final class Parameter extends Field {
     private Reference parameterType;
-    private Object defaultValue;
 
     public Parameter(String name, String description, Reference parameterType) {
         super.setName(name);
@@ -17,13 +16,5 @@ public final class Parameter extends Field {
 
     public Reference getParameterType() {
         return parameterType;
-    }
-
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(Object defaultValue) {
-        this.defaultValue = defaultValue;
     }
 }
