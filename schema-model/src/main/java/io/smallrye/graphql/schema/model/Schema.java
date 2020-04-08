@@ -31,6 +31,10 @@ public final class Schema implements Serializable {
         this.queries.add(query);
     }
 
+    public boolean hasQueries() {
+        return this.queries != null && !this.queries.isEmpty();
+    }
+
     public Set<Complex> getMutations() {
         return mutations;
     }
@@ -39,6 +43,10 @@ public final class Schema implements Serializable {
         if (this.mutations == null)
             this.mutations = newTreeSet();
         this.mutations.add(mutation);
+    }
+
+    public boolean hasMutations() {
+        return this.mutations != null && !this.mutations.isEmpty();
     }
 
     public Map<String, Complex> getInputs() {
@@ -55,6 +63,10 @@ public final class Schema implements Serializable {
         return this.inputs != null && this.inputs.containsKey(name);
     }
 
+    public boolean hasInputs() {
+        return this.inputs != null && !this.inputs.isEmpty();
+    }
+
     public Map<String, Complex> getTypes() {
         return types;
     }
@@ -67,6 +79,10 @@ public final class Schema implements Serializable {
 
     public boolean containsType(String name) {
         return this.types != null && this.types.containsKey(name);
+    }
+
+    public boolean hasTypes() {
+        return this.types != null && !this.types.isEmpty();
     }
 
     public Map<String, Complex> getInterfaces() {
@@ -83,6 +99,10 @@ public final class Schema implements Serializable {
         return this.interfaces != null && this.interfaces.containsKey(name);
     }
 
+    public boolean hasInterfaces() {
+        return this.interfaces != null && !this.interfaces.isEmpty();
+    }
+
     public Map<String, Enum> getEnums() {
         return enums;
     }
@@ -95,6 +115,10 @@ public final class Schema implements Serializable {
 
     public boolean containsEnum(String name) {
         return this.enums != null && this.enums.containsKey(name);
+    }
+
+    public boolean hasEnums() {
+        return this.enums != null && !this.enums.isEmpty();
     }
 
     private TreeSet<Complex> newTreeSet() {
