@@ -11,6 +11,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
@@ -21,7 +22,9 @@ import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
+import io.smallrye.graphql.schema.helper.SourceFieldHelper;
 import io.smallrye.graphql.schema.model.Complex;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -31,7 +34,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class ComplexCreator {
+public final class ComplexCreator implements Creator<Complex> {
     private static final Logger LOG = Logger.getLogger(ComplexCreator.class.getName());
 
     private final IndexView index;
@@ -48,6 +51,7 @@ public final class ComplexCreator {
         }
     }
 
+    @Override
     public Complex create(ClassInfo classInfo) {
         LOG.debug("Creating " + referenceType.name() + " from " + classInfo.name().toString());
         Complex complex = new Complex(classInfo.name().toString());
@@ -62,6 +66,9 @@ public final class ComplexCreator {
 
         // Fields
         addFields(complex, classInfo);
+
+        // Add Source fields
+        addSourceFields(complex, classInfo);
 
         // Interfaces
         addInterfaces(complex, classInfo);
@@ -96,24 +103,61 @@ public final class ComplexCreator {
         // Annotations on the field and setter
         Annotations annotations = AnnotationsHelper.getAnnotationsForAnyField(referenceType, fieldInfo, methodInfo);
         if (!IgnoreHelper.shouldIgnore(annotations)) {
-            Type methodType = getMethodType(methodInfo);
-            Type fieldType = getFieldType(fieldInfo);
-
-            Method method = new Method();
-
-            // Name
-            String fieldName = NameHelper.getAnyNameForField(direction, annotations, methodInfo.name());
-            method.setName(fieldName);
-
-            // Description
-            Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
-            method.setDescription(maybeFieldDescription.orElse(null));
-
-            // Type
-            method.setReturn(CreatorHelper.getReturnField(index, referenceType, fieldType, methodType, annotations));
-
+            Method method = createMethod(annotations, fieldInfo, methodInfo);
             complex.addMethod(method);
         }
+    }
+
+    private void addSourceFields(Complex complex, ClassInfo classInfo) {
+        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceFieldHelper.getAllSourceAnnotations(index);
+        if (sourceFields.containsKey(classInfo.name())) {
+            List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
+            for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                MethodInfo methodInfo = methodParameterInfo.method();
+                addSourceField(complex, methodInfo);
+            }
+        }
+    }
+
+    private void addSourceField(Complex complex, MethodInfo methodInfo) {
+        // Annotations on the method
+        Annotations annotations = AnnotationsHelper.getAnnotationsForMethod(methodInfo);
+        if (!IgnoreHelper.shouldIgnore(annotations)) {
+            Method method = createMethod(annotations, null, methodInfo);
+
+            // Arguments (input)
+            List<Type> parameters = methodInfo.parameters();
+            for (short i = 0; i < parameters.size(); i++) {
+                // ReferenceType
+                Field parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
+                if (!parameter.getTypeReference().getClassName().equals(complex.getClassName())) { // Do not add the @Source field
+                    method.addParameter(parameter);
+                }
+            }
+
+            complex.addSource(method);
+        }
+    }
+
+    private Method createMethod(Annotations annotations, FieldInfo fieldInfo, MethodInfo methodInfo) {
+
+        Type methodType = getMethodType(methodInfo);
+        Type fieldType = getFieldType(fieldInfo);
+
+        // Name
+        String fieldName = NameHelper.getAnyNameForField(direction, annotations, methodInfo.name());
+
+        // Description
+        Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
+
+        Method method = new Method(fieldName, maybeFieldDescription.orElse(null));
+
+        // Type
+        method.setReturn(CreatorHelper.getReturnField(index, referenceType, fieldType, methodType, annotations));
+
+        // TODO: Arguments ? For now we assume setters (so not arguments as it's just fields)
+
+        return method;
     }
 
     private Type getFieldType(FieldInfo fieldInfo) {
