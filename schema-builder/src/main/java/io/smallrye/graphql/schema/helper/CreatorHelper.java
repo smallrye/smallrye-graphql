@@ -140,6 +140,7 @@ public class CreatorHelper {
             // Also check that we create all implementations
             Collection<ClassInfo> knownDirectImplementors = index.getAllKnownImplementors(classInfo.name());
             for (ClassInfo impl : knownDirectImplementors) {
+                // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all ?
                 toBeScanned(index, ReferenceType.TYPE, impl); //TODO: What if we want to support interfaces on INPUT ?
             }
             referenceType = ReferenceType.INTERFACE;
