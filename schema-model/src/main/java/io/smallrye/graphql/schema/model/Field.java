@@ -1,30 +1,21 @@
 package io.smallrye.graphql.schema.model;
 
 /**
- * Represents a return (output) to a method
+ * Represents a return (output) or parameter (input) to a method
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class Field {
-    private String name;
-    private String description;
+public final class Field extends Item {
+
     private boolean mandatory = false;
-    private boolean collection = false;
+    private int collectionDepth = 0;
+    private boolean mandatoryInCollection = false;
+    private Object defaultValue;
+    private Reference typeReference; // Return type or parameter type
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public Field(String name, String description, Reference typeReference) {
+        super(name, description);
+        this.typeReference = typeReference;
     }
 
     public boolean isMandatory() {
@@ -36,10 +27,38 @@ public abstract class Field {
     }
 
     public boolean isCollection() {
-        return collection;
+        return collectionDepth > 0;
     }
 
-    public void setCollection(boolean collection) {
-        this.collection = collection;
+    public void setCollectionDepth(int depth) {
+        this.collectionDepth = depth;
+    }
+
+    public int getCollectionDepth() {
+        return this.collectionDepth;
+    }
+
+    public boolean isMandatoryInCollection() {
+        return mandatoryInCollection;
+    }
+
+    public void setMandatoryInCollection(boolean mandatoryInCollection) {
+        this.mandatoryInCollection = mandatoryInCollection;
+    }
+
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public Reference getTypeReference() {
+        return typeReference;
+    }
+
+    public void setTypeReference(Reference typeReference) {
+        this.typeReference = typeReference;
     }
 }
