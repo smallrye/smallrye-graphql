@@ -28,10 +28,13 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 
 === Project structure
 
+* link:schema-model[] - Serializable model that defines the schema.
+* link:schema-builder[] - Builder that create the model from Jandex.
 * link:implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
 * link:implementation-servlet[] - Making the implementation available via Servlet
 * link:tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
 * link:runner[] - Manual TCK testing with GraphiQL
+* link:integration-tests[] - To run some Integration tests
 
 === Links
 

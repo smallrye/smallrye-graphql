@@ -110,24 +110,27 @@ public class AnnotationsHelper {
     }
 
     public static Annotations getAnnotationsForArgument(MethodInfo methodInfo, short pos) {
+        if (pos >= methodInfo.parameters().size()) {
+            throw new MethodParameterNotFoundException(
+                    "Parameter at position " + pos + " not found on method " + methodInfo.name());
+        }
+
+        final Type parameterType = methodInfo.parameters().get(pos);
+
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
-        for (AnnotationInstance anno : methodInfo.annotations()) {
+        annotationMap.putAll(getAnnotations(parameterType));
 
-            List<Type> parameters = methodInfo.parameters();
-            if (!parameters.isEmpty()) {
-                Type type = parameters.get(pos);
-                if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
-                    MethodParameterInfo methodParameter = anno.target().asMethodParameter();
-                    short position = methodParameter.position();
-                    if (position == pos) {
-                        annotationMap.put(anno.name(), anno);
-                        Map<DotName, AnnotationInstance> annotations = getAnnotations(type);
-                        annotationMap.putAll(annotations);
-                    }
+        for (AnnotationInstance anno : methodInfo.annotations()) {
+            if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
+                MethodParameterInfo methodParameter = anno.target().asMethodParameter();
+                short position = methodParameter.position();
+                if (position == pos) {
+                    annotationMap.put(anno.name(), anno);
                 }
             }
         }
+
         return new Annotations(annotationMap);
     }
 

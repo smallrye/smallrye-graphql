@@ -4,11 +4,6 @@ This is a representation of a GraphQL Schema. It gets build using Jandex scannin
 
 image:/schema-model/classdiagram.png[link="schema-model/classdiagram.png"]
 
-== TODO
-
-- `@Source` annotation scanning
-- `@NonNull` for elements inside a collection (TYPE_USE)
-- Formatting maybe
 
 == Schema
 
@@ -24,7 +19,7 @@ A Schema contains:
 === Reference
 
 During scanning certain object reference other objects that might not have been scanned yet, 
-so we always just have reference to that (potential future) object.
+so we always just have reference to that (potentially future) object.
 
 A Reference contains:
 
@@ -53,42 +48,41 @@ It contains:
 
 === Enum
 
-A basic entry in the schema that represent an enum. It extends Root and adds:
+A basic entry in the schema that represent an enum. It contains:
 
+- all field from Root
 - list of valid values
 
 === Complex
 
-A complex entry in the schema. Represents Interface, Input and Type. It extends Root and adds:
+A complex entry in the schema. Represents Interface, Input and Type. It contains:
 
+- all field from Root
 - set of methods (or operations) on the complex type.
+- set of source methods (or operations) on the complex type.
 - set of interfaces that this complex type implements.
+
+=== Item
+An abstract object that has:
+
+- a name
+- a description
 
 === Method
 
-A method (of operation) on a complex object (input/type/interface). It extends Root and adds:
+A method (of operation) on a complex object (input/type/interface). It contains:
 
+- all fields from Item
 - a return field
 - a list of parameters
 
 === Field
 
-A abstract object that extends Root and adds:
+A object that extends Item. It contains:
 
-- a field name
-- an optional description
+- all fields from Item
+- a optional defaultValue.
 - a boolean to indicate that this field is mandatory
-- a boolean to indicate that this field is a collection
-
-=== Return
-
-Represents the return field on a Method. It extends Field and adds:
-
-- a reference to the return type.
-
-=== Parameter
-
-Represents the parameter (of list of) on a Method. It extends Field and adds:
-
-- a reference to the parameter type.
-- the defaultValue.
+- a int to indicate the depth of a collection (0 if not a collection)
+- a boolean to indicate that this field is mandatory inside the collection (false if not a collection)
+- a reference to the type.
