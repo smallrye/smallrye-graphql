@@ -1,6 +1,6 @@
 package io.smallrye.graphql.schema.helper;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
@@ -81,14 +81,7 @@ public class CreatorHelper {
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = index.getClassByName(fieldType.name());
             if (classInfo != null) {
-                Annotations annotationsForThisClass = AnnotationsHelper.getAnnotationsForClass(classInfo);
-                if (Classes.isEnum(classInfo)) {
-                    String name = NameHelper.getAnyTypeName(ReferenceType.ENUM, classInfo, annotationsForThisClass);
-                    return toBeScanned(ReferenceType.ENUM, classInfo, name);
-                } else {
-                    String name = NameHelper.getAnyTypeName(referenceType, classInfo, annotationsForThisClass);
-                    return toBeScanned(referenceType, classInfo, name);
-                }
+                return toBeScanned(index, referenceType, classInfo);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not create Type, defaulting to String Scalar");
@@ -141,18 +134,27 @@ public class CreatorHelper {
     }
 
     // Add to the correct map to be scanned later.
-    public static Reference toBeScanned(ReferenceType referenceType, ClassInfo classInfo, String name) {
-        String className = classInfo.name().toString();
-        // First check if this is an interface
+    public static Reference toBeScanned(IndexView index, ReferenceType referenceType, ClassInfo classInfo) {
+        // First check if this is an interface or enum
         if (Classes.isInterface(classInfo)) {
+            // Also check that we create all implementations
+            Collection<ClassInfo> knownDirectImplementors = index.getAllKnownImplementors(classInfo.name());
+            for (ClassInfo impl : knownDirectImplementors) {
+                // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all ?
+                toBeScanned(index, ReferenceType.TYPE, impl); //TODO: What if we want to support interfaces on INPUT ?
+            }
             referenceType = ReferenceType.INTERFACE;
+        } else if (Classes.isEnum(classInfo)) {
+            referenceType = ReferenceType.ENUM;
         }
 
+        String className = classInfo.name().toString();
+        Annotations annotationsForClass = AnnotationsHelper.getAnnotationsForClass(classInfo);
+        String name = NameHelper.getAnyTypeName(referenceType, classInfo, annotationsForClass);
+
         Reference reference = new Reference(className, name, referenceType);
-        Map<String, Reference> map = ObjectBag.getReferenceMap(referenceType);
-        if (!map.containsKey(className)) {
-            map.put(className, reference);
-        }
+        ObjectBag.putIfAbsent(className, reference, referenceType);
+
         return reference;
     }
 

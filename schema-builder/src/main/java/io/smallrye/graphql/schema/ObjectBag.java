@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,8 +22,17 @@ public class ObjectBag {
     private ObjectBag() {
     }
 
-    public static Map<String, Reference> getReferenceMap(ReferenceType definitionType) {
-        switch (definitionType) {
+    public static void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
+        Map<String, Reference> map = getReferenceMap(referenceType);
+        map.putIfAbsent(key, reference);
+    }
+
+    public static Collection<Reference> values(ReferenceType referenceType) {
+        return getReferenceMap(referenceType).values();
+    }
+
+    private static Map<String, Reference> getReferenceMap(ReferenceType referenceType) {
+        switch (referenceType) {
             case ENUM:
                 return enumReferenceMap;
             case INPUT:

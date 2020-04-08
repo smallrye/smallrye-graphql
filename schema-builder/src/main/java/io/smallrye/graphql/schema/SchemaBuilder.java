@@ -2,7 +2,6 @@ package io.smallrye.graphql.schema;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -138,8 +137,7 @@ public class SchemaBuilder {
     }
 
     private <T> void createAndAddToSchema(ReferenceType referenceType, Creator creator, Consumer<T> consumer) {
-        Map<String, Reference> map = ObjectBag.getReferenceMap(referenceType);
-        for (Reference reference : map.values()) {
+        for (Reference reference : ObjectBag.values(referenceType)) {
             ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
             consumer.accept((T) creator.create(classInfo));
         }
@@ -150,8 +148,7 @@ public class SchemaBuilder {
 
         boolean allDone = true;
         // Let's see what still needs to be done.
-        Collection<Reference> values = ObjectBag.getReferenceMap(referenceType).values();
-        for (Reference reference : values) {
+        for (Reference reference : ObjectBag.values(referenceType)) {
             ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
             if (!contains.test(reference.getName())) {
                 consumer.accept((T) creator.create(classInfo));
