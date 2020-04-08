@@ -29,11 +29,10 @@ import io.smallrye.graphql.bootstrap.datafetcher.CdiReflectionDataFetcher;
 import io.smallrye.graphql.bootstrap.typeresolver.InterfaceResolver;
 import io.smallrye.graphql.schema.model.Complex;
 import io.smallrye.graphql.schema.model.Enum;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
-import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.Return;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -266,13 +265,13 @@ public class Bootstrap {
                 .description(method.getDescription());
 
         // Type (output)
-        Return returnObject = method.getReturn();
+        Field returnObject = method.getReturn();
         fieldBuilder = fieldBuilder.type(createGraphQLOutputType(returnObject));
 
         // Arguments (queries and mutations)
         if (method.hasParameters()) {
-            List<Parameter> parameters = method.getParameters();
-            for (Parameter parameter : parameters) {
+            List<Field> parameters = method.getParameters();
+            for (Field parameter : parameters) {
                 fieldBuilder = fieldBuilder.argument(createGraphQLArgument(parameter));
             }
         }
@@ -294,7 +293,7 @@ public class Bootstrap {
                 .description(method.getDescription());
 
         // Type
-        Return returnObject = method.getReturn();
+        Field returnObject = method.getReturn();
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(returnObject));
 
         // Default value (on method)
@@ -321,9 +320,9 @@ public class Bootstrap {
         //        }
     }
 
-    private GraphQLInputType createGraphQLInputType(Return returnObject) {
+    private GraphQLInputType createGraphQLInputType(Field returnObject) {
 
-        GraphQLInputType graphQLInputType = (GraphQLInputType) createGraphQLInputType(returnObject.getReturnType());
+        GraphQLInputType graphQLInputType = (GraphQLInputType) createGraphQLInputType(returnObject.getTypeReference());
 
         // Collection
         if (returnObject.isCollection()) {
@@ -346,8 +345,8 @@ public class Bootstrap {
         return graphQLInputType;
     }
 
-    private GraphQLOutputType createGraphQLOutputType(Return returnObject) {
-        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) createGraphQLOutputType(returnObject.getReturnType());
+    private GraphQLOutputType createGraphQLOutputType(Field returnObject) {
+        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) createGraphQLOutputType(returnObject.getTypeReference());
 
         // Collection
         if (returnObject.isCollection()) {
@@ -400,13 +399,13 @@ public class Bootstrap {
         }
     }
 
-    private GraphQLArgument createGraphQLArgument(Parameter parameter) {
+    private GraphQLArgument createGraphQLArgument(Field parameter) {
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                 .name(parameter.getName())
                 .description(parameter.getDescription())
                 .defaultValue(parameter.getDefaultValue());
 
-        GraphQLInputType createGraphQLType = createGraphQLInputType(parameter.getParameterType());
+        GraphQLInputType createGraphQLType = createGraphQLInputType(parameter.getTypeReference());
 
         argumentBuilder = argumentBuilder.type(createGraphQLType);
 

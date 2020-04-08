@@ -24,8 +24,8 @@ import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.helper.SourceFieldHelper;
 import io.smallrye.graphql.schema.model.Complex;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
-import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
@@ -129,8 +129,8 @@ public final class ComplexCreator implements Creator<Complex> {
             List<Type> parameters = methodInfo.parameters();
             for (short i = 0; i < parameters.size(); i++) {
                 // ReferenceType
-                Parameter parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
-                if (!parameter.getParameterType().getClassName().equals(complex.getClassName())) { // Do not add the @Source field
+                Field parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
+                if (!parameter.getTypeReference().getClassName().equals(complex.getClassName())) { // Do not add the @Source field
                     method.addParameter(parameter);
                 }
             }
@@ -144,18 +144,18 @@ public final class ComplexCreator implements Creator<Complex> {
         Type methodType = getMethodType(methodInfo);
         Type fieldType = getFieldType(fieldInfo);
 
-        Method method = new Method();
-
         // Name
         String fieldName = NameHelper.getAnyNameForField(direction, annotations, methodInfo.name());
-        method.setName(fieldName);
 
         // Description
         Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
-        method.setDescription(maybeFieldDescription.orElse(null));
+
+        Method method = new Method(fieldName, maybeFieldDescription.orElse(null));
 
         // Type
         method.setReturn(CreatorHelper.getReturnField(index, referenceType, fieldType, methodType, annotations));
+
+        // TODO: Arguments ? For now we assume setters (so not arguments as it's just fields)
 
         return method;
     }

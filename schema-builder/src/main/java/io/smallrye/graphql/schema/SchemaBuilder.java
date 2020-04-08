@@ -19,8 +19,8 @@ import io.smallrye.graphql.schema.helper.CreatorHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.NameHelper;
 import io.smallrye.graphql.schema.model.Complex;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
-import io.smallrye.graphql.schema.model.Parameter;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -181,15 +181,13 @@ public class SchemaBuilder {
     private Method createMethod(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation,
             Annotations annotationsForMethod) {
 
-        Method method = new Method();
-
         // Name
         String fieldName = NameHelper.getExecutionTypeName(graphQLAnnotation, annotationsForMethod);
-        method.setName(fieldName);
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
-        method.setDescription(maybeDescription.orElse(null));
+
+        Method method = new Method(fieldName, maybeDescription.orElse(null));
 
         // Type (output)
         validateReturnType(methodInfo, graphQLAnnotation);
@@ -200,7 +198,7 @@ public class SchemaBuilder {
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
             // ReferenceType
-            Parameter parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
+            Field parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
             method.addParameter(parameter);
         }
 

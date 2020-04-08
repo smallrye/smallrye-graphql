@@ -14,10 +14,9 @@ import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.CreationException;
 import io.smallrye.graphql.schema.ObjectBag;
 import io.smallrye.graphql.schema.Scalars;
-import io.smallrye.graphql.schema.model.Parameter;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.Return;
 
 /**
  * Shared code between model creators and schema creator.
@@ -34,14 +33,14 @@ public class CreatorHelper {
         return type.kind().equals(Type.Kind.ARRAY) || type.kind().equals(Type.Kind.PARAMETERIZED_TYPE);
     }
 
-    public static Return getReturnField(IndexView index, ReferenceType referenceType, Type methodType,
+    public static Field getReturnField(IndexView index, ReferenceType referenceType, Type methodType,
             Annotations annotations) {
         Reference returnTypeRef = getReference(index, referenceType, methodType,
                 annotations);
         return createReturnField(returnTypeRef, methodType, methodType, annotations);
     }
 
-    public static Return getReturnField(IndexView index, ReferenceType referenceType, Type fieldType, Type methodType,
+    public static Field getReturnField(IndexView index, ReferenceType referenceType, Type fieldType, Type methodType,
             Annotations annotations) {
 
         Reference returnTypeRef = getReference(index, referenceType, fieldType,
@@ -100,7 +99,7 @@ public class CreatorHelper {
         }
     }
 
-    public static Parameter getParameter(IndexView index, ReferenceType referenceType, Type type, MethodInfo methodInfo,
+    public static Field getParameter(IndexView index, ReferenceType referenceType, Type type, MethodInfo methodInfo,
             short position) {
 
         // Type
@@ -120,7 +119,7 @@ public class CreatorHelper {
         // Description    
         Optional<String> description = DescriptionHelper.getDescriptionForField(annotationsForThisArgument, type);
 
-        Parameter parameter = new Parameter(name, description.orElse(null), parameterRef);
+        Field parameter = new Field(name, description.orElse(null), parameterRef);
 
         // Default Value
         Optional<Object> defaultValue = DefaultValueHelper.getDefaultValue(annotationsForThisArgument);
@@ -157,13 +156,13 @@ public class CreatorHelper {
         return reference;
     }
 
-    private static Return createReturnField(Reference returnTypeRef, Type fieldType, Type methodType, Annotations annotations) {
+    private static Field createReturnField(Reference returnTypeRef, Type fieldType, Type methodType, Annotations annotations) {
         // Name
         String name = NameHelper.getAnyNameForField(Direction.OUT, annotations, methodType.name().toString());
         // Description
         Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
 
-        Return returnField = new Return(name, maybeFieldDescription.orElse(null), returnTypeRef);
+        Field returnField = new Field(name, maybeFieldDescription.orElse(null), returnTypeRef);
 
         // Collection
         if (isParameterized(methodType)) {

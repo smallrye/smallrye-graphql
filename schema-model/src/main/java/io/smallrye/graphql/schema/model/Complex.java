@@ -30,7 +30,7 @@ public final class Complex extends Root {
 
     public void addMethod(Method method) {
         if (this.methods == null) {
-            this.methods = new TreeSet<>(comparator);
+            this.methods = new TreeSet<>(methodComparator);
         }
         this.methods.add(method);
     }
@@ -45,7 +45,7 @@ public final class Complex extends Root {
 
     public void addSource(Method source) {
         if (this.sources == null) {
-            this.sources = new TreeSet<>(comparator);
+            this.sources = new TreeSet<>(methodComparator);
         }
         this.sources.add(source);
     }
@@ -60,7 +60,7 @@ public final class Complex extends Root {
 
     public void addInterface(Reference interfaceRef) {
         if (this.interfaces == null) {
-            this.interfaces = new TreeSet<>(comparator);
+            this.interfaces = new TreeSet<>(referenceComparator);
         }
         this.interfaces.add(interfaceRef);
     }
@@ -69,9 +69,19 @@ public final class Complex extends Root {
         return this.interfaces != null && !this.interfaces.isEmpty();
     }
 
-    private final Comparator comparator = new Comparator<Reference>() {
+    private final Comparator referenceComparator = new Comparator<Reference>() {
         @Override
         public int compare(Reference o1, Reference o2) {
+            if (o1 != null && o2 != null) {
+                return o1.getName().compareTo(o2.getName());
+            }
+            return ZERO;
+        }
+    };
+
+    private final Comparator methodComparator = new Comparator<Method>() {
+        @Override
+        public int compare(Method o1, Method o2) {
             if (o1 != null && o2 != null) {
                 return o1.getName().compareTo(o2.getName());
             }
