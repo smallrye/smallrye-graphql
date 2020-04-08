@@ -113,9 +113,17 @@ public class Bootstrap {
                 .name(interfaceType.getName())
                 .description(interfaceType.getDescription());
 
-        // Fields
-        Set<Method> methods = interfaceType.getMethods();
-        interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+        // Fields TODO: Add datafetchers
+        if (interfaceType.hasMethods()) {
+            Set<Method> methods = interfaceType.getMethods();
+            interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+        }
+
+        // Source Fields TODO: Add datafetchers
+        if (interfaceType.hasSources()) {
+            Set<Method> sources = interfaceType.getSources();
+            interfaceTypeBuilder = interfaceTypeBuilder.fields(createGraphQLFieldDefinitions(sources));
+        }
 
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
@@ -136,9 +144,17 @@ public class Bootstrap {
                 .name(inputType.getName())
                 .description(inputType.getDescription());
 
-        // Fields
-        Set<Method> methods = inputType.getMethods();
-        inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectFields(methods));
+        // Fields TODO: Add datafetchers
+        if (inputType.hasMethods()) {
+            Set<Method> methods = inputType.getMethods();
+            inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectFields(methods));
+        }
+
+        // Source Fields TODO: Add datafetchers
+        if (inputType.hasSources()) {
+            Set<Method> sources = inputType.getSources();
+            inputObjectTypeBuilder = inputObjectTypeBuilder.fields(createGraphQLInputObjectFields(sources));
+        }
 
         GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
         inputMap.put(inputType.getClassName(), graphQLInputObjectType);
@@ -155,9 +171,17 @@ public class Bootstrap {
                 .name(type.getName())
                 .description(type.getDescription());
 
-        // Fields
-        Set<Method> methods = type.getMethods();
-        objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+        // Fields TODO: Add datafetchers
+        if (type.hasMethods()) {
+            Set<Method> methods = type.getMethods();
+            objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(methods));
+        }
+
+        // Source Fields TODO: Add datafetchers
+        if (type.hasSources()) {
+            Set<Method> sources = type.getSources();
+            objectTypeBuilder = objectTypeBuilder.fields(createGraphQLFieldDefinitions(sources));
+        }
 
         // Interfaces
         if (type.hasInterfaces()) {

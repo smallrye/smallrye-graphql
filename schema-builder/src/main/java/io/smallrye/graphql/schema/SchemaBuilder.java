@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
@@ -23,6 +25,7 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.type.ComplexCreator;
+import io.smallrye.graphql.schema.type.Creator;
 import io.smallrye.graphql.schema.type.EnumCreator;
 
 /**
@@ -77,42 +80,86 @@ public class SchemaBuilder {
             }
         }
 
-        // Now create the actual schema model
+        // The above queries and mutations reference some models (input / type / interfaces / enum), let's create those
+        addTypesToSchema(schema);
 
-        // Add the input types
-        Map<String, Reference> inputMap = ObjectBag.getReferenceMap(ReferenceType.INPUT);
-        for (Reference reference : inputMap.values()) {
-            ClassInfo inputClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
-            schema.addInput(inputCreator.create(inputClass));
-        }
+        // We might have missed something
+        addOutstandingTypesToSchema(schema);
 
-        // Add the output types
-        Map<String, Reference> typeMap = ObjectBag.getReferenceMap(ReferenceType.TYPE);
-        for (Reference reference : typeMap.values()) {
-            ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
-            schema.addType(typeCreator.create(typeClass));
-        }
-
-        // Add the interface types
-        Map<String, Reference> interfaceMap = ObjectBag.getReferenceMap(ReferenceType.INTERFACE);
-        for (Reference reference : interfaceMap.values()) {
-            ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
-            schema.addInterface(interfaceCreator.create(typeClass));
-        }
-
-        // Add the interface types
-        Map<String, Reference> enumMap = ObjectBag.getReferenceMap(ReferenceType.ENUM);
-        for (Reference reference : enumMap.values()) {
-            ClassInfo typeClass = index.getClassByName(DotName.createSimple(reference.getClassName()));
-            schema.addEnum(enumCreator.create(typeClass));
-        }
-
-        // TODO: Let's see what still needs to be done. Still needed ?
-
-        // Reset the maps
+        // Reset the maps. 
         ObjectBag.clear();
 
         return schema;
+    }
+
+    private void addTypesToSchema(Schema schema) {
+        // Add the input types
+        createAndAddToSchema(ReferenceType.INPUT, inputCreator, schema::addInput);
+
+        // Add the output types
+        createAndAddToSchema(ReferenceType.TYPE, typeCreator, schema::addType);
+
+        // Add the interface types
+        createAndAddToSchema(ReferenceType.INTERFACE, interfaceCreator, schema::addInterface);
+
+        // Add the enum types
+        createAndAddToSchema(ReferenceType.ENUM, enumCreator, schema::addEnum);
+    }
+
+    private void addOutstandingTypesToSchema(Schema schema) {
+        boolean allDone = true;
+        // See if there is any inputs we missed
+        if (!findOutstandingAndAddToSchema(ReferenceType.INPUT, inputCreator, schema::containsInput, schema::addInput)) {
+            allDone = false;
+        }
+
+        // See if there is any types we missed
+        if (!findOutstandingAndAddToSchema(ReferenceType.TYPE, typeCreator, schema::containsType, schema::addType)) {
+            allDone = false;
+        }
+
+        // See if there is any interfaces we missed
+        if (!findOutstandingAndAddToSchema(ReferenceType.INTERFACE, interfaceCreator, schema::containsInterface,
+                schema::addInterface)) {
+            allDone = false;
+        }
+
+        // See if there is any enums we missed
+        if (!findOutstandingAndAddToSchema(ReferenceType.ENUM, enumCreator, schema::containsEnum,
+                schema::addEnum)) {
+            allDone = false;
+        }
+
+        // If we missed something, that something might have created types we do not know about yet, so continue until we have everything
+        if (!allDone) {
+            addOutstandingTypesToSchema(schema);
+        }
+
+    }
+
+    private <T> void createAndAddToSchema(ReferenceType referenceType, Creator creator, Consumer<T> consumer) {
+        Map<String, Reference> map = ObjectBag.getReferenceMap(referenceType);
+        for (Reference reference : map.values()) {
+            ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
+            consumer.accept((T) creator.create(classInfo));
+        }
+    }
+
+    private <T> boolean findOutstandingAndAddToSchema(ReferenceType referenceType, Creator creator,
+            Predicate<String> contains, Consumer<T> consumer) {
+
+        boolean allDone = true;
+        // Let's see what still needs to be done.
+        Collection<Reference> values = ObjectBag.getReferenceMap(referenceType).values();
+        for (Reference reference : values) {
+            ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
+            if (!contains.test(reference.getName())) {
+                consumer.accept((T) creator.create(classInfo));
+                allDone = false;
+            }
+        }
+
+        return allDone;
     }
 
     private void addMethods(List<MethodInfo> methodInfoList, Complex query, Complex mutation) {

@@ -11,6 +11,7 @@ import java.util.TreeSet;
  */
 public final class Complex extends Root {
     private Set<Method> methods;
+    private Set<Method> sources;
     private Set<Reference> interfaces;
 
     public Complex(String className) {
@@ -36,6 +37,21 @@ public final class Complex extends Root {
 
     public boolean hasMethods() {
         return this.methods != null && !this.methods.isEmpty();
+    }
+
+    public Set<Method> getSources() {
+        return sources;
+    }
+
+    public void addSource(Method source) {
+        if (this.sources == null) {
+            this.sources = new TreeSet<>(comparator);
+        }
+        this.sources.add(source);
+    }
+
+    public boolean hasSources() {
+        return this.sources != null && !this.sources.isEmpty();
     }
 
     public Set<Reference> getInterfaces() {

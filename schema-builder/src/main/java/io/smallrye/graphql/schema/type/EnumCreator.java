@@ -19,9 +19,10 @@ import io.smallrye.graphql.schema.model.Enum;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class EnumCreator {
+public class EnumCreator implements Creator<Enum> {
     private static final Logger LOG = Logger.getLogger(EnumCreator.class.getName());
 
+    @Override
     public Enum create(ClassInfo classInfo) {
         LOG.debug("Creating enum from " + classInfo.name().toString());
 
