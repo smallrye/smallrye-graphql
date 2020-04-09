@@ -9,6 +9,7 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.model.Formatter;
 
 /**
  * Helping with formats of dates and Numbers
@@ -94,6 +95,50 @@ public class FormatHelper {
             // return the default dates format
             return getDefaultDateTimeFormat(type);
         }
+    }
+
+    public static Formatter getFormatter(Type type, Annotations annotations) {
+        if (isDateLikeTypeOrCollectionThereOf(type)) {
+            return getDateFormatter(type, annotations);
+        } else if (isNumberLikeTypeOrCollectionThereOf(type)) {
+            return getNumberFormatter(annotations);
+        }
+        return null;
+    }
+
+    private static Formatter getNumberFormatter(Annotations annotations) {
+        Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
+        if (numberFormatAnnotation.isPresent()) {
+            return getNumberFormatter(numberFormatAnnotation.get());
+        }
+        return null;
+    }
+
+    private static Formatter getNumberFormatter(AnnotationInstance annotationInstance) {
+        if (annotationInstance != null) {
+            String format = AnnotationsHelper.getStringValue(annotationInstance);
+            String locale = AnnotationsHelper.getStringValue(annotationInstance, LOCALE);
+            return new Formatter(Formatter.Type.NUMBER, format, locale);
+        }
+        return null;
+    }
+
+    private static Formatter getDateFormatter(Type type, Annotations annotations) {
+        Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
+        if (dateFormatAnnotation.isPresent()) {
+            return getDateFormatter(type, dateFormatAnnotation.get());
+        }
+        return new Formatter(Formatter.Type.DATE, getDefaultDateTimeFormat(type), null);
+    }
+
+    private static Formatter getDateFormatter(Type type, AnnotationInstance annotationInstance) {
+        if (annotationInstance != null) {
+            String format = AnnotationsHelper.getStringValue(annotationInstance);
+            String locale = AnnotationsHelper.getStringValue(annotationInstance, LOCALE);
+
+            return new Formatter(Formatter.Type.DATE, format, locale);
+        }
+        return new Formatter(Formatter.Type.DATE, getDefaultDateTimeFormat(type), null);
     }
 
     private static Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {

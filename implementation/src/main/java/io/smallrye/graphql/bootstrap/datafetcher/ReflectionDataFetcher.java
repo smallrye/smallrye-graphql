@@ -61,6 +61,7 @@ import io.smallrye.metrics.MetricRegistries;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@Deprecated
 public class ReflectionDataFetcher implements DataFetcher {
     private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 

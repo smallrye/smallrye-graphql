@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -132,6 +133,22 @@ public class AnnotationsHelper {
         }
 
         return new Annotations(annotationMap);
+    }
+
+    public static String getStringValue(AnnotationInstance annotationInstance) {
+        return getStringValue(annotationInstance.value());
+    }
+
+    public static String getStringValue(AnnotationInstance annotationInstance, String name) {
+        return getStringValue(annotationInstance.value(name));
+    }
+
+    private static String getStringValue(AnnotationValue annotationValue) {
+        String value = null;
+        if (annotationValue != null) {
+            value = annotationValue.asString();
+        }
+        return value;
     }
 
     private static Map<DotName, AnnotationInstance> getAnnotations(Type type) {

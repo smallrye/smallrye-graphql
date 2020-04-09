@@ -29,7 +29,7 @@ import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 
 /**
- * Exception thrown when the transformation failed on input parameters.
+ * Exception thrown when the transformation failed on input parameters or return object.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

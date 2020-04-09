@@ -1,4 +1,4 @@
-package io.smallrye.graphql.bootstrap.datafetcher;
+package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -8,10 +8,10 @@ import java.util.List;
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Classes;
 import io.smallrye.graphql.bootstrap.TransformException;
+import io.smallrye.graphql.bootstrap.datafetcher.ReflectionDataFetcherException;
 import io.smallrye.graphql.cdi.CDIDelegate;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Method;
@@ -21,8 +21,8 @@ import io.smallrye.graphql.schema.model.Method;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class CdiReflectionDataFetcher implements DataFetcher {
-    private static final Logger LOG = Logger.getLogger(CdiReflectionDataFetcher.class.getName());
+public class ReflectionDataFetcher extends AbstractTransformableDataFetcher {
+    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
@@ -30,14 +30,16 @@ public class CdiReflectionDataFetcher implements DataFetcher {
     private final Method method;
     private final Class[] parameterClasses;
 
-    public CdiReflectionDataFetcher(String declaringClass, Method method) {
+    public ReflectionDataFetcher(String declaringClass, Method method) {
+        super(method);
         this.declaringClass = declaringClass;
         this.method = method;
         this.parameterClasses = getParameterClasses();
     }
 
     @Override
-    public Object get(DataFetchingEnvironment dfe) throws Exception {
+    protected Object executeMethod(DataFetchingEnvironment dfe) throws Exception {
+
         try {
             Object declaringObject = cdiDelegate.getInstanceFromCDI(declaringClass);
             Class cdiClass = declaringObject.getClass();
@@ -125,7 +127,7 @@ public class CdiReflectionDataFetcher implements DataFetcher {
         if (method.hasParameters()) {
             List<Class> cl = new LinkedList<>();
             for (Field argument : method.getParameters()) {
-                Class<?> clazz = Classes.loadClass(argument.getTypeReference().getClassName());
+                Class<?> clazz = Classes.loadClass(argument.getJavaTypeClassName());
                 cl.add(clazz);
             }
             return cl.toArray(new Class[] {});

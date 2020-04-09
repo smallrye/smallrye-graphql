@@ -25,8 +25,8 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.bootstrap.datafetcher.CdiReflectionDataFetcher;
 import io.smallrye.graphql.bootstrap.typeresolver.InterfaceResolver;
+import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.schema.model.Complex;
 import io.smallrye.graphql.schema.model.Enum;
 import io.smallrye.graphql.schema.model.Field;
@@ -221,7 +221,7 @@ public class Bootstrap {
                 for (Method method : methods) {
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                     queryBuilder = queryBuilder.field(graphQLFieldDefinition);
-                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName(), method);
+                    ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(queryDefinition.getClassName(), method);
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(QUERY,
                             graphQLFieldDefinition.getName()), datafetcher);
                 }
@@ -251,7 +251,7 @@ public class Bootstrap {
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                     mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
 
-                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName(),
+                    ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(mutationDefinition.getClassName(),
                             method);
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(MUTATION,

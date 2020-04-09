@@ -37,7 +37,7 @@ public class QueryTest {
     private ExecutionService executionService;
 
     @Rule
-    public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator);
+    public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi);
 
     @Before
     public void init() {
@@ -51,7 +51,7 @@ public class QueryTest {
     }
 
     @Test
-    public void testQuery() throws IOException {
+    public void testBasicQuery() throws IOException {
         JsonObject result = executionService.execute(toJsonObject(GET_HERO));
 
         String prettyData = getPrettyJson(result);
@@ -64,6 +64,21 @@ public class QueryTest {
         Assert.assertEquals("Iron Man", superHero.getString("name"));
         Assert.assertEquals("Los Angeles, CA", superHero.getString("primaryLocation"));
         Assert.assertEquals("Tony Stark", superHero.getString("realName"));
+    }
+
+    @Test
+    public void testTransformedDateOnQuery() throws IOException {
+        JsonObject result = executionService.execute(toJsonObject(TRANSFORMED_DATE));
+
+        String prettyData = getPrettyJson(result);
+        LOG.info(prettyData);
+
+        JsonObject data = result.getJsonObject(DATA);
+
+        String transformedDate = data.getString("transformedDate");
+
+        Assert.assertEquals("16 Aug 2016", transformedDate);
+
     }
 
     private JsonObject toJsonObject(String graphQL) {
@@ -95,13 +110,22 @@ public class QueryTest {
 
     private static final String DATA = "data";
 
+    private static final String TRANSFORMED_DATE = "query testTransformedDate{\n" +
+            "  	transformedDate\n" +
+            "}";
+
     private static final String GET_HERO = "{\n" +
             "  superHero(name:\"Iron Man\") {\n" +
-            "    \n" +
+            "    idNumber\n" + // To test number formatting
             "    name\n" +
             "    primaryLocation\n" +
             "    realName\n" +
             "    superPowers\n" +
+            "    dateOfLastCheckin\n" + // To test date formatting
+            "    timeOfLastBattle\n" + // To test dateTime formatting
+            "    patrolStartTime\n" + // To test time formatting
+            "    bankBalance\n" + // To test number formatting
+            //"    currentLocation\n" + // To test Source
             "    teamAffiliations {\n" +
             "      name\n" +
             "      members{\n" +
@@ -111,12 +135,13 @@ public class QueryTest {
             "  }\n" +
             "}";
 
-    
     // Create the CDI Beans in the TCK Tests app
     private static Class heroFinder;
     private static Class heroDatabase;
     private static Class sidekickDatabase;
     private static Class heroLocator;
+
+    private static Class scalarTestApi;
 
     private static Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
 
@@ -126,6 +151,7 @@ public class QueryTest {
             heroDatabase = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.HeroDatabase");
             sidekickDatabase = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.SidekickDatabase");
             heroLocator = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.HeroLocator");
+            scalarTestApi = Class.forName("org.eclipse.microprofile.graphql.tck.apps.basic.api.ScalarTestApi");
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
         }

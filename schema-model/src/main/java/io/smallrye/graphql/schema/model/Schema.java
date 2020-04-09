@@ -13,26 +13,24 @@ import java.util.TreeSet;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Set<Complex> queries;
-    private Set<Complex> mutations;
+    private final Set<Complex> queries = newTreeSet();
+    private final Set<Complex> mutations = newTreeSet();
 
-    private Map<String, Complex> inputs;
-    private Map<String, Complex> types;
-    private Map<String, Complex> interfaces;
-    private Map<String, Enum> enums;
+    private final Map<String, Complex> inputs = new TreeMap();
+    private final Map<String, Complex> types = new TreeMap();
+    private final Map<String, Complex> interfaces = new TreeMap();
+    private final Map<String, Enum> enums = new TreeMap();
 
     public Set<Complex> getQueries() {
         return queries;
     }
 
     public void addQuery(Complex query) {
-        if (this.queries == null)
-            this.queries = newTreeSet();
         this.queries.add(query);
     }
 
     public boolean hasQueries() {
-        return this.queries != null && !this.queries.isEmpty();
+        return !this.queries.isEmpty();
     }
 
     public Set<Complex> getMutations() {
@@ -40,13 +38,11 @@ public final class Schema implements Serializable {
     }
 
     public void addMutation(Complex mutation) {
-        if (this.mutations == null)
-            this.mutations = newTreeSet();
         this.mutations.add(mutation);
     }
 
     public boolean hasMutations() {
-        return this.mutations != null && !this.mutations.isEmpty();
+        return !this.mutations.isEmpty();
     }
 
     public Map<String, Complex> getInputs() {
@@ -54,17 +50,15 @@ public final class Schema implements Serializable {
     }
 
     public void addInput(Complex input) {
-        if (this.inputs == null)
-            this.inputs = new TreeMap();
         this.inputs.put(input.getName(), input);
     }
 
     public boolean containsInput(String name) {
-        return this.inputs != null && this.inputs.containsKey(name);
+        return this.inputs.containsKey(name);
     }
 
     public boolean hasInputs() {
-        return this.inputs != null && !this.inputs.isEmpty();
+        return !this.inputs.isEmpty();
     }
 
     public Map<String, Complex> getTypes() {
@@ -72,17 +66,15 @@ public final class Schema implements Serializable {
     }
 
     public void addType(Complex type) {
-        if (this.types == null)
-            this.types = new TreeMap();
         this.types.put(type.getName(), type);
     }
 
     public boolean containsType(String name) {
-        return this.types != null && this.types.containsKey(name);
+        return this.types.containsKey(name);
     }
 
     public boolean hasTypes() {
-        return this.types != null && !this.types.isEmpty();
+        return !this.types.isEmpty();
     }
 
     public Map<String, Complex> getInterfaces() {
@@ -90,17 +82,15 @@ public final class Schema implements Serializable {
     }
 
     public void addInterface(Complex interfaceType) {
-        if (this.interfaces == null)
-            this.interfaces = new TreeMap();
         this.interfaces.put(interfaceType.getName(), interfaceType);
     }
 
     public boolean containsInterface(String name) {
-        return this.interfaces != null && this.interfaces.containsKey(name);
+        return this.interfaces.containsKey(name);
     }
 
     public boolean hasInterfaces() {
-        return this.interfaces != null && !this.interfaces.isEmpty();
+        return !this.interfaces.isEmpty();
     }
 
     public Map<String, Enum> getEnums() {
@@ -108,17 +98,15 @@ public final class Schema implements Serializable {
     }
 
     public void addEnum(Enum enumType) {
-        if (this.enums == null)
-            this.enums = new TreeMap();
         this.enums.put(enumType.getName(), enumType);
     }
 
     public boolean containsEnum(String name) {
-        return this.enums != null && this.enums.containsKey(name);
+        return this.enums.containsKey(name);
     }
 
     public boolean hasEnums() {
-        return this.enums != null && !this.enums.isEmpty();
+        return !this.enums.isEmpty();
     }
 
     private TreeSet<Complex> newTreeSet() {

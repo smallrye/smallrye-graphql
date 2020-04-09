@@ -63,9 +63,10 @@ public class SchemaBuilder {
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             Complex query = new Complex(apiClass.name().toString(), apiClass.name().withoutPackagePrefix() + " Query",
+                    ReferenceType.TYPE,
                     "Queries defined in " + apiClass.name().withoutPackagePrefix());
             Complex mutation = new Complex(apiClass.name().toString(),
-                    apiClass.name().withoutPackagePrefix() + " Mutation",
+                    apiClass.name().withoutPackagePrefix() + " Mutation", ReferenceType.TYPE,
                     "Mutations defined in " + apiClass.name().withoutPackagePrefix());
             List<MethodInfo> methods = apiClass.methods();
 

@@ -9,30 +9,21 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Enum extends Root {
-    private Set<String> values;
-
-    public Enum(String className) {
-        super.setClassName(className);
-    }
+    private final Set<String> values = new LinkedHashSet<>();
 
     public Enum(String className, String name, String description) {
-        super.setName(name);
-        super.setDescription(description);
-        super.setClassName(className);
+        super(className, name, ReferenceType.ENUM, description);
     }
 
-    public Set<String> getValues() {
-        return values;
-    }
-
-    public void addValues(String value) {
-        if (this.values == null) {
-            this.values = new LinkedHashSet<>();
-        }
+    public void addValue(String value) {
         this.values.add(value);
     }
 
+    public Set<String> getValues() {
+        return this.values;
+    }
+
     public boolean hasValues() {
-        return this.values != null && !this.values.isEmpty();
+        return !this.values.isEmpty();
     }
 }

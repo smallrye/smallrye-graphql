@@ -10,7 +10,7 @@ import java.util.List;
  */
 public final class Method extends Item {
     private Field returnField;
-    private List<Field> parameters;
+    private final List<Field> parameters = new LinkedList<>();
 
     public Method(String name, String description, String javaName) {
         super(name, description, javaName);
@@ -29,14 +29,10 @@ public final class Method extends Item {
     }
 
     public void addParameter(Field parameter) {
-        if (this.parameters == null) {
-            this.parameters = new LinkedList<>();
-        }
         this.parameters.add(parameter);
     }
 
     public boolean hasParameters() {
-        return this.parameters != null && !this.parameters.isEmpty();
+        return !this.parameters.isEmpty();
     }
-
 }

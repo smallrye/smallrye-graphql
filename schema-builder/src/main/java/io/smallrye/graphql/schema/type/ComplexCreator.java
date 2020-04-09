@@ -54,15 +54,16 @@ public final class ComplexCreator implements Creator<Complex> {
     @Override
     public Complex create(ClassInfo classInfo) {
         LOG.debug("Creating " + referenceType.name() + " from " + classInfo.name().toString());
-        Complex complex = new Complex(classInfo.name().toString());
 
         Annotations annotations = AnnotationsHelper.getAnnotationsForClass(classInfo);
 
         // Name
-        complex.setName(NameHelper.getAnyTypeName(referenceType, classInfo, annotations));
+        String name = NameHelper.getAnyTypeName(referenceType, classInfo, annotations);
 
         // Description
-        complex.setDescription(DescriptionHelper.getDescriptionForType(annotations).orElse(null));
+        String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
+
+        Complex complex = new Complex(classInfo.name().toString(), name, referenceType, description);
 
         // Fields
         addFields(complex, classInfo);

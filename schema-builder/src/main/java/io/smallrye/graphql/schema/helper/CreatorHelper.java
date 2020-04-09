@@ -112,7 +112,8 @@ public class CreatorHelper {
         // Description    
         Optional<String> description = DescriptionHelper.getDescriptionForField(annotationsForThisArgument, type);
 
-        Field parameter = new Field(name, description.orElse(null), defaultName, parameterRef);
+        Field parameter = new Field(name, description.orElse(null), defaultName, parameterRef,
+                methodParameter.name().toString());
 
         // Default Value
         Optional<Object> defaultValue = DefaultValueHelper.getDefaultValue(annotationsForThisArgument);
@@ -129,6 +130,9 @@ public class CreatorHelper {
             parameter.setMandatory(true);
         }
         parameter.setMandatoryInCollection(markParameterizedTypeNonNull(type, methodParameter));
+
+        // Formatter
+        parameter.setFormatter(FormatHelper.getFormatter(type, annotationsForThisArgument));
 
         return parameter;
     }
@@ -165,7 +169,8 @@ public class CreatorHelper {
         // Description
         Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
 
-        Field returnField = new Field(name, maybeFieldDescription.orElse(null), defaultName, returnTypeRef);
+        Field returnField = new Field(name, maybeFieldDescription.orElse(null), defaultName, returnTypeRef,
+                methodType.name().toString());
 
         // Collection
         if (isParameterized(methodType)) {
@@ -182,6 +187,9 @@ public class CreatorHelper {
         // Default value (on method)
         Optional<Object> maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotations);
         returnField.setDefaultValue(maybeDefaultValue.orElse(null));
+
+        // Formatter
+        returnField.setFormatter(FormatHelper.getFormatter(methodType, annotations));
 
         return returnField;
     }

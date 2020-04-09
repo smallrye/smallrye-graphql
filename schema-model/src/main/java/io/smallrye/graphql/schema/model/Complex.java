@@ -10,64 +10,6 @@ import java.util.TreeSet;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Complex extends Root {
-    private Set<Method> methods;
-    private Set<Method> sources;
-    private Set<Reference> interfaces;
-
-    public Complex(String className) {
-        super.setClassName(className);
-    }
-
-    public Complex(String className, String name, String description) {
-        super.setName(name);
-        super.setDescription(description);
-        super.setClassName(className);
-    }
-
-    public Set<Method> getMethods() {
-        return methods;
-    }
-
-    public void addMethod(Method method) {
-        if (this.methods == null) {
-            this.methods = new TreeSet<>(methodComparator);
-        }
-        this.methods.add(method);
-    }
-
-    public boolean hasMethods() {
-        return this.methods != null && !this.methods.isEmpty();
-    }
-
-    public Set<Method> getSources() {
-        return sources;
-    }
-
-    public void addSource(Method source) {
-        if (this.sources == null) {
-            this.sources = new TreeSet<>(methodComparator);
-        }
-        this.sources.add(source);
-    }
-
-    public boolean hasSources() {
-        return this.sources != null && !this.sources.isEmpty();
-    }
-
-    public Set<Reference> getInterfaces() {
-        return interfaces;
-    }
-
-    public void addInterface(Reference interfaceRef) {
-        if (this.interfaces == null) {
-            this.interfaces = new TreeSet<>(referenceComparator);
-        }
-        this.interfaces.add(interfaceRef);
-    }
-
-    public boolean hasInterfaces() {
-        return this.interfaces != null && !this.interfaces.isEmpty();
-    }
 
     private final Comparator referenceComparator = new Comparator<Reference>() {
         @Override
@@ -90,4 +32,48 @@ public final class Complex extends Root {
     };
 
     private static final int ZERO = 0;
+
+    private final Set<Method> methods = new TreeSet<>(methodComparator);
+    private final Set<Method> sources = new TreeSet<>(methodComparator);
+    private final Set<Reference> interfaces = new TreeSet<>(referenceComparator);
+
+    public Complex(String className, String name, ReferenceType type, String description) {
+        super(className, name, type, description);
+    }
+
+    public Set<Method> getMethods() {
+        return methods;
+    }
+
+    public void addMethod(Method method) {
+        this.methods.add(method);
+    }
+
+    public boolean hasMethods() {
+        return !this.methods.isEmpty();
+    }
+
+    public Set<Method> getSources() {
+        return sources;
+    }
+
+    public void addSource(Method source) {
+        this.sources.add(source);
+    }
+
+    public boolean hasSources() {
+        return !this.sources.isEmpty();
+    }
+
+    public Set<Reference> getInterfaces() {
+        return interfaces;
+    }
+
+    public void addInterface(Reference interfaceRef) {
+        this.interfaces.add(interfaceRef);
+    }
+
+    public boolean hasInterfaces() {
+        return !this.interfaces.isEmpty();
+    }
 }

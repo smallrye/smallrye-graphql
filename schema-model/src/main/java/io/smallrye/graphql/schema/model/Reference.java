@@ -12,8 +12,8 @@ public class Reference implements Serializable {
     private String name;
     private ReferenceType type;
 
-    public Reference() {
-    }
+    //    public Reference() {
+    //    }
 
     public Reference(String className, String name, ReferenceType type) {
         this.className = className;

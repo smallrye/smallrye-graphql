@@ -26,23 +26,21 @@ public class EnumCreator implements Creator<Enum> {
     public Enum create(ClassInfo classInfo) {
         LOG.debug("Creating enum from " + classInfo.name().toString());
 
-        Enum enumType = new Enum(classInfo.name().toString());
-
         Annotations annotations = AnnotationsHelper.getAnnotationsForClass(classInfo);
 
         // Name
         String name = NameHelper.getEnumName(classInfo, annotations);
-        enumType.setName(name);
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);
-        enumType.setDescription(maybeDescription.orElse(null));
+
+        Enum enumType = new Enum(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();
         for (FieldInfo field : fields) {
             if (!field.type().kind().equals(Type.Kind.ARRAY)) {
-                enumType.addValues(field.name());
+                enumType.addValue(field.name());
             }
         }
 

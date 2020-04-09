@@ -1,15 +1,17 @@
 package io.smallrye.graphql.schema.model;
 
+import java.io.Serializable;
+
 /**
  * Item that has a name and description. (Methods / Fields)
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class Item {
+public abstract class Item implements Serializable {
 
-    private String name; // GraphQL Name
-    private String description; // GraphQL Description
-    private String javaName; // Java Name
+    private final String name; // GraphQL Name
+    private final String description; // GraphQL Description
+    private final String javaName; // Java Name
 
     public Item(String name, String description, String javaName) {
         this.name = name;
