@@ -239,7 +239,7 @@ public class InputTypeCreator implements Creator {
                 }
             } else {
                 LOG.warn("Class [" + type.name()
-                        + "] in not indexed in Jandex. Can not create Input, defaulting to String Scalar");
+                        + "] is not indexed in Jandex. Can not create Input, defaulting to String Scalar");
                 return Scalars.GraphQLString; // default
             }
         } else {
