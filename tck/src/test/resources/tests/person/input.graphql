@@ -1,0 +1,9 @@
+{
+  person(personId:1){
+    names    
+    surname
+    birthDate
+    joinDate
+    profilePictures
+  }
+}
