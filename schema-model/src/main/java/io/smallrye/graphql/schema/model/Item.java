@@ -7,27 +7,25 @@ package io.smallrye.graphql.schema.model;
  */
 public abstract class Item {
 
-    private String name;
-    private String description;
+    private String name; // GraphQL Name
+    private String description; // GraphQL Description
+    private String javaName; // Java Name
 
-    public Item(String name, String description) {
+    public Item(String name, String description, String javaName) {
         this.name = name;
         this.description = description;
+        this.javaName = javaName;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getJavaName() {
+        return javaName;
     }
 }

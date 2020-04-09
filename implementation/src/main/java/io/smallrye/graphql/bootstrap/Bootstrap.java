@@ -221,7 +221,7 @@ public class Bootstrap {
                 for (Method method : methods) {
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                     queryBuilder = queryBuilder.field(graphQLFieldDefinition);
-                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName());
+                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName(), method);
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(QUERY,
                             graphQLFieldDefinition.getName()), datafetcher);
                 }
@@ -251,7 +251,8 @@ public class Bootstrap {
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
                     mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
 
-                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName());
+                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName(),
+                            method);
 
                     codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(MUTATION,
                             graphQLFieldDefinition.getName()), datafetcher);

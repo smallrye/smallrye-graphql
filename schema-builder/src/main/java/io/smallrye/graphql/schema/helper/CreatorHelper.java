@@ -112,7 +112,7 @@ public class CreatorHelper {
         // Description    
         Optional<String> description = DescriptionHelper.getDescriptionForField(annotationsForThisArgument, type);
 
-        Field parameter = new Field(name, description.orElse(null), parameterRef);
+        Field parameter = new Field(name, description.orElse(null), defaultName, parameterRef);
 
         // Default Value
         Optional<Object> defaultValue = DefaultValueHelper.getDefaultValue(annotationsForThisArgument);
@@ -159,12 +159,13 @@ public class CreatorHelper {
     }
 
     private static Field createReturnField(Reference returnTypeRef, Type fieldType, Type methodType, Annotations annotations) {
+        String defaultName = methodType.name().toString();
         // Name
-        String name = NameHelper.getAnyNameForField(Direction.OUT, annotations, methodType.name().toString());
+        String name = NameHelper.getAnyNameForField(Direction.OUT, annotations, defaultName);
         // Description
         Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
 
-        Field returnField = new Field(name, maybeFieldDescription.orElse(null), returnTypeRef);
+        Field returnField = new Field(name, maybeFieldDescription.orElse(null), defaultName, returnTypeRef);
 
         // Collection
         if (isParameterized(methodType)) {

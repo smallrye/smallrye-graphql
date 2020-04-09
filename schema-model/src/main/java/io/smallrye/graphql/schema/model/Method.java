@@ -12,8 +12,8 @@ public final class Method extends Item {
     private Field returnField;
     private List<Field> parameters;
 
-    public Method(String name, String description) {
-        super(name, description);
+    public Method(String name, String description, String javaName) {
+        super(name, description, javaName);
     }
 
     public Field getReturn() {
@@ -28,10 +28,6 @@ public final class Method extends Item {
         return parameters;
     }
 
-    public void setParameters(List<Field> parameters) {
-        this.parameters = parameters;
-    }
-
     public void addParameter(Field parameter) {
         if (this.parameters == null) {
             this.parameters = new LinkedList<>();
@@ -42,4 +38,5 @@ public final class Method extends Item {
     public boolean hasParameters() {
         return this.parameters != null && !this.parameters.isEmpty();
     }
+
 }

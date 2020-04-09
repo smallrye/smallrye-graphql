@@ -150,7 +150,7 @@ public final class ComplexCreator implements Creator<Complex> {
         // Description
         Optional<String> maybeFieldDescription = DescriptionHelper.getDescriptionForField(annotations, methodType);
 
-        Method method = new Method(fieldName, maybeFieldDescription.orElse(null));
+        Method method = new Method(fieldName, maybeFieldDescription.orElse(null), methodInfo.name());
 
         // Type
         method.setReturn(CreatorHelper.getReturnField(index, referenceType, fieldType, methodType, annotations));

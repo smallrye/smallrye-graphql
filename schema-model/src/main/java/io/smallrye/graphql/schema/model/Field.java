@@ -13,8 +13,8 @@ public final class Field extends Item {
     private Object defaultValue;
     private Reference typeReference; // Return type or parameter type
 
-    public Field(String name, String description, Reference typeReference) {
-        super(name, description);
+    public Field(String name, String description, String javaName, Reference typeReference) {
+        super(name, description, javaName);
         this.typeReference = typeReference;
     }
 
@@ -56,9 +56,5 @@ public final class Field extends Item {
 
     public Reference getTypeReference() {
         return typeReference;
-    }
-
-    public void setTypeReference(Reference typeReference) {
-        this.typeReference = typeReference;
     }
 }

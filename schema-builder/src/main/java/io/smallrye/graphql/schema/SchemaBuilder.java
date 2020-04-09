@@ -184,7 +184,7 @@ public class SchemaBuilder {
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
 
-        Method method = new Method(fieldName, maybeDescription.orElse(null));
+        Method method = new Method(fieldName, maybeDescription.orElse(null), methodInfo.name());
 
         // Type (output)
         validateReturnType(methodInfo, graphQLAnnotation);
