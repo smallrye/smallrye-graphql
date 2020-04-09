@@ -22,9 +22,12 @@ import java.util.Set;
 
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
+import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+
+import io.smallrye.graphql.test.apps.profile.api.PersonGraphQLApi;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
@@ -32,11 +35,17 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProcessor {
+    private static final Logger LOG = Logger.getLogger(SmallRyeGraphQLArchiveProcessor.class.getName());
 
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
 
         if (applicationArchive instanceof WebArchive) {
+            LOG.info("\n ================================================================================"
+                    + "\n Testing [" + testClass.getName() + "]"
+                    + "\n ================================================================================"
+                    + "\n");
+
             WebArchive testDeployment = (WebArchive) applicationArchive;
 
             final File[] dependencies = Maven.resolver()
@@ -44,14 +53,19 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     .resolve("io.smallrye:smallrye-graphql-servlet")
                     .withTransitivity()
                     .asFile();
+
             // Make sure it's unique
             Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));
             testDeployment.addAsLibraries(dependenciesSet.toArray(new File[] {}));
+
             // MicroProfile properties
             testDeployment.addAsResource(
                     SmallRyeGraphQLArchiveProcessor.class.getClassLoader()
                             .getResource("META-INF/microprofile-config.properties"),
                     "META-INF/microprofile-config.properties");
+
+            // Add our own test app
+            testDeployment.addPackage(PersonGraphQLApi.class.getPackage());
         }
     }
 }
