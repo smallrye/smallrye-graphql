@@ -17,7 +17,6 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
 import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.execution.GraphQLProducer;
-import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -42,12 +41,11 @@ public class StartupListener implements ServletContextListener {
             String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
-            GraphQLSchema graphQLSchema = SmallRyeGraphQLBootstrap.bootstrap(index);
-            graphQLProducer.setGraphQLSchema(graphQLSchema);
-            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);
+            GraphQLSchema oldGraphQLSchema = useOldSchema(index);
+            GraphQLSchema newGraphQLSchema = useNewSchema(index);
+            graphQLProducer.setGraphQLSchema(oldGraphQLSchema);
+            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, newGraphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
-
-            printNewSchema(index);
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }
@@ -58,15 +56,12 @@ public class StartupListener implements ServletContextListener {
         LOG.info("SmallRye GraphQL destroyed");
     }
 
-    private void printNewSchema(IndexView index) {
-        LOG.error("=============== New Schema !! ===============");
-        try {
-            Schema schema = SchemaBuilder.build(index);
-            GraphQLSchema graphQLSchema2 = Bootstrap.bootstrap(schema);
-            LOG.error(SchemaPrinter.print(graphQLSchema2));
-        } catch (Throwable t) {
-            LOG.error(t.getMessage());
-        }
-        LOG.error("=============================================");
+    private GraphQLSchema useOldSchema(IndexView index) {
+        return SmallRyeGraphQLBootstrap.bootstrap(index);
+    }
+
+    private GraphQLSchema useNewSchema(IndexView index) {
+        Schema schema = SchemaBuilder.build(index);
+        return Bootstrap.bootstrap(schema);
     }
 }

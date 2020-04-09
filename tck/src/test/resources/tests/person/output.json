@@ -1,0 +1,15 @@
+{
+    "data": {
+        "person": {
+            "names": [
+                "Phillip"
+            ],
+            "surname": "Kruger",
+            "birthDate": "02-07-1978",
+            "joinDate": "08-04-2020",
+            "profilePictures": [
+                "https://avatars1.githubusercontent.com/u/6836179?s=460&u=8d34b60fb495daf689775b2c12ded76760cdb508&v=4"
+            ]
+        }
+    }
+}

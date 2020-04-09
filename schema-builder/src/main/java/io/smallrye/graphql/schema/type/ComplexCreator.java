@@ -174,9 +174,7 @@ public final class ComplexCreator implements Creator<Complex> {
             if (!interfaceName.toString().startsWith(JAVA_DOT)) {
                 ClassInfo c = index.getClassByName(interfaceName);
                 if (c != null) {
-                    Annotations annotationsForClass = AnnotationsHelper.getAnnotationsForClass(c);
-                    String iname = NameHelper.getAnyTypeName(ReferenceType.TYPE, c, annotationsForClass);
-                    Reference interfaceRef = CreatorHelper.toBeScanned(ReferenceType.INTERFACE, c, iname);
+                    Reference interfaceRef = CreatorHelper.toBeScanned(index, ReferenceType.INTERFACE, c);
                     complex.addInterface(interfaceRef);
                 }
             }

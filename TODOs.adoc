@@ -9,12 +9,9 @@ This is a list of things we should still look at. Not yet an issue on the issue 
 * See if there is a way to merge the formatting annotation mechanism with the JsonB name one, so there is only one way of doing things
 ** At the moment there are 2 maps, basically see if we can reduce to one.
 * What if a collection is not typed (generics) ? Add a test case with just Collection. Do we get object as the parametered type ?
-* When scanning POJO we look at fields first. Potentially change to look at methods first, so that we have more reuse with interfaces (that only has methods)
-** Might also help with duplication of Get/Set method checking
 * Add Deprecate support (fieldDefinitionBuilder.deprecate(...))
 * Add Directives support (fieldDefinitionBuilder.withDirectives(...))
 * Add TCK and impl for @interface that is not on an interface... so class in Java but interface in graphql.
-* Add support for superclass when build the types.
 * Double check the Execution service current request scope. Should that maybe be Dependent ?
 * See if we can use Jandex in the Exception List (rather than reflection)
 * Make the inclusion of the extension in the error a configurable option ?

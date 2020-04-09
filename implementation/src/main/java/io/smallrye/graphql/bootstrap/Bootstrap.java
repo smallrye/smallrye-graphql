@@ -53,8 +53,13 @@ public class Bootstrap {
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        Bootstrap graphQLBootstrap = new Bootstrap(schema);
-        return graphQLBootstrap.generateGraphQLSchema();
+        if (schema != null) {
+            Bootstrap graphQLBootstrap = new Bootstrap(schema);
+            return graphQLBootstrap.generateGraphQLSchema();
+        } else {
+            LOG.warn("Schema is null, not bootstrapping SmallRye GraphQL");
+            return null;
+        }
     }
 
     private Bootstrap(Schema schema) {
@@ -84,8 +89,10 @@ public class Bootstrap {
 
     // Create all enums and map them
     private void createGraphQLEnumTypes() {
-        for (Enum enumType : schema.getEnums().values()) {
-            createGraphQLEnumType(enumType);
+        if (schema.hasEnums()) {
+            for (Enum enumType : schema.getEnums().values()) {
+                createGraphQLEnumType(enumType);
+            }
         }
     }
 
@@ -102,8 +109,10 @@ public class Bootstrap {
     }
 
     private void createGraphQLInterfaceTypes() {
-        for (Complex interfaceType : schema.getInterfaces().values()) {
-            createGraphQLInterfaceType(interfaceType);
+        if (schema.hasInterfaces()) {
+            for (Complex interfaceType : schema.getInterfaces().values()) {
+                createGraphQLInterfaceType(interfaceType);
+            }
         }
     }
 
@@ -133,8 +142,10 @@ public class Bootstrap {
     }
 
     private void createGraphQLInputObjectTypes() {
-        for (Complex inputType : schema.getInputs().values()) {
-            createGraphQLInputObjectType(inputType);
+        if (schema.hasInputs()) {
+            for (Complex inputType : schema.getInputs().values()) {
+                createGraphQLInputObjectType(inputType);
+            }
         }
     }
 
@@ -160,8 +171,10 @@ public class Bootstrap {
     }
 
     private void createGraphQLObjectTypes() {
-        for (Complex type : schema.getTypes().values()) {
-            createGraphQLObjectType(type);
+        if (schema.hasTypes()) {
+            for (Complex type : schema.getTypes().values()) {
+                createGraphQLObjectType(type);
+            }
         }
     }
 
@@ -201,17 +214,19 @@ public class Bootstrap {
                 .name(QUERY)
                 .description("Query root");
 
-        Set<Complex> queries = schema.getQueries();
-        for (Complex queryDefinition : queries) {
-            Set<Method> methods = queryDefinition.getMethods();
-            for (Method method : methods) {
-                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
-                queryBuilder = queryBuilder.field(graphQLFieldDefinition);
-                CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName());
-                codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(QUERY,
-                        graphQLFieldDefinition.getName()), datafetcher);
-            }
+        if (schema.hasQueries()) {
+            Set<Complex> queries = schema.getQueries();
+            for (Complex queryDefinition : queries) {
+                Set<Method> methods = queryDefinition.getMethods();
+                for (Method method : methods) {
+                    GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
+                    queryBuilder = queryBuilder.field(graphQLFieldDefinition);
+                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(queryDefinition.getClassName());
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(QUERY,
+                            graphQLFieldDefinition.getName()), datafetcher);
+                }
 
+            }
         }
 
         GraphQLObjectType query = queryBuilder.build();
@@ -226,20 +241,22 @@ public class Bootstrap {
                 .name(MUTATION)
                 .description("Mutation root");
 
-        Set<Complex> mutations = schema.getMutations();
-        for (Complex mutationDefinition : mutations) {
+        if (schema.hasMutations()) {
+            Set<Complex> mutations = schema.getMutations();
+            for (Complex mutationDefinition : mutations) {
 
-            Set<Method> methods = mutationDefinition.getMethods();
-            for (Method method : methods) {
+                Set<Method> methods = mutationDefinition.getMethods();
+                for (Method method : methods) {
 
-                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
-                mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
+                    GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinition(method);
+                    mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
 
-                CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName());
+                    CdiReflectionDataFetcher datafetcher = new CdiReflectionDataFetcher(mutationDefinition.getClassName());
 
-                codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(MUTATION,
-                        graphQLFieldDefinition.getName()), datafetcher);
+                    codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(MUTATION,
+                            graphQLFieldDefinition.getName()), datafetcher);
 
+                }
             }
         }
 
