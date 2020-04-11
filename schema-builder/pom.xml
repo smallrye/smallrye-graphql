@@ -14,12 +14,6 @@
         
     <dependencies>
         
-        <!-- The API -->
-        <dependency>
-            <groupId>org.eclipse.microprofile.graphql</groupId>
-            <artifactId>microprofile-graphql-api</artifactId>
-        </dependency>
-        
         <!-- The model -->
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -30,13 +24,6 @@
         <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jandex</artifactId>
-        </dependency>
-        
-        <!-- JsonB -->
-        <dependency>
-            <groupId>jakarta.json.bind</groupId>
-            <artifactId>jakarta.json.bind-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         
         <!-- Logging -->

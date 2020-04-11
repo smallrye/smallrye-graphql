@@ -8,125 +8,116 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * Represents a GraphQL Schema
+ * Represents a GraphQL Schema.
+ * 
+ * This is the end result we are after and the object that will be passed to the
+ * implementation to create the actual endpoints and schema.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Set<Complex> queries;
-    private Set<Complex> mutations;
+    private final Set<Operation> queries = newTreeSet();
+    private final Set<Operation> mutations = newTreeSet();
 
-    private Map<String, Complex> inputs;
-    private Map<String, Complex> types;
-    private Map<String, Complex> interfaces;
-    private Map<String, Enum> enums;
+    private final Map<String, InputType> inputs = new TreeMap();
+    private final Map<String, Type> types = new TreeMap();
+    private final Map<String, InterfaceType> interfaces = new TreeMap();
+    private final Map<String, EnumType> enums = new TreeMap();
 
-    public Set<Complex> getQueries() {
+    public Set<Operation> getQueries() {
         return queries;
     }
 
-    public void addQuery(Complex query) {
-        if (this.queries == null)
-            this.queries = newTreeSet();
+    public void addQuery(Operation query) {
         this.queries.add(query);
     }
 
     public boolean hasQueries() {
-        return this.queries != null && !this.queries.isEmpty();
+        return !this.queries.isEmpty();
     }
 
-    public Set<Complex> getMutations() {
+    public Set<Operation> getMutations() {
         return mutations;
     }
 
-    public void addMutation(Complex mutation) {
-        if (this.mutations == null)
-            this.mutations = newTreeSet();
+    public void addMutation(Operation mutation) {
         this.mutations.add(mutation);
     }
 
     public boolean hasMutations() {
-        return this.mutations != null && !this.mutations.isEmpty();
+        return !this.mutations.isEmpty();
     }
 
-    public Map<String, Complex> getInputs() {
+    public Map<String, InputType> getInputs() {
         return inputs;
     }
 
-    public void addInput(Complex input) {
-        if (this.inputs == null)
-            this.inputs = new TreeMap();
+    public void addInput(InputType input) {
         this.inputs.put(input.getName(), input);
     }
 
     public boolean containsInput(String name) {
-        return this.inputs != null && this.inputs.containsKey(name);
+        return this.inputs.containsKey(name);
     }
 
     public boolean hasInputs() {
-        return this.inputs != null && !this.inputs.isEmpty();
+        return !this.inputs.isEmpty();
     }
 
-    public Map<String, Complex> getTypes() {
+    public Map<String, Type> getTypes() {
         return types;
     }
 
-    public void addType(Complex type) {
-        if (this.types == null)
-            this.types = new TreeMap();
+    public void addType(Type type) {
         this.types.put(type.getName(), type);
     }
 
     public boolean containsType(String name) {
-        return this.types != null && this.types.containsKey(name);
+        return this.types.containsKey(name);
     }
 
     public boolean hasTypes() {
-        return this.types != null && !this.types.isEmpty();
+        return !this.types.isEmpty();
     }
 
-    public Map<String, Complex> getInterfaces() {
+    public Map<String, InterfaceType> getInterfaces() {
         return interfaces;
     }
 
-    public void addInterface(Complex interfaceType) {
-        if (this.interfaces == null)
-            this.interfaces = new TreeMap();
+    public void addInterface(InterfaceType interfaceType) {
         this.interfaces.put(interfaceType.getName(), interfaceType);
     }
 
     public boolean containsInterface(String name) {
-        return this.interfaces != null && this.interfaces.containsKey(name);
+        return this.interfaces.containsKey(name);
     }
 
     public boolean hasInterfaces() {
-        return this.interfaces != null && !this.interfaces.isEmpty();
+        return !this.interfaces.isEmpty();
     }
 
-    public Map<String, Enum> getEnums() {
+    public Map<String, EnumType> getEnums() {
         return enums;
     }
 
-    public void addEnum(Enum enumType) {
-        if (this.enums == null)
-            this.enums = new TreeMap();
+    public void addEnum(EnumType enumType) {
         this.enums.put(enumType.getName(), enumType);
     }
 
     public boolean containsEnum(String name) {
-        return this.enums != null && this.enums.containsKey(name);
+        return this.enums.containsKey(name);
     }
 
     public boolean hasEnums() {
-        return this.enums != null && !this.enums.isEmpty();
+        return !this.enums.isEmpty();
     }
 
-    private TreeSet<Complex> newTreeSet() {
-        return new TreeSet<>(new Comparator<Complex>() {
+    private TreeSet<Operation> newTreeSet() {
+        return new TreeSet<>(new Comparator<Operation>() {
             @Override
-            public int compare(Complex o1, Complex o2) {
+            public int compare(Operation o1, Operation o2) {
                 if (o1 != null && o2 != null) {
-                    return o1.getClassName().compareTo(o2.getClassName());
+                    return o1.getName().compareTo(o2.getName());
                 }
                 return ZERO;
             }

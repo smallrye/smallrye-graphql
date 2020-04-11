@@ -12,6 +12,12 @@ import io.smallrye.graphql.schema.Annotations;
  */
 public class DefaultValueHelper {
 
+    /**
+     * Find a default object in the annotation, or empty if nothing
+     * 
+     * @param annotations the annotations to search in
+     * @return a optional default object
+     */
     public static Optional<Object> getDefaultValue(Annotations... annotations) {
         for (Annotations a : annotations) {
             if (a.containsKeyAndValidValue(Annotations.DEFAULT_VALUE)) {

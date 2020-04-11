@@ -1,7 +1,9 @@
 package io.smallrye.graphql.schema.model;
 
 /**
- * ReferenceType of reference / collection of references
+ * Type of reference
+ * 
+ * Because we refer to types before they might exist, we need an indication of the type
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

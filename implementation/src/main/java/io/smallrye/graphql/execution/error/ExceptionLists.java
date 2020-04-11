@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.bootstrap.Classes;
+import io.smallrye.graphql.x.Classes;
 
 /**
  * Class that hold the exceptions to the exceptions

@@ -1,64 +1,81 @@
 package io.smallrye.graphql.schema.model;
 
+import java.io.Serializable;
+import java.util.Optional;
+
 /**
- * Represents a return (output) or parameter (input) to a method
+ * Represent a property on a complex type (Type/Input/Interface)
+ * 
+ * For fields that can take arguments, see Operation.
+ * 
+ * @see <a href="https://spec.graphql.org/draft/#sec-The-__Field-Type">Field</a>
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class Field extends Item {
+public class Field implements Serializable {
 
-    private boolean mandatory = false;
-    private int collectionDepth = 0;
-    private boolean mandatoryInCollection = false;
-    private Object defaultValue;
-    private Reference typeReference; // Return type or parameter type
+    private final String methodName; // This is the java method name (getter/setter/operation)
+    private final String name;
+    private final String description;
+    private final Reference reference; // The type of this field.
 
-    public Field(String name, String description, Reference typeReference) {
-        super(name, description);
-        this.typeReference = typeReference;
+    private boolean notNull = false;
+    private Optional<Array> array = Optional.empty(); // If this is a collection
+    private Optional<Format> format = Optional.empty(); // If the field should be formatted
+    private Optional<String> defaultValue = Optional.empty();
+
+    public Field(String methodName, String name, String description, Reference reference) {
+        this.methodName = methodName;
+        this.name = name;
+        this.description = description;
+        this.reference = reference;
     }
 
-    public boolean isMandatory() {
-        return mandatory;
+    public String getMethodName() {
+        return methodName;
     }
 
-    public void setMandatory(boolean mandatory) {
-        this.mandatory = mandatory;
+    public String getName() {
+        return name;
     }
 
-    public boolean isCollection() {
-        return collectionDepth > 0;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCollectionDepth(int depth) {
-        this.collectionDepth = depth;
+    public Reference getReference() {
+        return reference;
     }
 
-    public int getCollectionDepth() {
-        return this.collectionDepth;
+    public void markNotNull() {
+        this.notNull = true;
     }
 
-    public boolean isMandatoryInCollection() {
-        return mandatoryInCollection;
+    public boolean isNotNull() {
+        return notNull;
     }
 
-    public void setMandatoryInCollection(boolean mandatoryInCollection) {
-        this.mandatoryInCollection = mandatoryInCollection;
+    public Optional<Array> getArray() {
+        return array;
     }
 
-    public Object getDefaultValue() {
+    public void setArray(Optional<Array> array) {
+        this.array = array;
+    }
+
+    public Optional<Format> getFormat() {
+        return format;
+    }
+
+    public void setFormat(Optional<Format> format) {
+        this.format = format;
+    }
+
+    public Optional<String> getDefaultValue() {
         return defaultValue;
     }
 
-    public void setDefaultValue(Object defaultValue) {
+    public void setDefaultValue(Optional<String> defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public Reference getTypeReference() {
-        return typeReference;
-    }
-
-    public void setTypeReference(Reference typeReference) {
-        this.typeReference = typeReference;
     }
 }
