@@ -4,17 +4,16 @@ This is a representation of a GraphQL Schema. It gets build using Jandex scannin
 
 image:/schema-model/classdiagram.png[link="schema-model/classdiagram.png"]
 
-
 == Schema
 
 A Schema contains:
 
-- a list of queries, grouped by the class that host them
-- a list of mutations, grouped by the class that host them
-- a map of interfaces, mapped by classname
+- a set of query operations
+- a set of mutation operations
+- a map of interface types, mapped by classname
 - a map of types, mapped by classname
-- a map of inputs, mapped by classname
-- a map of enums, mapped by classname
+- a map of input types, mapped by classname
+- a map of enum types, mapped by classname
 
 === Reference
 
@@ -37,52 +36,64 @@ Enum that indicate the type of object. Valid options are:
 - ENUM
 - SCALAR
 
-=== Root
-The Header for all object. It extends reference and get create when one of the underlying concrete classes are create during scanning.
-It typically represent a "root" element in the schema (enum/input/type/interface)
-
-It contains:
-
-- all fields from Reference
-- a description
-
-=== Enum
+=== EnumType
 
 A basic entry in the schema that represent an enum. It contains:
 
-- all field from Root
+- all fields from Reference
+- a description
 - list of valid values
 
-=== Complex
+=== Input Type
 
-A complex entry in the schema. Represents Interface, Input and Type. It contains:
+A complex entry in the schema that represents a Input. It contains:
 
-- all field from Root
-- set of methods (or operations) on the complex type.
-- set of source methods (or operations) on the complex type.
-- set of interfaces that this complex type implements.
-
-=== Item
-An abstract object that has:
-
-- a name
+- all fields from Reference
 - a description
+- set of fields on the input.
 
-=== Method
+=== Interface
 
-A method (of operation) on a complex object (input/type/interface). It contains:
+A complex entry in the schema that represents a Interface. It contains:
 
-- all fields from Item
-- a return field
-- a list of parameters
+- all fields from Reference
+- a description
+- set of fields on the type.
+- set of interfaces that this type implements.
+
+=== Type
+
+A complex entry in the schema that represents a Type. It contains:
+
+- all fields from Reference
+- a description
+- set of fields on the type.
+- set of interfaces that this interface implements.
 
 === Field
 
-A object that extends Item. It contains:
+Represents a field in a Type/Input/Interface. It contains:
 
-- all fields from Item
-- a optional defaultValue.
-- a boolean to indicate that this field is mandatory
-- a int to indicate the depth of a collection (0 if not a collection)
-- a boolean to indicate that this field is mandatory inside the collection (false if not a collection)
-- a reference to the type.
+- the Java method name
+- the GraphQL name
+- a optional description
+- a reference to the type
+- a notNull flag
+- an optional array, that contains information about the array
+- an optional format, that contains information about transformation
+- an optional default value
+
+=== Operation
+A special kind of field, that can also take arguments on the field. 
+It's used by Queries, Mutations and Source fields. It contains:
+
+- everything from Field
+- a Java Class Name (where this operation method is on)
+- a set of arguments
+
+=== Argument
+
+A special kind of field that is use as input. It contains:
+
+- everything from Field
+- the java method parameter name

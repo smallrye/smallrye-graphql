@@ -16,10 +16,27 @@ public class NonNullHelper {
     private NonNullHelper() {
     }
 
+    /**
+     * Check if we should mark a certain type as non null.
+     * 
+     * @param type the type
+     * @param annotations the applicable annotations
+     * @return true if we should
+     */
     public static boolean markAsNonNull(Type type, Annotations annotations) {
         return markAsNonNull(type, annotations, false);
     }
 
+    /**
+     * Check if we should mark a certain type as non null.
+     * 
+     * By default primitives is non null.
+     * 
+     * @param type the type
+     * @param annotations the applicable annotations
+     * @param ignorePrimativeCheck ignore the primitive rule
+     * @return true if we should
+     */
     public static boolean markAsNonNull(Type type, Annotations annotations, boolean ignorePrimativeCheck) {
         // check if the @NonNull annotation is present
         boolean hasNonNull = hasNonNull(annotations);
@@ -42,7 +59,7 @@ public class NonNullHelper {
 
     private static boolean hasNonNull(Annotations annotations) {
 
-        return annotations.containsOneOfTheseKeys(Annotations.NON_NULL,
+        return annotations.containsOneOfTheseAnnotations(Annotations.NON_NULL,
                 Annotations.BEAN_VALIDATION_NOT_NULL,
                 Annotations.BEAN_VALIDATION_NOT_EMPTY,
                 Annotations.BEAN_VALIDATION_NOT_BLANK);

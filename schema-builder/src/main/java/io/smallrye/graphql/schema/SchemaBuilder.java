@@ -2,7 +2,6 @@ package io.smallrye.graphql.schema;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -11,72 +10,66 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.jandex.Type;
 
-import io.smallrye.graphql.schema.helper.AnnotationsHelper;
-import io.smallrye.graphql.schema.helper.CreatorHelper;
-import io.smallrye.graphql.schema.helper.DescriptionHelper;
-import io.smallrye.graphql.schema.helper.NameHelper;
-import io.smallrye.graphql.schema.model.Complex;
-import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Method;
+import io.smallrye.graphql.schema.creator.OperationCreator;
+import io.smallrye.graphql.schema.creator.ReferenceCreator;
+import io.smallrye.graphql.schema.creator.type.Creator;
+import io.smallrye.graphql.schema.creator.type.EnumCreator;
+import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
+import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
+import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.type.ComplexCreator;
-import io.smallrye.graphql.schema.type.Creator;
-import io.smallrye.graphql.schema.type.EnumCreator;
 
 /**
- * Creates a model from the Jandex index
+ * This builds schema model using Jandex.
+ * 
+ * It starts scanning all queries and mutation, building the operations for those.
+ * The operation reference some types (via Reference) that should be created and added to the schema.
+ * 
+ * The creation of these type them self create more references to types (via Reference) that should be created and added to the
+ * scheme.
+ * 
+ * It does above recursively until there is not more things to create.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilder {
 
-    private final IndexView index;
-    private final ComplexCreator inputCreator;
-    private final ComplexCreator typeCreator;
-    private final ComplexCreator interfaceCreator;
-    private final EnumCreator enumCreator;
+    private final InputTypeCreator inputCreator = new InputTypeCreator();
+    private final TypeCreator typeCreator = new TypeCreator();
+    private final InterfaceCreator interfaceCreator = new InterfaceCreator();
+    private final EnumCreator enumCreator = new EnumCreator();
 
+    /**
+     * This builds the Schema from Jandex
+     * 
+     * @param index the Jandex index
+     * @return the Schema
+     */
     public static Schema build(IndexView index) {
-        SchemaBuilder graphQLBootstrap = new SchemaBuilder(index);
+        ScanningContext.register(index);
+        SchemaBuilder graphQLBootstrap = new SchemaBuilder();
         return graphQLBootstrap.generateSchema();
     }
 
-    private SchemaBuilder(IndexView index) {
-        this.index = index;
-        this.inputCreator = new ComplexCreator(ReferenceType.INPUT, index);
-        this.typeCreator = new ComplexCreator(ReferenceType.TYPE, index);
-        this.interfaceCreator = new ComplexCreator(ReferenceType.INTERFACE, index);
-        this.enumCreator = new EnumCreator();
+    private SchemaBuilder() {
     }
 
     private Schema generateSchema() {
 
         // Get all the @GraphQLAPI annotations
-        Collection<AnnotationInstance> graphQLApiAnnotations = this.index.getAnnotations(Annotations.GRAPHQL_API);
+        Collection<AnnotationInstance> graphQLApiAnnotations = ScanningContext.getIndex()
+                .getAnnotations(Annotations.GRAPHQL_API);
 
-        Schema schema = new Schema();
+        final Schema schema = new Schema();
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
-            Complex query = new Complex(apiClass.name().toString(), apiClass.name().withoutPackagePrefix() + " Query",
-                    "Queries defined in " + apiClass.name().withoutPackagePrefix());
-            Complex mutation = new Complex(apiClass.name().toString(),
-                    apiClass.name().withoutPackagePrefix() + " Mutation",
-                    "Mutations defined in " + apiClass.name().withoutPackagePrefix());
             List<MethodInfo> methods = apiClass.methods();
-
-            addMethods(methods, query, mutation);
-
-            if (query.hasMethods()) {
-                schema.addQuery(query);
-            }
-            if (mutation.hasMethods()) {
-                schema.addMutation(mutation);
-            }
+            addOperations(schema, methods);
         }
 
         // The above queries and mutations reference some models (input / type / interfaces / enum), let's create those
@@ -86,7 +79,7 @@ public class SchemaBuilder {
         addOutstandingTypesToSchema(schema);
 
         // Reset the maps. 
-        ObjectBag.clear();
+        ReferenceCreator.clear();
 
         return schema;
     }
@@ -137,8 +130,8 @@ public class SchemaBuilder {
     }
 
     private <T> void createAndAddToSchema(ReferenceType referenceType, Creator creator, Consumer<T> consumer) {
-        for (Reference reference : ObjectBag.values(referenceType)) {
-            ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
+        for (Reference reference : ReferenceCreator.values(referenceType)) {
+            ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             consumer.accept((T) creator.create(classInfo));
         }
     }
@@ -148,8 +141,8 @@ public class SchemaBuilder {
 
         boolean allDone = true;
         // Let's see what still needs to be done.
-        for (Reference reference : ObjectBag.values(referenceType)) {
-            ClassInfo classInfo = index.getClassByName(DotName.createSimple(reference.getClassName()));
+        for (Reference reference : ReferenceCreator.values(referenceType)) {
+            ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             if (!contains.test(reference.getName())) {
                 consumer.accept((T) creator.create(classInfo));
                 allDone = false;
@@ -159,55 +152,23 @@ public class SchemaBuilder {
         return allDone;
     }
 
-    private void addMethods(List<MethodInfo> methodInfoList, Complex query, Complex mutation) {
+    /**
+     * This inspect all method, looking for Query and Mutation annotations,
+     * to create those Operations.
+     * 
+     * @param schema the schema to add the operation to.
+     * @param methodInfoList the java methods.
+     */
+    private void addOperations(Schema schema, List<MethodInfo> methodInfoList) {
         for (MethodInfo methodInfo : methodInfoList) {
-            Annotations annotationsForMethod = AnnotationsHelper.getAnnotationsForMethod(methodInfo);
-            if (annotationsForMethod.containsOneOfTheseKeys(Annotations.QUERY)) {
-                AnnotationInstance queryAnnotation = annotationsForMethod.getAnnotation(Annotations.QUERY);
-                Method method = createMethod(methodInfo, queryAnnotation, annotationsForMethod);
-                query.addMethod(method);
+            Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+            if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
+                Operation query = OperationCreator.createOperation(methodInfo, OperationType.Query);
+                schema.addQuery(query);
+            } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
+                Operation mutation = OperationCreator.createOperation(methodInfo, OperationType.Mutation);
+                schema.addMutation(mutation);
             }
-            if (annotationsForMethod.containsOneOfTheseKeys(Annotations.MUTATION)) {
-                AnnotationInstance queryAnnotation = annotationsForMethod.getAnnotation(Annotations.MUTATION);
-                Method method = createMethod(methodInfo, queryAnnotation, annotationsForMethod);
-                mutation.addMethod(method);
-            }
-        }
-    }
-
-    private Method createMethod(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation,
-            Annotations annotationsForMethod) {
-
-        // Name
-        String fieldName = NameHelper.getExecutionTypeName(graphQLAnnotation, annotationsForMethod);
-
-        // Description
-        Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
-
-        Method method = new Method(fieldName, maybeDescription.orElse(null));
-
-        // Type (output)
-        validateReturnType(methodInfo, graphQLAnnotation);
-        method.setReturn(
-                CreatorHelper.getReturnField(index, ReferenceType.TYPE, methodInfo.returnType(), annotationsForMethod));
-
-        // Arguments (input)
-        List<Type> parameters = methodInfo.parameters();
-        for (short i = 0; i < parameters.size(); i++) {
-            // ReferenceType
-            Field parameter = CreatorHelper.getParameter(index, ReferenceType.INPUT, parameters.get(i), methodInfo, i);
-            method.addParameter(parameter);
-        }
-
-        return method;
-    }
-
-    private void validateReturnType(MethodInfo methodInfo, AnnotationInstance graphQLAnnotation) {
-        Type returnType = methodInfo.returnType();
-        if (returnType.kind().equals(Type.Kind.VOID)) {
-            throw new CreationException(
-                    "Can not have a void return for [" + graphQLAnnotation.name().withoutPackagePrefix()
-                            + "] on method [" + methodInfo.name() + "]");
         }
     }
 }

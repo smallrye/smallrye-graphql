@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Helper to get the correct Description.
@@ -17,17 +18,23 @@ public class DescriptionHelper {
     private DescriptionHelper() {
     }
 
-    // Used by return types and input parameters, on types
+    /**
+     * Get the Description on a field or argument
+     * 
+     * @param annotations the annotations for that field/argument
+     * @param type the java type (some types have default values)
+     * @return the optional description
+     */
     public static Optional<String> getDescriptionForField(Annotations annotations, Type type) {
-        if (FormatHelper.isDateLikeTypeOrCollectionThereOf(type)) {
-            String dateFormat = FormatHelper.getDateFormat(annotations, type);
+        if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
+            String dateFormat = FormatHelper.getDateFormatString(annotations, type);
             if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
                 return Optional.of(getGivenDescription(annotations) + " (" + dateFormat + ")");
             } else {
                 return Optional.of(dateFormat);
             }
-        } else if (FormatHelper.isNumberLikeTypeOrCollectionThereOf(type)) {
-            Optional<String> numberFormat = FormatHelper.getNumberFormatValue(annotations);
+        } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
+            Optional<String> numberFormat = FormatHelper.getNumberFormatString(annotations);
             if (numberFormat.isPresent()) {
                 if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
                     return Optional.of(getGivenDescription(annotations) + " (" + numberFormat.get() + ")");
@@ -44,15 +51,20 @@ public class DescriptionHelper {
         }
     }
 
-    // Used by types (Enum, Input and Output)
+    /**
+     * Get the description on a class type
+     * 
+     * @param annotations annotation on the class
+     * @return the optional description
+     */
     public static Optional<String> getDescriptionForType(Annotations annotations) {
         if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
-            return Optional.of(annotations.getAnnotationValue(Annotations.DESCRIPTION).asString());
+            return Optional.of(getGivenDescription(annotations));
         }
         return Optional.empty();
     }
 
     private static String getGivenDescription(Annotations annotations) {
-        return annotations.getAnnotation(Annotations.DESCRIPTION).value().asString();
+        return annotations.getAnnotationValue(Annotations.DESCRIPTION).asString();
     }
 }
