@@ -326,7 +326,7 @@ public class OutputTypeCreator implements Creator {
                 }
             } else {
                 LOG.warn("Class [" + type.name()
-                        + "] in not indexed in Jandex. Can not create Type, defaulting to String Scalar");
+                        + "] is not indexed in Jandex. Can not create Type, defaulting to String Scalar");
                 return Scalars.GraphQLString; // default
             }
         } else {
