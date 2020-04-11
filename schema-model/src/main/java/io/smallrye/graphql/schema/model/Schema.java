@@ -8,24 +8,27 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * Represents a GraphQL Schema
+ * Represents a GraphQL Schema.
+ * 
+ * This is the end result we are after and the object that will be passed to the
+ * implementation to create the actual endpoints and schema.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private final Set<Complex> queries = newTreeSet();
-    private final Set<Complex> mutations = newTreeSet();
+    private final Set<Operation> queries = newTreeSet();
+    private final Set<Operation> mutations = newTreeSet();
 
-    private final Map<String, Complex> inputs = new TreeMap();
-    private final Map<String, Complex> types = new TreeMap();
-    private final Map<String, Complex> interfaces = new TreeMap();
-    private final Map<String, Enum> enums = new TreeMap();
+    private final Map<String, InputType> inputs = new TreeMap();
+    private final Map<String, Type> types = new TreeMap();
+    private final Map<String, InterfaceType> interfaces = new TreeMap();
+    private final Map<String, EnumType> enums = new TreeMap();
 
-    public Set<Complex> getQueries() {
+    public Set<Operation> getQueries() {
         return queries;
     }
 
-    public void addQuery(Complex query) {
+    public void addQuery(Operation query) {
         this.queries.add(query);
     }
 
@@ -33,11 +36,11 @@ public final class Schema implements Serializable {
         return !this.queries.isEmpty();
     }
 
-    public Set<Complex> getMutations() {
+    public Set<Operation> getMutations() {
         return mutations;
     }
 
-    public void addMutation(Complex mutation) {
+    public void addMutation(Operation mutation) {
         this.mutations.add(mutation);
     }
 
@@ -45,11 +48,11 @@ public final class Schema implements Serializable {
         return !this.mutations.isEmpty();
     }
 
-    public Map<String, Complex> getInputs() {
+    public Map<String, InputType> getInputs() {
         return inputs;
     }
 
-    public void addInput(Complex input) {
+    public void addInput(InputType input) {
         this.inputs.put(input.getName(), input);
     }
 
@@ -61,11 +64,11 @@ public final class Schema implements Serializable {
         return !this.inputs.isEmpty();
     }
 
-    public Map<String, Complex> getTypes() {
+    public Map<String, Type> getTypes() {
         return types;
     }
 
-    public void addType(Complex type) {
+    public void addType(Type type) {
         this.types.put(type.getName(), type);
     }
 
@@ -77,11 +80,11 @@ public final class Schema implements Serializable {
         return !this.types.isEmpty();
     }
 
-    public Map<String, Complex> getInterfaces() {
+    public Map<String, InterfaceType> getInterfaces() {
         return interfaces;
     }
 
-    public void addInterface(Complex interfaceType) {
+    public void addInterface(InterfaceType interfaceType) {
         this.interfaces.put(interfaceType.getName(), interfaceType);
     }
 
@@ -93,11 +96,11 @@ public final class Schema implements Serializable {
         return !this.interfaces.isEmpty();
     }
 
-    public Map<String, Enum> getEnums() {
+    public Map<String, EnumType> getEnums() {
         return enums;
     }
 
-    public void addEnum(Enum enumType) {
+    public void addEnum(EnumType enumType) {
         this.enums.put(enumType.getName(), enumType);
     }
 
@@ -109,12 +112,12 @@ public final class Schema implements Serializable {
         return !this.enums.isEmpty();
     }
 
-    private TreeSet<Complex> newTreeSet() {
-        return new TreeSet<>(new Comparator<Complex>() {
+    private TreeSet<Operation> newTreeSet() {
+        return new TreeSet<>(new Comparator<Operation>() {
             @Override
-            public int compare(Complex o1, Complex o2) {
+            public int compare(Operation o1, Operation o2) {
                 if (o1 != null && o2 != null) {
-                    return o1.getClassName().compareTo(o2.getClassName());
+                    return o1.getName().compareTo(o2.getName());
                 }
                 return ZERO;
             }

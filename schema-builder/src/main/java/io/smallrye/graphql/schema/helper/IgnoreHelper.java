@@ -13,8 +13,14 @@ public class IgnoreHelper {
     private IgnoreHelper() {
     }
 
+    /**
+     * See if we should ignore this.
+     * 
+     * @param annotations annotations
+     * @return true if we should.
+     */
     public static boolean shouldIgnore(Annotations annotations) {
-        return annotations.containsOneOfTheseKeys(Annotations.IGNORE,
+        return annotations.containsOneOfTheseAnnotations(Annotations.IGNORE,
                 Annotations.JSONB_TRANSIENT);
     }
 }

@@ -31,7 +31,7 @@ public class SchemaTest {
         Assert.assertNotNull(schema);
     }
 
-    @Test
+    //@Test
     public void testSchemaModelCreation() throws IOException {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
         LOG.error(SchemaPrinter.print(graphQLSchema));

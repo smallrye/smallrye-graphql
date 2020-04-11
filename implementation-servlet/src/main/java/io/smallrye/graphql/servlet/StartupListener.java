@@ -13,12 +13,9 @@ import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.SmallRyeGraphQLBootstrap;
-import io.smallrye.graphql.bootstrap.index.IndexInitializer;
 import io.smallrye.graphql.execution.GraphQLProducer;
-import io.smallrye.graphql.schema.SchemaBuilder;
-import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.x.SmallRyeGraphQLBootstrap;
+import io.smallrye.graphql.x.index.IndexInitializer;
 
 /**
  * Bootstrap the application on startup
@@ -42,9 +39,9 @@ public class StartupListener implements ServletContextListener {
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
             GraphQLSchema oldGraphQLSchema = useOldSchema(index);
-            GraphQLSchema newGraphQLSchema = useNewSchema(index);
+            //GraphQLSchema newGraphQLSchema = useNewSchema(index);
             graphQLProducer.setGraphQLSchema(oldGraphQLSchema);
-            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, newGraphQLSchema);
+            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, oldGraphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
@@ -60,8 +57,8 @@ public class StartupListener implements ServletContextListener {
         return SmallRyeGraphQLBootstrap.bootstrap(index);
     }
 
-    private GraphQLSchema useNewSchema(IndexView index) {
-        Schema schema = SchemaBuilder.build(index);
-        return Bootstrap.bootstrap(schema);
-    }
+    //    private GraphQLSchema useNewSchema(IndexView index) {
+    //        Schema schema = SchemaBuilder.build(index);
+    //        return Bootstrap.bootstrap(schema);
+    //    }
 }

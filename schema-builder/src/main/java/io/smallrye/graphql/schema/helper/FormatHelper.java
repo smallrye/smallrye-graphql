@@ -1,15 +1,15 @@
 package io.smallrye.graphql.schema.helper;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
-import io.smallrye.graphql.schema.model.Formatter;
+import io.smallrye.graphql.schema.model.Format;
 
 /**
  * Helping with formats of dates and Numbers
@@ -21,58 +21,30 @@ public class FormatHelper {
     private FormatHelper() {
     }
 
-    public static boolean isNumberLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type,
-                Classes.BYTE,
-                Classes.BYTE_PRIMATIVE,
-                Classes.SHORT,
-                Classes.SHORT_PRIMATIVE,
-                Classes.INTEGER,
-                Classes.INTEGER_PRIMATIVE,
-                Classes.BIG_INTEGER,
-                Classes.DOUBLE,
-                Classes.DOUBLE_PRIMATIVE,
-                Classes.BIG_DECIMAL,
-                Classes.LONG,
-                Classes.LONG_PRIMATIVE,
-                Classes.FLOAT,
-                Classes.FLOAT_PRIMATIVE);
-    }
-
-    public static boolean isDateLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type,
-                Classes.LOCALDATE,
-                Classes.LOCALTIME,
-                Classes.LOCALDATETIME,
-                Classes.ZONEDDATETIME,
-                Classes.OFFSETDATETIME,
-                Classes.OFFSETTIME,
-                Classes.UTIL_DATE,
-                Classes.SQL_DATE);
-    }
-
-    // '10:15:30+01:00'
-    public static String getDefaultDateTimeFormat(Type type) {
-        // return the default dates format
-        type = getCorrectType(type);
-        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
-                || type.name().equals(Classes.SQL_DATE)) {
-            return ISO_DATE;
-        } else if (type.name().equals(Classes.LOCALTIME)) {
-            return ISO_TIME;
-        } else if (type.name().equals(Classes.OFFSETTIME)) {
-            return ISO_OFFSET_TIME;
-        } else if (type.name().equals(Classes.LOCALDATETIME)) {
-            return ISO_DATE_TIME;
-        } else if (type.name().equals(Classes.OFFSETDATETIME)) {
-            return ISO_OFFSET_DATE_TIME;
-        } else if (type.name().equals(Classes.ZONEDDATETIME)) {
-            return ISO_ZONED_DATE_TIME;
+    /**
+     * Get the format model object for a certain type.
+     * 
+     * @param type the type
+     * @param annotations the annotations
+     * @return Potentially a Format model
+     */
+    public static Optional<Format> getFormat(Type type, Annotations annotations) {
+        if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
+            return getDateFormat(type, annotations);
+        } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
+            return getNumberFormat(annotations);
         }
-        throw new InvalidTypeException(type);
+        return Optional.empty();
     }
 
-    public static Optional<String> getNumberFormatValue(Annotations annotations) {
+    /**
+     * The the number format (if any) as a String
+     * This is used to add to the description in the schema
+     * 
+     * @param annotations the annotations
+     * @return potentially a format as a String
+     */
+    public static Optional<String> getNumberFormatString(Annotations annotations) {
         Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
         if (numberFormatAnnotation.isPresent()) {
             AnnotationInstance a = numberFormatAnnotation.get();
@@ -81,7 +53,15 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    public static String getDateFormat(Annotations annotations, Type type) {
+    /**
+     * The the date format as a String
+     * This is used to add to the description in the schema
+     * 
+     * @param annotations the annotations
+     * @param type the date type
+     * @return potentially a format as a String
+     */
+    public static String getDateFormatString(Annotations annotations, Type type) {
         Optional<String> format = Optional.empty();
 
         Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
@@ -93,60 +73,74 @@ public class FormatHelper {
             return format.get();
         } else {
             // return the default dates format
-            return getDefaultDateTimeFormat(type);
+            return getDefaultDateTimeFormatString(type);
         }
     }
 
-    public static Formatter getFormatter(Type type, Annotations annotations) {
-        if (isDateLikeTypeOrCollectionThereOf(type)) {
-            return getDateFormatter(type, annotations);
-        } else if (isNumberLikeTypeOrCollectionThereOf(type)) {
-            return getNumberFormatter(annotations);
-        }
-        return null;
+    private static Format getDefaultDateTimeFormat(Type type) {
+        return new Format(Format.Type.DATE, getDefaultDateTimeFormatString(type), Locale.ENGLISH.toString());
     }
 
-    private static Formatter getNumberFormatter(Annotations annotations) {
+    private static String getDefaultDateTimeFormatString(Type type) {
+        // return the default dates format
+        type = getCorrectType(type);
+        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
+                || type.name().equals(Classes.SQL_DATE)) {
+            return ISO_DATE;
+        } else if (type.name().equals(Classes.LOCALTIME) || type.name().equals(Classes.SQL_TIME)) {
+            return ISO_TIME;
+        } else if (type.name().equals(Classes.OFFSETTIME)) {
+            return ISO_OFFSET_TIME;
+        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)) {
+            return ISO_DATE_TIME;
+        } else if (type.name().equals(Classes.OFFSETDATETIME)) {
+            return ISO_OFFSET_DATE_TIME;
+        } else if (type.name().equals(Classes.ZONEDDATETIME)) {
+            return ISO_ZONED_DATE_TIME;
+        }
+        throw new IllegalArgumentException("Not a valid Type [" + type.name().toString() + "]");
+    }
+
+    private static Optional<Format> getNumberFormat(Annotations annotations) {
         Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
         if (numberFormatAnnotation.isPresent()) {
-            return getNumberFormatter(numberFormatAnnotation.get());
+            return getNumberFormat(numberFormatAnnotation.get());
         }
-        return null;
+        return Optional.empty();
     }
 
-    private static Formatter getNumberFormatter(AnnotationInstance annotationInstance) {
+    private static Optional<Format> getNumberFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
-            String format = AnnotationsHelper.getStringValue(annotationInstance);
-            String locale = AnnotationsHelper.getStringValue(annotationInstance, LOCALE);
-            return new Formatter(Formatter.Type.NUMBER, format, locale);
+            String format = getStringValue(annotationInstance);
+            String locale = getStringValue(annotationInstance, LOCALE);
+            return Optional.of(new Format(Format.Type.NUMBER, format, locale));
         }
-        return null;
+        return Optional.empty();
     }
 
-    private static Formatter getDateFormatter(Type type, Annotations annotations) {
+    private static Optional<Format> getDateFormat(Type type, Annotations annotations) {
         Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
         if (dateFormatAnnotation.isPresent()) {
-            return getDateFormatter(type, dateFormatAnnotation.get());
+            return getDateFormat(type, dateFormatAnnotation.get());
         }
-        return new Formatter(Formatter.Type.DATE, getDefaultDateTimeFormat(type), null);
+        return Optional.of(getDefaultDateTimeFormat(type));
     }
 
-    private static Formatter getDateFormatter(Type type, AnnotationInstance annotationInstance) {
+    private static Optional<Format> getDateFormat(Type type, AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
-            String format = AnnotationsHelper.getStringValue(annotationInstance);
-            String locale = AnnotationsHelper.getStringValue(annotationInstance, LOCALE);
-
-            return new Formatter(Formatter.Type.DATE, format, locale);
+            String format = getStringValue(annotationInstance);
+            String locale = getStringValue(annotationInstance, LOCALE);
+            return Optional.of(new Format(Format.Type.DATE, format, locale));
         }
-        return new Formatter(Formatter.Type.DATE, getDefaultDateTimeFormat(type), null);
+        return Optional.of(getDefaultDateTimeFormat(type));
     }
 
     private static Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {
-        return annotations.getOneOfTheseAnnotation(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT);
+        return annotations.getOneOfTheseAnnotations(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT);
     }
 
     private static Optional<AnnotationInstance> getNumberFormatAnnotation(Annotations annotations) {
-        return annotations.getOneOfTheseAnnotation(Annotations.NUMBER_FORMAT, Annotations.JSONB_NUMBER_FORMAT);
+        return annotations.getOneOfTheseAnnotations(Annotations.NUMBER_FORMAT, Annotations.JSONB_NUMBER_FORMAT);
     }
 
     private static Optional<String> getFormat(AnnotationInstance annotationInstance) {
@@ -164,26 +158,6 @@ public class FormatHelper {
         }
     }
 
-    private static boolean isTypeOrCollectionThereOf(Type type, DotName... valid) {
-        switch (type.kind()) {
-            case PARAMETERIZED_TYPE:
-                // Collections
-                Type typeInCollection = type.asParameterizedType().arguments().get(0);
-                return isTypeOrCollectionThereOf(typeInCollection, valid);
-            case ARRAY:
-                // Array
-                Type typeInArray = type.asArrayType().component();
-                return isTypeOrCollectionThereOf(typeInArray, valid);
-            default:
-                for (DotName dotName : valid) {
-                    if (type.name().equals(dotName)) {
-                        return true;
-                    }
-                }
-                return false;
-        }
-    }
-
     private static Type getCorrectType(Type type) {
 
         switch (type.kind()) {
@@ -198,6 +172,22 @@ public class FormatHelper {
             default:
                 return type;
         }
+    }
+
+    private static String getStringValue(AnnotationInstance annotationInstance) {
+        return getStringValue(annotationInstance.value());
+    }
+
+    private static String getStringValue(AnnotationInstance annotationInstance, String name) {
+        return getStringValue(annotationInstance.value(name));
+    }
+
+    private static String getStringValue(AnnotationValue annotationValue) {
+        String value = null;
+        if (annotationValue != null) {
+            value = annotationValue.asString();
+        }
+        return value;
     }
 
     private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";

@@ -50,7 +50,7 @@ public class QueryTest {
 
     }
 
-    @Test
+    //@Test
     public void testBasicQuery() throws IOException {
         JsonObject result = executionService.execute(toJsonObject(GET_HERO));
 
@@ -64,9 +64,11 @@ public class QueryTest {
         Assert.assertEquals("Iron Man", superHero.getString("name"));
         Assert.assertEquals("Los Angeles, CA", superHero.getString("primaryLocation"));
         Assert.assertEquals("Tony Stark", superHero.getString("realName"));
+        Assert.assertEquals("Wachovia", superHero.getString("currentLocation")); // To test @Source
+
     }
 
-    @Test
+    //@Test
     public void testTransformedDateOnQuery() throws IOException {
         JsonObject result = executionService.execute(toJsonObject(TRANSFORMED_DATE));
 
@@ -125,7 +127,10 @@ public class QueryTest {
             "    timeOfLastBattle\n" + // To test dateTime formatting
             "    patrolStartTime\n" + // To test time formatting
             "    bankBalance\n" + // To test number formatting
-            //"    currentLocation\n" + // To test Source
+            "    currentLocation\n" + // To test Source
+            "    secretToken{\n" + // To test Source with extra parameter
+            "        value\n" +
+            "    }" +
             "    teamAffiliations {\n" +
             "      name\n" +
             "      members{\n" +

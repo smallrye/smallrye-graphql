@@ -6,7 +6,7 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import io.smallrye.graphql.schema.model.Formatter;
+import io.smallrye.graphql.schema.model.Format;
 
 /**
  * Helping with formats of dates and Numbers
@@ -18,7 +18,7 @@ public class FormatHelper {
     private FormatHelper() {
     }
 
-    public static NumberFormat getNumberFormat(Formatter formatter) {
+    public static NumberFormat getNumberFormat(Format formatter) {
         if (formatter != null) {
             String format = formatter.getFormat();
             String locale = formatter.getLocale();
@@ -37,14 +37,12 @@ public class FormatHelper {
         return null;
     }
 
-    public static DateTimeFormatter getDateFormat(Formatter formatter) {
+    public static DateTimeFormatter getDateFormat(Format formatter) {
         if (formatter != null) {
             String format = formatter.getFormat();
             String locale = formatter.getLocale();
-            if (format == null && locale == null) {
-                return null;//getDefaultDateTimeFormatter(type);
-            } else if (format == null) {
-                return null;//getDefaultDateTimeFormatter(type).withLocale(Locale.forLanguageTag(locale.asString()));
+            if (format == null) {
+                return null;
             } else if (locale == null) {
                 return DateTimeFormatter.ofPattern(format);
             } else {

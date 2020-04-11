@@ -20,7 +20,7 @@ import java.util.ServiceLoader;
 
 import javax.enterprise.inject.spi.CDI;
 
-import io.smallrye.graphql.bootstrap.Classes;
+import io.smallrye.graphql.x.Classes;
 
 public interface CDIDelegate {
 
