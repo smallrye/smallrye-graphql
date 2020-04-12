@@ -1,6 +1,6 @@
 = SmallRye GraphQL Schema Model
 
-This is a representation of a GraphQL Schema. It gets build using Jandex scanning and passed into the implementation to create a executable endpoint.
+This is a representation of a GraphQL Schema. It gets build using Jandex scanning and passed into the implementation to create an executable endpoint.
 
 image:/schema-model/classdiagram.png[link="schema-model/classdiagram.png"]
 
