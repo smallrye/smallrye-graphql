@@ -27,15 +27,19 @@ public class ArgumentCreator {
     /**
      * Create an argument model. Arguments exist on Operations as input parameters
      * 
-     * @param type The argument type
+     * @param argumentType The argument type
      * @param methodInfo the operation method
      * @param position the argument position
      * @return an Argument
      */
-    public static Optional<Argument> createArgument(Type type, MethodInfo methodInfo, short position) {
+    public static Optional<Argument> createArgument(Type argumentType, MethodInfo methodInfo, short position) {
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
+            // Argument Type
+            if (methodInfo.parameters() != null && !methodInfo.parameters().isEmpty()) {
+                argumentType = methodInfo.parameters().get(position);
+            }
 
             // Name
             String defaultName = methodInfo.parameterName(position);
@@ -43,13 +47,9 @@ public class ArgumentCreator {
                     .orElse(defaultName);
 
             // Description    
-            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForThisArgument, type);
+            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForThisArgument,
+                    argumentType);
 
-            // Argument Type
-            Type argumentType = type;
-            if (methodInfo.parameters() != null && !methodInfo.parameters().isEmpty()) {
-                argumentType = methodInfo.parameters().get(position);
-            }
             Reference reference = ReferenceCreator.createReferenceForOperationArgument(argumentType,
                     annotationsForThisArgument);
 
