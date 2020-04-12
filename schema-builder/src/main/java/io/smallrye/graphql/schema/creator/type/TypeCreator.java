@@ -112,9 +112,9 @@ public class TypeCreator implements Creator<Type> {
         for (DotName interfaceName : interfaceNames) {
             // Ignore java interfaces (like Serializable)
             if (!interfaceName.toString().startsWith(JAVA_DOT)) {
-                ClassInfo c = ScanningContext.getIndex().getClassByName(interfaceName);
-                if (c != null) {
-                    Reference interfaceRef = ReferenceCreator.createReference(Direction.OUT, classInfo);
+                ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceName);
+                if (interfaceInfo != null) {
+                    Reference interfaceRef = ReferenceCreator.createReference(Direction.OUT, interfaceInfo);
                     type.addInterface(interfaceRef);
                 }
             }

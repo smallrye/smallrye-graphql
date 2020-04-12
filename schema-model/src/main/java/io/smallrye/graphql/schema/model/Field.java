@@ -22,7 +22,7 @@ public class Field implements Serializable {
     private boolean notNull = false;
     private Optional<Array> array = Optional.empty(); // If this is a collection
     private Optional<Format> format = Optional.empty(); // If the field should be formatted
-    private Optional<String> defaultValue = Optional.empty();
+    private Optional<Object> defaultValue = Optional.empty();
 
     public Field(String methodName, String name, String description, Reference reference) {
         this.methodName = methodName;
@@ -71,11 +71,11 @@ public class Field implements Serializable {
         this.format = format;
     }
 
-    public Optional<String> getDefaultValue() {
+    public Optional<Object> getDefaultValue() {
         return defaultValue;
     }
 
-    public void setDefaultValue(Optional<String> defaultValue) {
+    public void setDefaultValue(Optional<Object> defaultValue) {
         this.defaultValue = defaultValue;
     }
 }

@@ -39,14 +39,15 @@ public class FieldCreator {
         Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForMethod)) {
+            Type returnType = methodInfo.returnType();
+
             // Name
             String name = getFieldName(Direction.OUT, annotationsForMethod, methodInfo.name());
 
             // Description
-            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
+            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForMethod, returnType);
 
             // Field Type
-            Type returnType = methodInfo.returnType();
             validateFieldType(Direction.OUT, methodInfo);
             Reference reference = ReferenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod);
 
@@ -88,15 +89,16 @@ public class FieldCreator {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForPojo)) {
+            Type methodType = getMethodType(methodInfo, direction);
+
             // Name
             String name = getFieldName(direction, annotationsForPojo, methodInfo.name());
 
             // Description
-            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForPojo);
+            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForPojo, methodType);
 
             // Field Type
             validateFieldType(direction, methodInfo);
-            Type methodType = getMethodType(methodInfo, direction);
             Type fieldType = getFieldType(fieldInfo, methodType);
 
             Reference reference = ReferenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
@@ -180,7 +182,7 @@ public class FieldCreator {
     }
 
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
-        return annotationsForThisField.getOneOfTheseMethodParameterAnnotationsValue(
+        return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.JSONB_PROPERTY)

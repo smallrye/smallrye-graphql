@@ -207,7 +207,7 @@ public class Classes {
                 return isTypeOrCollectionThereOf(typeInArray, valid);
             default:
                 for (DotName dotName : valid) {
-                    if (type.name().equals(dotName)) {
+                    if (type.name().toString().equals(dotName.toString())) {
                         return true;
                     }
                 }

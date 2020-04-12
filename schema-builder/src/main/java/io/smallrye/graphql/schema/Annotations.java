@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -154,6 +155,10 @@ public class Annotations {
      */
     private Annotations(Map<DotName, AnnotationInstance> annotations) {
         this.annotationsMap = annotations;
+    }
+
+    public Set<DotName> getAnnotationNames() {
+        return annotationsMap.keySet();
     }
 
     /**

@@ -40,16 +40,16 @@ public class OperationCreator {
      */
     public static Operation createOperation(MethodInfo methodInfo, OperationType operationType) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+        Type fieldType = methodInfo.returnType();
 
         // Name
         String name = getOperationName(methodInfo, operationType, annotationsForMethod);
 
         // Description
-        Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotationsForMethod);
+        Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForMethod, fieldType);
 
         // Field Type
         validateFieldType(methodInfo, operationType);
-        Type fieldType = methodInfo.returnType();
         Reference reference = ReferenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
 
         Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
@@ -78,13 +78,28 @@ public class OperationCreator {
         for (short i = 0; i < parameters.size(); i++) {
             // See if this is a @Source
             Annotations annotationsForArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
-            if (!annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE)) { // Operations should ignore the @Source annotation
+
+            if (!isSourceAnnotationOnSourceOperation(annotationsForArgument, operationType)) {
                 ArgumentCreator.createArgument(fieldType, methodInfo, i)
                         .ifPresent(operation::addArgument);
             }
         }
 
         return operation;
+    }
+
+    // Source Operations should ignore the @Source annotation
+    /**
+     * Source operation on types should remove the Source argument
+     * 
+     * @param annotationsForArgument
+     * @param operationType
+     * @return
+     */
+    private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
+            OperationType operationType) {
+        return operationType.equals(OperationType.Source) &&
+                annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {

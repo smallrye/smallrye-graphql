@@ -106,7 +106,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
 
         // Maybe there is a default ?
-        return f.getDefaultValue();
+        return f.getDefaultValue().orElse(null);
     }
 
     // Make sure we get the correct class type
