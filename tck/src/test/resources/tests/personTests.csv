@@ -1,6 +1,6 @@
 # testCustomDates
-1| type Person         |   birthDate: DateTime                                      |   Custom java.util.Date should map to DateTime
-2| type Person         |   joinDate: Date                                           |   Custom java.sql.Date should map to Date
+1| type Profile        |   birthDate: DateTime                                      |   Custom java.util.Date should map to DateTime
+2| type Profile        |   joinDate: Date                                           |   Custom java.sql.Date should map to Date
 
 # testURLScalarSupport
-3| type Person         |   profilePictures: [String]                                |   URL Should map to String Scalar
+3| type Profile         |   profilePictures: [String]                                |   URL Should map to String Scalar

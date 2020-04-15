@@ -5,17 +5,16 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
 /**
- * Person API
+ * Profile API
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @GraphQLApi
-public class PersonGraphQLApi {
+public class ProfileGraphQLApi {
 
-    @Query("person")
-    @Description("Get a Person by ID")
-
-    public Person getPerson(int personId) {
-        return PersonDB.getPerson(personId);
+    @Query("profile")
+    @Description("Get a Profile by ID")
+    public Profile getProfile(int profileId) {
+        return ProfileDB.getProfile(profileId);
     }
 }

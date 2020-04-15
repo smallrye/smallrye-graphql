@@ -1,5 +1,5 @@
 {
-  person(personId:1){
+  profile(profileId:1){
     names    
     surname
     birthDate

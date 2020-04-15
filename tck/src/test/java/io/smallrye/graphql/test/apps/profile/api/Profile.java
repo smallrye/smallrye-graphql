@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 
-public class Person {
+public class Profile {
     private Integer id;
     private String locale;
     private String title;
