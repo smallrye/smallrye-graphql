@@ -2,12 +2,15 @@ package io.smallrye.graphql.x.datafetcher;
 
 import java.lang.reflect.Array;
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,9 +119,28 @@ public class TransformableDataFetcherHelper {
         if (TemporalAccessor.class.isInstance(o)) {
             TemporalAccessor temporalAccessor = (TemporalAccessor) o;
             return dateTimeFormatter.format(temporalAccessor);
+        } else if (java.sql.Date.class.isInstance(o)) {
+            java.sql.Date date = ((java.sql.Date) o);
+            TemporalAccessor temporalAccessor = date.toLocalDate();
+            return dateTimeFormatter.format(temporalAccessor);
+        } else if (java.sql.Timestamp.class.isInstance(o)) {
+            java.sql.Timestamp date = ((java.sql.Timestamp) o);
+            TemporalAccessor temporalAccessor = date.toLocalDateTime();
+            return dateTimeFormatter.format(temporalAccessor);
+        } else if (Date.class.isInstance(o)) {
+            Date date = (Date) o;
+            final TemporalAccessor temporalAccessor = toLocalDateTime(date);
+            return handleDateFormatting(temporalAccessor);
         } else {
             return o;
         }
+    }
+
+    /*
+     * @see io.smallrye.graphql.x.type.time.DateTimeScalar#toUtilDate(LocalDateTime)
+     */
+    private LocalDateTime toLocalDateTime(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     private Object handleNumberFormatting(Object o) {

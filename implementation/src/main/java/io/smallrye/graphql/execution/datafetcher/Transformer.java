@@ -1,8 +1,11 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Date;
 
 import org.jboss.logging.Logger;
 
@@ -83,9 +86,28 @@ public class Transformer {
         if (TemporalAccessor.class.isInstance(input)) {
             TemporalAccessor temporalAccessor = (TemporalAccessor) input;
             return dateTimeFormatter.format(temporalAccessor);
+        } else if (java.sql.Date.class.isInstance(input)) {
+            java.sql.Date date = ((java.sql.Date) input);
+            TemporalAccessor temporalAccessor = date.toLocalDate();
+            return dateTimeFormatter.format(temporalAccessor);
+        } else if (java.sql.Timestamp.class.isInstance(input)) {
+            java.sql.Timestamp date = ((java.sql.Timestamp) input);
+            TemporalAccessor temporalAccessor = date.toLocalDateTime();
+            return dateTimeFormatter.format(temporalAccessor);
+        } else if (Date.class.isInstance(input)) {
+            Date date = (Date) input;
+            final TemporalAccessor temporalAccessor = toLocalDateTime(date);
+            return handleDateFormatting(temporalAccessor);
         } else {
             return input;
         }
+    }
+
+    /*
+     * @see io.smallrye.graphql.x.type.time.DateTimeScalar#toUtilDate(LocalDateTime)
+     */
+    private LocalDateTime toLocalDateTime(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     private Object handleNumberFormatting(Object input) {
