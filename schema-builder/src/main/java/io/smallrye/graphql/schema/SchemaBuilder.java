@@ -130,7 +130,8 @@ public class SchemaBuilder {
     }
 
     private <T> void createAndAddToSchema(ReferenceType referenceType, Creator creator, Consumer<T> consumer) {
-        for (Reference reference : ReferenceCreator.values(referenceType)) {
+        while (!ReferenceCreator.values(referenceType).isEmpty()) {
+            Reference reference = ReferenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             consumer.accept((T) creator.create(classInfo));
         }
@@ -141,7 +142,8 @@ public class SchemaBuilder {
 
         boolean allDone = true;
         // Let's see what still needs to be done.
-        for (Reference reference : ReferenceCreator.values(referenceType)) {
+        while (!ReferenceCreator.values(referenceType).isEmpty()) {
+            Reference reference = ReferenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             if (!contains.test(reference.getName())) {
                 consumer.accept((T) creator.create(classInfo));
