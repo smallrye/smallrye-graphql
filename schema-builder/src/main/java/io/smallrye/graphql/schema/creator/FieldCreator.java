@@ -173,18 +173,24 @@ public class FieldCreator {
     }
 
     private static String getOutputNameForField(Annotations annotationsForThisField, String fieldName) {
+        //Scan method-annotations first, if none exists use all
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
-                Annotations.NAME)
+                Annotations.NAME,
+                Annotations.JSONB_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
+                        Annotations.NAME,
                         Annotations.QUERY,
                         Annotations.JSONB_PROPERTY)
                         .orElse(MethodHelper.getFieldName(Direction.OUT, fieldName)));
     }
 
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
+        //Scan method-annotations first, if none exists use all
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
-                Annotations.NAME)
+                Annotations.NAME,
+                Annotations.JSONB_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
+                        Annotations.NAME,
                         Annotations.JSONB_PROPERTY)
                         .orElse(MethodHelper.getFieldName(Direction.IN, fieldName)));
     }
