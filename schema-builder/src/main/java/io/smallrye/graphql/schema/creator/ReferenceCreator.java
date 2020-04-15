@@ -1,8 +1,10 @@
 package io.smallrye.graphql.schema.creator;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Type;
@@ -28,6 +30,11 @@ import io.smallrye.graphql.schema.model.Scalars;
 public class ReferenceCreator {
     private static final Logger LOG = Logger.getLogger(ReferenceCreator.class.getName());
 
+    private static final Queue<Reference> inputReferenceQueue = new ArrayDeque<>();
+    private static final Queue<Reference> typeReferenceQueue = new ArrayDeque<>();
+    private static final Queue<Reference> enumReferenceQueue = new ArrayDeque<>();
+    private static final Queue<Reference> interfaceReferenceQueue = new ArrayDeque<>();
+
     // Some maps we populate during scanning
     private static final Map<String, Reference> inputReferenceMap = new HashMap<>();
     private static final Map<String, Reference> typeReferenceMap = new HashMap<>();
@@ -46,6 +53,11 @@ public class ReferenceCreator {
         typeReferenceMap.clear();
         enumReferenceMap.clear();
         interfaceReferenceMap.clear();
+
+        inputReferenceQueue.clear();
+        typeReferenceQueue.clear();
+        enumReferenceQueue.clear();
+        interfaceReferenceQueue.clear();
     }
 
     /**
@@ -54,8 +66,8 @@ public class ReferenceCreator {
      * @param referenceType the type
      * @return the references
      */
-    public static Collection<Reference> values(ReferenceType referenceType) {
-        return getReferenceMap(referenceType).values();
+    public static Queue<Reference> values(ReferenceType referenceType) {
+        return getReferenceQueue(referenceType);
     }
 
     /**
@@ -196,7 +208,11 @@ public class ReferenceCreator {
 
     private static void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
         Map<String, Reference> map = getReferenceMap(referenceType);
-        map.putIfAbsent(key, reference);
+        Queue<Reference> queue = getReferenceQueue(referenceType);
+        if (!map.containsKey(key)) {
+            map.put(key, reference);
+            queue.add(reference);
+        }
     }
 
     private static Map<String, Reference> getReferenceMap(ReferenceType referenceType) {
@@ -209,6 +225,21 @@ public class ReferenceCreator {
                 return interfaceReferenceMap;
             case TYPE:
                 return typeReferenceMap;
+            default:
+                return null;
+        }
+    }
+
+    private static Queue<Reference> getReferenceQueue(ReferenceType referenceType) {
+        switch (referenceType) {
+            case ENUM:
+                return enumReferenceQueue;
+            case INPUT:
+                return inputReferenceQueue;
+            case INTERFACE:
+                return interfaceReferenceQueue;
+            case TYPE:
+                return typeReferenceQueue;
             default:
                 return null;
         }
