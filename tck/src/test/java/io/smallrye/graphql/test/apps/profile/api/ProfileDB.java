@@ -9,24 +9,24 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Create some test date for Persons
+ * Create some test date for Profiles
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class PersonDB {
-    private static final Map<Integer, Person> DB = new HashMap<>();
+public class ProfileDB {
+    private static final Map<Integer, Profile> DB = new HashMap<>();
 
-    public static Person getPerson(int id) {
+    public static Profile getProfile(int id) {
         return DB.get(id);
     }
 
     static {
-        DB.put(1, createPerson(1));
+        DB.put(1, createProfile(1));
     }
 
-    private static Person createPerson(int i) {
+    private static Profile createProfile(int i) {
         try {
-            Person p = new Person();
+            Profile p = new Profile();
             p.setId(i);
             p.setLocale(Locale.UK.toString());
             p.setTitle("Mr");

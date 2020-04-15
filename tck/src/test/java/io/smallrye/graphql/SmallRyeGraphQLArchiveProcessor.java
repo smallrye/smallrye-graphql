@@ -27,7 +27,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
-import io.smallrye.graphql.test.apps.profile.api.PersonGraphQLApi;
+import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
@@ -65,7 +65,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     "META-INF/microprofile-config.properties");
 
             // Add our own test app
-            testDeployment.addPackage(PersonGraphQLApi.class.getPackage());
+            testDeployment.addPackage(ProfileGraphQLApi.class.getPackage());
         }
     }
 }
