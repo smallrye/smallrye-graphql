@@ -85,7 +85,7 @@ public class TypeCreator implements Creator<Type> {
 
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
-                String fieldName = MethodHelper.getFieldName(Direction.OUT, methodInfo.name());
+                String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
                 FieldInfo fieldInfo = allFields.get(fieldName);
 
                 FieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo)

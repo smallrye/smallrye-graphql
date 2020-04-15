@@ -52,6 +52,7 @@ public class FieldCreator {
             Reference reference = ReferenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod);
 
             Field field = new Field(methodInfo.name(),
+                    MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
                     name,
                     maybeDescription.orElse(null),
                     reference);
@@ -64,8 +65,8 @@ public class FieldCreator {
             // Array
             field.setArray(ArrayCreator.createArray(returnType));
 
-            // Format
-            field.setFormat(FormatHelper.getFormat(returnType, annotationsForMethod));
+            // TransformInfo
+            field.setTransformInfo(FormatHelper.getFormat(returnType, annotationsForMethod));
 
             // Default Value
             Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForMethod);
@@ -105,6 +106,7 @@ public class FieldCreator {
                     annotationsForPojo);
 
             Field field = new Field(methodInfo.name(),
+                    MethodHelper.getPropertyName(direction, methodInfo.name()),
                     name,
                     maybeDescription.orElse(null),
                     reference);
@@ -117,8 +119,8 @@ public class FieldCreator {
             // Array
             field.setArray(ArrayCreator.createArray(fieldType, methodType));
 
-            // Format
-            field.setFormat(FormatHelper.getFormat(methodType, annotationsForPojo));
+            // TransformInfo
+            field.setTransformInfo(FormatHelper.getFormat(methodType, annotationsForPojo));
 
             // Default Value
             Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForPojo);
@@ -173,7 +175,6 @@ public class FieldCreator {
     }
 
     private static String getOutputNameForField(Annotations annotationsForThisField, String fieldName) {
-        //Scan method-annotations first, if none exists use all
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
                 Annotations.JSONB_PROPERTY)
@@ -181,17 +182,16 @@ public class FieldCreator {
                         Annotations.NAME,
                         Annotations.QUERY,
                         Annotations.JSONB_PROPERTY)
-                        .orElse(MethodHelper.getFieldName(Direction.OUT, fieldName)));
+                        .orElse(MethodHelper.getPropertyName(Direction.OUT, fieldName)));
     }
 
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
-        //Scan method-annotations first, if none exists use all
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
                 Annotations.JSONB_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
                         Annotations.JSONB_PROPERTY)
-                        .orElse(MethodHelper.getFieldName(Direction.IN, fieldName)));
+                        .orElse(MethodHelper.getPropertyName(Direction.IN, fieldName)));
     }
 }

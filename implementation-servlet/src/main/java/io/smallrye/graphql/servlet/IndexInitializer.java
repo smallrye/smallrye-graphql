@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.smallrye.graphql.x.index;
+package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package io.smallrye.graphql.bootstrap;
+package io.smallrye.graphql.scalar;
 
 import java.net.URI;
 import java.net.URL;
@@ -8,14 +8,13 @@ import java.util.UUID;
 
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
-import io.smallrye.graphql.x.*;
-import io.smallrye.graphql.x.type.number.BigDecimalScalar;
-import io.smallrye.graphql.x.type.number.BigIntegerScalar;
-import io.smallrye.graphql.x.type.number.FloatScalar;
-import io.smallrye.graphql.x.type.number.IntegerScalar;
-import io.smallrye.graphql.x.type.time.DateScalar;
-import io.smallrye.graphql.x.type.time.DateTimeScalar;
-import io.smallrye.graphql.x.type.time.TimeScalar;
+import io.smallrye.graphql.scalar.number.BigDecimalScalar;
+import io.smallrye.graphql.scalar.number.BigIntegerScalar;
+import io.smallrye.graphql.scalar.number.FloatScalar;
+import io.smallrye.graphql.scalar.number.IntegerScalar;
+import io.smallrye.graphql.scalar.time.DateScalar;
+import io.smallrye.graphql.scalar.time.DateTimeScalar;
+import io.smallrye.graphql.scalar.time.TimeScalar;
 
 /**
  * Here we keep all the graphql-java scalars
@@ -30,6 +29,10 @@ public class GraphQLScalarTypes {
 
     public static Map<String, GraphQLScalarType> getScalarMap() {
         return SCALAR_MAP;
+    }
+
+    public static boolean isScalarType(String className) {
+        return SCALAR_MAP.containsKey(className);
     }
 
     // Scalar map we can just create now.
@@ -58,9 +61,9 @@ public class GraphQLScalarTypes {
         mapType(new DateTimeScalar());
     }
 
-    private static void mapType(Transformable transformable) {
-        for (Class c : transformable.getSupportedClasses()) {
-            SCALAR_MAP.put(c.getName(), (GraphQLScalarType) transformable);
+    private static void mapType(AbstractScalar abstractScalar) {
+        for (Class c : abstractScalar.getSupportedClasses()) {
+            SCALAR_MAP.put(c.getName(), (GraphQLScalarType) abstractScalar);
         }
     }
 }

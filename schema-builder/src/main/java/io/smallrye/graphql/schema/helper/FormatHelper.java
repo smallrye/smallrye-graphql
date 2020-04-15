@@ -9,7 +9,7 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
-import io.smallrye.graphql.schema.model.Format;
+import io.smallrye.graphql.schema.model.TransformInfo;
 
 /**
  * Helping with formats of dates and Numbers
@@ -26,9 +26,9 @@ public class FormatHelper {
      * 
      * @param type the type
      * @param annotations the annotations
-     * @return Potentially a Format model
+     * @return Potentially a TransformInfo model
      */
-    public static Optional<Format> getFormat(Type type, Annotations annotations) {
+    public static Optional<TransformInfo> getFormat(Type type, Annotations annotations) {
         if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
             return getDateFormat(type, annotations);
         } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
@@ -77,21 +77,22 @@ public class FormatHelper {
         }
     }
 
-    private static Format getDefaultDateTimeFormat(Type type) {
-        return new Format(Format.Type.DATE, getDefaultDateTimeFormatString(type), Locale.ENGLISH.toString());
+    private static TransformInfo getDefaultDateTimeFormat(Type type) {
+        return new TransformInfo(TransformInfo.Type.DATE, getDefaultDateTimeFormatString(type), Locale.ENGLISH.toString(),
+                false);
     }
 
     private static String getDefaultDateTimeFormatString(Type type) {
         // return the default dates format
         type = getCorrectType(type);
-        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.SQL_DATE)) {
+        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
+                || type.name().equals(Classes.SQL_DATE)) {
             return ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME) || type.name().equals(Classes.SQL_TIME)) {
             return ISO_TIME;
         } else if (type.name().equals(Classes.OFFSETTIME)) {
             return ISO_OFFSET_TIME;
-        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.UTIL_DATE)
-                || type.name().equals(Classes.SQL_TIMESTAMP)) {
+        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)) {
             return ISO_DATE_TIME;
         } else if (type.name().equals(Classes.OFFSETDATETIME)) {
             return ISO_OFFSET_DATE_TIME;
@@ -101,7 +102,7 @@ public class FormatHelper {
         throw new IllegalArgumentException("Not a valid Type [" + type.name().toString() + "]");
     }
 
-    private static Optional<Format> getNumberFormat(Annotations annotations) {
+    private static Optional<TransformInfo> getNumberFormat(Annotations annotations) {
         Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
@@ -109,16 +110,16 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    private static Optional<Format> getNumberFormat(AnnotationInstance annotationInstance) {
+    private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new Format(Format.Type.NUMBER, format, locale));
+            return Optional.of(new TransformInfo(TransformInfo.Type.NUMBER, format, locale, isJsonB(annotationInstance)));
         }
         return Optional.empty();
     }
 
-    private static Optional<Format> getDateFormat(Type type, Annotations annotations) {
+    private static Optional<TransformInfo> getDateFormat(Type type, Annotations annotations) {
         Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
         if (dateFormatAnnotation.isPresent()) {
             return getDateFormat(type, dateFormatAnnotation.get());
@@ -126,13 +127,17 @@ public class FormatHelper {
         return Optional.of(getDefaultDateTimeFormat(type));
     }
 
-    private static Optional<Format> getDateFormat(Type type, AnnotationInstance annotationInstance) {
+    private static Optional<TransformInfo> getDateFormat(Type type, AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new Format(Format.Type.DATE, format, locale));
+            return Optional.of(new TransformInfo(TransformInfo.Type.DATE, format, locale, isJsonB(annotationInstance)));
         }
         return Optional.of(getDefaultDateTimeFormat(type));
+    }
+
+    private static boolean isJsonB(AnnotationInstance instance) {
+        return instance.name().toString().startsWith("javax.json.bind.annotation.");
     }
 
     private static Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {

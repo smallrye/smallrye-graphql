@@ -18,8 +18,9 @@ public final class Operation extends Field {
 
     private final List<Argument> arguments = new LinkedList<>();
 
-    public Operation(String className, String methodName, String name, String description, Reference reference) {
-        super(methodName, name, description, reference);
+    public Operation(String className, String methodName, String propertyName, String name, String description,
+            Reference reference) {
+        super(methodName, propertyName, name, description, reference);
         this.className = className;
     }
 
