@@ -8,12 +8,14 @@ import java.io.Serializable;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Array implements Serializable {
-    private final String className; // The Java class name (One of the collection type or Array)
+    private final String className; // The Java class name (One of the collection types or Array)
+    private final Type type; // To differenciate between Collection and Array
     private final int depth; // The depth of this array
     private boolean notEmpty = false; // Mark this to be not empty
 
-    public Array(String className, int depth) {
+    public Array(String className, Type type, int depth) {
         this.className = className;
+        this.type = type;
         this.depth = depth;
     }
 
@@ -22,14 +24,23 @@ public final class Array implements Serializable {
     }
 
     public String getClassName() {
-        return className;
+        return this.className;
     }
 
     public int getDepth() {
-        return depth;
+        return this.depth;
     }
 
     public boolean isNotEmpty() {
-        return notEmpty;
+        return this.notEmpty;
+    }
+
+    public Type getType() {
+        return this.type;
+    }
+
+    public enum Type {
+        COLLECTION,
+        ARRAY
     }
 }

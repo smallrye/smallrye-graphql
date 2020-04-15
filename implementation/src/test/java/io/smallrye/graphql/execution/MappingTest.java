@@ -29,7 +29,7 @@ import javax.json.JsonObject;
 
 import org.junit.Test;
 
-public class ExecutionServiceTest {
+public class MappingTest {
 
     private static Map<String, Object> toMap(JsonObject jo) {
         return new ExecutionService().toMap(jo);

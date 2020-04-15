@@ -70,7 +70,7 @@ public class InputTypeCreator implements Creator<InputType> {
 
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.IN, methodInfo.name())) {
-                String fieldName = MethodHelper.getFieldName(Direction.IN, methodInfo.name());
+                String fieldName = MethodHelper.getPropertyName(Direction.IN, methodInfo.name());
                 FieldInfo fieldInfo = allFields.get(fieldName);
                 FieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo)
                         .ifPresent(inputType::addField);

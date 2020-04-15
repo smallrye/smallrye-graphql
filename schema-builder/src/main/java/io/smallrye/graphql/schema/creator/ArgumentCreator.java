@@ -8,8 +8,10 @@ import org.jboss.jandex.Type;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Reference;
@@ -53,8 +55,9 @@ public class ArgumentCreator {
             Reference reference = ReferenceCreator.createReferenceForOperationArgument(argumentType,
                     annotationsForThisArgument);
 
-            Argument argument = new Argument(argumentType.name().toString(),
+            Argument argument = new Argument(defaultName,
                     methodInfo.name(),
+                    MethodHelper.getPropertyName(Direction.IN, methodInfo.name()),
                     name,
                     maybeDescription.orElse(null),
                     reference);
@@ -67,8 +70,8 @@ public class ArgumentCreator {
             // Array
             argument.setArray(ArrayCreator.createArray(argumentType));
 
-            // Format
-            argument.setFormat(FormatHelper.getFormat(argumentType, annotationsForThisArgument));
+            // TransformInfo
+            argument.setTransformInfo(FormatHelper.getFormat(argumentType, annotationsForThisArgument));
 
             // Default Value
             Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForThisArgument);
@@ -78,4 +81,5 @@ public class ArgumentCreator {
         }
         return Optional.empty();
     }
+
 }

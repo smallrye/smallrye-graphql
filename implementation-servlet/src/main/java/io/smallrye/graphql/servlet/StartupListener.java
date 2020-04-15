@@ -18,7 +18,6 @@ import io.smallrye.graphql.execution.GraphQLProducer;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.x.SmallRyeGraphQLBootstrap;
-import io.smallrye.graphql.x.index.IndexInitializer;
 
 /**
  * Bootstrap the application on startup

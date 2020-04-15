@@ -16,6 +16,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 
@@ -54,6 +55,7 @@ public class OperationCreator {
 
         Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
                 methodInfo.name(),
+                MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
                 name,
                 maybeDescription.orElse(null),
                 reference);
@@ -66,8 +68,8 @@ public class OperationCreator {
         // Array
         operation.setArray(ArrayCreator.createArray(fieldType));
 
-        // Format
-        operation.setFormat(FormatHelper.getFormat(fieldType, annotationsForMethod));
+        // TransformInfo
+        operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod));
 
         // Default Value
         Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForMethod);
@@ -76,19 +78,24 @@ public class OperationCreator {
         // Arguments
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
-            // See if this is a @Source
-            Annotations annotationsForArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
+            Optional<Argument> maybeArgument = ArgumentCreator.createArgument(fieldType, methodInfo, i);
+            if (maybeArgument.isPresent()) {
+                Argument argument = maybeArgument.get();
 
-            if (!isSourceAnnotationOnSourceOperation(annotationsForArgument, operationType)) {
-                ArgumentCreator.createArgument(fieldType, methodInfo, i)
-                        .ifPresent(operation::addArgument);
+                // See if this is a @Source
+                Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
+                if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
+                    argument.markAsSourceArgument();
+                }
+
+                operation.addArgument(argument);
             }
+
         }
 
         return operation;
     }
 
-    // Source Operations should ignore the @Source annotation
     /**
      * Source operation on types should remove the Source argument
      * 
@@ -144,9 +151,9 @@ public class OperationCreator {
     private static String getDefaultExecutionTypeName(MethodInfo methodInfo, OperationType operationType) {
         String methodName = methodInfo.name();
         if (operationType.equals(OperationType.Query) || operationType.equals(OperationType.Source)) {
-            methodName = MethodHelper.getFieldName(Direction.OUT, methodName);
+            methodName = MethodHelper.getPropertyName(Direction.OUT, methodName);
         } else if (operationType.equals(OperationType.Mutation)) {
-            methodName = MethodHelper.getFieldName(Direction.IN, methodName);
+            methodName = MethodHelper.getPropertyName(Direction.IN, methodName);
         }
         return methodName;
     }

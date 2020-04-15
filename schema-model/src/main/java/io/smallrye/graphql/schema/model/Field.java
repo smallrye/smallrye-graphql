@@ -15,17 +15,19 @@ import java.util.Optional;
 public class Field implements Serializable {
 
     private final String methodName; // This is the java method name (getter/setter/operation)
+    private final String propertyName; // This is the java property name (i.e without get/set/is)
     private final String name;
     private final String description;
     private final Reference reference; // The type of this field.
 
     private boolean notNull = false;
     private Optional<Array> array = Optional.empty(); // If this is a collection
-    private Optional<Format> format = Optional.empty(); // If the field should be formatted
+    private Optional<TransformInfo> transformInfo = Optional.empty(); // If the field should be transformed
     private Optional<Object> defaultValue = Optional.empty();
 
-    public Field(String methodName, String name, String description, Reference reference) {
+    public Field(String methodName, String propertyName, String name, String description, Reference reference) {
         this.methodName = methodName;
+        this.propertyName = propertyName;
         this.name = name;
         this.description = description;
         this.reference = reference;
@@ -33,6 +35,10 @@ public class Field implements Serializable {
 
     public String getMethodName() {
         return methodName;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
     }
 
     public String getName() {
@@ -63,12 +69,12 @@ public class Field implements Serializable {
         this.array = array;
     }
 
-    public Optional<Format> getFormat() {
-        return format;
+    public Optional<TransformInfo> getTransformInfo() {
+        return transformInfo;
     }
 
-    public void setFormat(Optional<Format> format) {
-        this.format = format;
+    public void setTransformInfo(Optional<TransformInfo> transformInfo) {
+        this.transformInfo = transformInfo;
     }
 
     public Optional<Object> getDefaultValue() {

@@ -40,8 +40,9 @@ public class ArrayCreator {
      */
     public static Optional<Array> createArray(Type fieldType, Type methodType) {
         if (isParameterized(methodType)) {
+            Array.Type arrayType = getModelType(methodType);
             int depth = getParameterizedDepth(methodType);
-            Array array = new Array(methodType.name().toString(), depth);
+            Array array = new Array(methodType.name().toString(), arrayType, depth);
             // NotNull
             if (markParameterizedTypeNonNull(fieldType, methodType)) {
                 array.markNotEmpty();
@@ -54,6 +55,13 @@ public class ArrayCreator {
     private static boolean isParameterized(Type type) {
         return (type.kind().equals(Type.Kind.ARRAY) || type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) // Array or Collection
                 && !Classes.isOptional(type); // Not a Optional<>
+    }
+
+    private static Array.Type getModelType(Type type) {
+        if (type.kind().equals(Type.Kind.ARRAY)) {
+            return Array.Type.ARRAY;
+        }
+        return Array.Type.COLLECTION;
     }
 
     private static int getParameterizedDepth(Type type) {

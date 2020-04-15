@@ -19,7 +19,7 @@ public class MethodHelper {
      * @param methodName the method name
      * @return the field name
      */
-    public static String getFieldName(Direction direction, String methodName) {
+    public static String getPropertyName(Direction direction, String methodName) {
         if (direction.equals(Direction.IN)) {
             return toNameFromSetter(methodName);
         } else if (direction.equals(Direction.OUT)) {
