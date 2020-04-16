@@ -256,6 +256,31 @@ public class ExecutionTest {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_NUMBER_INPUT);
 
         Assert.assertFalse("idNumber should not be null", data.isNull("idNumber"));
+
+        Assert.assertFalse("name should not be null", data.getJsonObject("idNumber").isNull("name"));
+        Assert.assertEquals("Wrong name while idNumber", "Starlord",
+                data.getJsonObject("idNumber").getString("name"));
+
+        Assert.assertFalse("idNumber should not be null",
+                data.getJsonObject("idNumber").isNull("idNumber"));
+        Assert.assertEquals("Wrong idNumber while idNumber", "ID-77777777",
+                data.getJsonObject("idNumber").getString("idNumber"));
+    }
+
+    @Test
+    public void testMutationWithInvalidTimeInput() throws IOException {
+        JsonArray errors = executeAndGetError(MUTATION_INVALID_TIME_SCALAR);
+
+        Assert.assertEquals("Wrong size for errors while startPatrolling with wrong date", 1,
+                errors.size());
+
+        JsonObject error = errors.getJsonObject(0);
+
+        Assert.assertFalse("message should not be null", error.isNull("message"));
+
+        Assert.assertEquals("Wrong error message while startPatrolling with wrong date",
+                "Validation error of type WrongType: argument 'time' with value 'StringValue{value='Today'}' is not a valid 'Time' @ 'startPatrolling'",
+                error.getString("message"));
     }
 
     private JsonObject executeAndGetData(String graphQL) {
@@ -265,6 +290,15 @@ public class ExecutionTest {
         LOG.info(prettyData);
 
         return result.getJsonObject(DATA);
+    }
+
+    private JsonArray executeAndGetError(String graphQL) {
+        JsonObject result = executionService.execute(toJsonObject(graphQL));
+
+        String prettyData = getPrettyJson(result);
+        LOG.info(prettyData);
+
+        return result.getJsonArray(ERRORS);
     }
 
     private JsonObject toJsonObject(String graphQL) {
@@ -295,6 +329,14 @@ public class ExecutionTest {
     }
 
     private static final String DATA = "data";
+    private static final String ERRORS = "errors";
+
+    private static final String MUTATION_INVALID_TIME_SCALAR = "mutation invalidPatrollingDate {\n" +
+            "  startPatrolling(name:\"Starlord\", time:\"Today\") {\n" +
+            "    name\n" +
+            "    patrolStartTime\n" +
+            "  }\n" +
+            "}";
 
     private static final String MUTATION_SCALAR_NUMBER_INPUT = "mutation setHeroIdNumber {\n" +
             "  idNumber(name:\"Starlord\", id:77777777) {\n" +

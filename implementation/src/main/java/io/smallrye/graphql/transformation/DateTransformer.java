@@ -1,5 +1,6 @@
 package io.smallrye.graphql.transformation;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -52,7 +53,7 @@ public class DateTransformer {
      * @param typeClassName the date type name
      * @return some date type object, maybe
      */
-    public Optional<Object> stringToDateType(String input, String typeClassName) {
+    public Optional<Object> stringToDateType(String input, String typeClassName) throws DateTimeException {
 
         // Date
         if (typeClassName.equals(LocalDate.class.getName())) {

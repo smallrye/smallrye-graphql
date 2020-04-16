@@ -1,5 +1,6 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
+import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 
 /**
@@ -107,8 +109,12 @@ public class ArgumentHelper extends AbstractHelper {
     @Override
     Object singleTransform(Object argumentValue, Field field) {
         if (shouldTransform(field)) {
-            Transformer transformer = Transformer.transformer(field);
-            return argumentValue = transformer.parseInput(argumentValue);
+            try {
+                Transformer transformer = Transformer.transformer(field);
+                return transformer.parseInput(argumentValue);
+            } catch (DateTimeParseException dte) { // TODO Number parse exceptions
+                throw new TransformException(dte, field, argumentValue);
+            }
         } else {
             return argumentValue;
         }
@@ -121,6 +127,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param fieldValue the input from graphql-java, potentially transformed
      * @param field the field as created while scanning
      * @return the value to use in the method call
+     * @throws org.eclipse.microprofile.graphql.GraphQLException
      */
     @Override
     protected Object afterRecursiveTransform(Object fieldValue, Field field) throws GraphQLException {

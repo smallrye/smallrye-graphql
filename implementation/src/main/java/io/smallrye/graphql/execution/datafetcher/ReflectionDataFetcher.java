@@ -23,6 +23,7 @@ import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.transformation.TransformException;
 
 /**
  * Fetch data using CDI and Reflection
@@ -96,6 +97,8 @@ public class ReflectionDataFetcher implements DataFetcher {
             // See if we need to transform on the way out
             return fieldHelper.transformResponse(resultFromMethodCall);
 
+        } catch (TransformException pe) {
+            return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException | NoSuchMethodException | SecurityException | GraphQLException
                 | IllegalAccessException | IllegalArgumentException ex) {
             Throwable throwable = ex.getCause();
