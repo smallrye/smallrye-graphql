@@ -1,23 +1,17 @@
-package io.smallrye.graphql.execution.datafetcher;
+package io.smallrye.graphql.transformation;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.time.LocalDate;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
-
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
@@ -32,10 +26,11 @@ import io.smallrye.graphql.schema.model.TransformInfo;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Transformer {
-    private static final Logger LOG = Logger.getLogger(Transformer.class.getName());
 
     private DateTimeFormatter dateTimeFormatter = null;
     private NumberFormat numberFormat = null;
+    private DateTransformer dateTransformer;
+    private NumberTransformer numberTransformer;
 
     private final Field field;
 
@@ -57,8 +52,10 @@ public class Transformer {
 
             if (format.getType().equals(TransformInfo.Type.NUMBER)) {
                 this.numberFormat = getNumberFormat(format);
+                this.numberTransformer = NumberTransformer.transformer(numberFormat);
             } else if (format.getType().equals(TransformInfo.Type.DATE)) {
                 this.dateTimeFormatter = getDateFormat(format);
+                this.dateTransformer = DateTransformer.transformer(dateTimeFormatter);
             }
         }
     }
@@ -71,7 +68,7 @@ public class Transformer {
      * @param input the value to be transformed
      * @return the transformed result
      */
-    public Object parseInput(Object input) {
+    public Object parseInput(Object input) throws ParseException, NumberFormatException, DateTimeException {
 
         if (Classes.isCollection(input)) {
             throw new RuntimeException("Can not parse [" + input + "] of type [" + input.getClass().getName() + "]");
@@ -91,42 +88,7 @@ public class Transformer {
      */
     private Object parseDateInput(Object input) {
         String className = field.getReference().getClassName();
-        // Date
-        if (className.equals(Classes.LOCALDATE)) {
-            return LocalDate.parse(input.toString(), dateTimeFormatter);
-        } else if (className.equals(Classes.SQL_DATE)) {
-            LocalDate localdate = LocalDate.parse(input.toString(), dateTimeFormatter);
-            return java.sql.Date.valueOf(localdate);
-
-            // Date time    
-        } else if (className.equals(Classes.LOCALDATETIME)) {
-            return LocalDateTime.parse(input.toString(), dateTimeFormatter);
-        } else if (className.equals(Classes.UTIL_DATE)) {
-            LocalDateTime localdatetime = LocalDateTime.parse(input.toString(), dateTimeFormatter);
-            return java.util.Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
-        } else if (className.equals(Classes.SQL_TIMESTAMP)) {
-            LocalDateTime localdatetime = LocalDateTime.parse(input.toString(), dateTimeFormatter);
-            return java.sql.Timestamp.valueOf(localdatetime);
-        } else if (className.equals(Classes.OFFSETDATETIME)) {
-            return OffsetDateTime.parse(input.toString(), dateTimeFormatter);
-        } else if (className.equals(Classes.ZONEDDATETIME)) {
-            return ZonedDateTime.parse(input.toString(), dateTimeFormatter);
-
-            // Time    
-        } else if (className.equals(Classes.LOCALTIME)) {
-            return LocalTime.parse(input.toString(), dateTimeFormatter);
-        } else if (className.equals(Classes.SQL_TIME)) {
-            LocalTime localtime = LocalTime.parse(input.toString(), dateTimeFormatter);
-            return java.sql.Time.valueOf(localtime);
-        } else if (className.equals(Classes.OFFSETTIME)) {
-            return OffsetTime.parse(input.toString(), dateTimeFormatter);
-
-            // Unsupported
-        } else {
-            TemporalAccessor temporalAccessor = dateTimeFormatter.parse(input.toString());
-            return temporalAccessor;
-        }
-
+        return dateTransformer.stringToDateType(input.toString(), className).orElse(input);
     }
 
     /**
@@ -135,13 +97,9 @@ public class Transformer {
      * @param input the formatted number
      * @return number
      */
-    private Object parseNumberInput(Object input) {
-        try {
-            return numberFormat.parse(input.toString());
-        } catch (ParseException ex) {
-            LOG.warn("Could not parse [" + input.toString() + "]", ex);
-            return input;
-        }
+    private Object parseNumberInput(Object input) throws ParseException, NumberFormatException {
+        String className = field.getReference().getClassName();
+        return numberTransformer.stringToNumberType(input.toString(), className).orElse(input);
     }
 
     // Formatting (on the way out)

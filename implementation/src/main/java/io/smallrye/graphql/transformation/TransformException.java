@@ -1,0 +1,78 @@
+package io.smallrye.graphql.transformation;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import graphql.execution.DataFetcherExceptionHandlerParameters;
+import graphql.execution.DataFetcherResult;
+import graphql.execution.ExecutionPath;
+import graphql.language.Argument;
+import graphql.language.SourceLocation;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
+import io.smallrye.graphql.scalar.GraphQLScalarTypes;
+import io.smallrye.graphql.schema.model.Field;
+
+/**
+ * Exception thrown when the transformation failed on input parameters or return object.
+ * 
+ * @author Phillip Kruger (phillip.kruger@redhat.com)
+ */
+public class TransformException extends RuntimeException {
+    private final Field field;
+    private final String parameterValue;
+
+    public TransformException(Throwable original, Field field, Object parameterValue) {
+        super(original);
+        this.field = field;
+        if (parameterValue != null) {
+            this.parameterValue = parameterValue.toString();
+        } else {
+            this.parameterValue = null;
+        }
+    }
+
+    public DataFetcherResult<Object> getDataFetcherResult(DataFetchingEnvironment dfe) {
+
+        DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
+                .newExceptionParameters()
+                .dataFetchingEnvironment(dfe)
+                .exception(super.getCause())
+                .build();
+
+        SourceLocation sourceLocation = getSourceLocation(dfe, handlerParameters);
+
+        List<String> paths = toPathList(handlerParameters.getPath());
+
+        ValidationError error = new ValidationError(ValidationErrorType.WrongType,
+                sourceLocation, "argument '" + field.getName() + "' with value 'StringValue{value='" + parameterValue
+                        + "'}' is not a valid '"
+                        + GraphQLScalarTypes.getScalarMap().get(field.getReference().getClassName()).getName() + "'",
+                paths);
+
+        return DataFetcherResult.newResult()
+                .error(error)
+                .build();
+    }
+
+    private SourceLocation getSourceLocation(DataFetchingEnvironment dfe,
+            DataFetcherExceptionHandlerParameters handlerParameters) {
+        List<Argument> arguments = dfe.getField().getArguments();
+        for (Argument a : arguments) {
+            if (a.getName().equals(this.field.getName())) {
+                return a.getSourceLocation();
+            }
+        }
+        // Else fallback to more general
+        return handlerParameters.getSourceLocation();
+    }
+
+    private List<String> toPathList(ExecutionPath path) {
+        List<String> l = new ArrayList<>();
+        for (Object o : path.toList()) {
+            l.add(o.toString());
+        }
+        return l;
+    }
+}

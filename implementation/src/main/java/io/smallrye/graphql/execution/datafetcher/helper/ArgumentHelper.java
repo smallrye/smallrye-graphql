@@ -1,5 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
+import java.text.ParseException;
+import java.time.DateTimeException;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +13,14 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.datafetcher.Transformer;
 import io.smallrye.graphql.json.InputTransformFields;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.TransformException;
+import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the arguments when doing reflection calls
@@ -54,9 +57,11 @@ public class ArgumentHelper extends AbstractHelper {
      * 
      * @throws GraphQLException
      */
-    public List getArguments(DataFetchingEnvironment dfe) throws GraphQLException {
+    public List getArguments(DataFetchingEnvironment dfe)
+            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
         List argumentObjects = new LinkedList();
         for (Argument argument : arguments) {
+
             Object argumentValue = getArgument(dfe, argument);
             argumentObjects.add(argumentValue);
         }
@@ -74,7 +79,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the value of the argument
      * @throws GraphQLException
      */
-    private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws GraphQLException {
+    private Object getArgument(DataFetchingEnvironment dfe, Argument argument)
+            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
         // If this is a source argument, just return the source. The source does 
         // not need transformation and would already be in the correct class type
         if (argument.isSourceArgument()) {
@@ -107,8 +113,12 @@ public class ArgumentHelper extends AbstractHelper {
     @Override
     Object singleTransform(Object argumentValue, Field field) {
         if (shouldTransform(field)) {
-            Transformer transformer = Transformer.transformer(field);
-            return argumentValue = transformer.parseInput(argumentValue);
+            try {
+                Transformer transformer = Transformer.transformer(field);
+                return transformer.parseInput(argumentValue);
+            } catch (DateTimeParseException | ParseException | NumberFormatException dte) {
+                throw new TransformException(dte, field, argumentValue);
+            }
         } else {
             return argumentValue;
         }
@@ -121,6 +131,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param fieldValue the input from graphql-java, potentially transformed
      * @param field the field as created while scanning
      * @return the value to use in the method call
+     * @throws org.eclipse.microprofile.graphql.GraphQLException
      */
     @Override
     protected Object afterRecursiveTransform(Object fieldValue, Field field) throws GraphQLException {
@@ -155,10 +166,12 @@ public class ArgumentHelper extends AbstractHelper {
             Class correctType = Classes.toPrimativeClassType(input);
             return correctType.cast(input);
         } else {
-
-            // TODO: Scalar to Primative ?
             // Find it from the toString value and create a new correct class.
-            return Classes.stringToScalar(input.toString(), field.getReference().getClassName());
+            try {
+                return GraphQLScalarTypes.stringToScalar(input.toString(), field.getReference().getClassName());
+            } catch (DateTimeException | ParseException | NumberFormatException original) {
+                throw new TransformException(original, field, input);
+            }
         }
     }
 
@@ -171,7 +184,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the return value
      * @throws GraphQLException
      */
-    private Object correctObjectClass(Object argumentValue, Field field) throws GraphQLException {
+    private Object correctObjectClass(Object argumentValue, Field field)
+            throws GraphQLException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
@@ -251,8 +265,10 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Object correctScalarObjectFromString(Object argumentValue, Field field) {
         String expectedClass = field.getReference().getClassName();
-        GraphQLScalarType graphQLScalarType = GraphQLScalarTypes.getScalarMap().get(expectedClass);
-        Object object = graphQLScalarType.getCoercing().serialize(argumentValue);
-        return object;
+        try {
+            return GraphQLScalarTypes.stringToScalar(argumentValue.toString(), expectedClass);
+        } catch (DateTimeException | ParseException | NumberFormatException original) {
+            throw new TransformException(original, field, argumentValue);
+        }
     }
 }

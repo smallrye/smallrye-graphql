@@ -4,10 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
@@ -20,9 +18,9 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.transformation.TransformException;
 
 /**
  * Fetch data using CDI and Reflection
@@ -32,12 +30,11 @@ import io.smallrye.graphql.schema.model.Operation;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
-    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
     private final Operation operation;
-    private final Class[] parameterClasses;
+    private final List<Class> parameterClasses;
     private final FieldHelper fieldHelper;
     private final ArgumentHelper argumentHelper;
 
@@ -84,9 +81,8 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {
-                Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses);
+                Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses.toArray(new Class[] {}));
                 List transformedArguments = argumentHelper.getArguments(dfe);
-                validateArgumentTypes(transformedArguments);
                 resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
             } else {
                 Method m = cdiClass.getMethod(operation.getMethodName());
@@ -96,6 +92,8 @@ public class ReflectionDataFetcher implements DataFetcher {
             // See if we need to transform on the way out
             return fieldHelper.transformResponse(resultFromMethodCall);
 
+        } catch (TransformException pe) {
+            return pe.getDataFetcherResult(dfe);
         } catch (InvocationTargetException | NoSuchMethodException | SecurityException | GraphQLException
                 | IllegalAccessException | IllegalArgumentException ex) {
             Throwable throwable = ex.getCause();
@@ -114,20 +112,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             }
         }
     }
-
-    //    private Optional<GraphQLScalarType> getExpectedScalarType(Argument argument) {
-    //        String expectedPrimitiveClassName = argument.getReference().getClassName();
-    //        if (GraphQLScalarTypes.getScalarMap().containsKey(expectedPrimitiveClassName)) {
-    //            return Optional.of(GraphQLScalarTypes.getScalarMap().get(expectedPrimitiveClassName));
-    //        }
-    //        return Optional.empty();
-    //    }
-    //
-    //    private Object logMismatchAndReturnWrongType(Object argumentValue, Argument argument, String message) {
-    //        //LOG.warn(message + " | argument [" + argumentValue + "] of kind [" + argumentValue.getClass().getName()
-    //        //        + "] but expecting kind [" + argument.getReference().getClassName() + "]");
-    //        return argumentValue;
-    //    }
 
     private DataFetcherResult<Object> getPartialResult(DataFetchingEnvironment dfe, GraphQLException graphQLException) {
         DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
@@ -154,7 +138,7 @@ public class ReflectionDataFetcher implements DataFetcher {
      * 
      * @return the array of classes.
      */
-    private Class[] getParameterClasses() {
+    private List<Class> getParameterClasses() {
         if (operation.hasArguments()) {
             List<Class> cl = new LinkedList<>();
             for (Field argument : operation.getArguments()) {
@@ -167,30 +151,8 @@ public class ReflectionDataFetcher implements DataFetcher {
                     cl.add(clazz);
                 }
             }
-            return cl.toArray(new Class[] {});
+            return cl;
         }
         return null;
-    }
-
-    /**
-     * Might be used for debugging. This check that all arguments is in the correct type
-     * 
-     * @param arguments
-     */
-    private void validateArgumentTypes(List arguments) {
-        Stack<Argument> argumentStack = new Stack();
-        argumentStack.addAll(operation.getArguments());
-        Stack receivedStack = new Stack();
-        receivedStack.addAll(arguments);
-        for (Class c : parameterClasses) {
-            Argument argument = argumentStack.pop();
-            String expected = c.getName();
-            String received = receivedStack.pop().getClass().getName();
-            if (!expected.equals(received)) {
-                LOG.warn("Wrong argument type in " + argument.getMethodArgumentName() + "!"
-                        + "\n\t Expected = [" + expected + "]"
-                        + "\n\t Received = [" + received + "]");
-            }
-        }
     }
 }

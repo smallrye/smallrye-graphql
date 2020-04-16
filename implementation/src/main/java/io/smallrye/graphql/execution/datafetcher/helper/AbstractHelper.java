@@ -8,10 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.datafetcher.CollectionHelper;
+import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -20,7 +19,6 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractHelper {
-    private static final Logger LOG = Logger.getLogger(AbstractHelper.class.getName());
 
     protected AbstractHelper() {
     }
@@ -95,7 +93,7 @@ public abstract class AbstractHelper {
      */
     private <T> Object recursiveTransformArray(Object argumentValue, Field field) throws GraphQLException {
 
-        Collection givenCollection = getGivenCollection(argumentValue);
+        Collection givenCollection = getGivenCollection(argumentValue, field);
 
         List convertedList = new ArrayList();
 
@@ -112,35 +110,25 @@ public abstract class AbstractHelper {
         return convertedList.toArray((T[]) Array.newInstance(classInCollection, givenCollection.size()));
     }
 
-    private <T> Collection getGivenCollection(Object argumentValue) {
-        if (Classes.isCollection(argumentValue)) {
-            return (Collection) argumentValue;
-        } else {
-            // Assume array. TODO: Maybe check for [L in className ?
-            return Arrays.asList((T[]) argumentValue);
-        }
-    }
-
     /**
      * This just creates a new correct type collection and add values to it by calling the recursiveTransform method.
      * This allows collections of collections and transformation inside collections
      * Even without transformation, we need to go from arrayList to the correct collection type,
      * or arraylist of arraylist to collection of collection
      * 
-     * @param <T> the type in the collection
      * @param argumentValue the list as from graphql-java (always an arraylist)
      * @param field the field as created while scanning
      * @return a collection with the transformed values in.
      * @throws GraphQLException
      */
     private Object recursiveTransformCollection(Object argumentValue, Field field) throws GraphQLException {
-        ArrayList givenArrayList = (ArrayList) argumentValue;
+        Collection givenCollection = getGivenCollection(argumentValue, field);
 
         String collectionClassName = field.getArray().get().getClassName();
 
-        Collection convertedCollection = CollectionHelper.newCollection(collectionClassName);
+        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
 
-        for (Object objectInGivenCollection : givenArrayList) {
+        for (Object objectInGivenCollection : givenCollection) {
             Field fieldInCollection = getFieldInField(field);
             Object objectInCollection = recursiveTransform(objectInGivenCollection,
                     fieldInCollection);
@@ -161,7 +149,7 @@ public abstract class AbstractHelper {
      */
     private Object recursiveTransformOptional(Object argumentValue, Field field) throws GraphQLException {
         // Check the type and maybe apply transformation
-        Collection givenCollection = (Collection) argumentValue;
+        Collection givenCollection = getGivenCollection(argumentValue, field);
         if (givenCollection.isEmpty()) {
             return Optional.empty();
         } else {
@@ -223,4 +211,11 @@ public abstract class AbstractHelper {
         return field.getTransformInfo().isPresent();
     }
 
+    private <T> Collection getGivenCollection(Object argumentValue, Field field) {
+        if (Classes.isCollection(argumentValue)) {
+            return (Collection) argumentValue;
+        } else {
+            return Arrays.asList((T[]) argumentValue);
+        }
+    }
 }

@@ -27,6 +27,7 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
@@ -180,7 +181,7 @@ public class Bootstrap {
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
         codeRegistryBuilder.typeResolver(graphQLInterfaceType,
-                new InterfaceResolver(interfaceType.getClassName()));
+                new InterfaceResolver(interfaceType));
 
         interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
     }
@@ -251,6 +252,9 @@ public class Bootstrap {
 
         GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
         typeMap.put(type.getClassName(), graphQLObjectType);
+
+        // Register this output for interface type resolving
+        InterfaceOutputRegistry.register(type, graphQLObjectType);
     }
 
     private GraphQLFieldDefinition createGraphQLFieldDefinitionFromOperation(String operationTypeName, Operation operation) {

@@ -1,10 +1,12 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
-import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
+import java.text.ParseException;
+import java.time.DateTimeException;
 
-import io.smallrye.graphql.execution.datafetcher.Transformer;
+import org.eclipse.microprofile.graphql.GraphQLException;
+
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the field response
@@ -14,7 +16,6 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class FieldHelper extends AbstractHelper {
-    private static final Logger LOG = Logger.getLogger(FieldHelper.class.getName());
 
     private final Field field;
 
@@ -28,8 +29,12 @@ public class FieldHelper extends AbstractHelper {
         this.field = field;
     }
 
-    public Object transformResponse(Object argumentValue) throws GraphQLException {
-        return super.recursiveTransform(argumentValue, field);
+    public Object transformResponse(Object argumentValue)
+            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
+        if (field.getTransformInfo().isPresent()) {
+            argumentValue = super.recursiveTransform(argumentValue, field);
+        }
+        return argumentValue;
     }
 
     /**

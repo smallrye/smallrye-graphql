@@ -19,6 +19,7 @@ import io.smallrye.graphql.schema.model.InputType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class JsonBCreator {
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true)); //default
 
     private static final Map<String, Jsonb> jsonMap = new HashMap<>();
 
@@ -67,11 +68,5 @@ public class JsonBCreator {
         return new JsonbConfig()
                 .withNullValues(Boolean.TRUE)
                 .withFormatting(Boolean.TRUE);
-    }
-
-    // Default
-    private static Jsonb JSONB;
-    static {
-        JSONB = JsonbBuilder.create(createDefaultConfig());
     }
 }

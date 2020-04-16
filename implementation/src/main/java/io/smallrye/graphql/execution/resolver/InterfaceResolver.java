@@ -3,6 +3,8 @@ package io.smallrye.graphql.execution.resolver;
 import graphql.TypeResolutionEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.TypeResolver;
+import io.smallrye.graphql.schema.model.InterfaceType;
+import io.smallrye.graphql.x.typeresolver.ConcreteImplementationNotFoundException;
 
 /**
  * Resolve an interface.
@@ -11,15 +13,27 @@ import graphql.schema.TypeResolver;
  */
 public class InterfaceResolver implements TypeResolver {
 
-    private final String interfaceName;
+    private final InterfaceType interfaceType;
 
-    public InterfaceResolver(String interfaceName) {
-        this.interfaceName = interfaceName;
+    public InterfaceResolver(InterfaceType interfaceType) {
+        this.interfaceType = interfaceType;
     }
 
     @Override
     public GraphQLObjectType getType(TypeResolutionEnvironment tre) {
-        return null;
+
+        String concreateClassName = tre.getObject().getClass().getName();
+
+        GraphQLObjectType graphQLObjectType = InterfaceOutputRegistry.getGraphQLObjectType(interfaceType.getClassName(),
+                concreateClassName);
+        if (graphQLObjectType != null) {
+            return graphQLObjectType;
+        } else {
+            throw new ConcreteImplementationNotFoundException(
+                    "No concrete class named [" + concreateClassName + "] found for interface ["
+                            + interfaceType.getClassName() + "]");
+
+        }
     }
 
 }
