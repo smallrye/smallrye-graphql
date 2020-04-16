@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
+import java.text.ParseException;
+import java.time.DateTimeException;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,7 +57,8 @@ public class ArgumentHelper extends AbstractHelper {
      * 
      * @throws GraphQLException
      */
-    public List getArguments(DataFetchingEnvironment dfe) throws GraphQLException {
+    public List getArguments(DataFetchingEnvironment dfe)
+            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
         List argumentObjects = new LinkedList();
         for (Argument argument : arguments) {
 
@@ -76,7 +79,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the value of the argument
      * @throws GraphQLException
      */
-    private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws GraphQLException {
+    private Object getArgument(DataFetchingEnvironment dfe, Argument argument)
+            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
         // If this is a source argument, just return the source. The source does 
         // not need transformation and would already be in the correct class type
         if (argument.isSourceArgument()) {
@@ -112,7 +116,7 @@ public class ArgumentHelper extends AbstractHelper {
             try {
                 Transformer transformer = Transformer.transformer(field);
                 return transformer.parseInput(argumentValue);
-            } catch (DateTimeParseException dte) { // TODO Number parse exceptions
+            } catch (DateTimeParseException | ParseException | NumberFormatException dte) {
                 throw new TransformException(dte, field, argumentValue);
             }
         } else {
@@ -163,7 +167,11 @@ public class ArgumentHelper extends AbstractHelper {
             return correctType.cast(input);
         } else {
             // Find it from the toString value and create a new correct class.
-            return GraphQLScalarTypes.stringToScalar(input.toString(), field.getReference().getClassName());
+            try {
+                return GraphQLScalarTypes.stringToScalar(input.toString(), field.getReference().getClassName());
+            } catch (DateTimeException | ParseException | NumberFormatException original) {
+                throw new TransformException(original, field, input);
+            }
         }
     }
 
@@ -176,7 +184,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the return value
      * @throws GraphQLException
      */
-    private Object correctObjectClass(Object argumentValue, Field field) throws GraphQLException {
+    private Object correctObjectClass(Object argumentValue, Field field)
+            throws GraphQLException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
@@ -256,6 +265,10 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Object correctScalarObjectFromString(Object argumentValue, Field field) {
         String expectedClass = field.getReference().getClassName();
-        return GraphQLScalarTypes.stringToScalar(argumentValue.toString(), expectedClass);
+        try {
+            return GraphQLScalarTypes.stringToScalar(argumentValue.toString(), expectedClass);
+        } catch (DateTimeException | ParseException | NumberFormatException original) {
+            throw new TransformException(original, field, argumentValue);
+        }
     }
 }

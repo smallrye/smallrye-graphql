@@ -1,5 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import java.text.ParseException;
+import java.time.DateTimeException;
+
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
@@ -28,7 +31,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
         try {
             // See if we need to transform
             return fieldHelper.transformResponse(resultFromMethodCall);
-        } catch (GraphQLException ex) {
+        } catch (GraphQLException | DateTimeException | ParseException | NumberFormatException ex) {
             LOG.warn(ex.getMessage());
             return resultFromMethodCall;
         }

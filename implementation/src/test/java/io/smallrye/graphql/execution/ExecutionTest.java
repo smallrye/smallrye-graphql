@@ -283,6 +283,22 @@ public class ExecutionTest {
                 error.getString("message"));
     }
 
+    @Test
+    public void testMutationWithInvalidNumberInput() throws IOException {
+        JsonArray errors = executeAndGetError(MUTATION_INVALID_NUMBER_SCALAR);
+
+        Assert.assertEquals("Wrong size for errors while updateItemPowerLevel with wrong numner", 1,
+                errors.size());
+
+        JsonObject error = errors.getJsonObject(0);
+
+        Assert.assertFalse("message should not be null", error.isNull("message"));
+
+        Assert.assertEquals("Wrong error message while updateItemPowerLevel with wrong number",
+                "Validation error of type WrongType: argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int' @ 'updateItemPowerLevel'",
+                error.getString("message"));
+    }
+
     private JsonObject executeAndGetData(String graphQL) {
         JsonObject result = executionService.execute(toJsonObject(graphQL));
 
@@ -330,6 +346,14 @@ public class ExecutionTest {
 
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
+
+    private static final String MUTATION_INVALID_NUMBER_SCALAR = "mutation increaseIronManSuitPowerTooHigh {\n" +
+            "  updateItemPowerLevel(itemID:1001, powerLevel:\"Unlimited\") {\n" +
+            "    id\n" +
+            "    name\n" +
+            "    powerLevel\n" +
+            "  }\n" +
+            "}";
 
     private static final String MUTATION_INVALID_TIME_SCALAR = "mutation invalidPatrollingDate {\n" +
             "  startPatrolling(name:\"Starlord\", time:\"Today\") {\n" +

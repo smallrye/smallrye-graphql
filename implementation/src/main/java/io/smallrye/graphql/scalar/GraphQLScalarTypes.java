@@ -2,6 +2,8 @@ package io.smallrye.graphql.scalar;
 
 import java.net.URI;
 import java.net.URL;
+import java.text.ParseException;
+import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +43,8 @@ public class GraphQLScalarTypes {
         return SCALAR_MAP.containsKey(className);
     }
 
-    public static Object stringToScalar(String input, String expectedClassName) {
+    public static Object stringToScalar(String input, String expectedClassName)
+            throws ParseException, NumberFormatException, DateTimeException {
         // Boolean
         if (expectedClassName.equals(boolean.class.getName())) {
             return Boolean.parseBoolean(input);

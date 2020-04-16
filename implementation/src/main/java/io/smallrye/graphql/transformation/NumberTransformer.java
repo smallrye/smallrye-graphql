@@ -50,14 +50,10 @@ public class NumberTransformer {
      * @param typeClassName the number type name
      * @return some number type object, maybe
      */
-    public Optional<Object> stringToNumberType(String input, String typeClassName) {
-
+    public Optional<Object> stringToNumberType(String input, String typeClassName)
+            throws ParseException, NumberFormatException {
         if (numberFormat.isPresent()) {
-            try {
-                input = numberFormat.get().parse(input).toString();
-            } catch (ParseException ex) {
-                LOG.warn("Could not parse [" + input.toString() + "]", ex);
-            }
+            input = numberFormat.get().parse(input).toString();
         }
 
         // Integer

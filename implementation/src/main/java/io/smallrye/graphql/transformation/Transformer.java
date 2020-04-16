@@ -3,6 +3,8 @@ package io.smallrye.graphql.transformation;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +71,7 @@ public class Transformer {
      * @param input the value to be transformed
      * @return the transformed result
      */
-    public Object parseInput(Object input) {
+    public Object parseInput(Object input) throws ParseException, NumberFormatException, DateTimeException {
 
         if (Classes.isCollection(input)) {
             throw new RuntimeException("Can not parse [" + input + "] of type [" + input.getClass().getName() + "]");
@@ -98,7 +100,7 @@ public class Transformer {
      * @param input the formatted number
      * @return number
      */
-    private Object parseNumberInput(Object input) {
+    private Object parseNumberInput(Object input) throws ParseException, NumberFormatException {
         String className = field.getReference().getClassName();
         return numberTransformer.stringToNumberType(input.toString(), className).orElse(input);
     }
