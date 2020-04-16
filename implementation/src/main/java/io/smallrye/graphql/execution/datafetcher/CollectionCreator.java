@@ -11,7 +11,7 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.x.Classes;
 
 /**
- * Helping with collections.
+ * Helping with creating collection instances
  * This gets the new collection when creating arguments to call the method.
  * 
  * We get a Collection from graph-ql java, and we go through all elements, potentially transforming them,
@@ -19,8 +19,8 @@ import io.smallrye.graphql.x.Classes;
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class CollectionHelper {
-    private static final Logger LOG = Logger.getLogger(CollectionHelper.class.getName());
+public class CollectionCreator {
+    private static final Logger LOG = Logger.getLogger(CollectionCreator.class.getName());
 
     public static Collection<?> newCollection(String className) {
         Class<?> type = Classes.loadClass(className);

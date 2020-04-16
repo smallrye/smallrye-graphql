@@ -10,14 +10,13 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.datafetcher.Transformer;
 import io.smallrye.graphql.json.InputTransformFields;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the arguments when doing reflection calls
@@ -57,6 +56,7 @@ public class ArgumentHelper extends AbstractHelper {
     public List getArguments(DataFetchingEnvironment dfe) throws GraphQLException {
         List argumentObjects = new LinkedList();
         for (Argument argument : arguments) {
+
             Object argumentValue = getArgument(dfe, argument);
             argumentObjects.add(argumentValue);
         }
@@ -155,10 +155,8 @@ public class ArgumentHelper extends AbstractHelper {
             Class correctType = Classes.toPrimativeClassType(input);
             return correctType.cast(input);
         } else {
-
-            // TODO: Scalar to Primative ?
             // Find it from the toString value and create a new correct class.
-            return Classes.stringToScalar(input.toString(), field.getReference().getClassName());
+            return GraphQLScalarTypes.stringToScalar(input.toString(), field.getReference().getClassName());
         }
     }
 
@@ -251,8 +249,6 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Object correctScalarObjectFromString(Object argumentValue, Field field) {
         String expectedClass = field.getReference().getClassName();
-        GraphQLScalarType graphQLScalarType = GraphQLScalarTypes.getScalarMap().get(expectedClass);
-        Object object = graphQLScalarType.getCoercing().serialize(argumentValue);
-        return object;
+        return GraphQLScalarTypes.stringToScalar(argumentValue.toString(), expectedClass);
     }
 }

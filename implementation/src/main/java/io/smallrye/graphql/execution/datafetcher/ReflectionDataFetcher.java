@@ -2,9 +2,9 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
@@ -37,7 +37,7 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
     private final Operation operation;
-    private final Class[] parameterClasses;
+    private final List<Class> parameterClasses;
     private final FieldHelper fieldHelper;
     private final ArgumentHelper argumentHelper;
 
@@ -84,9 +84,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {
-                Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses);
+                Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses.toArray(new Class[] {}));
                 List transformedArguments = argumentHelper.getArguments(dfe);
-                //validateArgumentTypes(transformedArguments);
+                validateArgumentTypes(transformedArguments);
                 resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
             } else {
                 Method m = cdiClass.getMethod(operation.getMethodName());
@@ -115,20 +115,6 @@ public class ReflectionDataFetcher implements DataFetcher {
         }
     }
 
-    //    private Optional<GraphQLScalarType> getExpectedScalarType(Argument argument) {
-    //        String expectedPrimitiveClassName = argument.getReference().getClassName();
-    //        if (GraphQLScalarTypes.getScalarMap().containsKey(expectedPrimitiveClassName)) {
-    //            return Optional.of(GraphQLScalarTypes.getScalarMap().get(expectedPrimitiveClassName));
-    //        }
-    //        return Optional.empty();
-    //    }
-    //
-    //    private Object logMismatchAndReturnWrongType(Object argumentValue, Argument argument, String message) {
-    //        //LOG.warn(message + " | argument [" + argumentValue + "] of kind [" + argumentValue.getClass().getName()
-    //        //        + "] but expecting kind [" + argument.getReference().getClassName() + "]");
-    //        return argumentValue;
-    //    }
-
     private DataFetcherResult<Object> getPartialResult(DataFetchingEnvironment dfe, GraphQLException graphQLException) {
         DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
                 .newExceptionParameters()
@@ -154,7 +140,7 @@ public class ReflectionDataFetcher implements DataFetcher {
      * 
      * @return the array of classes.
      */
-    private Class[] getParameterClasses() {
+    private List<Class> getParameterClasses() {
         if (operation.hasArguments()) {
             List<Class> cl = new LinkedList<>();
             for (Field argument : operation.getArguments()) {
@@ -167,7 +153,7 @@ public class ReflectionDataFetcher implements DataFetcher {
                     cl.add(clazz);
                 }
             }
-            return cl.toArray(new Class[] {});
+            return cl;
         }
         return null;
     }
@@ -178,17 +164,15 @@ public class ReflectionDataFetcher implements DataFetcher {
      * @param arguments
      */
     private void validateArgumentTypes(List arguments) {
-        Stack<Argument> argumentStack = new Stack();
-        argumentStack.addAll(operation.getArguments());
-        Stack receivedStack = new Stack();
-        receivedStack.addAll(arguments);
+        Iterator receiveIterator = arguments.iterator();
+        Iterator<Argument> argumentIterator = operation.getArguments().iterator();
         for (Class c : parameterClasses) {
-            Argument argument = argumentStack.pop();
+            Argument argument = argumentIterator.next();
             String expected = c.getName();
-            String received = receivedStack.pop().getClass().getName();
+            String received = receiveIterator.next().getClass().getName();
             if (!expected.equals(received)) {
                 LOG.warn("Wrong argument type in " + argument.getMethodArgumentName() + "!"
-                        + "\n\t Expected = [" + expected + "]"
+                        + "\n\t Expected = [" + expected + "] " + c.getName()
                         + "\n\t Received = [" + received + "]");
             }
         }

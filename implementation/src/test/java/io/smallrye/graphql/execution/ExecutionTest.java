@@ -236,10 +236,26 @@ public class ExecutionTest {
     }
 
     @Test
-    public void testMutationWithScalarInput() throws IOException {
-        JsonObject data = executeAndGetData(MUTATION_SCALAR_INPUT);
+    public void testMutationWithScalarDateInput() throws IOException {
+        JsonObject data = executeAndGetData(MUTATION_SCALAR_DATE_INPUT);
 
         Assert.assertFalse("startPatrolling should not be null", data.isNull("startPatrolling"));
+
+        Assert.assertFalse("name should not be null", data.getJsonObject("startPatrolling").isNull("name"));
+        Assert.assertEquals("Wrong name while startPatrolling", "Starlord",
+                data.getJsonObject("startPatrolling").getString("name"));
+
+        Assert.assertFalse("patrolStartTime should not be null",
+                data.getJsonObject("startPatrolling").isNull("patrolStartTime"));
+        Assert.assertEquals("Wrong time while patrolStartTime", "20:00",
+                data.getJsonObject("startPatrolling").getString("patrolStartTime"));
+    }
+
+    @Test
+    public void testMutationWithScalarNumberInput() throws IOException {
+        JsonObject data = executeAndGetData(MUTATION_SCALAR_NUMBER_INPUT);
+
+        Assert.assertFalse("idNumber should not be null", data.isNull("idNumber"));
     }
 
     private JsonObject executeAndGetData(String graphQL) {
@@ -280,8 +296,15 @@ public class ExecutionTest {
 
     private static final String DATA = "data";
 
+    private static final String MUTATION_SCALAR_NUMBER_INPUT = "mutation setHeroIdNumber {\n" +
+            "  idNumber(name:\"Starlord\", id:77777777) {\n" +
+            "    name\n" +
+            "    idNumber\n" +
+            "  }\n" +
+            "}";
+
     // This test Scalars as input to operations
-    private static final String MUTATION_SCALAR_INPUT = "mutation heroStartPatrolling {\n" +
+    private static final String MUTATION_SCALAR_DATE_INPUT = "mutation heroStartPatrolling {\n" +
             "  startPatrolling(name:\"Starlord\", time:\"20:00:00\") {\n" +
             "    name\n" +
             "    patrolStartTime\n" +

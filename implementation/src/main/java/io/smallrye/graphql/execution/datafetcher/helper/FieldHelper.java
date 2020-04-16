@@ -1,10 +1,9 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.execution.datafetcher.Transformer;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the field response
@@ -14,7 +13,6 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class FieldHelper extends AbstractHelper {
-    private static final Logger LOG = Logger.getLogger(FieldHelper.class.getName());
 
     private final Field field;
 

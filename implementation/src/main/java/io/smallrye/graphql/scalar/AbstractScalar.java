@@ -26,5 +26,4 @@ public abstract class AbstractScalar extends GraphQLScalarType {
     public List<Class> getSupportedClasses() {
         return this.supportedTypes;
     }
-
 }

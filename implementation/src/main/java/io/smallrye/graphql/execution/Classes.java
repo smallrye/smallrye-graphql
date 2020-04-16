@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.smallrye.graphql.x.schema.PrimitiveTypeNotFoundException;
-import io.smallrye.graphql.x.schema.ScalarTypeNotFoundException;
 
 /**
  * Class helper
@@ -71,16 +70,6 @@ public class Classes {
         return className.equals(OPTIONAL);
     }
 
-    //    public static boolean isInterface(ClassInfo classInfo) {
-    //        return Modifier.isInterface(classInfo.flags());
-    //    }
-    //
-    //    public static boolean isEnum(ClassInfo classInfo) {
-    //        if (classInfo == null)
-    //            return false;
-    //        return classInfo.superName().equals(ENUM);
-    //    }
-
     public static boolean isPrimitive(String primitiveName) {
         return PRIMITIVE_CLASSES.containsKey(primitiveName);
     }
@@ -106,67 +95,7 @@ public class Classes {
         return currentValue.getClass();
     }
 
-    public static Object stringToScalar(String input, String expectedClassName) {
-        if (isPrimitive(expectedClassName)) {
-            return stringToPrimativeScalar(input, expectedClassName);
-        } else {
-            return stringToObjectScalar(input, expectedClassName);
-        }
-    }
-
-    private static Object stringToPrimativeScalar(String input, String expectedClassName) {
-        if (expectedClassName.equals(boolean.class.getName())) {
-            return Boolean.parseBoolean(input);
-        } else if (expectedClassName.equals(byte.class.getName())) {
-            return Byte.parseByte(input);
-        } else if (expectedClassName.equals(char.class.getName())) {
-            return input.charAt(0);
-        } else if (expectedClassName.equals(short.class.getName())) {
-            return Short.parseShort(input);
-        } else if (expectedClassName.equals(int.class.getName())) {
-            return Integer.parseInt(input);
-        } else if (expectedClassName.equals(long.class.getName())) {
-            return Long.parseLong(input);
-        } else if (expectedClassName.equals(float.class.getName())) {
-            return Float.parseFloat(input);
-        } else if (expectedClassName.equals(double.class.getName())) {
-            return Double.parseDouble(input);
-        } else {
-            throw new ScalarTypeNotFoundException(
-                    "Can not create new primative scalar type [" + expectedClassName + "] from input [" + input + "]");
-        }
-    }
-
-    private static Object stringToObjectScalar(String input, String expectedClassName) {
-        if (expectedClassName.equals(Boolean.class.getName())) {
-            return Boolean.valueOf(input);
-        } else if (expectedClassName.equals(Byte.class.getName())) {
-            return Byte.valueOf(input);
-        } else if (expectedClassName.equals(Character.class.getName())) {
-            return Character.valueOf(input.charAt(0));
-        } else if (expectedClassName.equals(Short.class.getName())) {
-            return Short.valueOf(input);
-        } else if (expectedClassName.equals(Integer.class.getName())) {
-            return Integer.valueOf(input);
-        } else if (expectedClassName.equals(Long.class.getName())) {
-            return Long.valueOf(input);
-        } else if (expectedClassName.equals(Float.class.getName())) {
-            return Float.valueOf(input);
-        } else if (expectedClassName.equals(Double.class.getName())) {
-            return Double.valueOf(input);
-        } else if (expectedClassName.equals(BigDecimal.class.getName())) {
-            return new BigDecimal(input);
-        } else if (expectedClassName.equals(BigInteger.class.getName())) {
-            return new BigInteger(input);
-        } else {// if (){
-            throw new ScalarTypeNotFoundException(
-                    "Can not create new object scalar type [" + expectedClassName + "] from input [" + input + "] that is ["
-                            + input.getClass().getName() + "]");
-        }
-    }
-
     private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
-    private static final Map<String, Class> PRIMITIVE_CLASSES_ARRAY = new HashMap<>();
     private static final Map<String, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
 
     public static final String ENUM = Enum.class.getName();

@@ -8,10 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.datafetcher.CollectionHelper;
+import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -20,7 +19,6 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractHelper {
-    private static final Logger LOG = Logger.getLogger(AbstractHelper.class.getName());
 
     protected AbstractHelper() {
     }
@@ -128,7 +126,7 @@ public abstract class AbstractHelper {
 
         String collectionClassName = field.getArray().get().getClassName();
 
-        Collection convertedCollection = CollectionHelper.newCollection(collectionClassName);
+        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
 
         for (Object objectInGivenCollection : givenCollection) {
             Field fieldInCollection = getFieldInField(field);
