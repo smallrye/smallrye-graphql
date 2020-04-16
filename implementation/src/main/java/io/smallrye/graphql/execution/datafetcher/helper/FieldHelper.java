@@ -29,7 +29,10 @@ public class FieldHelper extends AbstractHelper {
     }
 
     public Object transformResponse(Object argumentValue) throws GraphQLException {
-        return super.recursiveTransform(argumentValue, field);
+        if (field.getTransformInfo().isPresent()) {
+            argumentValue = super.recursiveTransform(argumentValue, field);
+        }
+        return argumentValue;
     }
 
     /**

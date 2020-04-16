@@ -166,6 +166,7 @@ public class Classes {
     }
 
     private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
+    private static final Map<String, Class> PRIMITIVE_CLASSES_ARRAY = new HashMap<>();
     private static final Map<String, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
 
     public static final String ENUM = Enum.class.getName();

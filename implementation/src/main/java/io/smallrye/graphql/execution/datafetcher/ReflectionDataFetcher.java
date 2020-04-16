@@ -86,7 +86,7 @@ public class ReflectionDataFetcher implements DataFetcher {
             if (operation.hasArguments()) {
                 Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses);
                 List transformedArguments = argumentHelper.getArguments(dfe);
-                validateArgumentTypes(transformedArguments);
+                //validateArgumentTypes(transformedArguments);
                 resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
             } else {
                 Method m = cdiClass.getMethod(operation.getMethodName());

@@ -40,9 +40,13 @@ public class StartupListener implements ServletContextListener {
             String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
-            GraphQLSchema oldGraphQLSchema = useOldSchema(index);
+
+            //GraphQLSchema oldGraphQLSchema = useOldSchema(index);
+            //graphQLProducer.setGraphQLSchema(oldGraphQLSchema);
+
             GraphQLSchema newGraphQLSchema = useNewSchema(index);
-            graphQLProducer.setGraphQLSchema(oldGraphQLSchema);
+            graphQLProducer.setGraphQLSchema(newGraphQLSchema);
+
             sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, newGraphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
