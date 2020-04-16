@@ -47,7 +47,79 @@ public class DateTransformer {
     }
 
     /**
-     * Create Dates from a String (using the default format)
+     * Create Strings from a Date Type
+     * 
+     * @param dateType the date type
+     * @return string representation of this date type
+     */
+    public String dateTypeToString(Object dateType) {
+
+        // Date
+        if (LocalDate.class.isInstance(dateType)) {
+            LocalDate casted = LocalDate.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (java.sql.Date.class.isInstance(dateType)) {
+            java.sql.Date casted = java.sql.Date.class.cast(dateType);
+            return dateTypeToString(casted.toLocalDate());
+
+            // Time
+        } else if (LocalTime.class.isInstance(dateType)) {
+            LocalTime casted = LocalTime.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (OffsetTime.class.isInstance(dateType)) {
+            OffsetTime casted = OffsetTime.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (java.sql.Time.class.isInstance(dateType)) {
+            java.sql.Time casted = java.sql.Time.class.cast(dateType);
+            return dateTypeToString(casted.toLocalTime());
+
+            // DateTime
+        } else if (LocalDateTime.class.isInstance(dateType)) {
+            LocalDateTime casted = LocalDateTime.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (OffsetDateTime.class.isInstance(dateType)) {
+            OffsetDateTime casted = OffsetDateTime.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (ZonedDateTime.class.isInstance(dateType)) {
+            ZonedDateTime casted = ZonedDateTime.class.cast(dateType);
+            if (dateTimeFormatter.isPresent()) {
+                return casted.format(dateTimeFormatter.get());
+            } else {
+                return casted.toString();
+            }
+        } else if (java.sql.Timestamp.class.isInstance(dateType)) {
+            java.sql.Timestamp casted = java.sql.Timestamp.class.cast(dateType);
+            return dateTypeToString(casted.toLocalDateTime());
+        } else if (Date.class.isInstance(dateType)) {
+            Date casted = Date.class.cast(dateType);
+            return dateTypeToString(casted.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        }
+        // default
+        return dateType.toString();
+    }
+
+    /**
+     * Create Dates from a String
      * 
      * @param input the date string
      * @param typeClassName the date type name

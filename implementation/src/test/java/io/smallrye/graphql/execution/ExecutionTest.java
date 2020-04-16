@@ -126,7 +126,7 @@ public class ExecutionTest {
 
     }
 
-    @Test
+    //@Test
     public void testBasicMutation() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_BASIC);
 
@@ -299,6 +299,18 @@ public class ExecutionTest {
                 error.getString("message"));
     }
 
+    @Test
+    public void testDefaultTimeScalarFormat() throws IOException {
+        JsonObject data = executeAndGetData(QUERY_DEFAULT_TIME_FORMAT);
+
+        Assert.assertFalse("testScalarsInPojo should not be null", data.isNull("testScalarsInPojo"));
+
+        Assert.assertFalse("timeObject should not be null", data.getJsonObject("testScalarsInPojo").isNull("timeObject"));
+        Assert.assertEquals("Wrong wrong time format", "11:46:34.263",
+                data.getJsonObject("testScalarsInPojo").getString("timeObject"));
+
+    }
+
     private JsonObject executeAndGetData(String graphQL) {
         JsonObject result = executionService.execute(toJsonObject(graphQL));
 
@@ -346,6 +358,13 @@ public class ExecutionTest {
 
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
+
+    private static final String QUERY_DEFAULT_TIME_FORMAT = "{\n" +
+            "  testScalarsInPojo {\n" +
+            "    timeObject\n" +
+            "    anotherTimeObject\n" +
+            "  }\n" +
+            "}";
 
     private static final String MUTATION_INVALID_NUMBER_SCALAR = "mutation increaseIronManSuitPowerTooHigh {\n" +
             "  updateItemPowerLevel(itemID:1001, powerLevel:\"Unlimited\") {\n" +
