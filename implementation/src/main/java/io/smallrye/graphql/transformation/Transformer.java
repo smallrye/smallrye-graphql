@@ -13,8 +13,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 
-import org.jboss.logging.Logger;
-
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
@@ -28,7 +26,6 @@ import io.smallrye.graphql.schema.model.TransformInfo;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Transformer {
-    private static final Logger LOG = Logger.getLogger(Transformer.class.getName());
 
     private DateTimeFormatter dateTimeFormatter = null;
     private NumberFormat numberFormat = null;

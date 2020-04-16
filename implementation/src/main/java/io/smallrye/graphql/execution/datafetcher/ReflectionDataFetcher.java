@@ -2,12 +2,10 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
@@ -20,7 +18,6 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.TransformException;
@@ -33,7 +30,6 @@ import io.smallrye.graphql.transformation.TransformException;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
-    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
@@ -87,7 +83,6 @@ public class ReflectionDataFetcher implements DataFetcher {
             if (operation.hasArguments()) {
                 Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses.toArray(new Class[] {}));
                 List transformedArguments = argumentHelper.getArguments(dfe);
-                validateArgumentTypes(transformedArguments);
                 resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
             } else {
                 Method m = cdiClass.getMethod(operation.getMethodName());
@@ -159,25 +154,5 @@ public class ReflectionDataFetcher implements DataFetcher {
             return cl;
         }
         return null;
-    }
-
-    /**
-     * Might be used for debugging. This check that all arguments is in the correct type
-     * 
-     * @param arguments
-     */
-    private void validateArgumentTypes(List arguments) {
-        Iterator receiveIterator = arguments.iterator();
-        Iterator<Argument> argumentIterator = operation.getArguments().iterator();
-        for (Class c : parameterClasses) {
-            Argument argument = argumentIterator.next();
-            String expected = c.getName();
-            String received = receiveIterator.next().getClass().getName();
-            if (!expected.equals(received)) {
-                LOG.warn("Wrong argument type in " + argument.getMethodArgumentName() + "!"
-                        + "\n\t Expected = [" + expected + "] " + c.getName()
-                        + "\n\t Received = [" + received + "]");
-            }
-        }
     }
 }

@@ -6,8 +6,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Optional;
 
-import org.jboss.logging.Logger;
-
 /**
  * Help with number creation.
  * This is not pretty. But it works.
@@ -16,7 +14,6 @@ import org.jboss.logging.Logger;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class NumberTransformer {
-    private static final Logger LOG = Logger.getLogger(NumberTransformer.class.getName());
 
     private final Optional<NumberFormat> numberFormat;
 
