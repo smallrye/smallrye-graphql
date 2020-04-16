@@ -85,14 +85,14 @@ public class FormatHelper {
     private static String getDefaultDateTimeFormatString(Type type) {
         // return the default dates format
         type = getCorrectType(type);
-        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.UTIL_DATE)
-                || type.name().equals(Classes.SQL_DATE)) {
+        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.SQL_DATE)) {
             return ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME) || type.name().equals(Classes.SQL_TIME)) {
             return ISO_TIME;
         } else if (type.name().equals(Classes.OFFSETTIME)) {
             return ISO_OFFSET_TIME;
-        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)) {
+        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)
+                || type.name().equals(Classes.UTIL_DATE)) {
             return ISO_DATE_TIME;
         } else if (type.name().equals(Classes.OFFSETDATETIME)) {
             return ISO_OFFSET_DATE_TIME;
