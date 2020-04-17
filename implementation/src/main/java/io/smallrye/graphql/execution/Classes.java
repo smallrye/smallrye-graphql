@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import io.smallrye.graphql.x.schema.PrimitiveTypeNotFoundException;
-
 /**
  * Class helper
  * 
@@ -34,14 +32,14 @@ public class Classes {
     }
 
     public static Class<?> loadClass(String className) {
-
-        if (isPrimitive(className)) {
-            return getPrimativeClassType(className);
-        } else {
-            if (loadedClasses.containsKey(className)) {
-                return loadedClasses.get(className);
+        try {
+            if (isPrimitive(className)) {
+                return getPrimativeClassType(className);
             } else {
-                try {
+                if (loadedClasses.containsKey(className)) {
+                    return loadedClasses.get(className);
+                } else {
+
                     return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
                         ClassLoader loader = Thread.currentThread().getContextClassLoader();
                         if (loader != null) {
@@ -53,10 +51,11 @@ public class Classes {
                         }
                         return loadClass(className, Classes.class.getClassLoader());
                     });
-                } catch (PrivilegedActionException pae) {
-                    throw new RuntimeException("Can not load class [" + className + "]", pae);
+
                 }
             }
+        } catch (PrivilegedActionException | ClassNotFoundException pae) {
+            throw new RuntimeException("Can not load class [" + className + "]", pae);
         }
     }
 
@@ -80,11 +79,11 @@ public class Classes {
         return Collection.class.isAssignableFrom(c.getClass());
     }
 
-    public static Class getPrimativeClassType(String primitiveName) {
+    private static Class getPrimativeClassType(String primitiveName) throws ClassNotFoundException {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);
         }
-        throw new PrimitiveTypeNotFoundException("Unknown primative type [" + primitiveName + "]");
+        throw new ClassNotFoundException("Unknown primative type [" + primitiveName + "]");
     }
 
     public static Class toPrimativeClassType(Object currentValue) {

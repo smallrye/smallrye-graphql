@@ -30,11 +30,6 @@
             <version>${project.version}</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.jboss</groupId>
-            <artifactId>jandex</artifactId>
-        </dependency>
-        
         <!-- What we use from MicroProfile -->
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
