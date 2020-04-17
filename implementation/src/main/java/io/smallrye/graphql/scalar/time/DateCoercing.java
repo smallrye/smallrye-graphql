@@ -70,7 +70,9 @@ public class DateCoercing implements Coercing {
         if (input instanceof StringValue) {
             // We need to get a String value of this date
             String value = ((StringValue) input).getValue();
-            return converter.fromString(value);
+
+            //return converter.fromString(value); // We can only do this if we make all transformations String scalars
+            return value;
         } else {
             throw new CoercingParseLiteralException(
                     "Expected AST type 'StringValue' but was '" + input.getClass().getSimpleName() + "'.");

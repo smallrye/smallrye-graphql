@@ -191,12 +191,12 @@ public class ArgumentHelper extends AbstractHelper {
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
             return correctComplexObjectFromMap(Map.class.cast(argumentValue), field);
+        } else if (GraphQLScalarTypes.isScalarType(field.getReference().getClassName())) {
+            return correctScalarObjectFromString(argumentValue, field);
         } else if (receivedClassName.equals(String.class.getName())) {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
-        } else if (GraphQLScalarTypes.isScalarType(field.getReference().getClassName())) {
-            return correctScalarObjectFromString(argumentValue, field);
         } else {
             LOG.warn("Returning argument as is, because we did not know how to handle it.\n\t"
                     + "[" + field.getMethodName() + "]");
@@ -212,8 +212,6 @@ public class ArgumentHelper extends AbstractHelper {
      * 
      * The transformation with JsonB annotation will happen when binding, and the transformation
      * with non-jsonb annotatin will happen when we create a json string from the map.
-     * 
-     * TODO: This is not going to work deeper into the object, we need to call this recursively
      * 
      * @param m the map from graphql-java
      * @param field the field as created while scanning

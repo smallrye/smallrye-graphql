@@ -2,7 +2,9 @@
   profile(profileId:1){
     names    
     surname
+    anniversary
     birthDate
+    memberSince
     joinDate
     profilePictures
   }

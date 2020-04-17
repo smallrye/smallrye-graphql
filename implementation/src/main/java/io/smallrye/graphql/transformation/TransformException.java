@@ -9,6 +9,7 @@ import graphql.execution.ExecutionPath;
 import graphql.language.Argument;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLScalarType;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
@@ -47,13 +48,20 @@ public class TransformException extends RuntimeException {
 
         ValidationError error = new ValidationError(ValidationErrorType.WrongType,
                 sourceLocation, "argument '" + field.getName() + "' with value 'StringValue{value='" + parameterValue
-                        + "'}' is not a valid '"
-                        + GraphQLScalarTypes.getScalarMap().get(field.getReference().getClassName()).getName() + "'",
+                        + "'}' is not a valid '" + getScalarTypeName() + "'",
                 paths);
 
         return DataFetcherResult.newResult()
                 .error(error)
                 .build();
+    }
+
+    private String getScalarTypeName() {
+        GraphQLScalarType graphQLScalarType = GraphQLScalarTypes.getScalarMap().get(field.getReference().getClassName());
+        if (graphQLScalarType != null) {
+            return graphQLScalarType.getName();
+        }
+        return "Unknown Scalar Type [" + field.getReference().getClassName() + "]";
     }
 
     private SourceLocation getSourceLocation(DataFetchingEnvironment dfe,

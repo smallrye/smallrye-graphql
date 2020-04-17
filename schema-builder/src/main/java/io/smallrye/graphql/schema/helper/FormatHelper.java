@@ -1,6 +1,5 @@
 package io.smallrye.graphql.schema.helper;
 
-import java.util.Locale;
 import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -77,27 +76,22 @@ public class FormatHelper {
         }
     }
 
-    private static TransformInfo getDefaultDateTimeFormat(Type type) {
-        return new TransformInfo(TransformInfo.Type.DATE, getDefaultDateTimeFormatString(type), Locale.ENGLISH.toString(),
-                false);
-    }
-
     private static String getDefaultDateTimeFormatString(Type type) {
         // return the default dates format
         type = getCorrectType(type);
         if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.SQL_DATE)) {
-            return ISO_DATE;
+            return ValidDateFormat.ISO_DATE;
         } else if (type.name().equals(Classes.LOCALTIME) || type.name().equals(Classes.SQL_TIME)) {
-            return ISO_TIME;
+            return ValidDateFormat.ISO_TIME;
         } else if (type.name().equals(Classes.OFFSETTIME)) {
-            return ISO_OFFSET_TIME;
+            return ValidDateFormat.ISO_OFFSET_TIME;
         } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)
                 || type.name().equals(Classes.UTIL_DATE)) {
-            return ISO_DATE_TIME;
+            return ValidDateFormat.ISO_DATE_TIME;
         } else if (type.name().equals(Classes.OFFSETDATETIME)) {
-            return ISO_OFFSET_DATE_TIME;
+            return ValidDateFormat.ISO_OFFSET_DATE_TIME;
         } else if (type.name().equals(Classes.ZONEDDATETIME)) {
-            return ISO_ZONED_DATE_TIME;
+            return ValidDateFormat.ISO_ZONED_DATE_TIME;
         }
         throw new IllegalArgumentException("Not a valid Type [" + type.name().toString() + "]");
     }
@@ -114,7 +108,12 @@ public class FormatHelper {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(TransformInfo.Type.NUMBER, format, locale, isJsonB(annotationInstance)));
+            return Optional.of(new TransformInfo(
+                    TransformInfo.Type.NUMBER,
+                    format,
+                    locale,
+                    false, // TODO: Create a validNumberFormat ?
+                    isJsonB(annotationInstance)));
         }
         return Optional.empty();
     }
@@ -131,7 +130,12 @@ public class FormatHelper {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(TransformInfo.Type.DATE, format, locale, isJsonB(annotationInstance)));
+            return Optional.of(new TransformInfo(
+                    TransformInfo.Type.DATE,
+                    format,
+                    locale,
+                    ValidDateFormat.isValid(type.name(), format),
+                    isJsonB(annotationInstance)));
         }
         return Optional.empty();
     }
@@ -194,13 +198,6 @@ public class FormatHelper {
         }
         return value;
     }
-
-    private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String ISO_OFFSET_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private static final String ISO_ZONED_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ'['VV']'";
-    private static final String ISO_DATE = "yyyy-MM-dd";
-    private static final String ISO_TIME = "HH:mm:ss";
-    private static final String ISO_OFFSET_TIME = "HH:mm:ssZ";
 
     private static final String LOCALE = "locale";
 }

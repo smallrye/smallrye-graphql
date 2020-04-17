@@ -329,24 +329,11 @@ public class Bootstrap {
         GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
 
         return graphQLInputObjectField;
-
-        // Name mapping for input transformation
-        //        if (!field.name().equals(fieldName)) {
-        //            customFieldNameMapping.put(field.name(), fieldName);
-        //        }
-        //        // Other annotation for other transformation
-        //        if (annotations.hasGraphQLFormatingAnnotations()) {
-        //            Optional<String> description = descriptionHelper.getDescriptionForField(annotationsForThisArgument,
-        //                    field.type());
-        //            Argument a = new Argument(fieldName, description.orElse(null), field.type(), annotations);// TODO: Should this not be annotationsForThisArgument
-        //
-        //            fieldAnnotationsMapping.put(fieldName, a);
-        //        }
     }
 
     private GraphQLInputType createGraphQLInputType(Field field) {
 
-        GraphQLInputType graphQLInputType = (GraphQLInputType) createGraphQLInputType(field.getReference());
+        GraphQLInputType graphQLInputType = (GraphQLInputType) referenceGraphQLInputType(field);
 
         // Collection
         if (field.getArray().isPresent()) {
@@ -370,7 +357,7 @@ public class Bootstrap {
     }
 
     private GraphQLOutputType createGraphQLOutputType(Field field) {
-        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) createGraphQLOutputType(field.getReference());
+        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) referenceGraphQLOutputType(field);
 
         // Collection
         if (field.getArray().isPresent()) {
@@ -393,13 +380,14 @@ public class Bootstrap {
         return graphQLOutputType;
     }
 
-    private GraphQLOutputType createGraphQLOutputType(Reference reference) {
+    private GraphQLOutputType referenceGraphQLOutputType(Field field) {
+        Reference reference = field.getReference();
         ReferenceType type = reference.getType();
         String className = reference.getClassName();
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return scalarMap.get(className);
+                return getCorrectScalarType(field, className);
             case ENUM:
                 return enumMap.get(className);
             //case INTERFACE: ??        
@@ -408,20 +396,29 @@ public class Bootstrap {
         }
     }
 
-    // TODO: Smae as above  ^^^ ??
-    private GraphQLInputType createGraphQLInputType(Reference reference) {
+    private GraphQLInputType referenceGraphQLInputType(Field field) {
+        Reference reference = field.getReference();
         ReferenceType type = reference.getType();
         String className = reference.getClassName();
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return scalarMap.get(className);
+                return getCorrectScalarType(field, className);
             case ENUM:
                 return enumMap.get(className);
             //case INTERFACE: ??    
             default:
                 return GraphQLTypeReference.typeRef(name);
         }
+    }
+
+    //&& !field.getTransformInfo().get().isValid()
+    private <T> T getCorrectScalarType(Field field, String className) {
+        //        if (field.getTransformInfo().isPresent()
+        //                && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
+        //            return (T) Scalars.GraphQLString; // then we change to String
+        //        }
+        return (T) scalarMap.get(className);
     }
 
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {
@@ -440,7 +437,7 @@ public class Bootstrap {
                 .description(argument.getDescription())
                 .defaultValue(argument.getDefaultValue().orElse(null));
 
-        GraphQLInputType graphQLInputType = createGraphQLInputType(argument.getReference());
+        GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
         // Collection
         if (argument.getArray().isPresent()) {
@@ -470,5 +467,4 @@ public class Bootstrap {
 
     private static final String QUERY = "Query";
     private static final String MUTATION = "Mutation";
-
 }

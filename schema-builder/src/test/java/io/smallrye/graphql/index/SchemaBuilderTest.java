@@ -24,18 +24,16 @@ import io.smallrye.graphql.schema.model.Schema;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class GraphQLCreatorTest {
-    private static final Logger LOG = Logger.getLogger(GraphQLCreatorTest.class.getName());
+public class SchemaBuilderTest {
+    private static final Logger LOG = Logger.getLogger(SchemaBuilderTest.class.getName());
 
     @Test
     public void testSchemaModelCreation() throws IOException {
 
         IndexView index = getTCKIndex();
-        LOG.error(">>>>>>>> index = " + index);
         Schema schema = SchemaBuilder.build(index);
-
+        LOG.info(toString(schema));
         Assert.assertNotNull(schema);
-        LOG.error(">>>>>>>> " + toString(schema));
     }
 
     private String toString(Schema schema) {

@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
+import org.jboss.logging.Logger;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
@@ -25,11 +26,10 @@ import io.smallrye.graphql.transformation.TransformException;
 /**
  * Fetch data using CDI and Reflection
  * 
- * TODO: Add Metrics back
- * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
+    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
 
@@ -68,6 +68,8 @@ public class ReflectionDataFetcher implements DataFetcher {
      * 3) Make a call on the method with the correct arguments
      * 4) get the result and if needed transform it before we return it.
      * 
+     * TODO: Add Metrics maybe potentially proxy / decorator pattern to be more generic ?
+     * 
      * @param dfe the Data Fetching Environment from graphql-java
      * @return the result from the call.
      * 
@@ -77,7 +79,6 @@ public class ReflectionDataFetcher implements DataFetcher {
     public Object get(DataFetchingEnvironment dfe) throws Exception {
         Object declaringObject = cdiDelegate.getInstanceFromCDI(operation.getClassName());
         Class cdiClass = declaringObject.getClass();
-
         try {
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {

@@ -5,7 +5,9 @@
                 "Phillip"
             ],
             "surname": "Kruger",
+            "anniversary": "2020-04-08Z",
             "birthDate": "03/07/1978",
+            "memberSince" : "2004-12-31T22:00:00Z[UTC]",
             "joinDate": "08/04/2020",
             "profilePictures": [
                 "https://avatars1.githubusercontent.com/u/6836179?s=460&u=8d34b60fb495daf689775b2c12ded76760cdb508&v=4"
