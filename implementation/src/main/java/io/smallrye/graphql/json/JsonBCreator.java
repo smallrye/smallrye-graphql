@@ -33,7 +33,7 @@ public class JsonBCreator {
             for (Field field : fields) {
                 // See if the graphql name and property name is different
                 if (!field.getName().equals(field.getPropertyName())) {
-                    namemapping.put(field.getName(), field.getPropertyName());
+                    namemapping.put(field.getPropertyName(), field.getName());
                 }
             }
 

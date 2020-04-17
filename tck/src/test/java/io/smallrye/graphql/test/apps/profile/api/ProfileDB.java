@@ -37,6 +37,7 @@ public class ProfileDB {
             p.addProfilePicture(new URL(
                     "https://avatars1.githubusercontent.com/u/6836179?s=460&u=8d34b60fb495daf689775b2c12ded76760cdb508&v=4"));
             p.setBirthDate(new SimpleDateFormat("yyyyMMdd").parse("19780703"));
+            p.setMemberSinceDate(new SimpleDateFormat("yyyyMMdd").parse("20050101"));
             p.setFavColor("Green");
             p.addEmailAddress("phillip.kruger@redhat.com");
             p.setWebsite(new URL("https://www.phillip-kruger.com"));
@@ -53,6 +54,7 @@ public class ProfileDB {
             p.addSkill("MicroProfile");
             p.addSkill("GraphQL");
             p.setJoinDate(new java.sql.Date(1586374533106L));
+            p.setAnniversary(new java.sql.Date(1586374533106L));
             p.setMaritalStatus("maried");
             p.setUserAgent("Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:74.0) Gecko/20100101 Firefox/74.0");
 

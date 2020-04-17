@@ -121,6 +121,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <systemPropertyVariables>
+                        <mp.graphql.printDataFetcherException>true</mp.graphql.printDataFetcherException>
+                    </systemPropertyVariables>              
+                    
                     <useFile>false</useFile>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
