@@ -11,7 +11,7 @@ import java.util.Set;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -8,9 +8,9 @@ import java.time.ZoneId;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.api.GraphQlClientApi;
-import io.smallrye.graphql.client.api.GraphQlClientAuthorizationHeader;
-import io.smallrye.graphql.client.api.GraphQlClientHeader;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientAuthorizationHeader;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 
 class HeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();

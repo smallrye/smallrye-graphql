@@ -21,8 +21,8 @@ import javax.ws.rs.core.Response;
 import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
 
-import io.smallrye.graphql.client.api.GraphQlClientBuilder;
-import io.smallrye.graphql.client.impl.GraphQlClientBuilderImpl;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
+import io.smallrye.graphql.client.typesafe.impl.GraphQlClientBuilderImpl;
 
 class GraphQlClientFixture {
     private final Client mockClient = mock(Client.class);

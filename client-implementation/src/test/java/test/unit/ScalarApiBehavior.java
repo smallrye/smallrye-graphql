@@ -13,7 +13,7 @@ import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

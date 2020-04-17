@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 class ConfigBehavior {
 

@@ -39,6 +39,7 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 * link:client-api[] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
 * link:client-implementation[] - Implementation of the Eclipse MicroProfile GraphQL Client API.
 * link:client-tck[] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+
 === Links
 
 * http://github.com/smallrye/smallrye-graphql/[Project Homepage]
