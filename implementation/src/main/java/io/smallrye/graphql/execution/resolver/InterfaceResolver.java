@@ -4,7 +4,6 @@ import graphql.TypeResolutionEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.TypeResolver;
 import io.smallrye.graphql.schema.model.InterfaceType;
-import io.smallrye.graphql.x.typeresolver.ConcreteImplementationNotFoundException;
 
 /**
  * Resolve an interface.

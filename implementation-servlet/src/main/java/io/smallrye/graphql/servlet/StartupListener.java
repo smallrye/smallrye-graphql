@@ -17,7 +17,6 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.GraphQLProducer;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.x.SmallRyeGraphQLBootstrap;
 
 /**
  * Bootstrap the application on startup
@@ -41,13 +40,11 @@ public class StartupListener implements ServletContextListener {
             URL url = Paths.get(realPath).toUri().toURL();
             IndexView index = indexInitializer.createIndex(url);
 
-            //GraphQLSchema oldGraphQLSchema = useOldSchema(index);
-            //graphQLProducer.setGraphQLSchema(oldGraphQLSchema);
+            Schema schema = SchemaBuilder.build(index); // Get the smallrye schema
+            GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema); // Convert to graphql-java schema
+            graphQLProducer.setGraphQLSchema(graphQLSchema);
 
-            GraphQLSchema newGraphQLSchema = useNewSchema(index);
-            graphQLProducer.setGraphQLSchema(newGraphQLSchema);
-
-            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, newGraphQLSchema);
+            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
@@ -57,14 +54,5 @@ public class StartupListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOG.info("SmallRye GraphQL destroyed");
-    }
-
-    private GraphQLSchema useOldSchema(IndexView index) {
-        return SmallRyeGraphQLBootstrap.bootstrap(index);
-    }
-
-    private GraphQLSchema useNewSchema(IndexView index) {
-        Schema schema = SchemaBuilder.build(index);
-        return Bootstrap.bootstrap(schema);
     }
 }

@@ -16,18 +16,15 @@ public class TransformInfo implements Serializable {
     private final String format;
     private final String locale;
     private final Type type;
-    private final boolean valid; // If the format is valid for this type
     private final boolean jsonB; // If the transformation can happen with JsonB
 
     public TransformInfo(Type type,
             String format,
             String locale,
-            boolean valid,
             boolean jsonB) {
         this.type = type;
         this.format = format;
         this.locale = locale;
-        this.valid = valid;
         this.jsonB = jsonB;
     }
 
@@ -52,7 +49,4 @@ public class TransformInfo implements Serializable {
         return jsonB;
     }
 
-    public boolean isValid() {
-        return valid;
-    }
 }
