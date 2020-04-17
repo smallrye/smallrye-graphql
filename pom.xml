@@ -44,13 +44,20 @@
     </scm>
 
     <modules>
+        <!-- Building a schema model from Jandex -->
         <module>schema-model</module>
         <module>schema-builder</module>
+        <!-- Our implementation, with our api experimentation -->
+        <module>api</module>
         <module>implementation</module>
         <module>implementation-servlet</module>
         <module>tck</module>
         <module>runner</module>
         <module>integration-tests</module>
+        <!-- Our client implementation, with our api experimentation -->
+        <module>client-api</module>
+        <module>client-implementation</module>
+        <module>client-tck</module>
     </modules>
     
     <dependencyManagement>
@@ -104,6 +111,11 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -117,6 +129,22 @@
                 <artifactId>smallrye-graphql-tck</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-client-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-client-tck</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
         </dependencies>
     </dependencyManagement>
 
