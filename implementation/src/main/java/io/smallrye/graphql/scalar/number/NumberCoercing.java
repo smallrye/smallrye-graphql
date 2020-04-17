@@ -78,7 +78,7 @@ public class NumberCoercing implements Coercing {
                 BigDecimal value = new BigDecimal(((StringValue) input).getValue());
                 return converter.fromBigDecimal(value);
             } catch (NumberFormatException e) {
-                // Here we allow strings through becauce of Numberformatting.
+                // TODO: Do we still need this ? Here we allow strings through becauce of Numberformatting.
                 return ((StringValue) input).getValue();
             }
 

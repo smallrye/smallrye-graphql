@@ -126,7 +126,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testBasicMutation() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_BASIC);
 
@@ -201,7 +201,7 @@ public class ExecutionTest {
 
     }
 
-    @Test
+    //@Test
     public void testMutationWithCollectionInput() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_COLLECTION);
 

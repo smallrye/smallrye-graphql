@@ -9,7 +9,10 @@ import io.smallrye.graphql.scalar.AbstractScalar;
  */
 public abstract class AbstractDateScalar extends AbstractScalar {
 
-    public AbstractDateScalar(String name, Class... supportedTypes) {
-        super(name, new DateCoercing(name, supportedTypes), supportedTypes);
+    public AbstractDateScalar(String name,
+            Converter converter,
+            Class... supportedTypes) {
+
+        super(name, new DateCoercing(name, converter, supportedTypes), supportedTypes);
     }
 }
