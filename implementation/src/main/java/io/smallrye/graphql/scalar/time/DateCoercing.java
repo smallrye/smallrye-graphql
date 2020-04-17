@@ -16,10 +16,12 @@ import graphql.schema.CoercingSerializeException;
 public class DateCoercing implements Coercing {
 
     private final Class[] supportedTypes;
+    private final Converter converter;
     private final String name;
 
-    public DateCoercing(String name, Class... supportedTypes) {
+    public DateCoercing(String name, Converter converter, Class... supportedTypes) {
         this.name = name;
+        this.converter = converter;
         this.supportedTypes = supportedTypes;
     }
 
@@ -65,10 +67,14 @@ public class DateCoercing implements Coercing {
         if (input == null)
             return null;
 
-        if (!(input instanceof StringValue)) {
+        if (input instanceof StringValue) {
+            // We need to get a String value of this date
+            String value = ((StringValue) input).getValue();
+            return converter.fromString(value);
+        } else {
             throw new CoercingParseLiteralException(
                     "Expected AST type 'StringValue' but was '" + input.getClass().getSimpleName() + "'.");
         }
-        return ((StringValue) input).getValue();
+
     }
 }

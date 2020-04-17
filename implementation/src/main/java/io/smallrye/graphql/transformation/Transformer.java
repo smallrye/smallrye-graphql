@@ -5,11 +5,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.DateTimeException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -128,27 +124,7 @@ public class Transformer {
      * @return formatted result
      */
     private Object formatDateOutput(Object output) {
-        // TODO: If the date format is the default date format, do not format ? Change in model ?
-        // TODO: Add java.time check here before TemporalAccessor
-
-        if (TemporalAccessor.class.isInstance(output)) {
-            TemporalAccessor temporalAccessor = (TemporalAccessor) output;
-            return dateTimeFormatter.format(temporalAccessor);
-        } else if (java.sql.Date.class.isInstance(output)) {
-            java.sql.Date date = ((java.sql.Date) output);
-            TemporalAccessor temporalAccessor = date.toLocalDate();
-            return dateTimeFormatter.format(temporalAccessor);
-        } else if (java.sql.Timestamp.class.isInstance(output)) {
-            java.sql.Timestamp date = ((java.sql.Timestamp) output);
-            TemporalAccessor temporalAccessor = date.toLocalDateTime();
-            return dateTimeFormatter.format(temporalAccessor);
-        } else if (Date.class.isInstance(output)) {
-            Date date = (Date) output;
-            LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            return formatDateOutput(localDateTime);
-        } else {
-            return output;
-        }
+        return dateTransformer.dateTypeToString(output);
     }
 
     /**

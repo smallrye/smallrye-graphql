@@ -9,7 +9,7 @@ import io.smallrye.graphql.scalar.AbstractScalar;
  */
 public abstract class AbstractNumberScalar extends AbstractScalar {
 
-    public <T> AbstractNumberScalar(String name,
+    public AbstractNumberScalar(String name,
             Converter converter,
             Class... supportedTypes) {
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbException;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
@@ -251,9 +252,12 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Object correctComplexObjectFromJsonString(String jsonString, Field field) {
         Class ownerClass = Classes.loadClass(field.getReference().getClassName());
-
-        Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
-        return jsonb.fromJson(jsonString, ownerClass);
+        try {
+            Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
+            return jsonb.fromJson(jsonString, ownerClass);
+        } catch (JsonbException jbe) {
+            throw new TransformException(jbe, field, jsonString);
+        }
     }
 
     /**

@@ -124,7 +124,7 @@ public class FormatHelper {
         if (dateFormatAnnotation.isPresent()) {
             return getDateFormat(type, dateFormatAnnotation.get());
         }
-        return Optional.of(getDefaultDateTimeFormat(type));
+        return Optional.empty();
     }
 
     private static Optional<TransformInfo> getDateFormat(Type type, AnnotationInstance annotationInstance) {
@@ -133,7 +133,7 @@ public class FormatHelper {
             String locale = getStringValue(annotationInstance, LOCALE);
             return Optional.of(new TransformInfo(TransformInfo.Type.DATE, format, locale, isJsonB(annotationInstance)));
         }
-        return Optional.of(getDefaultDateTimeFormat(type));
+        return Optional.empty();
     }
 
     private static boolean isJsonB(AnnotationInstance instance) {
