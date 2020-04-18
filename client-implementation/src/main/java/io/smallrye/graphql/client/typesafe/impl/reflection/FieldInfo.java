@@ -16,7 +16,10 @@ public class FieldInfo {
         this.field = field;
     }
 
-    @Override public String toString() { return "field '" + field.getName() + "' in " + container; }
+    @Override
+    public String toString() {
+        return "field '" + field.getName() + "' in " + container;
+    }
 
     public TypeInfo getType() {
         return new TypeInfo(container, field.getGenericType());

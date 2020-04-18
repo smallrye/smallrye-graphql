@@ -18,8 +18,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import org.eclipse.microprofile.graphql.NonNull;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 public class TypeInfo {
     private final TypeInfo container;
@@ -39,7 +40,8 @@ public class TypeInfo {
         this.annotatedArgs = annotatedArgs;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return ((type instanceof Class) ? ((Class<?>) type).getName() : type)
                 + ((container == null) ? "" : " in " + container);
     }

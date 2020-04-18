@@ -10,7 +10,9 @@ class RequestBuilder {
     private final MethodInfo method;
     private final StringBuilder request = new StringBuilder();
 
-    public RequestBuilder(MethodInfo method) { this.method = method; }
+    public RequestBuilder(MethodInfo method) {
+        this.method = method;
+    }
 
     String build() {
         request.append(method.getName());
@@ -76,9 +78,12 @@ class RequestBuilder {
         private final String text;
         private boolean first = true;
 
-        public Repeated(String text) { this.text = text; }
+        public Repeated(String text) {
+            this.text = text;
+        }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             if (first) {
                 first = false;
                 return "";

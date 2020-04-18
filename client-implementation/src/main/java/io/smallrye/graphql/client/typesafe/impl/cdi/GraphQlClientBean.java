@@ -15,7 +15,8 @@ public class GraphQlClientBean<T> extends AbstractBean<T> {
         super(apiClass);
     }
 
-    @Override public T create(CreationalContext<T> creationalContext) {
+    @Override
+    public T create(CreationalContext<T> creationalContext) {
         log.debug("create GraphQL Client proxy: {}", type);
         GraphQlClientBuilder builder = GraphQlClientBuilder.newBuilder();
         CDI.current().select(GraphQlClientHeader.class).stream().forEach(builder::header);

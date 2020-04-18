@@ -580,7 +580,9 @@ class ScalarBehavior {
     }
 
     public static class ScalarWithOfConstructorMethod {
-        public ScalarWithOfConstructorMethod(String text) { this.text = text; }
+        public ScalarWithOfConstructorMethod(String text) {
+            this.text = text;
+        }
 
         @SuppressWarnings("unused")
         public static ScalarWithOfConstructorMethod of(String text) {

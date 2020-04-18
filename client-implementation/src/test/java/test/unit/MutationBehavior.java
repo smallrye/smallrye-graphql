@@ -35,14 +35,17 @@ class MutationBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") public Greeting() {}
+        @SuppressWarnings("unused")
+        public Greeting() {
+        }
 
         public Greeting(String text, int count) {
             this.text = text;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -51,7 +54,10 @@ class MutationBehavior {
             return count == greeting.count && text.equals(greeting.text);
         }
 
-        @Override public int hashCode() { return Objects.hash(text,count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(text, count);
+        }
     }
 
     @Test

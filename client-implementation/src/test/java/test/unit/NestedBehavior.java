@@ -140,14 +140,17 @@ class NestedBehavior {
         String text;
         int code;
 
-        @SuppressWarnings("unused") Greeting() {}
+        @SuppressWarnings("unused")
+        Greeting() {
+        }
 
         Greeting(String text, int code) {
             this.text = text;
             this.code = code;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -156,7 +159,10 @@ class NestedBehavior {
             return code == greeting.code && text.equals(greeting.text);
         }
 
-        @Override public int hashCode() { return Objects.hash(text, code); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(text, code);
+        }
     }
 
     @Test
@@ -271,14 +277,17 @@ class NestedBehavior {
         Greeting greeting;
         int count;
 
-        @SuppressWarnings("unused") public GreetingContainer() {}
+        @SuppressWarnings("unused")
+        public GreetingContainer() {
+        }
 
         public GreetingContainer(Greeting greeting, int count) {
             this.greeting = greeting;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -287,7 +296,10 @@ class NestedBehavior {
             return count == that.count && greeting.equals(that.greeting);
         }
 
-        @Override public int hashCode() { return Objects.hash(greeting, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(greeting, count);
+        }
     }
 
     @Test
@@ -310,14 +322,17 @@ class NestedBehavior {
         List<Greeting> greetings;
         int count;
 
-        @SuppressWarnings("unused") public GreetingsContainer() {}
+        @SuppressWarnings("unused")
+        public GreetingsContainer() {
+        }
 
         public GreetingsContainer(List<Greeting> greetings, int count) {
             this.greetings = greetings;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -326,7 +341,10 @@ class NestedBehavior {
             return count == that.count && greetings.equals(that.greetings);
         }
 
-        @Override public int hashCode() { return Objects.hash(greetings, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(greetings, count);
+        }
     }
 
     @Test
@@ -351,14 +369,17 @@ class NestedBehavior {
         Wrapper<Greeting> greeting;
         int count;
 
-        @SuppressWarnings("unused") public WrappedGreetingContainer() {}
+        @SuppressWarnings("unused")
+        public WrappedGreetingContainer() {
+        }
 
         public WrappedGreetingContainer(Wrapper<Greeting> greeting, int count) {
             this.greeting = greeting;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -367,18 +388,26 @@ class NestedBehavior {
             return count == that.count && greeting.equals(that.greeting);
         }
 
-        @Override public int hashCode() { return Objects.hash(greeting, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(greeting, count);
+        }
     }
 
     private static class Wrapper<T> {
         @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private T value;
 
-        @SuppressWarnings("unused") public Wrapper() {}
+        @SuppressWarnings("unused")
+        public Wrapper() {
+        }
 
-        public Wrapper(T value) { this.value = value; }
+        public Wrapper(T value) {
+            this.value = value;
+        }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -387,7 +416,10 @@ class NestedBehavior {
             return value.equals(wrapper.value);
         }
 
-        @Override public int hashCode() { return Objects.hash(value); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
     }
 
     @Test
@@ -412,14 +444,17 @@ class NestedBehavior {
         Wrapper<Byte> code;
         int count;
 
-        @SuppressWarnings("unused") public WrappedByteContainer() {}
+        @SuppressWarnings("unused")
+        public WrappedByteContainer() {
+        }
 
         public WrappedByteContainer(Wrapper<Byte> code, int count) {
             this.code = code;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -428,7 +463,10 @@ class NestedBehavior {
             return count == that.count && code.equals(that.code);
         }
 
-        @Override public int hashCode() { return Objects.hash(code, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(code, count);
+        }
     }
 
     @Test
@@ -462,14 +500,17 @@ class NestedBehavior {
         List<Byte> codes;
         int count;
 
-        @SuppressWarnings("unused") WrappedListByteContainer() {}
+        @SuppressWarnings("unused")
+        WrappedListByteContainer() {
+        }
 
         WrappedListByteContainer(List<Byte> codes, int count) {
             this.codes = codes;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -478,7 +519,10 @@ class NestedBehavior {
             return count == that.count && codes.equals(that.codes);
         }
 
-        @Override public int hashCode() { return Objects.hash(codes, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(codes, count);
+        }
     }
 
     @Test
@@ -564,7 +608,9 @@ class NestedBehavior {
     private static class ObjectPrivateDefaultConstructor {
         private final String foo;
 
-        private ObjectPrivateDefaultConstructor() { this.foo = null; }
+        private ObjectPrivateDefaultConstructor() {
+            this.foo = null;
+        }
     }
 
     @Test

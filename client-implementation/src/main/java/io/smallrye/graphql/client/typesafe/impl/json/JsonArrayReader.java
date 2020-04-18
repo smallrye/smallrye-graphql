@@ -26,7 +26,8 @@ class JsonArrayReader extends Reader<JsonArray> {
         super(type, location, value);
     }
 
-    @Override Object read() {
+    @Override
+    Object read() {
         check(location, value, type.isCollection());
         IndexedLocationBuilder locationBuilder = new IndexedLocationBuilder(location);
         return value.stream().map(item -> readItem(locationBuilder, item)).collect(collector());

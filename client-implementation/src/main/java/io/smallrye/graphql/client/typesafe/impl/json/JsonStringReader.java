@@ -11,7 +11,8 @@ class JsonStringReader extends Reader<JsonString> {
         super(type, location, value);
     }
 
-    @Override Object read() {
+    @Override
+    Object read() {
         if (char.class.equals(type.getRawType()) || Character.class.equals(type.getRawType())) {
             if (value.getChars().length() != 1)
                 throw new GraphQlClientValueException(location, value);

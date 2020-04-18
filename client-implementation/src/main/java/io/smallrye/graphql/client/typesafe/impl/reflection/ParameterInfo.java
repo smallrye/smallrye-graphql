@@ -19,11 +19,18 @@ public class ParameterInfo {
         this.value = value;
     }
 
-    @Override public String toString() { return "parameter '" + parameter.getName() + "' in " + method; }
+    @Override
+    public String toString() {
+        return "parameter '" + parameter.getName() + "' in " + method;
+    }
 
-    public TypeInfo getType() { return this.type; }
+    public TypeInfo getType() {
+        return this.type;
+    }
 
-    public Object getValue() { return this.value; }
+    public Object getValue() {
+        return this.value;
+    }
 
     public String getName() {
         if (parameter.isAnnotationPresent(Name.class))

@@ -45,14 +45,17 @@ class OptionalBehavior {
         String text;
         int code;
 
-        @SuppressWarnings("unused") Greeting() {}
+        @SuppressWarnings("unused")
+        Greeting() {
+        }
 
         Greeting(String text, int code) {
             this.text = text;
             this.code = code;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -61,7 +64,10 @@ class OptionalBehavior {
             return code == greeting.code && text.equals(greeting.text);
         }
 
-        @Override public int hashCode() { return Objects.hash(text, code); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(text, code);
+        }
     }
 
     @Test

@@ -29,7 +29,10 @@ public class MethodInfo {
         this.parameterValues = parameterValues;
     }
 
-    @Override public String toString() { return type + "#" + method.getName(); }
+    @Override
+    public String toString() {
+        return type + "#" + method.getName();
+    }
 
     public boolean isQuery() {
         return !ifAnnotated(Mutation.class).isPresent();

@@ -75,14 +75,17 @@ class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") Greeting() {}
+        @SuppressWarnings("unused")
+        Greeting() {
+        }
 
         Greeting(String text, int count) {
             this.text = text;
             this.count = count;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -91,7 +94,10 @@ class ParametersBehavior {
             return count == greeting.count && text.equals(greeting.text);
         }
 
-        @Override public int hashCode() { return Objects.hash(text, count); }
+        @Override
+        public int hashCode() {
+            return Objects.hash(text, count);
+        }
     }
 
     @Test

@@ -8,7 +8,9 @@ import java.lang.reflect.Method;
 public class ConstructionInfo {
     private final Executable executable;
 
-    public ConstructionInfo(Executable executable) { this.executable = executable; }
+    public ConstructionInfo(Executable executable) {
+        this.executable = executable;
+    }
 
     public Object execute(Object... args) {
         try {

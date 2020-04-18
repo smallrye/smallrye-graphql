@@ -1,16 +1,17 @@
 package io.smallrye.graphql.client.typesafe.api;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import static java.util.Objects.requireNonNull;
 
 public class GraphQlClientHeader {
     private final String name;
     private final Supplier<Object> supplier;
 
-    @SuppressWarnings("unused") GraphQlClientHeader() {
+    @SuppressWarnings("unused")
+    GraphQlClientHeader() {
         this(null, null);
     }
 
@@ -23,9 +24,13 @@ public class GraphQlClientHeader {
         this.supplier = requireNonNull(supplier);
     }
 
-    public String getName() { return this.name; }
+    public String getName() {
+        return this.name;
+    }
 
-    public Object getValue() { return supplier.get(); }
+    public Object getValue() {
+        return supplier.get();
+    }
 
     public Map.Entry<String, Object> toEntry() {
         return new SimpleEntry<>(getName(), getValue());
