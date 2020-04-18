@@ -69,6 +69,18 @@ public class Classes {
         return className.equals(OPTIONAL);
     }
 
+    public static boolean isUUID(String className) {
+        return className.equals(UUID);
+    }
+
+    public static boolean isURL(String className) {
+        return className.equals(URL);
+    }
+
+    public static boolean isURI(String className) {
+        return className.equals(URI);
+    }
+
     public static boolean isPrimitive(String primitiveName) {
         return PRIMITIVE_CLASSES.containsKey(primitiveName);
     }
@@ -99,6 +111,10 @@ public class Classes {
 
     public static final String ENUM = Enum.class.getName();
     public static final String OPTIONAL = Optional.class.getName();
+
+    public static final String UUID = java.util.UUID.class.getName();
+    public static final String URL = java.net.URL.class.getName();
+    public static final String URI = java.net.URI.class.getName();
 
     public static final String LOCALDATE = LocalDate.class.getName();
     public static final String LOCALDATETIME = LocalDateTime.class.getName();

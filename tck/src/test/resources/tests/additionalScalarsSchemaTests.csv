@@ -1,0 +1,10 @@
+# test additional scalars
+1| type AdditionalScalars   |   uri: String                                                                     |   URI should be mapped to String
+2| type AdditionalScalars   |   uriDefault(uri: String = "https://example.com"): String                         |   Default URI should be contained in schema
+3| type AdditionalScalars   |   uriInput(uri: String): String                                                   |   URI-input should be mapped to String
+4| type AdditionalScalars   |   url: String                                                                     |   URL should be mapped in schema
+5| type AdditionalScalars   |   urlDefault(url: String = "https://example.com"): String                         |   Default URL should be contained in schema
+6| type AdditionalScalars   |   urlInput(url: String): String                                                   |   URL-input should be mapped to String
+7| type AdditionalScalars   |   uuid: String                                                                    |   UUID should be mapped in schema
+8| type AdditionalScalars   |   uuidDefault(uuid: String = "037f4ba2-6d74-4686-a4ea-90cbd86007c3"): String      |   Default UUID should be contained in schema
+9| type AdditionalScalars   |   uuidInput(uuid: String): String                                                 |   UUID-input should be mapped to String
