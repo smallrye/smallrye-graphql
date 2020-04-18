@@ -26,9 +26,10 @@ import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+import org.slf4j.LoggerFactory;
 
 class GraphQlClientProxy {
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(GraphQlClientProxy.class);
+    private static final Logger log = LoggerFactory.getLogger(GraphQlClientProxy.class);
 
     private final WebTarget target;
     private final List<GraphQlClientHeader> headers;

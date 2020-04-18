@@ -7,9 +7,10 @@ import org.slf4j.Logger;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
+import org.slf4j.LoggerFactory;
 
 public class GraphQlClientBean<T> extends AbstractBean<T> {
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(GraphQlClientBean.class);
+    private static final Logger log = LoggerFactory.getLogger(GraphQlClientBean.class);
 
     public GraphQlClientBean(Class<T> apiClass) {
         super(apiClass);
