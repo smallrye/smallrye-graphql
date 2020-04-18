@@ -22,6 +22,7 @@
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
         
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <slf4j-jboss-logging.version>1.2.0.Final</slf4j-jboss-logging.version>
     </properties>
 
     <licenses>
@@ -144,7 +145,13 @@
                 <artifactId>smallrye-graphql-client-tck</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            
+
+            <dependency>
+                <groupId>org.jboss.slf4j</groupId>
+                <artifactId>slf4j-jboss-logging</artifactId>
+                <version>${slf4j-jboss-logging.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
