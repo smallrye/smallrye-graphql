@@ -4,7 +4,6 @@ import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultiva
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static lombok.AccessLevel.PACKAGE;
 
 import java.io.StringReader;
 import java.util.List;
@@ -19,21 +18,25 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 
+import org.slf4j.Logger;
+
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@RequiredArgsConstructor(access = PACKAGE)
 class GraphQlClientProxy {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(GraphQlClientProxy.class);
 
     private final WebTarget target;
     private final List<GraphQlClientHeader> headers;
+
+    GraphQlClientProxy(WebTarget target, List<GraphQlClientHeader> headers) {
+        this.target = target;
+        this.headers = headers;
+    }
 
     Object invoke(MethodInfo method) {
         String request = request(method);

@@ -9,11 +9,13 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
-@Slf4j
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+
 public class GraphQlClientExtension implements Extension {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(GraphQlClientExtension.class);
+
     private final List<Class<?>> apis = new ArrayList<>();
 
     public void registerGraphQlClientApis(@Observes @WithAnnotations(GraphQlClientApi.class) ProcessAnnotatedType<?> type) {

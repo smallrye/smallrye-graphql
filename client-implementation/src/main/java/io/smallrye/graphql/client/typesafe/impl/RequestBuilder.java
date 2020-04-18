@@ -5,12 +5,12 @@ import java.util.List;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 class RequestBuilder {
     private final MethodInfo method;
     private final StringBuilder request = new StringBuilder();
+
+    public RequestBuilder(MethodInfo method) { this.method = method; }
 
     String build() {
         request.append(method.getName());
@@ -72,13 +72,13 @@ class RequestBuilder {
         request.append("}");
     }
 
-    @RequiredArgsConstructor
     private static class Repeated {
         private final String text;
         private boolean first = true;
 
-        @Override
-        public String toString() {
+        public Repeated(String text) { this.text = text; }
+
+        @Override public String toString() {
             if (first) {
                 first = false;
                 return "";

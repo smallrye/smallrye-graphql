@@ -14,10 +14,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-class ScalarApiBehavior {
+class ScalarBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     interface BoolApi {
@@ -538,8 +536,8 @@ class ScalarApiBehavior {
         FailingScalar foo();
     }
 
-    @Data
     public static class FailingScalar {
+        @SuppressWarnings("unused")
         private final String text;
 
         public FailingScalar(String text) {
@@ -581,8 +579,9 @@ class ScalarApiBehavior {
         ScalarWithOfConstructorMethod foo();
     }
 
-    @AllArgsConstructor
     public static class ScalarWithOfConstructorMethod {
+        public ScalarWithOfConstructorMethod(String text) { this.text = text; }
+
         @SuppressWarnings("unused")
         public static ScalarWithOfConstructorMethod of(String text) {
             return new ScalarWithOfConstructorMethod("x-" + text);
@@ -611,8 +610,7 @@ class ScalarApiBehavior {
 
             GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
-            then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\n" +
-                    "failed");
+            then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\nfailed");
         }
 
         @Test

@@ -1,7 +1,5 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
@@ -11,13 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 
-import lombok.RequiredArgsConstructor;
+import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
-@RequiredArgsConstructor(access = PRIVATE)
 public class MethodInfo {
     public static MethodInfo of(Method method, Object... args) {
         return new MethodInfo(new TypeInfo(null, method.getDeclaringClass()), method, args);
@@ -27,10 +23,13 @@ public class MethodInfo {
     private final Method method;
     private final Object[] parameterValues;
 
-    @Override
-    public String toString() {
-        return type + "#" + method.getName();
+    private MethodInfo(TypeInfo type, Method method, Object[] parameterValues) {
+        this.type = type;
+        this.method = method;
+        this.parameterValues = parameterValues;
     }
+
+    @Override public String toString() { return type + "#" + method.getName(); }
 
     public boolean isQuery() {
         return !ifAnnotated(Mutation.class).isPresent();

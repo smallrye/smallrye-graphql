@@ -6,10 +6,6 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
@@ -48,10 +44,7 @@ class AnnotationBehavior {
         Greeting greeting();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class Greeting {
+    private static class Greeting {
         @Name("foo")
         String text;
         @Name("key")
@@ -66,6 +59,7 @@ class AnnotationBehavior {
         Greeting greeting = api.greeting();
 
         then(fixture.query()).isEqualTo("greeting {foo key}");
-        then(greeting).isEqualTo(new Greeting("foo", 5));
+        then(greeting.text).isEqualTo("foo");
+        then(greeting.code).isEqualTo(5);
     }
 }

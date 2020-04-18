@@ -3,11 +3,10 @@ package test.unit;
 import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-
-import test.unit.NestedBehavior.Greeting;
 
 class OptionalBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -40,6 +39,29 @@ class OptionalBehavior {
 
     interface OptionalGreetingApi {
         Optional<Greeting> greeting();
+    }
+
+    private static class Greeting {
+        String text;
+        int code;
+
+        @SuppressWarnings("unused") Greeting() {}
+
+        Greeting(String text, int code) {
+            this.text = text;
+            this.code = code;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Greeting greeting = (Greeting) o;
+            return code == greeting.code && text.equals(greeting.text);
+        }
+
+        @Override public int hashCode() { return Objects.hash(text, code); }
     }
 
     @Test

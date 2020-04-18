@@ -1,24 +1,22 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
-import static lombok.AccessLevel.PACKAGE;
-
 import java.lang.reflect.Field;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = PACKAGE)
 public class FieldInfo {
     private final TypeInfo container;
     private final Field field;
 
-    @Override
-    public String toString() {
-        return "field '" + field.getName() + "' in " + container;
+    FieldInfo(TypeInfo container, Field field) {
+        this.container = container;
+        this.field = field;
     }
+
+    @Override public String toString() { return "field '" + field.getName() + "' in " + container; }
 
     public TypeInfo getType() {
         return new TypeInfo(container, field.getGenericType());

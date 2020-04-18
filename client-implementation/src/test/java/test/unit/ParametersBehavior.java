@@ -4,12 +4,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -74,12 +71,27 @@ class ParametersBehavior {
         Greeting say(Greeting greet);
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    static class Greeting {
+    private static class Greeting {
         String text;
         int count;
+
+        @SuppressWarnings("unused") Greeting() {}
+
+        Greeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Greeting greeting = (Greeting) o;
+            return count == greeting.count && text.equals(greeting.text);
+        }
+
+        @Override public int hashCode() { return Objects.hash(text, count); }
     }
 
     @Test
@@ -127,12 +139,14 @@ class ParametersBehavior {
         boolean foo(ArrayObject bar);
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    static class ArrayObject {
+    private static class ArrayObject {
         List<String> texts;
         int count;
+
+        ArrayObject(List<String> texts, int count) {
+            this.texts = texts;
+            this.count = count;
+        }
     }
 
     @Test
@@ -145,6 +159,4 @@ class ParametersBehavior {
         then(fixture.query()).isEqualTo("foo(bar: {texts: ['hi', 'ho'], count: 3})");
         then(success).isTrue();
     }
-
-    // TODO params as variables?
 }

@@ -3,7 +3,7 @@ package io.smallrye.graphql.client.typesafe.impl.json;
 import javax.json.JsonString;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.reflection.ConstructingInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.ConstructionInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonStringReader extends Reader<JsonString> {
@@ -11,8 +11,7 @@ class JsonStringReader extends Reader<JsonString> {
         super(type, location, value);
     }
 
-    @Override
-    Object read() {
+    @Override Object read() {
         if (char.class.equals(type.getRawType()) || Character.class.equals(type.getRawType())) {
             if (value.getChars().length() != 1)
                 throw new GraphQlClientValueException(location, value);
@@ -23,7 +22,7 @@ class JsonStringReader extends Reader<JsonString> {
         if (type.isEnum())
             //noinspection rawtypes,unchecked
             return Enum.valueOf((Class) type.getRawType(), value.getString());
-        ConstructingInfo constructor = type.scalarConstructor()
+        ConstructionInfo constructor = type.scalarConstructor()
                 .orElseThrow(() -> new GraphQlClientValueException(location, value));
         try {
             return constructor.execute(value.getString());

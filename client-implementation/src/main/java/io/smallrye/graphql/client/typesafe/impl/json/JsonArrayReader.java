@@ -16,21 +16,17 @@ import javax.json.JsonValue.ValueType;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import lombok.Getter;
 
 class JsonArrayReader extends Reader<JsonArray> {
 
-    @Getter(lazy = true)
-    private final Class<?> collectionType = type.getRawType();
-    @Getter(lazy = true)
-    private final TypeInfo itemType = type.getItemType();
+    private Class<?> collectionType;
+    private TypeInfo itemType;
 
     JsonArrayReader(TypeInfo type, Location location, JsonArray value) {
         super(type, location, value);
     }
 
-    @Override
-    Object read() {
+    @Override Object read() {
         check(location, value, type.isCollection());
         IndexedLocationBuilder locationBuilder = new IndexedLocationBuilder(location);
         return value.stream().map(item -> readItem(locationBuilder, item)).collect(collector());
@@ -54,5 +50,17 @@ class JsonArrayReader extends Reader<JsonArray> {
             return toSet();
         assert List.class.isAssignableFrom(getCollectionType());
         return toList();
+    }
+
+    private Class<?> getCollectionType() {
+        if (collectionType == null)
+            collectionType = type.getRawType();
+        return collectionType;
+    }
+
+    private TypeInfo getItemType() {
+        if (itemType == null)
+            itemType = type.getItemType();
+        return itemType;
     }
 }

@@ -1,23 +1,17 @@
 package test.unit;
 
 import static java.util.Arrays.asList;
-import static lombok.AccessLevel.PRIVATE;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 class NestedBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -142,12 +136,27 @@ class NestedBehavior {
         Greeting greeting();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class Greeting {
+    private static class Greeting {
         String text;
         int code;
+
+        @SuppressWarnings("unused") Greeting() {}
+
+        Greeting(String text, int code) {
+            this.text = text;
+            this.code = code;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Greeting greeting = (Greeting) o;
+            return code == greeting.code && text.equals(greeting.text);
+        }
+
+        @Override public int hashCode() { return Objects.hash(text, code); }
     }
 
     @Test
@@ -237,10 +246,7 @@ class NestedBehavior {
         StringContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class StringContainer {
+    private static class StringContainer {
         String greeting;
         int count;
     }
@@ -253,19 +259,35 @@ class NestedBehavior {
         StringContainer container = api.container();
 
         then(fixture.query()).isEqualTo("container {greeting count}");
-        then(container).isEqualTo(new StringContainer("hi", 5));
+        then(container.greeting).isEqualTo("hi");
+        then(container.count).isEqualTo(5);
     }
 
     interface GreetingContainerApi {
         GreetingContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class GreetingContainer {
+    private static class GreetingContainer {
         Greeting greeting;
         int count;
+
+        @SuppressWarnings("unused") public GreetingContainer() {}
+
+        public GreetingContainer(Greeting greeting, int count) {
+            this.greeting = greeting;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            GreetingContainer that = (GreetingContainer) o;
+            return count == that.count && greeting.equals(that.greeting);
+        }
+
+        @Override public int hashCode() { return Objects.hash(greeting, count); }
     }
 
     @Test
@@ -284,12 +306,27 @@ class NestedBehavior {
         GreetingsContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class GreetingsContainer {
+    private static class GreetingsContainer {
         List<Greeting> greetings;
         int count;
+
+        @SuppressWarnings("unused") public GreetingsContainer() {}
+
+        public GreetingsContainer(List<Greeting> greetings, int count) {
+            this.greetings = greetings;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            GreetingsContainer that = (GreetingsContainer) o;
+            return count == that.count && greetings.equals(that.greetings);
+        }
+
+        @Override public int hashCode() { return Objects.hash(greetings, count); }
     }
 
     @Test
@@ -310,19 +347,47 @@ class NestedBehavior {
         WrappedGreetingContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class WrappedGreetingContainer {
+    private static class WrappedGreetingContainer {
         Wrapper<Greeting> greeting;
         int count;
+
+        @SuppressWarnings("unused") public WrappedGreetingContainer() {}
+
+        public WrappedGreetingContainer(Wrapper<Greeting> greeting, int count) {
+            this.greeting = greeting;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            WrappedGreetingContainer that = (WrappedGreetingContainer) o;
+            return count == that.count && greeting.equals(that.greeting);
+        }
+
+        @Override public int hashCode() { return Objects.hash(greeting, count); }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class Wrapper<T> {
+    private static class Wrapper<T> {
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private T value;
+
+        @SuppressWarnings("unused") public Wrapper() {}
+
+        public Wrapper(T value) { this.value = value; }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Wrapper<?> wrapper = (Wrapper<?>) o;
+            return value.equals(wrapper.value);
+        }
+
+        @Override public int hashCode() { return Objects.hash(value); }
     }
 
     @Test
@@ -343,12 +408,27 @@ class NestedBehavior {
         WrappedByteContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class WrappedByteContainer {
+    private static class WrappedByteContainer {
         Wrapper<Byte> code;
         int count;
+
+        @SuppressWarnings("unused") public WrappedByteContainer() {}
+
+        public WrappedByteContainer(Wrapper<Byte> code, int count) {
+            this.code = code;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            WrappedByteContainer that = (WrappedByteContainer) o;
+            return count == that.count && code.equals(that.code);
+        }
+
+        @Override public int hashCode() { return Objects.hash(code, count); }
     }
 
     @Test
@@ -378,12 +458,27 @@ class NestedBehavior {
         WrappedListByteContainer container();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class WrappedListByteContainer {
+    private static class WrappedListByteContainer {
         List<Byte> codes;
         int count;
+
+        @SuppressWarnings("unused") WrappedListByteContainer() {}
+
+        WrappedListByteContainer(List<Byte> codes, int count) {
+            this.codes = codes;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            WrappedListByteContainer that = (WrappedListByteContainer) o;
+            return count == that.count && codes.equals(that.codes);
+        }
+
+        @Override public int hashCode() { return Objects.hash(codes, count); }
     }
 
     @Test
@@ -414,21 +509,13 @@ class NestedBehavior {
     }
 
     @SuppressWarnings({ "unused" })
-    @NoArgsConstructor
-    @ToString
-    @EqualsAndHashCode
-    static class ClassWithTransientAndStaticFields {
+    private static class ClassWithTransientAndStaticFields {
         public static final String TO_BE_IGNORED = "foo";
         private static final String ALSO_TO_BE_IGNORED = "bar";
         private transient boolean ignoreMe;
 
         String text;
         int code;
-
-        ClassWithTransientAndStaticFields(String text, int code) {
-            this.text = text;
-            this.code = code;
-        }
     }
 
     @Test
@@ -439,7 +526,8 @@ class NestedBehavior {
         ClassWithTransientAndStaticFields foo = api.foo();
 
         then(fixture.query()).isEqualTo("foo {text code}");
-        then(foo).isEqualTo(new ClassWithTransientAndStaticFields("foo", 5));
+        then(foo.text).isEqualTo("foo");
+        then(foo.code).isEqualTo(5);
         then(foo.ignoreMe).isFalse();
     }
 
@@ -447,26 +535,11 @@ class NestedBehavior {
         Sub call();
     }
 
-    @EqualsAndHashCode(callSuper = true)
-    @NoArgsConstructor(access = PRIVATE)
-    @Data
-    static class Sub extends Super {
+    private static class Sub extends Super {
         int count;
-
-        Sub(Greeting greeting, int count) {
-            super(greeting);
-            this.count = count;
-        }
-
-        public String toString() {
-            return "Sub(" + greeting + ", " + count + ")";
-        }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(access = PRIVATE)
-    @Data
-    static class Super {
+    private static class Super {
         Greeting greeting;
     }
 
@@ -480,21 +553,22 @@ class NestedBehavior {
         Sub sub = api.call();
 
         then(fixture.query()).isEqualTo("call {greeting {text code} count}");
-        then(sub).isEqualTo(new Sub(new Greeting("a", 1), 3));
+        then(sub.greeting).isEqualTo(new Greeting("a", 1));
+        then(sub.count).isEqualTo(3);
     }
 
     interface ObjectPrivateDefaultConstructorApi {
         ObjectPrivateDefaultConstructor call();
     }
 
-    @NoArgsConstructor(force = true, access = PRIVATE)
-    @Data
-    static class ObjectPrivateDefaultConstructor {
+    private static class ObjectPrivateDefaultConstructor {
         private final String foo;
+
+        private ObjectPrivateDefaultConstructor() { this.foo = null; }
     }
 
     @Test
-    void shouldFailToCreateObjectPrivateDefaultConstructor() {
+    void shouldCreateObjectPrivateDefaultConstructor() {
         fixture.returnsData("'call':{'foo':'a'}");
         ObjectPrivateDefaultConstructorApi api = fixture.builder().build(ObjectPrivateDefaultConstructorApi.class);
 
@@ -509,11 +583,16 @@ class NestedBehavior {
         ObjectWithoutDefaultConstructor call();
     }
 
-    @RequiredArgsConstructor
-    @Data
-    static class ObjectWithoutDefaultConstructor {
+    private static class ObjectWithoutDefaultConstructor {
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String foo;
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String bar;
+
+        public ObjectWithoutDefaultConstructor(String foo, String bar) {
+            this.foo = foo;
+            this.bar = bar;
+        }
     }
 
     @Test
@@ -531,10 +610,7 @@ class NestedBehavior {
         MissingNullableField call();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class MissingNullableField {
+    private static class MissingNullableField {
         @NonNull
         String foo;
         String bar;
@@ -548,7 +624,8 @@ class NestedBehavior {
         MissingNullableField result = api.call();
 
         then(fixture.query()).isEqualTo("call {foo bar}");
-        then(result).isEqualTo(new MissingNullableField("a", null));
+        then(result.foo).isEqualTo("a");
+        then(result.bar).isNull();
     }
 
     interface MissingNonNullFieldApi {
@@ -556,12 +633,12 @@ class NestedBehavior {
         MissingNonNullField call();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class MissingNonNullField {
+    private static class MissingNonNullField {
+        @SuppressWarnings("unused")
         String foo;
+
         @NonNull
+        @SuppressWarnings("unused")
         String bar;
     }
 
@@ -580,11 +657,10 @@ class NestedBehavior {
         MissingPrimitiveField call();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor(force = true)
-    @Data
-    static class MissingPrimitiveField {
+    private static class MissingPrimitiveField {
+        @SuppressWarnings("unused")
         String foo;
+        @SuppressWarnings("unused")
         boolean bar;
     }
 

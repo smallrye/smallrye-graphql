@@ -2,7 +2,7 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
-import static lombok.AccessLevel.PACKAGE;
+import static java.util.Objects.requireNonNull;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
@@ -19,53 +19,27 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.eclipse.microprofile.graphql.NonNull;
 
-@RequiredArgsConstructor(access = PACKAGE)
 public class TypeInfo {
     private final TypeInfo container;
-    private final @NonNull Type type;
+    private final Type type;
     private final AnnotatedType[] annotatedArgs;
 
-    @Getter(lazy = true)
-    private final TypeInfo itemType = new TypeInfo(this, computeItemType());
-    @Getter(lazy = true)
-    private final Class<?> rawType = raw(type);
+    private TypeInfo itemType;
+    private Class<?> rawType;
 
     public TypeInfo(TypeInfo containerType, Type itemType) {
         this(containerType, itemType, new AnnotatedType[0]);
     }
 
-    private Type computeItemType() {
-        assert isCollection() || isOptional();
-        if (type instanceof ParameterizedType)
-            return ((ParameterizedType) type).getActualTypeArguments()[0];
-        assert type != null;
-        return ((Class<?>) type).getComponentType();
+    TypeInfo(TypeInfo container, Type type, AnnotatedType[] annotatedArgs) {
+        this.container = container;
+        this.type = requireNonNull(type);
+        this.annotatedArgs = annotatedArgs;
     }
 
-    private Class<?> raw(Type type) {
-        if (type instanceof Class)
-            return (Class<?>) type;
-        if (type instanceof ParameterizedType)
-            return raw(((ParameterizedType) type).getRawType());
-        if (type instanceof TypeVariable)
-            return resolveTypeVariable();
-        throw new GraphQlClientException("unsupported reflection type " + type.getClass());
-    }
-
-    private Class<?> resolveTypeVariable() {
-        // TODO this is not generally correct
-        ParameterizedType parameterizedType = (ParameterizedType) container.type;
-        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-        return (Class<?>) actualTypeArguments[0];
-    }
-
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return ((type instanceof Class) ? ((Class<?>) type).getName() : type)
                 + ((container == null) ? "" : " in " + container);
     }
@@ -74,6 +48,13 @@ public class TypeInfo {
         if (type instanceof TypeVariable)
             return resolveTypeVariable().getTypeName();
         return type.getTypeName();
+    }
+
+    private Class<?> resolveTypeVariable() {
+        // TODO this is not generally correct
+        ParameterizedType parameterizedType = (ParameterizedType) container.type;
+        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+        return (Class<?>) actualTypeArguments[0];
     }
 
     public boolean isCollection() {
@@ -122,12 +103,12 @@ public class TypeInfo {
         return ifClass(Class::isEnum);
     }
 
-    public Optional<ConstructingInfo> scalarConstructor() {
+    public Optional<ConstructionInfo> scalarConstructor() {
         return Stream.concat(
                 Stream.of(getRawType().getMethods()).filter(this::isStaticStringConstructor),
                 Stream.of(getRawType().getConstructors()).filter(this::hasOneStringParameter))
                 .findFirst()
-                .map(ConstructingInfo::new);
+                .map(ConstructionInfo::new);
     }
 
     private boolean hasOneStringParameter(Executable executable) {
@@ -147,20 +128,53 @@ public class TypeInfo {
                 && hasOneStringParameter(method);
     }
 
-    @SneakyThrows(ReflectiveOperationException.class)
     public Object newInstance() {
-        Constructor<?> noArgsConstructor = getRawType().getDeclaredConstructor();
-        noArgsConstructor.setAccessible(true);
-        return noArgsConstructor.newInstance();
+        try {
+            Constructor<?> noArgsConstructor = getRawType().getDeclaredConstructor();
+            noArgsConstructor.setAccessible(true);
+            return noArgsConstructor.newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("can't instantiate " + type, e);
+        }
     }
 
     public boolean isNonNull() {
-        if (ifClass(c -> c.isAnnotationPresent(org.eclipse.microprofile.graphql.NonNull.class)))
+        if (ifClass(c -> c.isAnnotationPresent(NonNull.class)))
             return true;
         if (!container.isCollection())
             return false;
         // TODO this is not generally correct
         AnnotatedType annotatedArg = container.annotatedArgs[0];
-        return annotatedArg.isAnnotationPresent(org.eclipse.microprofile.graphql.NonNull.class);
+        return annotatedArg.isAnnotationPresent(NonNull.class);
+    }
+
+    public Class<?> getRawType() {
+        if (rawType == null)
+            rawType = raw(type);
+        return this.rawType;
+    }
+
+    public TypeInfo getItemType() {
+        if (itemType == null)
+            itemType = new TypeInfo(this, computeItemType());
+        return this.itemType;
+    }
+
+    private Type computeItemType() {
+        assert isCollection() || isOptional();
+        if (type instanceof ParameterizedType)
+            return ((ParameterizedType) type).getActualTypeArguments()[0];
+        assert type != null;
+        return ((Class<?>) type).getComponentType();
+    }
+
+    private Class<?> raw(Type type) {
+        if (type instanceof Class)
+            return (Class<?>) type;
+        if (type instanceof ParameterizedType)
+            return raw(((ParameterizedType) type).getRawType());
+        if (type instanceof TypeVariable)
+            return resolveTypeVariable();
+        throw new GraphQlClientException("unsupported reflection type " + type.getClass());
     }
 }

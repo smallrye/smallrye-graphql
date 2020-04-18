@@ -2,12 +2,10 @@ package test.unit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.Objects;
+
 import org.eclipse.microprofile.graphql.Mutation;
 import org.junit.jupiter.api.Test;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 class MutationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -33,12 +31,27 @@ class MutationBehavior {
         Greeting say(Greeting greet);
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    static class Greeting {
+    private static class Greeting {
         String text;
         int count;
+
+        @SuppressWarnings("unused") public Greeting() {}
+
+        public Greeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            Greeting greeting = (Greeting) o;
+            return count == greeting.count && text.equals(greeting.text);
+        }
+
+        @Override public int hashCode() { return Objects.hash(text,count); }
     }
 
     @Test
