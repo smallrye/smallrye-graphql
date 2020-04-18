@@ -1,16 +1,18 @@
 package io.smallrye.graphql.client.typesafe.impl.cdi;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 public class GraphQlClientExtension implements Extension {
     private static final Logger log = LoggerFactory.getLogger(GraphQlClientExtension.class);

@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
@@ -26,7 +27,6 @@ import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import org.slf4j.LoggerFactory;
 
 class GraphQlClientProxy {
     private static final Logger log = LoggerFactory.getLogger(GraphQlClientProxy.class);

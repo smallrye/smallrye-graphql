@@ -4,10 +4,10 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.CDI;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
-import org.slf4j.LoggerFactory;
 
 public class GraphQlClientBean<T> extends AbstractBean<T> {
     private static final Logger log = LoggerFactory.getLogger(GraphQlClientBean.class);
