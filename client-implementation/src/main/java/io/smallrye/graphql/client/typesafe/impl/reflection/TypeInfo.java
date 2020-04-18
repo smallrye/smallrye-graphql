@@ -164,7 +164,6 @@ public class TypeInfo {
         assert isCollection() || isOptional();
         if (type instanceof ParameterizedType)
             return ((ParameterizedType) type).getActualTypeArguments()[0];
-        assert type != null;
         return ((Class<?>) type).getComponentType();
     }
 
