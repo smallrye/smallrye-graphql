@@ -39,6 +39,10 @@ public class GraphQLScalarTypes {
         return SCALAR_MAP;
     }
 
+    public static GraphQLScalarType getScalarByName(String name) {
+        return SCALARS_BY_NAME.get(name);
+    }
+
     public static boolean isScalarType(String className) {
         return SCALAR_MAP.containsKey(className);
     }
@@ -76,6 +80,11 @@ public class GraphQLScalarTypes {
 
     // Scalar map we can just create now.
     private static final Map<String, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
+
+    /**
+     * Maps scalar-name to scalar-type.
+     */
+    private static final Map<String, GraphQLScalarType> SCALARS_BY_NAME = new HashMap<>();
     private static final String ID = "ID";
 
     static {
@@ -99,6 +108,10 @@ public class GraphQLScalarTypes {
         mapType(new DateScalar()); // LocalDate, java.sql.Date
         mapType(new TimeScalar()); // LocalTime, java.sql.Time, OffsetTime
         mapType(new DateTimeScalar()); // LocalDateTime, Date, java.sql.Timestamp, ZonedDateTime, OffsetDateTime
+
+        for (final GraphQLScalarType value : SCALAR_MAP.values()) {
+            SCALARS_BY_NAME.put(value.getName(), value);
+        }
     }
 
     private static void mapType(AbstractScalar abstractScalar) {
