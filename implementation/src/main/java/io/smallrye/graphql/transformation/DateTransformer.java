@@ -39,7 +39,7 @@ public class DateTransformer {
      * @return instance of DateTransformer
      */
     public static DateTransformer transformer(DateTimeFormatter dateTimeFormatter) {
-        return new DateTransformer(Optional.of(dateTimeFormatter));
+        return new DateTransformer(Optional.ofNullable(dateTimeFormatter));
     }
 
     private DateTransformer(Optional<DateTimeFormatter> dateTimeFormatter) {

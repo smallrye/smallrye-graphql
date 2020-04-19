@@ -95,4 +95,14 @@ public class NumberTransformer {
         }
     }
 
+    public Object format(final Object object) {
+        if (Number.class.isInstance(object)) {
+            Number number = (Number) object;
+            if (this.numberFormat.isPresent()) {
+                return this.numberFormat.get().format(number);
+            }
+        }
+
+        return object;
+    }
 }

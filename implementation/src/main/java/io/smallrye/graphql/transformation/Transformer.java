@@ -23,10 +23,10 @@ import io.smallrye.graphql.schema.model.TransformInfo;
  */
 public class Transformer {
 
-    private DateTimeFormatter dateTimeFormatter = null;
-    private NumberFormat numberFormat = null;
     private DateTransformer dateTransformer;
     private NumberTransformer numberTransformer;
+
+    private TransformInfo.Type type;
 
     private final Field field;
 
@@ -45,13 +45,11 @@ public class Transformer {
     private void init(Optional<TransformInfo> maybeFormat) {
         if (maybeFormat.isPresent()) {
             TransformInfo format = maybeFormat.get();
-
-            if (format.getType().equals(TransformInfo.Type.NUMBER)) {
-                this.numberFormat = getNumberFormat(format);
-                this.numberTransformer = NumberTransformer.transformer(numberFormat);
-            } else if (format.getType().equals(TransformInfo.Type.DATE)) {
-                this.dateTimeFormatter = getDateFormat(format);
-                this.dateTransformer = DateTransformer.transformer(dateTimeFormatter);
+            this.type = format.getType();
+            if (this.type.equals(TransformInfo.Type.NUMBER)) {
+                this.numberTransformer = NumberTransformer.transformer(getNumberFormat(format));
+            } else if (this.type.equals(TransformInfo.Type.DATE)) {
+                this.dateTransformer = DateTransformer.transformer(getDateFormat(format));
             }
         }
     }
@@ -68,9 +66,9 @@ public class Transformer {
 
         if (Classes.isCollection(input)) {
             throw new RuntimeException("Can not parse [" + input + "] of type [" + input.getClass().getName() + "]");
-        } else if (input != null && dateTimeFormatter != null) {
+        } else if (input != null && type == TransformInfo.Type.DATE) {
             return parseDateInput(input);
-        } else if (input != null && numberFormat != null) {
+        } else if (input != null && type == TransformInfo.Type.NUMBER) {
             return parseNumberInput(input);
         }
         return input; // default
@@ -109,9 +107,9 @@ public class Transformer {
     public Object formatOutput(Object output) {
         if (Classes.isCollection(output)) {
             throw new RuntimeException("Can not format [" + output + "] of type [" + output.getClass().getName() + "]");
-        } else if (output != null && dateTimeFormatter != null) {
+        } else if (output != null && type == TransformInfo.Type.DATE) {
             return formatDateOutput(output);
-        } else if (output != null && numberFormat != null) {
+        } else if (output != null && type == TransformInfo.Type.NUMBER) {
             return formatNumberObject(output);
         }
         return output; // default
@@ -134,12 +132,7 @@ public class Transformer {
      * @return formatted result
      */
     private Object formatNumberObject(Object output) {
-        if (Number.class.isInstance(output)) {
-            Number number = (Number) output;
-            return numberFormat.format(number);
-        } else {
-            return output;
-        }
+        return numberTransformer.format(output);
     }
 
     private DateTimeFormatter getDateFormat(TransformInfo formatter) {
