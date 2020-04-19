@@ -34,6 +34,7 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 * link:schema-builder[] - Builder that create the model from Jandex.
 * link:api[] - API (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
 * link:implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
+* link:implementation-cdi[] - Allow lookup of GraphQL Endpoints via CDI
 * link:implementation-servlet[] - Making the implementation available via Servlet
 * link:tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
 * link:runner[] - Manual TCK testing with GraphiQL
