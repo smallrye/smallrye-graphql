@@ -1,5 +1,6 @@
 package io.smallrye.graphql.transformation;
 
+import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
@@ -25,6 +26,12 @@ public interface Transformer {
                 return new DateTransformer(field);
             }
 
+        } else if (Classes.isUUID(field.getReference().getClassName())) {
+            return new UuidTransformer();
+        } else if (Classes.isURL(field.getReference().getClassName())) {
+            return new UrlTransformer();
+        } else if (Classes.isURI(field.getReference().getClassName())) {
+            return new UriTransformer();
         }
         return new PassThroughTransformer();
     }

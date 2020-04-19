@@ -1,16 +1,11 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.lang.reflect.Array;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
@@ -74,13 +69,6 @@ public abstract class AbstractHelper {
         } else if (Classes.isOptional(expectedType)) {
             // Also handle optionals
             return recursiveTransformOptional(inputValue, field);
-            //TODO: move to transformer?
-        } else if (Classes.isUUID(expectedType)) {
-            return UUID.fromString(inputValue.toString());
-        } else if (Classes.isURL(expectedType)) {
-            return createURL(inputValue);
-        } else if (Classes.isURI(expectedType)) {
-            return createURI(inputValue);
         } else {
             // we need to transform before we make sure the type is correct
             inputValue = singleTransform(inputValue, field);
@@ -221,19 +209,4 @@ public abstract class AbstractHelper {
         }
     }
 
-    private URI createURI(Object inputValue) throws GraphQLException {
-        try {
-            return new URI(inputValue.toString());
-        } catch (URISyntaxException e) {
-            throw new GraphQLException(e);
-        }
-    }
-
-    private URL createURL(Object inputValue) throws GraphQLException {
-        try {
-            return new URL(inputValue.toString());
-        } catch (MalformedURLException e) {
-            throw new GraphQLException(e);
-        }
-    }
 }
