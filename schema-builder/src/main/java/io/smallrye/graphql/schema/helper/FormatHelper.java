@@ -101,7 +101,11 @@ public class FormatHelper {
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
         }
-        return Optional.empty();
+        return Optional.of(new TransformInfo(
+                TransformInfo.Type.NUMBER,
+                null,
+                null,
+                false));
     }
 
     private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {

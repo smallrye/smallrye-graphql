@@ -74,6 +74,7 @@ public abstract class AbstractHelper {
         } else if (Classes.isOptional(expectedType)) {
             // Also handle optionals
             return recursiveTransformOptional(inputValue, field);
+            //TODO: move to transformer?
         } else if (Classes.isUUID(expectedType)) {
             return UUID.fromString(inputValue.toString());
         } else if (Classes.isURL(expectedType)) {

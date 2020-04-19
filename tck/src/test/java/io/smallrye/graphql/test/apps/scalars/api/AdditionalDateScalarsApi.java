@@ -31,7 +31,7 @@ public class AdditionalDateScalarsApi {
     }
 
     public java.util.Date dateDefault(@Source AdditionalDateScalars additionalDateScalars,
-            @DefaultValue("2006-01-02T15:04:05.800") java.util.Date date) {
+            @DefaultValue("2006-01-02T15:04:05.876") java.util.Date date) {
         return date;
     }
 
@@ -41,7 +41,7 @@ public class AdditionalDateScalarsApi {
     }
 
     public java.sql.Timestamp sqlTimestampDefault(@Source AdditionalDateScalars additionalDateScalars,
-            @DefaultValue("2006-01-02T15:04:05.800") java.sql.Timestamp timestamp) {
+            @DefaultValue("2006-01-02T15:04:05.876") java.sql.Timestamp timestamp) {
         return timestamp;
     }
 

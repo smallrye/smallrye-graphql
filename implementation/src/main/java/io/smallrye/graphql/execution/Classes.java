@@ -98,14 +98,6 @@ public class Classes {
         throw new ClassNotFoundException("Unknown primative type [" + primitiveName + "]");
     }
 
-    public static Class toPrimativeClassType(Object currentValue) {
-        String currentValueClass = currentValue.getClass().toString();
-        if (OBJECT_PRIMITIVE_MAPPING.containsKey(currentValueClass)) {
-            return OBJECT_PRIMITIVE_MAPPING.get(currentValueClass);
-        }
-        return currentValue.getClass();
-    }
-
     private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
     private static final Map<String, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
 
@@ -168,4 +160,18 @@ public class Classes {
         OBJECT_PRIMITIVE_MAPPING.put(Double.class.getName(), double.class);
     }
 
+    /**
+     * Tests, if {@code boxedType} is the wrapper-type of {@code primitiveType}.
+     * For example, {@code java.lang.Integer} is the wrapper for {@code int}.
+     * 
+     * @param primitiveType the classname of the primitive type
+     * @param boxedType the classname of the boxed type
+     * @return true, if {@code boxedType} is the wrapper-type of {@code primitiveType}
+     */
+    public static boolean isPrimitiveOf(final String primitiveType, final String boxedType) {
+        if (OBJECT_PRIMITIVE_MAPPING.containsKey(boxedType)) {
+            return OBJECT_PRIMITIVE_MAPPING.get(boxedType).getName().equals(primitiveType);
+        }
+        return false;
+    }
 }

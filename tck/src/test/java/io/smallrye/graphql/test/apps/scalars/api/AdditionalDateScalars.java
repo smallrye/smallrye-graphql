@@ -8,13 +8,13 @@ import java.util.Date;
 
 public class AdditionalDateScalars {
 
-    private Date date;
-    private java.sql.Date sqlDate;
-    private Timestamp sqlTimestamp;
-    private Time sqlTime;
+    private final Date date;
+    private final java.sql.Date sqlDate;
+    private final Timestamp sqlTimestamp;
+    private final Time sqlTime;
 
     public AdditionalDateScalars() {
-        this.date = Date.from(LocalDateTime.parse("2006-01-02T15:04:05.800").atZone(ZoneId.systemDefault()).toInstant());
+        this.date = Date.from(LocalDateTime.parse("2006-01-02T15:04:05.876").atZone(ZoneId.systemDefault()).toInstant());
         this.sqlDate = new java.sql.Date(date.getTime());
         this.sqlTimestamp = new Timestamp(date.getTime());
         this.sqlTime = new Time(date.getTime());
