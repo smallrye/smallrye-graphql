@@ -69,7 +69,7 @@ public abstract class AbstractHelper {
         } else if (Classes.isOptional(expectedType)) {
             // Also handle optionals
             return recursiveTransformOptional(inputValue, field);
-        } else if (shouldTransform(field)) {
+        } else {
             // we need to transform before we make sure the type is correct
             inputValue = singleTransform(inputValue, field);
         }
@@ -201,16 +201,6 @@ public abstract class AbstractHelper {
 
     }
 
-    /**
-     * Check if we need to transform
-     * 
-     * @param field the field model
-     * @return true if we have to
-     */
-    protected boolean shouldTransform(Field field) {
-        return field.getTransformInfo().isPresent();
-    }
-
     private <T> Collection getGivenCollection(Object argumentValue, Field field) {
         if (Classes.isCollection(argumentValue)) {
             return (Collection) argumentValue;
@@ -218,4 +208,5 @@ public abstract class AbstractHelper {
             return Arrays.asList((T[]) argumentValue);
         }
     }
+
 }

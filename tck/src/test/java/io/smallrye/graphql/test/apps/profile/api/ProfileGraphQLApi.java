@@ -17,4 +17,5 @@ public class ProfileGraphQLApi {
     public Profile getProfile(int profileId) {
         return ProfileDB.getProfile(profileId);
     }
+
 }

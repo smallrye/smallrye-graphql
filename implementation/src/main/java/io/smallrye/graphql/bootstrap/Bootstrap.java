@@ -333,7 +333,7 @@ public class Bootstrap {
 
     private GraphQLInputType createGraphQLInputType(Field field) {
 
-        GraphQLInputType graphQLInputType = (GraphQLInputType) referenceGraphQLInputType(field);
+        GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
 
         // Collection
         if (field.getArray().isPresent()) {
@@ -357,7 +357,7 @@ public class Bootstrap {
     }
 
     private GraphQLOutputType createGraphQLOutputType(Field field) {
-        GraphQLOutputType graphQLOutputType = (GraphQLOutputType) referenceGraphQLOutputType(field);
+        GraphQLOutputType graphQLOutputType = referenceGraphQLOutputType(field);
 
         // Collection
         if (field.getArray().isPresent()) {
@@ -413,12 +413,12 @@ public class Bootstrap {
     }
 
     //&& !field.getTransformInfo().get().isValid()
-    private <T> T getCorrectScalarType(Field field, String className) {
-        //if (field.getTransformInfo().isPresent()
-        //        && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
-        //    return (T) Scalars.GraphQLString; // then we change to String
-        //}
-        return (T) scalarMap.get(className);
+    private GraphQLScalarType getCorrectScalarType(Field field, String className) {
+        //        if (field.getTransformInfo().isPresent()
+        //                && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
+        //            return (T) Scalars.GraphQLString; // then we change to String
+        //        }
+        return GraphQLScalarTypes.getScalarByName(field.getReference().getName());
     }
 
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {

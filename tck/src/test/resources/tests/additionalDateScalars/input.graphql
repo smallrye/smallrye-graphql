@@ -1,0 +1,19 @@
+{
+  additionalDateScalars {
+    date
+    dateInput(date: "2006-01-02T15:04:05.876")
+    dateDefault
+
+    sqlDate
+    sqlDateInput(date: "2006-01-02")
+    sqlDateDefault
+
+    sqlTime
+    sqlTimeInput(time: "15:04:05")
+    sqlTimeDefault
+
+    sqlTimestamp
+    sqlTimestampInput(timestamp: "2006-01-02T15:04:05.876")
+    sqlTimestampDefault
+  }
+}

@@ -2,11 +2,8 @@ package io.smallrye.graphql.scalar;
 
 import java.net.URI;
 import java.net.URL;
-import java.text.ParseException;
-import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import graphql.Scalars;
@@ -18,8 +15,6 @@ import io.smallrye.graphql.scalar.number.IntegerScalar;
 import io.smallrye.graphql.scalar.time.DateScalar;
 import io.smallrye.graphql.scalar.time.DateTimeScalar;
 import io.smallrye.graphql.scalar.time.TimeScalar;
-import io.smallrye.graphql.transformation.DateTransformer;
-import io.smallrye.graphql.transformation.NumberTransformer;
 
 /**
  * Here we keep all the graphql-java scalars
@@ -29,9 +24,6 @@ import io.smallrye.graphql.transformation.NumberTransformer;
  */
 public class GraphQLScalarTypes {
 
-    private static final DateTransformer DATE_TRANSFORMER = DateTransformer.transformer();
-    private static final NumberTransformer NUMBER_TRANSFORMER = NumberTransformer.transformer();
-
     private GraphQLScalarTypes() {
     }
 
@@ -39,43 +31,17 @@ public class GraphQLScalarTypes {
         return SCALAR_MAP;
     }
 
-    public static boolean isScalarType(String className) {
-        return SCALAR_MAP.containsKey(className);
-    }
-
-    public static Object stringToScalar(String input, String expectedClassName)
-            throws ParseException, NumberFormatException, DateTimeException {
-        // Boolean
-        if (expectedClassName.equals(boolean.class.getName())) {
-            return Boolean.parseBoolean(input);
-        } else if (expectedClassName.equals(Boolean.class.getName())) {
-            return Boolean.valueOf(input);
-
-            // Character    
-        } else if (expectedClassName.equals(char.class.getName())) {
-            return input.charAt(0);
-        } else if (expectedClassName.equals(Character.class.getName())) {
-            return Character.valueOf(input.charAt(0));
-
-            // Try date and number
-        } else {
-            Optional<Object> maybeDate = DATE_TRANSFORMER.stringToDateType(input, expectedClassName);
-            if (maybeDate.isPresent()) {
-                return maybeDate.get();
-            }
-
-            Optional<Object> maybeNumber = NUMBER_TRANSFORMER.stringToNumberType(input, expectedClassName);
-            if (maybeNumber.isPresent()) {
-                return maybeNumber.get();
-            }
-
-            // String (default)
-            return input;
-        }
+    public static GraphQLScalarType getScalarByName(String name) {
+        return SCALARS_BY_NAME.get(name);
     }
 
     // Scalar map we can just create now.
     private static final Map<String, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
+
+    /**
+     * Maps scalar-name to scalar-type.
+     */
+    private static final Map<String, GraphQLScalarType> SCALARS_BY_NAME = new HashMap<>();
     private static final String ID = "ID";
 
     static {
@@ -99,11 +65,15 @@ public class GraphQLScalarTypes {
         mapType(new DateScalar()); // LocalDate, java.sql.Date
         mapType(new TimeScalar()); // LocalTime, java.sql.Time, OffsetTime
         mapType(new DateTimeScalar()); // LocalDateTime, Date, java.sql.Timestamp, ZonedDateTime, OffsetDateTime
+
+        for (final GraphQLScalarType value : SCALAR_MAP.values()) {
+            SCALARS_BY_NAME.put(value.getName(), value);
+        }
     }
 
     private static void mapType(AbstractScalar abstractScalar) {
         for (Class c : abstractScalar.getSupportedClasses()) {
-            SCALAR_MAP.put(c.getName(), (GraphQLScalarType) abstractScalar);
+            SCALAR_MAP.put(c.getName(), abstractScalar);
         }
     }
 }

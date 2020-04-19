@@ -101,7 +101,11 @@ public class FormatHelper {
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
         }
-        return Optional.empty();
+        return Optional.of(new TransformInfo(
+                TransformInfo.Type.NUMBER,
+                null,
+                null,
+                false));
     }
 
     private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {
@@ -122,7 +126,12 @@ public class FormatHelper {
         if (dateFormatAnnotation.isPresent()) {
             return getDateFormat(type, dateFormatAnnotation.get());
         }
-        return Optional.empty();
+        //Create transform info without format and locale to trigger transformation with default-formatter
+        return Optional.of(new TransformInfo(
+                TransformInfo.Type.DATE,
+                null,
+                null,
+                false));
     }
 
     private static Optional<TransformInfo> getDateFormat(Type type, AnnotationInstance annotationInstance) {

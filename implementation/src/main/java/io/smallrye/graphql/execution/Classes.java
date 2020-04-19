@@ -76,6 +76,18 @@ public class Classes {
         return className.equals(OPTIONAL);
     }
 
+    public static boolean isUUID(String className) {
+        return className.equals(UUID);
+    }
+
+    public static boolean isURL(String className) {
+        return className.equals(URL);
+    }
+
+    public static boolean isURI(String className) {
+        return className.equals(URI);
+    }
+
     public static boolean isPrimitive(String primitiveName) {
         return PRIMITIVE_CLASSES.containsKey(primitiveName);
     }
@@ -93,19 +105,15 @@ public class Classes {
         throw new ClassNotFoundException("Unknown primative type [" + primitiveName + "]");
     }
 
-    public static Class toPrimativeClassType(Object currentValue) {
-        String currentValueClass = currentValue.getClass().toString();
-        if (OBJECT_PRIMITIVE_MAPPING.containsKey(currentValueClass)) {
-            return OBJECT_PRIMITIVE_MAPPING.get(currentValueClass);
-        }
-        return currentValue.getClass();
-    }
-
     private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
     private static final Map<String, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
 
     public static final String ENUM = Enum.class.getName();
     public static final String OPTIONAL = Optional.class.getName();
+
+    public static final String UUID = java.util.UUID.class.getName();
+    public static final String URL = java.net.URL.class.getName();
+    public static final String URI = java.net.URI.class.getName();
 
     public static final String LOCALDATE = LocalDate.class.getName();
     public static final String LOCALDATETIME = LocalDateTime.class.getName();
@@ -159,4 +167,18 @@ public class Classes {
         OBJECT_PRIMITIVE_MAPPING.put(Double.class.getName(), double.class);
     }
 
+    /**
+     * Tests, if {@code boxedType} is the wrapper-type of {@code primitiveType}.
+     * For example, {@code java.lang.Integer} is the wrapper for {@code int}.
+     * 
+     * @param primitiveType the classname of the primitive type
+     * @param boxedType the classname of the boxed type
+     * @return true, if {@code boxedType} is the wrapper-type of {@code primitiveType}
+     */
+    public static boolean isPrimitiveOf(final String primitiveType, final String boxedType) {
+        if (OBJECT_PRIMITIVE_MAPPING.containsKey(boxedType)) {
+            return OBJECT_PRIMITIVE_MAPPING.get(boxedType).getName().equals(primitiveType);
+        }
+        return false;
+    }
 }

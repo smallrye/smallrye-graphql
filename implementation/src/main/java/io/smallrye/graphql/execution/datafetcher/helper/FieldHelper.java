@@ -46,12 +46,8 @@ public class FieldHelper extends AbstractHelper {
      */
     @Override
     Object singleTransform(Object argumentValue, Field field) {
-        if (shouldTransform(field)) {
-            Transformer transformer = Transformer.transformer(field);
-            return argumentValue = transformer.formatOutput(argumentValue);
-        } else {
-            return argumentValue;
-        }
+        Transformer transformer = Transformer.transformer(field);
+        return transformer.out(argumentValue);
     }
 
     @Override

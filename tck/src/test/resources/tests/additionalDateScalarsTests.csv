@@ -1,0 +1,15 @@
+# test additional datetime scalars
+1| type AdditionalDateScalars   |   date: DateTime                                                  |   java.util.Date should be mapped to DateTime
+2| type AdditionalDateScalars   |   sqlTimestamp: DateTime                                          |   java.sql.Timestamp should be mapped to DateTime
+3| type AdditionalDateScalars   |   sqlDate: Date                                                   |   java.sql.Date should be mapped to Date
+4| type AdditionalDateScalars   |   sqlTime: Time                                                   |   java.sql.Date should be mapped to Date
+
+# schema contains linebreaks which breaks comparision of schema and expected value
+#5| type AdditionalDateScalars  |   dateInput(date: DateTime): DateTime                                         |   java.util.Date-input should be mapped to DateTime
+#6| type AdditionalDateScalars  |   dateDefault(date: DateTime = "2020-04-18T14:34:52.608"): DateTime           |   Default java.util.Date should be contained in schema
+#7| type AdditionalDateScalars  |   sqlTimestamp(timestamp: DateTime): DateTime                                 |   java.sql.Timestamp-input should be mapped to DateTime
+#8| type AdditionalDateScalars  |   sqlTimestamp(timestamp: DateTime = "2020-04-18T14:34:52.608"): DateTime     |   Default java.sql.Timestamp should be contained in schema
+#9| type AdditionalDateScalars  |   sqlDate(date: Date): Date                                                   |   java.sql.Date-input should be mapped to Date
+#10| type AdditionalDateScalars |   sqlDate(date: Date = "2020-04-18"): Date                                    |   Default java.sql.Date should be contained in schema
+#11| type AdditionalDateScalars |   sqlTime(time: Time): Time                                                   |   java.sql.Date-input should be mapped to Date
+#12| type AdditionalDateScalars |   sqlTime(time: Time = "14:34:52"): Time                                      |   Default java.sql.Date should be contained in schema
