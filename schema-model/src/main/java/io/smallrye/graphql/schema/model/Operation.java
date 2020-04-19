@@ -14,9 +14,12 @@ import java.util.List;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Operation extends Field {
-    private final String className; // Java class this is on
+    private String className; // Java class this is on
 
-    private final List<Argument> arguments = new LinkedList<>();
+    private List<Argument> arguments = new LinkedList<>();
+
+    public Operation() {
+    }
 
     public Operation(String className, String methodName, String propertyName, String name, String description,
             Reference reference) {

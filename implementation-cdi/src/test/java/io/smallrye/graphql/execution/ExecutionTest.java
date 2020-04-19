@@ -22,8 +22,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.Indexer;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -47,11 +47,9 @@ public class ExecutionTest {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
 
         this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema);
-        executionService.init();
-
     }
 
-    //@Test
+    @Test
     public void testBasicQuery() throws IOException {
         JsonObject data = executeAndGetData(GET_HERO);
 
@@ -96,7 +94,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testDateTransformationOnQuery() throws IOException {
         JsonObject data = executeAndGetData(TRANSFORMED_DATE);
 
@@ -107,7 +105,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testNumberTransformationOnMutation() throws IOException {
         JsonObject data = executeAndGetData(TRANSFORMED_NUMBER);
 
@@ -115,7 +113,7 @@ public class ExecutionTest {
         Assert.assertEquals("Number transformation on Mutation not working", "number 345", data.getString("transformedNumber"));
     }
 
-    //@Test
+    @Test
     public void testNumberTransformationOnArgument() throws IOException {
         JsonObject data = executeAndGetData(TRANSFORMED_ARGUMENT);
 
@@ -126,7 +124,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testBasicMutation() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_BASIC);
 
@@ -142,7 +140,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationWithObjectArgument() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX);
 
@@ -158,7 +156,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationScalarJavaMapping() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_MAPPING);
 
@@ -174,7 +172,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationWithComplexDefault() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_DEFAULT);
 
@@ -190,7 +188,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationWithArrayInput() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_ARRAY);
 
@@ -201,7 +199,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationWithCollectionInput() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_COLLECTION);
 
@@ -212,7 +210,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testMutationWithCollectionTransformationInput() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_TRANSFORMATION_COLLECTION);
 
@@ -251,7 +249,7 @@ public class ExecutionTest {
                 data.getJsonObject("startPatrolling").getString("patrolStartTime"));
     }
 
-    //@Test
+    @Test
     public void testMutationWithScalarNumberInput() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_NUMBER_INPUT);
 
@@ -267,7 +265,7 @@ public class ExecutionTest {
                 data.getJsonObject("idNumber").getString("idNumber"));
     }
 
-    //@Test
+    @Test
     public void testMutationWithInvalidTimeInput() throws IOException {
         JsonArray errors = executeAndGetError(MUTATION_INVALID_TIME_SCALAR);
 
@@ -283,7 +281,7 @@ public class ExecutionTest {
                 error.getString("message"));
     }
 
-    //@Test
+    @Test
     public void testMutationWithInvalidNumberInput() throws IOException {
         JsonArray errors = executeAndGetError(MUTATION_INVALID_NUMBER_SCALAR);
 
@@ -299,7 +297,7 @@ public class ExecutionTest {
                 error.getString("message"));
     }
 
-    //@Test
+    @Test
     public void testDefaultTimeScalarFormat() throws IOException {
         JsonObject data = executeAndGetData(QUERY_DEFAULT_TIME_FORMAT);
 
@@ -311,7 +309,7 @@ public class ExecutionTest {
 
     }
 
-    //@Test
+    @Test
     public void testInputWithDifferentNameOnInputAndType() throws IOException {
         JsonObject data = executeAndGetData(MUTATION_NAME_DIFF_ON_INPUT_AND_TYPE);
 
@@ -347,10 +345,14 @@ public class ExecutionTest {
         return builder.build();
     }
 
-    private GraphQLConfig getGraphQLConfig() {
-        GraphQLConfig config = new GraphQLConfig();
-        config.setAllowGet(false);
-        config.setPrintDataFetcherException(true);
+    private Config getGraphQLConfig() {
+        Config config = new Config() {
+
+            @Override
+            public boolean isPrintDataFetcherException() {
+                return true;
+            }
+        };
         return config;
     }
 

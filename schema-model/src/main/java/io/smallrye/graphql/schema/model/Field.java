@@ -14,16 +14,19 @@ import java.util.Optional;
  */
 public class Field implements Serializable {
 
-    private final String methodName; // This is the java method name (getter/setter/operation)
-    private final String propertyName; // This is the java property name (i.e without get/set/is)
-    private final String name;
-    private final String description;
-    private final Reference reference; // The type of this field.
+    private String methodName; // This is the java method name (getter/setter/operation)
+    private String propertyName; // This is the java property name (i.e without get/set/is)
+    private String name;
+    private String description;
+    private Reference reference; // The type of this field.
 
     private boolean notNull = false;
     private Optional<Array> array = Optional.empty(); // If this is a collection
     private Optional<TransformInfo> transformInfo = Optional.empty(); // If the field should be transformed
     private Optional<Object> defaultValue = Optional.empty();
+
+    public Field() {
+    }
 
     public Field(String methodName, String propertyName, String name, String description, Reference reference) {
         this.methodName = methodName;

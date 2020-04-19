@@ -8,7 +8,7 @@ import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
-import io.smallrye.graphql.execution.GraphQLConfig;
+import io.smallrye.graphql.bootstrap.Config;
 
 /**
  * Here we have the ability to mask certain messages to the client (for security reasons)
@@ -18,10 +18,10 @@ import io.smallrye.graphql.execution.GraphQLConfig;
 public class ExceptionHandler implements DataFetcherExceptionHandler {
     private static final Logger LOG = Logger.getLogger(ExceptionHandler.class.getName());
 
-    private final GraphQLConfig config;
+    private final Config config;
     private final ExceptionLists exceptionLists;
 
-    public ExceptionHandler(GraphQLConfig config) {
+    public ExceptionHandler(Config config) {
         this.config = config;
         this.exceptionLists = new ExceptionLists(config.getBlackList(), config.getWhiteList());
     }

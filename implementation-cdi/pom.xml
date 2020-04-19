@@ -1,59 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-parent</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
-
-    <artifactId>smallrye-graphql</artifactId>
-    <name>SmallRye: MicroProfile GraphQL Implementation</name>
-    <description>Implementation of the spec</description>
-
-    <properties>
-        <graphql-java.version>14.0</graphql-java.version>
-    </properties>
-
+    
+    <artifactId>smallrye-graphql-cdi</artifactId>
+    <name>SmallRye: MicroProfile GraphQL Implementation CDI</name>
+    <description>Allow lookup up of GraphQL Beans via CDI</description>
+    
     <dependencies>
-        
-        <!-- The API -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql-api</artifactId>
+            <artifactId>smallrye-graphql</artifactId>
         </dependency>
         
-        <!-- The model -->
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql-schema-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        
-        <!-- What we use from MicroProfile -->
-        <dependency>
-            <groupId>jakarta.json.bind</groupId>
-            <artifactId>jakarta.json.bind-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.json</groupId>
-            <artifactId>jakarta.json-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- GraphQL Java -->
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-            <version>${graphql-java.version}</version>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -62,15 +29,32 @@
              <groupId>junit</groupId>
              <artifactId>junit</artifactId>
              <scope>test</scope>
-        </dependency>
-        <dependency>
+         </dependency>
+         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>jakarta.json</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <version>1.0.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld</groupId>
+            <artifactId>weld-junit4</artifactId>
+            <version>2.0.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- The model builder -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-schema-builder</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
+    
     <build>
         <plugins>
             <plugin>
@@ -83,7 +67,7 @@
             </plugin>
         </plugins>
     </build>
-
+    
     <profiles>
         
         <!-- Run against the current released version -->
@@ -185,5 +169,4 @@
             </build>
         </profile>
     </profiles>
-    
 </project>
