@@ -17,9 +17,12 @@ import java.util.Set;
  */
 public final class InputType extends Reference {
 
-    private final String description;
+    private String description;
 
-    private final Set<Field> fields = new LinkedHashSet<>();
+    private Set<Field> fields = new LinkedHashSet<>();
+
+    public InputType() {
+    }
 
     public InputType(String className, String name, String description) {
         super(className, name, ReferenceType.INPUT);

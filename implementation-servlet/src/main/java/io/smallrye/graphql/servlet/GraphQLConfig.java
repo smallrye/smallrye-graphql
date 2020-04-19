@@ -1,4 +1,4 @@
-package io.smallrye.graphql.execution;
+package io.smallrye.graphql.servlet;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -11,13 +11,15 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.ConfigKey;
 
+import io.smallrye.graphql.bootstrap.Config;
+
 /**
  * Configuration for GraphQL
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
-public class GraphQLConfig {
+public class GraphQLConfig implements Config {
 
     private static final String SUPPOSED_EMPTY_STRING = "**empty**";
     private static final List<String> SUPPOSED_EMPTY_LIST = singletonList(SUPPOSED_EMPTY_STRING);
@@ -50,16 +52,8 @@ public class GraphQLConfig {
         return defaultErrorMessage;
     }
 
-    public void setDefaultErrorMessage(String defaultErrorMessage) {
-        this.defaultErrorMessage = defaultErrorMessage;
-    }
-
     public boolean isPrintDataFetcherException() {
         return printDataFetcherException;
-    }
-
-    public void setPrintDataFetcherException(boolean printDataFetcherException) {
-        this.printDataFetcherException = printDataFetcherException;
     }
 
     public List<String> getBlackList() {
@@ -69,10 +63,6 @@ public class GraphQLConfig {
         return blackList;
     }
 
-    public void setBlackList(List<String> blackList) {
-        this.blackList = blackList;
-    }
-
     public List<String> getWhiteList() {
         if (SUPPOSED_EMPTY_LIST.equals(whiteList)) {
             whiteList = emptyList();
@@ -80,16 +70,8 @@ public class GraphQLConfig {
         return whiteList;
     }
 
-    public void setWhiteList(List<String> whiteList) {
-        this.whiteList = whiteList;
-    }
-
     public boolean isAllowGet() {
         return allowGet;
-    }
-
-    public void setAllowGet(boolean allowGet) {
-        this.allowGet = allowGet;
     }
 
     public boolean isMetricsEnabled() {

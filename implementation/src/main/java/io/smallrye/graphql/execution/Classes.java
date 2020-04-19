@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jboss.logging.Logger;
+
 /**
  * Class helper
  * 
@@ -27,36 +29,41 @@ import java.util.Optional;
  */
 public class Classes {
     private static final Map<String, Class> loadedClasses = new HashMap<>();
+    private static final Logger LOG = Logger.getLogger(Classes.class.getName());
 
     private Classes() {
     }
 
     public static Class<?> loadClass(String className) {
-        try {
-            if (isPrimitive(className)) {
-                return getPrimativeClassType(className);
-            } else {
-                if (loadedClasses.containsKey(className)) {
-                    return loadedClasses.get(className);
+        if (className != null) {
+            try {
+                if (isPrimitive(className)) {
+                    return getPrimativeClassType(className);
                 } else {
+                    if (loadedClasses.containsKey(className)) {
+                        return loadedClasses.get(className);
+                    } else {
 
-                    return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
-                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                        if (loader != null) {
-                            try {
-                                return loadClass(className, loader);
-                            } catch (ClassNotFoundException cnfe) {
-                                // Let's try this class classloader.
+                        return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
+                            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                            if (loader != null) {
+                                try {
+                                    return loadClass(className, loader);
+                                } catch (ClassNotFoundException cnfe) {
+                                    // Let's try this class classloader.
+                                }
                             }
-                        }
-                        return loadClass(className, Classes.class.getClassLoader());
-                    });
+                            return loadClass(className, Classes.class.getClassLoader());
+                        });
 
+                    }
                 }
+            } catch (PrivilegedActionException | ClassNotFoundException pae) {
+                pae.printStackTrace();
+                throw new RuntimeException("Can not load class [" + className + "]", pae);
             }
-        } catch (PrivilegedActionException | ClassNotFoundException pae) {
-            throw new RuntimeException("Can not load class [" + className + "]", pae);
         }
+        return Object.class;
     }
 
     public static Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {

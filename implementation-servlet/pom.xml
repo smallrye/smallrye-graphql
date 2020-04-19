@@ -17,16 +17,18 @@
 
     <dependencies>
         
-        <!-- The Implementation -->
+        <!-- The Implementation (with CDI) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql</artifactId>
+            <artifactId>smallrye-graphql-cdi</artifactId>
         </dependency>
+        
         <!-- The model builder -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-schema-builder</artifactId>
         </dependency>
+        
         
         <!-- From MicroProfile -->
         <dependency>

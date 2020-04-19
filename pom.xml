@@ -51,6 +51,7 @@
         <!-- Our implementation, with our api experimentation -->
         <module>api</module>
         <module>implementation</module>
+        <module>implementation-cdi</module>
         <module>implementation-servlet</module>
         <module>tck</module>
         <module>runner</module>
@@ -59,6 +60,7 @@
         <module>client-api</module>
         <module>client-implementation</module>
         <module>client-tck</module>
+        
     </modules>
     
     <dependencyManagement>
@@ -118,6 +120,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-cdi</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
