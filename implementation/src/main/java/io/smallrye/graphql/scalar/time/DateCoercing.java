@@ -16,12 +16,10 @@ import graphql.schema.CoercingSerializeException;
 public class DateCoercing implements Coercing {
 
     private final Class[] supportedTypes;
-    private final Converter converter;
     private final String name;
 
-    public DateCoercing(String name, Converter converter, Class... supportedTypes) {
+    public DateCoercing(String name, Class... supportedTypes) {
         this.name = name;
-        this.converter = converter;
         this.supportedTypes = supportedTypes;
     }
 
