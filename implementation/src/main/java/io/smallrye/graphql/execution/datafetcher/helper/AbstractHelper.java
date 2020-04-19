@@ -81,7 +81,7 @@ public abstract class AbstractHelper {
             return createURL(inputValue);
         } else if (Classes.isURI(expectedType)) {
             return createURI(inputValue);
-        } else if (shouldTransform(field)) {
+        } else {
             // we need to transform before we make sure the type is correct
             inputValue = singleTransform(inputValue, field);
         }
@@ -211,16 +211,6 @@ public abstract class AbstractHelper {
 
         return child;
 
-    }
-
-    /**
-     * Check if we need to transform
-     * 
-     * @param field the field model
-     * @return true if we have to
-     */
-    protected boolean shouldTransform(Field field) {
-        return field.getTransformInfo().isPresent();
     }
 
     private <T> Collection getGivenCollection(Object argumentValue, Field field) {
