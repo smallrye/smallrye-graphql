@@ -1,4 +1,4 @@
-package io.smallrye.graphql;
+package io.smallrye.graphql.execution;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import org.jboss.jandex.IndexView;
 
 /**
- * Index te classes we want to test against
+ * Index the classes we want to test against
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -17,10 +17,7 @@ public class Indexer {
 
     public static IndexView getTCKIndex() {
         org.jboss.jandex.Indexer indexer = new org.jboss.jandex.Indexer();
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/basic/api");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/api");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/db");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/model");
+        indexDirectory(indexer, "io/smallrye/graphql/test");
         return indexer.complete();
     }
 

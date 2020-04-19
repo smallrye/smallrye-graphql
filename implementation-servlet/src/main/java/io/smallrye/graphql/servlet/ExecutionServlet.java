@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.ExecutionService;
-import io.smallrye.graphql.execution.GraphQLConfig;
 
 /**
  * Executing the GraphQL request

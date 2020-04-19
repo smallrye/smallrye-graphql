@@ -10,9 +10,12 @@ import java.io.Serializable;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Reference implements Serializable {
-    private final String className;
-    private final String name;
-    private final ReferenceType type;
+    private String className;
+    private String name;
+    private ReferenceType type;
+
+    public Reference() {
+    }
 
     public Reference(String javaName, String name, ReferenceType type) {
         this.className = javaName;

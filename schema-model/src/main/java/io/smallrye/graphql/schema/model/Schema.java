@@ -16,13 +16,16 @@ import java.util.TreeSet;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private final Set<Operation> queries = newTreeSet();
-    private final Set<Operation> mutations = newTreeSet();
+    private Set<Operation> queries = newTreeSet();
+    private Set<Operation> mutations = newTreeSet();
 
-    private final Map<String, InputType> inputs = new TreeMap();
-    private final Map<String, Type> types = new TreeMap();
-    private final Map<String, InterfaceType> interfaces = new TreeMap();
-    private final Map<String, EnumType> enums = new TreeMap();
+    private Map<String, InputType> inputs = new TreeMap();
+    private Map<String, Type> types = new TreeMap();
+    private Map<String, InterfaceType> interfaces = new TreeMap();
+    private Map<String, EnumType> enums = new TreeMap();
+
+    public Schema() {
+    }
 
     public Set<Operation> getQueries() {
         return queries;

@@ -22,12 +22,15 @@ import java.util.Set;
  */
 public final class Type extends Reference {
 
-    private final String description;
+    private String description;
 
-    private final Set<Field> fields = new LinkedHashSet<>();
-    private final Set<Operation> operations = new LinkedHashSet<>();
+    private Set<Field> fields = new LinkedHashSet<>();
+    private Set<Operation> operations = new LinkedHashSet<>();
 
-    private final Set<Reference> interfaces = new LinkedHashSet<>();
+    private Set<Reference> interfaces = new LinkedHashSet<>();
+
+    public Type() {
+    }
 
     public Type(String className, String name, String description) {
         super(className, name, ReferenceType.TYPE);

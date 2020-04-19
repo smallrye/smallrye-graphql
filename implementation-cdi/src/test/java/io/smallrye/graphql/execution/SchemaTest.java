@@ -1,4 +1,4 @@
-package io.smallrye.graphql.bootstrap;
+package io.smallrye.graphql.execution;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,8 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.Indexer;
-import io.smallrye.graphql.execution.SchemaPrinter;
+import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
