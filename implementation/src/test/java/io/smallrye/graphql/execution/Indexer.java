@@ -17,10 +17,7 @@ public class Indexer {
 
     public static IndexView getTCKIndex() {
         org.jboss.jandex.Indexer indexer = new org.jboss.jandex.Indexer();
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/basic/api");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/api");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/db");
-        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/model");
+        indexDirectory(indexer, "io/smallrye/graphql/test");
         return indexer.complete();
     }
 

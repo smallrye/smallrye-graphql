@@ -12,7 +12,6 @@ import javax.servlet.annotation.WebListener;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
