@@ -177,7 +177,7 @@ public class ReferenceCreator {
 
         if (annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
             // ID
-            return Scalars.getIDScalar();
+            return Scalars.getIDScalar(fieldTypeName);
         } else if (Scalars.isScalar(fieldTypeName)) {
             // Scalar
             return Scalars.getScalar(fieldTypeName);

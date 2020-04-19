@@ -1,0 +1,15 @@
+{
+  "data": {
+    "additionalScalars": {
+      "url": "https://example.com",
+      "uri": "https://example.com",
+      "uuid": "037f4ba2-6d74-4686-a4ea-90cbd86007c3",
+      "urlInput": "https://example.com",
+      "uriInput": "https://example.com",
+      "uuidInput": "037f4ba2-6d74-4686-a4ea-90cbd86007c3",
+      "urlDefault": "https://example.com",
+      "uriDefault": "https://example.com",
+      "uuidDefault": "037f4ba2-6d74-4686-a4ea-90cbd86007c3"
+    }
+  }
+}

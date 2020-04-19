@@ -1,6 +1,5 @@
 package io.smallrye.graphql.schema.helper;
 
-import java.util.Locale;
 import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -77,11 +76,6 @@ public class FormatHelper {
         }
     }
 
-    private static TransformInfo getDefaultDateTimeFormat(Type type) {
-        return new TransformInfo(TransformInfo.Type.DATE, getDefaultDateTimeFormatString(type), Locale.ENGLISH.toString(),
-                false);
-    }
-
     private static String getDefaultDateTimeFormatString(Type type) {
         // return the default dates format
         type = getCorrectType(type);
@@ -107,14 +101,22 @@ public class FormatHelper {
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
         }
-        return Optional.empty();
+        return Optional.of(new TransformInfo(
+                TransformInfo.Type.NUMBER,
+                null,
+                null,
+                false));
     }
 
     private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(TransformInfo.Type.NUMBER, format, locale, isJsonB(annotationInstance)));
+            return Optional.of(new TransformInfo(
+                    TransformInfo.Type.NUMBER,
+                    format,
+                    locale,
+                    isJsonB(annotationInstance)));
         }
         return Optional.empty();
     }
@@ -124,14 +126,23 @@ public class FormatHelper {
         if (dateFormatAnnotation.isPresent()) {
             return getDateFormat(type, dateFormatAnnotation.get());
         }
-        return Optional.empty();
+        //Create transform info without format and locale to trigger transformation with default-formatter
+        return Optional.of(new TransformInfo(
+                TransformInfo.Type.DATE,
+                null,
+                null,
+                false));
     }
 
     private static Optional<TransformInfo> getDateFormat(Type type, AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(TransformInfo.Type.DATE, format, locale, isJsonB(annotationInstance)));
+            return Optional.of(new TransformInfo(
+                    TransformInfo.Type.DATE,
+                    format,
+                    locale,
+                    isJsonB(annotationInstance)));
         }
         return Optional.empty();
     }
@@ -195,12 +206,11 @@ public class FormatHelper {
         return value;
     }
 
+    private static final String LOCALE = "locale";
     private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
     private static final String ISO_OFFSET_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ";
     private static final String ISO_ZONED_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ'['VV']'";
     private static final String ISO_DATE = "yyyy-MM-dd";
     private static final String ISO_TIME = "HH:mm:ss";
     private static final String ISO_OFFSET_TIME = "HH:mm:ssZ";
-
-    private static final String LOCALE = "locale";
 }

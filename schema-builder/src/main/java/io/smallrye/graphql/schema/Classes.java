@@ -3,9 +3,6 @@ package io.smallrye.graphql.schema;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -13,8 +10,6 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
@@ -24,45 +19,13 @@ import org.jboss.jandex.Type;
 /**
  * Class helper
  * 
+ * TODO: Clean up this. The knowledge of what is a date or number should maybe sit in the model /
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
-    private static final Map<String, Class> loadedClasses = new HashMap<>();
 
     private Classes() {
-    }
-
-    /**
-     * Load a class via the classloader
-     * 
-     * @param className the class name
-     * @return the instance of that class
-     */
-    public static Class<?> loadClass(String className) {
-
-        if (isPrimitive(className)) {
-            return getPrimativeClassType(className);
-        } else {
-            if (loadedClasses.containsKey(className)) {
-                return loadedClasses.get(className);
-            } else {
-                try {
-                    return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
-                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                        if (loader != null) {
-                            try {
-                                return loadClass(className, loader);
-                            } catch (ClassNotFoundException cnfe) {
-                                // Let's try this class classloader.
-                            }
-                        }
-                        return loadClass(className, Classes.class.getClassLoader());
-                    });
-                } catch (PrivilegedActionException pae) {
-                    throw new SchemaBuilderException("Can not load class [" + className + "]", pae);
-                }
-            }
-        }
     }
 
     /**
@@ -98,57 +61,6 @@ public class Classes {
         if (classInfo == null)
             return false;
         return classInfo.superName().equals(ENUM);
-    }
-
-    /**
-     * Check if a class is a primitive
-     * 
-     * @param primitiveName the class name
-     * @return true if it is
-     */
-    public static boolean isPrimitive(String primitiveName) {
-        return PRIMITIVE_CLASSES.containsKey(primitiveName);
-    }
-
-    /**
-     * Get the primitive class for a certain name
-     * 
-     * @param primitiveName the primitive class name
-     * @return the class
-     */
-    public static Class getPrimativeClassType(String primitiveName) {
-        if (isPrimitive(primitiveName)) {
-            return PRIMITIVE_CLASSES.get(primitiveName);
-        }
-        throw new SchemaBuilderException("Unknown primative type [" + primitiveName + "]");
-    }
-
-    /**
-     * Given the Object Type, return the primitive counterpart
-     * 
-     * @param objectType the Object type
-     * @return the primitive type
-     */
-    public static Class toPrimativeClassType(Class objectType) {
-        if (OBJECT_PRIMITIVE_MAPPING.containsKey(objectType)) {
-            return OBJECT_PRIMITIVE_MAPPING.get(objectType);
-        }
-        return objectType;
-    }
-
-    /**
-     * Given a String representation of a Scalar, get the correct type
-     * 
-     * @param input the input value as a String
-     * @param type the type we are looking for
-     * @return the input value in the correct type
-     */
-    public static Object stringToScalar(String input, Class type) {
-        if (type.isPrimitive()) {
-            return stringToPrimativeScalar(input, type);
-        } else {
-            return stringToObjectScalar(input, type);
-        }
     }
 
     /**
@@ -215,62 +127,6 @@ public class Classes {
         }
     }
 
-    private static Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {
-        Class<?> c = Class.forName(className, false, loader);
-        loadedClasses.put(className, c);
-        return c;
-    }
-
-    private static Object stringToPrimativeScalar(String input, Class type) {
-        if (type.equals(boolean.class)) {
-            return Boolean.parseBoolean(input);
-        } else if (type.equals(byte.class)) {
-            return Byte.parseByte(input);
-        } else if (type.equals(char.class)) {
-            return input.charAt(0);
-        } else if (type.equals(short.class)) {
-            return Short.parseShort(input);
-        } else if (type.equals(int.class)) {
-            return Integer.parseInt(input);
-        } else if (type.equals(long.class)) {
-            return Long.parseLong(input);
-        } else if (type.equals(float.class)) {
-            return Float.parseFloat(input);
-        } else if (type.equals(double.class)) {
-            return Double.parseDouble(input);
-        } else {
-            throw new SchemaBuilderException(
-                    "Can not create new primative scalar type [" + type + "] from input [" + input + "]");
-        }
-    }
-
-    private static Object stringToObjectScalar(String input, Class type) {
-        if (type.equals(Boolean.class)) {
-            return Boolean.valueOf(input);
-        } else if (type.equals(Byte.class)) {
-            return Byte.valueOf(input);
-        } else if (type.equals(Character.class)) {
-            return Character.valueOf(input.charAt(0));
-        } else if (type.equals(Short.class)) {
-            return Short.valueOf(input);
-        } else if (type.equals(Integer.class)) {
-            return Integer.valueOf(input);
-        } else if (type.equals(Long.class)) {
-            return Long.valueOf(input);
-        } else if (type.equals(Float.class)) {
-            return Float.valueOf(input);
-        } else if (type.equals(Double.class)) {
-            return Double.valueOf(input);
-        } else if (type.equals(BigDecimal.class)) {
-            return new BigDecimal(input);
-        } else if (type.equals(BigInteger.class)) {
-            return new BigInteger(input);
-        } else {
-            throw new SchemaBuilderException(
-                    "Can not create new object scalar type [" + type + "] from input [" + input + "]");
-        }
-    }
-
     public static final DotName ENUM = DotName.createSimple(Enum.class.getName());
     public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());
 
@@ -305,28 +161,5 @@ public class Classes {
 
     private static final DotName FLOAT = DotName.createSimple(Float.class.getName());
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
-
-    private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
-    private static final Map<Class, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
-
-    static {
-        PRIMITIVE_CLASSES.put("boolean", boolean.class);
-        PRIMITIVE_CLASSES.put("byte", byte.class);
-        PRIMITIVE_CLASSES.put("char", char.class);
-        PRIMITIVE_CLASSES.put("short", short.class);
-        PRIMITIVE_CLASSES.put("int", int.class);
-        PRIMITIVE_CLASSES.put("long", long.class);
-        PRIMITIVE_CLASSES.put("float", float.class);
-        PRIMITIVE_CLASSES.put("double", double.class);
-
-        OBJECT_PRIMITIVE_MAPPING.put(Boolean.class, boolean.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Byte.class, byte.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Character.class, char.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Short.class, short.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Integer.class, int.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Long.class, long.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Float.class, float.class);
-        OBJECT_PRIMITIVE_MAPPING.put(Double.class, double.class);
-    }
 
 }

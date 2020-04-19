@@ -1,18 +1,3 @@
-/*
- * Copyright 2020 Red Hat, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package io.smallrye.graphql.execution.error;
 
 import org.jboss.logging.Logger;
@@ -23,7 +8,7 @@ import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
-import io.smallrye.graphql.execution.GraphQLConfig;
+import io.smallrye.graphql.bootstrap.Config;
 
 /**
  * Here we have the ability to mask certain messages to the client (for security reasons)
@@ -33,10 +18,10 @@ import io.smallrye.graphql.execution.GraphQLConfig;
 public class ExceptionHandler implements DataFetcherExceptionHandler {
     private static final Logger LOG = Logger.getLogger(ExceptionHandler.class.getName());
 
-    private final GraphQLConfig config;
+    private final Config config;
     private final ExceptionLists exceptionLists;
 
-    public ExceptionHandler(GraphQLConfig config) {
+    public ExceptionHandler(Config config) {
         this.config = config;
         this.exceptionLists = new ExceptionLists(config.getBlackList(), config.getWhiteList());
     }

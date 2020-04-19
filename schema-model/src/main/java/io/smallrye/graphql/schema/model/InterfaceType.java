@@ -13,10 +13,13 @@ import java.util.Set;
  */
 public final class InterfaceType extends Reference {
 
-    private final String description;
-    private final Set<Reference> interfaces = new LinkedHashSet<>();
+    private String description;
+    private Set<Reference> interfaces = new LinkedHashSet<>();
 
-    private final Set<Field> fields = new LinkedHashSet<>();
+    private Set<Field> fields = new LinkedHashSet<>();
+
+    public InterfaceType() {
+    }
 
     public InterfaceType(String className, String name, String description) {
         super(className, name, ReferenceType.INTERFACE);

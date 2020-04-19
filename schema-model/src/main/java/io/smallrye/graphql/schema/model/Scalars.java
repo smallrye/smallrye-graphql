@@ -46,8 +46,8 @@ public class Scalars {
         return scalarMap.get(className);
     }
 
-    public static Reference getIDScalar() {
-        return scalarMap.get(ID);
+    public static Reference getIDScalar(String className) {
+        return new Reference(className, "ID", ReferenceType.SCALAR);
     }
 
     static {

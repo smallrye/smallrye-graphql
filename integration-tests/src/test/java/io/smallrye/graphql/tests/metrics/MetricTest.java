@@ -8,25 +8,19 @@ import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.junit.InSequence;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.tests.SimpleGraphQLClient;
 
-@RunWith(Arquillian.class)
+//@RunWith(Arquillian.class)
 public class MetricTest {
 
-    @Deployment
+    //@Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "metrics-test.war")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
@@ -42,8 +36,8 @@ public class MetricTest {
     @ArquillianResource
     URL testingURL;
 
-    @Test
-    @InSequence(99)
+    //@Test
+    //@InSequence(99)
     public void verifyMetricsAreRegisteredEagerly() {
         SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_hello"));
         Assert.assertNotNull("Metric should be registered eagerly", metricForHelloQuery);
@@ -52,9 +46,9 @@ public class MetricTest {
         Assert.assertNotNull("Metric should be registered eagerly", metricForMutation);
     }
 
-    @Test
-    @RunAsClient
-    @InSequence(100)
+    //@Test
+    //@RunAsClient
+    //@InSequence(100)
     public void invokeApi() throws Exception {
         SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
         client.query("{hello}");
@@ -62,8 +56,8 @@ public class MetricTest {
         client.query("{mutate}");
     }
 
-    @Test
-    @InSequence(101)
+    //@Test
+    //@InSequence(101)
     public void verifyMetricsAreUpdated() {
         SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_hello"));
         Assert.assertEquals("The query was called once, this should be reflected in metric value",

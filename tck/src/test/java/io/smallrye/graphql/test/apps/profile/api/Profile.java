@@ -22,6 +22,7 @@ public class Profile {
     //    private Gender gender;
     @DateFormat("dd/MM/yyyy")
     private Date birthDate;
+    private Date memberSince;
     private String favColor;
     //    private List<Address> addresses;
     private List<String> emailAddresses;
@@ -39,6 +40,7 @@ public class Profile {
     //    private List<Relation> relations;
     @DateFormat("dd/MM/yyyy")
     private java.sql.Date joinDate;
+    private java.sql.Date anniversary;
     private String maritalStatus;
 
     //    private List<CreditCard> creditCards;
@@ -133,6 +135,14 @@ public class Profile {
         this.birthDate = birthDate;
     }
 
+    public Date getMemberSince() {
+        return memberSince;
+    }
+
+    public void setMemberSinceDate(Date memberSince) {
+        this.memberSince = memberSince;
+    }
+
     public String getFavColor() {
         return favColor;
     }
@@ -211,6 +221,14 @@ public class Profile {
 
     public void setJoinDate(java.sql.Date joinDate) {
         this.joinDate = joinDate;
+    }
+
+    public java.sql.Date getAnniversary() {
+        return anniversary;
+    }
+
+    public void setAnniversary(java.sql.Date anniversary) {
+        this.anniversary = anniversary;
     }
 
     public String getMaritalStatus() {

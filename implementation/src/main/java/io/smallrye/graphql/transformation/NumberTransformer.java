@@ -2,97 +2,68 @@ package io.smallrye.graphql.transformation;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.Optional;
+
+import io.smallrye.graphql.schema.model.Field;
 
 /**
- * Help with number creation.
- * This is not pretty. But it works.
- * 
- * 
- * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * Parses incoming numbers to the needed class, doesn't touch outgoing values.
  */
-public class NumberTransformer {
+public class NumberTransformer implements Transformer {
 
-    private final Optional<NumberFormat> numberFormat;
+    private final Field field;
 
-    /**
-     * Get a NumberTransformer that will use the default values
-     * 
-     * @return instance of NumberTransformer
-     */
-    public static NumberTransformer transformer() {
-        return new NumberTransformer(Optional.empty());
+    protected NumberTransformer(Field field) {
+        this.field = field;
     }
 
-    /**
-     * Get a NumberTransformer
-     * 
-     * @param numberFormat the formatter to use
-     * @return instance of NumberTransformer
-     */
-    public static NumberTransformer transformer(NumberFormat numberFormat) {
-        return new NumberTransformer(Optional.of(numberFormat));
+    @Override
+    public Object in(final Object o) throws ParseException {
+        return parseNumber(o.toString(), field.getReference().getClassName());
     }
 
-    private NumberTransformer(Optional<NumberFormat> numberFormat) {
-        this.numberFormat = numberFormat;
-    }
-
-    /**
-     * Create Numbers from a String (using the default format)
-     * 
-     * @param input the number string
-     * @param typeClassName the number type name
-     * @return some number type object, maybe
-     */
-    public Optional<Object> stringToNumberType(String input, String typeClassName)
-            throws ParseException, NumberFormatException {
-        if (numberFormat.isPresent()) {
-            input = numberFormat.get().parse(input).toString();
-        }
-
+    public Number parseNumber(String input, String typeClassName) throws ParseException {
         // Integer
         if (typeClassName.equals(int.class.getName())) {
-            return Optional.of(Integer.parseInt(input));
+            return (Integer.parseInt(input));
         } else if (typeClassName.equals(Integer.class.getName())) {
-            return Optional.of(Integer.valueOf(input));
+            return (Integer.valueOf(input));
         } else if (typeClassName.equals(short.class.getName())) {
-            return Optional.of(Short.parseShort(input));
+            return (Short.parseShort(input));
         } else if (typeClassName.equals(Short.class.getName())) {
-            return Optional.of(Short.valueOf(input));
+            return (Short.valueOf(input));
         } else if (typeClassName.equals(byte.class.getName())) {
-            return Optional.of(Byte.parseByte(input));
+            return (Byte.parseByte(input));
         } else if (typeClassName.equals(Byte.class.getName())) {
-            return Optional.of(Byte.valueOf(input));
+            return (Byte.valueOf(input));
 
             // Float
         } else if (typeClassName.equals(float.class.getName())) {
-            return Optional.of(Float.parseFloat(input));
+            return (Float.parseFloat(input));
         } else if (typeClassName.equals(Float.class.getName())) {
-            return Optional.of(Float.valueOf(input));
+            return (Float.valueOf(input));
         } else if (typeClassName.equals(double.class.getName())) {
-            return Optional.of(Double.parseDouble(input));
+            return (Double.parseDouble(input));
         } else if (typeClassName.equals(Double.class.getName())) {
-            return Optional.of(Double.valueOf(input));
+            return (Double.valueOf(input));
 
             // BigInteger
         } else if (typeClassName.equals(BigInteger.class.getName())) {
-            return Optional.of(new BigInteger(input));
+            return (new BigInteger(input));
         } else if (typeClassName.equals(long.class.getName())) {
-            return Optional.of(Long.parseLong(input));
+            return (Long.parseLong(input));
         } else if (typeClassName.equals(Long.class.getName())) {
-            return Optional.of(Long.valueOf(input));
+            return (Long.valueOf(input));
 
             // BigDecimal
         } else if (typeClassName.equals(BigDecimal.class.getName())) {
-            return Optional.of(new BigDecimal(input));
-
-            // Not a number    
-        } else {
-            return Optional.empty();
+            return (new BigDecimal(input));
         }
+
+        throw new RuntimeException(String.format("[%s] is no valid number-type", typeClassName));
     }
 
+    public Object out(final Object object) {
+        return object;
+    }
 }

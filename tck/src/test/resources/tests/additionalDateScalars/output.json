@@ -1,0 +1,21 @@
+{
+  "data": {
+    "additionalDateScalars": {
+      "date": "2006-01-02T15:04:05.876",
+      "dateInput": "2006-01-02T15:04:05.876",
+      "dateDefault": "2006-01-02T15:04:05.876",
+
+      "sqlDate": "2006-01-02",
+      "sqlDateInput": "2006-01-02",
+      "sqlDateDefault": "2006-01-02",
+
+      "sqlTime": "15:04:05",
+      "sqlTimeInput": "15:04:05",
+      "sqlTimeDefault": "15:04:05",
+
+      "sqlTimestamp": "2006-01-02T15:04:05.876",
+      "sqlTimestampInput": "2006-01-02T15:04:05.876",
+      "sqlTimestampDefault": "2006-01-02T15:04:05.876"
+    }
+  }
+}

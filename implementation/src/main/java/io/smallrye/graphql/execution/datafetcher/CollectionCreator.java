@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.x.Classes;
+import io.smallrye.graphql.execution.Classes;
 
 /**
  * Helping with creating collection instances
