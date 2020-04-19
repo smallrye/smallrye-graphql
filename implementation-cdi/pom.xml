@@ -9,7 +9,7 @@
     </parent>
     
     <artifactId>smallrye-graphql-cdi</artifactId>
-    <name>SmallRye: MicroProfile GraphQL Implementation CDI</name>
+    <name>SmallRye: MicroProfile GraphQL Implementation :: CDI</name>
     <description>Allow lookup up of GraphQL Beans via CDI</description>
     
     <dependencies>

@@ -2,7 +2,6 @@ package io.smallrye.graphql.servlet;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -19,9 +18,6 @@ public class GraphQLProducer {
 
     private GraphQLSchema graphQLSchema;
     private ExecutionService executionService;
-
-    @Inject
-    private GraphQLConfig config;
 
     public void initializeGraphQL(GraphQLConfig config, Schema schema) {
         this.graphQLSchema = Bootstrap.bootstrap(schema);
