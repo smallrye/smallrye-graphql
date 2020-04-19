@@ -62,11 +62,11 @@ public class Bootstrap {
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        if (schema != null) {
+        if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
             Bootstrap graphQLBootstrap = new Bootstrap(schema);
             return graphQLBootstrap.generateGraphQLSchema();
         } else {
-            LOG.warn("Schema is null, not bootstrapping SmallRye GraphQL");
+            LOG.warn("Schema is null, or it has no operations. Not bootstrapping SmallRye GraphQL");
             return null;
         }
     }
@@ -414,10 +414,10 @@ public class Bootstrap {
 
     //&& !field.getTransformInfo().get().isValid()
     private <T> T getCorrectScalarType(Field field, String className) {
-        //        if (field.getTransformInfo().isPresent()
-        //                && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
-        //            return (T) Scalars.GraphQLString; // then we change to String
-        //        }
+        //if (field.getTransformInfo().isPresent()
+        //        && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
+        //    return (T) Scalars.GraphQLString; // then we change to String
+        //}
         return (T) scalarMap.get(className);
     }
 

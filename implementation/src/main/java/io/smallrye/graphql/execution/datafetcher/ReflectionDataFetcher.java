@@ -14,24 +14,24 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.cdi.CDIDelegate;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
+import io.smallrye.graphql.lookup.LookupService;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.TransformException;
 
 /**
- * Fetch data using CDI and Reflection
+ * Fetch data using some bean lookup and Reflection
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
     private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
-    private final CDIDelegate cdiDelegate = CDIDelegate.delegate();
+    private final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms 
 
     private final Operation operation;
     private final List<Class> parameterClasses;
@@ -77,7 +77,7 @@ public class ReflectionDataFetcher implements DataFetcher {
      */
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
-        Object declaringObject = cdiDelegate.getInstanceFromCDI(operation.getClassName());
+        Object declaringObject = lookupService.getInstance(operation.getClassName());
         Class cdiClass = declaringObject.getClass();
         try {
             Object resultFromMethodCall = null;

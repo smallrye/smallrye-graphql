@@ -1,4 +1,4 @@
-package io.smallrye.graphql;
+package io.smallrye.graphql.execution;
 
 import java.io.BufferedReader;
 import java.io.IOException;

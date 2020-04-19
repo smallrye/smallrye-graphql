@@ -11,8 +11,11 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class EnumType extends Reference {
-    private final String description;
-    private final Set<String> values = new LinkedHashSet<>();
+    private String description;
+    private Set<String> values = new LinkedHashSet<>();
+
+    public EnumType() {
+    }
 
     public EnumType(String className, String name, String description) {
         super(className, name, ReferenceType.ENUM);

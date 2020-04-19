@@ -13,10 +13,13 @@ import java.io.Serializable;
  */
 public class TransformInfo implements Serializable {
 
-    private final String format;
-    private final String locale;
-    private final Type type;
-    private final boolean jsonB; // If the transformation can happen with JsonB
+    private String format;
+    private String locale;
+    private Type type;
+    private boolean jsonB; // If the transformation can happen with JsonB
+
+    public TransformInfo() {
+    }
 
     public TransformInfo(Type type,
             String format,

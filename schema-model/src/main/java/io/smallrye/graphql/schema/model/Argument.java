@@ -11,8 +11,11 @@ package io.smallrye.graphql.schema.model;
  */
 public final class Argument extends Field {
 
-    private final String methodArgumentName; // This is the java method argument name
+    private String methodArgumentName; // This is the java method argument name
     private boolean sourceArgument = false; // Flag if this is a source argument
+
+    public Argument() {
+    }
 
     public Argument(String methodArgumentName, String methodName, String propertyName, String name, String description,
             Reference reference) {

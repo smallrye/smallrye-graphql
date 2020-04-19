@@ -1,18 +1,3 @@
-/*
- * Copyright 2020 Red Hat, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License";
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package io.smallrye.graphql.execution;
 
 import static org.junit.Assert.assertEquals;
@@ -31,28 +16,24 @@ import org.junit.Test;
 
 public class MappingTest {
 
-    private static Map<String, Object> toMap(JsonObject jo) {
-        return new ExecutionService().toMap(jo);
-    }
-
     @Test
     public void toMap_string() {
         Map<String, Object> expected = Collections.singletonMap("firstName", "John");
         JsonObject jo = Json.createObjectBuilder()
                 .add("firstName", "John")
                 .build();
-        assertEquals(expected, toMap(jo));
+        assertEquals(expected, GraphQLVariables.getVariables(jo).get());
     }
 
     @Test
     public void toMap_boolean() {
         Map<String, Object> expected = Collections.singletonMap("certified", true);
         JsonObject jo = Json.createObjectBuilder().add("certified", true).build();
-        assertEquals(expected, toMap(jo));
+        assertEquals(expected, GraphQLVariables.getVariables(jo).get());
 
         expected = Collections.singletonMap("refurbished", false);
         jo = Json.createObjectBuilder().add("refurbished", false).build();
-        assertEquals(expected, toMap(jo));
+        assertEquals(expected, GraphQLVariables.getVariables(jo).get());
     }
 
     @Test
@@ -63,7 +44,7 @@ public class MappingTest {
                 .add("bigNum", 1234567890987654321L)
                 .add("float", 0.00000023f)
                 .build();
-        Map<String, Object> returned = toMap(jo);
+        Map<String, Object> returned = GraphQLVariables.getVariables(jo).get();
         assertEquals(4, returned.size());
         assertEquals(17.003, ((BigDecimal) returned.get("weight")).doubleValue(), 0.001);
         assertEquals(1025, ((BigDecimal) returned.get("block_count")).intValue());
@@ -99,7 +80,7 @@ public class MappingTest {
                         .add("acct", 12345)
                         .build())
                 .build();
-        assertEquals(expected, toMap(jo));
+        assertEquals(expected, GraphQLVariables.getVariables(jo).get());
     }
 
     @SuppressWarnings("unchecked")
@@ -134,7 +115,7 @@ public class MappingTest {
                         .build())
                 .add("empty", Json.createArrayBuilder().build())
                 .build();
-        Map<String, Object> returned = toMap(jo);
+        Map<String, Object> returned = GraphQLVariables.getVariables(jo).get();
         assertEquals(5, returned.size());
         assertEquals(Arrays.asList("bob", "tom", "dick"), returned.get("names"));
         assertEquals(Arrays.asList("basketball", "hockey", "rugby", "baseball"), returned.get("games"));
