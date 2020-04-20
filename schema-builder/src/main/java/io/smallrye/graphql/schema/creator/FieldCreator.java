@@ -59,18 +59,17 @@ public class FieldCreator {
 
             // NotNull
             if (NonNullHelper.markAsNonNull(returnType, annotationsForMethod)) {
-                field.markNotNull();
+                field.setNotNull(true);
             }
 
             // Array
-            field.setArray(ArrayCreator.createArray(returnType));
+            field.setArray(ArrayCreator.createArray(returnType).orElse(null));
 
             // TransformInfo
-            field.setTransformInfo(FormatHelper.getFormat(returnType, annotationsForMethod));
+            field.setTransformInfo(FormatHelper.getFormat(returnType, annotationsForMethod).orElse(null));
 
             // Default Value
-            Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForMethod);
-            field.setDefaultValue(maybeDefaultValue);
+            field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
 
             return Optional.of(field);
         }
@@ -113,18 +112,17 @@ public class FieldCreator {
 
             // NotNull
             if (NonNullHelper.markAsNonNull(methodType, annotationsForPojo)) {
-                field.markNotNull();
+                field.setNotNull(true);
             }
 
             // Array
-            field.setArray(ArrayCreator.createArray(fieldType, methodType));
+            field.setArray(ArrayCreator.createArray(fieldType, methodType).orElse(null));
 
             // TransformInfo
-            field.setTransformInfo(FormatHelper.getFormat(methodType, annotationsForPojo));
+            field.setTransformInfo(FormatHelper.getFormat(methodType, annotationsForPojo).orElse(null));
 
             // Default Value
-            Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForPojo);
-            field.setDefaultValue(maybeDefaultValue);
+            field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
 
             return Optional.of(field);
         }

@@ -20,7 +20,7 @@ public class FormattedNumberTransformer implements Transformer {
 
     protected FormattedNumberTransformer(Field field) {
         this.numberTransformer = new NumberTransformer(field);
-        this.numberFormat = getNumberFormat(field.getTransformInfo().orElse(null));
+        this.numberFormat = getNumberFormat(field.getTransformInfo());
     }
 
     private NumberFormat getNumberFormat(TransformInfo formatter) {

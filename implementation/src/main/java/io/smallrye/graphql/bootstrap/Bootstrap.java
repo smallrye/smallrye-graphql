@@ -324,7 +324,7 @@ public class Bootstrap {
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
 
         // Default value (on method)
-        inputFieldBuilder = inputFieldBuilder.defaultValue(field.getDefaultValue().orElse(null));
+        inputFieldBuilder = inputFieldBuilder.defaultValue(field.getDefaultValue());
 
         GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
 
@@ -336,8 +336,8 @@ public class Bootstrap {
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
 
         // Collection
-        if (field.getArray().isPresent()) {
-            Array array = field.getArray().get();
+        if (field.hasArray()) {
+            Array array = field.getArray();
             // Mandatory in the collection
             if (array.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
@@ -360,8 +360,8 @@ public class Bootstrap {
         GraphQLOutputType graphQLOutputType = referenceGraphQLOutputType(field);
 
         // Collection
-        if (field.getArray().isPresent()) {
-            Array array = field.getArray().get();
+        if (field.hasArray()) {
+            Array array = field.getArray();
             // Mandatory in the collection
             if (array.isNotEmpty()) {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
@@ -435,13 +435,13 @@ public class Bootstrap {
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                 .name(argument.getName())
                 .description(argument.getDescription())
-                .defaultValue(argument.getDefaultValue().orElse(null));
+                .defaultValue(argument.getDefaultValue());
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
         // Collection
-        if (argument.getArray().isPresent()) {
-            Array array = argument.getArray().get();
+        if (argument.hasArray()) {
+            Array array = argument.getArray();
             // Mandatory in the collection
             if (array.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);

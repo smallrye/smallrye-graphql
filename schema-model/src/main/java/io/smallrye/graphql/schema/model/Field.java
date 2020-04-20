@@ -1,7 +1,6 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 /**
  * Represent a property on a complex type (Type/Input/Interface)
@@ -21,9 +20,9 @@ public class Field implements Serializable {
     private Reference reference; // The type of this field.
 
     private boolean notNull = false;
-    private Optional<Array> array = Optional.empty(); // If this is a collection
-    private Optional<TransformInfo> transformInfo = Optional.empty(); // If the field should be transformed
-    private Optional<Object> defaultValue = Optional.empty();
+    private Array array = null; // If this is a collection
+    private TransformInfo transformInfo = null; // If the field should be transformed
+    private String defaultValue = null;
 
     public Field() {
     }
@@ -40,51 +39,83 @@ public class Field implements Serializable {
         return methodName;
     }
 
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
     public String getPropertyName() {
         return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Reference getReference() {
         return reference;
     }
 
-    public void markNotNull() {
-        this.notNull = true;
+    public void setReference(Reference reference) {
+        this.reference = reference;
     }
 
     public boolean isNotNull() {
         return notNull;
     }
 
-    public Optional<Array> getArray() {
+    public void setNotNull(boolean notNull) {
+        this.notNull = notNull;
+    }
+
+    public Array getArray() {
         return array;
     }
 
-    public void setArray(Optional<Array> array) {
+    public void setArray(Array array) {
         this.array = array;
     }
 
-    public Optional<TransformInfo> getTransformInfo() {
+    public boolean hasArray() {
+        return this.array != null;
+    }
+
+    public TransformInfo getTransformInfo() {
         return transformInfo;
     }
 
-    public void setTransformInfo(Optional<TransformInfo> transformInfo) {
+    public void setTransformInfo(TransformInfo transformInfo) {
         this.transformInfo = transformInfo;
     }
 
-    public Optional<Object> getDefaultValue() {
+    public boolean hasTransformInfo() {
+        return this.transformInfo != null;
+    }
+
+    public String getDefaultValue() {
         return defaultValue;
     }
 
-    public void setDefaultValue(Optional<Object> defaultValue) {
+    public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    public boolean hasDefaultValue() {
+        return this.defaultValue != null;
     }
 }

@@ -18,10 +18,10 @@ public class DefaultValueHelper {
      * @param annotations the annotations to search in
      * @return a optional default object
      */
-    public static Optional<Object> getDefaultValue(Annotations... annotations) {
+    public static Optional<String> getDefaultValue(Annotations... annotations) {
         for (Annotations a : annotations) {
             if (a.containsKeyAndValidValue(Annotations.DEFAULT_VALUE)) {
-                return Optional.of(a.getAnnotationValue(Annotations.DEFAULT_VALUE).value());
+                return Optional.of(a.getAnnotationValue(Annotations.DEFAULT_VALUE).value().toString());
             }
         }
         return Optional.empty();
