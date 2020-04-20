@@ -117,3 +117,7 @@ private Clearance establishShieldClearance() { // <1>
 When you are in an environment without CDI, you need to add headers to the `GraphQlClientBuilder` using one of the `header` methods.
 
 There is also a specialized `GraphQlClientAuthorizationHeader` that provides a BASIC Authorization header with the credentials configured in MP Config. Depending on the constructor used, a different config key prefix is used, with <code>username</code> and <code>password</code> appended. See the constructors for details.
+
+== Logging
+
+The Client implementation logs all GraphQL requests and responses at level `INFO` with the interface API as the logger name. It also logs the keys of all headers added at level `DEBUG`; the values may be security sensitive.
