@@ -20,7 +20,10 @@ public class GraphQLProducer {
     private ExecutionService executionService;
 
     public void initializeGraphQL(GraphQLConfig config, Schema schema) {
-        this.graphQLSchema = Bootstrap.bootstrap(schema);
+        this.graphQLSchema = Bootstrap.bootstrap(schema, config);
+        if (config.isMetricsEnabled()) {
+            Bootstrap.registerMetrics(schema);
+        }
         this.executionService = new ExecutionService(config, graphQLSchema);
     }
 

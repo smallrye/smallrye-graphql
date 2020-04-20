@@ -2,6 +2,8 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,6 +17,7 @@ import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
@@ -37,26 +40,33 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final List<Class> parameterClasses;
     private final FieldHelper fieldHelper;
     private final ArgumentHelper argumentHelper;
+    private final Collection<DataFetcherDecorator> decorators;
+
+    public ReflectionDataFetcher(Operation operation) {
+        this(operation, Collections.emptyList());
+    }
 
     /**
      * We use this reflection data fetcher on operations (so Queries, Mutations and Source)
-     * 
+     *
      * ParameterClasses: We need an Array of Classes that this operation method needs so we can use reflection to call the
      * method.
      * FieldHelper: We might have to transform the data on the way out if there was a Formatting annotation on the method,
      * or return object fields, we can not use normal JsonB to do this because we do not bind a full object, and we support
      * annotation that is not part on JsonB
-     * 
+     *
      * ArgumentHelper: The same as above, except for every parameter on the way in.
-     * 
+     *
      * @param operation the operation
-     * 
+     * @param decorators collection of decorators to invoke before and after fetching the data
+     *
      */
-    public ReflectionDataFetcher(Operation operation) {
+    public ReflectionDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
         this.operation = operation;
         this.parameterClasses = getParameterClasses();
         this.fieldHelper = new FieldHelper(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
+        this.decorators = decorators;
     }
 
     /**
@@ -68,8 +78,6 @@ public class ReflectionDataFetcher implements DataFetcher {
      * 3) Make a call on the method with the correct arguments
      * 4) get the result and if needed transform it before we return it.
      * 
-     * TODO: Add Metrics maybe potentially proxy / decorator pattern to be more generic ?
-     * 
      * @param dfe the Data Fetching Environment from graphql-java
      * @return the result from the call.
      * 
@@ -77,6 +85,9 @@ public class ReflectionDataFetcher implements DataFetcher {
      */
     @Override
     public Object get(DataFetchingEnvironment dfe) throws Exception {
+        decorators.forEach(decorator -> {
+            decorator.before(dfe);
+        });
         Object declaringObject = lookupService.getInstance(operation.getClassName());
         Class cdiClass = declaringObject.getClass();
         try {
@@ -111,6 +122,8 @@ public class ReflectionDataFetcher implements DataFetcher {
                     throw (Exception) throwable;
                 }
             }
+        } finally {
+            decorators.forEach(decorator -> decorator.after(dfe));
         }
     }
 
