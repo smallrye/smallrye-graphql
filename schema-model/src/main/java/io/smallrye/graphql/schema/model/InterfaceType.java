@@ -30,8 +30,16 @@ public final class InterfaceType extends Reference {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Set<Field> getFields() {
         return fields;
+    }
+
+    public void setFields(Set<Field> fields) {
+        this.fields = fields;
     }
 
     public void addField(Field field) {
@@ -44,6 +52,10 @@ public final class InterfaceType extends Reference {
 
     public Set<Reference> getInterfaces() {
         return interfaces;
+    }
+
+    public void setInterfaces(Set<Reference> interfaces) {
+        this.interfaces = interfaces;
     }
 
     public void addInterface(Reference interfaceType) {

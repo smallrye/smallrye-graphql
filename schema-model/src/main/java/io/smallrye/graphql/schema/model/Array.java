@@ -22,20 +22,32 @@ public final class Array implements Serializable {
         this.depth = depth;
     }
 
-    public void markNotEmpty() {
-        this.notEmpty = true;
+    public void setNotEmpty(boolean notEmpty) {
+        this.notEmpty = notEmpty;
+    }
+
+    public boolean isNotEmpty() {
+        return this.notEmpty;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 
     public String getClassName() {
         return this.className;
     }
 
+    public void getDepth(int depth) {
+        this.depth = depth;
+    }
+
     public int getDepth() {
         return this.depth;
     }
 
-    public boolean isNotEmpty() {
-        return this.notEmpty;
+    public void setType(Type type) {
+        this.type = type;
     }
 
     public Type getType() {

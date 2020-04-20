@@ -62,18 +62,17 @@ public class OperationCreator {
 
         // NotNull
         if (NonNullHelper.markAsNonNull(fieldType, annotationsForMethod)) {
-            operation.markNotNull();
+            operation.setNotNull(true);
         }
 
         // Array
-        operation.setArray(ArrayCreator.createArray(fieldType));
+        operation.setArray(ArrayCreator.createArray(fieldType).orElse(null));
 
         // TransformInfo
-        operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod));
+        operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));
 
         // Default Value
-        Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForMethod);
-        operation.setDefaultValue(maybeDefaultValue);
+        operation.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
 
         // Arguments
         List<Type> parameters = methodInfo.parameters();
@@ -85,7 +84,7 @@ public class OperationCreator {
                 // See if this is a @Source
                 Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
                 if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
-                    argument.markAsSourceArgument();
+                    argument.setSourceArgument(true);
                 }
 
                 operation.addArgument(argument);

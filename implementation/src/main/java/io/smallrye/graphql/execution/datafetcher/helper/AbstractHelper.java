@@ -59,9 +59,9 @@ public abstract class AbstractHelper {
 
         String expectedType = field.getReference().getClassName();
 
-        if (field.getArray().isPresent()) {
+        if (field.hasArray()) {
             // First handle the array if this is an array
-            if (field.getArray().get().getType().equals(io.smallrye.graphql.schema.model.Array.Type.ARRAY)) {
+            if (field.getArray().getType().equals(io.smallrye.graphql.schema.model.Array.Type.ARRAY)) {
                 return recursiveTransformArray(inputValue, field);
             } else {
                 return recursiveTransformCollection(inputValue, field);
@@ -93,7 +93,7 @@ public abstract class AbstractHelper {
      */
     private <T> Object recursiveTransformArray(Object argumentValue, Field field) throws GraphQLException {
 
-        Collection givenCollection = getGivenCollection(argumentValue, field);
+        Collection givenCollection = getGivenCollection(argumentValue);
 
         List convertedList = new ArrayList();
 
@@ -122,9 +122,9 @@ public abstract class AbstractHelper {
      * @throws GraphQLException
      */
     private Object recursiveTransformCollection(Object argumentValue, Field field) throws GraphQLException {
-        Collection givenCollection = getGivenCollection(argumentValue, field);
+        Collection givenCollection = getGivenCollection(argumentValue);
 
-        String collectionClassName = field.getArray().get().getClassName();
+        String collectionClassName = field.getArray().getClassName();
 
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
 
@@ -149,7 +149,7 @@ public abstract class AbstractHelper {
      */
     private Object recursiveTransformOptional(Object argumentValue, Field field) throws GraphQLException {
         // Check the type and maybe apply transformation
-        Collection givenCollection = getGivenCollection(argumentValue, field);
+        Collection givenCollection = getGivenCollection(argumentValue);
         if (givenCollection.isEmpty()) {
             return Optional.empty();
         } else {
@@ -175,17 +175,16 @@ public abstract class AbstractHelper {
                 owner.getDescription(),
                 owner.getReference());
         // not null
-        if (owner.isNotNull()) {
-            child.markNotNull();
-        }
+        child.setNotNull(owner.isNotNull());
+
         // transform info
         child.setTransformInfo(owner.getTransformInfo());
         // default value
         child.setDefaultValue(owner.getDefaultValue());
 
         // array
-        if (owner.getArray().isPresent()) {
-            io.smallrye.graphql.schema.model.Array ownerArray = owner.getArray().get();
+        if (owner.hasArray()) {
+            io.smallrye.graphql.schema.model.Array ownerArray = owner.getArray();
 
             int depth = ownerArray.getDepth() - 1;
             if (depth > 0) {
@@ -193,7 +192,7 @@ public abstract class AbstractHelper {
                 io.smallrye.graphql.schema.model.Array childArray = new io.smallrye.graphql.schema.model.Array(
                         ownerArray.getClassName(),
                         ownerArray.getType(), depth);
-                child.setArray(Optional.of(childArray));
+                child.setArray(childArray);
             }
         }
 
@@ -201,7 +200,7 @@ public abstract class AbstractHelper {
 
     }
 
-    private <T> Collection getGivenCollection(Object argumentValue, Field field) {
+    private <T> Collection getGivenCollection(Object argumentValue) {
         if (Classes.isCollection(argumentValue)) {
             return (Collection) argumentValue;
         } else {

@@ -33,8 +33,16 @@ public final class InputType extends Reference {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Set<Field> getFields() {
         return fields;
+    }
+
+    public void setFields(Set<Field> fields) {
+        this.fields = fields;
     }
 
     public void addField(Field field) {

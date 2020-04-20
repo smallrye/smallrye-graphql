@@ -27,12 +27,20 @@ public final class Operation extends Field {
         this.className = className;
     }
 
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     public String getClassName() {
         return className;
     }
 
     public List<Argument> getArguments() {
         return this.arguments;
+    }
+
+    public void setArguments(List<Argument> arguments) {
+        this.arguments = arguments;
     }
 
     public void addArgument(Argument argument) {

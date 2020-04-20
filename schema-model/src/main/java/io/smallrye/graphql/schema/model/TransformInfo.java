@@ -35,21 +35,37 @@ public class TransformInfo implements Serializable {
         return this.type;
     }
 
+    public void setType(Type type) {
+        this.type = type;
+    }
+
     public String getFormat() {
         return this.format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public String getLocale() {
         return this.locale;
     }
 
-    public enum Type {
-        NUMBER,
-        DATE
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     public boolean isJsonB() {
         return jsonB;
+    }
+
+    public void setJsonB(boolean jsonB) {
+        this.jsonB = jsonB;
+    }
+
+    public enum Type {
+        NUMBER,
+        DATE
     }
 
 }

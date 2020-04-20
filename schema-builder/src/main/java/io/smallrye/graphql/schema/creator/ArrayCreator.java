@@ -45,7 +45,7 @@ public class ArrayCreator {
             Array array = new Array(methodType.name().toString(), arrayType, depth);
             // NotNull
             if (markParameterizedTypeNonNull(fieldType, methodType)) {
-                array.markNotEmpty();
+                array.setNotEmpty(true);
             }
             return Optional.of(array);
         }
