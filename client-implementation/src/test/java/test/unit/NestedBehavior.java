@@ -719,4 +719,30 @@ class NestedBehavior {
 
         then(thrown).hasMessage("missing boolean value for " + MissingPrimitiveFieldApi.class.getName() + "#call.bar");
     }
+
+    @SuppressWarnings("unused")
+    private static class Hero {
+        String name;
+        List<Team> teams;
+    }
+
+    @SuppressWarnings("unused")
+    private static class Team {
+        String name;
+        List<Hero> heroes;
+    }
+
+    private interface RecursiveApi {
+        @SuppressWarnings({ "UnusedReturnValue", "unused" })
+        Hero member();
+    }
+
+    @Test
+    void shouldFailToCallApiWithRecursiveFields() {
+        RecursiveApi api = fixture.builder().build(RecursiveApi.class);
+
+        GraphQlClientException thrown = catchThrowableOfType(api::member, GraphQlClientException.class);
+
+        then(thrown).hasMessage("field recursion found");
+    }
 }

@@ -7,6 +7,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Stack;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -33,6 +34,7 @@ class GraphQlClientProxy {
 
     private final WebTarget target;
     private final List<GraphQlClientHeader> headers;
+    private final Stack<String> typeStack = new Stack<>();
 
     GraphQlClientProxy(WebTarget target, List<GraphQlClientHeader> headers) {
         this.target = target;
@@ -65,8 +67,21 @@ class GraphQlClientProxy {
     }
 
     private String fields(TypeInfo type) {
+        if (typeStack.contains(type.getTypeName()))
+            throw new GraphQlClientException("field recursion found");
+        try {
+            typeStack.push(type.getTypeName());
+
+            return recursionCheckedFields(type);
+        } finally {
+            typeStack.pop();
+        }
+    }
+
+    private String recursionCheckedFields(TypeInfo type) {
         while (type.isOptional())
             type = type.getItemType();
+
         if (type.isScalar()) {
             return "";
         } else if (type.isCollection()) {
