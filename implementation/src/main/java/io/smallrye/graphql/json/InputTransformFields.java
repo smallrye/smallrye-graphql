@@ -25,8 +25,8 @@ public class InputTransformFields {
             Set<Field> fields = inputType.getFields();
             for (Field field : fields) {
                 // See if there is a transformation
-                if (field.getTransformInfo().isPresent()
-                        && !field.getTransformInfo().get().isJsonB()) {
+                if (field.hasTransformInfo()
+                        && !field.getTransformInfo().isJsonB()) {
                     fieldsThatNeedsTransformation.put(field.getName(), field);
                 }
             }

@@ -22,16 +22,24 @@ public final class EnumType extends Reference {
         this.description = description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getDescription() {
         return description;
     }
 
-    public void addValue(String value) {
-        this.values.add(value);
+    public void setValues(Set<String> values) {
+        this.values = values;
     }
 
     public Set<String> getValues() {
         return this.values;
+    }
+
+    public void addValue(String value) {
+        this.values.add(value);
     }
 
     public boolean hasValues() {

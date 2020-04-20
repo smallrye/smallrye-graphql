@@ -144,8 +144,8 @@ public class ReflectionDataFetcher implements DataFetcher {
             List<Class> cl = new LinkedList<>();
             for (Field argument : operation.getArguments()) {
                 // If the argument is an array / collection, load that class
-                if (argument.getArray().isPresent()) {
-                    Class<?> clazz = Classes.loadClass(argument.getArray().get().getClassName());
+                if (argument.hasArray()) {
+                    Class<?> clazz = Classes.loadClass(argument.getArray().getClassName());
                     cl.add(clazz);
                 } else {
                     Class<?> clazz = Classes.loadClass(argument.getReference().getClassName());

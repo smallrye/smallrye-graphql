@@ -27,8 +27,12 @@ public final class Argument extends Field {
         return methodArgumentName;
     }
 
-    public void markAsSourceArgument() {
-        this.sourceArgument = true;
+    public void setMethodArgumentName(String methodArgumentName) {
+        this.methodArgumentName = methodArgumentName;
+    }
+
+    public void setSourceArgument(boolean sourceArgument) {
+        this.sourceArgument = sourceArgument;
     }
 
     public boolean isSourceArgument() {

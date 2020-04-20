@@ -35,8 +35,6 @@ public class ExecutionService {
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    private GraphQL graphQL;
-
     private Config config;
 
     private GraphQLSchema graphQLSchema;
@@ -44,13 +42,12 @@ public class ExecutionService {
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
-        this.graphQL = getGraphQL();
     }
 
     public JsonObject execute(JsonObject jsonInput) {
         String query = jsonInput.getString(QUERY);
-
-        if (this.graphQL != null) {
+        GraphQL g = getGraphQL();
+        if (g != null) {
             // Query
             ExecutionInput.Builder executionBuilder = ExecutionInput.newExecutionInput()
                     .query(query)
@@ -68,7 +65,7 @@ public class ExecutionService {
 
             ExecutionInput executionInput = executionBuilder.build();
 
-            ExecutionResult executionResult = this.graphQL.execute(executionInput);
+            ExecutionResult executionResult = g.execute(executionInput);
 
             JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
 
@@ -130,18 +127,23 @@ public class ExecutionService {
         }
     }
 
+    private GraphQL graphQL;
+
     private GraphQL getGraphQL() {
-        ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-        if (graphQLSchema != null) {
-            return GraphQL
-                    .newGraphQL(graphQLSchema)
-                    .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
-                    .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
-                    .build();
-        } else {
-            LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");
+        if (this.graphQL == null) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(config);
+            if (graphQLSchema != null) {
+                this.graphQL = GraphQL
+                        .newGraphQL(graphQLSchema)
+                        .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
+                        .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
+                        .build();
+            } else {
+                LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");
+            }
         }
-        return null;
+        return this.graphQL;
+
     }
 
     private static final String QUERY = "query";

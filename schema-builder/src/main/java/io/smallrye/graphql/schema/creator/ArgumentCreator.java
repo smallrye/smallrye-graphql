@@ -64,18 +64,17 @@ public class ArgumentCreator {
 
             // NotNull
             if (NonNullHelper.markAsNonNull(argumentType, annotationsForThisArgument)) {
-                argument.markNotNull();
+                argument.setNotNull(true);
             }
 
             // Array
-            argument.setArray(ArrayCreator.createArray(argumentType));
+            argument.setArray(ArrayCreator.createArray(argumentType).orElse(null));
 
             // TransformInfo
-            argument.setTransformInfo(FormatHelper.getFormat(argumentType, annotationsForThisArgument));
+            argument.setTransformInfo(FormatHelper.getFormat(argumentType, annotationsForThisArgument).orElse(null));
 
             // Default Value
-            Optional maybeDefaultValue = DefaultValueHelper.getDefaultValue(annotationsForThisArgument);
-            argument.setDefaultValue(maybeDefaultValue);
+            argument.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForThisArgument).orElse(null));
 
             return Optional.of(argument);
         }

@@ -32,6 +32,10 @@ public class Reference implements Serializable {
         return className;
     }
 
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     /**
      * This represents the GraphQL Name
      * 
@@ -41,6 +45,10 @@ public class Reference implements Serializable {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     /**
      * This represent the GraphQL Type
      * 
@@ -48,5 +56,9 @@ public class Reference implements Serializable {
      */
     public ReferenceType getType() {
         return type;
+    }
+
+    public void setType(ReferenceType type) {
+        this.type = type;
     }
 }

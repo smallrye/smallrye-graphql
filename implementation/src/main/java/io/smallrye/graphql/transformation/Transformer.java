@@ -16,8 +16,8 @@ public interface Transformer {
     UriTransformer URI_TRANSFORMER = new UriTransformer();
 
     static Transformer transformer(Field field) {
-        if (field.getTransformInfo().isPresent()) {
-            TransformInfo format = field.getTransformInfo().get();
+        if (field.hasTransformInfo()) {
+            TransformInfo format = field.getTransformInfo();
             if (format.getType().equals(TransformInfo.Type.NUMBER)) {
                 if (format.getFormat() != null || format.getLocale() != null) {
                     return new FormattedNumberTransformer(field);

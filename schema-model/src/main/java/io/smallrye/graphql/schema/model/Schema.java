@@ -1,11 +1,10 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Represents a GraphQL Schema.
@@ -16,19 +15,23 @@ import java.util.TreeSet;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Set<Operation> queries = newTreeSet();
-    private Set<Operation> mutations = newTreeSet();
+    private Set<Operation> queries = new HashSet<>();
+    private Set<Operation> mutations = new HashSet<>();
 
-    private Map<String, InputType> inputs = new TreeMap();
-    private Map<String, Type> types = new TreeMap();
-    private Map<String, InterfaceType> interfaces = new TreeMap();
-    private Map<String, EnumType> enums = new TreeMap();
+    private Map<String, InputType> inputs = new HashMap<>();
+    private Map<String, Type> types = new HashMap();
+    private Map<String, InterfaceType> interfaces = new HashMap();
+    private Map<String, EnumType> enums = new HashMap();
 
     public Schema() {
     }
 
     public Set<Operation> getQueries() {
         return queries;
+    }
+
+    public void setQueries(Set<Operation> queries) {
+        this.queries = queries;
     }
 
     public void addQuery(Operation query) {
@@ -43,6 +46,10 @@ public final class Schema implements Serializable {
         return mutations;
     }
 
+    public void setMutations(Set<Operation> mutations) {
+        this.mutations = mutations;
+    }
+
     public void addMutation(Operation mutation) {
         this.mutations.add(mutation);
     }
@@ -53,6 +60,10 @@ public final class Schema implements Serializable {
 
     public Map<String, InputType> getInputs() {
         return inputs;
+    }
+
+    public void setInputs(Map<String, InputType> inputs) {
+        this.inputs = inputs;
     }
 
     public void addInput(InputType input) {
@@ -71,6 +82,10 @@ public final class Schema implements Serializable {
         return types;
     }
 
+    public void setTypes(Map<String, Type> types) {
+        this.types = types;
+    }
+
     public void addType(Type type) {
         this.types.put(type.getName(), type);
     }
@@ -85,6 +100,10 @@ public final class Schema implements Serializable {
 
     public Map<String, InterfaceType> getInterfaces() {
         return interfaces;
+    }
+
+    public void setInterfaces(Map<String, InterfaceType> interfaces) {
+        this.interfaces = interfaces;
     }
 
     public void addInterface(InterfaceType interfaceType) {
@@ -103,6 +122,10 @@ public final class Schema implements Serializable {
         return enums;
     }
 
+    public void setEnums(Map<String, EnumType> enums) {
+        this.enums = enums;
+    }
+
     public void addEnum(EnumType enumType) {
         this.enums.put(enumType.getName(), enumType);
     }
@@ -115,17 +138,4 @@ public final class Schema implements Serializable {
         return !this.enums.isEmpty();
     }
 
-    private TreeSet<Operation> newTreeSet() {
-        return new TreeSet<>(new Comparator<Operation>() {
-            @Override
-            public int compare(Operation o1, Operation o2) {
-                if (o1 != null && o2 != null) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-                return ZERO;
-            }
-        });
-    }
-
-    private static final int ZERO = 0;
 }

@@ -32,7 +32,7 @@ public class DateTransformer implements Transformer {
     private final String targetClassName;
 
     public DateTransformer(final Field field, final String targetClassName) {
-        this.dateTimeFormatter = getDateFormat(field.getTransformInfo().orElse(null));
+        this.dateTimeFormatter = getDateFormat(field.getTransformInfo());
         this.targetClassName = targetClassName;
     }
 
