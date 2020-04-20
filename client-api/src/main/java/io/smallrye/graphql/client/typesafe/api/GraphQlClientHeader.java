@@ -1,10 +1,10 @@
 package io.smallrye.graphql.client.typesafe.api;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Adds a custom header to the http requests sent out by the GraphQL Client.
@@ -17,9 +17,12 @@ public class GraphQlClientHeader {
     private final String name;
     private final Supplier<Object> supplier;
 
+    /** required for CDI */
+    @Deprecated
     @SuppressWarnings("unused")
     GraphQlClientHeader() {
-        this(null, null);
+        this.name = null;
+        this.supplier = null;
     }
 
     public GraphQlClientHeader(String name, Object value) {
@@ -36,6 +39,7 @@ public class GraphQlClientHeader {
     }
 
     public Object getValue() {
+        assert supplier != null;
         return supplier.get();
     }
 
