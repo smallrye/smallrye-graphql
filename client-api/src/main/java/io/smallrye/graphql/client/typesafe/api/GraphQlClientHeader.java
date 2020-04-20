@@ -1,10 +1,10 @@
 package io.smallrye.graphql.client.typesafe.api;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Adds a custom header to the http requests sent out by the GraphQL Client.

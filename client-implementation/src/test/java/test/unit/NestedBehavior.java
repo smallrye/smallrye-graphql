@@ -1,16 +1,17 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import org.eclipse.microprofile.graphql.NonNull;
-import org.junit.jupiter.api.Test;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.assertj.core.api.BDDAssertions.then;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 class NestedBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -38,7 +39,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: \"a\"");
+                "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: \"a\"");
     }
 
     @Test
@@ -49,7 +50,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: 12345");
+                "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: 12345");
     }
 
     @Test
@@ -60,7 +61,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: true");
+                "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: true");
     }
 
     @Test
@@ -71,7 +72,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage("invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName()
-            + "#greetings: {\"foo\":\"bar\"}");
+                + "#greetings: {\"foo\":\"bar\"}");
     }
 
     interface StringListApi {
@@ -113,7 +114,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid null java.lang.String value for " + NonNullStringListApi.class.getName() + "#greetings[1]");
+                "invalid null java.lang.String value for " + NonNullStringListApi.class.getName() + "#greetings[1]");
     }
 
     interface StringArrayApi {
@@ -139,7 +140,8 @@ class NestedBehavior {
         String text;
         int code;
 
-        @SuppressWarnings("unused") Greeting() {
+        @SuppressWarnings("unused")
+        Greeting() {
         }
 
         Greeting(String text, int code) {
@@ -182,7 +184,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: \"a\"");
+                "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: \"a\"");
     }
 
     @Test
@@ -193,7 +195,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: 12.34");
+                "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: 12.34");
     }
 
     @Test
@@ -204,7 +206,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: false");
+                "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: false");
     }
 
     interface ObjectListApi {
@@ -220,8 +222,8 @@ class NestedBehavior {
 
         then(fixture.query()).isEqualTo("greetings {text code}");
         then(greeting).containsExactly(
-            new Greeting("a", 1),
-            new Greeting("b", 2));
+                new Greeting("a", 1),
+                new Greeting("b", 2));
     }
 
     @Test
@@ -232,7 +234,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage("invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName()
-            + "#greetings[1]: 123456");
+                + "#greetings[1]: 123456");
     }
 
     @Test
@@ -243,7 +245,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greetings, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName() + "#greetings[0]: 123");
+                "invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName() + "#greetings[0]: 123");
     }
 
     interface StringContainerApi {
@@ -309,7 +311,7 @@ class NestedBehavior {
 
         then(fixture.query()).isEqualTo("container {greeting {text code} count}");
         then(container).isEqualTo(new GreetingContainer(
-            new Greeting("a", 1), 3));
+                new Greeting("a", 1), 3));
     }
 
     interface GreetingsContainerApi {
@@ -348,15 +350,15 @@ class NestedBehavior {
     @Test
     void shouldCallNestedListQuery() {
         fixture.returnsData("'container':{'greetings':[" +
-            "{'text':'a','code':1},{'text':'b','code':2}" +
-            "],'count':3}");
+                "{'text':'a','code':1},{'text':'b','code':2}" +
+                "],'count':3}");
         GreetingsContainerApi api = fixture.builder().build(GreetingsContainerApi.class);
 
         GreetingsContainer container = api.container();
 
         then(fixture.query()).isEqualTo("container {greetings {text code} count}");
         then(container).isEqualTo(new GreetingsContainer(
-            asList(new Greeting("a", 1), new Greeting("b", 2)), 3));
+                asList(new Greeting("a", 1), new Greeting("b", 2)), 3));
     }
 
     interface WrappedGreetingApi {
@@ -393,7 +395,7 @@ class NestedBehavior {
     }
 
     private static class Wrapper<T> {
-        @SuppressWarnings({"FieldCanBeLocal", "unused"})
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private T value;
 
         @SuppressWarnings("unused")
@@ -423,15 +425,15 @@ class NestedBehavior {
     @Test
     void shouldCallWrappedGreetingQuery() {
         fixture.returnsData("'container':{'greeting':{" +
-            "'value':{'text':'a','code':1}}," +
-            "'count':3}");
+                "'value':{'text':'a','code':1}}," +
+                "'count':3}");
         WrappedGreetingApi api = fixture.builder().build(WrappedGreetingApi.class);
 
         WrappedGreetingContainer container = api.container();
 
         then(fixture.query()).isEqualTo("container {greeting {value {text code}} count}");
         then(container).isEqualTo(new WrappedGreetingContainer(
-            new Wrapper<>(new Greeting("a", 1)), 3));
+                new Wrapper<>(new Greeting("a", 1)), 3));
     }
 
     interface WrappedByteApi {
@@ -476,7 +478,7 @@ class NestedBehavior {
 
         then(fixture.query()).isEqualTo("container {code {value} count}");
         then(container).isEqualTo(new WrappedByteContainer(
-            new Wrapper<>((byte) 123), 3));
+                new Wrapper<>((byte) 123), 3));
     }
 
     @Test
@@ -487,7 +489,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::container, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid java.lang.Byte value for " + WrappedByteApi.class.getName() + "#container.code.value: 1000");
+                "invalid java.lang.Byte value for " + WrappedByteApi.class.getName() + "#container.code.value: 1000");
     }
 
     interface WrappedListByteApi {
@@ -498,7 +500,8 @@ class NestedBehavior {
         List<Byte> codes;
         int count;
 
-        @SuppressWarnings("unused") WrappedListByteContainer() {
+        @SuppressWarnings("unused")
+        WrappedListByteContainer() {
         }
 
         WrappedListByteContainer(List<Byte> codes, int count) {
@@ -531,7 +534,7 @@ class NestedBehavior {
 
         then(fixture.query()).isEqualTo("container {codes count}");
         then(container).isEqualTo(new WrappedListByteContainer(
-            asList((byte) 'a', (byte) 'b', (byte) 'c'), 3));
+                asList((byte) 'a', (byte) 'b', (byte) 'c'), 3));
     }
 
     @Test
@@ -542,14 +545,14 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::container, GraphQlClientException.class);
 
         then(thrown).hasMessage(
-            "invalid java.lang.Byte value for " + WrappedListByteApi.class.getName() + "#container.codes[2]: 9999");
+                "invalid java.lang.Byte value for " + WrappedListByteApi.class.getName() + "#container.codes[2]: 9999");
     }
 
     interface ClassWithTransientAndStaticFieldsApi {
         ClassWithTransientAndStaticFields foo();
     }
 
-    @SuppressWarnings({"unused"})
+    @SuppressWarnings({ "unused" })
     private static class ClassWithTransientAndStaticFields {
         public static final String TO_BE_IGNORED = "foo";
         private static final String ALSO_TO_BE_IGNORED = "bar";
@@ -587,8 +590,8 @@ class NestedBehavior {
     @Test
     void shouldCallInheritedGreetingQuery() {
         fixture.returnsData("'call':{" +
-            "'greeting':{'text':'a','code':1}," +
-            "'count':3}");
+                "'greeting':{'text':'a','code':1}," +
+                "'count':3}");
         InheritedGreetingApi api = fixture.builder().build(InheritedGreetingApi.class);
 
         Sub sub = api.call();
@@ -627,9 +630,9 @@ class NestedBehavior {
     }
 
     private static class ObjectWithoutDefaultConstructor {
-        @SuppressWarnings({"FieldCanBeLocal", "unused"})
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String foo;
-        @SuppressWarnings({"FieldCanBeLocal", "unused"})
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String bar;
 
         public ObjectWithoutDefaultConstructor(String foo, String bar) {
@@ -646,7 +649,7 @@ class NestedBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::call, GraphQlClientException.class);
 
         then(thrown).hasMessage("can't create " + ObjectWithoutDefaultConstructor.class.getName() +
-            " value for " + ObjectWithoutDefaultConstructorApi.class.getName() + "#call");
+                " value for " + ObjectWithoutDefaultConstructorApi.class.getName() + "#call");
     }
 
     interface MissingNullableFieldApi {
@@ -717,7 +720,6 @@ class NestedBehavior {
         then(thrown).hasMessage("missing boolean value for " + MissingPrimitiveFieldApi.class.getName() + "#call.bar");
     }
 
-
     @SuppressWarnings("unused")
     private static class Hero {
         String name;
@@ -731,7 +733,8 @@ class NestedBehavior {
     }
 
     private interface RecursiveApi {
-        @SuppressWarnings({"UnusedReturnValue", "unused"}) Hero member();
+        @SuppressWarnings({ "UnusedReturnValue", "unused" })
+        Hero member();
     }
 
     @Test

@@ -1,13 +1,13 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
-import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
-import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
+import static java.util.stream.Collectors.joining;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+
+import java.io.StringReader;
+import java.util.List;
+import java.util.Stack;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -18,14 +18,16 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Stack;
 
-import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
-import static java.util.stream.Collectors.joining;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
+import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class GraphQlClientProxy {
     private static final Logger log = LoggerFactory.getLogger(GraphQlClientProxy.class);
@@ -52,11 +54,11 @@ class GraphQlClientProxy {
     private String request(MethodInfo method) {
         JsonObjectBuilder request = Json.createObjectBuilder();
         request.add("query",
-            operation(method)
-                + " { "
-                + new RequestBuilder(method).build()
-                + fields(method.getReturnType())
-                + " }");
+                operation(method)
+                        + " { "
+                        + new RequestBuilder(method).build()
+                        + fields(method.getReturnType())
+                        + " }");
         return request.build().toString();
     }
 
@@ -86,8 +88,8 @@ class GraphQlClientProxy {
             return fields(type.getItemType());
         } else {
             return type.fields()
-                .map(this::field)
-                .collect(joining(" ", " {", "}"));
+                    .map(this::field)
+                    .collect(joining(" ", " {", "}"));
         }
     }
 
@@ -102,22 +104,22 @@ class GraphQlClientProxy {
 
     private String post(String request) {
         Response response = target
-            .request(APPLICATION_JSON_TYPE)
-            .headers(buildHeaders())
-            .post(Entity.json(request));
+                .request(APPLICATION_JSON_TYPE)
+                .headers(buildHeaders())
+                .post(Entity.json(request));
         StatusType status = response.getStatusInfo();
         if (status.getFamily() != SUCCESSFUL)
             throw new GraphQlClientException("expected successful status code but got " +
-                status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
-                response.readEntity(String.class));
+                    status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
+                    response.readEntity(String.class));
         return response.readEntity(String.class);
     }
 
     private MultivaluedMap<String, Object> buildHeaders() {
         return headers.stream()
-            .peek(header -> log.debug("add header '{}'", header.getName())) // don't log values; could contain tokens
-            .map(GraphQlClientHeader::toEntry)
-            .collect(toMultivaluedMap());
+                .peek(header -> log.debug("add header '{}'", header.getName())) // don't log values; could contain tokens
+                .map(GraphQlClientHeader::toEntry)
+                .collect(toMultivaluedMap());
     }
 
     private Object fromJson(MethodInfo method, String request, String response) {

@@ -26,7 +26,6 @@ public interface GraphQlClientBuilder {
      */
     GraphQlClientBuilder configKey(String configKey);
 
-
     /**
      * The URL where the GraphQL service is listening
      */
@@ -39,7 +38,6 @@ public interface GraphQlClientBuilder {
      */
     GraphQlClientBuilder endpoint(URI endpoint);
 
-
     /**
      * A custom http header to send for every GraphQL request.
      */
@@ -51,7 +49,6 @@ public interface GraphQlClientBuilder {
      * A custom http header to send for every GraphQL request.
      */
     GraphQlClientBuilder header(GraphQlClientHeader header);
-
 
     <T> T build(Class<T> apiClass);
 }
