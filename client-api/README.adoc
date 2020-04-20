@@ -1,0 +1,119 @@
+= SmallRye GraphQL Client
+
+A Java code-first type-safe GraphQL Client API suggestion for [Microprofile GraphQL](https://github.com/eclipse/microprofile-graphql/issues/185).
+
+Basic Usage:
+
+[source,java]
+----
+@GraphQlClientApi
+interface SuperHeroesApi {
+    List<SuperHero> allHeroesIn(String location); // <1>
+}
+
+class SuperHero {
+    private String name;
+    private List<String> superPowers;
+}
+
+class MyApplication {
+    @Inject SuperHeroesApi superHeroesApi;
+
+    List<SuperHero> allHeroes = superHeroesApi.allHeroesIn("Outer Space");
+}
+----
+
+<1> The default request type is `query`. To make it a mutation, annotate it `@Mutation`. The parameter name is only available if you compile the source with the `-parameters` option.
+
+The example above uses CDI, e.g. when you are in a MicroProfile or Jakarta EE environment. If you are in an environment without CDI support, you need to instantiate the API interface by using the builder:
+
+[source,java]
+----
+SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
+    .build(SuperHeroesApi.class);
+----
+
+The basic idea of the Java code-first approach is that you start by writing the DTOs and query/mutation methods as you need them in your client. This ensures that you don't request fields that you don't need; the thinking is inspired by https://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts] and may evolve more into that direction. If the server uses different names, use annotations to do a mapping:
+
+== Changing Names
+
+If the server defines a different field or parameter name, annotate it with `@Name`.
+
+If the server defines a different query name, annotate the method as, e.g., `@Query("findHeroesCurrentlyLocatedIn")`.
+
+By renaming methods, you can also define several variations of the same request but using different return types or parameters. E.g.:
+
+[source,java]
+----
+public interface SuperHeroesApi {
+    SuperHero findHeroByName(String name); // <1>
+
+    @Query("findHeroByName")
+    SuperHeroWithTeams findHeroWithTeamsByName(String name); // <2>
+}
+----
+
+<1> The `SuperHero` class has no team affiliations (for this example).
+
+<2> The `SuperHeroWithTeams` class has a `private List<Team> teamAffiliations` field. The `Team` class doesn't contain the members to break recursion.
+
+== Configuration
+
+If the endpoint is always the same, e.g. a public API of a cloud service, you can add the URL to your API annotation, e.g.:
+
+[source,java]
+----
+@GraphQlClientApi(endpoint = "https://superheroes.org/graphql")
+interface SuperHeroesApi {
+}
+----
+
+When instantiating the API with the builder, you can set (or overwrite) the endpoint there:
+
+[source,java]
+----
+SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
+    .endpoint("https://superheroes.org/graphql")
+    .build(SuperHeroesApi.class);
+----
+
+Commonly you'll need different endpoints, e.g. when you need one endpoint for your production system, but a different endpoint for your test system. Simply use https://download.eclipse.org/microprofile/microprofile-config-1.4/microprofile-config-spec.html[MicroProfile Config] to set the endpoint; similar to the https://download.eclipse.org/microprofile/microprofile-rest-client-1.4.1/microprofile-rest-client-1.4.1.html[MicroProfile Rest Client], the key for the endpoint is the fully qualified name of the api interface plus `/mp-graphql/url`, e.g.:
+
+[source,properties]
+----
+org.superheroes.SuperHeroesApi/mp-graphql/url=https://superheroes.org/graphql
+----
+
+If you want to use a different key, set the base config key on the annotation `@GraphQlClientApi(configKey = "superheroes")`; then use this key for the endpoint `superheroes/mp-graphql/url`.
+
+When using the builder, you can override the config key there as well: `GraphQlClientBuilder.newBuilder().configKey("superheroes")`.
+
+== Headers
+
+To add a custom header to the http requests sent out by the GraphQL Client, write a CDI producer, e.g.:
+
+[source,java]
+----
+@Produces public GraphQlClientHeader clearance() {
+    return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", "TOP-SECRET");
+}
+----
+
+The key is always fix, but the value can also be a `Supplier` for dynamic values, e.g.:
+
+[source,java]
+----
+@Produces @RequestScoped public GraphQlClientHeader clearance() {
+    return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", this::establishShieldClearance);
+}
+
+private Clearance establishShieldClearance() { // <1>
+    return TOP_SECRET;
+}
+----
+
+<1> The value can be any Object; the GraphQL client calls <code>toString</code> to convert it.
+
+When you are in an environment without CDI, you need to add headers to the `GraphQlClientBuilder` using one of the `header` methods.
+
+There is also a specialized `GraphQlClientAuthorizationHeader` that provides a BASIC Authorization header with the credentials configured in MP Config. Depending on the constructor used, a different config key prefix is used, with <code>username</code> and <code>password</code> appended. See the constructors for details.
