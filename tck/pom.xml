@@ -62,58 +62,6 @@
 
     <profiles>
         <profile>
-            <id>thorntail</id>
-            <activation>
-                <property>
-                    <name>!noThorntail</name>
-                </property>
-            </activation>
-            
-            <properties>
-                <version.thorntail>2.6.0.Final</version.thorntail>
-            </properties>
-            
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>io.thorntail</groupId>
-                        <artifactId>bom-all</artifactId>
-                        <version>${version.thorntail}</version>
-                        <type>pom</type>
-                        <scope>import</scope>
-                    </dependency>    
-                </dependencies>
-            </dependencyManagement>
-            
-            <dependencies>
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>arquillian</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>microprofile-config</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>undertow</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>cdi</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>io.thorntail</groupId>
-                    <artifactId>jsonb</artifactId>
-                </dependency>
-                
-            </dependencies>
-            
-        </profile>
-        
-<!--        <profile>
             <id>wildfly</id>
             <activation>
                 <property>
@@ -125,14 +73,13 @@
             </properties>
 
             <dependencies>
-                 Arquillian and TestNG 
                 <dependency>
                     <groupId>org.wildfly.arquillian</groupId>
                     <artifactId>wildfly-arquillian-container-managed</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.jboss.arquillian.testng</groupId>
-                    <artifactId>arquillian-testng-container</artifactId>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>jakarta.json</artifactId>
                 </dependency>
             </dependencies>
 
@@ -175,7 +122,7 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>-->
+        </profile>
         
         <profile>
             <id>coverage</id>
