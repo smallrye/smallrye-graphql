@@ -12,13 +12,15 @@ import java.lang.annotation.Target;
  * so CDI can build and inject it for you.
  * <p>
  * Example:
+ * 
  * <pre>
  * &#64;GraphQlClientApi
  * public interface SuperHeroesApi {
  *     List&lt;Hero&gt; allHeroes();
  * }
  *
- * &#64;Inject SuperHeroesApi superHeroesApi;
+ * &#64;Inject
+ * SuperHeroesApi superHeroesApi;
  * </pre>
  *
  * You can optionally add some fallback configuration with this annotation.
