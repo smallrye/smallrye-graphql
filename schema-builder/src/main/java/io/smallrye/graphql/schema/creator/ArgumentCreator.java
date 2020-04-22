@@ -23,7 +23,10 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class ArgumentCreator {
 
-    private ArgumentCreator() {
+    private final ReferenceCreator referenceCreator;
+
+    public ArgumentCreator(ReferenceCreator referenceCreator) {
+        this.referenceCreator = referenceCreator;
     }
 
     /**
@@ -34,7 +37,7 @@ public class ArgumentCreator {
      * @param position the argument position
      * @return an Argument
      */
-    public static Optional<Argument> createArgument(Type argumentType, MethodInfo methodInfo, short position) {
+    public Optional<Argument> createArgument(Type argumentType, MethodInfo methodInfo, short position) {
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
@@ -52,7 +55,7 @@ public class ArgumentCreator {
             Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForThisArgument,
                     argumentType);
 
-            Reference reference = ReferenceCreator.createReferenceForOperationArgument(argumentType,
+            Reference reference = referenceCreator.createReferenceForOperationArgument(argumentType,
                     annotationsForThisArgument);
 
             Argument argument = new Argument(defaultName,

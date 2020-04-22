@@ -30,25 +30,22 @@ import io.smallrye.graphql.schema.model.Scalars;
 public class ReferenceCreator {
     private static final Logger LOG = Logger.getLogger(ReferenceCreator.class.getName());
 
-    private static final Queue<Reference> inputReferenceQueue = new ArrayDeque<>();
-    private static final Queue<Reference> typeReferenceQueue = new ArrayDeque<>();
-    private static final Queue<Reference> enumReferenceQueue = new ArrayDeque<>();
-    private static final Queue<Reference> interfaceReferenceQueue = new ArrayDeque<>();
+    private final Queue<Reference> inputReferenceQueue = new ArrayDeque<>();
+    private final Queue<Reference> typeReferenceQueue = new ArrayDeque<>();
+    private final Queue<Reference> enumReferenceQueue = new ArrayDeque<>();
+    private final Queue<Reference> interfaceReferenceQueue = new ArrayDeque<>();
 
     // Some maps we populate during scanning
-    private static final Map<String, Reference> inputReferenceMap = new HashMap<>();
-    private static final Map<String, Reference> typeReferenceMap = new HashMap<>();
-    private static final Map<String, Reference> enumReferenceMap = new HashMap<>();
-    private static final Map<String, Reference> interfaceReferenceMap = new HashMap<>();
-
-    private ReferenceCreator() {
-    }
+    private final Map<String, Reference> inputReferenceMap = new HashMap<>();
+    private final Map<String, Reference> typeReferenceMap = new HashMap<>();
+    private final Map<String, Reference> enumReferenceMap = new HashMap<>();
+    private final Map<String, Reference> interfaceReferenceMap = new HashMap<>();
 
     /**
      * Clear the scanned references. This is done when we created all references and do not need to
      * remember what to scan.
      */
-    public static void clear() {
+    public void clear() {
         inputReferenceMap.clear();
         typeReferenceMap.clear();
         enumReferenceMap.clear();
@@ -66,7 +63,7 @@ public class ReferenceCreator {
      * @param referenceType the type
      * @return the references
      */
-    public static Queue<Reference> values(ReferenceType referenceType) {
+    public Queue<Reference> values(ReferenceType referenceType) {
         return getReferenceQueue(referenceType);
     }
 
@@ -79,7 +76,7 @@ public class ReferenceCreator {
      * @param annotationsForMethod annotation on this operations method
      * @return a reference to the type
      */
-    public static Reference createReferenceForOperationField(Type fieldType, Annotations annotationsForMethod) {
+    public Reference createReferenceForOperationField(Type fieldType, Annotations annotationsForMethod) {
         return getReference(Direction.OUT, null, fieldType, annotationsForMethod);
     }
 
@@ -92,7 +89,7 @@ public class ReferenceCreator {
      * @param annotationsForThisArgument annotations on this argument
      * @return a reference to the argument
      */
-    public static Reference createReferenceForOperationArgument(Type argumentType, Annotations annotationsForThisArgument) {
+    public Reference createReferenceForOperationArgument(Type argumentType, Annotations annotationsForThisArgument) {
         return getReference(Direction.IN, null, argumentType, annotationsForThisArgument);
     }
 
@@ -105,7 +102,7 @@ public class ReferenceCreator {
      * @param annotationsForThisMethod annotations on this method
      * @return a reference to the type
      */
-    public static Reference createReferenceForInterfaceField(Type methodType, Annotations annotationsForThisMethod) {
+    public Reference createReferenceForInterfaceField(Type methodType, Annotations annotationsForThisMethod) {
         return getReference(Direction.OUT, null, methodType, annotationsForThisMethod);
     }
 
@@ -119,7 +116,7 @@ public class ReferenceCreator {
      * @param annotations the annotations on the field and method
      * @return a reference to the type
      */
-    public static Reference createReferenceForPojoField(Direction direction, Type fieldType, Type methodType,
+    public Reference createReferenceForPojoField(Direction direction, Type fieldType, Type methodType,
             Annotations annotations) {
         return getReference(direction, fieldType, methodType, annotations);
     }
@@ -132,7 +129,7 @@ public class ReferenceCreator {
      * @param classInfo the Java class
      * @return a reference
      */
-    public static Reference createReference(Direction direction, ClassInfo classInfo) {
+    public Reference createReference(Direction direction, ClassInfo classInfo) {
         // Get the initial reference type. It's either Type or Input depending on the direction. This might change it 
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
@@ -164,7 +161,7 @@ public class ReferenceCreator {
         return reference;
     }
 
-    private static Reference getReference(Direction direction,
+    private Reference getReference(Direction direction,
             Type fieldType,
             Type methodType,
             Annotations annotations) {
@@ -194,7 +191,7 @@ public class ReferenceCreator {
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
-                return ReferenceCreator.createReference(direction, classInfo);
+                return createReference(direction, classInfo);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
@@ -206,7 +203,7 @@ public class ReferenceCreator {
         }
     }
 
-    private static void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
+    private void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
         Map<String, Reference> map = getReferenceMap(referenceType);
         Queue<Reference> queue = getReferenceQueue(referenceType);
         if (!map.containsKey(key)) {
@@ -215,7 +212,7 @@ public class ReferenceCreator {
         }
     }
 
-    private static Map<String, Reference> getReferenceMap(ReferenceType referenceType) {
+    private Map<String, Reference> getReferenceMap(ReferenceType referenceType) {
         switch (referenceType) {
             case ENUM:
                 return enumReferenceMap;
@@ -230,7 +227,7 @@ public class ReferenceCreator {
         }
     }
 
-    private static Queue<Reference> getReferenceQueue(ReferenceType referenceType) {
+    private Queue<Reference> getReferenceQueue(ReferenceType referenceType) {
         switch (referenceType) {
             case ENUM:
                 return enumReferenceQueue;

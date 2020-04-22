@@ -31,6 +31,14 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 public class InterfaceCreator implements Creator<InterfaceType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
+    private final ReferenceCreator referenceCreator;
+    private final FieldCreator fieldCreator;
+
+    public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator) {
+        this.referenceCreator = referenceCreator;
+        this.fieldCreator = fieldCreator;
+    }
+
     @Override
     public InterfaceType create(ClassInfo classInfo) {
         LOG.debug("Creating Interface from " + classInfo.name().toString());
@@ -67,7 +75,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
 
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
-                FieldCreator.createFieldForInterface(methodInfo)
+                fieldCreator.createFieldForInterface(methodInfo)
                         .ifPresent(interfaceType::addField);
             }
         }
@@ -80,7 +88,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
             if (!interfaceName.toString().startsWith(JAVA_DOT)) {
                 ClassInfo c = ScanningContext.getIndex().getClassByName(interfaceName);
                 if (c != null) {
-                    Reference interfaceRef = ReferenceCreator.createReference(Direction.OUT, classInfo);
+                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, classInfo);
                     interfaceType.addInterface(interfaceRef);
                 }
             }
