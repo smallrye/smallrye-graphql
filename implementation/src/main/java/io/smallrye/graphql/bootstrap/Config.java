@@ -32,4 +32,20 @@ public interface Config {
     default boolean isMetricsEnabled() {
         return false;
     }
+
+    default boolean isIncludeScalarsInSchema() {
+        return false;
+    }
+
+    default boolean isIncludeDirectivesInSchema() {
+        return false;
+    }
+
+    default boolean isIncludeSchemaDefinitionInSchema() {
+        return false;
+    }
+
+    default boolean isIncludeIntrospectionTypesInSchema() {
+        return false;
+    }
 }

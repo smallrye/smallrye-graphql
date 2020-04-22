@@ -48,6 +48,23 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = "smallrye.graphql.metrics.enabled", defaultValue = "false")
     private boolean metricsEnabled;
 
+    @Inject
+    @ConfigProperty(name = "smallrye.graphql.schema.includeScalars", defaultValue = "true")
+    private boolean includeScalarsInSchema;
+
+    @Inject
+    @ConfigProperty(name = "smallrye.graphql.schema.includeDirectives", defaultValue = "false")
+    private boolean includeDirectivesInSchema;
+
+    @Inject
+    @ConfigProperty(name = "smallrye.graphql.schema.includeSchemaDefinition", defaultValue = "false")
+    private boolean includeSchemaDefinitionInSchema;
+
+    @Inject
+    @ConfigProperty(name = "smallrye.graphql.schema.includeIntrospectionTypes", defaultValue = "false")
+    private boolean includeIntrospectionTypesInSchema;
+
+
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
     }
@@ -77,4 +94,21 @@ public class GraphQLConfig implements Config {
     public boolean isMetricsEnabled() {
         return metricsEnabled;
     }
+
+    public boolean isIncludeDirectivesInSchema() {
+        return includeDirectivesInSchema;
+    }
+
+    public boolean isIncludeSchemaDefinitionInSchema() {
+        return includeSchemaDefinitionInSchema;
+    }
+
+    public boolean isIncludeIntrospectionTypesInSchema() {
+        return includeIntrospectionTypesInSchema;
+    }
+
+    public boolean isIncludeScalarsInSchema() {
+        return includeScalarsInSchema;
+    }
+
 }
