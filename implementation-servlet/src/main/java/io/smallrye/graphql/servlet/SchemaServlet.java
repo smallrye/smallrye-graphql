@@ -28,6 +28,13 @@ public class SchemaServlet extends HttpServlet {
     @Inject
     private SchemaPrinter schemaPrinter;
 
+    public SchemaServlet() {
+    }
+
+    public SchemaServlet(SchemaPrinter schemaPrinter) {
+        this.schemaPrinter = schemaPrinter;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType(CONTENT_TYPE);
