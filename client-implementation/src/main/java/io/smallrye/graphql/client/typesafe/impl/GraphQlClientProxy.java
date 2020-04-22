@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Stack;
 
 import javax.json.Json;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -31,6 +33,9 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class GraphQlClientProxy {
     private static final Logger log = LoggerFactory.getLogger(GraphQlClientProxy.class);
+
+    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final WebTarget target;
     private final List<GraphQlClientHeader> headers;
@@ -52,7 +57,7 @@ class GraphQlClientProxy {
     }
 
     private String request(MethodInfo method) {
-        JsonObjectBuilder request = Json.createObjectBuilder();
+        JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
         request.add("query",
                 operation(method)
                         + " { "
@@ -129,7 +134,7 @@ class GraphQlClientProxy {
     }
 
     private JsonObject readResponse(String request, String response) {
-        JsonObject responseJson = Json.createReader(new StringReader(response)).readObject();
+        JsonObject responseJson = jsonReaderFactory.createReader(new StringReader(response)).readObject();
         if (responseJson.containsKey("errors") && !responseJson.isNull("errors"))
             throw new GraphQlClientException("errors from service: " + responseJson.getJsonArray("errors") + ":\n  " + request);
         return responseJson;

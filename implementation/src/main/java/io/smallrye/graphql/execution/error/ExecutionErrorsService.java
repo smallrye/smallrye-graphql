@@ -7,9 +7,11 @@ import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
@@ -28,8 +30,11 @@ import graphql.validation.ValidationError;
 public class ExecutionErrorsService {
     private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
 
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
         for (GraphQLError e : errors) {
             arrayBuilder.add(toJsonError(e));
         }
@@ -44,11 +49,11 @@ public class ExecutionErrorsService {
         try (Jsonb jsonb = JsonbBuilder.create(config)) {
             String json = jsonb.toJson(error.toSpecification());
             try (StringReader sr = new StringReader(json);
-                    JsonReader reader = Json.createReader(sr)) {
+                    JsonReader reader = jsonReaderFactory.createReader(sr)) {
 
                 JsonObject jsonErrors = reader.readObject();
 
-                JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
+                JsonObjectBuilder resultBuilder = jsonBuilderFactory.createObjectBuilder(jsonErrors);
 
                 Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
                 if (optionalExtensions.isPresent()) {
@@ -72,7 +77,7 @@ public class ExecutionErrorsService {
     }
 
     private Optional<JsonObject> getValidationExtensions(ValidationError error) {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
 
         addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
         addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
@@ -85,7 +90,7 @@ public class ExecutionErrorsService {
     private Optional<JsonObject> getDataFetchingExtensions(ExceptionWhileDataFetching error) {
         Throwable exception = error.getException();
 
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
 
         addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
         addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
@@ -94,7 +99,7 @@ public class ExecutionErrorsService {
     }
 
     private JsonArray toJsonArray(List<?> list) {
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
         for (Object o : list) {
             if (o != null)
                 arrayBuilder.add(o.toString());

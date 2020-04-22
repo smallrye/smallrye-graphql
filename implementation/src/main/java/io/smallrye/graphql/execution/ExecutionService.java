@@ -5,9 +5,11 @@ import java.util.List;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -32,6 +34,9 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
  */
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
+
+    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
@@ -67,7 +72,7 @@ public class ExecutionService {
 
             ExecutionResult executionResult = g.execute(executionInput);
 
-            JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
+            JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
             // Errors
             returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
@@ -118,7 +123,7 @@ public class ExecutionService {
         try (Jsonb jsonb = JsonbBuilder.create(jsonbConfig)) {
             String json = jsonb.toJson(pojo);
             try (StringReader sr = new StringReader(json);
-                    JsonReader reader = Json.createReader(sr)) {
+                    JsonReader reader = jsonReaderFactory.createReader(sr)) {
                 return reader.readValue();
             }
         } catch (Exception e) {
