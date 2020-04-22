@@ -10,7 +10,9 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,9 @@ import io.smallrye.graphql.execution.ExecutionService;
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class ExecutionServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(ExecutionServlet.class.getName());
+
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
 
     @Inject
     ExecutionService executionService;
@@ -72,7 +77,7 @@ public class ExecutionServlet extends HttpServlet {
             inputReader = logInputReader(inputReader);
         }
 
-        try (JsonReader jsonReader = Json.createReader(inputReader)) {
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(inputReader)) {
 
             JsonObject jsonInput = jsonReader.readObject();
 
@@ -81,7 +86,7 @@ public class ExecutionServlet extends HttpServlet {
                 PrintWriter out = response.getWriter();
                 response.setContentType(APPLICATION_JSON_UTF8);
 
-                try (JsonWriter jsonWriter = Json.createWriter(out)) {
+                try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
                     jsonWriter.writeObject(outputJson);
                     out.flush();
                 }
