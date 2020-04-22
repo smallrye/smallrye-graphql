@@ -95,7 +95,8 @@ public class SchemaBuilderTest {
         Assert.assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
     }
 
-    private String toString(Schema schema) {
+    static String toString(Schema schema) {
+
         JsonbConfig config = new JsonbConfig()
                 .withFormatting(true);
 
@@ -103,7 +104,7 @@ public class SchemaBuilderTest {
         return jsonb.toJson(schema);
     }
 
-    private IndexView getTCKIndex() {
+    static IndexView getTCKIndex() {
         Indexer indexer = new Indexer();
         indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/basic/api");
         indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/api");
@@ -112,7 +113,7 @@ public class SchemaBuilderTest {
         return indexer.complete();
     }
 
-    private void indexDirectory(Indexer indexer, String baseDir) {
+    public static void indexDirectory(Indexer indexer, String baseDir) {
         InputStream directoryStream = getResourceAsStream(baseDir);
         BufferedReader reader = new BufferedReader(new InputStreamReader(directoryStream));
         reader.lines()
@@ -121,13 +122,13 @@ public class SchemaBuilderTest {
                 .forEach(path -> index(indexer, path.toString()));
     }
 
-    private InputStream getResourceAsStream(String path) {
+    static InputStream getResourceAsStream(String path) {
         return Thread.currentThread()
                 .getContextClassLoader()
                 .getResourceAsStream(path);
     }
 
-    private void index(Indexer indexer, String resName) {
+    static void index(Indexer indexer, String resName) {
         try {
             InputStream stream = getResourceAsStream(resName);
             indexer.index(stream);

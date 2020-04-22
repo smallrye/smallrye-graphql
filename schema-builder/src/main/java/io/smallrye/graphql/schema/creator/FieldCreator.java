@@ -163,7 +163,7 @@ public class FieldCreator {
      * @param defaultFieldName the default field name
      * @return the field name
      */
-    private static String getFieldName(Direction direction, Annotations annotationsForThisField,
+    static String getFieldName(Direction direction, Annotations annotationsForThisField,
             String defaultFieldName) {
         switch (direction) {
             case OUT:
@@ -178,6 +178,7 @@ public class FieldCreator {
     private static String getOutputNameForField(Annotations annotationsForThisField, String fieldName) {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
+                Annotations.QUERY,
                 Annotations.JSONB_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
