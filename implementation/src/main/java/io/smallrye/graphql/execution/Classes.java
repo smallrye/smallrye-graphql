@@ -14,14 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.jboss.logging.Logger;
-
 /**
  * Class helper
- * 
- * TODO: This needs cleanup. Some stuff might not be used.
- * TODO: Merge with classes in model-builder and move to separate module
- * 
+
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
