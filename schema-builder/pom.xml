@@ -45,6 +45,11 @@
             <version>1.0.7</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.graphql</groupId>
+            <artifactId>microprofile-graphql-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

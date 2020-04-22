@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -34,6 +38,61 @@ public class SchemaBuilderTest {
         Schema schema = SchemaBuilder.build(index);
         LOG.info(toString(schema));
         Assert.assertNotNull(schema);
+    }
+
+    @Test
+    public void testConcurrentSchemaBuilding() throws Exception {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/basic/api");
+        IndexView basicIndex = indexer.complete();
+
+        indexer = new Indexer();
+        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/api");
+        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/db");
+        indexDirectory(indexer, "org/eclipse/microprofile/graphql/tck/apps/superhero/model");
+        IndexView heroIndex = indexer.complete();
+
+        indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/app");
+        IndexView movieIndex = indexer.complete();
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Future<Schema> basicSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(basicIndex));
+        Future<Schema> heroSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(heroIndex));
+        Future<Schema> movieSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(movieIndex));
+
+        Schema basicSchema = basicSchemaFuture.get();
+        Schema heroSchema = heroSchemaFuture.get();
+        Schema movieSchema = movieSchemaFuture.get();
+
+        Assert.assertNotNull(basicSchema);
+        Assert.assertNotNull(heroSchema);
+        Assert.assertNotNull(movieSchema);
+
+        String basicSchemaString = toString(basicSchema);
+        LOG.info(basicSchemaString);
+        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
+        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
+        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInterface"));
+        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicEnum"));
+        Assert.assertFalse(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
+        Assert.assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
+
+        String heroSchemaString = toString(heroSchema);
+        LOG.info(heroSchemaString);
+        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
+        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
+        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Team"));
+        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Character"));
+        Assert.assertFalse(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
+        Assert.assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
+
+        String movieSchemaString = toString(movieSchema);
+        LOG.info(movieSchemaString);
+        Assert.assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
+        Assert.assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
+        Assert.assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
+        Assert.assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
     }
 
     private String toString(Schema schema) {
