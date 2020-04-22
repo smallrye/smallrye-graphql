@@ -2,9 +2,6 @@ package io.smallrye.graphql.execution;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,48 +25,8 @@ import org.jboss.logging.Logger;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
-    private static final Map<String, Class> loadedClasses = new HashMap<>();
-    private static final Logger LOG = Logger.getLogger(Classes.class.getName());
 
     private Classes() {
-    }
-
-    public static Class<?> loadClass(String className) {
-        if (className != null) {
-            try {
-                if (isPrimitive(className)) {
-                    return getPrimativeClassType(className);
-                } else {
-                    if (loadedClasses.containsKey(className)) {
-                        return loadedClasses.get(className);
-                    } else {
-
-                        return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
-                            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                            if (loader != null) {
-                                try {
-                                    return loadClass(className, loader);
-                                } catch (ClassNotFoundException cnfe) {
-                                    // Let's try this class classloader.
-                                }
-                            }
-                            return loadClass(className, Classes.class.getClassLoader());
-                        });
-
-                    }
-                }
-            } catch (PrivilegedActionException | ClassNotFoundException pae) {
-                pae.printStackTrace();
-                throw new RuntimeException("Can not load class [" + className + "]", pae);
-            }
-        }
-        return Object.class;
-    }
-
-    public static Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {
-        Class<?> c = Class.forName(className, false, loader);
-        loadedClasses.put(className, c);
-        return c;
     }
 
     public static boolean isOptional(String className) {
@@ -98,7 +55,7 @@ public class Classes {
         return Collection.class.isAssignableFrom(c.getClass());
     }
 
-    private static Class getPrimativeClassType(String primitiveName) throws ClassNotFoundException {
+    public static Class getPrimativeClassType(String primitiveName) throws ClassNotFoundException {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);
         }
