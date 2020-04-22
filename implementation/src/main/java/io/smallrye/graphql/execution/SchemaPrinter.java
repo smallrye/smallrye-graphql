@@ -23,7 +23,7 @@ public class SchemaPrinter {
         options = options.includeDirectives(false);
         options = options.includeExtendedScalarTypes(false);
         options = options.includeIntrospectionTypes(false);
-        options = options.includeScalarTypes(false);
+        options = options.includeScalarTypes(true);
         options = options.includeSchemaDefinition(false);
         options = options.useAstDefinitions(false);
         SCHEMAPRINTER = new graphql.schema.idl.SchemaPrinter(options);
