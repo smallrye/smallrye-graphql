@@ -64,7 +64,6 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = "smallrye.graphql.schema.includeIntrospectionTypes", defaultValue = "false")
     private boolean includeIntrospectionTypesInSchema;
 
-
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
     }
