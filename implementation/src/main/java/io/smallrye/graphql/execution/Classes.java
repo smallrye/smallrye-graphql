@@ -16,7 +16,7 @@ import java.util.Optional;
 
 /**
  * Class helper
-
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
