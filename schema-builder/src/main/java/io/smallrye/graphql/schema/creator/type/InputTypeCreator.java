@@ -31,6 +31,12 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
+    private final FieldCreator fieldCreator;
+
+    public InputTypeCreator(FieldCreator fieldCreator) {
+        this.fieldCreator = fieldCreator;
+    }
+
     @Override
     public InputType create(ClassInfo classInfo) {
         LOG.debug("Creating Input from " + classInfo.name().toString());
@@ -72,7 +78,7 @@ public class InputTypeCreator implements Creator<InputType> {
             if (MethodHelper.isPropertyMethod(Direction.IN, methodInfo.name())) {
                 String fieldName = MethodHelper.getPropertyName(Direction.IN, methodInfo.name());
                 FieldInfo fieldInfo = allFields.get(fieldName);
-                FieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo)
+                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo)
                         .ifPresent(inputType::addField);
 
             }

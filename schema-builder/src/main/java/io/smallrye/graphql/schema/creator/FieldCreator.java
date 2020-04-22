@@ -25,7 +25,10 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class FieldCreator {
 
-    private FieldCreator() {
+    private final ReferenceCreator referenceCreator;
+
+    public FieldCreator(ReferenceCreator referenceCreator) {
+        this.referenceCreator = referenceCreator;
     }
 
     /**
@@ -35,7 +38,7 @@ public class FieldCreator {
      * @param methodInfo the java method
      * @return a Field model object
      */
-    public static Optional<Field> createFieldForInterface(MethodInfo methodInfo) {
+    public Optional<Field> createFieldForInterface(MethodInfo methodInfo) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForMethod)) {
@@ -49,7 +52,7 @@ public class FieldCreator {
 
             // Field Type
             validateFieldType(Direction.OUT, methodInfo);
-            Reference reference = ReferenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod);
+            Reference reference = referenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod);
 
             Field field = new Field(methodInfo.name(),
                     MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
@@ -85,7 +88,7 @@ public class FieldCreator {
      * @param methodInfo the java method
      * @return a Field model object
      */
-    public static Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo) {
+    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo) {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForPojo)) {
@@ -101,7 +104,7 @@ public class FieldCreator {
             validateFieldType(direction, methodInfo);
             Type fieldType = getFieldType(fieldInfo, methodType);
 
-            Reference reference = ReferenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
+            Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
                     annotationsForPojo);
 
             Field field = new Field(methodInfo.name(),
