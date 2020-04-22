@@ -6,6 +6,7 @@ import javax.enterprise.inject.Produces;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
+import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -18,6 +19,7 @@ public class GraphQLProducer {
 
     private GraphQLSchema graphQLSchema;
     private ExecutionService executionService;
+    private SchemaPrinter schemaPrinter;
 
     public void initializeGraphQL(GraphQLConfig config, Schema schema) {
         this.graphQLSchema = Bootstrap.bootstrap(schema, config);
@@ -25,6 +27,7 @@ public class GraphQLProducer {
             Bootstrap.registerMetrics(schema);
         }
         this.executionService = new ExecutionService(config, graphQLSchema);
+        this.schemaPrinter = new SchemaPrinter(config);
     }
 
     @Produces
@@ -35,5 +38,10 @@ public class GraphQLProducer {
     @Produces
     public ExecutionService getExecutionService() {
         return executionService;
+    }
+
+    @Produces
+    public SchemaPrinter getSchemaPrinter() {
+        return schemaPrinter;
     }
 }

@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -37,7 +38,8 @@ public class SchemaTest {
     public void testSchemaModelCreation() throws IOException {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
         Assert.assertNotNull(graphQLSchema);
-        String schemaString = SchemaPrinter.print(graphQLSchema);
+        String schemaString = new SchemaPrinter(new Config() {
+        }).print(graphQLSchema);
         Assert.assertNotNull(schemaString);
 
         LOG.info(schemaString);
