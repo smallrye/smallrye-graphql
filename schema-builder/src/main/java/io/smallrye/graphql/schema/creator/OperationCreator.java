@@ -82,35 +82,11 @@ public class OperationCreator {
         // Arguments
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
-            Optional<Argument> maybeArgument = argumentCreator.createArgument(fieldType, methodInfo, i);
-            if (maybeArgument.isPresent()) {
-                Argument argument = maybeArgument.get();
-
-                // See if this is a @Source
-                Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
-                if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
-                    argument.setSourceArgument(true);
-                }
-
-                operation.addArgument(argument);
-            }
-
+            Optional<Argument> maybeArgument = argumentCreator.createArgument(operationType, methodInfo, i);
+            maybeArgument.ifPresent(operation::addArgument);
         }
 
         return operation;
-    }
-
-    /**
-     * Source operation on types should remove the Source argument
-     * 
-     * @param annotationsForArgument
-     * @param operationType
-     * @return
-     */
-    private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
-            OperationType operationType) {
-        return operationType.equals(OperationType.Source) &&
-                annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {

@@ -2,10 +2,12 @@ package io.smallrye.graphql.schema.creator;
 
 import java.util.Optional;
 
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.OperationType;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
@@ -32,19 +34,24 @@ public class ArgumentCreator {
     /**
      * Create an argument model. Arguments exist on Operations as input parameters
      * 
-     * @param argumentType The argument type
+     * @param operationType The operation type
      * @param methodInfo the operation method
      * @param position the argument position
      * @return an Argument
      */
-    public Optional<Argument> createArgument(Type argumentType, MethodInfo methodInfo, short position) {
+    public Optional<Argument> createArgument(OperationType operationType, MethodInfo methodInfo, short position) {
+        if (position >= methodInfo.parameters().size()) {
+            throw new SchemaBuilderException(
+                    "Can not create argument for parameter [" + position + "] "
+                            + "on method [" + methodInfo.declaringClass().name() + "#" + methodInfo.name() + "]: "
+                            + "method has only " + methodInfo.parameters().size() + " parameters");
+        }
+
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
             // Argument Type
-            if (methodInfo.parameters() != null && !methodInfo.parameters().isEmpty()) {
-                argumentType = methodInfo.parameters().get(position);
-            }
+            Type argumentType = methodInfo.parameters().get(position);
 
             // Name
             String defaultName = methodInfo.parameterName(position);
@@ -55,8 +62,12 @@ public class ArgumentCreator {
             Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForThisArgument,
                     argumentType);
 
-            Reference reference = referenceCreator.createReferenceForOperationArgument(argumentType,
-                    annotationsForThisArgument);
+            Reference reference;
+            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
+                reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
+            } else {
+                reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
+            }
 
             Argument argument = new Argument(defaultName,
                     methodInfo.name(),
@@ -68,6 +79,10 @@ public class ArgumentCreator {
             // NotNull
             if (NonNullHelper.markAsNonNull(argumentType, annotationsForThisArgument)) {
                 argument.setNotNull(true);
+            }
+
+            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
+                argument.setSourceArgument(true);
             }
 
             // Array
@@ -82,6 +97,19 @@ public class ArgumentCreator {
             return Optional.of(argument);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Source operation on types should remove the Source argument
+     *
+     * @param annotationsForArgument
+     * @param operationType
+     * @return
+     */
+    private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
+            OperationType operationType) {
+        return operationType.equals(OperationType.Source) &&
+                annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 
 }
