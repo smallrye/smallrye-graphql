@@ -16,7 +16,6 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -158,10 +157,10 @@ public class ReflectionDataFetcher implements DataFetcher {
             for (Field argument : operation.getArguments()) {
                 // If the argument is an array / collection, load that class
                 if (argument.hasArray()) {
-                    Class<?> clazz = Classes.loadClass(argument.getArray().getClassName());
+                    Class<?> clazz = lookupService.loadClass(argument.getArray().getClassName());
                     cl.add(clazz);
                 } else {
-                    Class<?> clazz = Classes.loadClass(argument.getReference().getClassName());
+                    Class<?> clazz = lookupService.loadClass(argument.getReference().getClassName());
                     cl.add(clazz);
                 }
             }

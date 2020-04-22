@@ -1,9 +1,16 @@
 package io.smallrye.graphql.lookup;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.jboss.logging.Logger;
+
+import io.smallrye.graphql.execution.Classes;
 
 /**
  * Lookup service that allows multiple DI frameworks to use this.
@@ -14,6 +21,7 @@ import org.jboss.logging.Logger;
  */
 public interface LookupService {
     static final Logger LOG = Logger.getLogger(LookupService.class.getName());
+    static final Map<String, Class> loadedClasses = new HashMap<>();
 
     public static LookupService load() {
         LookupService lookupService;
@@ -39,14 +47,38 @@ public interface LookupService {
     }
 
     default Class<?> loadClass(String className) {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
         try {
-            return Class.forName(className, false, loader);
-        } catch (NullPointerException | ClassNotFoundException ex) {
-            throw new RuntimeException("Could not load class [" + className + "] when using the default lookup service", ex);
+            if (Classes.isPrimitive(className)) {
+                return Classes.getPrimativeClassType(className);
+            } else {
+                if (loadedClasses.containsKey(className)) {
+                    return loadedClasses.get(className);
+                } else {
+
+                    return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
+                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                        if (loader != null) {
+                            try {
+                                return loadClass(className, loader);
+                            } catch (ClassNotFoundException cnfe) {
+                                // Let's try this class classloader.
+                            }
+                        }
+                        return loadClass(className, Classes.class.getClassLoader());
+                    });
+
+                }
+            }
+        } catch (PrivilegedActionException | ClassNotFoundException pae) {
+            throw new RuntimeException("Can not load class [" + className + "]", pae);
         }
 
+    }
+
+    default Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {
+        Class<?> c = Class.forName(className, false, loader);
+        loadedClasses.put(className, c);
+        return c;
     }
 
     /**
@@ -75,4 +107,5 @@ public interface LookupService {
             }
         }
     }
+
 }
