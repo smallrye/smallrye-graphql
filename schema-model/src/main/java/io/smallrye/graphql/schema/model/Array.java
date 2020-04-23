@@ -38,7 +38,7 @@ public final class Array implements Serializable {
         return this.className;
     }
 
-    public void getDepth(int depth) {
+    public void setDepth(int depth) {
         this.depth = depth;
     }
 
