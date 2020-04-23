@@ -37,6 +37,9 @@ public class ExecutionService {
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+            .withNullValues(Boolean.TRUE)
+            .withFormatting(Boolean.TRUE));
     private final GraphQLVariables graphQLVariables = new GraphQLVariables();
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
@@ -115,19 +118,9 @@ public class ExecutionService {
     }
 
     private JsonValue toJsonValue(Object pojo) {
-        JsonbConfig jsonbConfig = new JsonbConfig()
-                .withNullValues(Boolean.TRUE)
-                .withFormatting(Boolean.TRUE);
-
-        try (Jsonb jsonb = JsonbBuilder.create(jsonbConfig)) {
-            String json = jsonb.toJson(pojo);
-            try (StringReader sr = new StringReader(json);
-                    JsonReader reader = jsonReaderFactory.createReader(sr)) {
-                return reader.readValue();
-            }
-        } catch (Exception e) {
-            LOG.warn("Could not close Jsonb object");
-            return null;
+        String json = JSONB.toJson(pojo);
+        try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
+            return reader.readValue();
         }
     }
 
