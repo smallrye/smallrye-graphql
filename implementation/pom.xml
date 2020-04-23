@@ -86,13 +86,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- SmallRye -->
-        <dependency>
-            <groupId>io.smallrye</groupId>
-            <artifactId>smallrye-metrics</artifactId>
-            <version>${version.smallrye.metrics}</version>
-            <scope>provided</scope>
-        </dependency>
+
     </dependencies>
 
     <build>

@@ -2,6 +2,8 @@ package io.smallrye.graphql.cdi;
 
 import javax.enterprise.inject.spi.CDI;
 
+import org.eclipse.microprofile.metrics.MetricRegistry;
+
 import io.smallrye.graphql.lookup.LookupService;
 
 /**
@@ -25,6 +27,11 @@ public class CdiLookupService implements LookupService {
     @Override
     public Object getInstance(Class<?> declaringClass) {
         return CDI.current().select(declaringClass).get();
+    }
+
+    @Override
+    public MetricRegistry getMetricRegistry(MetricRegistry.Type type) {
+        return CDI.current().select(MetricRegistry.class, new RegistryTypeLiteral(type)).get();
     }
 
 }

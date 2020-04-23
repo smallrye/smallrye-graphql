@@ -9,11 +9,17 @@ import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.metrics.MetricRegistries;
+import io.smallrye.graphql.lookup.LookupService;
 
 public class MetricDecorator implements DataFetcherDecorator {
 
-    private Map<DataFetchingEnvironment, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<DataFetchingEnvironment, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+
+    private final MetricRegistry metricRegistry;
+
+    public MetricDecorator() {
+        metricRegistry = LookupService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
+    }
 
     @Override
     public void before(DataFetchingEnvironment dfe) {
@@ -26,7 +32,7 @@ public class MetricDecorator implements DataFetcherDecorator {
         if (startTime != null) {
             long duration = System.nanoTime() - startTime;
             MetricID metricID = new MetricID("mp_graphql_" + dfe.getField().getName());
-            MetricRegistries.get(MetricRegistry.Type.VENDOR).simpleTimer(metricID.getName(), metricID.getTagsAsArray())
+            metricRegistry.simpleTimer(metricID.getName(), metricID.getTagsAsArray())
                     .update(Duration.ofNanos(duration));
         }
 

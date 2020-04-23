@@ -50,7 +50,6 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
-import io.smallrye.metrics.MetricRegistries;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -85,7 +84,7 @@ public class Bootstrap {
         }
     }
 
-    public static void registerMetrics(Schema schema) {
+    public static void registerMetrics(Schema schema, MetricRegistry metricRegistry) {
         Stream.concat(schema.getQueries().stream(), schema.getMutations().stream())
                 .forEach(operation -> {
                     Metadata metadata = Metadata.builder()
@@ -93,7 +92,7 @@ public class Bootstrap {
                             .withType(MetricType.SIMPLE_TIMER)
                             .withDescription("Call statistics for the query '" + operation.getName() + "'")
                             .build();
-                    MetricRegistries.get(MetricRegistry.Type.VENDOR).simpleTimer(metadata);
+                    metricRegistry.simpleTimer(metadata);
                 });
     }
 

@@ -6,6 +6,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ServiceLoader;
 
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.execution.Classes;
@@ -37,6 +38,8 @@ public interface LookupService {
     Class<?> getClass(Class<?> declaringClass);
 
     Object getInstance(Class<?> declaringClass);
+
+    MetricRegistry getMetricRegistry(MetricRegistry.Type type);
 
     default Object getInstance(String declaringClass) {
         Class<?> loadedClass = loadClass(declaringClass);
@@ -94,6 +97,11 @@ public interface LookupService {
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException("Could not get Instance using the default lookup service", ex);
             }
+        }
+
+        @Override
+        public MetricRegistry getMetricRegistry(MetricRegistry.Type type) {
+            throw new UnsupportedOperationException("Metrics are not supported without CDI");
         }
     }
 }
