@@ -94,6 +94,18 @@ public class ReferenceCreator {
     }
 
     /**
+     * Get a reference to a source argument type for an operation
+     * Direction is OUT on an argument.
+     *
+     * @param argumentType the java type
+     * @param annotationsForThisArgument annotations on this argument
+     * @return a reference to the argument
+     */
+    public Reference createReferenceForSourceArgument(Type argumentType, Annotations annotationsForThisArgument) {
+        return getReference(Direction.OUT, null, argumentType, annotationsForThisArgument);
+    }
+
+    /**
      * Get a reference to a field (method response) on an interface
      * 
      * Interfaces is only usable on Type, so the direction in OUT.
