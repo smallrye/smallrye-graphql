@@ -16,8 +16,6 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
-import org.jboss.logging.Logger;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
@@ -28,10 +26,12 @@ import graphql.validation.ValidationError;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionErrorsService {
-    private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
 
     private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+            .withNullValues(Boolean.TRUE)
+            .withFormatting(Boolean.TRUE));
 
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
@@ -42,28 +42,18 @@ public class ExecutionErrorsService {
     }
 
     private JsonObject toJsonError(GraphQLError error) {
-        JsonbConfig config = new JsonbConfig()
-                .withNullValues(Boolean.TRUE)
-                .withFormatting(Boolean.TRUE);
+        String json = JSONB.toJson(error.toSpecification());
+        try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
 
-        try (Jsonb jsonb = JsonbBuilder.create(config)) {
-            String json = jsonb.toJson(error.toSpecification());
-            try (StringReader sr = new StringReader(json);
-                    JsonReader reader = jsonReaderFactory.createReader(sr)) {
+            JsonObject jsonErrors = reader.readObject();
 
-                JsonObject jsonErrors = reader.readObject();
+            JsonObjectBuilder resultBuilder = jsonBuilderFactory.createObjectBuilder(jsonErrors);
 
-                JsonObjectBuilder resultBuilder = jsonBuilderFactory.createObjectBuilder(jsonErrors);
-
-                Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
-                if (optionalExtensions.isPresent()) {
-                    resultBuilder.add(EXTENSIONS, optionalExtensions.get());
-                }
-                return resultBuilder.build();
+            Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
+            if (optionalExtensions.isPresent()) {
+                resultBuilder.add(EXTENSIONS, optionalExtensions.get());
             }
-        } catch (Exception e) {
-            LOG.warn("Could not close Jsonb", e);
-            return null;
+            return resultBuilder.build();
         }
     }
 
