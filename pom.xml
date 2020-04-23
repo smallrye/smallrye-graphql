@@ -18,7 +18,7 @@
     <properties>
         <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.1</version.eclipse.microprofile.graphql>
-        <version.eclipse.microprofile.metrics>2.3</version.eclipse.microprofile.metrics>
+        <version.eclipse.microprofile.metrics>2.3.1</version.eclipse.microprofile.metrics>
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
         
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
