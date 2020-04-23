@@ -13,14 +13,36 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import org.jboss.logging.Logger;
+
 /**
  * The variables on the GraphQL Operation
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLVariables {
+    private static final Logger LOG = Logger.getLogger(GraphQLVariables.class.getName());
 
-    public static Optional<Map<String, Object>> getVariables(JsonValue jsonValue) {
+    public Optional<Map<String, Object>> getVariables(JsonObject jsonInput) {
+        if (!jsonInput.containsKey(VARIABLES)
+                || jsonInput.get(VARIABLES) == null
+                || jsonInput.get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL)) {
+            return Optional.empty();
+        }
+
+        JsonValue.ValueType valueType = jsonInput.get(VARIABLES).getValueType();
+
+        if (valueType.equals(JsonValue.ValueType.STRING)) {
+            String stringVars = jsonInput.getString(VARIABLES);
+            LOG.warn("We got a String as input for Variables, not sure what to do with that [" + stringVars + "]");
+            return Optional.empty();
+        } else {
+            JsonValue jvariables = jsonInput.get(VARIABLES);
+            return getVariables(jvariables);
+        }
+    }
+
+    private Optional<Map<String, Object>> getVariables(JsonValue jsonValue) {
         if (null != jsonValue
                 && !JsonValue.NULL.equals(jsonValue)
                 && !JsonValue.EMPTY_JSON_OBJECT.equals(jsonValue)
@@ -30,10 +52,7 @@ public class GraphQLVariables {
         return Optional.empty();
     }
 
-    private GraphQLVariables() {
-    }
-
-    private static Map<String, Object> toMap(JsonObject jo) {
+    private Map<String, Object> toMap(JsonObject jo) {
         Map<String, Object> ro = new HashMap<>();
         if (jo != null) {
             Set<Map.Entry<String, JsonValue>> entrySet = jo.entrySet();
@@ -44,7 +63,7 @@ public class GraphQLVariables {
         return ro;
     }
 
-    private static Object toObject(JsonValue jsonValue) {
+    private Object toObject(JsonValue jsonValue) {
         Object ret = null;
         JsonValue.ValueType typ = jsonValue.getValueType();
         if (null != typ)
@@ -80,4 +99,5 @@ public class GraphQLVariables {
         return ret;
     }
 
+    private static final String VARIABLES = "variables";
 }
