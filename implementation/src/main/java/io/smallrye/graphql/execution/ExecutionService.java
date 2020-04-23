@@ -37,6 +37,7 @@ public class ExecutionService {
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private final GraphQLVariables graphQLVariables = new GraphQLVariables();
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
@@ -59,13 +60,11 @@ public class ExecutionService {
                     .executionId(ExecutionId.generate());
 
             // Variables
-            JsonValue jvariables = jsonInput.get(VARIABLES);
-            GraphQLVariables.getVariables(jvariables).ifPresent(executionBuilder::variables);
+            graphQLVariables.getVariables(jsonInput).ifPresent(executionBuilder::variables);
 
             // Operation name
-            if (jsonInput.containsKey(OPERATION_NAME)) {
-                String operationName = jsonInput.getString(OPERATION_NAME);
-                executionBuilder.operationName(operationName);
+            if (hasOperationName(jsonInput)) {
+                executionBuilder.operationName(jsonInput.getString(OPERATION_NAME));
             }
 
             ExecutionInput executionInput = executionBuilder.build();
@@ -151,8 +150,14 @@ public class ExecutionService {
 
     }
 
+    private boolean hasOperationName(JsonObject jsonInput) {
+        return jsonInput.containsKey(OPERATION_NAME)
+                && jsonInput.get(OPERATION_NAME) != null
+                && !jsonInput.get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL);
+    }
+
     private static final String QUERY = "query";
-    private static final String VARIABLES = "variables";
+
     private static final String OPERATION_NAME = "operationName";
     private static final String DATA = "data";
     private static final String ERRORS = "errors";

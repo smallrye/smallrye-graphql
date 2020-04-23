@@ -2,12 +2,12 @@ package io.smallrye.graphql.schema.creator;
 
 import java.util.Optional;
 
-import io.smallrye.graphql.schema.SchemaBuilderException;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.OperationType;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
