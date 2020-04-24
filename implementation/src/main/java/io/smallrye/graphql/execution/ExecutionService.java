@@ -2,6 +2,8 @@ package io.smallrye.graphql.execution;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -40,17 +42,25 @@ public class ExecutionService {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
+
+    private final String executionIdPrefix;
+    private final AtomicLong executionId = new AtomicLong();
+
     private final GraphQLVariables graphQLVariables = new GraphQLVariables();
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    private Config config;
+    private final Config config;
 
-    private GraphQLSchema graphQLSchema;
+    private final GraphQLSchema graphQLSchema;
+
+    private GraphQL graphQL;
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
+        // use schema's hash as prefix to differentiate between multiple apps
+        this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -60,7 +70,7 @@ public class ExecutionService {
             // Query
             ExecutionInput.Builder executionBuilder = ExecutionInput.newExecutionInput()
                     .query(query)
-                    .executionId(ExecutionId.generate());
+                    .executionId(ExecutionId.from(executionIdPrefix + executionId.getAndIncrement()));
 
             // Variables
             graphQLVariables.getVariables(jsonInput).ifPresent(executionBuilder::variables);
@@ -124,8 +134,6 @@ public class ExecutionService {
         }
     }
 
-    private GraphQL graphQL;
-
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(config);
@@ -150,9 +158,7 @@ public class ExecutionService {
     }
 
     private static final String QUERY = "query";
-
     private static final String OPERATION_NAME = "operationName";
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
-
 }
