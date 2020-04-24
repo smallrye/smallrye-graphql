@@ -60,7 +60,9 @@
         <module>client-api</module>
         <module>client-implementation</module>
         <module>client-tck</module>
-        
+        <!-- The Maven plugin -->
+        <module>maven-plugin</module>
+
     </modules>
     
     <dependencyManagement>
