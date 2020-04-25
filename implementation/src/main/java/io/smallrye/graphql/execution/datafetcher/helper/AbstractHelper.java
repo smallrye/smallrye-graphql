@@ -11,6 +11,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
+import io.smallrye.graphql.lookup.LookupService;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -19,6 +20,8 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractHelper {
+
+    protected final LookupService lookupService = LookupService.load();
 
     protected AbstractHelper() {
     }
@@ -105,7 +108,7 @@ public abstract class AbstractHelper {
         }
 
         String classNameInCollection = field.getReference().getClassName();
-        Class classInCollection = Classes.loadClass(classNameInCollection);
+        Class classInCollection = lookupService.loadClass(classNameInCollection);
 
         return convertedList.toArray((T[]) Array.newInstance(classInCollection, givenCollection.size()));
     }

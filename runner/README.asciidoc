@@ -6,20 +6,11 @@ image:/runner/graphiql.png[link="/master/runner/graphiql.png"]
 
 The running allow you to test the TCK app against a running server using https://github.com/graphql/graphiql[GraphiQL].
 
-You can run the server (Wildfly or Thorntail) using maven:
-
-=== Using Wildfly
+You can run the server (Wildfly) using maven:
 
 [source,bash]
 ----
  mvn clean install -Pwildfly
-----
-
-=== Using Thorntail
-
-[source,bash]
-----
- mvn clean install -Pthorntail
 ----
 
 == Using the runner

@@ -42,7 +42,12 @@
             <artifactId>jakarta.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+        <dependency>
+            <groupId>org.eclipse.microprofile.metrics</groupId>
+            <artifactId>microprofile-metrics-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- GraphQL Java -->
         <dependency>
             <groupId>com.graphql-java</groupId>
@@ -80,6 +85,8 @@
             <artifactId>smallrye-graphql-schema-builder</artifactId>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <build>

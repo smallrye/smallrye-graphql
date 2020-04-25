@@ -40,6 +40,16 @@ import io.smallrye.graphql.schema.model.Type;
 public class TypeCreator implements Creator<Type> {
     private static final Logger LOG = Logger.getLogger(TypeCreator.class.getName());
 
+    private final ReferenceCreator referenceCreator;
+    private final FieldCreator fieldCreator;
+    private final OperationCreator operationCreator;
+
+    public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator) {
+        this.referenceCreator = referenceCreator;
+        this.fieldCreator = fieldCreator;
+        this.operationCreator = operationCreator;
+    }
+
     @Override
     public Type create(ClassInfo classInfo) {
         LOG.debug("Creating Type from " + classInfo.name().toString());
@@ -88,7 +98,7 @@ public class TypeCreator implements Creator<Type> {
                 String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
                 FieldInfo fieldInfo = allFields.get(fieldName);
 
-                FieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo)
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo)
                         .ifPresent(type::addField);
             }
         }
@@ -101,7 +111,7 @@ public class TypeCreator implements Creator<Type> {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
                 MethodInfo methodInfo = methodParameterInfo.method();
-                Operation operation = OperationCreator.createOperation(methodInfo, OperationType.Source);
+                Operation operation = operationCreator.createOperation(methodInfo, OperationType.Source);
                 type.addOperation(operation);
             }
         }
@@ -114,7 +124,7 @@ public class TypeCreator implements Creator<Type> {
             if (!interfaceName.toString().startsWith(JAVA_DOT)) {
                 ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceName);
                 if (interfaceInfo != null) {
-                    Reference interfaceRef = ReferenceCreator.createReference(Direction.OUT, interfaceInfo);
+                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo);
                     type.addInterface(interfaceRef);
                 }
             }

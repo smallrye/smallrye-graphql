@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.lookup.LookupService;
 
 /**
  * Helping with creating collection instances
@@ -22,8 +22,10 @@ import io.smallrye.graphql.execution.Classes;
 public class CollectionCreator {
     private static final Logger LOG = Logger.getLogger(CollectionCreator.class.getName());
 
+    private static LookupService lookupService = LookupService.load();
+
     public static Collection<?> newCollection(String className) {
-        Class<?> type = Classes.loadClass(className);
+        Class<?> type = lookupService.loadClass(className);
         return newCollection(type);
     }
 

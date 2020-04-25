@@ -2,12 +2,16 @@ package io.smallrye.graphql.execution;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -33,15 +37,30 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 public class ExecutionService {
     private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
+    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+            .withNullValues(Boolean.TRUE)
+            .withFormatting(Boolean.TRUE));
+
+    private final String executionIdPrefix;
+    private final AtomicLong executionId = new AtomicLong();
+
+    private final GraphQLVariables graphQLVariables = new GraphQLVariables();
+
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    private Config config;
+    private final Config config;
 
-    private GraphQLSchema graphQLSchema;
+    private final GraphQLSchema graphQLSchema;
+
+    private GraphQL graphQL;
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
+        // use schema's hash as prefix to differentiate between multiple apps
+        this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -51,23 +70,21 @@ public class ExecutionService {
             // Query
             ExecutionInput.Builder executionBuilder = ExecutionInput.newExecutionInput()
                     .query(query)
-                    .executionId(ExecutionId.generate());
+                    .executionId(ExecutionId.from(executionIdPrefix + executionId.getAndIncrement()));
 
             // Variables
-            JsonValue jvariables = jsonInput.get(VARIABLES);
-            GraphQLVariables.getVariables(jvariables).ifPresent(executionBuilder::variables);
+            graphQLVariables.getVariables(jsonInput).ifPresent(executionBuilder::variables);
 
             // Operation name
-            if (jsonInput.containsKey(OPERATION_NAME)) {
-                String operationName = jsonInput.getString(OPERATION_NAME);
-                executionBuilder.operationName(operationName);
+            if (hasOperationName(jsonInput)) {
+                executionBuilder.operationName(jsonInput.getString(OPERATION_NAME));
             }
 
             ExecutionInput executionInput = executionBuilder.build();
 
             ExecutionResult executionResult = g.execute(executionInput);
 
-            JsonObjectBuilder returnObjectBuilder = Json.createObjectBuilder();
+            JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
             // Errors
             returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
@@ -111,23 +128,11 @@ public class ExecutionService {
     }
 
     private JsonValue toJsonValue(Object pojo) {
-        JsonbConfig jsonbConfig = new JsonbConfig()
-                .withNullValues(Boolean.TRUE)
-                .withFormatting(Boolean.TRUE);
-
-        try (Jsonb jsonb = JsonbBuilder.create(jsonbConfig)) {
-            String json = jsonb.toJson(pojo);
-            try (StringReader sr = new StringReader(json);
-                    JsonReader reader = Json.createReader(sr)) {
-                return reader.readValue();
-            }
-        } catch (Exception e) {
-            LOG.warn("Could not close Jsonb object");
-            return null;
+        String json = JSONB.toJson(pojo);
+        try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
+            return reader.readValue();
         }
     }
-
-    private GraphQL graphQL;
 
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
@@ -146,10 +151,14 @@ public class ExecutionService {
 
     }
 
+    private boolean hasOperationName(JsonObject jsonInput) {
+        return jsonInput.containsKey(OPERATION_NAME)
+                && jsonInput.get(OPERATION_NAME) != null
+                && !jsonInput.get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL);
+    }
+
     private static final String QUERY = "query";
-    private static final String VARIABLES = "variables";
     private static final String OPERATION_NAME = "operationName";
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
-
 }

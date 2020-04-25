@@ -7,14 +7,14 @@ import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
-
-import org.jboss.logging.Logger;
 
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
@@ -26,10 +26,15 @@ import graphql.validation.ValidationError;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionErrorsService {
-    private static final Logger LOG = Logger.getLogger(ExecutionErrorsService.class.getName());
+
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+            .withNullValues(Boolean.TRUE)
+            .withFormatting(Boolean.TRUE));
 
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
         for (GraphQLError e : errors) {
             arrayBuilder.add(toJsonError(e));
         }
@@ -37,28 +42,18 @@ public class ExecutionErrorsService {
     }
 
     private JsonObject toJsonError(GraphQLError error) {
-        JsonbConfig config = new JsonbConfig()
-                .withNullValues(Boolean.TRUE)
-                .withFormatting(Boolean.TRUE);
+        String json = JSONB.toJson(error.toSpecification());
+        try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
 
-        try (Jsonb jsonb = JsonbBuilder.create(config)) {
-            String json = jsonb.toJson(error.toSpecification());
-            try (StringReader sr = new StringReader(json);
-                    JsonReader reader = Json.createReader(sr)) {
+            JsonObject jsonErrors = reader.readObject();
 
-                JsonObject jsonErrors = reader.readObject();
+            JsonObjectBuilder resultBuilder = jsonBuilderFactory.createObjectBuilder(jsonErrors);
 
-                JsonObjectBuilder resultBuilder = Json.createObjectBuilder(jsonErrors);
-
-                Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
-                if (optionalExtensions.isPresent()) {
-                    resultBuilder.add(EXTENSIONS, optionalExtensions.get());
-                }
-                return resultBuilder.build();
+            Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
+            if (optionalExtensions.isPresent()) {
+                resultBuilder.add(EXTENSIONS, optionalExtensions.get());
             }
-        } catch (Exception e) {
-            LOG.warn("Could not close Jsonb", e);
-            return null;
+            return resultBuilder.build();
         }
     }
 
@@ -72,7 +67,7 @@ public class ExecutionErrorsService {
     }
 
     private Optional<JsonObject> getValidationExtensions(ValidationError error) {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
 
         addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
         addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
@@ -85,7 +80,7 @@ public class ExecutionErrorsService {
     private Optional<JsonObject> getDataFetchingExtensions(ExceptionWhileDataFetching error) {
         Throwable exception = error.getException();
 
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
 
         addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
         addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
@@ -94,7 +89,7 @@ public class ExecutionErrorsService {
     }
 
     private JsonArray toJsonArray(List<?> list) {
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
         for (Object o : list) {
             if (o != null)
                 arrayBuilder.add(o.toString());

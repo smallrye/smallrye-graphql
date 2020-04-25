@@ -3,9 +3,13 @@ package io.smallrye.graphql.servlet;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
+import org.eclipse.microprofile.metrics.MetricRegistry;
+
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
+import io.smallrye.graphql.execution.SchemaPrinter;
+import io.smallrye.graphql.lookup.LookupService;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -18,10 +22,16 @@ public class GraphQLProducer {
 
     private GraphQLSchema graphQLSchema;
     private ExecutionService executionService;
+    private SchemaPrinter schemaPrinter;
 
     public void initializeGraphQL(GraphQLConfig config, Schema schema) {
-        this.graphQLSchema = Bootstrap.bootstrap(schema);
+        this.graphQLSchema = Bootstrap.bootstrap(schema, config);
+        if (config.isMetricsEnabled()) {
+            MetricRegistry vendorRegistry = LookupService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
+            Bootstrap.registerMetrics(schema, vendorRegistry);
+        }
         this.executionService = new ExecutionService(config, graphQLSchema);
+        this.schemaPrinter = new SchemaPrinter(config);
     }
 
     @Produces
@@ -32,5 +42,10 @@ public class GraphQLProducer {
     @Produces
     public ExecutionService getExecutionService() {
         return executionService;
+    }
+
+    @Produces
+    public SchemaPrinter getSchemaPrinter() {
+        return schemaPrinter;
     }
 }

@@ -1,12 +1,18 @@
 package io.smallrye.graphql.bootstrap;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
 import org.jboss.logging.Logger;
 
 import graphql.schema.FieldCoordinates;
@@ -27,6 +33,8 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
+import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
@@ -53,6 +61,7 @@ public class Bootstrap {
     private static final Logger LOG = Logger.getLogger(Bootstrap.class.getName());
 
     private final Schema schema;
+    private final Config config;
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     private final Map<String, GraphQLScalarType> scalarMap = GraphQLScalarTypes.getScalarMap();
@@ -62,8 +71,12 @@ public class Bootstrap {
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
     public static GraphQLSchema bootstrap(Schema schema) {
+        return bootstrap(schema, null);
+    }
+
+    public static GraphQLSchema bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
-            Bootstrap graphQLBootstrap = new Bootstrap(schema);
+            Bootstrap graphQLBootstrap = new Bootstrap(schema, config);
             return graphQLBootstrap.generateGraphQLSchema();
         } else {
             LOG.warn("Schema is null, or it has no operations. Not bootstrapping SmallRye GraphQL");
@@ -71,8 +84,21 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema) {
+    public static void registerMetrics(Schema schema, MetricRegistry metricRegistry) {
+        Stream.concat(schema.getQueries().stream(), schema.getMutations().stream())
+                .forEach(operation -> {
+                    Metadata metadata = Metadata.builder()
+                            .withName("mp_graphql_" + operation.getName())
+                            .withType(MetricType.SIMPLE_TIMER)
+                            .withDescription("Call statistics for the query '" + operation.getName() + "'")
+                            .build();
+                    metricRegistry.simpleTimer(metadata);
+                });
+    }
+
+    private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
+        this.config = config;
     }
 
     private GraphQLSchema generateGraphQLSchema() {
@@ -274,7 +300,13 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(operation);
+        Collection<DataFetcherDecorator> decorators;
+        if (config != null && config.isMetricsEnabled()) {
+            decorators = Collections.singletonList(new MetricDecorator());
+        } else {
+            decorators = Collections.emptyList();
+        }
+        ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(operation, decorators);
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 

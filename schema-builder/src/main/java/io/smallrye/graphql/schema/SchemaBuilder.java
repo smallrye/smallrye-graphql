@@ -11,6 +11,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 
+import io.smallrye.graphql.schema.creator.ArgumentCreator;
+import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.creator.type.Creator;
@@ -38,10 +40,12 @@ import io.smallrye.graphql.schema.model.Schema;
  */
 public class SchemaBuilder {
 
-    private final InputTypeCreator inputCreator = new InputTypeCreator();
-    private final TypeCreator typeCreator = new TypeCreator();
-    private final InterfaceCreator interfaceCreator = new InterfaceCreator();
+    private final InputTypeCreator inputTypeCreator;
+    private final TypeCreator typeCreator;
+    private final InterfaceCreator interfaceCreator;
     private final EnumCreator enumCreator = new EnumCreator();
+    private final ReferenceCreator referenceCreator;
+    private final OperationCreator operationCreator;
 
     /**
      * This builds the Schema from Jandex
@@ -56,6 +60,13 @@ public class SchemaBuilder {
     }
 
     private SchemaBuilder() {
+        referenceCreator = new ReferenceCreator();
+        FieldCreator fieldCreator = new FieldCreator(referenceCreator);
+        inputTypeCreator = new InputTypeCreator(fieldCreator);
+        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
+        operationCreator = new OperationCreator(referenceCreator, argumentCreator);
+        typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
+        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator);
     }
 
     private Schema generateSchema() {
@@ -79,14 +90,14 @@ public class SchemaBuilder {
         addOutstandingTypesToSchema(schema);
 
         // Reset the maps. 
-        ReferenceCreator.clear();
+        referenceCreator.clear();
 
         return schema;
     }
 
     private void addTypesToSchema(Schema schema) {
         // Add the input types
-        createAndAddToSchema(ReferenceType.INPUT, inputCreator, schema::addInput);
+        createAndAddToSchema(ReferenceType.INPUT, inputTypeCreator, schema::addInput);
 
         // Add the output types
         createAndAddToSchema(ReferenceType.TYPE, typeCreator, schema::addType);
@@ -101,7 +112,7 @@ public class SchemaBuilder {
     private void addOutstandingTypesToSchema(Schema schema) {
         boolean allDone = true;
         // See if there is any inputs we missed
-        if (!findOutstandingAndAddToSchema(ReferenceType.INPUT, inputCreator, schema::containsInput, schema::addInput)) {
+        if (!findOutstandingAndAddToSchema(ReferenceType.INPUT, inputTypeCreator, schema::containsInput, schema::addInput)) {
             allDone = false;
         }
 
@@ -130,8 +141,8 @@ public class SchemaBuilder {
     }
 
     private <T> void createAndAddToSchema(ReferenceType referenceType, Creator creator, Consumer<T> consumer) {
-        while (!ReferenceCreator.values(referenceType).isEmpty()) {
-            Reference reference = ReferenceCreator.values(referenceType).poll();
+        while (!referenceCreator.values(referenceType).isEmpty()) {
+            Reference reference = referenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             consumer.accept((T) creator.create(classInfo));
         }
@@ -142,8 +153,8 @@ public class SchemaBuilder {
 
         boolean allDone = true;
         // Let's see what still needs to be done.
-        while (!ReferenceCreator.values(referenceType).isEmpty()) {
-            Reference reference = ReferenceCreator.values(referenceType).poll();
+        while (!referenceCreator.values(referenceType).isEmpty()) {
+            Reference reference = referenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             if (!contains.test(reference.getName())) {
                 consumer.accept((T) creator.create(classInfo));
@@ -165,10 +176,10 @@ public class SchemaBuilder {
         for (MethodInfo methodInfo : methodInfoList) {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
-                Operation query = OperationCreator.createOperation(methodInfo, OperationType.Query);
+                Operation query = operationCreator.createOperation(methodInfo, OperationType.Query);
                 schema.addQuery(query);
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
-                Operation mutation = OperationCreator.createOperation(methodInfo, OperationType.Mutation);
+                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation);
                 schema.addMutation(mutation);
             }
         }

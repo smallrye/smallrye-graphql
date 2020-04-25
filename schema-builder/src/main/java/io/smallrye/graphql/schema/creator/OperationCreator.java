@@ -27,7 +27,12 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class OperationCreator {
 
-    private OperationCreator() {
+    private final ReferenceCreator referenceCreator;
+    private final ArgumentCreator argumentCreator;
+
+    public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator) {
+        this.referenceCreator = referenceCreator;
+        this.argumentCreator = argumentCreator;
     }
 
     /**
@@ -39,7 +44,7 @@ public class OperationCreator {
      * @param operationType the type of operation (Query / Mutation)
      * @return a Operation that defines this GraphQL Operation
      */
-    public static Operation createOperation(MethodInfo methodInfo, OperationType operationType) {
+    public Operation createOperation(MethodInfo methodInfo, OperationType operationType) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
         Type fieldType = methodInfo.returnType();
 
@@ -51,7 +56,7 @@ public class OperationCreator {
 
         // Field Type
         validateFieldType(methodInfo, operationType);
-        Reference reference = ReferenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
+        Reference reference = referenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
 
         Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
                 methodInfo.name(),
@@ -77,35 +82,11 @@ public class OperationCreator {
         // Arguments
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
-            Optional<Argument> maybeArgument = ArgumentCreator.createArgument(fieldType, methodInfo, i);
-            if (maybeArgument.isPresent()) {
-                Argument argument = maybeArgument.get();
-
-                // See if this is a @Source
-                Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, i);
-                if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
-                    argument.setSourceArgument(true);
-                }
-
-                operation.addArgument(argument);
-            }
-
+            Optional<Argument> maybeArgument = argumentCreator.createArgument(operationType, methodInfo, i);
+            maybeArgument.ifPresent(operation::addArgument);
         }
 
         return operation;
-    }
-
-    /**
-     * Source operation on types should remove the Source argument
-     * 
-     * @param annotationsForArgument
-     * @param operationType
-     * @return
-     */
-    private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
-            OperationType operationType) {
-        return operationType.equals(OperationType.Source) &&
-                annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {

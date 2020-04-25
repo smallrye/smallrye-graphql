@@ -1,9 +1,15 @@
 package io.smallrye.graphql.lookup;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ServiceLoader;
 
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.jboss.logging.Logger;
+
+import io.smallrye.graphql.execution.Classes;
 
 /**
  * Lookup service that allows multiple DI frameworks to use this.
@@ -33,20 +39,38 @@ public interface LookupService {
 
     Object getInstance(Class<?> declaringClass);
 
+    MetricRegistry getMetricRegistry(MetricRegistry.Type type);
+
     default Object getInstance(String declaringClass) {
         Class<?> loadedClass = loadClass(declaringClass);
         return getInstance(loadedClass);
     }
 
     default Class<?> loadClass(String className) {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
         try {
-            return Class.forName(className, false, loader);
-        } catch (NullPointerException | ClassNotFoundException ex) {
-            throw new RuntimeException("Could not load class [" + className + "] when using the default lookup service", ex);
+            if (Classes.isPrimitive(className)) {
+                return Classes.getPrimativeClassType(className);
+            } else {
+                return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
+                    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                    if (loader != null) {
+                        try {
+                            return loadClass(className, loader);
+                        } catch (ClassNotFoundException cnfe) {
+                            // Let's try this class classloader.
+                        }
+                    }
+                    return loadClass(className, LookupService.class.getClassLoader());
+                });
+            }
+        } catch (PrivilegedActionException | ClassNotFoundException pae) {
+            throw new RuntimeException("Can not load class [" + className + "]", pae);
         }
+    }
 
+    default Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {
+        Class<?> c = Class.forName(className, false, loader);
+        return c;
     }
 
     /**
@@ -73,6 +97,11 @@ public interface LookupService {
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException("Could not get Instance using the default lookup service", ex);
             }
+        }
+
+        @Override
+        public MetricRegistry getMetricRegistry(MetricRegistry.Type type) {
+            throw new UnsupportedOperationException("Metrics are not supported without CDI");
         }
     }
 }

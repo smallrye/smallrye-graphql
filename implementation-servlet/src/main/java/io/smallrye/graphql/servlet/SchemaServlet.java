@@ -3,6 +3,7 @@ package io.smallrye.graphql.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.inject.Inject;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,12 +25,22 @@ public class SchemaServlet extends HttpServlet {
 
     public static final String SCHEMA_PROP = "io.smallrye.graphql.servlet.bootstrap";
 
+    @Inject
+    private SchemaPrinter schemaPrinter;
+
+    public SchemaServlet() {
+    }
+
+    public SchemaServlet(SchemaPrinter schemaPrinter) {
+        this.schemaPrinter = schemaPrinter;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType(CONTENT_TYPE);
         try (PrintWriter out = response.getWriter()) {
             GraphQLSchema schema = (GraphQLSchema) request.getServletContext().getAttribute(SCHEMA_PROP);
-            out.print(SchemaPrinter.print(schema));
+            out.print(schemaPrinter.print(schema));
             out.flush();
         } catch (IOException ex) {
             LOG.log(Logger.Level.ERROR, null, ex);
