@@ -9,6 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>SmallRye: MicroProfile GraphQL Maven Plugin</name>
+    <description>a maven plugin that can generate the schema on build</description>
+
     <artifactId>smallrye-graphql-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
@@ -27,7 +30,11 @@
             <artifactId>maven-project</artifactId>
             <version>2.2.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <version>1.0.7</version>
+        </dependency>
 
         <dependency>
             <groupId>io.smallrye</groupId>
