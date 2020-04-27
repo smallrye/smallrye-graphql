@@ -30,7 +30,11 @@
             <artifactId>maven-project</artifactId>
             <version>2.2.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <version>1.0.7</version>
+        </dependency>
 
         <dependency>
             <groupId>io.smallrye</groupId>
