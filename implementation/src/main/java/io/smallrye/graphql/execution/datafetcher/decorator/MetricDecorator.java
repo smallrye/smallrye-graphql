@@ -9,7 +9,7 @@ import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.lookup.LookupService;
+import io.smallrye.graphql.metrics.MetricsService;
 
 public class MetricDecorator implements DataFetcherDecorator {
 
@@ -18,7 +18,7 @@ public class MetricDecorator implements DataFetcherDecorator {
     private final MetricRegistry metricRegistry;
 
     public MetricDecorator() {
-        metricRegistry = LookupService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
+        metricRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
     }
 
     @Override
