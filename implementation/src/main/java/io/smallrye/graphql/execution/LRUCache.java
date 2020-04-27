@@ -20,36 +20,18 @@ public class LRUCache<K, V> {
         return entry == null ? null : entry.value;
     }
 
-    V put(K key, V value) {
-        Entry<V> entry = cache.get(key);
-        V oldValue = null;
-        if (entry == null) {
-            entry = cachePutNew(key, value);
-        } else {
-            entry = removeEntry(entry);
-            oldValue = entry.value;
-            entry.value = value;
-        }
-        entry = addToStart(entry);
-        return oldValue;
-    }
-
     V computeIfAbsent(K key, Function<K, V> valueFunction) {
-        Entry<V> entry = cache.get(key);
-        if (entry == null) {
-            entry = cachePutNew(key, valueFunction.apply(key));
-        } else {
-            entry = removeEntry(entry);
-        }
-        entry = addToStart(entry);
+        Entry<V> entry = cache.computeIfAbsent(key, k -> {
+            return cachePutNew(k, valueFunction.apply(k));
+        });
+        entry = moveEntryToStart(key, entry);
         return entry.value;
     }
 
     private Entry<V> cachePutNew(K key, V value) {
         Entry<V> entry = new Entry<V>(key, value);
-        cache.put(key, entry);
         synchronized (cache) {
-            if (cache.size() > maxSize) {
+            if (cache.size() > maxSize - 1) {
                 cache.remove(end.key);
                 removeEntry(end);
             }
@@ -64,6 +46,8 @@ public class LRUCache<K, V> {
     private synchronized Entry<V> removeEntry(Entry<V> entry) {
         if (entry.left != null) {
             entry.left.right = entry.right;
+        } else {
+            start = entry.right;
         }
         if (entry.right != null) {
             entry.right.left = entry.left;

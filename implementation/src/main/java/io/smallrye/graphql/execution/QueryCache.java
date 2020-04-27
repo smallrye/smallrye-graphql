@@ -22,8 +22,9 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         return Integer.getInteger("io.smallrye.graphql.execution.queryCacheMaxSize", 2048);
     });
 
+    private static final ThreadLocal<ExecutionFunction> executionFunctionTL = new ThreadLocal<>();
+
     private final LRUCache<String, PreparsedDocumentEntry> cache = new LRUCache<>(MAX_CACHE_SIZE);
-    private final ThreadLocal<ExecutionFunction> executionFunctionTL = new ThreadLocal<>();
 
     @Override
     public PreparsedDocumentEntry getDocument(ExecutionInput executionInput,
@@ -45,8 +46,8 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
             InstrumentationValidationParameters parameters) {
 
         ExecutionFunction executionFunction = executionFunctionTL.get();
+        executionFunctionTL.remove();
         if (executionFunction != null) {
-            executionFunctionTL.remove();
             return new ValidationInstrumentationContext(executionFunction);
         }
         return super.beginValidation(parameters);
@@ -86,7 +87,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         @Override
         public void onCompleted(List<ValidationError> validationErrors, Throwable t) {
             // at this point, we know the validation is complete - go ahead and add it to the cache if no errors
-            if (validationErrors == null || validationErrors.isEmpty()) {
+            if (t == null && (validationErrors == null || validationErrors.isEmpty())) {
                 // valid, uncached query - add to cache
                 cache.computeIfAbsent(executionFunction.getQuery(), executionFunction);
                 if (LOG.isDebugEnabled()) {
