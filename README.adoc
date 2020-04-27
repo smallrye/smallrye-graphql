@@ -66,6 +66,8 @@ To automatically generate the GraphQL schema from your Maven project, add this t
 
 The schema will appear as `target/generated/schema.graphql`.
 
+More details here: link:maven-plugin[]
+
 === Links
 
 * http://github.com/smallrye/smallrye-graphql/[Project Homepage]
