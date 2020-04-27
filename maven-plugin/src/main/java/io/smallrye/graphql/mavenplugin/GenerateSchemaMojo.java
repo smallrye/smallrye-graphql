@@ -152,6 +152,8 @@ public class GenerateSchemaMojo extends AbstractMojo {
                 Path path = new File(destination).toPath();
                 path.toFile().getParentFile().mkdirs();
                 Files.write(path, schema.getBytes(),
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE,
                         StandardOpenOption.TRUNCATE_EXISTING);
                 getLog().info("Wrote the schema to " + path.toAbsolutePath().toString());
             }
