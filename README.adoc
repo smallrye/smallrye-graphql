@@ -39,12 +39,32 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 * link:tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
 * link:runner[] - Manual TCK testing with GraphiQL
 * link:integration-tests[] - To run some Integration tests
+* link:maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
 
 ==== Client
 
 * link:client-api[] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
 * link:client-implementation[] - Implementation of the Eclipse MicroProfile GraphQL Client API.
 * link:client-tck[] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+
+=== Using the Maven plugin
+To automatically generate the GraphQL schema from your Maven project, add this to your pom.xml:
+[source]
+----
+<plugin>
+    <artifactId>smallrye-graphql-maven-plugin</artifactId>
+    <groupId>io.smallrye</groupId>
+    <executions>
+        <execution>
+            <goals>
+                <goal>generate-schema</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+----
+
+The schema will appear as `target/generated/schema.graphql`.
 
 === Links
 
