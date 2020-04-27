@@ -36,7 +36,6 @@ public class ReflectionDataFetcher implements DataFetcher {
     private final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms 
 
     private final Operation operation;
-    private final List<Class> parameterClasses;
     private final FieldHelper fieldHelper;
     private final ArgumentHelper argumentHelper;
     private final Collection<DataFetcherDecorator> decorators;
@@ -62,7 +61,6 @@ public class ReflectionDataFetcher implements DataFetcher {
      */
     public ReflectionDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
         this.operation = operation;
-        this.parameterClasses = getParameterClasses();
         this.fieldHelper = new FieldHelper(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.decorators = decorators;
@@ -92,7 +90,7 @@ public class ReflectionDataFetcher implements DataFetcher {
         try {
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {
-                Method m = cdiClass.getMethod(operation.getMethodName(), parameterClasses.toArray(new Class[] {}));
+                Method m = cdiClass.getMethod(operation.getMethodName(), getParameterClasses());
                 List transformedArguments = argumentHelper.getArguments(dfe);
                 resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
             } else {
@@ -151,21 +149,26 @@ public class ReflectionDataFetcher implements DataFetcher {
      * 
      * @return the array of classes.
      */
-    private List<Class> getParameterClasses() {
+    private Class[] getParameterClasses() {
         if (operation.hasArguments()) {
-            List<Class> cl = new LinkedList<>();
-            for (Field argument : operation.getArguments()) {
-                // If the argument is an array / collection, load that class
-                if (argument.hasArray()) {
-                    Class<?> clazz = lookupService.loadClass(argument.getArray().getClassName());
-                    cl.add(clazz);
-                } else {
-                    Class<?> clazz = lookupService.loadClass(argument.getReference().getClassName());
-                    cl.add(clazz);
+            if (this.parameterClasses == null) {
+                List<Class> cl = new LinkedList<>();
+                for (Field argument : operation.getArguments()) {
+                    // If the argument is an array / collection, load that class
+                    if (argument.hasArray()) {
+                        Class<?> clazz = lookupService.loadClass(argument.getArray().getClassName());
+                        cl.add(clazz);
+                    } else {
+                        Class<?> clazz = lookupService.loadClass(argument.getReference().getClassName());
+                        cl.add(clazz);
+                    }
                 }
+                this.parameterClasses = cl;
             }
-            return cl;
+            return this.parameterClasses.toArray(new Class[] {});
         }
         return null;
     }
+
+    private List<Class> parameterClasses;
 }
