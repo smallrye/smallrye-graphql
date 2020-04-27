@@ -1,13 +1,13 @@
 package io.smallrye.graphql.execution;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class LRUCache<K, V> {
 
     private final int maxSize;
-    private final Map<K, Entry<V>> cache = new HashMap<>();
+    private final Map<K, Entry<V>> cache = new ConcurrentHashMap<>();
     private Entry<V> start;
     private Entry<V> end;
 
@@ -48,9 +48,11 @@ public class LRUCache<K, V> {
     private Entry<V> cachePutNew(K key, V value) {
         Entry<V> entry = new Entry<V>(key, value);
         cache.put(key, entry);
-        if (cache.size() > maxSize) {
-            cache.remove(end.key);
-            removeEntry(end);
+        synchronized (cache) {
+            if (cache.size() > maxSize) {
+                cache.remove(end.key);
+                removeEntry(end);
+            }
         }
         return entry;
     }

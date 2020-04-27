@@ -2,9 +2,7 @@ package io.smallrye.graphql.execution;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -25,7 +23,6 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
     });
 
     private final LRUCache<String, PreparsedDocumentEntry> cache = new LRUCache<>(MAX_CACHE_SIZE);
-    private final Map<String, ExecutionFunction> functionCache = new HashMap<>();
     private final ThreadLocal<ExecutionFunction> executionFunctionTL = new ThreadLocal<>();
 
     @Override
@@ -35,7 +32,6 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         PreparsedDocumentEntry entry = cache.get(query);
         if (entry == null) {
             ExecutionFunction executionFunction = new ExecutionFunction(computeFunction, executionInput);
-            functionCache.putIfAbsent(query, executionFunction);
             executionFunctionTL.set(executionFunction);
             entry = computeFunction.apply(executionInput);
         } else if (LOG.isDebugEnabled()) {
@@ -90,7 +86,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         @Override
         public void onCompleted(List<ValidationError> validationErrors, Throwable t) {
             // at this point, we know the validation is complete - go ahead and add it to the cache if no errors
-            if (executionFunction != null && validationErrors == null || validationErrors.isEmpty()) {
+            if (validationErrors == null || validationErrors.isEmpty()) {
                 // valid, uncached query - add to cache
                 cache.computeIfAbsent(executionFunction.getQuery(), executionFunction);
                 if (LOG.isDebugEnabled()) {
