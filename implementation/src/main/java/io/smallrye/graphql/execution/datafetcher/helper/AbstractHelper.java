@@ -1,10 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
@@ -88,29 +86,30 @@ public abstract class AbstractHelper {
      * Even without transformation, we need to go from arrayList to Array,
      * or arraylist of arraylist to array of array
      * 
-     * @param <T> the type in the array
-     * @param argumentValue the list as from graphql-java (always an arraylist)
+     * @param array the array or list as from graphql-java,
      * @param field the field as created while scanning
      * @return an array with the transformed values in.
      * @throws GraphQLException
      */
-    private <T> Object recursiveTransformArray(Object argumentValue, Field field) throws GraphQLException {
-
-        Collection givenCollection = getGivenCollection(argumentValue);
-
-        List convertedList = new ArrayList();
-
-        for (Object objectInGivenCollection : givenCollection) {
-            Field fieldInCollection = getFieldInField(field);
-            Object objectInCollection = recursiveTransform(objectInGivenCollection,
-                    fieldInCollection);
-            convertedList.add(objectInCollection);
+    private Object recursiveTransformArray(Object array, Field field) throws GraphQLException {
+        if (Classes.isCollection(array)) {
+            array = ((Collection) array).toArray();
         }
 
         String classNameInCollection = field.getReference().getClassName();
         Class classInCollection = lookupService.loadClass(classNameInCollection);
 
-        return convertedList.toArray((T[]) Array.newInstance(classInCollection, givenCollection.size()));
+        int length = Array.getLength(array);
+        Object targetArray = Array.newInstance(classInCollection, length);
+
+        for (int i = 0; i < length; i++) {
+            Field fieldInCollection = getFieldInField(field);
+            Object element = Array.get(array, i);
+            Object targetElement = recursiveTransform(element, fieldInCollection);
+            Array.set(targetArray, i, targetElement);
+        }
+
+        return targetArray;
     }
 
     /**
