@@ -135,21 +135,19 @@ public class Bootstrap {
                         queryOperation);
                 queryBuilder = queryBuilder.field(graphQLFieldDefinition);
             }
-
-            GraphQLObjectType query = queryBuilder.build();
-            if (query.getFieldDefinitions() != null && !query.getFieldDefinitions().isEmpty()) {
-                schemaBuilder.query(query);
-            }
         }
+
+        GraphQLObjectType query = queryBuilder.build();
+        schemaBuilder.query(query);
     }
 
     private void addMutations(GraphQLSchema.Builder schemaBuilder) {
 
-        GraphQLObjectType.Builder mutationBuilder = GraphQLObjectType.newObject()
-                .name(MUTATION)
-                .description("Mutation root");
-
         if (schema.hasMutations()) {
+            GraphQLObjectType.Builder mutationBuilder = GraphQLObjectType.newObject()
+                    .name(MUTATION)
+                    .description("Mutation root");
+
             Set<Operation> mutations = schema.getMutations();
             for (Operation mutationOperation : mutations) {
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(MUTATION,
