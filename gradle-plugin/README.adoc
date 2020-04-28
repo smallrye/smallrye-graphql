@@ -1,0 +1,25 @@
+= SmallRye GraphQL Gradle Plugin
+
+This Gradle plugin allows you to generate the GraphQL Schema on build.
+
+== Using the Gradle plugin
+
+Add this to your build.gradle:
+
+[source]
+----
+plugins {
+    id 'io.smallrye.graphql' version '1.0.2-SNAPSHOT'
+}
+----
+
+The schema will appear as `build/generated/schema.graphql` by default.
+
+== Configuration options
+
+- `destination` - To override the default `build/generated/schema.graphql` destination
+- `includeDependencies` - Scan project's dependencies for GraphQL model classes too. Off (false) by default.
+- `includeScalars` - Include scalars in the schema. Default false.
+- `includeDirectives` - Include directives in the schema. Default false.
+- `includeSchemaDefinition` - Include the schema definition. Default false.
+- `includeIntrospectionTypes` - Include the introspection types in the schema. Default false.
