@@ -62,6 +62,8 @@
         <module>client-tck</module>
         <!-- The Maven plugin -->
         <module>maven-plugin</module>
+        <!-- The Gradle plugin -->
+        <module>gradle-plugin</module>
 
     </modules>
     

@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"io.smallrye.graphql.gradle"},{"l":"io.smallrye.graphql.gradle.tasks"}]
