@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,20 +17,20 @@
     </properties>
 
     <dependencies>
-        
+
         <!-- The API -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-api</artifactId>
         </dependency>
-        
+
         <!-- The model -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-schema-model</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <!-- What we use from MicroProfile -->
         <dependency>
             <groupId>jakarta.json.bind</groupId>
@@ -64,9 +64,15 @@
 
         <!-- Testing -->
         <dependency>
-             <groupId>junit</groupId>
-             <artifactId>junit</artifactId>
-             <scope>test</scope>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.3.3</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish</groupId>
@@ -118,5 +124,4 @@
             </build>
         </profile>
     </profiles>
-    
 </project>
