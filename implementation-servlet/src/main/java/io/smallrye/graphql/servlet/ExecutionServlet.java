@@ -2,7 +2,6 @@ package io.smallrye.graphql.servlet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 
@@ -13,6 +12,7 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +29,9 @@ import io.smallrye.graphql.execution.ExecutionService;
  */
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class ExecutionServlet extends HttpServlet {
+    private static final long serialVersionUID = -2859915918802356120L;
     private static final Logger LOG = Logger.getLogger(ExecutionServlet.class.getName());
+    private static final boolean isDebugEnabled = LOG.isDebugEnabled();
 
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
     private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
@@ -73,7 +75,7 @@ public class ExecutionServlet extends HttpServlet {
     }
 
     private void handleInput(Reader inputReader, HttpServletResponse response) {
-        if (LOG.isDebugEnabled()) {
+        if (isDebugEnabled) {
             inputReader = logInputReader(inputReader);
         }
 
@@ -83,7 +85,7 @@ public class ExecutionServlet extends HttpServlet {
 
             JsonObject outputJson = executionService.execute(jsonInput);
             if (outputJson != null) {
-                PrintWriter out = response.getWriter();
+                ServletOutputStream out = response.getOutputStream();
                 response.setContentType(APPLICATION_JSON_UTF8);
 
                 try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
