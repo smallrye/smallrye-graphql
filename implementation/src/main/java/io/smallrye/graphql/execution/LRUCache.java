@@ -2,12 +2,14 @@ package io.smallrye.graphql.execution;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class LRUCache<K, V> {
-
     private final int maxSize;
     private final Map<K, Entry<V>> cache = new ConcurrentHashMap<>();
+    private final AtomicInteger size = new AtomicInteger();
     private Entry<V> start;
     private Entry<V> end;
 
@@ -21,22 +23,32 @@ public class LRUCache<K, V> {
     }
 
     V computeIfAbsent(K key, Function<K, V> valueFunction) {
+        final AtomicBoolean called = new AtomicBoolean();
         Entry<V> entry = cache.computeIfAbsent(key, k -> {
-            return cachePutNew(k, valueFunction.apply(k));
+            called.set(true);
+            Entry<V> e = new Entry<V>(key, valueFunction.apply(k));
+            e = moveEntryToStart(key, e);
+            return e;
         });
-        entry = moveEntryToStart(key, entry);
-        return entry.value;
-    }
-
-    private Entry<V> cachePutNew(K key, V value) {
-        Entry<V> entry = new Entry<V>(key, value);
-        synchronized (cache) {
-            if (cache.size() > maxSize - 1) {
-                cache.remove(end.key);
-                removeEntry(end);
+        if (!called.get()) {
+            cache.computeIfPresent(key, this::moveEntryToStart);
+        } else {
+            int newSize = size.incrementAndGet();
+            if (newSize > maxSize) {
+                size.decrementAndGet();
+                Entry<V> entryToRemove = null;
+                do {
+                    synchronized (this) {
+                        entryToRemove = end;
+                        if (entryToRemove == null) {
+                            break;
+                        }
+                        removeEntry(entryToRemove);
+                    }
+                } while (!cache.remove(entryToRemove.key, entryToRemove));
             }
         }
-        return entry;
+        return entry.value;
     }
 
     private synchronized Entry<V> moveEntryToStart(K key, Entry<V> entry) {
@@ -44,6 +56,10 @@ public class LRUCache<K, V> {
     }
 
     private synchronized Entry<V> removeEntry(Entry<V> entry) {
+        // If entry is null or was already removed, do nothing and return entry.
+        if (entry == null || entry.left == entry) {
+            return entry;
+        }
         if (entry.left != null) {
             entry.left.right = entry.right;
         } else {
@@ -54,10 +70,15 @@ public class LRUCache<K, V> {
         } else {
             end = entry.left;
         }
+        entry.left = entry.right = entry;
         return entry;
     }
 
     private synchronized Entry<V> addToStart(Entry<V> entry) {
+        // If entry is null, do nothing and return null.
+        if (entry == null) {
+            return null;
+        }
         entry.right = start;
         entry.left = null;
         if (start != null) {
