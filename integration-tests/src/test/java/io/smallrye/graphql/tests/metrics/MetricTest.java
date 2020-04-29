@@ -58,8 +58,8 @@ public class MetricTest {
     public void invokeApi() throws Exception {
         SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
         client.query("{hello}");
-        client.query("{mutate}");
-        client.query("{mutate}");
+        client.query("mutation {mutate}");
+        client.query("mutation {mutate}");
     }
 
     @Test
