@@ -1,8 +1,16 @@
 package io.smallrye.graphql.servlet;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
@@ -36,9 +44,17 @@ public class StartupListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
-            String realPath = sce.getServletContext().getRealPath("WEB-INF/classes");
-            URL url = Paths.get(realPath).toUri().toURL();
-            IndexView index = indexInitializer.createIndex(url);
+            Set<URL> warURLs = new HashSet<>();
+            // Classes in the war
+            String warClasses = sce.getServletContext().getRealPath("WEB-INF/classes");
+            warURLs.add(Paths.get(warClasses).toUri().toURL());
+
+            // Libs in the war
+            String libs = sce.getServletContext().getRealPath("WEB-INF/lib");
+            List<Path> jarsInLib = getJarsInLib(Paths.get(libs));
+            warURLs.addAll(toURLs(jarsInLib));
+
+            IndexView index = indexInitializer.createIndex(warURLs);
 
             Schema schema = SchemaBuilder.build(index); // Get the smallrye schema
             graphQLProducer.initializeGraphQL(config, schema);
@@ -53,5 +69,27 @@ public class StartupListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOG.info("SmallRye GraphQL destroyed");
+    }
+
+    private List<URL> toURLs(List<Path> paths) throws MalformedURLException {
+        List<URL> urls = new ArrayList<>();
+        for (Path path : paths) {
+            urls.add(path.toUri().toURL());
+        }
+        return urls;
+    }
+
+    private List<Path> getJarsInLib(Path libFolder) {
+        List<Path> jars = new ArrayList<>();
+        if (libFolder != null && Files.isDirectory(libFolder)) {
+            try {
+                jars.addAll(Files.walk(libFolder)
+                        .filter(Files::isRegularFile)
+                        .collect(Collectors.toList()));
+            } catch (IOException ex) {
+                LOG.warn("Error reading jars files in WEB-INF/lib - not scanning libs [" + ex.getMessage() + "]");
+            }
+        }
+        return jars;
     }
 }
