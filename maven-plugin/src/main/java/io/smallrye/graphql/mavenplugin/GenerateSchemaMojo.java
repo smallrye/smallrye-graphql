@@ -49,6 +49,21 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "false", property = "includeDependencies")
     private boolean includeDependencies;
 
+    /**
+     * When you include dependencies, we only look at compile and system scopes (by default)
+     * You can change that here.
+     * Valid options are: compile, provided, runtime, system, test, import
+     */
+    @Parameter(defaultValue = "compile,system", property = "includeDependenciesScopes")
+    private List<String> includeDependenciesScopes;
+
+    /**
+     * When you include dependencies, we only look at jars (by default)
+     * You can change that here.
+     */
+    @Parameter(defaultValue = "jar", property = "includeDependenciesTypes")
+    private List<String> includeDependenciesTypes;
+
     @Parameter(defaultValue = "false", property = "includeScalars")
     private boolean includeScalars;
 
@@ -89,13 +104,16 @@ public class GenerateSchemaMojo extends AbstractMojo {
             indexes.add(moduleIndex);
             for (Object a : mavenProject.getArtifacts()) {
                 Artifact artifact = (Artifact) a;
-                getLog().debug("Indexing file " + ((Artifact) a).getFile());
-                try {
-                    Result result = JarIndexer.createJarIndex(artifact.getFile(), new Indexer(),
-                            false, false, false);
-                    indexes.add(result.getIndex());
-                } catch (Exception e) {
-                    getLog().error("Can't compute index of " + artifact.getFile().getAbsolutePath() + ", skipping", e);
+                if (includeDependenciesScopes.contains(artifact.getScope())
+                        && includeDependenciesTypes.contains(artifact.getType())) {
+                    getLog().debug("Indexing file " + artifact.getFile());
+                    try {
+                        Result result = JarIndexer.createJarIndex(artifact.getFile(), new Indexer(),
+                                false, false, false);
+                        indexes.add(result.getIndex());
+                    } catch (Exception e) {
+                        getLog().error("Can't compute index of " + artifact.getFile().getAbsolutePath() + ", skipping", e);
+                    }
                 }
             }
             return CompositeIndex.create(indexes);
