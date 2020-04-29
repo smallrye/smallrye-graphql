@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,7 @@ import org.jboss.logging.Logger;
 public class IndexInitializer {
     private static final Logger LOG = Logger.getLogger(IndexInitializer.class.getName());
 
-    public IndexView createIndex(URL realPath) {
+    public IndexView createIndex(Set<URL> urls) {
         List<IndexView> indexes = new ArrayList<>();
 
         // TODO: Read all jandex.idx in the classpath: 
@@ -55,31 +54,18 @@ public class IndexInitializer {
         }
 
         // Classes in this artifact
-        Set<URL> urls = Collections.singleton(realPath);
-
-        // TODO: lib in the war ?
-
-        IndexView i = createIndex(urls);
+        IndexView i = createIndexView(urls);
         indexes.add(i);
 
         return merge(indexes);
     }
 
     public IndexView createIndex() {
-
-        Set<URL> urls = new HashSet<>();
-
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
-        if (cl instanceof URLClassLoader) {
-            urls.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
-        } else {
-            urls.addAll(collectURLsFromClassPath());
-        }
-
-        return createIndex(urls);
+        Set<URL> urls = getUrlFromClassPath();
+        return createIndexView(urls);
     }
 
-    private IndexView createIndex(Set<URL> urls) {
+    private IndexView createIndexView(Set<URL> urls) {
         Indexer indexer = new Indexer();
         for (URL url : urls) {
             try {
@@ -157,6 +143,18 @@ public class IndexInitializer {
 
     private IndexView merge(Collection<IndexView> indexes) {
         return CompositeIndex.create(indexes);
+    }
+
+    private Set<URL> getUrlFromClassPath() {
+        Set<URL> urls = new HashSet<>();
+
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+        if (cl instanceof URLClassLoader) {
+            urls.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
+        } else {
+            urls.addAll(collectURLsFromClassPath());
+        }
+        return urls;
     }
 
     private static final String DOT_JAR = ".jar";
