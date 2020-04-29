@@ -1,4 +1,4 @@
-package io.smallrye.graphql.schema;
+package io.smallrye.graphql.schema.model;
 
 /**
  * To indicate the type of operation

@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -46,6 +45,7 @@ import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -85,15 +85,41 @@ public class Bootstrap {
     }
 
     public static void registerMetrics(Schema schema, MetricRegistry metricRegistry) {
-        Stream.concat(schema.getQueries().stream(), schema.getMutations().stream())
+        findAllOperations(schema)
                 .forEach(operation -> {
+                    final String description;
+                    final String name;
+                    if (operation.getOperationType() == OperationType.Mutation) {
+                        description = "Call statistics for the mutation '" + operation.getName() + "'";
+                        name = "mp_graphql_Mutation_" + operation.getName();
+                    } else if (operation.getOperationType() == OperationType.Query) {
+                        description = "Call statistics for the query '" + operation.getName() + "'";
+                        name = "mp_graphql_Query_" + operation.getName();
+                    } else {
+                        description = "Call statistics for the query '" + operation.getName()
+                                + "' on type '" + operation.getContainingType().getName() + "'";
+                        name = "mp_graphql_" + operation.getContainingType().getName() + "_" + operation.getName();
+                    }
+
                     Metadata metadata = Metadata.builder()
-                            .withName("mp_graphql_" + operation.getName())
+                            .withName(name)
                             .withType(MetricType.SIMPLE_TIMER)
-                            .withDescription("Call statistics for the query '" + operation.getName() + "'")
+                            .withDescription(description)
                             .build();
                     metricRegistry.simpleTimer(metadata);
                 });
+    }
+
+    public static Collection<Operation> findAllOperations(Schema schema) {
+        Collection<Operation> operations = new ArrayList<>();
+        operations.addAll(schema.getQueries());
+        operations.addAll(schema.getMutations());
+
+        for (final Type value : schema.getTypes().values()) {
+            operations.addAll(value.getOperations());
+        }
+
+        return operations;
     }
 
     private Bootstrap(Schema schema, Config config) {
