@@ -26,8 +26,8 @@ public class LRUCache<K, V> {
         final AtomicBoolean called = new AtomicBoolean();
         Entry<V> entry = cache.computeIfAbsent(key, k -> {
             called.set(true);
-            Entry<V> e = new Entry<V>(key, valueFunction.apply(k));
-            e = moveEntryToStart(key, e);
+            Entry<V> e = new Entry<V>(k, valueFunction.apply(k));
+            addToStart(e);
             return e;
         });
         if (!called.get()) {
@@ -35,30 +35,46 @@ public class LRUCache<K, V> {
         } else {
             int newSize = size.incrementAndGet();
             if (newSize > maxSize) {
-                size.decrementAndGet();
-                Entry<V> entryToRemove = null;
+                AtomicBoolean removed = new AtomicBoolean();
                 do {
+                    final Entry<V> entryToRemove;
                     synchronized (this) {
                         entryToRemove = end;
-                        if (entryToRemove == null) {
-                            break;
-                        }
-                        removeEntry(entryToRemove);
                     }
-                } while (!cache.remove(entryToRemove.key, entryToRemove));
+                    if (entryToRemove == null) {
+                        break;
+                    }
+                    cache.computeIfPresent(entryToRemove.key, (k, v) -> {
+                        if (v == entryToRemove) {
+                            removed.set(true);
+                            removeEntry(entryToRemove);
+                            return null;
+                        } else {
+                            return v;
+                        }
+                    });
+                } while (!removed.get());
+                if (removed.get()) {
+                    size.decrementAndGet();
+                }
             }
         }
         return entry.value;
     }
 
     private synchronized Entry<V> moveEntryToStart(K key, Entry<V> entry) {
-        return addToStart(removeEntry(entry));
+        // If it is already at the start there is nothing to do
+        if (start != entry) {
+            removeEntry(entry);
+            addToStart(entry);
+        }
+        return entry;
     }
 
-    private synchronized Entry<V> removeEntry(Entry<V> entry) {
-        // If entry is null or was already removed, do nothing and return entry.
+    private synchronized void removeEntry(Entry<V> entry) {
+        // If entry is null or was already removed, do nothing and return.
         if (entry == null || entry.left == entry) {
-            return entry;
+            return;
         }
         if (entry.left != null) {
             entry.left.right = entry.right;
@@ -71,13 +87,12 @@ public class LRUCache<K, V> {
             end = entry.left;
         }
         entry.left = entry.right = entry;
-        return entry;
     }
 
-    private synchronized Entry<V> addToStart(Entry<V> entry) {
-        // If entry is null, do nothing and return null.
+    private synchronized void addToStart(Entry<V> entry) {
+        // If entry is null, do nothing and return.
         if (entry == null) {
-            return null;
+            return;
         }
         entry.right = start;
         entry.left = null;
@@ -88,7 +103,6 @@ public class LRUCache<K, V> {
         if (end == null) {
             end = start;
         }
-        return entry;
     }
 
     private class Entry<V> {
