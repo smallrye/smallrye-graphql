@@ -1,6 +1,7 @@
 package io.smallrye.graphql.bootstrap;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Configuration for GraphQL
@@ -17,12 +18,12 @@ public interface Config {
         return false;
     }
 
-    default List<String> getBlackList() {
-        return null;
+    default Optional<List<String>> getBlackList() {
+        return Optional.empty();
     }
 
-    default List<String> getWhiteList() {
-        return null;
+    default Optional<List<String>> getWhiteList() {
+        return Optional.empty();
     }
 
     default boolean isAllowGet() {
