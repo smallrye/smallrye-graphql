@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.tasks.Input;
@@ -45,6 +46,9 @@ public class GenerateSchemaTask extends DefaultTask {
 
     private String destination = new File(getProject().getBuildDir(), "generated/schema.graphql").getPath();
     private boolean includeDependencies = false;
+    private boolean includeTransitiveDependencies = false;
+    private List<String> configurations = Arrays.asList("implementation");
+    private List<String> dependencyExtensions = Arrays.asList("jar");
     private boolean includeScalars = false;
     private boolean includeDirectives = false;
     private boolean includeSchemaDefinition = false;
@@ -57,9 +61,14 @@ public class GenerateSchemaTask extends DefaultTask {
         return destination;
     }
 
-    @Option(description = "The destination file where to output the schema. If no path is specified, the schema will be printed to the log.", option = "destination")
+    @Option(option = "destination", description = "The destination file where to output the schema. If no path is specified, the schema will be printed to the log.")
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    @Option(option = "no-destination", description = "Prints the schema to the log.")
+    public void setNoDestination(boolean destination) {
+        this.destination = null;
     }
 
     @Input
@@ -67,9 +76,42 @@ public class GenerateSchemaTask extends DefaultTask {
         return includeDependencies;
     }
 
-    @Option(description = "Whether to scan project's dependencies for GraphQL model classes too. This is off by default, because it takes a relatively long time, so turn this on only if you know that part of your model is located inside dependencies.", option = "include-dependencies")
+    @Option(option = "include-dependencies", description = "Whether to scan project's dependencies for GraphQL model classes too. This is off by default, because it takes a relatively long time, so turn this on only if you know that part of your model is located inside dependencies.")
     public void setIncludeDependencies(boolean includeDependencies) {
         this.includeDependencies = includeDependencies;
+    }
+
+    @Input
+    public boolean getIncludeTransitiveDependencies() {
+        return includeTransitiveDependencies;
+    }
+
+    @Option(option = "include-transitive-dependencies", description = "Whether to include transitive dependencies to scan for GraphQL model classes.")
+    public void setIncludeTransitiveDependencies(boolean includeTransitiveDependencies) {
+        this.includeTransitiveDependencies = includeTransitiveDependencies;
+        if (includeTransitiveDependencies) {
+            this.includeDependencies = true;
+        }
+    }
+
+    @Input
+    public List<String> getConfigurations() {
+        return configurations;
+    }
+
+    @Option(option = "configuration", description = "Configuration to scan for GraphQL model classes (can be specified more than once).")
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Input
+    public List<String> getDependencyExtensions() {
+        return dependencyExtensions;
+    }
+
+    @Option(option = "dependency-extension", description = "Dependency extension to scan for GraphQL mode classes (can be specified more than once).")
+    public void setDependencyExtensions(List<String> dependencyExtensions) {
+        this.dependencyExtensions = dependencyExtensions;
     }
 
     @Input
@@ -77,7 +119,7 @@ public class GenerateSchemaTask extends DefaultTask {
         return includeScalars;
     }
 
-    @Option(description = "Whether to include the scalars in the generated schema.", option = "include-scalars")
+    @Option(option = "include-scalars", description = "Whether to include the scalars in the schema.")
     public void setIncludeScalars(boolean includeScalars) {
         this.includeScalars = includeScalars;
     }
@@ -87,7 +129,7 @@ public class GenerateSchemaTask extends DefaultTask {
         return includeDirectives;
     }
 
-    @Option(description = "Whether to include the directives in the generated schema.", option = "include-directives")
+    @Option(option = "include-directives", description = "Whether to include the directives in the schema.")
     public void setIncludeDirectives(boolean includeDirectives) {
         this.includeDirectives = includeDirectives;
     }
@@ -97,7 +139,7 @@ public class GenerateSchemaTask extends DefaultTask {
         return includeSchemaDefinition;
     }
 
-    @Option(description = "Whether to include the schema definition in the generated schema.", option = "include-schema-definition")
+    @Option(option = "include-schema-definition", description = "Whether to include the schema definition in the schema.")
     public void setIncludeSchemaDefinition(boolean includeSchemaDefinition) {
         this.includeSchemaDefinition = includeSchemaDefinition;
     }
@@ -107,7 +149,7 @@ public class GenerateSchemaTask extends DefaultTask {
         return includeIntrospectionTypes;
     }
 
-    @Option(description = "Whether to include the introspection types in the generated schema.", option = "include-introspection-types")
+    @Option(option = "include-introspection-types", description = "Whether to include the introspection types in the schema.")
     public void setIncludeIntrospectionTypes(boolean includeIntrospectionTypes) {
         this.includeIntrospectionTypes = includeIntrospectionTypes;
     }
@@ -139,12 +181,16 @@ public class GenerateSchemaTask extends DefaultTask {
         if (includeDependencies) {
             List<IndexView> indexes = new ArrayList<>();
             indexes.add(moduleIndex);
-            Collection<Configuration> configurations = getProject().getConfigurations();
-            for (Configuration configuration : configurations) {
-                if (configuration.isCanBeResolved()) {
-                    ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-                    Set<ResolvedArtifact> artifacts = resolvedConfiguration.getResolvedArtifacts();
-                    for (ResolvedArtifact artifact : artifacts) {
+            ConfigurationContainer configurationContainer = getProject().getConfigurations();
+            for (String name : configurations) {
+                Configuration configuration = configurationContainer.getByName(name);
+                Configuration copiedConfiguration = configuration.copyRecursive();
+                copiedConfiguration.setCanBeResolved(true);
+                copiedConfiguration.setTransitive(includeTransitiveDependencies);
+                ResolvedConfiguration resolvedConfiguration = copiedConfiguration.getResolvedConfiguration();
+                Set<ResolvedArtifact> artifacts = resolvedConfiguration.getResolvedArtifacts();
+                for (ResolvedArtifact artifact : artifacts) {
+                    if (dependencyExtensions.contains(artifact.getExtension())) {
                         getLogger().debug("Indexing file " + artifact.getFile());
                         try {
                             Result result = JarIndexer.createJarIndex(artifact.getFile(), new Indexer(), false, false, false);
@@ -162,6 +208,7 @@ public class GenerateSchemaTask extends DefaultTask {
         }
     }
 
+    // index the classes of this Gradle module
     private Index indexModuleClasses() throws IOException {
         Indexer indexer = new Indexer();
         List<Path> classFiles = Files.walk(classesDir.toPath())
@@ -204,7 +251,7 @@ public class GenerateSchemaTask extends DefaultTask {
         try {
             if (destination == null || destination.isEmpty()) {
                 // no destination file specified => print to stdout
-                getLogger().info(schema);
+                getLogger().quiet(schema);
             } else {
                 Path path = new File(destination).toPath();
                 path.toFile().getParentFile().mkdirs();
