@@ -1,9 +1,7 @@
 package io.smallrye.graphql.servlet;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -21,16 +19,13 @@ import io.smallrye.graphql.bootstrap.Config;
 @ApplicationScoped
 public class GraphQLConfig implements Config {
 
-    private static final String SUPPOSED_EMPTY_STRING = "**empty**";
-    private static final List<String> SUPPOSED_EMPTY_LIST = singletonList(SUPPOSED_EMPTY_STRING);
+    @Inject
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "")
+    private Optional<List<String>> blackList;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = SUPPOSED_EMPTY_STRING)
-    private List<String> blackList;
-
-    @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = SUPPOSED_EMPTY_STRING)
-    private List<String> whiteList;
+    @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "")
+    private Optional<List<String>> whiteList;
 
     @Inject
     @ConfigProperty(name = ConfigKey.DEFAULT_ERROR_MESSAGE, defaultValue = "Server Error")
@@ -72,17 +67,11 @@ public class GraphQLConfig implements Config {
         return printDataFetcherException;
     }
 
-    public List<String> getBlackList() {
-        if (SUPPOSED_EMPTY_LIST.equals(blackList)) {
-            blackList = emptyList();
-        }
+    public Optional<List<String>> getBlackList() {
         return blackList;
     }
 
-    public List<String> getWhiteList() {
-        if (SUPPOSED_EMPTY_LIST.equals(whiteList)) {
-            whiteList = emptyList();
-        }
+    public Optional<List<String>> getWhiteList() {
         return whiteList;
     }
 

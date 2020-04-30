@@ -1,8 +1,8 @@
 package io.smallrye.graphql.execution.error;
 
+import java.util.Collections;
 import java.util.List;
-
-import org.jboss.logging.Logger;
+import java.util.Optional;
 
 /**
  * Class that hold the exceptions to the exceptions
@@ -10,14 +10,21 @@ import org.jboss.logging.Logger;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExceptionLists {
-    private static final Logger LOG = Logger.getLogger(ExceptionLists.class.getName());
 
     private final List<String> blackList;
     private final List<String> whiteList;
 
-    public ExceptionLists(List<String> blackList, List<String> whiteList) {
-        this.blackList = blackList;
-        this.whiteList = whiteList;
+    public ExceptionLists(Optional<List<String>> maybeBlackList, Optional<List<String>> maybeWhiteList) {
+        if (maybeBlackList.isPresent()) {
+            this.blackList = maybeBlackList.get();
+        } else {
+            this.blackList = Collections.EMPTY_LIST;
+        }
+        if (maybeWhiteList.isPresent()) {
+            this.whiteList = maybeWhiteList.get();
+        } else {
+            this.whiteList = Collections.EMPTY_LIST;
+        }
     }
 
     boolean isBlacklisted(Throwable throwable) {
