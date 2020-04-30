@@ -15,15 +15,15 @@ public class ExceptionLists {
     private final List<String> whiteList;
 
     public ExceptionLists(Optional<List<String>> maybeBlackList, Optional<List<String>> maybeWhiteList) {
-        if (maybeBlackList.isEmpty()) {
-            this.blackList = Collections.EMPTY_LIST;
-        } else {
+        if (maybeBlackList.isPresent()) {
             this.blackList = maybeBlackList.get();
-        }
-        if (maybeWhiteList.isEmpty()) {
-            this.whiteList = Collections.EMPTY_LIST;
         } else {
+            this.blackList = Collections.EMPTY_LIST;
+        }
+        if (maybeWhiteList.isPresent()) {
             this.whiteList = maybeWhiteList.get();
+        } else {
+            this.whiteList = Collections.EMPTY_LIST;
         }
     }
 
