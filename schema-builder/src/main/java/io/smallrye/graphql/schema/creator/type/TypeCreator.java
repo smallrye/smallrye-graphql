@@ -13,7 +13,6 @@ import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.OperationType;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
@@ -24,6 +23,7 @@ import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Type;
@@ -111,7 +111,7 @@ public class TypeCreator implements Creator<Type> {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
                 MethodInfo methodInfo = methodParameterInfo.method();
-                Operation operation = operationCreator.createOperation(methodInfo, OperationType.Source);
+                Operation operation = operationCreator.createOperation(methodInfo, OperationType.Source, type);
                 type.addOperation(operation);
             }
         }

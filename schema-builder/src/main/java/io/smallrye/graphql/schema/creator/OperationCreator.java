@@ -8,7 +8,6 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.OperationType;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -18,6 +17,7 @@ import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 
 /**
@@ -42,9 +42,11 @@ public class OperationCreator {
      * 
      * @param methodInfo the java method
      * @param operationType the type of operation (Query / Mutation)
+     * @param type
      * @return a Operation that defines this GraphQL Operation
      */
-    public Operation createOperation(MethodInfo methodInfo, OperationType operationType) {
+    public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
+            final io.smallrye.graphql.schema.model.Type type) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
         Type fieldType = methodInfo.returnType();
 
@@ -63,7 +65,11 @@ public class OperationCreator {
                 MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
                 name,
                 maybeDescription.orElse(null),
-                reference);
+                reference,
+                operationType);
+        if (type != null) {
+            operation.setContainingType(new Reference(type));
+        }
 
         // NotNull
         if (NonNullHelper.markAsNonNull(fieldType, annotationsForMethod)) {

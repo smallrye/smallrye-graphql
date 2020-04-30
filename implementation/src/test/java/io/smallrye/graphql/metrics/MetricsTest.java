@@ -12,10 +12,12 @@ import org.junit.Test;
 
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLNamedType;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
 import io.smallrye.graphql.metrics.TestMetricsServiceImpl.MockMetricsRegistry;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Schema;
 
 public class MetricsTest {
@@ -31,8 +33,10 @@ public class MetricsTest {
     public void testMetricsServiceRegisteredInBootstrap() throws Exception {
         Operation query = new Operation();
         query.setName("myQuery");
+        query.setOperationType(OperationType.Query);
         Operation mutation = new Operation();
         mutation.setName("myMutation");
+        mutation.setOperationType(OperationType.Mutation);
 
         Schema schema = new Schema();
         schema.setQueries(Collections.singleton(query));
@@ -43,8 +47,8 @@ public class MetricsTest {
         Bootstrap.registerMetrics(schema, metricRegistry);
 
         assertEquals(2, metricServiceImpl.vendorRegistry.simpleTimeMetadatas.size());
-        assertEquals("mp_graphql_myQuery", metricServiceImpl.vendorRegistry.simpleTimeMetadatas.get(0).getDisplayName());
-        assertEquals("mp_graphql_myMutation",
+        assertEquals("mp_graphql_Query_myQuery", metricServiceImpl.vendorRegistry.simpleTimeMetadatas.get(0).getDisplayName());
+        assertEquals("mp_graphql_Mutation_myMutation",
                 metricServiceImpl.vendorRegistry.simpleTimeMetadatas.get(1).getDisplayName());
     }
 
@@ -53,7 +57,11 @@ public class MetricsTest {
         MetricDecorator decorator = new MetricDecorator();
         Field field = mock(Field.class);
         when(field.getName()).thenReturn("myFastQuery");
+        GraphQLNamedType query = mock(GraphQLNamedType.class);
+        when(query.getName()).thenReturn("Query");
+
         DataFetchingEnvironment dfe = mock(DataFetchingEnvironment.class);
+        when(dfe.getParentType()).thenReturn(query);
         when(dfe.getField()).thenReturn(field);
 
         decorator.before(dfe);
@@ -69,6 +77,7 @@ public class MetricsTest {
         when(field2.getName()).thenReturn("myOtherQuery");
         DataFetchingEnvironment dfe2 = mock(DataFetchingEnvironment.class);
         when(dfe2.getField()).thenReturn(field2);
+        when(dfe2.getParentType()).thenReturn(query);
 
         decorator.before(dfe2);
         decorator.after(dfe2);
@@ -78,7 +87,7 @@ public class MetricsTest {
 
         MockMetricsRegistry registry = TestMetricsServiceImpl.INSTANCE.vendorRegistry;
         assertEquals(2, registry.simpleTimers.size());
-        assertEquals(3, registry.simpleTimers.get("mp_graphql_myFastQuery").getCount());
-        assertEquals(2, registry.simpleTimers.get("mp_graphql_myOtherQuery").getCount());
+        assertEquals(3, registry.simpleTimers.get("mp_graphql_Query_myFastQuery").getCount());
+        assertEquals(2, registry.simpleTimers.get("mp_graphql_Query_myOtherQuery").getCount());
     }
 }

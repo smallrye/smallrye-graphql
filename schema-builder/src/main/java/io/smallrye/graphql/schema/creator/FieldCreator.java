@@ -16,6 +16,7 @@ import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Reference;
 
 /**
@@ -36,9 +37,10 @@ public class FieldCreator {
      * This is used in the case of an interface
      * 
      * @param methodInfo the java method
+     * @param interfaceType
      * @return a Field model object
      */
-    public Optional<Field> createFieldForInterface(MethodInfo methodInfo) {
+    public Optional<Field> createFieldForInterface(MethodInfo methodInfo, final InterfaceType interfaceType) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForMethod)) {

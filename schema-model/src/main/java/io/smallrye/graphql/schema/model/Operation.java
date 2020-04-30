@@ -18,13 +18,18 @@ public final class Operation extends Field {
 
     private List<Argument> arguments = new LinkedList<>();
 
+    private OperationType operationType;
+
+    private Reference containingType;
+
     public Operation() {
     }
 
     public Operation(String className, String methodName, String propertyName, String name, String description,
-            Reference reference) {
+            Reference reference, final OperationType operationType) {
         super(methodName, propertyName, name, description, reference);
         this.className = className;
+        this.operationType = operationType;
     }
 
     public void setClassName(String className) {
@@ -49,5 +54,21 @@ public final class Operation extends Field {
 
     public boolean hasArguments() {
         return !this.arguments.isEmpty();
+    }
+
+    public void setOperationType(final OperationType operationType) {
+        this.operationType = operationType;
+    }
+
+    public OperationType getOperationType() {
+        return operationType;
+    }
+
+    public Reference getContainingType() {
+        return containingType;
+    }
+
+    public void setContainingType(final Reference containingType) {
+        this.containingType = containingType;
     }
 }

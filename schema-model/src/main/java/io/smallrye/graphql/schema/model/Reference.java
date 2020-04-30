@@ -23,6 +23,12 @@ public class Reference implements Serializable {
         this.type = type;
     }
 
+    public Reference(final Reference reference) {
+        this.className = reference.className;
+        this.name = reference.name;
+        this.type = reference.type;
+    }
+
     /**
      * This represent the Java Class Name
      * 

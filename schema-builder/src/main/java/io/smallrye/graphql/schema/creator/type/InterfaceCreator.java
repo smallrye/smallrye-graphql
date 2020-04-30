@@ -75,7 +75,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
 
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
-                fieldCreator.createFieldForInterface(methodInfo)
+                fieldCreator.createFieldForInterface(methodInfo, interfaceType)
                         .ifPresent(interfaceType::addField);
             }
         }

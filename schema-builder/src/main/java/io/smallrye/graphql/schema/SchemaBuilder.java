@@ -21,6 +21,7 @@ import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -176,10 +177,10 @@ public class SchemaBuilder {
         for (MethodInfo methodInfo : methodInfoList) {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
-                Operation query = operationCreator.createOperation(methodInfo, OperationType.Query);
+                Operation query = operationCreator.createOperation(methodInfo, OperationType.Query, null);
                 schema.addQuery(query);
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
-                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation);
+                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation, null);
                 schema.addMutation(mutation);
             }
         }
