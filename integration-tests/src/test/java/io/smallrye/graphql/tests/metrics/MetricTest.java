@@ -32,7 +32,7 @@ public class MetricTest {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource(new StringAsset("smallrye.graphql.metrics.enabled=true"),
                         "META-INF/microprofile-config.properties")
-                .addClass(DummyGraphQLApi.class);
+                .addClasses(DummyGraphQLApi.class, Foo.class);
     }
 
     @Inject
@@ -45,11 +45,14 @@ public class MetricTest {
     @Test
     @InSequence(99)
     public void verifyMetricsAreRegisteredEagerly() {
-        SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Query_hello"));
+        SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Query_get"));
         Assert.assertNotNull("Metric should be registered eagerly", metricForHelloQuery);
 
         SimpleTimer metricForMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Mutation_mutate"));
         Assert.assertNotNull("Metric should be registered eagerly", metricForMutation);
+
+        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Foo_description"));
+        Assert.assertNotNull("Metric should be registered eagerly", metricForSource);
     }
 
     @Test
@@ -57,25 +60,33 @@ public class MetricTest {
     @InSequence(100)
     public void invokeApi() throws Exception {
         SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
-        client.query("{hello}");
-        client.query("mutation {mutate}");
-        client.query("mutation {mutate}");
+        client.query("{get {version}}");
+        client.query("{get {version}}");
+        client.query("mutation {mutate{version}}");
+        client.query("mutation {mutate{version}}");
+        client.query("{get {description}}");
     }
 
     @Test
     @InSequence(101)
     public void verifyMetricsAreUpdated() {
-        SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Query_hello"));
-        Assert.assertEquals("The query was called once, this should be reflected in metric value",
-                1, metricForHelloQuery.getCount());
+        SimpleTimer metricForGetQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Query_get"));
+        Assert.assertEquals("The 'get' query was called three times, this should be reflected in metric value",
+                3, metricForGetQuery.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
-                metricForHelloQuery.getElapsedTime().toNanos() > 0);
+                metricForGetQuery.getElapsedTime().toNanos() > 0);
 
-        SimpleTimer metricForHelloMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Mutation_mutate"));
+        SimpleTimer metricForMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Mutation_mutate"));
         Assert.assertEquals("The query was called twice, this should be reflected in metric value",
-                2, metricForHelloMutation.getCount());
+                2, metricForMutation.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
-                metricForHelloMutation.getElapsedTime().toNanos() > 0);
+                metricForMutation.getElapsedTime().toNanos() > 0);
+
+        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Foo_description"));
+        Assert.assertEquals("The get{description} query was called once, this should be reflected in metric value",
+                1, metricForSource.getCount());
+        Assert.assertTrue("Total elapsed time for query should be greater than zero",
+                metricForSource.getElapsedTime().toNanos() > 0);
     }
 
 }
