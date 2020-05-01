@@ -93,7 +93,7 @@ public class ExecutionServlet extends HttpServlet {
                     out.flush();
                 }
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             LOG.log(Logger.Level.ERROR, null, ex);
         }
     }
@@ -107,10 +107,10 @@ public class ExecutionServlet extends HttpServlet {
                 sb.append(buf, 0, len);
             }
             String jsonInput = sb.toString();
-            LOG.debugf("JSON input: {0}", jsonInput);
+            LOG.debugf("JSON input: %s", jsonInput);
             inputReader = new StringReader(jsonInput);
-        } catch (Throwable t) {
-            LOG.warnf("Unable to log reader, {0}", inputReader);
+        } catch (Exception e) {
+            LOG.warnf("Unable to log reader, %s", inputReader);
         }
         return inputReader;
     }
