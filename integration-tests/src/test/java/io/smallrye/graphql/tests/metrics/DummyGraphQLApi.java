@@ -1,19 +1,33 @@
 package io.smallrye.graphql.tests.metrics;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 
 @GraphQLApi
+@ApplicationScoped
 public class DummyGraphQLApi {
 
-    @Query(value = "hello")
-    public String helloQuery() {
-        return "foo";
+    private Foo foo = new Foo();
+
+    @Query(value = "get")
+    public Foo helloQuery() {
+        return foo;
     }
 
-    @Query(value = "mutate")
-    public String mutation() {
-        return "foo";
+    @Mutation(value = "mutate")
+    public Foo mutation() {
+        foo.update();
+        return foo;
+    }
+
+    @Name("description")
+    public String source(@Source Foo foo) {
+        return "Awesome";
     }
 
 }

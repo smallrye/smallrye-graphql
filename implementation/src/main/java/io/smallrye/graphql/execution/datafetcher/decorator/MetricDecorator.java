@@ -9,7 +9,11 @@ import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.lookup.LookupService;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNamedType;
+import graphql.schema.GraphQLNonNull;
+import graphql.schema.GraphQLType;
+import io.smallrye.graphql.metrics.MetricsService;
 
 public class MetricDecorator implements DataFetcherDecorator {
 
@@ -18,7 +22,7 @@ public class MetricDecorator implements DataFetcherDecorator {
     private final MetricRegistry metricRegistry;
 
     public MetricDecorator() {
-        metricRegistry = LookupService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
+        metricRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
     }
 
     @Override
@@ -31,11 +35,21 @@ public class MetricDecorator implements DataFetcherDecorator {
         Long startTime = startTimes.remove(dfe);
         if (startTime != null) {
             long duration = System.nanoTime() - startTime;
-            MetricID metricID = new MetricID("mp_graphql_" + dfe.getField().getName());
+            MetricID metricID = new MetricID("mp_graphql_" + getName(dfe.getParentType()) + "_" + dfe.getField().getName());
             metricRegistry.simpleTimer(metricID.getName(), metricID.getTagsAsArray())
                     .update(Duration.ofNanos(duration));
         }
+    }
 
+    private String getName(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLNamedType) {
+            return ((GraphQLNamedType) graphQLType).getName();
+        } else if (graphQLType instanceof GraphQLNonNull) {
+            return getName(((GraphQLNonNull) graphQLType).getWrappedType());
+        } else if (graphQLType instanceof GraphQLList) {
+            return getName(((GraphQLList) graphQLType).getWrappedType());
+        }
+        return "";
     }
 
 }

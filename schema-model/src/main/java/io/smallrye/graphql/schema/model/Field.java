@@ -33,6 +33,7 @@ public class Field implements Serializable {
         this.name = name;
         this.description = description;
         this.reference = reference;
+
     }
 
     public String getMethodName() {
@@ -118,4 +119,5 @@ public class Field implements Serializable {
     public boolean hasDefaultValue() {
         return this.defaultValue != null;
     }
+
 }

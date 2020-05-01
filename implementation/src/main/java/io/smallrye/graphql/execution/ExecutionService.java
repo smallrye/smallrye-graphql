@@ -138,10 +138,13 @@ public class ExecutionService {
         if (this.graphQL == null) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(config);
             if (graphQLSchema != null) {
+                QueryCache queryCache = new QueryCache();
                 this.graphQL = GraphQL
                         .newGraphQL(graphQLSchema)
                         .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
                         .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
+                        .instrumentation(queryCache)
+                        .preparsedDocumentProvider(queryCache)
                         .build();
             } else {
                 LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");

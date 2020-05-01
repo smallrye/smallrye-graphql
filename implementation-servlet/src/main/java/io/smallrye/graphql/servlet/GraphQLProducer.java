@@ -9,7 +9,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.SchemaPrinter;
-import io.smallrye.graphql.lookup.LookupService;
+import io.smallrye.graphql.metrics.MetricsService;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -27,7 +27,7 @@ public class GraphQLProducer {
     public void initializeGraphQL(GraphQLConfig config, Schema schema) {
         this.graphQLSchema = Bootstrap.bootstrap(schema, config);
         if (config.isMetricsEnabled()) {
-            MetricRegistry vendorRegistry = LookupService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
+            MetricRegistry vendorRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
             Bootstrap.registerMetrics(schema, vendorRegistry);
         }
         this.executionService = new ExecutionService(config, graphQLSchema);

@@ -40,6 +40,7 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 * link:runner[] - Manual TCK testing with GraphiQL
 * link:integration-tests[] - To run some Integration tests
 * link:maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
+* link:gradle-plugin[] - Gradle plugin that generates the GraphQL schema from source files.
 
 ==== Client
 
@@ -65,6 +66,12 @@ To automatically generate the GraphQL schema from your Maven project, add this t
 ----
 
 The schema will appear as `target/generated/schema.graphql`.
+
+More details here: link:maven-plugin[]
+
+=== Using the Gradle plugin
+
+See here: link:gradle-plugin[]
 
 === Links
 

@@ -1,0 +1,63 @@
+plugins {
+    id 'com.gradle.plugin-publish' version '0.11.0'
+    id 'java-gradle-plugin'
+}
+if (JavaVersion.current().isJava9Compatible()) {
+    compileJava.options.compilerArgs.addAll(['--release', '8'])
+}
+compileJava {
+    options.encoding = 'UTF-8'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    api gradleApi()
+    implementation "io.smallrye:smallrye-graphql:${version}"
+    implementation "io.smallrye:smallrye-graphql-schema-builder:${version}"
+    implementation "jakarta.json.bind:jakarta.json.bind-api:1.0.2"
+    implementation "org.eclipse:yasson:1.0.7"
+    implementation "org.jboss:jandex:2.1.3.Final"
+    implementation "org.jboss.logging:jboss-logging:3.4.1.Final"
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    useJUnitPlatform()
+}
+
+javadoc {
+    options.addStringOption('encoding', 'UTF-8')
+}
+
+pluginBundle {
+    website = 'http://github.com/smallrye/smallrye-graphql/'
+    vcsUrl = 'https://github.com/smallrye/smallrye-graphql'
+    tags = ['smallrye', 'graphql', 'microprofile']
+}
+
+gradlePlugin {
+    plugins {
+        quarkusPlugin {
+            id = 'io.smallrye.graphql'
+            implementationClass = 'io.smallrye.graphql.gradle.SmallRyeGraphQLPlugin'
+            displayName = 'SmallRye: MicroProfile GraphQL Gradle Plugin'
+            description = 'SmallRye: MicroProfile GraphQL Gradle Plugin'
+        }
+    }
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
