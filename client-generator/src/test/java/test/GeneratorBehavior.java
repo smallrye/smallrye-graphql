@@ -1,5 +1,19 @@
 package test;
 
+import graphql.ErrorType;
+import graphql.GraphQLError;
+import graphql.schema.idl.errors.SchemaProblem;
+import io.smallrye.graphql.client.generator.Generator;
+import io.smallrye.graphql.client.generator.GraphQlGeneratorException;
+import org.assertj.core.data.MapEntry;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
+
 import static graphql.ErrorType.InvalidSyntax;
 import static java.lang.String.join;
 import static java.util.Arrays.asList;
@@ -8,21 +22,6 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.Assertions.contentOf;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.data.MapEntry.entry;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Stream;
-
-import org.assertj.core.data.MapEntry;
-import org.junit.jupiter.api.Test;
-
-import graphql.ErrorType;
-import graphql.GraphQLError;
-import graphql.schema.idl.errors.SchemaProblem;
-import io.smallrye.graphql.client.generator.Generator;
-import io.smallrye.graphql.client.generator.GraphQlGeneratorException;
 
 class GeneratorBehavior {
     private static final String HEROES = "{heroes { name realName }}";
@@ -194,7 +193,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithNonNullIntegerQuery() {
+    void shouldGenerateApiWithNonNullReturnType() {
         Generator generator = givenGeneratorFor("{countHeroes}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -251,6 +250,18 @@ class GeneratorBehavior {
 
         thenContainsExactly(generatedFiles,
                 generatedApiWith("import java.util.List;\n\n", "List<Team> teamsLargerThan(Integer size);"),
+                CLASS_TEAM);
+    }
+
+    @Test
+    void shouldGenerateApiWithNonNullParameter() {
+        Generator generator = givenGeneratorFor("query teamsLargerThan($size: Int!) {teamsLargerThan(size: $size) {name} }");
+
+        Map<String, String> generatedFiles = generator.generateSourceFiles();
+
+        thenContainsExactly(generatedFiles,
+                generatedApiWith("import java.util.List;\nimport org.eclipse.microprofile.graphql.NonNull;\n\n",
+                    "List<Team> teamsLargerThan(@NonNull Integer size);"),
                 CLASS_TEAM);
     }
 
