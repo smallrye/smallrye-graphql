@@ -1,0 +1,55 @@
+# Mutation root
+type Mutation {
+    removeHeroByName(name: String): SuperHero
+    createNewHero(newHero: SuperHeroInput): SuperHero
+}
+
+type NamedHero {
+    name: String
+    superPowers: [String]
+}
+
+# Query root
+type Query {
+    # returns all heroes
+    heroes: [SuperHero]
+    team(name: String): Team
+    teams: [Team]
+    heroesWithPower(power: String): [SuperHero]
+    findHeroByName(name: String): SuperHero
+    heroesIn(location: String): [SuperHero]
+    countTeams: Int
+    countHeroes: Int!
+    averageTeamSize: Float
+    heroExists(name: String): Boolean
+    # unusual but possible
+    heroId(name: String): ID
+    teamsLargerThan(size: Int): [Team]
+}
+
+type SuperHero {
+    # the publicly known and widely used pseudonym of the hero
+    name: String
+    # where the hero is mainly 'at home'
+    primaryLocation: String
+    # the super power that the hero can wield
+    superPowers: [String]
+    teamAffiliations: [Team]
+    realName: String
+    currentLocation: String
+}
+
+input SuperHeroInput {
+    # the publicly known and widely used pseudonym of the hero
+    name: String
+    # where the hero is mainly 'at home'
+    primaryLocation: String
+    # the super power that the hero can wield
+    superPowers: [String]
+}
+
+type Team {
+    name: String
+    size: Int!
+    heroes: [NamedHero]
+}
