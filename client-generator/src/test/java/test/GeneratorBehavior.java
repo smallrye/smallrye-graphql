@@ -159,6 +159,16 @@ class GeneratorBehavior {
     }
 
     @Test
+    void shouldFailToGenerateApiWithMultipleQueriesSelectingDifferentFields() {
+        Generator generator = givenGeneratorFor("{heroes { name }}", HEROES_IN_LOCATION);
+
+        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQlGeneratorException.class);
+
+        then(thrown).hasMessage("already generated SuperHero");
+    }
+
+    @Test
     void shouldGenerateApiWithExplicitQuery() {
         Generator generator = givenGeneratorFor("query {heroes { name realName }}");
 

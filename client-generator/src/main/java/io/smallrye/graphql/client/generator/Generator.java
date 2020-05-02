@@ -144,13 +144,15 @@ public class Generator {
 
         public void addTo(Map<String, String> sourceFiles) {
             String body = generateBody();
-            sourceFiles.put(pkg + "." + getTypeName(),
-                    "package " + pkg + ";\n" +
-                            "\n" +
-                            imports() +
-                            "public " + typeType + " " + getTypeName() + " {\n" +
-                            body +
-                            "}\n");
+            String source = "package " + pkg + ";\n" +
+                    "\n" +
+                    imports() +
+                    "public " + typeType + " " + getTypeName() + " {\n" +
+                    body +
+                    "}\n";
+            String previousSource = sourceFiles.put(pkg + "." + getTypeName(), source);
+            if (previousSource != null && !previousSource.equals(source))
+                throw new GraphQlGeneratorException("already generated " + getTypeName());
             other.forEach(it -> it.addTo(sourceFiles));
         }
 
