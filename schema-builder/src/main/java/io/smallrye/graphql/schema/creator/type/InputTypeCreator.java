@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,13 @@ public class InputTypeCreator implements Creator<InputType> {
 
     @Override
     public InputType create(ClassInfo classInfo) {
+        if (!classInfo.hasNoArgsConstructor() ||
+                !Modifier.isPublic(classInfo.method("<init>").flags())) {
+            throw new IllegalArgumentException(
+                    "Class " + classInfo.name().toString()
+                            + " is used as input, but does not have a public default constructor");
+        }
+
         LOG.debug("Creating Input from " + classInfo.name().toString());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
