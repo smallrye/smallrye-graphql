@@ -13,7 +13,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLType;
-import io.smallrye.graphql.metrics.MetricsService;
+import io.smallrye.graphql.spi.MetricsService;
 
 public class MetricDecorator implements DataFetcherDecorator {
 

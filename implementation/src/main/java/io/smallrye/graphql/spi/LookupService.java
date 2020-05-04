@@ -1,14 +1,9 @@
-package io.smallrye.graphql.lookup;
+package io.smallrye.graphql.spi;
 
 import java.lang.reflect.InvocationTargetException;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ServiceLoader;
 
 import org.jboss.logging.Logger;
-
-import io.smallrye.graphql.execution.Classes;
 
 /**
  * Lookup service that allows multiple DI frameworks to use this.
@@ -37,38 +32,6 @@ public interface LookupService {
     Class<?> getClass(Class<?> declaringClass);
 
     Object getInstance(Class<?> declaringClass);
-
-    default Object getInstance(String declaringClass) {
-        Class<?> loadedClass = loadClass(declaringClass);
-        return getInstance(loadedClass);
-    }
-
-    default Class<?> loadClass(String className) {
-        try {
-            if (Classes.isPrimitive(className)) {
-                return Classes.getPrimativeClassType(className);
-            } else {
-                return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> {
-                    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                    if (loader != null) {
-                        try {
-                            return loadClass(className, loader);
-                        } catch (ClassNotFoundException cnfe) {
-                            // Let's try this class classloader.
-                        }
-                    }
-                    return loadClass(className, LookupService.class.getClassLoader());
-                });
-            }
-        } catch (PrivilegedActionException | ClassNotFoundException pae) {
-            throw new RuntimeException("Can not load class [" + className + "]", pae);
-        }
-    }
-
-    default Class<?> loadClass(String className, ClassLoader loader) throws ClassNotFoundException {
-        Class<?> c = Class.forName(className, false, loader);
-        return c;
-    }
 
     /**
      * Default Lookup service that gets used when none is provided with SPI.

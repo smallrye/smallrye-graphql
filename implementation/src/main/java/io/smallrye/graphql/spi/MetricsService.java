@@ -1,4 +1,4 @@
-package io.smallrye.graphql.metrics;
+package io.smallrye.graphql.spi;
 
 import java.util.ServiceLoader;
 
