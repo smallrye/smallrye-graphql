@@ -8,9 +8,11 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,6 +58,17 @@ public class Classes {
         }
         throw new ClassNotFoundException("Unknown primative type [" + primitiveName + "]");
     }
+
+    public static boolean isNumberLikeType(String className) {
+        return NUMBERS.contains(className);
+    }
+
+    public static boolean isDateLikeType(String className) {
+        return DATES.contains(className);
+    }
+
+    private static final List<String> NUMBERS = new ArrayList<>();
+    private static final List<String> DATES = new ArrayList<>();
 
     private static final Map<String, Class> PRIMITIVE_CLASSES = new HashMap<>();
     private static final Map<String, Class> OBJECT_PRIMITIVE_MAPPING = new HashMap<>();
@@ -117,6 +130,32 @@ public class Classes {
         OBJECT_PRIMITIVE_MAPPING.put(Long.class.getName(), long.class);
         OBJECT_PRIMITIVE_MAPPING.put(Float.class.getName(), float.class);
         OBJECT_PRIMITIVE_MAPPING.put(Double.class.getName(), double.class);
+
+        NUMBERS.add(BYTE);
+        NUMBERS.add(BYTE_PRIMATIVE);
+        NUMBERS.add(SHORT);
+        NUMBERS.add(SHORT_PRIMATIVE);
+        NUMBERS.add(INTEGER);
+        NUMBERS.add(INTEGER_PRIMATIVE);
+        NUMBERS.add(BIG_INTEGER);
+        NUMBERS.add(DOUBLE);
+        NUMBERS.add(DOUBLE_PRIMATIVE);
+        NUMBERS.add(BIG_DECIMAL);
+        NUMBERS.add(LONG);
+        NUMBERS.add(LONG_PRIMATIVE);
+        NUMBERS.add(FLOAT);
+        NUMBERS.add(FLOAT_PRIMATIVE);
+
+        DATES.add(LOCALDATE);
+        DATES.add(LOCALTIME);
+        DATES.add(LOCALDATETIME);
+        DATES.add(ZONEDDATETIME);
+        DATES.add(OFFSETDATETIME);
+        DATES.add(OFFSETTIME);
+        DATES.add(UTIL_DATE);
+        DATES.add(SQL_DATE);
+        DATES.add(SQL_TIMESTAMP);
+        DATES.add(SQL_TIME);
     }
 
     /**

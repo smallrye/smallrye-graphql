@@ -146,7 +146,7 @@ public class SchemaTest {
 
         // Test description with date format
         Assert.assertTrue("Problem with date scalar with description ",
-                lines.contains("\"This is another datetime (yyyy-MM-dd'T'HH:mm:ss)\""));
+                lines.contains("\"This is another datetime (ISO-8601)\""));
 
         // Test number format description
         Assert.assertTrue("Problem with number scalar default description ",

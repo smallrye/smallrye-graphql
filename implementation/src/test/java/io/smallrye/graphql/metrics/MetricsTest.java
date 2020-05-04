@@ -19,6 +19,7 @@ import io.smallrye.graphql.metrics.TestMetricsServiceImpl.MockMetricsRegistry;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.MetricsService;
 
 public class MetricsTest {
 

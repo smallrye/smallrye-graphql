@@ -29,23 +29,23 @@ public class LegacyDateTransformer implements Transformer {
     private final String targetClassName;
 
     public LegacyDateTransformer(final Field field) {
-        this.dateTransformer = new DateTransformer(field, CLASS_MAPPINGS.get(field.getReference().getClassName()));
         this.targetClassName = field.getReference().getClassName();
+        this.dateTransformer = new DateTransformer(field, CLASS_MAPPINGS.get(targetClassName));
     }
 
     @Override
     public Object in(final Object o) throws Exception {
         if (targetClassName.equals(java.sql.Date.class.getName())) {
-            LocalDate localdate = (LocalDate) dateTransformer.in(o.toString());
+            LocalDate localdate = (LocalDate) dateTransformer.in(o);
             return java.sql.Date.valueOf(localdate);
         } else if (targetClassName.equals(java.sql.Time.class.getName())) {
-            LocalTime localtime = (LocalTime) dateTransformer.in(o.toString());
+            LocalTime localtime = (LocalTime) dateTransformer.in(o);
             return java.sql.Time.valueOf(localtime);
         } else if (targetClassName.equals(java.sql.Timestamp.class.getName())) {
-            LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o.toString());
+            LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o);
             return java.sql.Timestamp.valueOf(localdatetime);
         } else if (targetClassName.equals(Date.class.getName())) {
-            LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o.toString());
+            LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o);
             return Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
         }
         throw new RuntimeException("Can't parse [" + o.getClass().getName() + "] to [" + targetClassName + "]");
@@ -67,7 +67,7 @@ public class LegacyDateTransformer implements Transformer {
             Date casted = (Date) dateType;
             return dateTransformer.out(casted.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         }
-        throw new RuntimeException("Can't format [" + dateType.getClass().getName() + "]");
+        throw new RuntimeException("Can't format [" + dateType.getClass().getName() + "] from [" + targetClassName + "]");
     }
 
     private static Map<String, String> createClassMappings() {

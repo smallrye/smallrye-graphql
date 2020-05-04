@@ -25,20 +25,37 @@ public interface Transformer {
                 return new NumberTransformer(field);
 
             } else if (format.getType().equals(TransformInfo.Type.DATE)) {
-                if (LegacyDateTransformer.SUPPORTED_TYPES.contains(field.getReference().getClassName())) {
-                    return new LegacyDateTransformer(field);
-                }
-                return new DateTransformer(field);
+                return dateTransformer(field);
             }
-
         } else if (Classes.isUUID(field.getReference().getClassName())) {
             return UUID_TRANSFORMER;
         } else if (Classes.isURL(field.getReference().getClassName())) {
             return URL_TRANSFORMER;
         } else if (Classes.isURI(field.getReference().getClassName())) {
             return URI_TRANSFORMER;
+        } else if (Classes.isDateLikeType(field.getReference().getClassName())) {
+            return dateTransformer(field);
+        } else if (Classes.isNumberLikeType(field.getReference().getClassName())) {
+            return new NumberTransformer(field);
         }
+
         return PASS_THROUGH_TRANSFORMER;
+    }
+
+    static Transformer dateTransformer(Field field) {
+        if (LegacyDateTransformer.SUPPORTED_TYPES.contains(field.getReference().getClassName())) {
+            return new LegacyDateTransformer(field);
+        }
+        return new DateTransformer(field);
+    }
+
+    static boolean shouldTransform(Field field) {
+        return field.hasTransformInfo()
+                || Classes.isUUID(field.getReference().getClassName())
+                || Classes.isURL(field.getReference().getClassName())
+                || Classes.isURI(field.getReference().getClassName())
+                || Classes.isDateLikeType(field.getReference().getClassName())
+                || Classes.isNumberLikeType(field.getReference().getClassName());
     }
 
     Object in(Object o) throws Exception;

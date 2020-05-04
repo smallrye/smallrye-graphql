@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
-import org.jboss.logging.Logger;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
@@ -20,9 +19,10 @@ import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.lookup.LookupService;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.graphql.transformation.TransformException;
 
 /**
@@ -31,9 +31,9 @@ import io.smallrye.graphql.transformation.TransformException;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionDataFetcher implements DataFetcher {
-    private static final Logger LOG = Logger.getLogger(ReflectionDataFetcher.class.getName());
 
     private final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms 
+    private final ClassloadingService classloadingService = ClassloadingService.load(); // Allows multiple classloading mechanisms
 
     private final Operation operation;
     private final FieldHelper fieldHelper;
@@ -85,9 +85,10 @@ public class ReflectionDataFetcher implements DataFetcher {
         decorators.forEach(decorator -> {
             decorator.before(dfe);
         });
-        Object declaringObject = lookupService.getInstance(operation.getClassName());
-        Class cdiClass = declaringObject.getClass();
+        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
+        Object declaringObject = lookupService.getInstance(operationClass);
         try {
+            Class cdiClass = declaringObject.getClass();
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {
                 Method m = cdiClass.getMethod(operation.getMethodName(), getParameterClasses());
@@ -156,10 +157,10 @@ public class ReflectionDataFetcher implements DataFetcher {
                 for (Field argument : operation.getArguments()) {
                     // If the argument is an array / collection, load that class
                     if (argument.hasArray()) {
-                        Class<?> clazz = lookupService.loadClass(argument.getArray().getClassName());
+                        Class<?> clazz = classloadingService.loadClass(argument.getArray().getClassName());
                         cl.add(clazz);
                     } else {
-                        Class<?> clazz = lookupService.loadClass(argument.getReference().getClassName());
+                        Class<?> clazz = classloadingService.loadClass(argument.getReference().getClassName());
                         cl.add(clazz);
                     }
                 }
