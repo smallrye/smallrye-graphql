@@ -24,6 +24,8 @@ import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
 
+import io.smallrye.graphql.spi.MetricsService;
+
 public class TestMetricsServiceImpl implements MetricsService {
 
     static TestMetricsServiceImpl INSTANCE;

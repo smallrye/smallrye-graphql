@@ -9,8 +9,8 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
-import io.smallrye.graphql.lookup.LookupService;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
  * Help with the fields when fetching data.
@@ -19,7 +19,7 @@ import io.smallrye.graphql.schema.model.Field;
  */
 public abstract class AbstractHelper {
 
-    protected final LookupService lookupService = LookupService.load();
+    protected final ClassloadingService classloadingService = ClassloadingService.load();
 
     protected AbstractHelper() {
     }
@@ -97,7 +97,7 @@ public abstract class AbstractHelper {
         }
 
         String classNameInCollection = field.getReference().getClassName();
-        Class classInCollection = lookupService.loadClass(classNameInCollection);
+        Class classInCollection = classloadingService.loadClass(classNameInCollection);
 
         int length = Array.getLength(array);
         Object targetArray = Array.newInstance(classInCollection, length);

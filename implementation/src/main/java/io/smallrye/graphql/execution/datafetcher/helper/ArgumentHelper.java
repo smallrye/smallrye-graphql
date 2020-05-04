@@ -216,7 +216,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the correct object
      */
     private Object correctComplexObjectFromJsonString(String jsonString, Field field) {
-        Class ownerClass = lookupService.loadClass(field.getReference().getClassName());
+        Class ownerClass = classloadingService.loadClass(field.getReference().getClassName());
         try {
             Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
             return jsonb.fromJson(jsonString, ownerClass);

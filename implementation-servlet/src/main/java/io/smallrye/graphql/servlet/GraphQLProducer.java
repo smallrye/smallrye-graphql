@@ -9,8 +9,8 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.SchemaPrinter;
-import io.smallrye.graphql.metrics.MetricsService;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.MetricsService;
 
 /**
  * Produces the GraphQL Schema

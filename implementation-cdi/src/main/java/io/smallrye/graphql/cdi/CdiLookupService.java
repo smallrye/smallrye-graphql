@@ -4,8 +4,8 @@ import javax.enterprise.inject.spi.CDI;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
-import io.smallrye.graphql.lookup.LookupService;
-import io.smallrye.graphql.metrics.MetricsService;
+import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.graphql.spi.MetricsService;
 
 /**
  * Lookup service that gets the beans via CDI
