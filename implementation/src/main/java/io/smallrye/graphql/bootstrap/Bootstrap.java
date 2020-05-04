@@ -14,6 +14,7 @@ import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.jboss.logging.Logger;
 
+import graphql.Scalars;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
@@ -64,7 +65,6 @@ public class Bootstrap {
     private final Config config;
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
-    private final Map<String, GraphQLScalarType> scalarMap = GraphQLScalarTypes.getScalarMap();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
@@ -443,7 +443,7 @@ public class Bootstrap {
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return getCorrectScalarType(field, className);
+                return getCorrectScalarType(field);
             case ENUM:
                 return enumMap.get(className);
             //case INTERFACE: ??        
@@ -459,7 +459,7 @@ public class Bootstrap {
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return getCorrectScalarType(field, className);
+                return getCorrectScalarType(field);
             case ENUM:
                 return enumMap.get(className);
             //case INTERFACE: ??    
@@ -468,12 +468,11 @@ public class Bootstrap {
         }
     }
 
-    //&& !field.getTransformInfo().get().isValid()
-    private GraphQLScalarType getCorrectScalarType(Field field, String className) {
-        //        if (field.getTransformInfo().isPresent()
-        //                && field.getTransformInfo().get().getType().equals(TransformInfo.Type.NUMBER)) { // Numbers that format should become Strings
-        //            return (T) Scalars.GraphQLString; // then we change to String
-        //        }
+    private GraphQLScalarType getCorrectScalarType(Field field) {
+        if (field.hasTransformInfo()) {
+            // For now we do a blanket String, maybe later we will handle this differently
+            return Scalars.GraphQLString;
+        }
         return GraphQLScalarTypes.getScalarByName(field.getReference().getName());
     }
 

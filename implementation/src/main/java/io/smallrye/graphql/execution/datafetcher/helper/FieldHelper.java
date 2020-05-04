@@ -31,7 +31,7 @@ public class FieldHelper extends AbstractHelper {
 
     public Object transformResponse(Object argumentValue)
             throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
-        if (field.hasTransformInfo()) {
+        if (Transformer.shouldTransform(field)) {
             argumentValue = super.recursiveTransform(argumentValue, field);
         }
         return argumentValue;

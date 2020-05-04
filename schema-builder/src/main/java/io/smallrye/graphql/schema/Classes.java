@@ -19,8 +19,6 @@ import org.jboss.jandex.Type;
 /**
  * Class helper
  * 
- * TODO: Clean up this. The knowledge of what is a date or number should maybe sit in the model /
- * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
