@@ -161,6 +161,12 @@
                 <gradle.task>assemble</gradle.task>
             </properties>
         </profile>
+        <profile>
+            <id>release</id>
+            <properties>
+                <skip.gradle.build>true</skip.gradle.build>
+            </properties>
+        </profile>
     </profiles>
 
 </project>
