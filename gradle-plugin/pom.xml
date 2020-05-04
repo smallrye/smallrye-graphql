@@ -64,6 +64,7 @@
                                 <argument>clean</argument>
                                 <argument>${gradle.task}</argument>
                                 <argument>-Pdescription=${project.description}</argument>
+                                <argument>-Pversion=${project.version}</argument>
                                 <argument>-S</argument>
                                 <argument>--stacktrace</argument>
                             </arguments>
