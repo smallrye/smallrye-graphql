@@ -29,7 +29,7 @@ public class FormatHelper {
      */
     public static Optional<TransformInfo> getFormat(Type type, Annotations annotations) {
         if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
-            return getDateFormat(type, annotations);
+            return getDateFormat(annotations);
         } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
             return getNumberFormat(annotations);
         }
@@ -71,29 +71,8 @@ public class FormatHelper {
         if (format.isPresent()) {
             return format.get();
         } else {
-            // return the default dates format
-            return getDefaultDateTimeFormatString(type);
+            return ISO;
         }
-    }
-
-    private static String getDefaultDateTimeFormatString(Type type) {
-        // return the default dates format
-        type = getCorrectType(type);
-        if (type.name().equals(Classes.LOCALDATE) || type.name().equals(Classes.SQL_DATE)) {
-            return ISO_DATE;
-        } else if (type.name().equals(Classes.LOCALTIME) || type.name().equals(Classes.SQL_TIME)) {
-            return ISO_TIME;
-        } else if (type.name().equals(Classes.OFFSETTIME)) {
-            return ISO_OFFSET_TIME;
-        } else if (type.name().equals(Classes.LOCALDATETIME) || type.name().equals(Classes.SQL_TIMESTAMP)
-                || type.name().equals(Classes.UTIL_DATE)) {
-            return ISO_DATE_TIME;
-        } else if (type.name().equals(Classes.OFFSETDATETIME)) {
-            return ISO_OFFSET_DATE_TIME;
-        } else if (type.name().equals(Classes.ZONEDDATETIME)) {
-            return ISO_ZONED_DATE_TIME;
-        }
-        throw new IllegalArgumentException("Not a valid Type [" + type.name().toString() + "]");
     }
 
     private static Optional<TransformInfo> getNumberFormat(Annotations annotations) {
@@ -101,11 +80,7 @@ public class FormatHelper {
         if (numberFormatAnnotation.isPresent()) {
             return getNumberFormat(numberFormatAnnotation.get());
         }
-        return Optional.of(new TransformInfo(
-                TransformInfo.Type.NUMBER,
-                null,
-                null,
-                false));
+        return Optional.empty();
     }
 
     private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {
@@ -121,20 +96,16 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    private static Optional<TransformInfo> getDateFormat(Type type, Annotations annotations) {
+    private static Optional<TransformInfo> getDateFormat(Annotations annotations) {
         Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
         if (dateFormatAnnotation.isPresent()) {
-            return getDateFormat(type, dateFormatAnnotation.get());
+            return getDateFormat(dateFormatAnnotation.get());
         }
-        //Create transform info without format and locale to trigger transformation with default-formatter
-        return Optional.of(new TransformInfo(
-                TransformInfo.Type.DATE,
-                null,
-                null,
-                false));
+
+        return Optional.empty();
     }
 
-    private static Optional<TransformInfo> getDateFormat(Type type, AnnotationInstance annotationInstance) {
+    private static Optional<TransformInfo> getDateFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
@@ -174,22 +145,6 @@ public class FormatHelper {
         }
     }
 
-    private static Type getCorrectType(Type type) {
-
-        switch (type.kind()) {
-            case PARAMETERIZED_TYPE:
-                // Collections
-                Type typeInCollection = type.asParameterizedType().arguments().get(0);
-                return getCorrectType(typeInCollection);
-            case ARRAY:
-                // Array
-                Type typeInArray = type.asArrayType().component();
-                return getCorrectType(typeInArray);
-            default:
-                return type;
-        }
-    }
-
     private static String getStringValue(AnnotationInstance annotationInstance) {
         return getStringValue(annotationInstance.value());
     }
@@ -207,10 +162,5 @@ public class FormatHelper {
     }
 
     private static final String LOCALE = "locale";
-    private static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String ISO_OFFSET_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private static final String ISO_ZONED_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ssZ'['VV']'";
-    private static final String ISO_DATE = "yyyy-MM-dd";
-    private static final String ISO_TIME = "HH:mm:ss";
-    private static final String ISO_OFFSET_TIME = "HH:mm:ssZ";
+    private static final String ISO = "ISO-8601";
 }

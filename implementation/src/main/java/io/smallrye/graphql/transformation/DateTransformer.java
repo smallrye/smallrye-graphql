@@ -32,7 +32,7 @@ public class DateTransformer implements Transformer {
     private final String targetClassName;
 
     public DateTransformer(final Field field, final String targetClassName) {
-        this.dateTimeFormatter = getDateFormat(field.getTransformInfo());
+        this.dateTimeFormatter = getDateFormat(field.getTransformInfo(), targetClassName);
         this.targetClassName = targetClassName;
     }
 
@@ -43,7 +43,6 @@ public class DateTransformer implements Transformer {
     @Override
     public Temporal in(final Object o) {
         TemporalQuery<?> temporalAccessor = TEMPORAL_QUERYS.get(targetClassName);
-        DateTimeFormatter dateTimeFormatter = getConcreteFormatter(targetClassName);
 
         if (temporalAccessor == null || dateTimeFormatter == null) {
             throw new RuntimeException(String.format("[%s] as no valid date or time-type", targetClassName));
@@ -52,22 +51,10 @@ public class DateTransformer implements Transformer {
         return (Temporal) dateTimeFormatter.parse(o.toString(), temporalAccessor);
     }
 
-    private DateTimeFormatter getConcreteFormatter(String className) {
-        if (this.dateTimeFormatter != null) {
-            return this.dateTimeFormatter;
-        }
-
-        return DEFAULT_FORMATTER.get(className);
-    }
-
     @Override
     public Object out(final Object dateType) {
         if (dateType instanceof Temporal) {
-            DateTimeFormatter concreteFormatter = getConcreteFormatter(dateType.getClass().getName());
-
-            if (concreteFormatter != null) {
-                return concreteFormatter.format((Temporal) dateType);
-            }
+            return dateTimeFormatter.format((Temporal) dateType);
         }
         return dateType.toString();
     }
@@ -85,7 +72,7 @@ public class DateTransformer implements Transformer {
         return defaultFormatter;
     }
 
-    private static DateTimeFormatter getDateFormat(TransformInfo formatter) {
+    private DateTimeFormatter getDateFormat(TransformInfo formatter, String className) {
         if (formatter != null) {
             String format = formatter.getFormat();
             String locale = formatter.getLocale();
@@ -97,7 +84,7 @@ public class DateTransformer implements Transformer {
                 return DateTimeFormatter.ofPattern(format).withLocale(Locale.forLanguageTag(locale));
             }
         }
-        return null;
+        return DEFAULT_FORMATTER.get(className);
     }
 
     private static Map<String, DateTimeFormatter> createDefaultFormatter() {
@@ -112,5 +99,4 @@ public class DateTransformer implements Transformer {
 
         return defaultFormatter;
     }
-
 }

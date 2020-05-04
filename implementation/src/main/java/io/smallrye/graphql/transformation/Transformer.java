@@ -16,29 +16,47 @@ public interface Transformer {
     UriTransformer URI_TRANSFORMER = new UriTransformer();
 
     static Transformer transformer(Field field) {
-        if (field.hasTransformInfo()) {
-            TransformInfo format = field.getTransformInfo();
-            if (format.getType().equals(TransformInfo.Type.NUMBER)) {
-                if (format.getFormat() != null || format.getLocale() != null) {
-                    return new FormattedNumberTransformer(field);
+        if (shouldTransform(field)) {
+            if (field.hasTransformInfo()) {
+                TransformInfo format = field.getTransformInfo();
+                if (format.getType().equals(TransformInfo.Type.NUMBER)) {
+                    if (format.getFormat() != null || format.getLocale() != null) {
+                        return new FormattedNumberTransformer(field);
+                    }
+                    return new NumberTransformer(field);
+
+                } else if (format.getType().equals(TransformInfo.Type.DATE)) {
+                    return dateTransformer(field);
                 }
+            } else if (Classes.isUUID(field.getReference().getClassName())) {
+                return UUID_TRANSFORMER;
+            } else if (Classes.isURL(field.getReference().getClassName())) {
+                return URL_TRANSFORMER;
+            } else if (Classes.isURI(field.getReference().getClassName())) {
+                return URI_TRANSFORMER;
+            } else if (Classes.isDateLikeType(field.getReference().getClassName())) {
+                return dateTransformer(field);
+            } else if (Classes.isNumberLikeType(field.getReference().getClassName())) {
                 return new NumberTransformer(field);
-
-            } else if (format.getType().equals(TransformInfo.Type.DATE)) {
-                if (LegacyDateTransformer.SUPPORTED_TYPES.contains(field.getReference().getClassName())) {
-                    return new LegacyDateTransformer(field);
-                }
-                return new DateTransformer(field);
             }
-
-        } else if (Classes.isUUID(field.getReference().getClassName())) {
-            return UUID_TRANSFORMER;
-        } else if (Classes.isURL(field.getReference().getClassName())) {
-            return URL_TRANSFORMER;
-        } else if (Classes.isURI(field.getReference().getClassName())) {
-            return URI_TRANSFORMER;
         }
         return PASS_THROUGH_TRANSFORMER;
+    }
+
+    static Transformer dateTransformer(Field field) {
+        if (LegacyDateTransformer.SUPPORTED_TYPES.contains(field.getReference().getClassName())) {
+            return new LegacyDateTransformer(field);
+        }
+        return new DateTransformer(field);
+    }
+
+    static boolean shouldTransform(Field field) {
+        return field.hasTransformInfo()
+                || Classes.isUUID(field.getReference().getClassName())
+                || Classes.isURL(field.getReference().getClassName())
+                || Classes.isURI(field.getReference().getClassName())
+                || Classes.isDateLikeType(field.getReference().getClassName())
+                || Classes.isNumberLikeType(field.getReference().getClassName());
     }
 
     Object in(Object o) throws Exception;

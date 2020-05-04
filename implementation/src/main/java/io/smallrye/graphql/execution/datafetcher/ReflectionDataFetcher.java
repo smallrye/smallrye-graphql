@@ -86,8 +86,8 @@ public class ReflectionDataFetcher implements DataFetcher {
             decorator.before(dfe);
         });
         Object declaringObject = lookupService.getInstance(operation.getClassName());
-        Class cdiClass = declaringObject.getClass();
         try {
+            Class cdiClass = declaringObject.getClass();
             Object resultFromMethodCall = null;
             if (operation.hasArguments()) {
                 Method m = cdiClass.getMethod(operation.getMethodName(), getParameterClasses());
