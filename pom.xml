@@ -12,7 +12,7 @@
     <version>1.0.3-SNAPSHOT</version>
 
     <packaging>pom</packaging>
-    <name>SmallRye: MicroProfile GraphQL Parent</name>
+    <name>SmallRye: GraphQL Parent</name>
     <url>http://smallrye.io</url>
 
     <properties>
@@ -45,26 +45,10 @@
     </scm>
 
     <modules>
-        <!-- Building a schema model from Jandex -->
-        <module>schema-model</module>
-        <module>schema-builder</module>
-        <!-- Our implementation, with our api experimentation -->
-        <module>api</module>
-        <module>implementation</module>
-        <module>implementation-cdi</module>
-        <module>implementation-servlet</module>
-        <module>tck</module>
-        <module>runner</module>
-        <module>integration-tests</module>
-        <!-- Our client implementation, with our api experimentation -->
-        <module>client-api</module>
-        <module>client-implementation</module>
-        <module>client-tck</module>
-        <!-- The Maven plugin -->
-        <module>maven-plugin</module>
-        <!-- The Gradle plugin -->
-        <module>gradle-plugin</module>
-
+        <module>common</module>
+        <module>server</module>
+        <module>client</module>
+        <module>tools</module>
     </modules>
     
     <dependencyManagement>

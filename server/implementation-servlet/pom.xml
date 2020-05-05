@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-graphql-server-parent</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>smallrye-graphql-servlet</artifactId>
+    <name>SmallRye: GraphQL Server :: Servlet</name>
+
+    <properties>
+        <jakarta.servlet.version>4.0.3</jakarta.servlet.version>
+    </properties>
+
+    <dependencies>
+        
+        <!-- The Implementation (with CDI) -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-cdi</artifactId>
+        </dependency>
+        
+        <!-- The model builder -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-schema-builder</artifactId>
+        </dependency>
+        
+        
+        <!-- From MicroProfile -->
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json.bind</groupId>
+            <artifactId>jakarta.json.bind-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.metrics</groupId>
+            <artifactId>microprofile-metrics-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Servlet -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>coverage</id>
+            <properties>
+                <argLine>@{jacocoArgLine}</argLine>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

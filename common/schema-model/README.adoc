@@ -1,0 +1,101 @@
+= SmallRye GraphQL Schema Model
+
+This is a representation of a GraphQL Schema. It gets build using Jandex scanning and passed into the implementation to create an executable endpoint.
+
+image:/common/schema-model/classdiagram.png[link="common/schema-model/classdiagram.png"]
+
+== Schema
+
+A Schema contains:
+
+- a set of query operations
+- a set of mutation operations
+- a map of interface types, mapped by classname
+- a map of types, mapped by classname
+- a map of input types, mapped by classname
+- a map of enum types, mapped by classname
+
+=== Reference
+
+During scanning certain object reference other objects that might not have been scanned yet, 
+so we always just have reference to that (potentially future) object.
+
+A Reference contains:
+
+- the classname
+- the graphql name
+- the reference type
+
+=== Reference Type
+
+Enum that indicate the type of object. Valid options are:
+
+- INPUT
+- TYPE
+- INTERFACE
+- ENUM
+- SCALAR
+
+=== EnumType
+
+A basic entry in the schema that represent an enum. It contains:
+
+- all fields from Reference
+- a description
+- list of valid values
+
+=== Input Type
+
+A complex entry in the schema that represents a Input. It contains:
+
+- all fields from Reference
+- a description
+- set of fields on the input.
+
+=== Interface
+
+A complex entry in the schema that represents a Interface. It contains:
+
+- all fields from Reference
+- a description
+- set of fields on the type.
+- set of interfaces that this type implements.
+
+=== Type
+
+A complex entry in the schema that represents a Type. It contains:
+
+- all fields from Reference
+- a description
+- set of fields on the type.
+- set of interfaces that this interface implements.
+
+=== Field
+
+Represents a field in a Type/Input/Interface. It contains:
+
+- the Java method name
+- the Java property name (typically same as method without get/set)
+- the GraphQL name
+- a optional description
+- a reference to the type
+- a notNull flag
+- an optional array, that contains information about the array
+- an optional format, that contains information about transformation
+- an optional default value
+
+=== Operation
+A special kind of field, that can also take arguments on the field. 
+It's used by Queries, Mutations and Source fields. It contains:
+
+- everything from Field
+- a Java Class Name (where this operation method is on)
+- a list of arguments
+
+=== Argument
+
+A special kind of field that is use as input. It contains:
+
+- everything from Field
+- the java method parameter name
+- an indication if this argument is a Source argument
