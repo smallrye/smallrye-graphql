@@ -10,6 +10,7 @@ import java.util.Collections;
 
 import org.junit.Test;
 
+import graphql.GraphQLContext;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLNamedType;
@@ -66,13 +67,13 @@ public class MetricsTest {
         when(dfe.getField()).thenReturn(field);
 
         decorator.before(dfe);
-        decorator.after(dfe);
+        decorator.after(dfe, GraphQLContext.newContext().build());
 
         decorator.before(dfe);
-        decorator.after(dfe);
+        decorator.after(dfe, GraphQLContext.newContext().build());
 
         decorator.before(dfe);
-        decorator.after(dfe);
+        decorator.after(dfe, GraphQLContext.newContext().build());
 
         Field field2 = mock(Field.class);
         when(field2.getName()).thenReturn("myOtherQuery");
@@ -81,10 +82,10 @@ public class MetricsTest {
         when(dfe2.getParentType()).thenReturn(query);
 
         decorator.before(dfe2);
-        decorator.after(dfe2);
+        decorator.after(dfe2, GraphQLContext.newContext().build());
 
         decorator.before(dfe2);
-        decorator.after(dfe2);
+        decorator.after(dfe2, GraphQLContext.newContext().build());
 
         MockMetricsRegistry registry = TestMetricsServiceImpl.INSTANCE.vendorRegistry;
         assertEquals(2, registry.simpleTimers.size());

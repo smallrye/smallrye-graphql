@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
+import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.spi.MetricsService;
@@ -27,7 +28,7 @@ public class MetricDecorator implements DataFetcherDecorator {
     }
 
     @Override
-    public void after(DataFetchingEnvironment dfe) {
+    public void after(DataFetchingEnvironment dfe, GraphQLContext newGraphQLContext) {
         Long startTime = startTimes.remove(dfe);
         if (startTime != null) {
             long duration = System.nanoTime() - startTime;

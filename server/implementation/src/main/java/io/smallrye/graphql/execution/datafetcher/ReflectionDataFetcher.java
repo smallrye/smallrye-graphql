@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
+import graphql.GraphQLContext;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
 import graphql.execution.ExecutionPath;
@@ -81,7 +82,11 @@ public class ReflectionDataFetcher implements DataFetcher {
      * @throws Exception
      */
     @Override
-    public Object get(DataFetchingEnvironment dfe) throws Exception {
+    public DataFetcherResult<Object> get(DataFetchingEnvironment dfe) throws Exception {
+        //TODO: custom context object?
+        final GraphQLContext context = GraphQLContext.newContext().build();
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
         decorators.forEach(decorator -> {
             decorator.before(dfe);
         });
@@ -93,10 +98,10 @@ public class ReflectionDataFetcher implements DataFetcher {
             Object resultFromMethodCall = m.invoke(declaringObject, transformedArguments);
 
             // See if we need to transform on the way out
-            return fieldHelper.transformResponse(resultFromMethodCall);
+            resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
 
         } catch (TransformException pe) {
-            return pe.getDataFetcherResult(dfe);
+            pe.appendDataFetcherResult(resultBuilder, dfe);
         } catch (InvocationTargetException | NoSuchMethodException | SecurityException | GraphQLException
                 | IllegalAccessException | IllegalArgumentException ex) {
             Throwable throwable = ex.getCause();
@@ -108,17 +113,22 @@ public class ReflectionDataFetcher implements DataFetcher {
                     throw (Error) throwable;
                 } else if (throwable instanceof GraphQLException) {
                     GraphQLException graphQLException = (GraphQLException) throwable;
-                    return getPartialResult(dfe, graphQLException);
+                    appendPartialResult(resultBuilder, dfe, graphQLException);
                 } else {
                     throw (Exception) throwable;
                 }
             }
         } finally {
-            decorators.forEach(decorator -> decorator.after(dfe));
+            decorators.forEach(decorator -> decorator.after(dfe, context));
         }
+
+        return resultBuilder.build();
     }
 
-    private DataFetcherResult<Object> getPartialResult(DataFetchingEnvironment dfe, GraphQLException graphQLException) {
+    private DataFetcherResult.Builder<Object> appendPartialResult(
+            DataFetcherResult.Builder<Object> resultBuilder,
+            DataFetchingEnvironment dfe,
+            GraphQLException graphQLException) {
         DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
                 .newExceptionParameters()
                 .dataFetchingEnvironment(dfe)
@@ -130,11 +140,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
                 sourceLocation);
 
-        return DataFetcherResult.newResult()
+        return resultBuilder
                 .data(graphQLException.getPartialResults())
-                .error(error)
-                .build();
-
+                .error(error);
     }
 
     /**

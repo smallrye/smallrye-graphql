@@ -34,8 +34,8 @@ public class TransformException extends RuntimeException {
         }
     }
 
-    public DataFetcherResult<Object> getDataFetcherResult(DataFetchingEnvironment dfe) {
-
+    public DataFetcherResult.Builder<Object> appendDataFetcherResult(DataFetcherResult.Builder<Object> builder,
+            DataFetchingEnvironment dfe) {
         DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
                 .newExceptionParameters()
                 .dataFetchingEnvironment(dfe)
@@ -51,9 +51,7 @@ public class TransformException extends RuntimeException {
                         + "'}' is not a valid '" + getScalarTypeName() + "'",
                 paths);
 
-        return DataFetcherResult.newResult()
-                .error(error)
-                .build();
+        return builder.error(error);
     }
 
     private String getScalarTypeName() {
