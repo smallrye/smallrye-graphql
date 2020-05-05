@@ -26,7 +26,14 @@
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>
+            <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- Logging -->
         <dependency>
@@ -83,7 +90,7 @@
         
         <!-- Run against the current released version -->
         <profile>
-            <id>v1.0.1</id>
+            <id>v1.0.x</id>
             <activation>
                 <property>
                     <name>!version.eclipse.microprofile.graphql</name>

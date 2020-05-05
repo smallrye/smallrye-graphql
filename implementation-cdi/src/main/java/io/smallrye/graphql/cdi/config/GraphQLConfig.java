@@ -1,4 +1,4 @@
-package io.smallrye.graphql.servlet;
+package io.smallrye.graphql.cdi.config;
 
 import java.util.List;
 import java.util.Optional;
@@ -99,4 +99,43 @@ public class GraphQLConfig implements Config {
         return includeScalarsInSchema;
     }
 
+    public void setBlackList(Optional<List<String>> blackList) {
+        this.blackList = blackList;
+    }
+
+    public void setWhiteList(Optional<List<String>> whiteList) {
+        this.whiteList = whiteList;
+    }
+
+    public void setDefaultErrorMessage(String defaultErrorMessage) {
+        this.defaultErrorMessage = defaultErrorMessage;
+    }
+
+    public void setPrintDataFetcherException(boolean printDataFetcherException) {
+        this.printDataFetcherException = printDataFetcherException;
+    }
+
+    public void setAllowGet(boolean allowGet) {
+        this.allowGet = allowGet;
+    }
+
+    public void setMetricsEnabled(boolean metricsEnabled) {
+        this.metricsEnabled = metricsEnabled;
+    }
+
+    public void setIncludeScalarsInSchema(boolean includeScalarsInSchema) {
+        this.includeScalarsInSchema = includeScalarsInSchema;
+    }
+
+    public void setIncludeDirectivesInSchema(boolean includeDirectivesInSchema) {
+        this.includeDirectivesInSchema = includeDirectivesInSchema;
+    }
+
+    public void setIncludeSchemaDefinitionInSchema(boolean includeSchemaDefinitionInSchema) {
+        this.includeSchemaDefinitionInSchema = includeSchemaDefinitionInSchema;
+    }
+
+    public void setIncludeIntrospectionTypesInSchema(boolean includeIntrospectionTypesInSchema) {
+        this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
+    }
 }
