@@ -28,50 +28,39 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 
 === Project structure
 
+==== Common
+
+* link:common/schema-model[] - Serializable model that defines the schema.
+* link:common/schema-builder[] - Builder that create the model from Jandex.
+
 ==== Server
 
-* link:schema-model[] - Serializable model that defines the schema.
-* link:schema-builder[] - Builder that create the model from Jandex.
-* link:api[] - API (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
-* link:implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
-* link:implementation-cdi[] - Allow lookup of GraphQL Endpoints via CDI
-* link:implementation-servlet[] - Making the implementation available via Servlet
-* link:tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
-* link:runner[] - Manual TCK testing with GraphiQL
-* link:integration-tests[] - To run some Integration tests
-* link:maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
-* link:gradle-plugin[] - Gradle plugin that generates the GraphQL schema from source files.
+* link:server/api[] - API (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
+* link:server/implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
+* link:server/implementation-cdi[] - Allow lookup of GraphQL Endpoints via CDI
+* link:server/implementation-servlet[] - Making the implementation available via Servlet
+* link:server/tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
+* link:server/runner[] - Manual TCK testing with GraphiQL
+* link:server/integration-tests[] - To run some Integration tests
 
 ==== Client
 
-* link:client-api[] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
-* link:client-implementation[] - Implementation of the Eclipse MicroProfile GraphQL Client API.
-* link:client-tck[] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+* link:client/api[] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
+* link:client/implementation[] - Implementation of the Eclipse MicroProfile GraphQL Client API.
+* link:client/tck[] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+
+==== Tools
+
+* link:tools/maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
+* link:tools/gradle-plugin[] - Gradle plugin that generates the GraphQL schema from source files.
 
 === Using the Maven plugin
-To automatically generate the GraphQL schema from your Maven project, add this to your pom.xml:
-[source]
-----
-<plugin>
-    <artifactId>smallrye-graphql-maven-plugin</artifactId>
-    <groupId>io.smallrye</groupId>
-    <executions>
-        <execution>
-            <goals>
-                <goal>generate-schema</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
-----
 
-The schema will appear as `target/generated/schema.graphql`.
-
-More details here: link:maven-plugin[]
+See here: link:tools/maven-plugin[]
 
 === Using the Gradle plugin
 
-See here: link:gradle-plugin[]
+See here: link:tools/gradle-plugin[]
 
 === Links
 
