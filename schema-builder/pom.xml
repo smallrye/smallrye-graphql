@@ -69,7 +69,7 @@
         
         <!-- Run against the current released version -->
         <profile>
-            <id>v1.0.1</id>
+            <id>v1.0.x</id>
             <activation>
                 <property>
                     <name>!version.eclipse.microprofile.graphql</name>

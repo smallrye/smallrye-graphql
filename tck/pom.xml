@@ -69,7 +69,7 @@
                 </property>
             </activation>
             <properties>
-                <version.wildfly>19.0.0.Final</version.wildfly>
+                <version.wildfly>19.1.0.Final</version.wildfly>
             </properties>
 
             <dependencies>

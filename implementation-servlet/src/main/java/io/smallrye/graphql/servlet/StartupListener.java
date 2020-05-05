@@ -20,6 +20,8 @@ import javax.servlet.annotation.WebListener;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 
+import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.cdi.producer.GraphQLProducer;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -34,9 +36,6 @@ public class StartupListener implements ServletContextListener {
 
     @Inject
     private GraphQLProducer graphQLProducer;
-
-    @Inject
-    private GraphQLConfig config;
 
     private final IndexInitializer indexInitializer = new IndexInitializer();
 
@@ -57,9 +56,9 @@ public class StartupListener implements ServletContextListener {
             IndexView index = indexInitializer.createIndex(warURLs);
 
             Schema schema = SchemaBuilder.build(index); // Get the smallrye schema
-            graphQLProducer.initializeGraphQL(config, schema);
+            GraphQLSchema graphQLSchema = graphQLProducer.initialize(schema);
 
-            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLProducer.getGraphQLSchema());
+            sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);
             LOG.info("SmallRye GraphQL initialized");
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
