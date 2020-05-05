@@ -88,16 +88,9 @@ public class ReflectionDataFetcher implements DataFetcher {
         Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
         Object declaringObject = lookupService.getInstance(operationClass);
         try {
-            Class cdiClass = declaringObject.getClass();
-            Object resultFromMethodCall = null;
-            if (operation.hasArguments()) {
-                Method m = cdiClass.getMethod(operation.getMethodName(), getParameterClasses());
-                List transformedArguments = argumentHelper.getArguments(dfe);
-                resultFromMethodCall = m.invoke(declaringObject, transformedArguments.toArray());
-            } else {
-                Method m = cdiClass.getMethod(operation.getMethodName());
-                resultFromMethodCall = m.invoke(declaringObject);
-            }
+            Method m = operationClass.getMethod(operation.getMethodName(), getParameterClasses());
+            Object[] transformedArguments = argumentHelper.getArguments(dfe);
+            Object resultFromMethodCall = m.invoke(declaringObject, transformedArguments);
 
             // See if we need to transform on the way out
             return fieldHelper.transformResponse(resultFromMethodCall);
