@@ -3,11 +3,13 @@ package io.smallrye.graphql.schema;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Optional;
@@ -134,6 +136,9 @@ public class Classes {
     public static final DotName ZONEDDATETIME = DotName.createSimple(ZonedDateTime.class.getName());
     public static final DotName OFFSETDATETIME = DotName.createSimple(OffsetDateTime.class.getName());
     public static final DotName OFFSETTIME = DotName.createSimple(OffsetTime.class.getName());
+
+    public static final DotName PERIOD = DotName.createSimple(Period.class.getName());
+    public static final DotName DURATION = DotName.createSimple(Duration.class.getName());
 
     public static final DotName UTIL_DATE = DotName.createSimple(Date.class.getName());
     public static final DotName SQL_DATE = DotName.createSimple(java.sql.Date.class.getName());

@@ -2,11 +2,13 @@ package io.smallrye.graphql.execution;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +42,14 @@ public class Classes {
 
     public static boolean isURI(String className) {
         return className.equals(URI);
+    }
+
+    public static boolean isPeriod(final String className) {
+        return className.equals(PERIOD);
+    }
+
+    public static boolean isDuration(final String className) {
+        return className.equals(DURATION);
     }
 
     public static boolean isPrimitive(String primitiveName) {
@@ -91,6 +101,9 @@ public class Classes {
     public static final String SQL_DATE = java.sql.Date.class.getName();
     public static final String SQL_TIMESTAMP = java.sql.Timestamp.class.getName();
     public static final String SQL_TIME = java.sql.Time.class.getName();
+
+    public static final String DURATION = Duration.class.getName();
+    public static final String PERIOD = Period.class.getName();
 
     public static final String BYTE = Byte.class.getName();
     public static final String BYTE_PRIMATIVE = byte.class.getName();

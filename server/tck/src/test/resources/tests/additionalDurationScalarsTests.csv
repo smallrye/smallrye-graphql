@@ -1,0 +1,5 @@
+# test additional duration scalars
+1| type AdditionalDurationScalars   |   duration: Duration                                          |   Duration should be mapped to Duration
+2| type AdditionalDurationScalars   |   period: Period                                              |   Period should be mapped to Period
+
+
