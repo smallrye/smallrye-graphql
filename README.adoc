@@ -35,28 +35,28 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 
 ==== Server
 
-* link:server/api[] - API (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
-* link:server/implementation[] - Implementation of the Eclipse MicroProfile GraphQL API.
-* link:server/implementation-cdi[] - Allow lookup of GraphQL Endpoints via CDI
-* link:server/implementation-servlet[] - Making the implementation available via Servlet
-* link:server/tck[] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
-* link:server/runner[] - Manual TCK testing with GraphiQL
-* link:server/integration-tests[] - To run some Integration tests
+* link:server/api[API] - API (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
+* link:server/implementation[Implementation] - Implementation of the Eclipse MicroProfile GraphQL API.
+* link:server/implementation-cdi[CDI] - Allow lookup of GraphQL Endpoints via CDI
+* link:server/implementation-servlet[Servlet] - Making the implementation available via Servlet
+* link:server/tck[TCK] - Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
+* link:server/runner[Runner] - Manual TCK testing with GraphiQL
+* link:server/integration-tests[IT] - To run some Integration tests
 
 ==== Client
 
-* link:client/api[] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
-* link:client/implementation[] - Implementation of the Eclipse MicroProfile GraphQL Client API.
-* link:client/tck[] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+* link:client/api[API] - Client API (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
+* link:client/implementation[Implementation] - Implementation of the Eclipse MicroProfile GraphQL Client API.
+* link:client/tck[TCK] - Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
 
 ==== Tools
 
-* link:tools/maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
-* link:tools/gradle-plugin[] - Gradle plugin that generates the GraphQL schema from source files.
+* link:tools/maven-plugin[Maven] - Maven plugin that generates the GraphQL schema from source files.
+* link:tools/gradle-plugin[Gradle] - Gradle plugin that generates the GraphQL schema from source files.
 
 ==== UI
 
-* link:ui/graphiql[] - Add GraphiQL UI to your project
+* link:ui/graphiql[GraphiQL] - Add GraphiQL UI to your project
 
 === Using the Maven plugin
 
