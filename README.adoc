@@ -54,6 +54,10 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 * link:tools/maven-plugin[] - Maven plugin that generates the GraphQL schema from source files.
 * link:tools/gradle-plugin[] - Gradle plugin that generates the GraphQL schema from source files.
 
+==== UI
+
+* link:ui/grapiql[] - Add GraphiQL UI to your project
+
 === Using the Maven plugin
 
 See here: link:tools/maven-plugin[]
