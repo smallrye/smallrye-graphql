@@ -58,14 +58,6 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 
 * link:ui/graphiql[GraphiQL] UI for your project
 
-=== Using the Maven plugin
-
-See here: link:tools/maven-plugin[]
-
-=== Using the Gradle plugin
-
-See here: link:tools/gradle-plugin[]
-
 === Links
 
 * http://github.com/smallrye/smallrye-graphql/[Project Homepage]
