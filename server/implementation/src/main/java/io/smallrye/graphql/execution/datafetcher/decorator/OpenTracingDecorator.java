@@ -9,7 +9,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.smallrye.graphql.execution.datafetcher.helper.DataFetchingEnvironmentHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.NameHelper;
 import io.smallrye.graphql.spi.OpenTracingService;
 
 public class OpenTracingDecorator implements DataFetcherDecorator {
@@ -23,7 +23,7 @@ public class OpenTracingDecorator implements DataFetcherDecorator {
     public void before(final DataFetchingEnvironment env) {
         Tracer tracer = openTracingService.getTracer();
 
-        String parent = DataFetchingEnvironmentHelper.getName(env.getParentType());
+        String parent = NameHelper.getName(env.getParentType());
 
         String name = "GraphQL:" + parent + "." + env.getField().getName();
 
@@ -33,7 +33,7 @@ public class OpenTracingDecorator implements DataFetcherDecorator {
                 .asChildOf(parentSpan)
                 .withTag("graphql.executionId", env.getExecutionId().toString())
                 .withTag("graphql.operationName", env.getOperationDefinition().getName())
-                .withTag("graphql.parent", DataFetchingEnvironmentHelper.getName(env.getParentType()))
+                .withTag("graphql.parent", parent)
                 .withTag("graphql.field", env.getField().getName())
                 .withTag("graphql.path", env.getExecutionStepInfo().getPath().toString())
                 .startActive(true);
