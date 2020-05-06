@@ -56,7 +56,7 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=1.1-SNAPSHOT
 
 ==== UI
 
-* link:ui/grapiql[] - Add GraphiQL UI to your project
+* link:ui/graphiql[] - Add GraphiQL UI to your project
 
 === Using the Maven plugin
 
