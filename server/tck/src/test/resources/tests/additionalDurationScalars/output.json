@@ -1,0 +1,13 @@
+{
+  "data": {
+    "additionalDurationScalars": {
+      "duration": "PT1H2M3S",
+      "durationInput": "PT1H2M3S",
+      "durationDefault": "PT1H2M3S",
+
+      "period": "P1Y2M3D",
+      "periodInput": "P1Y2M3D",
+      "periodDefault": "P1Y2M3D"
+    }
+  }
+}

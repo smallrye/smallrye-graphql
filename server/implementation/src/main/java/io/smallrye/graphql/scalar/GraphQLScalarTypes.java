@@ -14,6 +14,8 @@ import io.smallrye.graphql.scalar.number.FloatScalar;
 import io.smallrye.graphql.scalar.number.IntegerScalar;
 import io.smallrye.graphql.scalar.time.DateScalar;
 import io.smallrye.graphql.scalar.time.DateTimeScalar;
+import io.smallrye.graphql.scalar.time.DurationScalar;
+import io.smallrye.graphql.scalar.time.PeriodScalar;
 import io.smallrye.graphql.scalar.time.TimeScalar;
 
 /**
@@ -65,6 +67,9 @@ public class GraphQLScalarTypes {
         mapType(new DateScalar()); // LocalDate, java.sql.Date
         mapType(new TimeScalar()); // LocalTime, java.sql.Time, OffsetTime
         mapType(new DateTimeScalar()); // LocalDateTime, Date, java.sql.Timestamp, ZonedDateTime, OffsetDateTime
+
+        mapType(new PeriodScalar());
+        mapType(new DurationScalar());
 
         for (final GraphQLScalarType value : SCALAR_MAP.values()) {
             SCALARS_BY_NAME.put(value.getName(), value);

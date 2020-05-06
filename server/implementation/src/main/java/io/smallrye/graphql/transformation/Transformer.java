@@ -14,6 +14,8 @@ public interface Transformer {
     UuidTransformer UUID_TRANSFORMER = new UuidTransformer();
     UrlTransformer URL_TRANSFORMER = new UrlTransformer();
     UriTransformer URI_TRANSFORMER = new UriTransformer();
+    PeriodTransformer PERIOD_TRANSFORMER = new PeriodTransformer();
+    DurationTransformer DURATION_TRANSFORMER = new DurationTransformer();
 
     static Transformer transformer(Field field) {
         if (field.hasTransformInfo()) {
@@ -33,6 +35,10 @@ public interface Transformer {
             return URL_TRANSFORMER;
         } else if (Classes.isURI(field.getReference().getClassName())) {
             return URI_TRANSFORMER;
+        } else if (Classes.isDuration(field.getReference().getClassName())) {
+            return DURATION_TRANSFORMER;
+        } else if (Classes.isPeriod(field.getReference().getClassName())) {
+            return PERIOD_TRANSFORMER;
         } else if (Classes.isDateLikeType(field.getReference().getClassName())) {
             return dateTransformer(field);
         } else if (Classes.isNumberLikeType(field.getReference().getClassName())) {
@@ -54,6 +60,8 @@ public interface Transformer {
                 || Classes.isUUID(field.getReference().getClassName())
                 || Classes.isURL(field.getReference().getClassName())
                 || Classes.isURI(field.getReference().getClassName())
+                || Classes.isPeriod(field.getReference().getClassName())
+                || Classes.isDuration(field.getReference().getClassName())
                 || Classes.isDateLikeType(field.getReference().getClassName())
                 || Classes.isNumberLikeType(field.getReference().getClassName());
     }

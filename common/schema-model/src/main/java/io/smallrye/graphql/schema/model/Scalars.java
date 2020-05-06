@@ -7,11 +7,13 @@ import java.net.URL;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +36,8 @@ public class Scalars {
     private static final String TIME = "Time";
     private static final String DATETIME = "DateTime";
     private static final String ID = "ID";
+    private static final String PERIOD = "Period";
+    private static final String DURATION = "Duration";
 
     private Scalars() {
     }
@@ -92,6 +96,9 @@ public class Scalars {
         populateScalar(Timestamp.class.getName(), DATETIME);
         populateScalar(ZonedDateTime.class.getName(), DATETIME);
         populateScalar(OffsetDateTime.class.getName(), DATETIME);
+
+        populateScalar(Duration.class.getName(), DURATION);
+        populateScalar(Period.class.getName(), PERIOD);
 
         populateScalar(ID, ID);
     }
