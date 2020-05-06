@@ -1,4 +1,4 @@
-= SmallRye GraphiQL UI
+= SmallRye Graph__i__QL UI
 
 This allows you you add GraphiQL UI with your project. 
 
