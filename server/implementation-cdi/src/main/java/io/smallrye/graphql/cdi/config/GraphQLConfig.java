@@ -7,7 +7,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.graphql.ConfigKey;
 
 import io.smallrye.graphql.bootstrap.Config;
 
@@ -32,31 +31,31 @@ public class GraphQLConfig implements Config {
     private String defaultErrorMessage;
 
     @Inject
-    @ConfigProperty(name = "mp.graphql.printDataFetcherException", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.PRINT_DATAFETCHER_EXCEPTION, defaultValue = "false")
     private boolean printDataFetcherException;
 
     @Inject
-    @ConfigProperty(name = "mp.graphql.allowGet", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.ALLOW_GET, defaultValue = "false")
     private boolean allowGet;
 
     @Inject
-    @ConfigProperty(name = "smallrye.graphql.metrics.enabled", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.ENABLE_METRICS, defaultValue = "false")
     private boolean metricsEnabled;
 
     @Inject
-    @ConfigProperty(name = "smallrye.graphql.schema.includeScalars", defaultValue = "true")
+    @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_SCALARS, defaultValue = "true")
     private boolean includeScalarsInSchema;
 
     @Inject
-    @ConfigProperty(name = "smallrye.graphql.schema.includeDirectives", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_DIRECTIVES, defaultValue = "false")
     private boolean includeDirectivesInSchema;
 
     @Inject
-    @ConfigProperty(name = "smallrye.graphql.schema.includeSchemaDefinition", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_DEFINITION, defaultValue = "false")
     private boolean includeSchemaDefinitionInSchema;
 
     @Inject
-    @ConfigProperty(name = "smallrye.graphql.schema.includeIntrospectionTypes", defaultValue = "false")
+    @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_INTROSPECTION_TYPES, defaultValue = "false")
     private boolean includeIntrospectionTypesInSchema;
 
     public String getDefaultErrorMessage() {
