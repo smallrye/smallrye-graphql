@@ -45,6 +45,7 @@
     </scm>
 
     <modules>
+        <module>ui</module>
         <module>common</module>
         <module>server</module>
         <module>client</module>
@@ -90,6 +91,11 @@
             </dependency>
 
             <!-- Dependencies provided by the project -->
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>smallrye-graphql-ui-graphiql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-schema-model</artifactId>

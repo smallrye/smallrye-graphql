@@ -1,6 +1,6 @@
 = SmallRye GraphQL Runner
 
-image:/runner/graphiql.png[link="/master/runner/graphiql.png"]
+image:/server/runner/graphiql.png[link="/master/server/runner/graphiql.png"]
 
 == Starting the runner
 
@@ -10,12 +10,13 @@ You can run the server (Wildfly) using maven:
 
 [source,bash]
 ----
- mvn clean install -Pwildfly
+ mvn clean install
+ mvn wildfly:run
 ----
 
 == Using the runner
 
-You can then navigate to http://localhost:8080/graphiql[http://localhost:8080/graphiql]
+You can then navigate to http://localhost:8080/graphql-ui[http://localhost:8080/graphql-ui]
 
 To stop the server simply `ctrl-c` the maven process.
 
