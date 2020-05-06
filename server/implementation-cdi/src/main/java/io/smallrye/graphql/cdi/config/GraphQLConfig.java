@@ -131,6 +131,10 @@ public class GraphQLConfig implements Config {
         this.metricsEnabled = metricsEnabled;
     }
 
+    public void setTracingEnabled(final boolean tracingEnabled) {
+        this.tracingEnabled = tracingEnabled;
+    }
+
     public void setIncludeScalarsInSchema(boolean includeScalarsInSchema) {
         this.includeScalarsInSchema = includeScalarsInSchema;
     }
