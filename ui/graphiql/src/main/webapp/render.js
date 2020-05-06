@@ -1,3 +1,6 @@
+const api = '/graphql';
+const ui = '/graphql-ui';
+
 // Parse the search string to get url parameters.
 var search = window.location.search;
 var parameters = {};
@@ -64,7 +67,6 @@ function updateURL() {
 // use fetch, and could instead implement graphQLFetcher however you like,
 // as long as it returns a Promise or Observable.
 function graphQLFetcher(graphQLParams) {
-  const api = '/graphql';
   return fetch(api, {
     method: 'post',
     headers: {
@@ -104,4 +106,4 @@ ReactDOM.render(
   document.getElementById('graphiql'),
 );
 
-document.getElementsByClassName("title")[0].innerHTML = "<img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'>";
+document.getElementsByClassName("title")[0].innerHTML = "<a href='" + ui + "'><img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'></a>";
