@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-graphql-ui-parent</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+    
+    <artifactId>smallrye-graphql-ui-graphiql</artifactId>
+    <packaging>jar</packaging>
+    
+    <name>SmallRye: GraphQL UI :: Graphiql</name>
+    
+    <properties>
+        <path.graphiql>graphql-ui</path.graphiql>
+    </properties>
+    
+    <build>            
+        <!-- Copy all web content files META-INF folder, and push it though a filter to replace maven properties -->
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/webapp</directory>
+                <targetPath>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.html</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/webapp</directory>
+                <targetPath>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</targetPath>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.html</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        
+    </build>
+    
+</project>

@@ -1,0 +1,21 @@
+= SmallRye GraphiQL UI
+
+This allows you you add GraphiQL UI with your project. 
+
+image:/ui/graphiql/graphiql.png[link="/master/ui/graphiql/graphiql.png"]
+
+The UI will be available under `/graphql-ui`.
+
+To include it in your project (replace xyz with the latest version):
+
+[source,xml]
+----
+    <dependency>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-graphql-ui-graphiql</artifactId>
+        <version>xyz</version>
+        <scope>runtime</scope>
+    </dependency>
+----
+
+This expects the endpoint at `/graphql`.
