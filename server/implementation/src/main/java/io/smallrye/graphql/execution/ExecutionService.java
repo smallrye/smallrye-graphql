@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,11 +57,17 @@ public class ExecutionService {
 
     private GraphQL graphQL;
 
+    private final List<ExecutionDecorator> executionDecorators = new ArrayList<>();
+
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
+
+        if (config != null && config.isTracingEnabled()) {
+            executionDecorators.add(new OpenTracingExecutionDecorator());
+        }
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -82,7 +89,7 @@ public class ExecutionService {
 
             ExecutionInput executionInput = executionBuilder.build();
 
-            ExecutionResult executionResult = g.execute(executionInput);
+            ExecutionResult executionResult = execute(g, executionInput);
 
             JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
@@ -96,6 +103,25 @@ public class ExecutionService {
             LOG.warn("Are you sure you have annotated your methods with @Query or @Mutation ?");
             LOG.warn("\t" + query);
             return null;
+        }
+    }
+
+    private ExecutionResult execute(final GraphQL g, final ExecutionInput executionInput) {
+
+        for (ExecutionDecorator decorator : executionDecorators) {
+            decorator.before(executionInput);
+        }
+        try {
+            ExecutionResult executionResult = g.execute(executionInput);
+            for (ExecutionDecorator decorator : executionDecorators) {
+                decorator.after(executionInput, executionResult);
+            }
+            return executionResult;
+        } catch (Throwable e) {
+            for (ExecutionDecorator decorator : executionDecorators) {
+                decorator.onError(executionInput, e);
+            }
+            throw e;
         }
     }
 

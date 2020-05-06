@@ -43,6 +43,10 @@ public class GraphQLConfig implements Config {
     private boolean metricsEnabled;
 
     @Inject
+    @ConfigProperty(name = ConfigKey.ENABLE_TRACING, defaultValue = "false")
+    private boolean tracingEnabled;
+
+    @Inject
     @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_SCALARS, defaultValue = "true")
     private boolean includeScalarsInSchema;
 
@@ -80,6 +84,11 @@ public class GraphQLConfig implements Config {
 
     public boolean isMetricsEnabled() {
         return metricsEnabled;
+    }
+
+    @Override
+    public boolean isTracingEnabled() {
+        return tracingEnabled;
     }
 
     public boolean isIncludeDirectivesInSchema() {
@@ -137,4 +146,5 @@ public class GraphQLConfig implements Config {
     public void setIncludeIntrospectionTypesInSchema(boolean includeIntrospectionTypesInSchema) {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
     }
+
 }
