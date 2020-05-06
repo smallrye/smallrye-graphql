@@ -27,7 +27,7 @@ public class GraphQLProducer {
     @Inject
     GraphQLConfig graphQLConfig;
 
-    void setSchema(Schema schema) {
+    public void setSchema(Schema schema) {
         this.schema = schema;
     }
 
@@ -36,7 +36,7 @@ public class GraphQLProducer {
         return initialize();
     }
 
-    GraphQLSchema initialize() {
+    public GraphQLSchema initialize() {
         this.graphQLSchema = Bootstrap.bootstrap(schema, graphQLConfig);
         if (graphQLConfig.isMetricsEnabled()) {
             MetricRegistry vendorRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
