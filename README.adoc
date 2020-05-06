@@ -6,6 +6,8 @@ image:https://img.shields.io/github/license/thorntail/thorntail.svg["License", l
 
 = SmallRye GraphQL
 
+image:https://badges.gitter.im/smallrye-graphql/community.svg[link="https://gitter.im/smallrye-graphql/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+
 SmallRye GraphQL is an implementation of {microprofile-graphql}[Eclipse MicroProfile GraphQL].
 
 == Instructions
