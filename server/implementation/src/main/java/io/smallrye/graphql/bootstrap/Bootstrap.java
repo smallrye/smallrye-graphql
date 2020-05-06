@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.smallrye.graphql.execution.MetricNaming;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -88,17 +89,14 @@ public class Bootstrap {
         findAllOperations(schema)
                 .forEach(operation -> {
                     final String description;
-                    final String name;
+                    final String name = MetricNaming.fromOperation(operation);
                     if (operation.getOperationType() == OperationType.Mutation) {
                         description = "Call statistics for the mutation '" + operation.getName() + "'";
-                        name = "mp_graphql_Mutation_" + operation.getName();
                     } else if (operation.getOperationType() == OperationType.Query) {
                         description = "Call statistics for the query '" + operation.getName() + "'";
-                        name = "mp_graphql_Query_" + operation.getName();
                     } else {
                         description = "Call statistics for the query '" + operation.getName()
                                 + "' on type '" + operation.getContainingType().getName() + "'";
-                        name = "mp_graphql_" + operation.getContainingType().getName() + "_" + operation.getName();
                     }
 
                     Metadata metadata = Metadata.builder()
