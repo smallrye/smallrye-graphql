@@ -26,10 +26,7 @@ public class OpenTracingExecutionDecorator implements ExecutionDecorator {
     public void before(final ExecutionInput executionInput) {
         Tracer tracer = openTracingService.getTracer();
 
-        String operationName = "GraphQL";
-        if (executionInput.getOperationName() != null && !executionInput.getOperationName().isEmpty()) {
-            operationName = "GraphQL:" + executionInput.getOperationName();
-        }
+        String operationName = SpanNaming.getOperationName(executionInput);
 
         Scope scope = tracer.buildSpan(operationName)
                 .asChildOf(tracer.activeSpan())
