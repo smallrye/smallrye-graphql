@@ -15,6 +15,8 @@
     
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
+        <react.version>16.13.1</react.version>
+        <graphiql.version>0.17.5</graphiql.version>
     </properties>
     
     <build>            
@@ -40,6 +42,71 @@
                 </excludes>
             </resource>
         </resources>
+        
+        <plugins>
+            <!-- So we don't have to keep a version of these javascript libs in our repo -->
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                        <execution>
+                            <id>install-react</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>wget</goal>
+                            </goals>
+                            <configuration>
+                                <url>https://unpkg.com/react@${react.version}/umd/react.production.min.js</url>
+                                <unpack>false</unpack>
+                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
+                                <md5>edf56a42bca6b565bf7dfcbd8ffc221a</md5>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>install-react-dom</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>wget</goal>
+                            </goals>
+                            <configuration>
+                                <url>https://unpkg.com/react-dom@${react.version}/umd/react-dom.production.min.js</url>
+                                <unpack>false</unpack>
+                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
+                                <md5>dcf51763fb4a654e15a4e6e7754ca5d2</md5>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>install-graphiql-js</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>wget</goal>
+                            </goals>
+                            <configuration>
+                                <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.js</url>
+                                <unpack>false</unpack>
+                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
+                                <md5>e870833e4950a9691d60b55b753b2266</md5>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>install-graphiql-css</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>wget</goal>
+                            </goals>
+                            <configuration>
+                                <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.css</url>
+                                <unpack>false</unpack>
+                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
+                                <md5>a8f9f6b61b9c0f3694290cf3af318973</md5>
+                            </configuration>
+                        </execution>
+                        
+                        
+                </executions>
+            </plugin>
+        </plugins>
         
     </build>
     
