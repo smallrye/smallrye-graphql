@@ -3,10 +3,9 @@
 image:https://github.com/smallrye/smallrye-graphql/workflows/SmallRye%20Build/badge.svg?branch=master[link=https://github.com/smallrye/smallrye-graphql/actions?query=workflow%3A%22SmallRye+Build%22]
 image:https://sonarcloud.io/api/project_badges/measure?project=smallrye_smallrye-graphql&metric=alert_status["Quality Gate Status", link="https://sonarcloud.io/dashboard?id=smallrye_smallrye-graphql"]
 image:https://img.shields.io/github/license/thorntail/thorntail.svg["License", link="http://www.apache.org/licenses/LICENSE-2.0"]
+image:https://badges.gitter.im/smallrye-graphql/community.svg[link="https://gitter.im/smallrye-graphql/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 
 = SmallRye GraphQL
-
-image:https://badges.gitter.im/smallrye-graphql/community.svg[link="https://gitter.im/smallrye-graphql/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 
 SmallRye GraphQL is an implementation of {microprofile-graphql}[Eclipse MicroProfile GraphQL].
 
