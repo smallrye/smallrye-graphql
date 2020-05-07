@@ -32,7 +32,7 @@ public interface OpenTracingService {
 
         @Override
         public String getName() {
-            return "Unsupported Metrics Service";
+            return "Unsupported OpenTracing Service";
         }
 
         @Override
