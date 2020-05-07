@@ -1,5 +1,6 @@
 package io.smallrye.graphql.bootstrap;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,6 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -52,6 +59,7 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
+import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -379,7 +387,7 @@ public class Bootstrap {
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
 
         // Default value (on method)
-        inputFieldBuilder = inputFieldBuilder.defaultValue(field.getDefaultValue());
+        inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
 
         GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
 
@@ -489,7 +497,7 @@ public class Bootstrap {
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                 .name(argument.getName())
                 .description(argument.getDescription())
-                .defaultValue(argument.getDefaultValue());
+                .defaultValue(sanitizeDefaultValue(argument));
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
@@ -519,6 +527,33 @@ public class Bootstrap {
 
     }
 
+    private Object sanitizeDefaultValue(Field field) {
+        String jsonString = field.getDefaultValue();
+
+        if (isJsonString(jsonString)) {
+            Class type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+            return JSONB.fromJson(jsonString, type);
+        }
+        return jsonString;
+    }
+
+    private boolean isJsonString(String string) {
+        if (string != null && !string.isEmpty() && (string.contains("{") || string.contains("["))) {
+            try (StringReader stringReader = new StringReader(string);
+                    JsonReader jsonReader = jsonReaderFactory.createReader(stringReader)) {
+
+                jsonReader.readValue();
+                return true;
+            } catch (Exception ex) {
+                // Not a valid json
+            }
+        }
+        return false;
+    }
+
     private static final String QUERY = "Query";
     private static final String MUTATION = "Mutation";
+
+    private static final Jsonb JSONB = JsonbBuilder.create();
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 }
