@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.text.ParseException;
 import java.time.DateTimeException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -56,13 +55,14 @@ public class ArgumentHelper extends AbstractHelper {
      *
      * @throws GraphQLException
      */
-    public List getArguments(DataFetchingEnvironment dfe)
+    public Object[] getArguments(DataFetchingEnvironment dfe)
             throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
-        List argumentObjects = new LinkedList();
+        Object[] argumentObjects = new Object[arguments.size()];
+        int idx = 0;
         for (Argument argument : arguments) {
-
             Object argumentValue = getArgument(dfe, argument);
-            argumentObjects.add(argumentValue);
+            argumentObjects[idx] = argumentValue;
+            idx++;
         }
 
         return argumentObjects;

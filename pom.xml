@@ -20,7 +20,8 @@
         <version.eclipse.microprofile.graphql>1.0.2</version.eclipse.microprofile.graphql>
         <version.eclipse.microprofile.metrics>2.3.1</version.eclipse.microprofile.metrics>
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
-        
+        <version.opentracing>0.31.0</version.opentracing>
+
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.0.Final</slf4j-jboss-logging.version>
     </properties>
@@ -89,6 +90,14 @@
                 <artifactId>microprofile-metrics-api</artifactId>
                 <version>${version.eclipse.microprofile.metrics}</version>
             </dependency>
+
+            <!-- OpenTracing -->
+            <dependency>
+                <groupId>io.opentracing</groupId>
+                <artifactId>opentracing-api</artifactId>
+                <version>${version.opentracing}</version>
+            </dependency>
+
 
             <!-- Dependencies provided by the project -->
             <dependency>

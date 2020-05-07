@@ -62,6 +62,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- OpenTracing -->
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
@@ -83,6 +90,11 @@
             <artifactId>yasson</artifactId>
             <version>1.0.7</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-mock</artifactId>
+            <version>${version.opentracing}</version>
         </dependency>
         <!-- The model builder -->
         <dependency>

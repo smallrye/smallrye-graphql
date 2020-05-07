@@ -2,7 +2,6 @@ package io.smallrye.graphql.bootstrap;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +35,7 @@ import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
+import io.smallrye.graphql.execution.datafetcher.decorator.OpenTracingDecorator;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
@@ -322,11 +322,12 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        Collection<DataFetcherDecorator> decorators;
+        Collection<DataFetcherDecorator> decorators = new ArrayList<>();
         if (config != null && config.isMetricsEnabled()) {
-            decorators = Collections.singletonList(new MetricDecorator());
-        } else {
-            decorators = Collections.emptyList();
+            decorators.add(new MetricDecorator());
+        }
+        if (config != null && config.isTracingEnabled()) {
+            decorators.add(new OpenTracingDecorator());
         }
         ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(operation, decorators);
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,

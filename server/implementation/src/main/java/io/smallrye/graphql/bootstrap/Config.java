@@ -49,4 +49,8 @@ public interface Config {
     default boolean isIncludeIntrospectionTypesInSchema() {
         return false;
     }
+
+    default boolean isTracingEnabled() {
+        return false;
+    };
 }
