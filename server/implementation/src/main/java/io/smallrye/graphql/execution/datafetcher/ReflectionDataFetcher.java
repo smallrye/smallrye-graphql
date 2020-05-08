@@ -104,7 +104,7 @@ public class ReflectionDataFetcher implements DataFetcher {
             //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException ex) {
-            //m.invokes failed
+            //m.invoke failed
             throw new DataFetcherException(operation, ex);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something
