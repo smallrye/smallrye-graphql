@@ -5,12 +5,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.eclipse.microprofile.graphql.GraphQLException;
-
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.transformation.TransformException;
 
 /**
  * Help with the fields when fetching data.
@@ -31,7 +30,7 @@ public abstract class AbstractHelper {
      * @param field the field as created when scanning
      * @return the return value
      */
-    abstract Object afterRecursiveTransform(Object fieldValue, Field field) throws GraphQLException;
+    abstract Object afterRecursiveTransform(Object fieldValue, Field field) throws TransformException;
 
     /**
      * This do the transform of a 'leaf' value
@@ -40,7 +39,7 @@ public abstract class AbstractHelper {
      * @param field the field as scanned
      * @return transformed value
      */
-    abstract Object singleTransform(Object argumentValue, Field field);
+    abstract Object singleTransform(Object argumentValue, Field field) throws TransformException;
 
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
@@ -49,10 +48,10 @@ public abstract class AbstractHelper {
      * @param inputValue the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and transformed
-     * @throws org.eclipse.microprofile.graphql.GraphQLException
+     * @throws TransformException
      */
     Object recursiveTransform(Object inputValue, Field field)
-            throws GraphQLException {
+            throws TransformException {
 
         if (inputValue == null) {
             return null;
@@ -89,9 +88,9 @@ public abstract class AbstractHelper {
      * @param array the array or list as from graphql-java,
      * @param field the field as created while scanning
      * @return an array with the transformed values in.
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object recursiveTransformArray(Object array, Field field) throws GraphQLException {
+    private Object recursiveTransformArray(Object array, Field field) throws TransformException {
         if (Classes.isCollection(array)) {
             array = ((Collection) array).toArray();
         }
@@ -121,9 +120,9 @@ public abstract class AbstractHelper {
      * @param argumentValue the list as from graphql-java (always an arraylist)
      * @param field the field as created while scanning
      * @return a collection with the transformed values in.
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object recursiveTransformCollection(Object argumentValue, Field field) throws GraphQLException {
+    private Object recursiveTransformCollection(Object argumentValue, Field field) throws TransformException {
         Collection givenCollection = getGivenCollection(argumentValue);
 
         String collectionClassName = field.getArray().getClassName();
@@ -145,11 +144,11 @@ public abstract class AbstractHelper {
      * element.
      * 
      * @param argumentValue the value as from graphql-java
-     * @param argument the argument as created while scanning
+     * @param field the graphql-field
      * @return a optional with the transformed value in.
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object recursiveTransformOptional(Object argumentValue, Field field) throws GraphQLException {
+    private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field) throws TransformException {
         // Check the type and maybe apply transformation
         Collection givenCollection = getGivenCollection(argumentValue);
         if (givenCollection.isEmpty()) {

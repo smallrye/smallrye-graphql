@@ -101,23 +101,26 @@ public class ReflectionDataFetcher implements DataFetcher {
             resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
 
         } catch (TransformException pe) {
+            //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
-        } catch (InvocationTargetException | NoSuchMethodException | SecurityException | GraphQLException
-                | IllegalAccessException | IllegalArgumentException ex) {
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException ex) {
+            //m.invokes failed
+            throw new DataFetcherException(operation, ex);
+        } catch (InvocationTargetException ex) {
+            //Invoked method has thrown something
             Throwable throwable = ex.getCause();
 
             if (throwable == null) {
                 throw new DataFetcherException(operation, ex);
+            } else if (throwable instanceof Error) {
+                throw (Error) throwable;
+            } else if (throwable instanceof GraphQLException) {
+                GraphQLException graphQLException = (GraphQLException) throwable;
+                appendPartialResult(resultBuilder, dfe, graphQLException);
             } else {
-                if (throwable instanceof Error) {
-                    throw (Error) throwable;
-                } else if (throwable instanceof GraphQLException) {
-                    GraphQLException graphQLException = (GraphQLException) throwable;
-                    appendPartialResult(resultBuilder, dfe, graphQLException);
-                } else {
-                    throw (Exception) throwable;
-                }
+                throw (Exception) throwable;
             }
+
         } finally {
             decorators.forEach(decorator -> decorator.after(dfe, context));
         }

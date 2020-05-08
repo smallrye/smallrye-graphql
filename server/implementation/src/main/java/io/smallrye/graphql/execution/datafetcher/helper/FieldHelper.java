@@ -1,11 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
-import java.text.ParseException;
-import java.time.DateTimeException;
-
-import org.eclipse.microprofile.graphql.GraphQLException;
-
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 
 /**
@@ -30,7 +26,7 @@ public class FieldHelper extends AbstractHelper {
     }
 
     public Object transformResponse(Object argumentValue)
-            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
+            throws TransformException {
         if (Transformer.shouldTransform(field)) {
             argumentValue = super.recursiveTransform(argumentValue, field);
         }
@@ -45,13 +41,12 @@ public class FieldHelper extends AbstractHelper {
      * @return transformed value
      */
     @Override
-    Object singleTransform(Object argumentValue, Field field) {
-        Transformer transformer = Transformer.transformer(field);
-        return transformer.out(argumentValue);
+    Object singleTransform(Object argumentValue, Field field) throws TransformException {
+        return Transformer.out(field, argumentValue);
     }
 
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws GraphQLException {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field) {
         return fieldValue;
     }
 

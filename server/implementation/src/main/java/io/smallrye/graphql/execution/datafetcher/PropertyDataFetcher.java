@@ -1,14 +1,11 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import java.text.ParseException;
-import java.time.DateTimeException;
-
-import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.transformation.TransformException;
 
 /**
  * Extending the default property data fetcher to intercept the result for some manipulation
@@ -31,7 +28,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
         try {
             // See if we need to transform
             return fieldHelper.transformResponse(resultFromMethodCall);
-        } catch (GraphQLException | DateTimeException | ParseException | NumberFormatException ex) {
+        } catch (TransformException ex) {
             LOG.warn(ex.getMessage());
             return resultFromMethodCall;
         }
