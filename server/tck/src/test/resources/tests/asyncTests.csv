@@ -1,0 +1,3 @@
+# testAsyncTypes
+1| type AsyncSource     |   asyncString: String             |   CompletableFuture<String> should map to String
+1| type AsyncSource     |   asyncLocalDate: Date            |   CompletableFuture<LocalDate> should be mapped to Date

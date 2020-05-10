@@ -1,86 +1,174 @@
 package io.smallrye.graphql.execution.datafetcher.decorator;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import graphql.GraphQLContext;
-import graphql.execution.ExecutionId;
-import graphql.execution.ExecutionPath;
-import graphql.execution.ExecutionStepInfo;
-import graphql.language.Field;
-import graphql.language.OperationDefinition;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLNamedType;
-import io.opentracing.Span;
 import io.opentracing.mock.MockSpan;
+import io.smallrye.graphql.execution.datafetcher.MockDataFetchEnvironment;
+import io.smallrye.graphql.execution.datafetcher.MockExecutionContext;
 import io.smallrye.graphql.opentracing.MockTracerOpenTracingService;
 
 public class OpenTracingDecoratorTest {
 
-    private DataFetchingEnvironment dfe;
-
     @Before
     public void reset() {
         MockTracerOpenTracingService.MOCK_TRACER.reset();
-        this.dfe = dataFetchingEnvironment();
-    }
-
-    private DataFetchingEnvironment dataFetchingEnvironment() {
-        Field field = mock(Field.class);
-        when(field.getName()).thenReturn("myFastQuery");
-        GraphQLNamedType query = mock(GraphQLNamedType.class);
-        when(query.getName()).thenReturn("Query");
-        OperationDefinition operationDefinition = mock(OperationDefinition.class);
-        when(operationDefinition.getName()).thenReturn("someOperation");
-        ExecutionPath executionPath = mock(ExecutionPath.class);
-        when(executionPath.toString()).thenReturn("/Query/myFastQuery");
-        ExecutionStepInfo executionStepInfo = mock(ExecutionStepInfo.class);
-        when(executionStepInfo.getPath()).thenReturn(executionPath);
-
-        DataFetchingEnvironment dfe = mock(DataFetchingEnvironment.class);
-        when(dfe.getParentType()).thenReturn(query);
-        when(dfe.getField()).thenReturn(field);
-        when(dfe.getExecutionId()).thenReturn(ExecutionId.from("1"));
-        when(dfe.getOperationDefinition()).thenReturn(operationDefinition);
-        when(dfe.getExecutionStepInfo()).thenReturn(executionStepInfo);
-        return dfe;
     }
 
     @Test
-    public void testFetchTracing() {
-        OpenTracingDecorator openTracingDecorator = new OpenTracingDecorator();
+    public void testTracingWorks() throws Exception {
+        OpenTracingDecorator decorator = new OpenTracingDecorator();
 
-        openTracingDecorator.before(dfe);
-        openTracingDecorator.after(dfe, GraphQLContext.newContext().build());
+        DataFetchingEnvironment dfe = MockDataFetchEnvironment.myFastQueryDfe("Query", "myFastQuery", "someOperation", "1");
 
-        Assert.assertEquals("One span should be finished", 1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
+        MockExecutionContext mockExecutionContext = new MockExecutionContext();
+        mockExecutionContext.setDataFetchingEnvironment(dfe);
+        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+
+        decorator.execute(mockExecutionContext);
+
+        assertOneSpanIsFinished();
+
         MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
-        Assert.assertEquals("GraphQL:Query.myFastQuery", span.operationName());
-        Assert.assertEquals("ExecutionId should be present in span", "1", span.tags().get("graphql.executionId"));
-        Assert.assertEquals("field name should be present in span", "myFastQuery", span.tags().get("graphql.field"));
-        Assert.assertEquals("parent name should be present in span", "Query", span.tags().get("graphql.parent"));
-        Assert.assertEquals("path should be present in span", "/Query/myFastQuery", span.tags().get("graphql.path"));
-        Assert.assertEquals("operation name should be present in span", "someOperation",
+        assertContainsGraphQLTags(span, "Query", "myFastQuery", "someOperation", "1");
+        assertNoErrorLogged(span);
+    }
+
+    @Test
+    public void testAsyncWorks() throws Exception {
+        OpenTracingDecorator decorator = new OpenTracingDecorator();
+        DataFetchingEnvironment dfe = MockDataFetchEnvironment.myFastQueryDfe("Query", "myFastQuery", "someOperation", "1");
+
+        MockExecutionContext mockExecutionContext = new MockExecutionContext();
+        mockExecutionContext.setDataFetchingEnvironment(dfe);
+        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        final CompletableFuture<Object> result = new CompletableFuture<>();
+        mockExecutionContext.setResult(result);
+
+        decorator.execute(mockExecutionContext);
+
+        assertNoSpanIsFinished();
+
+        result.complete("");
+
+        assertOneSpanIsFinished();
+
+        MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
+        assertContainsGraphQLTags(span, "Query", "myFastQuery", "someOperation", "1");
+        assertNoErrorLogged(span);
+    }
+
+    @Test
+    public void testSpanOverMultipleThreadsWorks() throws Exception {
+        OpenTracingDecorator decorator = new OpenTracingDecorator();
+        DataFetchingEnvironment dfe = MockDataFetchEnvironment.myFastQueryDfe("Query", "myFastQuery", "someOperation", "1");
+
+        MockExecutionContext mockExecutionContext = new MockExecutionContext();
+        mockExecutionContext.setDataFetchingEnvironment(dfe);
+        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<String> asyncFutur = future.thenApplyAsync(Function.identity());//Let future complete in different Thread
+        mockExecutionContext.setResult(asyncFutur);
+
+        CompletableFuture<String> result = (CompletableFuture<String>) decorator.execute(mockExecutionContext);
+
+        assertNoSpanIsFinished();
+
+        future.complete("Result");
+        Assert.assertEquals("Result", result.get());
+
+        assertOneSpanIsFinished();
+
+        MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
+        assertContainsGraphQLTags(span, "Query", "myFastQuery", "someOperation", "1");
+        assertNoErrorLogged(span);
+    }
+
+    @Test
+    public void testAsyncExceptionWorks() throws Exception {
+        OpenTracingDecorator decorator = new OpenTracingDecorator();
+        DataFetchingEnvironment dfe = MockDataFetchEnvironment.myFastQueryDfe("Query", "myFastQuery", "someOperation", "1");
+
+        MockExecutionContext mockExecutionContext = new MockExecutionContext();
+        mockExecutionContext.setDataFetchingEnvironment(dfe);
+        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        final CompletableFuture<Object> result = new CompletableFuture<>();
+        mockExecutionContext.setResult(result);
+
+        decorator.execute(mockExecutionContext);
+
+        assertNoSpanIsFinished();
+
+        result.completeExceptionally(new RuntimeException());
+
+        assertOneSpanIsFinished();
+        MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
+        assertContainsGraphQLTags(span, "Query", "myFastQuery", "someOperation", "1");
+        assertErrorIsLogged(span);
+    }
+
+    @Test
+    public void testExceptionallyWorks() throws Exception {
+        OpenTracingDecorator decorator = new OpenTracingDecorator();
+
+        DataFetchingEnvironment dfe = MockDataFetchEnvironment.myFastQueryDfe("Query", "myFastQuery", "someOperation", "1");
+
+        MockExecutionContext mockExecutionContext = new MockExecutionContext();
+        mockExecutionContext.setDataFetchingEnvironment(dfe);
+        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setResult(() -> {
+            throw new RuntimeException();
+        });
+        try {
+            decorator.execute(mockExecutionContext);
+            Assert.fail();
+        } catch (Exception expected) {
+        }
+
+        assertOneSpanIsFinished();
+        MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
+        assertContainsGraphQLTags(span, "Query", "myFastQuery", "someOperation", "1");
+        assertErrorIsLogged(span);
+    }
+
+    void assertNoSpanIsFinished() {
+        Assert.assertEquals("No span should be finished before execution completes", 0,
+                MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
+    }
+
+    void assertOneSpanIsFinished() {
+        Assert.assertEquals("One span should be finished after execution completes", 1,
+                MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
+    }
+
+    void assertContainsGraphQLTags(MockSpan span, String typeName, String fieldName, String operationName, String executionId) {
+        Assert.assertEquals("Operation name should contain type and field",
+                "GraphQL:" + typeName + "." + fieldName, span.operationName());
+        Assert.assertEquals("ExecutionId should be present in span", executionId, span.tags().get("graphql.executionId"));
+        Assert.assertEquals("field name should be present in span", fieldName, span.tags().get("graphql.field"));
+        Assert.assertEquals("parent name should be present in span", typeName, span.tags().get("graphql.parent"));
+        Assert.assertEquals("path should be present in span",
+                "/" + typeName + "/" + fieldName, span.tags().get("graphql.path"));
+        Assert.assertEquals("operation name should be present in span", operationName,
                 span.tags().get("graphql.operationName"));
     }
 
-    @Test
-    public void shouldAddSpanToContext() {
-        final GraphQLContext context = GraphQLContext.newContext().build();
+    void assertErrorIsLogged(MockSpan span) {
+        final MockSpan.LogEntry logEntry = span.logEntries().get(0);
+        Assert.assertEquals("error", logEntry.fields().get("event"));
 
-        OpenTracingDecorator openTracingDecorator = new OpenTracingDecorator();
-
-        openTracingDecorator.before(dfe);
-        openTracingDecorator.after(dfe, context);
-
-        Assert.assertEquals("One span should be finished", 1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
-        MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
-        Span spanFromContext = context.get(Span.class);
-
-        Assert.assertEquals("Span should be added to context", spanFromContext, span);
     }
+
+    void assertNoErrorLogged(MockSpan span) {
+        for (final MockSpan.LogEntry logEntry : span.logEntries()) {
+            Assert.assertNotEquals("error", logEntry.fields().get("event"));
+        }
+    }
+
 }
