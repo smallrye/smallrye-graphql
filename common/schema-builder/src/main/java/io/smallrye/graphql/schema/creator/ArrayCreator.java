@@ -39,7 +39,7 @@ public class ArrayCreator {
      * @return optional array
      */
     public static Optional<Array> createArray(Type fieldType, Type methodType) {
-        if (isParameterized(methodType)) {
+        if (isCollectionOrArray(methodType)) {
             Array.Type arrayType = getModelType(methodType);
             int depth = getParameterizedDepth(methodType);
             Array array = new Array(methodType.name().toString(), arrayType, depth);
@@ -52,9 +52,15 @@ public class ArrayCreator {
         return Optional.empty();
     }
 
-    private static boolean isParameterized(Type type) {
-        return (type.kind().equals(Type.Kind.ARRAY) || type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) // Array or Collection
-                && !Classes.isOptional(type); // Not a Optional<>
+    private static boolean isCollectionOrArray(Type type) {
+        return type.kind().equals(Type.Kind.ARRAY) || isCollection(type);
+    }
+
+    private static boolean isCollection(Type type) {
+        return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE) // Maybe Collection
+                && !Classes.isOptional(type) // Not a Optional<>
+                && !Classes.isAsyncType(type) // Not CompletableFutur or CompletionStage
+        ;
     }
 
     private static Array.Type getModelType(Type type) {
@@ -84,7 +90,7 @@ public class ArrayCreator {
     private static boolean markParameterizedTypeNonNull(Type fieldType, Type methodType) {
         if (fieldType == null)
             fieldType = methodType;
-        if (isParameterized(fieldType)) {
+        if (isCollectionOrArray(fieldType)) {
             Type typeInCollection = getTypeInCollection(fieldType);
             Type methodTypeInCollection = getTypeInCollection(methodType);
             Annotations annotationsInParameterizedType = Annotations.getAnnotationsForArray(typeInCollection,
@@ -96,7 +102,7 @@ public class ArrayCreator {
     }
 
     private static Type getTypeInCollection(Type type) {
-        if (isParameterized(type)) {
+        if (isCollectionOrArray(type)) {
             if (type.kind().equals(Type.Kind.ARRAY)) {
                 Type typeInArray = type.asArrayType().component();
                 return getTypeInCollection(typeInArray);
