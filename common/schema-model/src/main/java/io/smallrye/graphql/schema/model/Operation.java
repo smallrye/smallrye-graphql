@@ -22,6 +22,8 @@ public final class Operation extends Field {
 
     private Reference containingType;
 
+    private boolean async;
+
     public Operation() {
     }
 
@@ -70,5 +72,13 @@ public final class Operation extends Field {
 
     public void setContainingType(final Reference containingType) {
         this.containingType = containingType;
+    }
+
+    public boolean isAsync() {
+        return async;
+    }
+
+    public void setAsync(final boolean async) {
+        this.async = async;
     }
 }

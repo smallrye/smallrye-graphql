@@ -13,6 +13,8 @@ import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -127,6 +129,10 @@ public class Classes {
         }
     }
 
+    public static boolean isAsyncType(Type type) {
+        return type.name().equals(COMPLETABLE_FUTURE) || type.name().equals(COMPLETION_STAGE);
+    }
+
     public static final DotName ENUM = DotName.createSimple(Enum.class.getName());
     public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());
 
@@ -164,5 +170,8 @@ public class Classes {
 
     private static final DotName FLOAT = DotName.createSimple(Float.class.getName());
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
+
+    public static final DotName COMPLETABLE_FUTURE = DotName.createSimple(CompletableFuture.class.getName());
+    public static final DotName COMPLETION_STAGE = DotName.createSimple(CompletionStage.class.getName());
 
 }
