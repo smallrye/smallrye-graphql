@@ -30,8 +30,8 @@
             <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
         </dependency>
 
         <!-- MicroProfile and Jakarta APIs -->
