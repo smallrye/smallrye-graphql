@@ -3,6 +3,9 @@ package io.smallrye.graphql.execution.datafetcher;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
@@ -15,27 +18,16 @@ import io.smallrye.graphql.transformation.TransformException;
 
 /**
  * Fetch data using some bean lookup and Reflection
- * 
- * @author Phillip Kruger (phillip.kruger@redhat.com)
+ *
+ * @author Yannick Bröker (ybroeker@techfak.uni-bielefeld.de)
  */
-public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult<Object>> {
+public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFetcherResult<Object>>> {
 
-    /**
-     * We use this reflection data fetcher on operations (so Queries, Mutations and Source)
-     *
-     * ParameterClasses: We need an Array of Classes that this operation method needs so we can use reflection to call the
-     * method.
-     * FieldHelper: We might have to transform the data on the way out if there was a Formatting annotation on the method,
-     * or return object fields, we can not use normal JsonB to do this because we do not bind a full object, and we support
-     * annotation that is not part on JsonB
-     *
-     * ArgumentHelper: The same as above, except for every parameter on the way in.
-     *
-     * @param operation the operation
-     * @param decorators collection of decorators to invoke before and after fetching the data
-     *
-     */
-    public ReflectionDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
+    public AsyncDataFetcher(Operation operation) {
+        this(operation, Collections.emptyList());
+    }
+
+    public AsyncDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
         super(operation, decorators);
     }
 
@@ -47,33 +39,56 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * transformed.
      * 3) Make a call on the method with the correct arguments
      * 4) get the result and if needed transform it before we return it.
-     * 
+     *
      * @param dfe the Data Fetching Environment from graphql-java
      * @return the result from the call.
-     * 
      * @throws Exception
      */
     @Override
-    public DataFetcherResult<Object> get(DataFetchingEnvironment dfe) throws Exception {
+    public CompletionStage<DataFetcherResult<Object>> get(DataFetchingEnvironment dfe) throws Exception {
         //TODO: custom context object?
         final GraphQLContext context = GraphQLContext.newContext().build();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
         Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
-        Object declaringObject = lookupService.getInstance(operationClass);
         Method m = getMethod(operationClass);
+
+        Object declaringObject = lookupService.getInstance(operationClass);
 
         try {
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
-
             ExecutionContextImpl executionContext = new ExecutionContextImpl(declaringObject, m, transformedArguments, context,
                     dfe,
                     decorators.iterator());
 
-            Object resultFromMethodCall = execute(executionContext);
+            CompletionStage<Object> futureResult = execute(executionContext);
 
-            // See if we need to transform on the way out
-            resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
+            return futureResult.handle((result, throwable) -> {
+                if (throwable instanceof CompletionException) {
+                    //Exception thrown by underlying method may be wrapped in CompletionException
+                    throwable = throwable.getCause();
+                }
+
+                if (throwable != null) {
+                    if (throwable instanceof GraphQLException) {
+                        GraphQLException graphQLException = (GraphQLException) throwable;
+                        appendPartialResult(resultBuilder, dfe, graphQLException);
+                    } else if (throwable instanceof Exception) {
+                        throw new DataFetcherException(operation, (Exception) throwable);
+                    } else if (throwable instanceof Error) {
+                        throw ((Error) throwable);
+                    }
+                } else {
+                    try {
+                        resultBuilder.data(fieldHelper.transformResponse(result));
+                    } catch (TransformException te) {
+                        te.appendDataFetcherResult(resultBuilder, dfe);
+                    }
+                }
+
+                return resultBuilder.build();
+            });
+
         } catch (TransformException pe) {
             //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
@@ -84,7 +99,7 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
             throw new DataFetcherException(operation, ex);
         }
 
-        return resultBuilder.build();
+        return CompletableFuture.completedFuture(resultBuilder.build());
     }
 
 }

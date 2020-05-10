@@ -21,6 +21,7 @@ import org.eclipse.microprofile.metrics.MetricType;
 import org.jboss.logging.Logger;
 
 import graphql.Scalars;
+import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
@@ -38,6 +39,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.execution.MetricNaming;
+import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
@@ -337,7 +339,14 @@ public class Bootstrap {
         if (config != null && config.isTracingEnabled()) {
             decorators.add(new OpenTracingDecorator());
         }
-        ReflectionDataFetcher datafetcher = new ReflectionDataFetcher(operation, decorators);
+
+        DataFetcher<?> datafetcher;
+        if (operation.isAsync()) {
+            datafetcher = new AsyncDataFetcher(operation, decorators);
+        } else {
+            datafetcher = new ReflectionDataFetcher(operation, decorators);
+        }
+
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 

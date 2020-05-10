@@ -1,12 +1,9 @@
 package io.smallrye.graphql.execution.datafetcher.decorator;
 
-import graphql.GraphQLContext;
-import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.datafetcher.ExecutionContext;
 
 public interface DataFetcherDecorator {
 
-    void before(DataFetchingEnvironment env);
-
-    void after(DataFetchingEnvironment env, GraphQLContext newGraphQLContext);
+    Object execute(ExecutionContext executionContext) throws Exception;
 
 }

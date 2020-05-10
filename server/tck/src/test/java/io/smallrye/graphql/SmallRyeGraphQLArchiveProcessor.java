@@ -27,6 +27,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
+import io.smallrye.graphql.test.apps.async.api.AsyncApi;
 import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
 import io.smallrye.graphql.test.apps.scalars.api.AdditionalScalarsApi;
 
@@ -42,6 +43,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
     public void process(Archive<?> applicationArchive, TestClass testClass) {
 
         if (applicationArchive instanceof WebArchive) {
+            LOG.info(System.getProperty("jboss.server.config.file.name"));
             LOG.info("\n ================================================================================"
                     + "\n Testing [" + testClass.getName() + "]"
                     + "\n ================================================================================"
@@ -68,6 +70,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             // Add our own test app
             testDeployment.addPackage(ProfileGraphQLApi.class.getPackage());
             testDeployment.addPackage(AdditionalScalarsApi.class.getPackage());
+            testDeployment.addPackage(AsyncApi.class.getPackage());
         }
     }
 }

@@ -1,0 +1,9 @@
+{
+  "data": {
+    "asyncSource": {
+      "simpleField": "Some String",
+      "asyncString": "asyncString",
+      "asyncLocalDate": "2006-01-02"
+    }
+  }
+}

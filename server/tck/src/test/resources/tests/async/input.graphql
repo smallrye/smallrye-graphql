@@ -1,0 +1,7 @@
+{
+  asyncSource {
+    simpleField
+    asyncString
+    asyncLocalDate
+  }
+}
