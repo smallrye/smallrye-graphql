@@ -91,6 +91,8 @@ It's used by Queries, Mutations and Source fields. It contains:
 - everything from Field
 - a Java Class Name (where this operation method is on)
 - a list of arguments
+- a reference to the containing type
+- an async flag, when the operation returns a `CompletionStage`
 
 === Argument
 
