@@ -20,7 +20,7 @@ import io.smallrye.graphql.schema.model.Field;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class TransformException extends RuntimeException {
+public class TransformException extends Exception {
     private final Field field;
     private final String parameterValue;
 

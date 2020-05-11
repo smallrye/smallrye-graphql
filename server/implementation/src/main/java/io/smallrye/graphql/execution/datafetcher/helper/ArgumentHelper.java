@@ -1,14 +1,11 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
-import java.text.ParseException;
-import java.time.DateTimeException;
 import java.util.List;
 import java.util.Map;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
 
-import org.eclipse.microprofile.graphql.GraphQLException;
 import org.jboss.logging.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
@@ -53,10 +50,9 @@ public class ArgumentHelper extends AbstractHelper {
      *
      * @return a (ordered) List of all argument values
      *
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    public Object[] getArguments(DataFetchingEnvironment dfe)
-            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
+    public Object[] getArguments(DataFetchingEnvironment dfe) throws TransformException {
         Object[] argumentObjects = new Object[arguments.size()];
         int idx = 0;
         for (Argument argument : arguments) {
@@ -76,10 +72,9 @@ public class ArgumentHelper extends AbstractHelper {
      * @param dfe the Data Fetching Environment from graphql-java
      * @param argument the argument (as created while building the model)
      * @return the value of the argument
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object getArgument(DataFetchingEnvironment dfe, Argument argument)
-            throws GraphQLException, DateTimeException, ParseException, NumberFormatException {
+    private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws TransformException {
         // If this is a source argument, just return the source. The source does 
         // not need transformation and would already be in the correct class type
         if (argument.isSourceArgument()) {
@@ -108,16 +103,11 @@ public class ArgumentHelper extends AbstractHelper {
      * @param argumentValue the value to transform
      * @param field the field as created while scanning
      * @return transformed value
+     * @throws TransformException
      */
     @Override
-    Object singleTransform(Object argumentValue, Field field) {
-        try {
-            Transformer transformer = Transformer.transformer(field);
-            return transformer.in(argumentValue);
-        } catch (Exception e) {
-            LOG.error(null, e);
-            throw new TransformException(e, field, argumentValue);
-        }
+    Object singleTransform(Object argumentValue, Field field) throws TransformException {
+        return Transformer.in(field, argumentValue);
     }
 
     /**
@@ -127,10 +117,10 @@ public class ArgumentHelper extends AbstractHelper {
      * @param fieldValue the input from graphql-java, potentially transformed
      * @param field the field as created while scanning
      * @return the value to use in the method call
-     * @throws org.eclipse.microprofile.graphql.GraphQLException
+     * @throws TransformException
      */
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws GraphQLException {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws TransformException {
         String expectedType = field.getReference().getClassName();
         String receivedType = fieldValue.getClass().getName();
 
@@ -152,10 +142,9 @@ public class ArgumentHelper extends AbstractHelper {
      * @param argumentValue the argument from graphql-java
      * @param field the field as created while scanning
      * @return the return value
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object correctObjectClass(Object argumentValue, Field field)
-            throws GraphQLException {
+    private Object correctObjectClass(Object argumentValue, Field field) throws TransformException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
@@ -183,9 +172,9 @@ public class ArgumentHelper extends AbstractHelper {
      * @param m the map from graphql-java
      * @param field the field as created while scanning
      * @return a java object of this type.
-     * @throws GraphQLException
+     * @throws TransformException
      */
-    private Object correctComplexObjectFromMap(Map m, Field field) throws GraphQLException {
+    private Object correctComplexObjectFromMap(Map m, Field field) throws TransformException {
         String className = field.getReference().getClassName();
 
         // Let's see if there are any fields that needs transformation
@@ -214,8 +203,9 @@ public class ArgumentHelper extends AbstractHelper {
      * @param jsonString the object represented as a json String
      * @param field the field as created while scanning
      * @return the correct object
+     * @throws TransformException
      */
-    private Object correctComplexObjectFromJsonString(String jsonString, Field field) {
+    private Object correctComplexObjectFromJsonString(String jsonString, Field field) throws TransformException {
         Class ownerClass = classloadingService.loadClass(field.getReference().getClassName());
         try {
             Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
