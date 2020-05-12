@@ -1,6 +1,8 @@
 package io.smallrye.graphql.test.apps.async.api;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -19,6 +21,11 @@ public class AsyncApi {
     @Query
     public CompletableFuture<String> asyncString(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture("asyncString");
+    }
+
+    @Query
+    public CompletableFuture<List<Integer>> asyncList(@Source AsyncSource asyncSource) {
+       return CompletableFuture.completedFuture(Arrays.asList(1, 2, 3));
     }
 
     @Query
