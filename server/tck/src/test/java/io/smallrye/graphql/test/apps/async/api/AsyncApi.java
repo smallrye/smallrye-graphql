@@ -20,34 +20,28 @@ public class AsyncApi {
         return CompletableFuture.completedFuture(new AsyncSource());
     }
 
-    @Query
     public CompletableFuture<String> asyncString(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture("asyncString");
     }
 
-    @Query
     public CompletableFuture<List<Integer>> asyncList(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture(Arrays.asList(1, 2, 3));
     }
 
-    @Query
     public CompletableFuture<LocalDate> asyncLocalDate(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture(LocalDate.parse("2006-01-02"));
     }
 
-    @Query
     @DateFormat("MM/dd/yyyy")
     public CompletableFuture<LocalDate> asyncFormattedLocalDate(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture(LocalDate.parse("2006-01-02"));
     }
 
-    @Query
     @NonNull
     public CompletableFuture<String> asyncNonNullString(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture("asyncNonNullString");
     }
 
-    @Query
     public CompletableFuture<String> asyncWithGraphQLException(@Source AsyncSource asyncSource) {
         CompletableFuture<String> future = new CompletableFuture<>();
         future.completeExceptionally(new GraphQLException("Some Exception"));
