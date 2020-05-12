@@ -17,7 +17,7 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.TransformException;
 
 /**
- * Fetch data using some bean lookup and Reflection
+ * Fetch data from resolvers that return {@code CompletionStage}.
  *
  * @author Yannick Bröker (ybroeker@techfak.uni-bielefeld.de)
  */
@@ -33,16 +33,20 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
 
     /**
      * This makes the call on the method. We do the following:
-     * 1) Get the correct instance of the class we want to make the call in using CDI. That allow the developer to still use
+     *
+     * <ol>
+     * <li>Get the correct instance of the class we want to make the call in using CDI. That allow the developer to still use
      * Scopes in the bean.
-     * 2) Get the argument values (if any) from graphql-java and make sue they are in the correct type, and if needed,
+     * <li>Get the argument values (if any) from graphql-java and make sue they are in the correct type, and if needed,
      * transformed.
-     * 3) Make a call on the method with the correct arguments
-     * 4) get the result and if needed transform it before we return it.
+     * <li> Make a call on the method with the correct arguments ang get the result.
+     * <li> transform the result (which is wrapped in {@code CompletionStage}, and wrap it in {@code CompletionStage<DataFetcherResult>}.
+     * </ol>
      *
      * @param dfe the Data Fetching Environment from graphql-java
-     * @return the result from the call.
-     * @throws Exception
+     * @return the result from the call, wrapped in an (possibly asnyc completing) {@link CompletionStage}
+     * @throws Exception if the resolver throws an exception
+     * @throws DataFetcherException if the reflective call fails
      */
     @Override
     public CompletionStage<DataFetcherResult<Object>> get(DataFetchingEnvironment dfe) throws Exception {
