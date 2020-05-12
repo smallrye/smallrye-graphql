@@ -48,6 +48,9 @@ public class ArrayCreator {
                 array.setNotEmpty(true);
             }
             return Optional.of(array);
+        } else if (isParameterizedType(methodType)) {
+            Type nestedType = methodType.asParameterizedType().arguments().get(0);
+            return createArray(nestedType);
         }
         return Optional.empty();
     }
@@ -61,6 +64,10 @@ public class ArrayCreator {
                 && !Classes.isOptional(type) // Not a Optional<>
                 && !Classes.isAsyncType(type) // Not CompletableFutur or CompletionStage
         ;
+    }
+
+    private static boolean isParameterizedType(Type type) {
+        return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE);
     }
 
     private static Array.Type getModelType(Type type) {
@@ -79,10 +86,13 @@ public class ArrayCreator {
             depth = depth + 1;
             Type typeInArray = type.asArrayType().component();
             return getParameterizedDepth(typeInArray, depth);
-        } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+        } else if (isCollection(type)) {
             depth = depth + 1;
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
             return getParameterizedDepth(typeInCollection, depth);
+        } else if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            Type nestedType = type.asParameterizedType().arguments().get(0);
+            return getParameterizedDepth(nestedType, depth);
         }
         return depth;
     }
