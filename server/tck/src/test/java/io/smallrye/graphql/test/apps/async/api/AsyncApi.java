@@ -25,7 +25,7 @@ public class AsyncApi {
 
     @Query
     public CompletableFuture<List<Integer>> asyncList(@Source AsyncSource asyncSource) {
-       return CompletableFuture.completedFuture(Arrays.asList(1, 2, 3));
+        return CompletableFuture.completedFuture(Arrays.asList(1, 2, 3));
     }
 
     @Query
