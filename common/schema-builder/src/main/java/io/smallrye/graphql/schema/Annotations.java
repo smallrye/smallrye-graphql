@@ -15,6 +15,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
+import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.helper.Direction;
 
@@ -34,7 +35,7 @@ public class Annotations {
      * Operation only have methods (no properties)
      * 
      * @param methodInfo the java method
-     * @return Annotations for this method
+     * @return Annotations for this method and its return-type
      */
     public static Annotations getAnnotationsForMethod(MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
@@ -46,6 +47,16 @@ public class Annotations {
                 annotationMap.put(name, annotationInstance);
             }
         }
+
+        final Type type = methodInfo.returnType();
+        if (Classes.isAsyncType(type)) {
+            Type wrappedType = type.asParameterizedType().arguments().get(0);
+            for (final AnnotationInstance annotationInstance : wrappedType.annotations()) {
+                DotName name = annotationInstance.name();
+                annotationMap.put(name, annotationInstance);
+            }
+        }
+
         return new Annotations(annotationMap);
     }
 

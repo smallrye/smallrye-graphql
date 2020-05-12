@@ -1,29 +1,16 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.GraphQLContext;
-import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
-import graphql.execution.ExecutionPath;
-import graphql.language.SourceLocation;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
-import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
-import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
-import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.ClassloadingService;
-import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.graphql.transformation.TransformException;
 
 /**
@@ -31,19 +18,7 @@ import io.smallrye.graphql.transformation.TransformException;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ReflectionDataFetcher implements DataFetcher {
-
-    private final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms 
-    private final ClassloadingService classloadingService = ClassloadingService.load(); // Allows multiple classloading mechanisms
-
-    private final Operation operation;
-    private final FieldHelper fieldHelper;
-    private final ArgumentHelper argumentHelper;
-    private final Collection<DataFetcherDecorator> decorators;
-
-    public ReflectionDataFetcher(Operation operation) {
-        this(operation, Collections.emptyList());
-    }
+public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult<Object>> {
 
     /**
      * We use this reflection data fetcher on operations (so Queries, Mutations and Source)
@@ -61,10 +36,7 @@ public class ReflectionDataFetcher implements DataFetcher {
      *
      */
     public ReflectionDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
-        this.operation = operation;
-        this.fieldHelper = new FieldHelper(operation);
-        this.argumentHelper = new ArgumentHelper(operation.getArguments());
-        this.decorators = decorators;
+        super(operation, decorators);
     }
 
     /**
@@ -87,93 +59,32 @@ public class ReflectionDataFetcher implements DataFetcher {
         final GraphQLContext context = GraphQLContext.newContext().build();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
-        decorators.forEach(decorator -> {
-            decorator.before(dfe);
-        });
         Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
         Object declaringObject = lookupService.getInstance(operationClass);
+        Method m = getMethod(operationClass);
+
         try {
-            Method m = operationClass.getMethod(operation.getMethodName(), getParameterClasses());
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
-            Object resultFromMethodCall = m.invoke(declaringObject, transformedArguments);
+
+            ExecutionContextImpl executionContext = new ExecutionContextImpl(declaringObject, m, transformedArguments, context,
+                    dfe,
+                    decorators.iterator());
+
+            Object resultFromMethodCall = execute(executionContext);
 
             // See if we need to transform on the way out
             resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
-
         } catch (TransformException pe) {
             //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
-        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException ex) {
+        } catch (GraphQLException graphQLException) {
+            appendPartialResult(resultBuilder, dfe, graphQLException);
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
             throw new DataFetcherException(operation, ex);
-        } catch (InvocationTargetException ex) {
-            //Invoked method has thrown something
-            Throwable throwable = ex.getCause();
-
-            if (throwable == null) {
-                throw new DataFetcherException(operation, ex);
-            } else if (throwable instanceof Error) {
-                throw (Error) throwable;
-            } else if (throwable instanceof GraphQLException) {
-                GraphQLException graphQLException = (GraphQLException) throwable;
-                appendPartialResult(resultBuilder, dfe, graphQLException);
-            } else {
-                throw (Exception) throwable;
-            }
-
-        } finally {
-            decorators.forEach(decorator -> decorator.after(dfe, context));
         }
 
         return resultBuilder.build();
     }
 
-    private DataFetcherResult.Builder<Object> appendPartialResult(
-            DataFetcherResult.Builder<Object> resultBuilder,
-            DataFetchingEnvironment dfe,
-            GraphQLException graphQLException) {
-        DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
-                .newExceptionParameters()
-                .dataFetchingEnvironment(dfe)
-                .exception(graphQLException)
-                .build();
-
-        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
-        ExecutionPath path = handlerParameters.getPath();
-        GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
-                sourceLocation);
-
-        return resultBuilder
-                .data(graphQLException.getPartialResults())
-                .error(error);
-    }
-
-    /**
-     * This created an array of classes needed when calling the method using reflection for argument input.
-     * This gets created on construction
-     * 
-     * @return the array of classes.
-     */
-    private Class[] getParameterClasses() {
-        if (operation.hasArguments()) {
-            if (this.parameterClasses == null) {
-                List<Class> cl = new LinkedList<>();
-                for (Field argument : operation.getArguments()) {
-                    // If the argument is an array / collection, load that class
-                    if (argument.hasArray()) {
-                        Class<?> clazz = classloadingService.loadClass(argument.getArray().getClassName());
-                        cl.add(clazz);
-                    } else {
-                        Class<?> clazz = classloadingService.loadClass(argument.getReference().getClassName());
-                        cl.add(clazz);
-                    }
-                }
-                this.parameterClasses = cl;
-            }
-            return this.parameterClasses.toArray(new Class[] {});
-        }
-        return null;
-    }
-
-    private List<Class> parameterClasses;
 }

@@ -7,14 +7,20 @@ import java.util.Map;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
-import graphql.GraphQLContext;
-import graphql.schema.DataFetchingEnvironment;
+import graphql.language.Field;
+import graphql.schema.GraphQLType;
 import io.smallrye.graphql.execution.MetricNaming;
+import io.smallrye.graphql.execution.datafetcher.ExecutionContext;
 import io.smallrye.graphql.spi.MetricsService;
 
-public class MetricDecorator implements DataFetcherDecorator {
+/**
+ * Measures data-fetcher executions.
+ *
+ * TODO: Count failures?
+ */
+public class MetricDecorator extends AbstractDataFetcherDecorator {
 
-    private final Map<DataFetchingEnvironment, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<ExecutionContext, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
 
     private final MetricRegistry metricRegistry;
 
@@ -23,18 +29,20 @@ public class MetricDecorator implements DataFetcherDecorator {
     }
 
     @Override
-    public void before(DataFetchingEnvironment dfe) {
-        startTimes.put(dfe, System.nanoTime());
+    public void before(ExecutionContext executionContext) {
+        startTimes.put(executionContext, System.nanoTime());
     }
 
     @Override
-    public void after(DataFetchingEnvironment dfe, GraphQLContext newGraphQLContext) {
-        Long startTime = startTimes.remove(dfe);
+    public void after(ExecutionContext executionContext) {
+        GraphQLType parent = executionContext.dataFetchingEnvironment().getParentType();
+        Field field = executionContext.dataFetchingEnvironment().getField();
+
+        Long startTime = startTimes.remove(executionContext);
         if (startTime != null) {
             long duration = System.nanoTime() - startTime;
-            String name = MetricNaming.fromTypeAndName(dfe.getParentType(), dfe.getField().getName());
-            metricRegistry.simpleTimer(name)
-                    .update(Duration.ofNanos(duration));
+            String name = MetricNaming.fromTypeAndName(parent, field.getName());
+            metricRegistry.simpleTimer(name).update(Duration.ofNanos(duration));
         }
     }
 

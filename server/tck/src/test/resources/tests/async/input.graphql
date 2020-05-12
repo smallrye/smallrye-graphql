@@ -1,0 +1,10 @@
+{
+  asyncSource {
+    simpleField
+    asyncString
+    asyncNonNullString
+    asyncLocalDate
+    asyncFormattedLocalDate
+    asyncList
+  }
+}

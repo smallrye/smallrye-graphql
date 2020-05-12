@@ -8,6 +8,7 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -78,6 +79,9 @@ public class OperationCreator {
 
         // Array
         operation.setArray(ArrayCreator.createArray(fieldType).orElse(null));
+
+        // Async
+        operation.setAsync(Classes.isAsyncType(fieldType));
 
         // TransformInfo
         operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));

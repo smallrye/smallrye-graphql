@@ -28,8 +28,7 @@ import io.smallrye.graphql.spi.MetricsService;
 
 public class TestMetricsServiceImpl implements MetricsService {
 
-    static TestMetricsServiceImpl INSTANCE;
-    final MockMetricsRegistry vendorRegistry = new MockMetricsRegistry();
+    public static final MockMetricsRegistry vendorRegistry = new MockMetricsRegistry();
 
     @Override
     public String getName() {
@@ -38,9 +37,6 @@ public class TestMetricsServiceImpl implements MetricsService {
 
     @Override
     public MetricRegistry getMetricRegistry(Type type) {
-        if (INSTANCE == null) {
-            INSTANCE = this;
-        }
         if (type.equals(Type.VENDOR)) {
             return vendorRegistry;
         }
@@ -49,8 +45,8 @@ public class TestMetricsServiceImpl implements MetricsService {
 
     public static class MockMetricsRegistry extends MetricRegistry {
 
-        final List<Metadata> simpleTimeMetadatas = new ArrayList<>();
-        final Map<String, SimpleTimer> simpleTimers = new HashMap<>();
+        public final List<Metadata> simpleTimeMetadatas = new ArrayList<>();
+        public final Map<String, SimpleTimer> simpleTimers = new HashMap<>();
 
         @Override
         public <T extends Metric> T register(String name, T metric) throws IllegalArgumentException {
