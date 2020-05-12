@@ -39,8 +39,9 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
      * Scopes in the bean.
      * <li>Get the argument values (if any) from graphql-java and make sue they are in the correct type, and if needed,
      * transformed.
-     * <li> Make a call on the method with the correct arguments ang get the result.
-     * <li> transform the result (which is wrapped in {@code CompletionStage}, and wrap it in {@code CompletionStage<DataFetcherResult>}.
+     * <li>Make a call on the method with the correct arguments ang get the result.
+     * <li>transform the result (which is wrapped in {@code CompletionStage}, and wrap it in
+     * {@code CompletionStage<DataFetcherResult>}.
      * </ol>
      *
      * @param dfe the Data Fetching Environment from graphql-java

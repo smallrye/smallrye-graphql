@@ -20,14 +20,14 @@ public class ArrayCreatorTest {
     @Test
     public void shouldNotCreateArrayForCompletableFuture() {
         final ParameterizedType completableFuture = ParameterizedType.create(Classes.COMPLETABLE_FUTURE,
-                new Type[] {STRING_TYPE}, null);
+                new Type[] { STRING_TYPE }, null);
 
         assertFalse(ArrayCreator.createArray(completableFuture).isPresent());
     }
 
     @Test
     public void shouldNotCreateArrayForCompletionStage() {
-        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] {STRING_TYPE},
+        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] { STRING_TYPE },
                 null);
 
         assertFalse(ArrayCreator.createArray(completionStage).isPresent());
@@ -36,8 +36,8 @@ public class ArrayCreatorTest {
     @Test
     public void shouldCreateArrayForCompletionStageOfList() {
         final ParameterizedType stringList = ParameterizedType.create(DotName.createSimple(List.class.getName()),
-                new Type[] {STRING_TYPE}, null);
-        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] {stringList},
+                new Type[] { STRING_TYPE }, null);
+        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] { stringList },
                 null);
 
         assertTrue(ArrayCreator.createArray(completionStage).isPresent());
@@ -46,7 +46,7 @@ public class ArrayCreatorTest {
     @Test
     public void shouldCreateArrayForCompletionStageOfArray() {
         final ArrayType stringArray = ArrayType.create(STRING_TYPE, 1);
-        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] {stringArray},
+        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] { stringArray },
                 null);
 
         assertTrue(ArrayCreator.createArray(completionStage).isPresent());
