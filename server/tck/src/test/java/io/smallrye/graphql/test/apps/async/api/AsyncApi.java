@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.GraphQLException;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
@@ -31,6 +33,18 @@ public class AsyncApi {
     @Query
     public CompletableFuture<LocalDate> asyncLocalDate(@Source AsyncSource asyncSource) {
         return CompletableFuture.completedFuture(LocalDate.parse("2006-01-02"));
+    }
+
+    @Query
+    @DateFormat("MM/dd/yyyy")
+    public CompletableFuture<LocalDate> asyncFormattedLocalDate(@Source AsyncSource asyncSource) {
+        return CompletableFuture.completedFuture(LocalDate.parse("2006-01-02"));
+    }
+
+    @Query
+    @NonNull
+    public CompletableFuture<String> asyncNonNullString(@Source AsyncSource asyncSource) {
+        return CompletableFuture.completedFuture("asyncNonNullString");
     }
 
     @Query
