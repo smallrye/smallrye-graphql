@@ -3,5 +3,6 @@
     simpleField
     asyncString
     asyncLocalDate
+    asyncList
   }
 }

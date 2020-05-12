@@ -3,7 +3,12 @@
     "asyncSource": {
       "simpleField": "Some String",
       "asyncString": "asyncString",
-      "asyncLocalDate": "2006-01-02"
+      "asyncLocalDate": "2006-01-02",
+      "asyncList": [
+        1,
+        2,
+        3
+      ]
     }
   }
 }
