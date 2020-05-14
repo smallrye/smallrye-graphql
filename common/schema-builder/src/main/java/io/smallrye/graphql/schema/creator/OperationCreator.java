@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.creator;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +49,12 @@ public class OperationCreator {
      */
     public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
             final io.smallrye.graphql.schema.model.Type type) {
+        if (!Modifier.isPublic(methodInfo.flags())) {
+            throw new IllegalArgumentException(
+                    "Method " + methodInfo.declaringClass().name().toString() + "#" + methodInfo.name()
+                            + " is used as an operation, but is not public");
+        }
+
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
         Type fieldType = methodInfo.returnType();
 
