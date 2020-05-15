@@ -1,17 +1,19 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.BDDAssertions.then;
 
-import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.assertj.core.api.BDDAssertions.then;
+import javax.ws.rs.core.Response;
+
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 class ScalarBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -205,7 +207,7 @@ class ScalarBehavior {
             GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
 
             then(thrown)
-                .hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: " + tooBig);
+                    .hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: " + tooBig);
         }
 
         @Test
@@ -621,7 +623,7 @@ class ScalarBehavior {
             GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
             then(thrown).hasMessage("errors from service: [{\"message\":\"failed\"}]:\n" +
-                "  {\"query\":\"query { greeting }\"}");
+                    "  {\"query\":\"query { greeting }\"}");
         }
 
         @Test
@@ -689,7 +691,7 @@ class ScalarBehavior {
             GraphQlClientException thrown = catchThrowableOfType(api::foo, GraphQlClientException.class);
 
             then(thrown).hasMessage("can't create scalar " + FailingScalar.class.getName() + " value " +
-                "for " + FailingScalarApi.class.getName() + "#foo");
+                    "for " + FailingScalarApi.class.getName() + "#foo");
         }
 
         @Test
@@ -717,9 +719,13 @@ class ScalarBehavior {
 
     interface StringGettersApi {
         String getGreeting();
+
         String get();
+
         String getG();
+
         String gets();
+
         String getting();
     }
 

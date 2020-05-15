@@ -1,9 +1,5 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
-import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
-import org.eclipse.microprofile.graphql.Mutation;
-import org.eclipse.microprofile.graphql.Query;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
@@ -12,6 +8,11 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Query;
+
+import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
 public class MethodInfo {
     public static MethodInfo of(Method method, Object... args) {
@@ -57,7 +58,7 @@ public class MethodInfo {
 
     private String methodName() {
         String name = method.getName();
-        if (name.startsWith("get") && name.length()>3 && Character.isUpperCase(name.charAt(3)))
+        if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
             return Character.toLowerCase(name.charAt(3)) + name.substring(4);
         return name;
     }
