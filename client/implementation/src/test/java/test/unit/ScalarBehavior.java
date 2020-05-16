@@ -716,4 +716,71 @@ class ScalarBehavior {
             then(value.text).isEqualTo("x-bar");
         }
     }
+
+    interface StringGettersApi {
+        String getGreeting();
+
+        String get();
+
+        String getG();
+
+        String gets();
+
+        String getting();
+    }
+
+    @Test
+    void shouldCallStringGetterQuery() {
+        fixture.returnsData("'greeting':'foo'");
+        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+        String value = api.getGreeting();
+
+        then(fixture.query()).isEqualTo("greeting");
+        then(value).isEqualTo("foo");
+    }
+
+    @Test
+    void shouldCallJustGetQuery() {
+        fixture.returnsData("'get':'foo'");
+        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+        String value = api.get();
+
+        then(fixture.query()).isEqualTo("get");
+        then(value).isEqualTo("foo");
+    }
+
+    @Test
+    void shouldCallOneCharGetterQuery() {
+        fixture.returnsData("'g':'foo'");
+        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+        String value = api.getG();
+
+        then(fixture.query()).isEqualTo("g");
+        then(value).isEqualTo("foo");
+    }
+
+    @Test
+    void shouldCallGetAndOneLowerCharQuery() {
+        fixture.returnsData("'gets':'foo'");
+        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+        String value = api.gets();
+
+        then(fixture.query()).isEqualTo("gets");
+        then(value).isEqualTo("foo");
+    }
+
+    @Test
+    void shouldCallGetAndLowerCharsQuery() {
+        fixture.returnsData("'getting':'foo'");
+        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+        String value = api.getting();
+
+        then(fixture.query()).isEqualTo("getting");
+        then(value).isEqualTo("foo");
+    }
 }

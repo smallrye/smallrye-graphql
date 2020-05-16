@@ -41,7 +41,7 @@ public class MethodInfo {
     public String getName() {
         return queryName()
                 .orElseGet(() -> mutationName()
-                        .orElseGet(method::getName));
+                        .orElseGet(this::methodName));
     }
 
     private Optional<String> queryName() {
@@ -54,6 +54,13 @@ public class MethodInfo {
         return ifAnnotated(Mutation.class)
                 .map(Mutation::value)
                 .filter(CollectionUtils::nonEmpty);
+    }
+
+    private String methodName() {
+        String name = method.getName();
+        if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
+            return Character.toLowerCase(name.charAt(3)) + name.substring(4);
+        return name;
     }
 
     private <T extends Annotation> Optional<T> ifAnnotated(Class<T> type) {
