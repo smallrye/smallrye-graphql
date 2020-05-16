@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.typesafe.api;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
@@ -37,18 +38,6 @@ public interface GraphQlClientBuilder {
      * The URL where the GraphQL service is listening
      */
     GraphQlClientBuilder endpoint(URI endpoint);
-
-    /**
-     * A custom http header to send for every GraphQL request.
-     */
-    default GraphQlClientBuilder header(String name, Object value) {
-        return header(new GraphQlClientHeader(name, value));
-    }
-
-    /**
-     * A custom http header to send for every GraphQL request.
-     */
-    GraphQlClientBuilder header(GraphQlClientHeader header);
 
     <T> T build(Class<T> apiClass);
 }

@@ -4,6 +4,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
 import static java.util.Objects.requireNonNull;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -30,8 +31,12 @@ public class TypeInfo {
     private TypeInfo itemType;
     private Class<?> rawType;
 
-    public TypeInfo(TypeInfo containerType, Type itemType) {
-        this(containerType, itemType, new AnnotatedType[0]);
+    public static TypeInfo of(Type type) {
+        return new TypeInfo(null, type);
+    }
+
+    TypeInfo(TypeInfo container, Type type) {
+        this(container, type, new AnnotatedType[0]);
     }
 
     TypeInfo(TypeInfo container, Type type, AnnotatedType[] annotatedArgs) {
@@ -57,6 +62,10 @@ public class TypeInfo {
         ParameterizedType parameterizedType = (ParameterizedType) container.type;
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
         return (Class<?>) actualTypeArguments[0];
+    }
+
+    public String getPackage() {
+        return ((Class<?>) type).getPackage().getName(); // TODO may throw Class Cast or NPE
     }
 
     public boolean isCollection() {
@@ -142,9 +151,9 @@ public class TypeInfo {
 
     public boolean isNonNull() {
         if (ifClass(c -> c.isAnnotationPresent(NonNull.class)))
-            return true;
+            return true; // TODO test
         if (!container.isCollection())
-            return false;
+            return false; // TODO test
         // TODO this is not generally correct
         AnnotatedType annotatedArg = container.annotatedArgs[0];
         return annotatedArg.isAnnotationPresent(NonNull.class);
@@ -157,13 +166,13 @@ public class TypeInfo {
     }
 
     public TypeInfo getItemType() {
+        assert isCollection() || isOptional();
         if (itemType == null)
             itemType = new TypeInfo(this, computeItemType());
         return this.itemType;
     }
 
     private Type computeItemType() {
-        assert isCollection() || isOptional();
         if (type instanceof ParameterizedType)
             return ((ParameterizedType) type).getActualTypeArguments()[0];
         return ((Class<?>) type).getComponentType();
@@ -177,5 +186,17 @@ public class TypeInfo {
         if (type instanceof TypeVariable)
             return resolveTypeVariable();
         throw new GraphQlClientException("unsupported reflection type " + type.getClass());
+    }
+
+    public <A extends Annotation> Stream<A> getAnnotations(Class<A> type) {
+        return Stream.of(((Class<?>) this.type).getAnnotationsByType(type));
+    }
+
+    public Optional<MethodInfo> getMethod(String name) {
+        try {
+            return Optional.of(MethodInfo.of(((Class<?>) this.type).getDeclaredMethod(name)));
+        } catch (NoSuchMethodException e) {
+            return Optional.empty();
+        }
     }
 }

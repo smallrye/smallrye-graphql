@@ -8,9 +8,12 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+
 class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface ParamApi {
         String greeting(String who);
     }
@@ -37,6 +40,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
+    @GraphQlClientApi
     interface ParamsApi {
         String greeting(String who, int count);
     }
@@ -52,6 +56,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo 3");
     }
 
+    @GraphQlClientApi
     interface BooleanParamApi {
         String greeting(boolean really);
     }
@@ -67,6 +72,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("ho");
     }
 
+    @GraphQlClientApi
     interface ObjectParamApi {
         Greeting say(Greeting greet);
     }
@@ -111,6 +117,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
+    @GraphQlClientApi
     interface ArrayParamApi {
         boolean greetings(List<String> greets);
     }
@@ -126,6 +133,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
+    @GraphQlClientApi
     interface ObjectArrayParamApi {
         boolean greetings(List<Greeting> greets);
     }
@@ -141,6 +149,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
+    @GraphQlClientApi
     interface ArrayObjectParamApi {
         boolean foo(ArrayObject bar);
     }

@@ -14,6 +14,7 @@ class ConfigBehavior {
 
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface Api {
         @SuppressWarnings("UnusedReturnValue")
         boolean foo();
