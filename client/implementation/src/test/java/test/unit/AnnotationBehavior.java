@@ -6,9 +6,12 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+
 class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface RenamedStringApi {
         @Query("greeting")
         String foo();
@@ -25,6 +28,7 @@ class AnnotationBehavior {
         then(greeting).isEqualTo("dummy-greeting");
     }
 
+    @GraphQlClientApi
     interface RenamedParamApi {
         String greeting(@Name("who") String foo);
     }
@@ -40,6 +44,7 @@ class AnnotationBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
+    @GraphQlClientApi
     interface ObjectApi {
         Greeting greeting();
     }

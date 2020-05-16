@@ -11,11 +11,13 @@ import java.util.Set;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 class NestedBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface StringSetApi {
         Set<String> greetings();
     }
@@ -75,6 +77,7 @@ class NestedBehavior {
                 + "#greetings: {\"foo\":\"bar\"}");
     }
 
+    @GraphQlClientApi
     interface StringListApi {
         List<String> greetings();
     }
@@ -101,6 +104,7 @@ class NestedBehavior {
         then(greetings).containsExactly("a", null);
     }
 
+    @GraphQlClientApi
     interface NonNullStringListApi {
         @SuppressWarnings("UnusedReturnValue")
         List<@NonNull String> greetings();
@@ -117,6 +121,7 @@ class NestedBehavior {
                 "invalid null java.lang.String value for " + NonNullStringListApi.class.getName() + "#greetings[1]");
     }
 
+    @GraphQlClientApi
     interface StringArrayApi {
         String[] greetings();
     }
@@ -132,6 +137,7 @@ class NestedBehavior {
         then(greetings).containsExactly("a", "b");
     }
 
+    @GraphQlClientApi
     interface ObjectApi {
         Greeting greeting();
     }
@@ -209,6 +215,7 @@ class NestedBehavior {
                 "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: false");
     }
 
+    @GraphQlClientApi
     interface ObjectListApi {
         List<Greeting> greetings();
     }
@@ -248,6 +255,7 @@ class NestedBehavior {
                 "invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName() + "#greetings[0]: 123");
     }
 
+    @GraphQlClientApi
     interface StringContainerApi {
         StringContainer container();
     }
@@ -269,6 +277,7 @@ class NestedBehavior {
         then(container.count).isEqualTo(5);
     }
 
+    @GraphQlClientApi
     interface GreetingContainerApi {
         GreetingContainer container();
     }
@@ -314,6 +323,7 @@ class NestedBehavior {
                 new Greeting("a", 1), 3));
     }
 
+    @GraphQlClientApi
     interface GreetingsContainerApi {
         GreetingsContainer container();
     }
@@ -361,6 +371,7 @@ class NestedBehavior {
                 asList(new Greeting("a", 1), new Greeting("b", 2)), 3));
     }
 
+    @GraphQlClientApi
     interface WrappedGreetingApi {
         WrappedGreetingContainer container();
     }
@@ -436,6 +447,7 @@ class NestedBehavior {
                 new Wrapper<>(new Greeting("a", 1)), 3));
     }
 
+    @GraphQlClientApi
     interface WrappedByteApi {
         WrappedByteContainer container();
     }
@@ -492,6 +504,7 @@ class NestedBehavior {
                 "invalid java.lang.Byte value for " + WrappedByteApi.class.getName() + "#container.code.value: 1000");
     }
 
+    @GraphQlClientApi
     interface WrappedListByteApi {
         WrappedListByteContainer container();
     }
@@ -548,6 +561,7 @@ class NestedBehavior {
                 "invalid java.lang.Byte value for " + WrappedListByteApi.class.getName() + "#container.codes[2]: 9999");
     }
 
+    @GraphQlClientApi
     interface ClassWithTransientAndStaticFieldsApi {
         ClassWithTransientAndStaticFields foo();
     }
@@ -575,6 +589,7 @@ class NestedBehavior {
         then(foo.ignoreMe).isFalse();
     }
 
+    @GraphQlClientApi
     interface InheritedGreetingApi {
         Sub call();
     }
@@ -601,6 +616,7 @@ class NestedBehavior {
         then(sub.count).isEqualTo(3);
     }
 
+    @GraphQlClientApi
     interface ObjectPrivateDefaultConstructorApi {
         ObjectPrivateDefaultConstructor call();
     }
@@ -624,6 +640,7 @@ class NestedBehavior {
         then(call.foo).isEqualTo("a");
     }
 
+    @GraphQlClientApi
     interface ObjectWithoutDefaultConstructorApi {
         @SuppressWarnings("UnusedReturnValue")
         ObjectWithoutDefaultConstructor call();
@@ -652,6 +669,7 @@ class NestedBehavior {
                 " value for " + ObjectWithoutDefaultConstructorApi.class.getName() + "#call");
     }
 
+    @GraphQlClientApi
     interface MissingNullableFieldApi {
         MissingNullableField call();
     }
@@ -674,6 +692,7 @@ class NestedBehavior {
         then(result.bar).isNull();
     }
 
+    @GraphQlClientApi
     interface MissingNonNullFieldApi {
         @SuppressWarnings("UnusedReturnValue")
         MissingNonNullField call();
@@ -698,6 +717,7 @@ class NestedBehavior {
         then(thrown).hasMessage("missing java.lang.String value for " + MissingNonNullFieldApi.class.getName() + "#call.bar");
     }
 
+    @GraphQlClientApi
     interface MissingPrimitiveFieldApi {
         @SuppressWarnings("UnusedReturnValue")
         MissingPrimitiveField call();
@@ -732,6 +752,7 @@ class NestedBehavior {
         List<Hero> heroes;
     }
 
+    @GraphQlClientApi
     private interface RecursiveApi {
         @SuppressWarnings({ "UnusedReturnValue", "unused" })
         Hero member();

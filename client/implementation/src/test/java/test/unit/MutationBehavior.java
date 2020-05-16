@@ -7,9 +7,12 @@ import java.util.Objects;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+
 class MutationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface StringMutationApi {
         @Mutation
         String createSome(String thing);
@@ -26,6 +29,7 @@ class MutationBehavior {
         then(greeting).isEqualTo("output");
     }
 
+    @GraphQlClientApi
     interface GreetingMutationApi {
         @Mutation
         Greeting say(Greeting greet);

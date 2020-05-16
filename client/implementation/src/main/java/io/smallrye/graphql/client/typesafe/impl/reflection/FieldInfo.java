@@ -36,8 +36,7 @@ public class FieldInfo {
             field.setAccessible(true);
             return field.get(instance);
         } catch (ReflectiveOperationException e) {
-            // this code is unreachable: setAccessible also allows to change `final` fields
-            throw new GraphQlClientException("can't get field " + this, e);
+            throw new GraphQlClientException("can't get field " + this, e); // TODO test with static?
         }
     }
 
@@ -47,7 +46,7 @@ public class FieldInfo {
             field.set(instance, value);
         } catch (ReflectiveOperationException e) {
             // this code is unreachable: setAccessible also allows to change `final` fields
-            throw new GraphQlClientException("can't set field " + this + " to " + value, e);
+            throw new GraphQlClientException("can't set field " + this + " to " + value, e); // TODO test with static
         }
     }
 
