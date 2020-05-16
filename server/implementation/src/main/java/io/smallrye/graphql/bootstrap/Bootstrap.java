@@ -1,6 +1,7 @@
 package io.smallrye.graphql.bootstrap;
 
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 
-import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
@@ -38,6 +38,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
+import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
@@ -484,10 +485,6 @@ public class Bootstrap {
     }
 
     private GraphQLScalarType getCorrectScalarType(Field field) {
-        if (field.hasTransformInfo()) {
-            // For now we do a blanket String, maybe later we will handle this differently
-            return Scalars.GraphQLString;
-        }
         return GraphQLScalarTypes.getScalarByName(field.getReference().getName());
     }
 
@@ -538,10 +535,23 @@ public class Bootstrap {
     private Object sanitizeDefaultValue(Field field) {
         String jsonString = field.getDefaultValue();
 
+        if (jsonString == null) {
+            return null;
+        }
+
         if (isJsonString(jsonString)) {
             Class type = ClassloadingService.load().loadClass(field.getReference().getClassName());
             return JSONB.fromJson(jsonString, type);
         }
+
+        if (Classes.isNumberLikeType(field.getReference().getGraphQlClassName())) {
+            return new BigDecimal(jsonString);
+        }
+
+        if (Classes.isBoolean(field.getReference().getGraphQlClassName())) {
+            return Boolean.parseBoolean(jsonString);
+        }
+
         return jsonString;
     }
 
