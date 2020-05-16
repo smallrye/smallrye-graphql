@@ -22,7 +22,7 @@ import io.smallrye.graphql.schema.model.TransformInfo;
 /**
  * Handles date and time-types from {@linkplain java.time}.
  */
-public class DateTransformer implements Transformer {
+public class DateTransformer implements Transformer<Temporal, String> {
 
     private static final Map<String, DateTimeFormatter> DEFAULT_FORMATTER = createDefaultFormatter();
     private static final Map<String, TemporalQuery<?>> TEMPORAL_QUERYS = createTemporalQuerys();
@@ -42,7 +42,7 @@ public class DateTransformer implements Transformer {
     }
 
     @Override
-    public Temporal in(final Object o) {
+    public Temporal in(final String o) {
         TemporalQuery<?> temporalAccessor = TEMPORAL_QUERYS.get(targetClassName);
 
         if (temporalAccessor == null || dateTimeFormatter == null) {
@@ -53,11 +53,8 @@ public class DateTransformer implements Transformer {
     }
 
     @Override
-    public Object out(final Object dateType) {
-        if (dateType instanceof Temporal) {
-            return dateTimeFormatter.format((Temporal) dateType);
-        }
-        return dateType.toString();
+    public String out(final Temporal dateType) {
+        return dateTimeFormatter.format(dateType);
     }
 
     private static Map<String, TemporalQuery<?>> createTemporalQuerys() {
@@ -73,7 +70,7 @@ public class DateTransformer implements Transformer {
         return defaultFormatter;
     }
 
-    private DateTimeFormatter getDateFormat(TransformInfo formatter, String className) {
+    private static DateTimeFormatter getDateFormat(TransformInfo formatter, String className) {
         if (formatter != null) {
             String format = formatter.getFormat();
             String locale = formatter.getLocale();

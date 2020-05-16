@@ -27,9 +27,7 @@ public class FieldHelper extends AbstractHelper {
 
     public Object transformResponse(Object argumentValue)
             throws TransformException {
-        if (Transformer.shouldTransform(field)) {
-            argumentValue = super.recursiveTransform(argumentValue, field);
-        }
+        argumentValue = super.recursiveTransform(argumentValue, field);
         return argumentValue;
     }
 
@@ -50,4 +48,8 @@ public class FieldHelper extends AbstractHelper {
         return fieldValue;
     }
 
+    @Override
+    protected Class<?> getArrayType(final Field field) {
+        return classloadingService.loadClass(field.getReference().getGraphQlClassName());
+    }
 }
