@@ -127,6 +127,12 @@ public class Classes {
     public static final String FLOAT = Float.class.getName();
     public static final String FLOAT_PRIMATIVE = float.class.getName();
 
+    public static final String BOOLEAN = Boolean.class.getName();
+    public static final String BOOLEAN_PRIMITIVE = boolean.class.getName();
+
+    public static final String CHARACTER = Character.class.getName();
+    public static final String CHARACTER_PRIMITIVE = char.class.getName();
+
     static {
         PRIMITIVE_CLASSES.put("boolean", boolean.class);
         PRIMITIVE_CLASSES.put("byte", byte.class);
@@ -186,5 +192,14 @@ public class Classes {
             return OBJECT_PRIMITIVE_MAPPING.get(boxedType).getName().equals(primitiveType);
         }
         return false;
+    }
+
+    public static boolean isBoolean(String className) {
+        return className.equals(BOOLEAN) || className.equals(BOOLEAN_PRIMITIVE);
+
+    }
+
+    public static boolean isCharacter(final String className) {
+        return className.equals(CHARACTER) || className.equals(CHARACTER_PRIMITIVE);
     }
 }
