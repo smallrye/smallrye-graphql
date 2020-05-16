@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import graphql.Scalars;
-import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.schema.model.Argument;
 
 /**
  * Scalar for BigInteger.
@@ -29,16 +27,6 @@ public class BigIntegerScalar extends AbstractNumberScalar {
                         return bigInteger;
                     }
 
-                    @Override
-                    public Object fromNumber(Number number, Argument argument) {
-                        String argumentName = argument.getReference().getClassName();
-
-                        if (argumentName.equals(Classes.LONG) || argumentName.equals(Classes.LONG_PRIMATIVE)) {
-                            return number.longValue();
-                        } else {
-                            return new BigInteger(number.toString());
-                        }
-                    }
                 },
                 BigInteger.class, Long.class, long.class);
     }
