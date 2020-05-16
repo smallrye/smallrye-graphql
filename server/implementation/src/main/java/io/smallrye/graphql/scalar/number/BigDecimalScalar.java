@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import graphql.Scalars;
-import io.smallrye.graphql.schema.model.Argument;
 
 /**
  * Scalar for BigDecimal.
@@ -26,11 +25,6 @@ public class BigDecimalScalar extends AbstractNumberScalar {
                     @Override
                     public Object fromBigInteger(BigInteger bigInteger) {
                         return new BigDecimal(bigInteger);
-                    }
-
-                    @Override
-                    public Object fromNumber(Number number, Argument argument) {
-                        return new BigDecimal(number.toString());
                     }
                 },
                 BigDecimal.class);
