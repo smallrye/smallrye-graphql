@@ -13,25 +13,27 @@ import io.smallrye.graphql.schema.model.TransformInfo;
 /**
  * Parses and formats numbers in the needed format.
  */
-public class FormattedNumberTransformer implements Transformer {
+public class FormattedNumberTransformer implements Transformer<Number, String> {
 
-    private final NumberFormat numberFormat;
+    private final DecimalFormat numberFormat;
 
     private final NumberTransformer numberTransformer;
 
     protected FormattedNumberTransformer(Field field) {
         this.numberTransformer = new NumberTransformer(field);
         this.numberFormat = getNumberFormat(field.getTransformInfo());
+        numberFormat.setParseBigDecimal(true);
     }
 
-    private NumberFormat getNumberFormat(TransformInfo formatter) {
+    private DecimalFormat getNumberFormat(TransformInfo formatter) {
         String format = formatter.getFormat();
         String locale = formatter.getLocale();
 
         if (format == null && locale == null) {
-            return NumberFormat.getInstance();
+            return new DecimalFormat();
         } else if (format == null) {
-            return NumberFormat.getInstance(Locale.forLanguageTag(locale));
+            //Should work: https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html
+            return (DecimalFormat) NumberFormat.getInstance(Locale.forLanguageTag(locale));
         } else if (locale == null) {
             return new DecimalFormat(format);
         } else {
@@ -41,15 +43,12 @@ public class FormattedNumberTransformer implements Transformer {
     }
 
     @Override
-    public Object in(final Object o) throws ParseException {
-        return numberTransformer.in(numberFormat.parse(o.toString()).toString());
+    public Number in(final String o) throws ParseException {
+        Number parsed = numberFormat.parse(o);
+        return numberTransformer.in(parsed);
     }
 
-    public Object out(final Object object) {
-        if (object instanceof Number) {
-            Number number = (Number) object;
-            return this.numberFormat.format(number);
-        }
-        throw SmallRyeGraphQLServerMessages.msg.notAValidNumberType(object.getClass().getName());
+    public String out(final Number object) {
+        return this.numberFormat.format(object);
     }
 }

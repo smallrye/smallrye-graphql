@@ -16,7 +16,7 @@ import io.smallrye.graphql.schema.model.Field;
 /**
  * Handles legacy-date-formats (which aren't required by spec).
  */
-public class LegacyDateTransformer implements Transformer {
+public class LegacyDateTransformer implements Transformer<Date, String> {
 
     /**
      * Mappings between Legacy-Date-Type and java.time-Type.
@@ -35,7 +35,7 @@ public class LegacyDateTransformer implements Transformer {
     }
 
     @Override
-    public Object in(final Object o) throws Exception {
+    public Date in(final String o) throws Exception {
         if (targetClassName.equals(java.sql.Date.class.getName())) {
             LocalDate localdate = (LocalDate) dateTransformer.in(o);
             return java.sql.Date.valueOf(localdate);
@@ -53,7 +53,7 @@ public class LegacyDateTransformer implements Transformer {
     }
 
     @Override
-    public Object out(final Object dateType) {
+    public String out(final Date dateType) {
         if (dateType instanceof java.sql.Date) {
             java.sql.Date casted = (java.sql.Date) dateType;
             return dateTransformer.out(casted.toLocalDate());
@@ -63,11 +63,9 @@ public class LegacyDateTransformer implements Transformer {
         } else if (dateType instanceof java.sql.Timestamp) {
             java.sql.Timestamp casted = (java.sql.Timestamp) dateType;
             return dateTransformer.out(casted.toLocalDateTime());
-        } else if (dateType instanceof Date) {
-            Date casted = (Date) dateType;
-            return dateTransformer.out(casted.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        } else {
+            return dateTransformer.out(dateType.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         }
-        throw SmallRyeGraphQLServerMessages.msg.cantParseDate(dateType.getClass().getName(), targetClassName);
     }
 
     private static Map<String, String> createClassMappings() {
