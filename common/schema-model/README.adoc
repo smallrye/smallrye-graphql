@@ -25,6 +25,7 @@ A Reference contains:
 - the classname
 - the graphql name
 - the reference type
+- a classname, into which the referenced class can be converted, which is understood by graphql. Used for transformations.
 
 === Reference Type
 

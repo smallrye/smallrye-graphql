@@ -21,6 +21,17 @@ public class FormatHelper {
     }
 
     /**
+     * Tests, if any formatting is present.
+     * 
+     * @param annotations the annotations
+     * @return if formatting is present
+     */
+    public static boolean hasAnyFormatting(Annotations annotations) {
+        return getDateFormat(annotations).isPresent()
+                || getNumberFormat(annotations).isPresent();
+    }
+
+    /**
      * Get the format model object for a certain type.
      * 
      * @param type the type
