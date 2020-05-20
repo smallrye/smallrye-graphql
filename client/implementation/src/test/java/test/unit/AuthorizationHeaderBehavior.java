@@ -1,11 +1,12 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import org.junit.jupiter.api.Test;
-
 import static io.smallrye.graphql.client.typesafe.api.AuthorizationHeader.Type.BEARER;
 import static org.assertj.core.api.BDDAssertions.then;
+
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 public class AuthorizationHeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -108,7 +109,7 @@ public class AuthorizationHeaderBehavior {
         withCredentials("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             InheritedConfigKeyAuthorizationHeadersApi api = fixture.builder()
-                .build(InheritedConfigKeyAuthorizationHeadersApi.class);
+                    .build(InheritedConfigKeyAuthorizationHeadersApi.class);
 
             api.greeting();
 
@@ -161,7 +162,6 @@ public class AuthorizationHeaderBehavior {
             then(fixture.sentHeader("Authorization")).isEqualTo(BEARER_AUTH);
         });
     }
-
 
     private void withToken(String configKey, Runnable runnable) {
         System.setProperty(configKey + "bearer", "foobar");

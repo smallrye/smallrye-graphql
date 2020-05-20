@@ -68,7 +68,8 @@ public class HeaderBehavior {
 
         then(thrown)
                 .isInstanceOf(GraphQlClientException.class)
-                .hasMessage("Header must have either 'method' XOR 'constant': @" + Header.class.getName() + "(method=\"\", constant=\"\", name=\"H\")");
+                .hasMessage("Header must have either 'method' XOR 'constant': @" + Header.class.getName()
+                        + "(method=\"\", constant=\"\", name=\"H\")");
     }
 
     @GraphQlClientApi
