@@ -47,10 +47,10 @@ public class HeaderBehavior {
 
         Throwable thrown = catchThrowable(api::greeting);
 
-        then(thrown)
-                .isInstanceOf(GraphQlClientException.class)
-                .hasMessage("Header with 'method' AND 'constant' not allowed: " +
-                        "@" + Header.class.getName() + "(method=\"M\", constant=\"C\", name=\"H\")");
+        then(thrown).isInstanceOf(GraphQlClientException.class);
+        then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
+                .isEqualTo("Header with 'method' AND 'constant' not allowed: @" + Header.class.getName()
+                        + "(method=M, constant=C, name=H)");
     }
 
     @GraphQlClientApi
@@ -66,10 +66,10 @@ public class HeaderBehavior {
 
         Throwable thrown = catchThrowable(api::greeting);
 
-        then(thrown)
-                .isInstanceOf(GraphQlClientException.class)
-                .hasMessage("Header must have either 'method' XOR 'constant': @" + Header.class.getName()
-                        + "(method=\"\", constant=\"\", name=\"H\")");
+        then(thrown).isInstanceOf(GraphQlClientException.class);
+        then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
+                .isEqualTo("Header must have either 'method' XOR 'constant': @" + Header.class.getName()
+                        + "(method=, constant=, name=H)");
     }
 
     @GraphQlClientApi
