@@ -1,13 +1,13 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 class RequestBuilder {
     private final MethodInfo method;
@@ -20,8 +20,8 @@ class RequestBuilder {
     String build() {
         request.append(method.getName());
         List<ParameterInfo> parameters = method.parameters()
-            .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
-            .collect(toList());
+                .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
+                .collect(toList());
         if (parameters.size() > 0) {
             request.append("(");
             Repeated repeated = new Repeated(", ");
@@ -52,11 +52,11 @@ class RequestBuilder {
 
     private void buildScalarParam(Object value) {
         request
-            .append("\"")
-            .append(value.toString()
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n"))
-            .append("\"");
+                .append("\"")
+                .append(value.toString()
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n"))
+                .append("\"");
     }
 
     private void buildArrayParam(TypeInfo itemType, List<?> values) {

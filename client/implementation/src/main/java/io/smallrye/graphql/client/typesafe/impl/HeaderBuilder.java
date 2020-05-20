@@ -1,5 +1,16 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
+import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Base64;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
@@ -7,15 +18,6 @@ import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
-
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Base64;
-
-import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class HeaderBuilder {
     private final MethodInfo method;
@@ -26,18 +28,18 @@ public class HeaderBuilder {
 
     public MultivaluedMap<String, Object> build() {
         MultivaluedMap<String, Object> headers = method.getResolvedAnnotations(Header.class)
-            .map(header -> new SimpleEntry<>(header.name(), resolveValue(header)))
-            .collect(toMultivaluedMap());
+                .map(header -> new SimpleEntry<>(header.name(), resolveValue(header)))
+                .collect(toMultivaluedMap());
         method.parameters()
-            .filter(parameter -> parameter.isAnnotated(Header.class))
-            .forEach(parameter -> {
-                Header header = parameter.getAnnotations(Header.class)[0];
-                headers.add(header.name(), parameter.getValue());
-            });
+                .filter(parameter -> parameter.isAnnotated(Header.class))
+                .forEach(parameter -> {
+                    Header header = parameter.getAnnotations(Header.class)[0];
+                    headers.add(header.name(), parameter.getValue());
+                });
         method.getResolvedAnnotations(AuthorizationHeader.class)
-            .findFirst()
-            .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
-            .ifPresent(auth -> headers.add("Authorization", auth));
+                .findFirst()
+                .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
+                .ifPresent(auth -> headers.add("Authorization", auth));
         return headers;
     }
 
@@ -57,14 +59,14 @@ public class HeaderBuilder {
         MethodInfo method = new MethodResolver(declaringType, methodName).resolve();
         if (!method.isStatic())
             throw new GraphQlClientException("referenced header method '" + methodName + "'" +
-                " in " + declaringType.getTypeName() + " is not static");
+                    " in " + declaringType.getTypeName() + " is not static");
         try {
             return method.invoke(null).toString();
         } catch (RuntimeException e) {
             if (e instanceof GraphQlClientException)
                 throw e;
             throw new GraphQlClientException("can't resolve header method expression '" + methodName + "'" +
-                " in " + declaringType.getTypeName(), e);
+                    " in " + declaringType.getTypeName(), e);
         }
     }
 

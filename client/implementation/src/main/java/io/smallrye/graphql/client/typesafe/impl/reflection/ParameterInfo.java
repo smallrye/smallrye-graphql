@@ -1,10 +1,11 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import org.eclipse.microprofile.graphql.Name;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
+
+import org.eclipse.microprofile.graphql.Name;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 public class ParameterInfo {
     private final MethodInfo method;

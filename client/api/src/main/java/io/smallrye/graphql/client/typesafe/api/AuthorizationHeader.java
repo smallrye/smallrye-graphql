@@ -1,9 +1,9 @@
 package io.smallrye.graphql.client.typesafe.api;
 
-import java.lang.annotation.Retention;
-
 import static io.smallrye.graphql.client.typesafe.api.AuthorizationHeader.Type.BASIC;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
 
 /**
  * A specialized {@link Header} for <code>Authorization</code>.
