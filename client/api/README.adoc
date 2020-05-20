@@ -119,8 +119,6 @@ interface SuperHeroesApi {
 
 The method can be a `static` method in the interface itself, or a `static` method in a class accessible by the interface, when prefixed with the fully qualified class name and a dot `"."`, e.g. `@Header(name = "S.H.I.E.L.D.-Clearance", method = "org.superheroes.SecurityTools.establishShieldClearance")`.
 
-The annotation can also be on a `@Stereotype`.
-
 In rare cases, you may want to pass the value of a header as a parameter:
 
 [source,java]
