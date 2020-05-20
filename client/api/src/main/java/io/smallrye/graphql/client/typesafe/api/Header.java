@@ -6,13 +6,16 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 
 /**
- * TODO complete javadoc
+ * Adds a custom header to the http requests sent out by the GraphQL Client.
+ * Annotate your method or the {@link GraphQlClientApi API} interface.
  *
- * 1. method (`constant` xor `method`)
- * 2. interface (`constant` xor `method`)
- * 3. param (neither `constant` nor `method`)
+ * The `name` is always fixed, but the value can be either a `constant`
+ * or the name of a `method` for dynamic values. It can't be both or neither.
+ * The method is always a static method, either on the interface itself
+ * or on a fully qualified class.
  *
- * method = static method on the interface or fully qualified
+ * In rare cases, you may want to pass the value of a header as a parameter;
+ * neither `constant` nor `method` will be allowed then.
  */
 @Retention(RUNTIME)
 @Repeatable(Headers.class)
