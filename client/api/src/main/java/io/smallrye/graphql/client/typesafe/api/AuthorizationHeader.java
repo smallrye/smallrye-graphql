@@ -1,9 +1,12 @@
 package io.smallrye.graphql.client.typesafe.api;
 
 import static io.smallrye.graphql.client.typesafe.api.AuthorizationHeader.Type.BASIC;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
  * A specialized {@link Header} for <code>Authorization</code>.
@@ -11,6 +14,7 @@ import java.lang.annotation.Retention;
  * Credentials are configured with MP Config.
  */
 @Retention(RUNTIME)
+@Target({ TYPE, METHOD })
 public @interface AuthorizationHeader {
     /**
      * The prefix of the config key to be used, plus <code>/mp-graphql/</code>.
