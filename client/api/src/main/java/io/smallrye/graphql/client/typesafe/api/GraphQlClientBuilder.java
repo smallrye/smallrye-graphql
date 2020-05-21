@@ -1,7 +1,6 @@
 package io.smallrye.graphql.client.typesafe.api;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
