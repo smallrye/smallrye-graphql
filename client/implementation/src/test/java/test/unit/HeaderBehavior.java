@@ -3,13 +3,12 @@ package test.unit;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 
-import java.util.zip.Inflater;
-
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
+import test.unit.HeaderBehavior.EnclosingClass.EnclosingEnclosingPublicMethodHeadersApi;
 
 @SuppressWarnings({ "UnusedReturnValue", "unused" })
 public class HeaderBehavior {
@@ -174,23 +173,23 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    interface PublicQualifiedMethodHeadersApi {
-        @Header(name = "H", method = "test.unit.HeaderBehavior.publicQualifiedMethod")
+    interface QualifiedEnclosingPublicMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.publicMethod")
         String greeting();
 
         static String accessibilityCheck() {
-            return publicQualifiedMethod();
+            return publicMethod();
         }
     }
 
-    public static String publicQualifiedMethod() {
+    public static String publicMethod() {
         return "public-method-value";
     }
 
     @Test
-    void shouldAddPublicMethodHeader() {
+    void shouldAddQualifiedEnclosingPublicMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        PublicQualifiedMethodHeadersApi api = fixture.builder().build(PublicQualifiedMethodHeadersApi.class);
+        QualifiedEnclosingPublicMethodHeadersApi api = fixture.builder().build(QualifiedEnclosingPublicMethodHeadersApi.class);
 
         api.greeting();
 
@@ -198,23 +197,61 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    interface PackagePrivateQualifiedMethodHeadersApi {
-        @Header(name = "H", method = "test.unit.HeaderBehavior.packagePrivateQualifiedMethod")
+    interface EnclosingPublicMethodHeadersApi {
+        @Header(name = "H", method = "publicMethod")
         String greeting();
 
         static String accessibilityCheck() {
-            return packagePrivateQualifiedMethod();
+            return publicMethod();
         }
     }
 
-    static String packagePrivateQualifiedMethod() {
-        return "package-private-method-value";
+    @Test
+    void shouldAddEnclosingPublicMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        EnclosingPublicMethodHeadersApi api = fixture.builder().build(EnclosingPublicMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("public-method-value");
+    }
+
+    static class EnclosingClass {
+        @GraphQlClientApi
+        interface EnclosingEnclosingPublicMethodHeadersApi {
+            @Header(name = "H", method = "publicMethod")
+            String greeting();
+
+            static String accessibilityCheck() {
+                return publicMethod();
+            }
+        }
+    }
+
+    @Test
+    void shouldAddEnclosingEnclosingPublicMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        EnclosingEnclosingPublicMethodHeadersApi api = fixture.builder().build(EnclosingEnclosingPublicMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("public-method-value");
+    }
+
+    @GraphQlClientApi
+    interface QualifiedPackagePrivateMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.Outside.packagePrivateMethod")
+        String greeting();
+
+        static String accessibilityCheck() {
+            return Outside.packagePrivateMethod();
+        }
     }
 
     @Test
     void shouldAddPackagePrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        PackagePrivateQualifiedMethodHeadersApi api = fixture.builder().build(PackagePrivateQualifiedMethodHeadersApi.class);
+        QualifiedPackagePrivateMethodHeadersApi api = fixture.builder().build(QualifiedPackagePrivateMethodHeadersApi.class);
 
         api.greeting();
 
@@ -222,45 +259,45 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    interface PrivateQualifiedMethodHeadersApi {
-        @Header(name = "H", method = "java.util.zip.Inflater.initIDs") // just an arbitrary private static f()
+    interface QualifiedPrivateMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.Outside.privateMethod")
         String greeting();
 
-        // static String accessibilityCheck() { return java.util.zip.Inflater.initIDs(); }
+        // static String accessibilityCheck() { return Outside.privateMethod(); }
     }
 
     @Test
     void shouldFailToAddPrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        PrivateQualifiedMethodHeadersApi api = fixture.builder().build(PrivateQualifiedMethodHeadersApi.class);
+        QualifiedPrivateMethodHeadersApi api = fixture.builder().build(QualifiedPrivateMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
                 .isInstanceOf(GraphQlClientException.class)
-                .hasMessage(PrivateQualifiedMethodHeadersApi.class.getName() + " can't access "
-                        + Inflater.class.getName() + "#initIDs");
+                .hasMessage(QualifiedPrivateMethodHeadersApi.class.getName() + " can't access "
+                        + Outside.class.getName() + "#privateMethod");
     }
 
     @GraphQlClientApi
-    interface EnclosingPrivateQualifiedMethodHeadersApi {
-        @Header(name = "H", method = "test.unit.HeaderBehavior.privateQualifiedMethod")
+    interface QualifiedEnclosingPrivateMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.privateMethod")
         String greeting();
 
         static String accessibilityCheck() {
-            return privateQualifiedMethod();
+            return privateMethod();
         }
     }
 
-    private static String privateQualifiedMethod() {
+    private static String privateMethod() {
         return "enclosing-private-method-value";
     }
 
     @Test
     void shouldAddEnclosingPrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        EnclosingPrivateQualifiedMethodHeadersApi api = fixture.builder()
-                .build(EnclosingPrivateQualifiedMethodHeadersApi.class);
+        QualifiedEnclosingPrivateMethodHeadersApi api = fixture.builder()
+                .build(QualifiedEnclosingPrivateMethodHeadersApi.class);
 
         api.greeting();
 
@@ -268,28 +305,54 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    interface EnclosingProtectedQualifiedMethodHeadersApi {
-        @Header(name = "H", method = "test.unit.HeaderBehavior.protectedQualifiedMethod")
+    interface QualifiedEnclosingProtectedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.protectedMethod")
         String greeting();
 
         static String accessibilityCheck() {
-            return protectedQualifiedMethod();
+            return protectedMethod();
         }
     }
 
-    protected static String protectedQualifiedMethod() {
+    protected static String protectedMethod() {
         return "enclosing-protected-method-value";
     }
 
     @Test
     void shouldAddEnclosingProtectedMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        EnclosingProtectedQualifiedMethodHeadersApi api = fixture.builder()
-                .build(EnclosingProtectedQualifiedMethodHeadersApi.class);
+        QualifiedEnclosingProtectedMethodHeadersApi api = fixture.builder()
+                .build(QualifiedEnclosingProtectedMethodHeadersApi.class);
 
         api.greeting();
 
         then(fixture.sentHeader("H")).isEqualTo("enclosing-protected-method-value");
+    }
+
+    @GraphQlClientApi
+    interface QualifiedNonStaticEnclosingProtectedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.nonStaticProtectedMethod")
+        String greeting();
+
+        // static String accessibilityCheck() { return nonStaticProtectedMethod(); }
+    }
+
+    protected String nonStaticProtectedMethod() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Test
+    void shouldFailToAddNonStaticEnclosingProtectedMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        QualifiedNonStaticEnclosingProtectedMethodHeadersApi api = fixture.builder()
+                .build(QualifiedNonStaticEnclosingProtectedMethodHeadersApi.class);
+
+        Throwable thrown = catchThrowable(api::greeting);
+
+        then(thrown)
+                .isInstanceOf(GraphQlClientException.class)
+                .hasMessage("referenced header method '" + HeaderBehavior.class.getName() + ".nonStaticProtectedMethod' in "
+                        + QualifiedNonStaticEnclosingProtectedMethodHeadersApi.class.getName() + " is not static");
     }
 
     @GraphQlClientApi
