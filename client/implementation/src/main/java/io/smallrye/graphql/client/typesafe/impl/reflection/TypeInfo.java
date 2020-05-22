@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -49,6 +50,21 @@ public class TypeInfo {
     public String toString() {
         return ((type instanceof Class) ? ((Class<?>) type).getName() : type)
                 + ((container == null) ? "" : " in " + container);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        TypeInfo that = (TypeInfo) o;
+        return this.type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return type.hashCode();
     }
 
     public String getTypeName() {
@@ -201,9 +217,15 @@ public class TypeInfo {
     }
 
     public boolean isNestedIn(TypeInfo that) {
+        return enclosingTypes().anyMatch(that::equals);
+    }
+
+    /** <code>this</code> and all enclosing types, i.e. the types this type is nested in. */
+    public Stream<TypeInfo> enclosingTypes() {
+        // requires JDK 9: return Stream.iterate(this, TypeInfo::hasEnclosingType, TypeInfo::enclosingType);
+        Builder<TypeInfo> builder = Stream.builder();
         for (Class<?> enclosing = getRawType(); enclosing != null; enclosing = enclosing.getEnclosingClass())
-            if (enclosing.equals(that.getRawType()))
-                return true;
-        return false;
+            builder.accept(TypeInfo.of(enclosing));
+        return builder.build();
     }
 }

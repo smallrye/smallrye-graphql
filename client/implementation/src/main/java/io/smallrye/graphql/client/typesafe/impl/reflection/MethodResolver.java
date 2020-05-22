@@ -1,5 +1,8 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import java.util.Objects;
+import java.util.Optional;
+
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 public class MethodResolver {
@@ -21,13 +24,20 @@ public class MethodResolver {
             ownerType = callerType;
         }
 
-        MethodInfo method = ownerType.getMethod(expression)
+        MethodInfo method = resolveEnclosing(ownerType, expression)
                 .orElseThrow(() -> new GraphQlClientException("no no-arg method '" + expression + "' found in " + ownerType));
 
         if (!method.isAccessibleFrom(callerType))
             throw new GraphQlClientException(callerType.getTypeName() + " can't access " + method);
 
         return method;
+    }
+
+    private Optional<MethodInfo> resolveEnclosing(TypeInfo type, String expression) {
+        return type.enclosingTypes()
+                .map(t -> t.getMethod(expression).orElse(null))
+                .filter(Objects::nonNull)
+                .findFirst();
     }
 
     private TypeInfo toClass(String className) {
