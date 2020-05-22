@@ -3,12 +3,15 @@ package test.unit;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.zip.Inflater;
+
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 
+@SuppressWarnings({ "UnusedReturnValue", "unused" })
 public class HeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
@@ -16,7 +19,6 @@ public class HeaderBehavior {
     @Header(name = "H1", constant = "V1")
     @Header(name = "H3", constant = "will-be-overwritten")
     interface ConstantHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H2", constant = "V2")
         @Header(name = "H3", constant = "V3")
         String greeting();
@@ -73,11 +75,9 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     @Header(name = "H1", method = "f1")
     @Header(name = "H3", method = "f4") // overwritten
     interface MethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H2", method = "f2")
         @Header(name = "H3", method = "f3")
         String greeting();
@@ -116,9 +116,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     public interface DefaultMethodHeaderApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -140,9 +138,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     interface UnknownMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
     }
@@ -160,9 +156,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     interface UnknownMethodClassHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "foo.bar")
         String greeting();
     }
@@ -180,35 +174,126 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
-    interface InaccessibleMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
-        @Header(name = "H", method = "test.unit.HeaderBehavior.inaccessible")
+    interface PublicQualifiedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.publicQualifiedMethod")
         String greeting();
+
+        static String accessibilityCheck() {
+            return publicQualifiedMethod();
+        }
     }
 
-    @SuppressWarnings("unused")
-    private static String inaccessible() {
-        return "foo";
+    public static String publicQualifiedMethod() {
+        return "public-method-value";
     }
 
     @Test
-    void shouldFailToAddInaccessibleMethodHeader() {
+    void shouldAddPublicMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        InaccessibleMethodHeadersApi api = fixture.builder().build(InaccessibleMethodHeadersApi.class);
+        PublicQualifiedMethodHeadersApi api = fixture.builder().build(PublicQualifiedMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("public-method-value");
+    }
+
+    @GraphQlClientApi
+    interface PackagePrivateQualifiedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.packagePrivateQualifiedMethod")
+        String greeting();
+
+        static String accessibilityCheck() {
+            return packagePrivateQualifiedMethod();
+        }
+    }
+
+    static String packagePrivateQualifiedMethod() {
+        return "package-private-method-value";
+    }
+
+    @Test
+    void shouldAddPackagePrivateMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        PackagePrivateQualifiedMethodHeadersApi api = fixture.builder().build(PackagePrivateQualifiedMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("package-private-method-value");
+    }
+
+    @GraphQlClientApi
+    interface PrivateQualifiedMethodHeadersApi {
+        @Header(name = "H", method = "java.util.zip.Inflater.initIDs") // just an arbitrary private static f()
+        String greeting();
+
+        // static String accessibilityCheck() { return java.util.zip.Inflater.initIDs(); }
+    }
+
+    @Test
+    void shouldFailToAddPrivateMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        PrivateQualifiedMethodHeadersApi api = fixture.builder().build(PrivateQualifiedMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
                 .isInstanceOf(GraphQlClientException.class)
-                .hasMessage(InaccessibleMethodHeadersApi.class.getName() + " can't access "
-                        + HeaderBehavior.class.getName() + "#inaccessible");
+                .hasMessage(PrivateQualifiedMethodHeadersApi.class.getName() + " can't access "
+                        + Inflater.class.getName() + "#initIDs");
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
+    interface EnclosingPrivateQualifiedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.privateQualifiedMethod")
+        String greeting();
+
+        static String accessibilityCheck() {
+            return privateQualifiedMethod();
+        }
+    }
+
+    private static String privateQualifiedMethod() {
+        return "enclosing-private-method-value";
+    }
+
+    @Test
+    void shouldAddEnclosingPrivateMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        EnclosingPrivateQualifiedMethodHeadersApi api = fixture.builder()
+                .build(EnclosingPrivateQualifiedMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("enclosing-private-method-value");
+    }
+
+    @GraphQlClientApi
+    interface EnclosingProtectedQualifiedMethodHeadersApi {
+        @Header(name = "H", method = "test.unit.HeaderBehavior.protectedQualifiedMethod")
+        String greeting();
+
+        static String accessibilityCheck() {
+            return protectedQualifiedMethod();
+        }
+    }
+
+    protected static String protectedQualifiedMethod() {
+        return "enclosing-protected-method-value";
+    }
+
+    @Test
+    void shouldAddEnclosingProtectedMethodHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        EnclosingProtectedQualifiedMethodHeadersApi api = fixture.builder()
+                .build(EnclosingProtectedQualifiedMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isEqualTo("enclosing-protected-method-value");
+    }
+
+    @GraphQlClientApi
     interface FailingMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -232,9 +317,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     public interface ErrorFailingMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -254,9 +337,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     public interface ExceptionFailingMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -280,9 +361,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    @SuppressWarnings("unused")
     interface ArgMethodHeadersApi {
-        @SuppressWarnings("UnusedReturnValue")
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -305,7 +384,6 @@ public class HeaderBehavior {
 
     @GraphQlClientApi
     interface HeadersParamApi {
-        @SuppressWarnings("UnusedReturnValue")
         String greeting(@Header(name = "foo") String value);
     }
 

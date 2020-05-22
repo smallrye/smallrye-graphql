@@ -147,11 +147,8 @@ public class MethodInfo {
     }
 
     public boolean isAccessibleFrom(TypeInfo caller) {
-        // MethodHandles.lookup().in(caller.getRawType())
-        //     .findStatic(method.getDeclaringClass(), method.getName(), methodType(method.getReturnType()))
-        //     .invoke();
         return this.isPublic()
-                || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage());
-        // TODO protected and private may be accessible, too
+                || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
+                || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
     }
 }
