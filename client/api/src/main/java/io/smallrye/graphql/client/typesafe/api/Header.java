@@ -15,8 +15,10 @@ import java.lang.annotation.Target;
  * <p>
  * The `name` is always fixed, but the value can be either a `constant`
  * or the name of a `method` for dynamic values. It can't be both or neither.
- * The method is always a static method, either on the interface itself
- * or on a fully qualified class.
+ * The method is always a <code>static</code> method, either on the interface itself
+ * (or one of the classes it's nested in) or any other class, when the method name is
+ * prefixed by the fully qualified class name plus <code>.</code> and is accessible,
+ * e.g. `java.lang.System.lineSeparator`.
  * <p>
  * In rare cases, you may want to pass the value of a header as a parameter;
  * neither `constant` nor `method` will be allowed then.

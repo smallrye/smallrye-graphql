@@ -117,7 +117,7 @@ interface SuperHeroesApi {
 
 <1> This value is an enum, but it can be any Object; the GraphQL client calls <code>toString</code> to convert it.
 
-The method can be a `static` method in the interface itself, or a `static` method in a class accessible by the interface, when prefixed with the fully qualified class name and a dot `"."`, e.g. `@Header(name = "S.H.I.E.L.D.-Clearance", method = "org.superheroes.SecurityTools.establishShieldClearance")`.
+The method must be `static` and accessible by the interface, i.e. in the interface itself or in one of the classes it's nested in; if it's in a different class, prefix it with the fully qualified class name and a dot `"."`, e.g. `@Header(name = "S.H.I.E.L.D.-Clearance", method = "org.superheroes.SecurityTools.establishShieldClearance")`.
 
 In rare cases, you may want to pass the value of a header as a parameter:
 
