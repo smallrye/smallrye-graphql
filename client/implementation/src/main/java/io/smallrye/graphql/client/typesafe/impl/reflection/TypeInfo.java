@@ -199,4 +199,11 @@ public class TypeInfo {
             return Optional.empty();
         }
     }
+
+    public boolean isNestedIn(TypeInfo that) {
+        for (Class<?> enclosing = getRawType(); enclosing != null; enclosing = enclosing.getEnclosingClass())
+            if (enclosing.equals(that.getRawType()))
+                return true;
+        return false;
+    }
 }
