@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
  * A specialized {@link Header} for <code>Authorization</code>.
  * Either {@link Type#BASIC BASIC} (default) or {@link Type#BEARER BEARER}.
  * Credentials are configured with MP Config.
+ * <p>
+ * <code>@Header</code> annotations can be defined via <code>@Steretype</code>s.
  */
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
