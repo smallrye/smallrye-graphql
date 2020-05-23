@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
@@ -9,10 +10,12 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.enterprise.inject.Stereotype;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -101,10 +104,21 @@ public class MethodInfo {
     }
 
     public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<A> type) {
-        // TODO resolve Stereotypes
-        return Stream.concat(
-                Stream.of(method.getAnnotationsByType(type)),
-                getDeclaringType().getAnnotations(type));
+        return Stream.concat(resolveAnnotations(method, type),
+            resolveAnnotations(method.getDeclaringClass(), type))
+            .filter(Objects::nonNull);
+    }
+
+    private static <A extends Annotation> Stream<A> resolveAnnotations(AnnotatedElement annotatedElement, Class<A> type) {
+        return Stream.concat(Stream.of(annotatedElement.getAnnotationsByType(type)),
+            resolveStereotypes(annotatedElement.getAnnotations(), type));
+    }
+
+    private static <A extends Annotation> Stream<A> resolveStereotypes(Annotation[] annotations, Class<A> type) {
+        return Stream.of(annotations)
+            .map(Annotation::annotationType)
+            .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
+            .flatMap(a -> resolveAnnotations(a, type));
     }
 
     public Object invoke(Object instance, Object... args) {
