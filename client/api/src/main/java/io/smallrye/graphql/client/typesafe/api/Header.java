@@ -22,6 +22,8 @@ import java.lang.annotation.Target;
  * <p>
  * In rare cases, you may want to pass the value of a header as a parameter;
  * neither `constant` nor `method` will be allowed then.
+ * <p>
+ * <code>@Header</code> annotations can be defined via <code>@Steretype</code>s.
  */
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD, PARAMETER })

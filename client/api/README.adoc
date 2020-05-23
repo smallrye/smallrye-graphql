@@ -23,7 +23,7 @@ class MyApplication {
 }
 ----
 
-<1> The default request type is `query`. To make it a mutation, annotate it `@Mutation`. The parameter name is only available if you compile the source with the `-parameters` option. Otherwise you'll have to annotate all parameters with `@Name`.
+<1> The default request type is `query`. To make it a mutation, annotate it `@Mutation`. The parameter name is only available if you compile the source with the `-parameters` option. Otherwise, you'll have to annotate all parameters with `@Name`.
 
 The example above uses CDI, e.g. when you are in a MicroProfile or Jakarta EE environment. If you are in an environment without CDI support, you need to instantiate the API interface by using the builder:
 
@@ -131,6 +131,8 @@ interface SuperHeroesApi {
 
 A `@Header` parameter is not part of the GraphQL request.
 
+`@Header` annotations can be defined via `@Stereotype`s.
+
 
 == AuthorizationHeaders
 
@@ -138,6 +140,8 @@ To add an `Authorization` header, instead of using the generic `@Header` annotat
 
 You can use a custom prefix by setting the `confPrefix`. The infix `/mp-graphql/` is still applied, unless you end the `confPrefix` with `*`, e.g. `@AuthorizationHeader(confPrefix = "org.superheroes.security.basic.*` will use
 `org.superheroes.security.basic.username`, while `*` will use plain `username`.
+
+`@AuthorizationHeader` annotations can be defined via `@Stereotype`s.
 
 
 == Logging
