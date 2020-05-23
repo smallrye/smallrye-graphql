@@ -105,20 +105,20 @@ public class MethodInfo {
 
     public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<A> type) {
         return Stream.concat(resolveAnnotations(method, type),
-            resolveAnnotations(method.getDeclaringClass(), type))
-            .filter(Objects::nonNull);
+                resolveAnnotations(method.getDeclaringClass(), type))
+                .filter(Objects::nonNull);
     }
 
     private static <A extends Annotation> Stream<A> resolveAnnotations(AnnotatedElement annotatedElement, Class<A> type) {
         return Stream.concat(Stream.of(annotatedElement.getAnnotationsByType(type)),
-            resolveStereotypes(annotatedElement.getAnnotations(), type));
+                resolveStereotypes(annotatedElement.getAnnotations(), type));
     }
 
     private static <A extends Annotation> Stream<A> resolveStereotypes(Annotation[] annotations, Class<A> type) {
         return Stream.of(annotations)
-            .map(Annotation::annotationType)
-            .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
-            .flatMap(a -> resolveAnnotations(a, type));
+                .map(Annotation::annotationType)
+                .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
+                .flatMap(a -> resolveAnnotations(a, type));
     }
 
     public Object invoke(Object instance, Object... args) {

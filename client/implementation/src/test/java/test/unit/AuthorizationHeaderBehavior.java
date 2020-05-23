@@ -1,15 +1,17 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import org.junit.jupiter.api.Test;
-
-import javax.enterprise.inject.Stereotype;
-import java.lang.annotation.Retention;
-
 import static io.smallrye.graphql.client.typesafe.api.AuthorizationHeader.Type.BEARER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.BDDAssertions.then;
+
+import java.lang.annotation.Retention;
+
+import javax.enterprise.inject.Stereotype;
+
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 public class AuthorizationHeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -112,7 +114,7 @@ public class AuthorizationHeaderBehavior {
         withCredentials("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             InheritedConfigKeyAuthorizationHeadersApi api = fixture.builder()
-                .build(InheritedConfigKeyAuthorizationHeadersApi.class);
+                    .build(InheritedConfigKeyAuthorizationHeadersApi.class);
 
             api.greeting();
 
@@ -123,8 +125,8 @@ public class AuthorizationHeaderBehavior {
     @Retention(RUNTIME)
     @Stereotype
     @AuthorizationHeader(confPrefix = "*")
-    public @interface Authenticated {}
-
+    public @interface Authenticated {
+    }
 
     @GraphQlClientApi
     @Authenticated
