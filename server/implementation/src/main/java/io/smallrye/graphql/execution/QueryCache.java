@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import org.jboss.logging.Logger;
-
 import graphql.ExecutionInput;
 import graphql.execution.instrumentation.InstrumentationContext;
 import graphql.execution.instrumentation.SimpleInstrumentation;
@@ -15,9 +13,9 @@ import graphql.execution.instrumentation.parameters.InstrumentationValidationPar
 import graphql.execution.preparsed.PreparsedDocumentEntry;
 import graphql.execution.preparsed.PreparsedDocumentProvider;
 import graphql.validation.ValidationError;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 
 public class QueryCache extends SimpleInstrumentation implements PreparsedDocumentProvider {
-    private static final Logger LOG = Logger.getLogger(QueryCache.class);
     private static final int MAX_CACHE_SIZE = AccessController.doPrivileged((PrivilegedAction<Integer>) () -> {
         return Integer.getInteger("io.smallrye.graphql.execution.queryCacheMaxSize", 2048);
     });
@@ -35,8 +33,8 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
             ExecutionFunction executionFunction = new ExecutionFunction(computeFunction, executionInput);
             executionFunctionTL.set(executionFunction);
             entry = computeFunction.apply(executionInput);
-        } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieved from cache: " + query);
+        } else {
+            SmallRyeGraphQLServerLogging.log.retrievedFromCache(query);
         }
         return entry;
     }
@@ -90,9 +88,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
             if (t == null && (validationErrors == null || validationErrors.isEmpty())) {
                 // valid, uncached query - add to cache
                 cache.computeIfAbsent(executionFunction.getQuery(), executionFunction);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Added to cache: " + executionFunction.getQuery());
-                }
+                SmallRyeGraphQLServerLogging.log.addedToCache(executionFunction.getQuery());
             }
         }
     }

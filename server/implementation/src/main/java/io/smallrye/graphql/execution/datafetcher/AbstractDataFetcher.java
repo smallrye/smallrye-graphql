@@ -14,6 +14,7 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -133,7 +134,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         try {
             return operationClass.getMethod(operation.getMethodName(), getParameterClasses());
         } catch (NoSuchMethodException e) {
-            throw new DataFetcherException(operation, e);
+            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, e);
         }
     }
 
@@ -151,7 +152,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
             } else if (throwable instanceof Exception) {
                 throw (Exception) throwable;
             } else {
-                throw new DataFetcherException(operation, ex);
+                throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
             }
         }
     }

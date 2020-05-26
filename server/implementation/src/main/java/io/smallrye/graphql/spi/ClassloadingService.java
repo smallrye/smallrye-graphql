@@ -5,8 +5,8 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ServiceLoader;
 
-import org.jboss.logging.Logger;
-
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 
 /**
@@ -17,9 +17,8 @@ import io.smallrye.graphql.execution.Classes;
  * @author Andy McCright (andymc@us.ibm.com)
  */
 public interface ClassloadingService {
-    static final Logger LOG = Logger.getLogger(ClassloadingService.class.getName());
 
-    public static ClassloadingService load() {
+    static ClassloadingService load() {
         ClassloadingService classloadingService;
         try {
             ServiceLoader<ClassloadingService> sl = ServiceLoader.load(ClassloadingService.class);
@@ -27,7 +26,7 @@ public interface ClassloadingService {
         } catch (Exception ex) {
             classloadingService = new DefaultClassloadingService();
         }
-        LOG.debug("Using " + classloadingService.getName() + " classloading service");
+        SmallRyeGraphQLServerLogging.log.usingClassLoadingService(classloadingService.getName());
         return classloadingService;
     }
 
@@ -51,7 +50,7 @@ public interface ClassloadingService {
                 });
             }
         } catch (PrivilegedActionException | ClassNotFoundException pae) {
-            throw new RuntimeException("Can not load class [" + className + "]", pae);
+            throw SmallRyeGraphQLServerMessages.msg.canNotLoadClass(className, pae);
         }
     }
 

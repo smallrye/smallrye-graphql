@@ -8,6 +8,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.TransformException;
@@ -80,7 +81,7 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
             appendPartialResult(resultBuilder, dfe, graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            throw new DataFetcherException(operation, ex);
+            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, ex);
         }
 
         return resultBuilder.build();

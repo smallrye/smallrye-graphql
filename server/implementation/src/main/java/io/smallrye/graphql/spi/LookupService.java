@@ -3,7 +3,8 @@ package io.smallrye.graphql.spi;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ServiceLoader;
 
-import org.jboss.logging.Logger;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * Lookup service that allows multiple DI frameworks to use this.
@@ -13,9 +14,8 @@ import org.jboss.logging.Logger;
  * @author Andy McCright (andymc@us.ibm.com)
  */
 public interface LookupService {
-    static final Logger LOG = Logger.getLogger(LookupService.class.getName());
 
-    public static LookupService load() {
+    static LookupService load() {
         LookupService lookupService;
         try {
             ServiceLoader<LookupService> sl = ServiceLoader.load(LookupService.class);
@@ -23,7 +23,7 @@ public interface LookupService {
         } catch (Exception ex) {
             lookupService = new DefaultLookupService();
         }
-        LOG.debug("Using " + lookupService.getName() + " lookup service");
+        SmallRyeGraphQLServerLogging.log.usingLookupService(lookupService.getName());
         return lookupService;
     }
 
@@ -55,7 +55,7 @@ public interface LookupService {
                 return declaringClass.getConstructor().newInstance();
             } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException("Could not get Instance using the default lookup service", ex);
+                throw SmallRyeGraphQLServerMessages.msg.countNotGetInstance(ex);
             }
         }
     }

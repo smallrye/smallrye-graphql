@@ -6,6 +6,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
@@ -49,7 +50,6 @@ public class FormattedNumberTransformer implements Transformer {
             Number number = (Number) object;
             return this.numberFormat.format(number);
         }
-        throw new RuntimeException(String.format("[%s] is no valid number-type", object.getClass()));
-
+        throw SmallRyeGraphQLServerMessages.msg.notAValidNumberType(object.getClass().getName());
     }
 }
