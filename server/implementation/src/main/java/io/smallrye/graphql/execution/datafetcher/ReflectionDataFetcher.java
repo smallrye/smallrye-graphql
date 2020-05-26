@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
