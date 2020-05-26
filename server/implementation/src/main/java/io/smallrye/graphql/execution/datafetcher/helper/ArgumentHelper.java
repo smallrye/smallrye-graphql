@@ -6,9 +6,8 @@ import java.util.Map;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
 
-import org.jboss.logging.Logger;
-
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputTransformFields;
 import io.smallrye.graphql.json.JsonBCreator;
@@ -26,7 +25,6 @@ import io.smallrye.graphql.transformation.Transformer;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ArgumentHelper extends AbstractHelper {
-    private static final Logger LOG = Logger.getLogger(ArgumentHelper.class.getName());
 
     private final List<Argument> arguments;
 
@@ -154,8 +152,7 @@ public class ArgumentHelper extends AbstractHelper {
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
         } else {
-            LOG.warn("Returning argument as is, because we did not know how to handle it.\n\t"
-                    + "[" + field.getMethodName() + "]");
+            SmallRyeGraphQLServerLogging.log.dontKnowHoToHandleArgument(field.getMethodName());
             return argumentValue;
         }
     }

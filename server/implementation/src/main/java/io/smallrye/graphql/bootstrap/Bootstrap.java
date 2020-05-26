@@ -18,7 +18,6 @@ import javax.json.bind.JsonbBuilder;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
-import org.jboss.logging.Logger;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -38,6 +37,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
@@ -70,7 +70,6 @@ import io.smallrye.graphql.spi.ClassloadingService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Bootstrap {
-    private static final Logger LOG = Logger.getLogger(Bootstrap.class.getName());
 
     private final Schema schema;
     private final Config config;
@@ -90,7 +89,7 @@ public class Bootstrap {
             Bootstrap graphQLBootstrap = new Bootstrap(schema, config);
             return graphQLBootstrap.generateGraphQLSchema();
         } else {
-            LOG.warn("Schema is null, or it has no operations. Not bootstrapping SmallRye GraphQL");
+            SmallRyeGraphQLServerLogging.log.emptyOrNullSchema();
             return null;
         }
     }

@@ -18,14 +18,13 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
-import org.jboss.logging.Logger;
-
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
@@ -36,7 +35,6 @@ import io.smallrye.graphql.execution.error.ExecutionErrorsService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionService {
-    private static final Logger LOG = Logger.getLogger(ExecutionService.class.getName());
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
@@ -100,8 +98,7 @@ public class ExecutionService {
 
             return returnObjectBuilder.build();
         } else {
-            LOG.warn("Are you sure you have annotated your methods with @Query or @Mutation ?");
-            LOG.warn("\t" + query);
+            SmallRyeGraphQLServerLogging.log.noGraphQLMethodsFound();
             return null;
         }
     }
@@ -173,7 +170,7 @@ public class ExecutionService {
                         .preparsedDocumentProvider(queryCache)
                         .build();
             } else {
-                LOG.warn("No GraphQL methods found. Try annotating your methods with @Query or @Mutation");
+                SmallRyeGraphQLServerLogging.log.noGraphQLMethodsFound();
             }
         }
         return this.graphQL;

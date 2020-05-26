@@ -4,9 +4,7 @@ import java.time.DateTimeException;
 
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * The Coercing used by dates
@@ -33,7 +31,7 @@ public class DateCoercing implements Coercing {
         if (input instanceof String) {
             return input;
         } else {
-            throw new DateTimeException("" + input);
+            throw SmallRyeGraphQLServerMessages.msg.unknownDateFormat(input.toString());
         }
     }
 
@@ -45,8 +43,7 @@ public class DateCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (DateTimeException e) {
-            throw new CoercingSerializeException(
-                    "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.", e);
+            throw SmallRyeGraphQLServerMessages.msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -55,8 +52,7 @@ public class DateCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (DateTimeException e) {
-            throw new CoercingParseValueException(
-                    "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.");
+            throw SmallRyeGraphQLServerMessages.msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -69,8 +65,7 @@ public class DateCoercing implements Coercing {
             // We need to get a String value of this date
             return ((StringValue) input).getValue();
         } else {
-            throw new CoercingParseLiteralException(
-                    "Expected AST type 'StringValue' but was '" + input.getClass().getSimpleName() + "'.");
+            throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(input.getClass().getSimpleName());
         }
 
     }

@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
+
 /**
  * Class helper
  * 
@@ -66,7 +68,7 @@ public class Classes {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);
         }
-        throw new ClassNotFoundException("Unknown primative type [" + primitiveName + "]");
+        throw SmallRyeGraphQLServerMessages.msg.unknownPrimitiveType(primitiveName);
     }
 
     public static boolean isNumberLikeType(String className) {

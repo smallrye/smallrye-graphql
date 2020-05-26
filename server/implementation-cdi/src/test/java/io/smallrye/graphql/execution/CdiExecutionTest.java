@@ -32,8 +32,8 @@ import io.smallrye.graphql.schema.model.Schema;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ExecutionTest {
-    private static final Logger LOG = Logger.getLogger(ExecutionTest.class.getName());
+public class CdiExecutionTest {
+    private static final Logger LOG = Logger.getLogger(CdiExecutionTest.class.getName());
 
     private ExecutionService executionService;
 

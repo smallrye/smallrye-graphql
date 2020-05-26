@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -60,7 +61,7 @@ public class NumberTransformer implements Transformer {
             return (new BigDecimal(input));
         }
 
-        throw new RuntimeException(String.format("[%s] is no valid number-type", typeClassName));
+        throw SmallRyeGraphQLServerMessages.msg.notAValidNumberType(typeClassName);
     }
 
     public Object out(final Object object) {

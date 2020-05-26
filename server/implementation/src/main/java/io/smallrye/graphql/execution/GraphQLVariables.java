@@ -13,7 +13,7 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
-import org.jboss.logging.Logger;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 
 /**
  * The variables on the GraphQL Operation
@@ -21,7 +21,6 @@ import org.jboss.logging.Logger;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLVariables {
-    private static final Logger LOG = Logger.getLogger(GraphQLVariables.class.getName());
 
     public Optional<Map<String, Object>> getVariables(JsonObject jsonInput) {
         if (!jsonInput.containsKey(VARIABLES)
@@ -34,7 +33,7 @@ public class GraphQLVariables {
 
         if (valueType.equals(JsonValue.ValueType.STRING)) {
             String stringVars = jsonInput.getString(VARIABLES);
-            LOG.warn("We got a String as input for Variables, not sure what to do with that [" + stringVars + "]");
+            SmallRyeGraphQLServerLogging.log.stringInputForVariables(stringVars);
             return Optional.empty();
         } else {
             JsonValue jvariables = jsonInput.get(VARIABLES);
