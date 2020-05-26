@@ -14,6 +14,13 @@ import io.smallrye.graphql.schema.model.Operation;
 public class DataFetcherException extends RuntimeException {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
 
+    public DataFetcherException() {
+    }
+
+    public DataFetcherException(Operation operation) {
+        super("Problem while fetching data for operation \n" + JSONB.toJson(operation));
+    }
+
     public DataFetcherException(Operation operation, Exception ex) {
         super("Problem while fetching data for operation \n" + JSONB.toJson(operation), ex);
     }

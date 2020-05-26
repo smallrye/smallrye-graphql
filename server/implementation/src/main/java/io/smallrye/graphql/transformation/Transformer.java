@@ -1,7 +1,6 @@
 package io.smallrye.graphql.transformation;
 
-import org.jboss.logging.Logger;
-
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
@@ -11,8 +10,6 @@ import io.smallrye.graphql.schema.model.TransformInfo;
  * TODO: Caching?
  */
 public interface Transformer {
-
-    Logger LOG = Logger.getLogger(Transformer.class);
 
     PassThroughTransformer PASS_THROUGH_TRANSFORMER = new PassThroughTransformer();
     UuidTransformer UUID_TRANSFORMER = new UuidTransformer();
@@ -26,7 +23,7 @@ public interface Transformer {
             Transformer transformer = Transformer.transformer(field);
             return transformer.out(object);
         } catch (Exception e) {
-            LOG.error(null, e);
+            SmallRyeGraphQLServerLogging.log.transformError(e);
             throw new TransformException(e, field, object);
         }
     }
@@ -36,7 +33,7 @@ public interface Transformer {
             Transformer transformer = Transformer.transformer(field);
             return transformer.in(object);
         } catch (Exception e) {
-            LOG.error(null, e);
+            SmallRyeGraphQLServerLogging.log.transformError(e);
             throw new TransformException(e, field, object);
         }
     }

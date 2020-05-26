@@ -12,6 +12,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.TransformException;
@@ -79,7 +80,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
                         GraphQLException graphQLException = (GraphQLException) throwable;
                         appendPartialResult(resultBuilder, dfe, graphQLException);
                     } else if (throwable instanceof Exception) {
-                        throw new DataFetcherException(operation, (Exception) throwable);
+                        throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
                     } else if (throwable instanceof Error) {
                         throw ((Error) throwable);
                     }
@@ -101,7 +102,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
             appendPartialResult(resultBuilder, dfe, graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            throw new DataFetcherException(operation, ex);
+            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, ex);
         }
 
         return CompletableFuture.completedFuture(resultBuilder.build());
