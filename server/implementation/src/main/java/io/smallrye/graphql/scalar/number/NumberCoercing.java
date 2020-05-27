@@ -7,9 +7,7 @@ import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * The Coercing used by numbers
@@ -42,7 +40,7 @@ public class NumberCoercing implements Coercing {
         } else if (input instanceof String) {
             return input;
         } else {
-            throw new NumberFormatException("" + input);
+            throw SmallRyeGraphQLServerMessages.msg.numberFormatException(input.toString());
         }
 
     }
@@ -54,8 +52,7 @@ public class NumberCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (NumberFormatException e) {
-            throw new CoercingSerializeException(
-                    "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.", e);
+            throw SmallRyeGraphQLServerMessages.msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -64,8 +61,7 @@ public class NumberCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (NumberFormatException e) {
-            throw new CoercingParseValueException(
-                    "Expected type '" + name + "' but was '" + input.getClass().getSimpleName() + "'.");
+            throw SmallRyeGraphQLServerMessages.msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -85,8 +81,7 @@ public class NumberCoercing implements Coercing {
         } else if (input instanceof IntValue) {
             BigInteger value = ((IntValue) input).getValue();
             if (!converter.isInRange(value)) {
-                throw new CoercingParseLiteralException(
-                        "Expected value to be in the " + name + " range but it was '" + value.toString() + "'");
+                throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(name, value.toString());
             }
             return converter.fromBigInteger(value);
 
@@ -94,7 +89,6 @@ public class NumberCoercing implements Coercing {
             BigDecimal value = ((FloatValue) input).getValue();
             return converter.fromBigDecimal(value);
         }
-        throw new CoercingParseLiteralException(
-                "Expected AST type 'IntValue' or 'StringValue' but was '" + input.getClass().getSimpleName() + "'.");
+        throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(input.getClass().getSimpleName());
     }
 }

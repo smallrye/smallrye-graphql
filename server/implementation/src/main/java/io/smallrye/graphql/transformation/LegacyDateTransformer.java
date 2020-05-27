@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -48,8 +49,7 @@ public class LegacyDateTransformer implements Transformer {
             LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o);
             return Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
         }
-        throw new RuntimeException("Can't parse [" + o.getClass().getName() + "] to [" + targetClassName + "]");
-
+        throw SmallRyeGraphQLServerMessages.msg.cantParseDate(o.getClass().getName(), targetClassName);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class LegacyDateTransformer implements Transformer {
             Date casted = (Date) dateType;
             return dateTransformer.out(casted.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         }
-        throw new RuntimeException("Can't format [" + dateType.getClass().getName() + "] from [" + targetClassName + "]");
+        throw SmallRyeGraphQLServerMessages.msg.cantParseDate(dateType.getClass().getName(), targetClassName);
     }
 
     private static Map<String, String> createClassMappings() {

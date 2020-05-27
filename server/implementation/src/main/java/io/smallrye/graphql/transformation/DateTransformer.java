@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
@@ -45,7 +46,7 @@ public class DateTransformer implements Transformer {
         TemporalQuery<?> temporalAccessor = TEMPORAL_QUERYS.get(targetClassName);
 
         if (temporalAccessor == null || dateTimeFormatter == null) {
-            throw new RuntimeException(String.format("[%s] as no valid date or time-type", targetClassName));
+            throw SmallRyeGraphQLServerMessages.msg.notValidDateOrTimeType(targetClassName);
         }
 
         return (Temporal) dateTimeFormatter.parse(o.toString(), temporalAccessor);

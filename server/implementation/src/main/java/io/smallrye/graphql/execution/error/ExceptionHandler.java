@@ -1,13 +1,12 @@
 package io.smallrye.graphql.execution.error;
 
-import org.jboss.logging.Logger;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.bootstrap.Config;
 
 /**
@@ -16,7 +15,6 @@ import io.smallrye.graphql.bootstrap.Config;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExceptionHandler implements DataFetcherExceptionHandler {
-    private static final Logger LOG = Logger.getLogger(ExceptionHandler.class.getName());
 
     private final Config config;
     private final ExceptionLists exceptionLists;
@@ -34,7 +32,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
         ExceptionWhileDataFetching error = getExceptionWhileDataFetching(throwable, sourceLocation, path);
 
         if (config.isPrintDataFetcherException()) {
-            LOG.log(Logger.Level.ERROR, "Data Fetching Error", throwable);
+            SmallRyeGraphQLServerLogging.log.dataFetchingError(throwable);
         }
 
         return DataFetcherExceptionHandlerResult.newResult().error(error).build();

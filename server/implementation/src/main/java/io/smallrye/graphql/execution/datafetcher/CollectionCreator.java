@@ -6,8 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.logging.Logger;
-
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
@@ -20,7 +19,6 @@ import io.smallrye.graphql.spi.ClassloadingService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CollectionCreator {
-    private static final Logger LOG = Logger.getLogger(CollectionCreator.class.getName());
 
     private static ClassloadingService classloadingService = ClassloadingService.load();
 
@@ -40,7 +38,7 @@ public class CollectionCreator {
         try {
             return (Collection<?>) type.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
-            LOG.debug("Cannot create no-arg instance of [" + (type == null ? "null" : type.getName()) + "]", ex);
+            SmallRyeGraphQLServerLogging.log.noArgConstructorMissing(type == null ? "null" : type.getName());
         }
         if (Set.class.isAssignableFrom(type)) {
             return new HashSet<>();

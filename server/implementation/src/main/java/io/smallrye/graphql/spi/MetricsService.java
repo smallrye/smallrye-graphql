@@ -3,15 +3,16 @@ package io.smallrye.graphql.spi;
 import java.util.ServiceLoader;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.jboss.logging.Logger;
+
+import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * Service that allows containers to plug in their own MP Metrics implementation.
  */
 public interface MetricsService {
-    static final Logger LOG = Logger.getLogger(MetricsService.class.getName());
 
-    public static MetricsService load() {
+    static MetricsService load() {
         MetricsService metricsService;
         try {
             ServiceLoader<MetricsService> sl = ServiceLoader.load(MetricsService.class);
@@ -19,7 +20,7 @@ public interface MetricsService {
         } catch (Exception ex) {
             metricsService = new DefaultMetricsService();
         }
-        LOG.debug("Using " + metricsService.getName() + " lookup service");
+        SmallRyeGraphQLServerLogging.log.usingMetricsService(metricsService.getName());
         return metricsService;
     }
 
@@ -39,7 +40,7 @@ public interface MetricsService {
 
         @Override
         public MetricRegistry getMetricRegistry(MetricRegistry.Type type) {
-            throw new UnsupportedOperationException("Metrics are not supported without CDI");
+            throw SmallRyeGraphQLServerMessages.msg.metricsNotSupportedWithoutCDI();
         }
     }
 }
