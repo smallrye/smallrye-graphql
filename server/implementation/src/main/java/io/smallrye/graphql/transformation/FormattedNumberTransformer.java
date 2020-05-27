@@ -6,7 +6,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
