@@ -46,6 +46,7 @@ import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.OpenTracingDecorator;
+import io.smallrye.graphql.execution.datafetcher.decorator.ValidationDecorator;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
@@ -339,6 +340,9 @@ public class Bootstrap {
         if (config != null && config.isTracingEnabled()) {
             decorators.add(new OpenTracingDecorator());
         }
+        if (config != null && config.isValidationEnabled()) {
+            decorators.add(new ValidationDecorator());
+        }
 
         DataFetcher<?> datafetcher;
         if (operation.isAsync()) {
@@ -398,9 +402,7 @@ public class Bootstrap {
         // Default value (on method)
         inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
 
-        GraphQLInputObjectField graphQLInputObjectField = inputFieldBuilder.build();
-
-        return graphQLInputObjectField;
+        return inputFieldBuilder.build();
     }
 
     private GraphQLInputType createGraphQLInputType(Field field) {
@@ -526,9 +528,7 @@ public class Bootstrap {
 
         argumentBuilder = argumentBuilder.type(graphQLInputType);
 
-        GraphQLArgument graphQLArgument = argumentBuilder.build();
-
-        return graphQLArgument;
+        return argumentBuilder.build();
 
     }
 
@@ -540,7 +540,7 @@ public class Bootstrap {
         }
 
         if (isJsonString(jsonString)) {
-            Class type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+            Class<?> type = ClassloadingService.load().loadClass(field.getReference().getClassName());
             return JSONB.fromJson(jsonString, type);
         }
 
