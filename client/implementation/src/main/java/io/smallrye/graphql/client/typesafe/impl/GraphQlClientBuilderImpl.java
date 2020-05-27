@@ -2,8 +2,6 @@ package io.smallrye.graphql.client.typesafe.impl;
 
 import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -13,20 +11,12 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 
 public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     private String configKey = null;
     private Client client = DEFAULT_CLIENT;
     private URI endpoint;
-    private final List<GraphQlClientHeader> headers = new ArrayList<>();
-
-    @Override
-    public GraphQlClientBuilder header(GraphQlClientHeader header) {
-        headers.add(header);
-        return this;
-    }
 
     @Override
     public GraphQlClientBuilder endpoint(URI endpoint) {
@@ -50,18 +40,18 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
         readConfig(apiClass.getAnnotation(GraphQlClientApi.class));
 
         WebTarget webTarget = client.target(resolveEndpoint(apiClass));
-        GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget, headers);
+        GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget);
         return apiClass.cast(Proxy.newProxyInstance(apiClass.getClassLoader(), new Class<?>[] { apiClass },
                 (proxy, method, args) -> graphQlClient.invoke(MethodInfo.of(method, args))));
     }
 
-    private void readConfig(GraphQlClientApi config) {
-        if (config == null)
+    private void readConfig(GraphQlClientApi annotation) {
+        if (annotation == null)
             return;
-        if (this.endpoint == null && !config.endpoint().isEmpty())
-            this.endpoint = URI.create(config.endpoint());
-        if (this.configKey == null && !config.configKey().isEmpty())
-            this.configKey = config.configKey();
+        if (this.endpoint == null && !annotation.endpoint().isEmpty())
+            this.endpoint = URI.create(annotation.endpoint());
+        if (this.configKey == null && !annotation.configKey().isEmpty())
+            this.configKey = annotation.configKey();
     }
 
     private URI resolveEndpoint(Class<?> apiClass) {

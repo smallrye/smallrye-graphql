@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+
 class EnumBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
@@ -18,6 +20,7 @@ class EnumBehavior {
         JEDI
     }
 
+    @GraphQlClientApi
     interface EpisodeApi {
         Episode episode();
     }
@@ -33,6 +36,7 @@ class EnumBehavior {
         then(episode).isEqualTo(JEDI);
     }
 
+    @GraphQlClientApi
     interface EpisodesApi {
         List<Episode> episodes();
     }

@@ -1,17 +1,26 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import javax.enterprise.inject.Stereotype;
 
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
 public class MethodInfo {
@@ -67,10 +76,6 @@ public class MethodInfo {
         return Optional.ofNullable(method.getAnnotation(type));
     }
 
-    public int getParameterCount() {
-        return method.getParameterCount();
-    }
-
     public TypeInfo getReturnType() {
         return new TypeInfo(type, method.getGenericReturnType(), returnTypeAnnotations());
     }
@@ -82,9 +87,9 @@ public class MethodInfo {
             return new AnnotatedType[0];
     }
 
-    public List<ParameterInfo> getParameters() {
+    public Stream<ParameterInfo> parameters() {
         Parameter[] parameters = method.getParameters();
-        assert parameters.length == parameterValues.length;
+        assert parameters.length == ((parameterValues == null) ? 0 : parameterValues.length);
         List<ParameterInfo> list = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
             list.add(new ParameterInfo(this,
@@ -92,6 +97,73 @@ public class MethodInfo {
                     new TypeInfo(null, method.getGenericParameterTypes()[i]),
                     parameterValues[i]));
         }
-        return list;
+        return list.stream();
+    }
+
+    public TypeInfo getDeclaringType() {
+        return type;
+    }
+
+    public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<A> type) {
+        return Stream.concat(resolveAnnotations(method, type),
+                resolveAnnotations(method.getDeclaringClass(), type))
+                .filter(Objects::nonNull);
+    }
+
+    private static <A extends Annotation> Stream<A> resolveAnnotations(AnnotatedElement annotatedElement, Class<A> type) {
+        return Stream.concat(Stream.of(annotatedElement.getAnnotationsByType(type)),
+                resolveStereotypes(annotatedElement.getAnnotations(), type));
+    }
+
+    private static <A extends Annotation> Stream<A> resolveStereotypes(Annotation[] annotations, Class<A> type) {
+        return Stream.of(annotations)
+                .map(Annotation::annotationType)
+                .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
+                .flatMap(a -> resolveAnnotations(a, type));
+    }
+
+    public Object invoke(Object instance, Object... args) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(instance, args);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof RuntimeException)
+                throw (RuntimeException) e.getCause();
+            if (e.getCause() instanceof Error)
+                throw (Error) e.getCause();
+            throw new GraphQlClientException("can't invoke " + this, e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError("expected to be unreachable", e);
+        }
+    }
+
+    public boolean isStatic() {
+        return is(Modifier::isStatic);
+    }
+
+    public boolean isPublic() {
+        return is(Modifier::isPublic);
+    }
+
+    public boolean isPackagePrivate() {
+        return !isPrivate() && !isProtected() && !isPublic();
+    }
+
+    public boolean isProtected() {
+        return is(Modifier::isProtected);
+    }
+
+    public boolean isPrivate() {
+        return is(Modifier::isPrivate);
+    }
+
+    private boolean is(Function<Integer, Boolean> f) {
+        return f.apply(method.getModifiers());
+    }
+
+    public boolean isAccessibleFrom(TypeInfo caller) {
+        return this.isPublic()
+                || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
+                || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
     }
 }

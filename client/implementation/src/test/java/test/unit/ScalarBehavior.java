@@ -13,15 +13,18 @@ import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 class ScalarBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
+    @GraphQlClientApi
     interface BoolApi {
         boolean bool();
     }
 
+    @GraphQlClientApi
     interface BooleanApi {
         Boolean bool();
     }
@@ -101,10 +104,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface ByteApi {
         Byte code();
     }
 
+    @GraphQlClientApi
     interface PrimitiveByteApi {
         byte code();
     }
@@ -156,10 +161,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface CharacterApi {
         Character code();
     }
 
+    @GraphQlClientApi
     interface PrimitiveCharApi {
         char code();
     }
@@ -242,10 +249,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface ShortApi {
         Short code();
     }
 
+    @GraphQlClientApi
     interface PrimitiveShortApi {
         short code();
     }
@@ -297,10 +306,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface IntegerApi {
         Integer code();
     }
 
+    @GraphQlClientApi
     interface IntApi {
         int code();
     }
@@ -363,10 +374,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface LongApi {
         Long code();
     }
 
+    @GraphQlClientApi
     interface PrimitiveLongApi {
         long code();
     }
@@ -418,10 +431,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface FloatApi {
         Float number();
     }
 
+    @GraphQlClientApi
     interface PrimitiveFloatApi {
         float number();
     }
@@ -451,10 +466,12 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface DoubleApi {
         Double number();
     }
 
+    @GraphQlClientApi
     interface PrimitiveDoubleApi {
         double number();
     }
@@ -484,6 +501,7 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface BigDecimalApi {
         BigDecimal number();
     }
@@ -515,22 +533,27 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface StringApi {
         String greeting();
     }
 
+    @GraphQlClientApi
     interface ScalarWithValueOfApi {
         Integer foo();
     }
 
+    @GraphQlClientApi
     interface ScalarWithParseApi {
         LocalDate now();
     }
 
+    @GraphQlClientApi
     interface ScalarWithStringConstructorApi {
         BigInteger foo();
     }
 
+    @GraphQlClientApi
     interface FailingScalarApi {
         @SuppressWarnings("UnusedReturnValue")
         FailingScalar foo();
@@ -545,6 +568,7 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQlClientApi
     interface ScalarWithStringConstructorMethodApi {
         ScalarWithStringConstructorMethod foo();
     }
@@ -575,6 +599,7 @@ class ScalarBehavior {
         String text;
     }
 
+    @GraphQlClientApi
     interface ScalarWithOfConstructorMethodApi {
         ScalarWithOfConstructorMethod foo();
     }

@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
 import org.eclipse.microprofile.graphql.Name;
@@ -38,5 +39,13 @@ public class ParameterInfo {
         if (!parameter.isNamePresent())
             throw new GraphQlClientException("compile with -parameters to add the parameter names to the class file");
         return parameter.getName();
+    }
+
+    public <A extends Annotation> A[] getAnnotations(Class<A> type) {
+        return parameter.getAnnotationsByType(type);
+    }
+
+    public boolean isAnnotated(Class<? extends Annotation> annotationClass) {
+        return parameter.getAnnotationsByType(annotationClass).length > 0;
     }
 }

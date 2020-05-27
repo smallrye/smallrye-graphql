@@ -1,12 +1,10 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 import java.io.StringReader;
-import java.util.List;
 import java.util.Stack;
 
 import javax.json.Json;
@@ -25,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientHeader;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
@@ -38,19 +35,18 @@ class GraphQlClientProxy {
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final WebTarget target;
-    private final List<GraphQlClientHeader> headers;
     private final Stack<String> typeStack = new Stack<>();
 
-    GraphQlClientProxy(WebTarget target, List<GraphQlClientHeader> headers) {
+    GraphQlClientProxy(WebTarget target) {
         this.target = target;
-        this.headers = headers;
     }
 
     Object invoke(MethodInfo method) {
+        MultivaluedMap<String, Object> headers = new HeaderBuilder(method).build();
         String request = request(method);
 
         log.info("request graphql: {}", request);
-        String response = post(request);
+        String response = post(request, headers);
         log.info("response graphql: {}", response);
 
         return fromJson(method, request, response);
@@ -107,10 +103,10 @@ class GraphQlClientProxy {
         }
     }
 
-    private String post(String request) {
+    private String post(String request, MultivaluedMap<String, Object> headers) {
         Response response = target
                 .request(APPLICATION_JSON_TYPE)
-                .headers(buildHeaders())
+                .headers(headers)
                 .post(Entity.json(request));
         StatusType status = response.getStatusInfo();
         if (status.getFamily() != SUCCESSFUL)
@@ -118,13 +114,6 @@ class GraphQlClientProxy {
                     status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
                     response.readEntity(String.class));
         return response.readEntity(String.class);
-    }
-
-    private MultivaluedMap<String, Object> buildHeaders() {
-        return headers.stream()
-                .peek(header -> log.debug("add header '{}'", header.getName())) // don't log values; could contain tokens
-                .map(GraphQlClientHeader::toEntry)
-                .collect(toMultivaluedMap());
     }
 
     private Object fromJson(MethodInfo method, String request, String response) {

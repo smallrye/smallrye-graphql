@@ -23,14 +23,13 @@ class MyApplication {
 }
 ----
 
-<1> The default request type is `query`. To make it a mutation, annotate it `@Mutation`. The parameter name is only available if you compile the source with the `-parameters` option.
+<1> The default request type is `query`. To make it a mutation, annotate it `@Mutation`. The parameter name is only available if you compile the source with the `-parameters` option. Otherwise, you'll have to annotate all parameters with `@Name`.
 
 The example above uses CDI, e.g. when you are in a MicroProfile or Jakarta EE environment. If you are in an environment without CDI support, you need to instantiate the API interface by using the builder:
 
 [source,java]
 ----
-SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
-    .build(SuperHeroesApi.class);
+SuperHeroesApi api = GraphQlClientBuilder.newBuilder().build(SuperHeroesApi.class);
 ----
 
 The basic idea of the Java code-first approach is that you start by writing the DTOs and query/mutation methods as you need them in your client. This ensures that you don't request fields that you don't need; the thinking is inspired by https://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts] and may evolve more into that direction. If the server uses different names, use annotations to do a mapping:
@@ -90,33 +89,60 @@ When using the builder, you can override the config key there as well: `GraphQlC
 
 == Headers
 
-To add a custom header to the http requests sent out by the GraphQL Client, write a CDI producer, e.g.:
+To add a custom header to the http requests sent out by the GraphQL Client, annotate your method or the API interface as `@Header`, e.g.:
 
 [source,java]
 ----
-@Produces public GraphQlClientHeader clearance() {
-    return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", "TOP-SECRET");
+@GraphQlClientApi
+interface SuperHeroesApi {
+    @Header(name = "S.H.I.E.L.D.-Clearance", constant = "TOP-SECRET")
+    List<SuperHero> allHeroesIn(String location);
 }
 ----
 
-The key is always fix, but the value can also be a `Supplier` for dynamic values, e.g.:
+The `name` is always fixed, but the value can also be the name of a method for dynamic values, e.g.:
 
 [source,java]
 ----
-@Produces @RequestScoped public GraphQlClientHeader clearance() {
-    return new GraphQlClientHeader("S.H.I.E.L.D.-Clearance", this::establishShieldClearance);
-}
+@GraphQlClientApi
+interface SuperHeroesApi {
+    @Header(name = "S.H.I.E.L.D.-Clearance", method = "establishShieldClearance")
+    List<SuperHero> allHeroesIn(String location);
 
-private Clearance establishShieldClearance() { // <1>
-    return TOP_SECRET;
+    static Clearance establishShieldClearance() { // <1>
+        return userIsInRole(MANAGER) ? TOP_SECRET : PUBLIC;
+    }
 }
 ----
 
-<1> The value can be any Object; the GraphQL client calls <code>toString</code> to convert it.
+<1> This value is an enum, but it can be any Object; the GraphQL client calls <code>toString</code> to convert it.
 
-When you are in an environment without CDI, you need to add headers to the `GraphQlClientBuilder` using one of the `header` methods.
+The method must be `static` and accessible by the interface, i.e. in the interface itself or in one of the classes it's nested in; if it's in a different class, prefix it with the fully qualified class name and a dot `"."`, e.g. `@Header(name = "S.H.I.E.L.D.-Clearance", method = "org.superheroes.SecurityTools.establishShieldClearance")`.
 
-There is also a specialized `GraphQlClientAuthorizationHeader` that provides a BASIC Authorization header with the credentials configured in MP Config. Depending on the constructor used, a different config key prefix is used, with <code>username</code> and <code>password</code> appended. See the constructors for details.
+In rare cases, you may want to pass the value of a header as a parameter:
+
+[source,java]
+----
+@GraphQlClientApi
+interface SuperHeroesApi {
+    List<SuperHero> allHeroesIn(String location, @Header(name = "S.H.I.E.L.D.-Clearance") Clearance clearance);
+}
+----
+
+A `@Header` parameter is not part of the GraphQL request.
+
+`@Header` annotations can be defined via `@Stereotype`s.
+
+
+== AuthorizationHeaders
+
+To add an `Authorization` header, instead of using the generic `@Header` annotation, you can also use the special `@AuthorizationHeader` annotation. It produces a `BASIC` `Authorization` header by default or a `BEARER` token. You can configure the credentials in MP Config with a prefix plus `/mp-graphql/` and either `username` and `password` for `BASIC` or `bearer` for `BEARER`. The config key defaults to the fully qualified name of the `GraphQlClientApi` interface or its `configKey`.
+
+You can use a custom prefix by setting the `confPrefix`. The infix `/mp-graphql/` is still applied, unless you end the `confPrefix` with `*`, e.g. `@AuthorizationHeader(confPrefix = "org.superheroes.security.basic.*` will use
+`org.superheroes.security.basic.username`, while `*` will use plain `username`.
+
+`@AuthorizationHeader` annotations can be defined via `@Stereotype`s.
+
 
 == Logging
 

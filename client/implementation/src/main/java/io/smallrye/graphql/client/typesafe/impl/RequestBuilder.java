@@ -1,7 +1,10 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 
+import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
@@ -16,10 +19,13 @@ class RequestBuilder {
 
     String build() {
         request.append(method.getName());
-        if (method.getParameterCount() > 0) {
+        List<ParameterInfo> parameters = method.parameters()
+                .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
+                .collect(toList());
+        if (parameters.size() > 0) {
             request.append("(");
             Repeated repeated = new Repeated(", ");
-            for (ParameterInfo parameterInfo : method.getParameters()) {
+            for (ParameterInfo parameterInfo : parameters) {
                 request.append(repeated);
                 appendParam(parameterInfo);
             }

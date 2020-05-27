@@ -38,17 +38,5 @@ public interface GraphQlClientBuilder {
      */
     GraphQlClientBuilder endpoint(URI endpoint);
 
-    /**
-     * A custom http header to send for every GraphQL request.
-     */
-    default GraphQlClientBuilder header(String name, Object value) {
-        return header(new GraphQlClientHeader(name, value));
-    }
-
-    /**
-     * A custom http header to send for every GraphQL request.
-     */
-    GraphQlClientBuilder header(GraphQlClientHeader header);
-
     <T> T build(Class<T> apiClass);
 }
