@@ -1,8 +1,15 @@
 package io.smallrye.graphql.tests.validation;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.net.URL;
+import java.util.List;
+
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -15,6 +22,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.tests.SimpleGraphQLClient;
+import io.smallrye.graphql.tests.validation.BeanValidationTest.BeanValidationUpdateTestResponse.ResponseError;
+import io.smallrye.graphql.tests.validation.BeanValidationTest.BeanValidationUpdateTestResponse.ResponseError.Location;
+import io.smallrye.graphql.tests.validation.BeanValidationTest.BeanValidationUpdateTestResponse.ResponseError.ValidationExtensions;
+import io.smallrye.graphql.tests.validation.BeanValidationTest.BeanValidationUpdateTestResponse.ResponseError.ValidationExtensions.ViolationConstraint;
 
 @RunWith(Arquillian.class)
 @RunAsClient
@@ -45,58 +56,125 @@ public class BeanValidationTest {
     public void shouldFailInvalidPersonData() throws Exception {
         SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
 
-        String response = client
-                .query("mutation {update(person: { firstName: \"*\", lastName: \"\", age: -1 }) { firstName }}");
+        BeanValidationUpdateTestResponse response = JsonbBuilder.create().fromJson(client
+                .query("mutation {update(person: { firstName: \"*\", lastName: \"\", age: -1 }) { firstName }}"),
+                BeanValidationUpdateTestResponse.class);
 
-        assertThat(response)
-                .startsWith("{\"errors\":[")
-                .contains("{\"message\":\"validation failed: lastName must not be empty\"," +
-                /**/"\"locations\":[{\"line\":1,\"column\":18}]," +
-                /**/"\"path\":[\"update\",\"person\",\"lastName\"]," +
-                /**/"\"extensions\":{" +
-                /*  */"\"violation.propertyPath\":[\"lastName\"]," +
-                /*  */"\"violation.invalidValue\":\"\"," +
-                /*  */"\"violation.constraint\":{" +
-                /*    */"\"groups\":[]," +
-                /*    */"\"message\":\"{javax.validation.constraints.NotEmpty.message}\"," +
-                /*    */"\"payload\":[]" +
-                /*  */"}," +
-                /**/"\"violation.message\":\"must not be empty\"," +
-                /**/"\"classification\":\"ValidationError\"" +
-                /**/"}" +
-                        "}")
-                .contains("{\"message\":\"validation failed: age must be greater than or equal to 0\"," +
-                /**/"\"locations\":[{\"line\":1,\"column\":18}]," +
-                /**/"\"path\":[\"update\",\"person\",\"age\"]," +
-                /**/"\"extensions\":{" +
-                /*  */"\"violation.propertyPath\":[\"age\"]," +
-                /*  */"\"violation.invalidValue\":-1," +
-                /*  */"\"violation.constraint\":{" +
-                /*    */"\"groups\":[]," +
-                /*    */"\"message\":\"{javax.validation.constraints.PositiveOrZero.message}\"," +
-                /*    */"\"payload\":[]" +
-                /*  */"}," +
-                /*  */"\"violation.message\":\"must be greater than or equal to 0\"," +
-                /*  */"\"classification\":\"ValidationError\"" +
-                /**/"}" +
-                        "}")
-                .contains("{\"message\":\"validation failed: firstName must match \\\"\\\\w+\\\"\"," +
-                /**/"\"locations\":[{\"line\":1,\"column\":18}]," +
-                /**/"\"path\":[\"update\",\"person\",\"firstName\"]," +
-                /**/"\"extensions\":{" +
-                /*  */"\"violation.propertyPath\":[\"firstName\"]," +
-                /*  */"\"violation.invalidValue\":\"*\"," +
-                /*  */"\"violation.constraint\":{" +
-                /*    */"\"flags\":[]," +
-                /*    */"\"groups\":[]," +
-                /*    */"\"regexp\":\"\\\\w+\"," +
-                /*    */"\"message\":\"{javax.validation.constraints.Pattern.message}\"," +
-                /*    */"\"payload\":[]" +
-                /*  */"}," +
-                /*  */"\"violation.message\":\"must match \\\"\\\\w+\\\"\"," +
-                /*  */"\"classification\":\"ValidationError\"" +
-                /*  */"}" +
-                /**/"}")
-                .endsWith("],\"data\":{\"update\":null}}");
+        assertThat(response.data.update).isNull();
+        List<Location> locations = singletonList(new Location(1, 18));
+        assertThat(response.errors).usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrder(
+                        new ResponseError("validation failed: firstName must match \"\\w+\"", locations,
+                                asList("update", "person", "firstName"),
+                                new ValidationExtensions("must match \"\\w+\"", singletonList("firstName"), "*",
+                                        new ViolationConstraint("{javax.validation.constraints.Pattern.message}", "\\w+"))),
+                        new ResponseError("validation failed: lastName must not be empty", locations,
+                                asList("update", "person", "lastName"),
+                                new ValidationExtensions("must not be empty", singletonList("lastName"), "",
+                                        new ViolationConstraint("{javax.validation.constraints.NotEmpty.message}", null))),
+                        new ResponseError("validation failed: age must be greater than or equal to 0", locations,
+                                asList("update", "person", "age"),
+                                new ValidationExtensions("must be greater than or equal to 0", singletonList("age"),
+                                        new BigDecimal(-1),
+                                        new ViolationConstraint("{javax.validation.constraints.PositiveOrZero.message}",
+                                                null))));
+    }
+
+    public static class BeanValidationUpdateTestResponse {
+        public Data data;
+        public List<ResponseError> errors;
+
+        public static class Data {
+            public String update;
+        }
+
+        public static class ResponseError {
+            public String message;
+            public List<Location> locations;
+            public List<String> path;
+            public ValidationExtensions extensions;
+
+            public ResponseError() {
+            }
+
+            public ResponseError(String message, List<Location> locations, List<String> path, ValidationExtensions extensions) {
+                this.message = message;
+                this.locations = locations;
+                this.path = path;
+                this.extensions = extensions;
+            }
+
+            @Override
+            public String toString() {
+                return "ResponseError{message:'" + message + "', locations:" + locations + ", path:" + path + ", extensions:"
+                        + extensions + "}";
+            }
+
+            public static class Location {
+                public int line, column;
+
+                public Location() {
+                }
+
+                public Location(int line, int column) {
+                    this.line = line;
+                    this.column = column;
+                }
+
+                @Override
+                public String toString() {
+                    return "line:" + line + ", column:" + column;
+                }
+            }
+
+            public static class ValidationExtensions {
+                public String classification;
+
+                @JsonbProperty("violation.message")
+                public String message;
+
+                @JsonbProperty("violation.propertyPath")
+                public List<String> path;
+
+                @JsonbProperty("violation.invalidValue")
+                public Object invalidValue;
+
+                @JsonbProperty("violation.constraint")
+                public ViolationConstraint constraint;
+
+                public ValidationExtensions() {
+                }
+
+                public ValidationExtensions(String message, List<String> path, Object invalidValue,
+                        ViolationConstraint constraint) {
+                    this.constraint = constraint;
+                    this.classification = "ValidationError";
+                    this.message = message;
+                    this.path = path;
+                    this.invalidValue = invalidValue;
+                }
+
+                @Override
+                public String toString() {
+                    return "{message:" + message + ", path:" + path + ", invalidValue:" + invalidValue + "}";
+                }
+
+                public static class ViolationConstraint {
+                    public String message;
+                    // groups:[]
+                    // payload:[]
+                    public String regexp;
+                    // flags:[]
+
+                    public ViolationConstraint() {
+                    }
+
+                    public ViolationConstraint(String message, String regexp) {
+                        this.regexp = regexp;
+                        this.message = message;
+                    }
+                }
+            }
+        }
     }
 }
