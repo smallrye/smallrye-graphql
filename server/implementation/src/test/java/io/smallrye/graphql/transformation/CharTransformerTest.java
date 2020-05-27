@@ -3,34 +3,36 @@ package io.smallrye.graphql.transformation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.Test;
 
 public class CharTransformerTest {
 
-    @ParameterizedTest
-    @CsvSource({
-            "ab,a",
-            "a,a"
-    })
-    void shouldUseFirstCharFromString(String graphQlString, Character expected) {
-        final Character actual = new CharTransformer().in(graphQlString);
+    @Test
+    public void shouldUseFirstCharFromString() {
+        final Character actual = new CharTransformer().in("ab");
 
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo('a');
     }
 
     @Test
-    void shouldThrowIfStringIsEmpty() {
+    public void shouldUseFirstCharFromSingleLetterString() {
+        final Character actual = new CharTransformer().in("a");
+
+        assertThat(actual).isEqualTo('a');
+    }
+
+    @Test
+    public void shouldThrowIfStringIsEmpty() {
         assertThatThrownBy(() -> new CharTransformer().in(""))
                 .isInstanceOf(Exception.class);
 
     }
 
     @Test
-    void shouldFormatCharAsString() {
+    public void shouldFormatCharAsString() {
         final String actual = new CharTransformer().out('a');
 
         assertThat(actual).isEqualTo("a");
     }
+
 }
