@@ -115,7 +115,7 @@ public class SchemaTest {
 
         // Test default value
         Assert.assertTrue("Problem with Default value in mutation operation argument",
-                lines.contains("updateItemPowerLevel(itemID: BigInteger!, powerLevel: Int = \"5\"): Item"));
+                lines.contains("updateItemPowerLevel(itemID: BigInteger!, powerLevel: Int = 5): Item"));
 
         Assert.assertTrue("Problem with Default value in query operation argument",
                 lines.contains("allHeroesIn(city: String = \"New York, NY\"): [SuperHero]"));

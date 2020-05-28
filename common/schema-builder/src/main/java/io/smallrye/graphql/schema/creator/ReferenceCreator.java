@@ -15,6 +15,7 @@ import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -189,6 +190,9 @@ public class ReferenceCreator {
             return Scalars.getIDScalar(fieldTypeName);
         } else if (Scalars.isScalar(fieldTypeName)) {
             // Scalar
+            if (FormatHelper.hasAnyFormatting(annotations)) {
+                return Scalars.getFormattedScalar(fieldTypeName);
+            }
             return Scalars.getScalar(fieldTypeName);
         } else if (fieldType.kind().equals(Type.Kind.ARRAY)) {
             // Array 

@@ -95,8 +95,12 @@ public abstract class AbstractHelper {
             array = ((Collection) array).toArray();
         }
 
-        String classNameInCollection = field.getReference().getClassName();
-        Class classInCollection = classloadingService.loadClass(classNameInCollection);
+        Class classInCollection = getArrayType(field);
+
+        //Skip transform if not needed
+        if (array.getClass().getComponentType().equals(classInCollection)) {
+            return array;
+        }
 
         int length = Array.getLength(array);
         Object targetArray = Array.newInstance(classInCollection, length);
@@ -109,6 +113,12 @@ public abstract class AbstractHelper {
         }
 
         return targetArray;
+    }
+
+    protected Class<?> getArrayType(Field field) {
+        String classNameInCollection = field.getReference().getClassName();
+        Class classInCollection = classloadingService.loadClass(classNameInCollection);
+        return classInCollection;
     }
 
     /**

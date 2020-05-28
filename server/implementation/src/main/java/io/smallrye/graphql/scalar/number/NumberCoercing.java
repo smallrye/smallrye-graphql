@@ -35,8 +35,7 @@ public class NumberCoercing implements Coercing {
         }
 
         if (input instanceof Number) {
-            BigDecimal value = new BigDecimal(input.toString());
-            return converter.fromBigDecimal(value);
+            return input;
         } else if (input instanceof String) {
             return input;
         } else {

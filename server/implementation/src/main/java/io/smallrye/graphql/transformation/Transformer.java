@@ -3,13 +3,17 @@ package io.smallrye.graphql.transformation;
 import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
 /**
  * Transforms incoming {@link #in(Object)} and outgoing {@link #out(Object)} objects to correct types and formats.
  * TODO: Caching?
+ *
+ * @param <IN> type used in user-classes, eg {@code LocalDate}
+ * @param <OUT> type used by graphql, eg {@code String}
  */
-public interface Transformer {
+public interface Transformer<IN, OUT> {
 
     PassThroughTransformer PASS_THROUGH_TRANSFORMER = new PassThroughTransformer();
     UuidTransformer UUID_TRANSFORMER = new UuidTransformer();
@@ -17,8 +21,13 @@ public interface Transformer {
     UriTransformer URI_TRANSFORMER = new UriTransformer();
     PeriodTransformer PERIOD_TRANSFORMER = new PeriodTransformer();
     DurationTransformer DURATION_TRANSFORMER = new DurationTransformer();
+    CharTransformer CHAR_TRANSFORMER = new CharTransformer();
 
     static Object out(Field field, Object object) throws TransformException {
+        if (!shouldTransform(field, object)) {
+            return object;
+        }
+
         try {
             Transformer transformer = Transformer.transformer(field);
             return transformer.out(object);
@@ -29,11 +38,13 @@ public interface Transformer {
     }
 
     static Object in(Field field, Object object) throws TransformException {
+        if (!shouldTransform(field, object)) {
+            return object;
+        }
         try {
             Transformer transformer = Transformer.transformer(field);
             return transformer.in(object);
         } catch (Exception e) {
-            SmallRyeGraphQLServerLogging.log.transformError(e);
             throw new TransformException(e, field, object);
         }
     }
@@ -42,14 +53,16 @@ public interface Transformer {
         if (field.hasTransformInfo()) {
             TransformInfo format = field.getTransformInfo();
             if (format.getType().equals(TransformInfo.Type.NUMBER)) {
-                if (format.getFormat() != null || format.getLocale() != null) {
-                    return new FormattedNumberTransformer(field);
-                }
-                return new NumberTransformer(field);
-
+                return new FormattedNumberTransformer(field);
             } else if (format.getType().equals(TransformInfo.Type.DATE)) {
                 return dateTransformer(field);
             }
+        } else if (Classes.isDateLikeType(field.getReference().getClassName())) {
+            return dateTransformer(field);
+        } else if (Classes.isNumberLikeType(field.getReference().getClassName())) {
+            return new NumberTransformer(field);
+        } else if (Classes.isCharacter(field.getReference().getClassName())) {
+            return CHAR_TRANSFORMER;
         } else if (Classes.isUUID(field.getReference().getClassName())) {
             return UUID_TRANSFORMER;
         } else if (Classes.isURL(field.getReference().getClassName())) {
@@ -60,10 +73,6 @@ public interface Transformer {
             return DURATION_TRANSFORMER;
         } else if (Classes.isPeriod(field.getReference().getClassName())) {
             return PERIOD_TRANSFORMER;
-        } else if (Classes.isDateLikeType(field.getReference().getClassName())) {
-            return dateTransformer(field);
-        } else if (Classes.isNumberLikeType(field.getReference().getClassName())) {
-            return new NumberTransformer(field);
         }
 
         return PASS_THROUGH_TRANSFORMER;
@@ -76,19 +85,21 @@ public interface Transformer {
         return new DateTransformer(field);
     }
 
-    static boolean shouldTransform(Field field) {
-        return field.hasTransformInfo()
-                || Classes.isUUID(field.getReference().getClassName())
-                || Classes.isURL(field.getReference().getClassName())
-                || Classes.isURI(field.getReference().getClassName())
-                || Classes.isPeriod(field.getReference().getClassName())
-                || Classes.isDuration(field.getReference().getClassName())
-                || Classes.isDateLikeType(field.getReference().getClassName())
-                || Classes.isNumberLikeType(field.getReference().getClassName());
+    /**
+     * Checks, if this field is a scalar and the object has the wrong type.
+     * Transformation is only possible for scalars and only needed if types don't match.
+     *
+     * @param field the field
+     * @param object the object
+     * @return if transformation is needed
+     */
+    static boolean shouldTransform(Field field, Object object) {
+        return field.getReference().getType() == ReferenceType.SCALAR
+                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName());
     }
 
-    Object in(Object o) throws Exception;
+    IN in(OUT o) throws Exception;
 
-    Object out(Object o);
+    OUT out(IN o);
 
 }

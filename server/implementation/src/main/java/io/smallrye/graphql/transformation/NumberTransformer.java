@@ -2,69 +2,73 @@ package io.smallrye.graphql.transformation;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
 
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
- * Parses incoming numbers to the needed class, doesn't touch outgoing values.
+ * Converts between number-types.
  */
-public class NumberTransformer implements Transformer {
+public class NumberTransformer implements Transformer<Number, Number> {
 
-    private final Field field;
+    private final String typeClassName;
 
     protected NumberTransformer(Field field) {
-        this.field = field;
+        this(field.getReference().getClassName());
+    }
+
+    public NumberTransformer(String targetClassName) {
+        this.typeClassName = targetClassName;
     }
 
     @Override
-    public Object in(final Object o) throws ParseException {
-        return parseNumber(o.toString(), field.getReference().getClassName());
-    }
-
-    public Number parseNumber(String input, String typeClassName) throws ParseException {
+    public Number in(final Number input) {
         // Integer
-        if (typeClassName.equals(int.class.getName())) {
-            return (Integer.parseInt(input));
-        } else if (typeClassName.equals(Integer.class.getName())) {
-            return (Integer.valueOf(input));
-        } else if (typeClassName.equals(short.class.getName())) {
-            return (Short.parseShort(input));
-        } else if (typeClassName.equals(Short.class.getName())) {
-            return (Short.valueOf(input));
-        } else if (typeClassName.equals(byte.class.getName())) {
-            return (Byte.parseByte(input));
-        } else if (typeClassName.equals(Byte.class.getName())) {
-            return (Byte.valueOf(input));
-
+        if (typeClassName.equals(int.class.getName()) || typeClassName.equals(Integer.class.getName())) {
+            return input.intValue();
+        } else if (typeClassName.equals(short.class.getName()) || typeClassName.equals(Short.class.getName())) {
+            return (short) input.intValue();
+        } else if (typeClassName.equals(byte.class.getName()) || typeClassName.equals(Byte.class.getName())) {
+            return (byte) input.intValue();
             // Float
         } else if (typeClassName.equals(float.class.getName())) {
-            return (Float.parseFloat(input));
+            return input.floatValue();
         } else if (typeClassName.equals(Float.class.getName())) {
-            return (Float.valueOf(input));
+            return input.floatValue();
         } else if (typeClassName.equals(double.class.getName())) {
-            return (Double.parseDouble(input));
+            return input.doubleValue();
         } else if (typeClassName.equals(Double.class.getName())) {
-            return (Double.valueOf(input));
+            return input.doubleValue();
 
             // BigInteger
         } else if (typeClassName.equals(BigInteger.class.getName())) {
-            return (new BigInteger(input));
+            if (input instanceof BigDecimal) {
+                return ((BigDecimal) input).toBigInteger();
+            }
+            if (input instanceof BigInteger) {
+                return input;
+            }
+            return BigInteger.valueOf(input.longValue());
         } else if (typeClassName.equals(long.class.getName())) {
-            return (Long.parseLong(input));
+            return input.longValue();
         } else if (typeClassName.equals(Long.class.getName())) {
-            return (Long.valueOf(input));
+            return input.longValue();
 
             // BigDecimal
         } else if (typeClassName.equals(BigDecimal.class.getName())) {
-            return (new BigDecimal(input));
+            if (input instanceof BigDecimal) {
+                return (input);
+            }
+            if (input instanceof BigInteger) {
+                return new BigDecimal(((BigInteger) input));
+            }
+            return BigDecimal.valueOf(input.doubleValue());
         }
 
         throw SmallRyeGraphQLServerMessages.msg.notAValidNumberType(typeClassName);
     }
 
-    public Object out(final Object object) {
+    public Number out(final Number object) {
         return object;
     }
 }
