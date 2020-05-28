@@ -1,7 +1,6 @@
 package io.smallrye.graphql.tests.validation;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
@@ -61,20 +60,20 @@ public class BeanValidationTest {
                 BeanValidationUpdateTestResponse.class);
 
         assertThat(response.data.update).isNull();
-        List<Location> locations = singletonList(new Location(1, 18));
+        List<Location> locations = asList(new Location(1, 11), new Location(1, 18));
         assertThat(response.errors).usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(
-                        new ResponseError("validation failed: firstName must match \"\\w+\"", locations,
-                                asList("update", "person", "firstName"),
-                                new ValidationExtensions("must match \"\\w+\"", singletonList("firstName"), "*",
+                        new ResponseError("validation failed: update.arg0.firstName must match \"\\w+\"", locations,
+                                asList("update", "person"),
+                                new ValidationExtensions("must match \"\\w+\"", asList("update", "arg0", "firstName"), "*",
                                         new ViolationConstraint("{javax.validation.constraints.Pattern.message}", "\\w+"))),
-                        new ResponseError("validation failed: lastName must not be empty", locations,
-                                asList("update", "person", "lastName"),
-                                new ValidationExtensions("must not be empty", singletonList("lastName"), "",
+                        new ResponseError("validation failed: update.arg0.lastName must not be empty", locations,
+                                asList("update", "person"),
+                                new ValidationExtensions("must not be empty", asList("update", "arg0", "lastName"), "",
                                         new ViolationConstraint("{javax.validation.constraints.NotEmpty.message}", null))),
-                        new ResponseError("validation failed: age must be greater than or equal to 0", locations,
-                                asList("update", "person", "age"),
-                                new ValidationExtensions("must be greater than or equal to 0", singletonList("age"),
+                        new ResponseError("validation failed: update.arg0.age must be greater than or equal to 0", locations,
+                                asList("update", "person"),
+                                new ValidationExtensions("must be greater than or equal to 0", asList("update", "arg0", "age"),
                                         new BigDecimal(-1),
                                         new ViolationConstraint("{javax.validation.constraints.PositiveOrZero.message}",
                                                 null))));
