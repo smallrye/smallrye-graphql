@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.smallrye</groupId>
-        <artifactId>smallrye-graphql-parent</artifactId>
-        <version>1.0.2-SNAPSHOT</version>
+        <artifactId>smallrye-graphql-client-parent</artifactId>
+        <version>1.0.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>smallrye-graphql-client-generator</artifactId>
