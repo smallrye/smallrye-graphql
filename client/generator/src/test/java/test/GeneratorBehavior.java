@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import org.assertj.core.data.MapEntry;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import graphql.ErrorType;
 import graphql.GraphQLError;
@@ -24,7 +24,7 @@ import graphql.schema.idl.errors.SchemaProblem;
 import io.smallrye.graphql.client.generator.Generator;
 import io.smallrye.graphql.client.generator.GraphQlGeneratorException;
 
-class GeneratorBehavior {
+public class GeneratorBehavior {
     private static final String HEROES = "{heroes { name realName }}";
     private static final String HEROES_IN_LOCATION = "query heroesIn($location: String) {heroesIn(location: $location) { name realName }}";
 
@@ -51,7 +51,7 @@ class GeneratorBehavior {
     private String schema = SCHEMA;
 
     @Test
-    void shouldGenerateApiForOneSimpleQuery() {
+    public void shouldGenerateApiForOneSimpleQuery() {
         Generator generator = givenGeneratorFor(HEROES);
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -62,7 +62,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiForOneParameterizedQuery() {
+    public void shouldGenerateApiForOneParameterizedQuery() {
         Generator generator = givenGeneratorFor(HEROES_IN_LOCATION);
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -73,7 +73,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithInvalidSchema() {
+    public void shouldFailToGenerateApiWithInvalidSchema() {
         schema = "foo";
         Generator generator = givenGeneratorFor(HEROES);
 
@@ -88,7 +88,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithSchemaWithoutQuery() {
+    public void shouldFailToGenerateApiWithSchemaWithoutQuery() {
         schema = "type SuperHero { name: String }";
         Generator generator = givenGeneratorFor(HEROES);
 
@@ -99,7 +99,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithUnknownQuery() {
+    public void shouldFailToGenerateApiWithUnknownQuery() {
         Generator generator = givenGeneratorFor("{unknown { name }}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -109,7 +109,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithInvalidQuery() {
+    public void shouldFailToGenerateApiWithInvalidQuery() {
         Generator generator = givenGeneratorFor("invalid {heroes}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -119,7 +119,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithoutQueries() {
+    public void shouldGenerateApiWithoutQueries() {
         Generator generator = givenGeneratorFor();
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -128,7 +128,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithMultipleDefinitionInQuery() {
+    public void shouldFailToGenerateApiWithMultipleDefinitionInQuery() {
         Generator generator = givenGeneratorFor("query foo {heroes {name}} mutation bar {name}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -138,7 +138,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithMultiQuery() {
+    public void shouldFailToGenerateApiWithMultiQuery() {
         Generator generator = givenGeneratorFor("{heroes { name } heroesIn(location: String) { realName }}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -148,7 +148,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithMultipleQueries() {
+    public void shouldGenerateApiWithMultipleQueries() {
         Generator generator = givenGeneratorFor(HEROES, HEROES_IN_LOCATION);
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -159,7 +159,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithMultipleQueriesSelectingDifferentFields() {
+    public void shouldFailToGenerateApiWithMultipleQueriesSelectingDifferentFields() {
         Generator generator = givenGeneratorFor("{heroes { name }}", HEROES_IN_LOCATION);
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -169,7 +169,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithExplicitQuery() {
+    public void shouldGenerateApiWithExplicitQuery() {
         Generator generator = givenGeneratorFor("query {heroes { name realName }}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -180,7 +180,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithNamedQuery() {
+    public void shouldGenerateApiWithNamedQuery() {
         Generator generator = givenGeneratorFor("query foo {heroes { name realName }}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -192,7 +192,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithAliasedQuery() {
+    public void shouldGenerateApiWithAliasedQuery() {
         Generator generator = givenGeneratorFor("{foo: heroes { name realName }}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -204,7 +204,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithNonNullReturnType() {
+    public void shouldGenerateApiWithNonNullReturnType() {
         Generator generator = givenGeneratorFor("{countHeroes}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -214,7 +214,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithIntegerQuery() {
+    public void shouldGenerateApiWithIntegerQuery() {
         Generator generator = givenGeneratorFor("{countTeams}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -224,7 +224,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithBooleanQuery() {
+    public void shouldGenerateApiWithBooleanQuery() {
         Generator generator = givenGeneratorFor("query heroExists($name: String) {heroExists(name: $name)}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -234,7 +234,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithFloatQuery() {
+    public void shouldGenerateApiWithFloatQuery() {
         Generator generator = givenGeneratorFor("{averageTeamSize}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -244,7 +244,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithIdQuery() {
+    public void shouldGenerateApiWithIdQuery() {
         Generator generator = givenGeneratorFor("query heroId($name: String) {heroId(name: $name)}");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -254,7 +254,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithIntParameter() {
+    public void shouldGenerateApiWithIntParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThan($size: Int) {teamsLargerThan(size: $size) {name} }");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -265,7 +265,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldGenerateApiWithNonNullParameter() {
+    public void shouldGenerateApiWithNonNullParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThan($size: Int!) {teamsLargerThan(size: $size) {name} }");
 
         Map<String, String> generatedFiles = generator.generateSourceFiles();
@@ -277,7 +277,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithUndefinedParameter() {
+    public void shouldFailToGenerateApiWithUndefinedParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThan($foo: Int) {teamsLargerThan(size: $bar)}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
@@ -287,7 +287,7 @@ class GeneratorBehavior {
     }
 
     @Test
-    void shouldFailToGenerateApiWithConstantParameter() {
+    public void shouldFailToGenerateApiWithConstantParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThanThree{teamsLargerThan(size: 3) {name}}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,

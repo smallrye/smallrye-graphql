@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.microprofile.graphql.NonNull;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
-class NestedBehavior {
+public class NestedBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -23,7 +23,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallStringSetQuery() {
+    public void shouldCallStringSetQuery() {
         fixture.returnsData("'greetings':['a','b']");
         StringSetApi api = fixture.builder().build(StringSetApi.class);
 
@@ -34,7 +34,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignStringToSet() {
+    public void shouldFailToAssignStringToSet() {
         fixture.returnsData("'greetings':'a'");
         StringSetApi api = fixture.builder().build(StringSetApi.class);
 
@@ -45,7 +45,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignNumberToSet() {
+    public void shouldFailToAssignNumberToSet() {
         fixture.returnsData("'greetings':12345");
         StringSetApi api = fixture.builder().build(StringSetApi.class);
 
@@ -56,7 +56,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignBooleanToSet() {
+    public void shouldFailToAssignBooleanToSet() {
         fixture.returnsData("'greetings':true");
         StringSetApi api = fixture.builder().build(StringSetApi.class);
 
@@ -67,7 +67,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignObjectToSet() {
+    public void shouldFailToAssignObjectToSet() {
         fixture.returnsData("'greetings':{'foo':'bar'}");
         StringSetApi api = fixture.builder().build(StringSetApi.class);
 
@@ -83,7 +83,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallStringListQuery() {
+    public void shouldCallStringListQuery() {
         fixture.returnsData("'greetings':['a','b']");
         StringListApi api = fixture.builder().build(StringListApi.class);
 
@@ -94,7 +94,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallStringListQueryWithNull() {
+    public void shouldCallStringListQueryWithNull() {
         fixture.returnsData("'greetings':['a',null]");
         StringListApi api = fixture.builder().build(StringListApi.class);
 
@@ -111,7 +111,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToCallNonNullStringListQuery() {
+    public void shouldFailToCallNonNullStringListQuery() {
         fixture.returnsData("'greetings':['a',null]");
         NonNullStringListApi api = fixture.builder().build(NonNullStringListApi.class);
 
@@ -127,7 +127,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallStringArrayQuery() {
+    public void shouldCallStringArrayQuery() {
         fixture.returnsData("'greetings':['a','b']");
         StringArrayApi api = fixture.builder().build(StringArrayApi.class);
 
@@ -172,7 +172,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallObjectQuery() {
+    public void shouldCallObjectQuery() {
         fixture.returnsData("'greeting':{'text':'foo','code':5}");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
@@ -183,7 +183,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignStringToObject() {
+    public void shouldFailToAssignStringToObject() {
         fixture.returnsData("'greeting':'a'");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
@@ -194,7 +194,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignNumberToObject() {
+    public void shouldFailToAssignNumberToObject() {
         fixture.returnsData("'greeting':12.34");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
@@ -205,7 +205,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignBooleanToObject() {
+    public void shouldFailToAssignBooleanToObject() {
         fixture.returnsData("'greeting':false");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
@@ -221,7 +221,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallObjectListQuery() {
+    public void shouldCallObjectListQuery() {
         fixture.returnsData("'greetings':[{'text':'a','code':1},{'text':'b','code':2}]");
         ObjectListApi api = fixture.builder().build(ObjectListApi.class);
 
@@ -234,7 +234,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignStringToObjectListQuery() {
+    public void shouldFailToAssignStringToObjectListQuery() {
         fixture.returnsData("'greetings':[{'text':'a','code':1},123456]");
         ObjectListApi api = fixture.builder().build(ObjectListApi.class);
 
@@ -245,7 +245,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToAssignNumberToObjectListQuery() {
+    public void shouldFailToAssignNumberToObjectListQuery() {
         fixture.returnsData("'greetings':[123,456.78]");
         ObjectListApi api = fixture.builder().build(ObjectListApi.class);
 
@@ -266,7 +266,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallNestedStringQuery() {
+    public void shouldCallNestedStringQuery() {
         fixture.returnsData("'container':{'greeting':'hi','count':5}");
         StringContainerApi api = fixture.builder().build(StringContainerApi.class);
 
@@ -312,7 +312,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallNestedObjectQuery() {
+    public void shouldCallNestedObjectQuery() {
         fixture.returnsData("'container':{'greeting':{'text':'a','code':1},'count':3}");
         GreetingContainerApi api = fixture.builder().build(GreetingContainerApi.class);
 
@@ -358,7 +358,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallNestedListQuery() {
+    public void shouldCallNestedListQuery() {
         fixture.returnsData("'container':{'greetings':[" +
                 "{'text':'a','code':1},{'text':'b','code':2}" +
                 "],'count':3}");
@@ -434,7 +434,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallWrappedGreetingQuery() {
+    public void shouldCallWrappedGreetingQuery() {
         fixture.returnsData("'container':{'greeting':{" +
                 "'value':{'text':'a','code':1}}," +
                 "'count':3}");
@@ -482,7 +482,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallWrappedByteQuery() {
+    public void shouldCallWrappedByteQuery() {
         fixture.returnsData("'container':{'code':{'value':123},'count':3}");
         WrappedByteApi api = fixture.builder().build(WrappedByteApi.class);
 
@@ -494,7 +494,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToCallWrappedInvalidByteQuery() {
+    public void shouldFailToCallWrappedInvalidByteQuery() {
         fixture.returnsData("'container':{'code':{'value':1000},'count':3}");
         WrappedByteApi api = fixture.builder().build(WrappedByteApi.class);
 
@@ -539,7 +539,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallWrappedListByteQuery() {
+    public void shouldCallWrappedListByteQuery() {
         fixture.returnsData("'container':{'codes':[97,98,99],'count':3}");
         WrappedListByteApi api = fixture.builder().build(WrappedListByteApi.class);
 
@@ -551,7 +551,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToCallWrappedInvalidListByteQuery() {
+    public void shouldFailToCallWrappedInvalidListByteQuery() {
         fixture.returnsData("'container':{'codes':[97,98,9999],'count':3}");
         WrappedListByteApi api = fixture.builder().build(WrappedListByteApi.class);
 
@@ -577,7 +577,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallObjectQueryWithSpecialFields() {
+    public void shouldCallObjectQueryWithSpecialFields() {
         fixture.returnsData("'foo':{'text':'foo','code':5,'ignoreMe':true}");
         ClassWithTransientAndStaticFieldsApi api = fixture.builder().build(ClassWithTransientAndStaticFieldsApi.class);
 
@@ -603,7 +603,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallInheritedGreetingQuery() {
+    public void shouldCallInheritedGreetingQuery() {
         fixture.returnsData("'call':{" +
                 "'greeting':{'text':'a','code':1}," +
                 "'count':3}");
@@ -630,7 +630,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCreateObjectPrivateDefaultConstructor() {
+    public void shouldCreateObjectPrivateDefaultConstructor() {
         fixture.returnsData("'call':{'foo':'a'}");
         ObjectPrivateDefaultConstructorApi api = fixture.builder().build(ObjectPrivateDefaultConstructorApi.class);
 
@@ -659,7 +659,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToCreateObjectWithoutDefaultConstructor() {
+    public void shouldFailToCreateObjectWithoutDefaultConstructor() {
         fixture.returnsData("'call':{'foo':'a','bar':'b'}");
         ObjectWithoutDefaultConstructorApi api = fixture.builder().build(ObjectWithoutDefaultConstructorApi.class);
 
@@ -681,7 +681,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldCallWithMissingNullableField() {
+    public void shouldCallWithMissingNullableField() {
         fixture.returnsData("'call':{'foo':'a'}");
         MissingNullableFieldApi api = fixture.builder().build(MissingNullableFieldApi.class);
 
@@ -708,7 +708,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToSetMissingNonNullField() {
+    public void shouldFailToSetMissingNonNullField() {
         fixture.returnsData("'call':{'foo':'a'}");
         MissingNonNullFieldApi api = fixture.builder().build(MissingNonNullFieldApi.class);
 
@@ -731,7 +731,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToSetMissingPrimitiveField() {
+    public void shouldFailToSetMissingPrimitiveField() {
         fixture.returnsData("'call':{'foo':'a'}");
         MissingPrimitiveFieldApi api = fixture.builder().build(MissingPrimitiveFieldApi.class);
 
@@ -759,7 +759,7 @@ class NestedBehavior {
     }
 
     @Test
-    void shouldFailToCallApiWithRecursiveFields() {
+    public void shouldFailToCallApiWithRecursiveFields() {
         RecursiveApi api = fixture.builder().build(RecursiveApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::member, GraphQlClientException.class);

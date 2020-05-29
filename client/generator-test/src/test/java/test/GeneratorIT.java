@@ -5,11 +5,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.io.File;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class GeneratorIT {
+public class GeneratorIT {
     @Test
-    void shouldHaveGeneratedApi() {
+    public void shouldHaveGeneratedApi() {
         then(contentOf(sourceFile("SuperHeroesApi"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +
@@ -23,7 +23,7 @@ class GeneratorIT {
     }
 
     @Test
-    void shouldHaveGeneratedTeam() {
+    public void shouldHaveGeneratedTeam() {
         then(contentOf(sourceFile("Team"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +
@@ -33,7 +33,7 @@ class GeneratorIT {
     }
 
     @Test
-    void shouldHaveGeneratedSuperHero() {
+    public void shouldHaveGeneratedSuperHero() {
         then(contentOf(sourceFile("SuperHero"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +

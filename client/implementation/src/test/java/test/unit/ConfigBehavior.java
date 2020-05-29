@@ -6,11 +6,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 import java.net.URI;
 import java.util.NoSuchElementException;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-class ConfigBehavior {
+public class ConfigBehavior {
 
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
@@ -21,7 +21,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldFailToLoadMissingEndpointConfig() {
+    public void shouldFailToLoadMissingEndpointConfig() {
         Throwable thrown = catchThrowableOfType(() -> fixture.builderWithoutEndpointConfig().build(Api.class),
                 NoSuchElementException.class);
 
@@ -29,7 +29,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldLoadEndpointConfig() {
+    public void shouldLoadEndpointConfig() {
         System.setProperty(API_URL_CONFIG_KEY, DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");
@@ -44,7 +44,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldLoadEndpointFromKeyConfig() {
+    public void shouldLoadEndpointFromKeyConfig() {
         System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");
@@ -67,7 +67,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldLoadAnnotatedEndpointConfig() {
+    public void shouldLoadAnnotatedEndpointConfig() {
         fixture.returnsData("'foo':true");
         ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
 
@@ -82,7 +82,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldLoadAnnotatedKeyConfig() {
+    public void shouldLoadAnnotatedKeyConfig() {
         System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");

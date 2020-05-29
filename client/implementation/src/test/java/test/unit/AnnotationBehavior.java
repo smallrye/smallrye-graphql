@@ -4,11 +4,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-class AnnotationBehavior {
+public class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -18,7 +18,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallRenamedStringQuery() {
+    public void shouldCallRenamedStringQuery() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         RenamedStringApi api = fixture.builder().build(RenamedStringApi.class);
 
@@ -34,7 +34,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallParamQuery() {
+    public void shouldCallParamQuery() {
         fixture.returnsData("'greeting':'hi, foo'");
         RenamedParamApi api = fixture.builder().build(RenamedParamApi.class);
 
@@ -57,7 +57,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallObjectQuery() {
+    public void shouldCallObjectQuery() {
         fixture.returnsData("'greeting':{'foo':'foo','key':5}");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
