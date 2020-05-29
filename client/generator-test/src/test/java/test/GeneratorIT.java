@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class GeneratorIT {
     @Test
     void shouldHaveGeneratedApi() {
-        then(contentOf(file("SuperHeroesApi"))).isEqualTo("" +
+        then(contentOf(sourceFile("SuperHeroesApi"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +
                 "import java.util.List;\n" +
@@ -24,7 +24,7 @@ class GeneratorIT {
 
     @Test
     void shouldHaveGeneratedTeam() {
-        then(contentOf(file("Team"))).isEqualTo("" +
+        then(contentOf(sourceFile("Team"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +
                 "public class Team {\n" +
@@ -34,7 +34,7 @@ class GeneratorIT {
 
     @Test
     void shouldHaveGeneratedSuperHero() {
-        then(contentOf(file("SuperHero"))).isEqualTo("" +
+        then(contentOf(sourceFile("SuperHero"))).isEqualTo("" +
                 "package io.smallrye.graphql.client.generator.test;\n" +
                 "\n" +
                 "import java.util.List;\n" +
@@ -46,7 +46,7 @@ class GeneratorIT {
                 "}\n");
     }
 
-    private File file(String file) {
+    private File sourceFile(String file) {
         return new File("target/generated-sources/annotations/io/smallrye/graphql/client/generator/test/" + file + ".java");
     }
 }
