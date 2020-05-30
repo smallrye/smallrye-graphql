@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.microprofile.graphql.NonNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;

@@ -8,7 +8,7 @@ import java.lang.annotation.Retention;
 
 import javax.enterprise.inject.Stereotype;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;

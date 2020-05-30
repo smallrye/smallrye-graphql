@@ -7,7 +7,7 @@ import static test.unit.EnumBehavior.Episode.NEWHOPE;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
