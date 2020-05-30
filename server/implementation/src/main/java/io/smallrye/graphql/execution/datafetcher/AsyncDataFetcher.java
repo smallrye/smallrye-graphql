@@ -15,7 +15,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.transformation.TransformException;
+import io.smallrye.graphql.transformation.DataFetchingException;
 
 /**
  * Fetch data from resolvers that return {@code CompletionStage}.
@@ -87,7 +87,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
                 } else {
                     try {
                         resultBuilder.data(fieldHelper.transformResponse(result));
-                    } catch (TransformException te) {
+                    } catch (DataFetchingException te) {
                         te.appendDataFetcherResult(resultBuilder, dfe);
                     }
                 }
@@ -95,7 +95,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
                 return resultBuilder.build();
             });
 
-        } catch (TransformException pe) {
+        } catch (DataFetchingException pe) {
             //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
         } catch (GraphQLException graphQLException) {

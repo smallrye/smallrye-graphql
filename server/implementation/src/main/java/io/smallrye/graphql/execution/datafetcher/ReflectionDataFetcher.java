@@ -11,7 +11,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.transformation.TransformException;
+import io.smallrye.graphql.transformation.DataFetchingException;
 
 /**
  * Fetch data using some bean lookup and Reflection
@@ -50,8 +50,6 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * 
      * @param dfe the Data Fetching Environment from graphql-java
      * @return the result from the call.
-     * 
-     * @throws Exception
      */
     @Override
     public DataFetcherResult<Object> get(DataFetchingEnvironment dfe) throws Exception {
@@ -74,7 +72,7 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
 
             // See if we need to transform on the way out
             resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
-        } catch (TransformException pe) {
+        } catch (DataFetchingException pe) {
             //Arguments or result couldn't be transformed
             pe.appendDataFetcherResult(resultBuilder, dfe);
         } catch (GraphQLException graphQLException) {

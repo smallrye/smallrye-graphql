@@ -20,7 +20,7 @@ import io.smallrye.graphql.schema.model.Field;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class TransformException extends Exception {
+public class TransformException extends DataFetchingException {
     private final Field field;
     private final String parameterValue;
 
@@ -34,6 +34,7 @@ public class TransformException extends Exception {
         }
     }
 
+    @Override
     public DataFetcherResult.Builder<Object> appendDataFetcherResult(DataFetcherResult.Builder<Object> builder,
             DataFetchingEnvironment dfe) {
         DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters

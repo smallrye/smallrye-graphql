@@ -1,7 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.transformation.TransformException;
+import io.smallrye.graphql.transformation.DataFetchingException;
 import io.smallrye.graphql.transformation.Transformer;
 
 /**
@@ -26,7 +26,7 @@ public class FieldHelper extends AbstractHelper {
     }
 
     public Object transformResponse(Object argumentValue)
-            throws TransformException {
+            throws DataFetchingException {
         argumentValue = super.recursiveTransform(argumentValue, field);
         return argumentValue;
     }
@@ -39,7 +39,7 @@ public class FieldHelper extends AbstractHelper {
      * @return transformed value
      */
     @Override
-    Object singleTransform(Object argumentValue, Field field) throws TransformException {
+    Object singleTransform(Object argumentValue, Field field) throws DataFetchingException {
         return Transformer.out(field, argumentValue);
     }
 

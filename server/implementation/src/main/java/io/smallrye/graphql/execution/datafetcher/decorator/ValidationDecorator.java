@@ -28,7 +28,7 @@ import graphql.language.NamedNode;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.datafetcher.ExecutionContext;
-import io.smallrye.graphql.transformation.TransformException;
+import io.smallrye.graphql.transformation.DataFetchingException;
 
 public class ValidationDecorator extends AbstractDataFetcherDecorator {
     private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
@@ -46,12 +46,11 @@ public class ValidationDecorator extends AbstractDataFetcherDecorator {
         }
     }
 
-    private static class BeanValidationException extends TransformException {
+    private static class BeanValidationException extends DataFetchingException {
         private final Set<ConstraintViolation<Object>> violations;
         private final Method method;
 
         public BeanValidationException(Set<ConstraintViolation<Object>> violations, Method method) {
-            super(null, null, null);
             this.violations = violations;
             this.method = method;
         }
