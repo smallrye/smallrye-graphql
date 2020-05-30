@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-class ParametersBehavior {
+public class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -19,7 +19,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallParamQuery() {
+    public void shouldCallParamQuery() {
         fixture.returnsData("'greeting':'hi, foo'");
         ParamApi api = fixture.builder().build(ParamApi.class);
 
@@ -30,7 +30,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldEscapeParamScalarQuery() {
+    public void shouldEscapeParamScalarQuery() {
         fixture.returnsData("'greeting':'hi, foo'");
         ParamApi api = fixture.builder().build(ParamApi.class);
 
@@ -46,7 +46,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallTwoParamsQuery() {
+    public void shouldCallTwoParamsQuery() {
         fixture.returnsData("'greeting':'hi, foo 3'");
         ParamsApi api = fixture.builder().build(ParamsApi.class);
 
@@ -62,7 +62,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallBooleanParamQuery() {
+    public void shouldCallBooleanParamQuery() {
         fixture.returnsData("'greeting':'ho'");
         BooleanParamApi api = fixture.builder().build(BooleanParamApi.class);
 
@@ -107,7 +107,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallObjectParamQuery() {
+    public void shouldCallObjectParamQuery() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         ObjectParamApi api = fixture.builder().build(ObjectParamApi.class);
 
@@ -123,7 +123,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallArrayParamQuery() {
+    public void shouldCallArrayParamQuery() {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
 
@@ -139,7 +139,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallObjectArrayParamQuery() {
+    public void shouldCallObjectArrayParamQuery() {
         fixture.returnsData("'greetings':true");
         ObjectArrayParamApi api = fixture.builder().build(ObjectArrayParamApi.class);
 
@@ -165,7 +165,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallArrayObjectParamQuery() {
+    public void shouldCallArrayObjectParamQuery() {
         fixture.returnsData("'foo':true");
         ArrayObjectParamApi api = fixture.builder().build(ArrayObjectParamApi.class);
 

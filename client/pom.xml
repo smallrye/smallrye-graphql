@@ -16,6 +16,8 @@
     <modules>
         <module>api</module>
         <module>implementation</module>
+        <module>generator</module>
+        <module>generator-test</module>
         <module>tck</module>
     </modules>
 </project>

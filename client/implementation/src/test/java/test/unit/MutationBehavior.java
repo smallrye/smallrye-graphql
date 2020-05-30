@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-class MutationBehavior {
+public class MutationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -19,7 +19,7 @@ class MutationBehavior {
     }
 
     @Test
-    void shouldCallStringMutation() {
+    public void shouldCallStringMutation() {
         fixture.returnsData("'createSome':'output'");
         StringMutationApi api = fixture.builder().build(StringMutationApi.class);
 
@@ -65,7 +65,7 @@ class MutationBehavior {
     }
 
     @Test
-    void shouldCallGreetingMutation() {
+    public void shouldCallGreetingMutation() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         GreetingMutationApi api = fixture.builder().build(GreetingMutationApi.class);
 

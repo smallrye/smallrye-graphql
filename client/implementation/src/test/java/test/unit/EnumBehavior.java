@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-class EnumBehavior {
+public class EnumBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     enum Episode {
@@ -26,7 +26,7 @@ class EnumBehavior {
     }
 
     @Test
-    void shouldCallEnumQuery() {
+    public void shouldCallEnumQuery() {
         fixture.returnsData("'episode':'JEDI'");
         EpisodeApi api = fixture.builder().build(EpisodeApi.class);
 
@@ -42,7 +42,7 @@ class EnumBehavior {
     }
 
     @Test
-    void shouldCallEnumListQuery() {
+    public void shouldCallEnumListQuery() {
         fixture.returnsData("'episodes':['NEWHOPE','EMPIRE','JEDI']");
         EpisodesApi api = fixture.builder().build(EpisodesApi.class);
 

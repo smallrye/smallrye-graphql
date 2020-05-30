@@ -1,0 +1,53 @@
+= This code is *experimental*!
+
+This is an annotation processor to generate Type-Safe Client APIs. An example is generator-test/src/main/java/io.smallrye.graphql.client.generator.test.SuperHeroes, which looks like this:
+
+[source,java]
+--------------------------
+@GraphQlSchema("resource:schema.graphql")
+@GraphqlQuery("{ teams { name } }")
+@GraphqlQuery("query heroesLocatedIn($location: String) { heroesIn(location: $location) { name realName superPowers } }")
+public class SuperHeroes {
+}
+--------------------------
+
+And the annotation processor generates a class SuperHeroesApi like this:
+
+[source,java]
+--------------------------
+public interface SuperHeroesApi {
+List<Team> teams();
+@Query("heroesIn") List<SuperHero> heroesLocatedIn(String location);
+}
+--------------------------
+
+Plus the POJOs `Team` and `SuperHero`.
+
+== Major Deficits
+
+=== Nested Types
+
+It's important to name types explicitly... also when you declare multiple queries in one request; even if it ends up with something as generic as `MainPage`, this does convey a lot of information to the reader.
+
+The type name from the schema would be a fallback, as long as all non-explicitly-typed queries select the same fields. And if they don't, an error is raised; you'll have to rename all but one.
+
+We need a syntax to give nested types an explicit name. Something like this:
+
+[source]
+---------------------------------
+{
+  teams { name size }
+  heroes { teamAffiliations { name }}: TeamAffiliations
+  teamsLargerThan(size: 3) { size }: TeamSizes
+}: MainPage
+---------------------------------
+
+The `SuperHero` type is used only once in line 2, so it's unique and could be used; but doesn't make a lot of sense with only the team affiliations, so we rename it anyways to `TeamAffiliations`.
+
+The `Team` in line 3 selects other fields than that in line 1, so we rename it to `TeamSizes`.
+
+Line 4 doesn't have a type in the Schema, so it always has to be renamed.
+
+As this is an extension to the query syntax it can't be parsed by graphql-java. We'd have to write our own parser.
+
+*As a workaround, you can use multiple API classes in case the selected fields don't match everywhere.*
