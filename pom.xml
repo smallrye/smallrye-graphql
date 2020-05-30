@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-parent</artifactId>
-        <version>18</version>
+        <version>20</version>
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
@@ -21,6 +21,7 @@
         <version.eclipse.microprofile.metrics>2.3.2</version.eclipse.microprofile.metrics>
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
         <version.opentracing>0.31.0</version.opentracing>
+        <version.yasson>1.0.7</version.yasson>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.0.Final</slf4j-jboss-logging.version>
@@ -98,6 +99,11 @@
                 <version>${version.opentracing}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.eclipse</groupId>
+                <artifactId>yasson</artifactId>
+                <version>${version.yasson}</version>
+            </dependency>
 
             <!-- Dependencies provided by the project -->
             <dependency>
