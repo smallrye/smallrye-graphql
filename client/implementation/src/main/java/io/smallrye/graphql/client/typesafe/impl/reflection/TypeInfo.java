@@ -117,6 +117,7 @@ public class TypeInfo {
     public boolean isScalar() {
         return isPrimitive()
                 || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
+                || Number.class.isAssignableFrom(getRawType())
                 || CharSequence.class.isAssignableFrom(getRawType())
                 || isEnum()
                 || scalarConstructor().isPresent();
@@ -131,9 +132,7 @@ public class TypeInfo {
     }
 
     public Optional<ConstructionInfo> scalarConstructor() {
-        return Stream.concat(
-                Stream.of(getRawType().getMethods()).filter(this::isStaticStringConstructor),
-                Stream.of(getRawType().getConstructors()).filter(this::hasOneStringParameter))
+        return Stream.of(getRawType().getMethods()).filter(this::isStaticStringConstructor)
                 .findFirst()
                 .map(ConstructionInfo::new);
     }

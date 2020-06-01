@@ -493,6 +493,37 @@ public class ScalarBehavior {
     //endregion
 
     @GraphQlClientApi
+    interface BigIntegerApi {
+        BigInteger number();
+    }
+
+    //region BigIntegerBehavior
+    @Test
+    public void shouldCallReallyLongIntegerQuery() {
+        String reallyLongInteger = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
+        fixture.returnsData("'number':" + reallyLongInteger);
+        BigIntegerApi api = fixture.builder().build(BigIntegerApi.class);
+
+        BigInteger number = api.number();
+
+        then(fixture.query()).isEqualTo("number");
+        then(number).isEqualTo(reallyLongInteger);
+    }
+
+    @Test
+    public void shouldCallNotSoLongIntegerQuery() {
+        String notSoLongInteger = "123456";
+        fixture.returnsData("'number':" + notSoLongInteger);
+        BigIntegerApi api = fixture.builder().build(BigIntegerApi.class);
+
+        BigInteger number = api.number();
+
+        then(fixture.query()).isEqualTo("number");
+        then(number).isEqualTo(notSoLongInteger);
+    }
+    //endregion
+
+    @GraphQlClientApi
     interface BigDecimalApi {
         BigDecimal number();
     }
@@ -513,7 +544,7 @@ public class ScalarBehavior {
     @Test
     public void shouldCallNotSoLongDecimalQuery() {
         String notSoLongDecimal = "123.456";
-        fixture.returnsData("'number':'" + notSoLongDecimal + "'");
+        fixture.returnsData("'number':" + notSoLongDecimal);
         BigDecimalApi api = fixture.builder().build(BigDecimalApi.class);
 
         BigDecimal number = api.number();
@@ -539,8 +570,21 @@ public class ScalarBehavior {
     }
 
     @GraphQlClientApi
-    interface ScalarWithStringConstructorApi {
-        BigInteger foo();
+    interface NonScalarWithStringConstructorApi {
+        NonScalarWithStringConstructor foo();
+    }
+
+    public static class NonScalarWithStringConstructor {
+        private final String value;
+
+        @SuppressWarnings("unused")
+        public NonScalarWithStringConstructor() {
+            this(null);
+        }
+
+        public NonScalarWithStringConstructor(String value) {
+            this.value = value;
+        }
     }
 
     @GraphQlClientApi
@@ -550,6 +594,11 @@ public class ScalarBehavior {
     }
 
     public static class FailingScalar {
+        @SuppressWarnings("unused")
+        public static FailingScalar valueOf(String text) {
+            return new FailingScalar(text);
+        }
+
         @SuppressWarnings("unused")
         private final String text;
 
@@ -595,13 +644,13 @@ public class ScalarBehavior {
     }
 
     public static class ScalarWithOfConstructorMethod {
-        public ScalarWithOfConstructorMethod(String text) {
-            this.text = text;
-        }
-
         @SuppressWarnings("unused")
         public static ScalarWithOfConstructorMethod of(String text) {
             return new ScalarWithOfConstructorMethod("x-" + text);
+        }
+
+        public ScalarWithOfConstructorMethod(String text) {
+            this.text = text;
         }
 
         String text;
@@ -674,27 +723,14 @@ public class ScalarBehavior {
     }
 
     @Test
-    public void shouldCallNotSoBigIntegerScalarWithStringConstructorApiQuery() {
-        String bigNumber = "1234";
-        fixture.returnsData("'foo':" + bigNumber);
-        ScalarWithStringConstructorApi api = fixture.builder().build(ScalarWithStringConstructorApi.class);
+    public void shouldCallNonScalarWithStringConstructorApiQuery() {
+        fixture.returnsData("'foo':{'value':'1234'}");
+        NonScalarWithStringConstructorApi api = fixture.builder().build(NonScalarWithStringConstructorApi.class);
 
-        BigInteger value = api.foo();
+        NonScalarWithStringConstructor result = api.foo();
 
-        then(fixture.query()).isEqualTo("foo");
-        then(value).isEqualTo(bigNumber);
-    }
-
-    @Test
-    public void shouldCallVeryBigIntegerScalarWithStringConstructorApiQuery() {
-        String bigNumber = "1234567890123456789012345678901234567890123456789012345678901234567890";
-        fixture.returnsData("'foo':" + bigNumber);
-        ScalarWithStringConstructorApi api = fixture.builder().build(ScalarWithStringConstructorApi.class);
-
-        BigInteger value = api.foo();
-
-        then(fixture.query()).isEqualTo("foo");
-        then(value).isEqualTo(bigNumber);
+        then(fixture.query()).isEqualTo("foo {value}");
+        then(result.value).isEqualTo("1234");
     }
 
     @Test
