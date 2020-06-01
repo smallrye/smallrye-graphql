@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jboss.logging.Logger;
-
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.execution.SchemaPrinter;
 
@@ -21,7 +19,6 @@ import io.smallrye.graphql.execution.SchemaPrinter;
  */
 @WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "/graphql/schema.graphql" }, loadOnStartup = 2)
 public class SchemaServlet extends HttpServlet {
-    private static final Logger LOG = Logger.getLogger(SchemaServlet.class.getName());
 
     public static final String SCHEMA_PROP = "io.smallrye.graphql.servlet.bootstrap";
 
@@ -43,7 +40,7 @@ public class SchemaServlet extends HttpServlet {
             out.print(schemaPrinter.print(schema));
             out.flush();
         } catch (IOException ex) {
-            LOG.log(Logger.Level.ERROR, null, ex);
+            SmallRyeGraphQLServletLogging.log.ioException(ex);
         }
     }
 

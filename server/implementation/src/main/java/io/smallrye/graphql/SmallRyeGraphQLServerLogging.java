@@ -9,6 +9,8 @@ import org.jboss.logging.annotations.MessageLogger;
 @MessageLogger(projectCode = "SRGQL")
 public interface SmallRyeGraphQLServerLogging {
 
+    // numbers reserved for this module are 10000-19999
+
     SmallRyeGraphQLServerLogging log = Logger.getMessageLogger(SmallRyeGraphQLServerLogging.class,
             SmallRyeGraphQLServerLogging.class.getPackage().getName());
 

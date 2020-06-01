@@ -18,8 +18,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jboss.logging.Logger;
-
 import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionService;
 
@@ -31,8 +29,6 @@ import io.smallrye.graphql.execution.ExecutionService;
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
 public class ExecutionServlet extends HttpServlet {
     private static final long serialVersionUID = -2859915918802356120L;
-    private static final Logger LOG = Logger.getLogger(ExecutionServlet.class.getName());
-    private static final boolean isDebugEnabled = LOG.isDebugEnabled();
 
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
     private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
@@ -61,7 +57,7 @@ public class ExecutionServlet extends HttpServlet {
             try {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
             } catch (IOException ex) {
-                LOG.log(Logger.Level.ERROR, null, ex);
+                SmallRyeGraphQLServletLogging.log.ioException(ex);
             }
         }
     }
@@ -71,14 +67,12 @@ public class ExecutionServlet extends HttpServlet {
         try (BufferedReader reader = request.getReader()) {
             handleInput(reader, response);
         } catch (IOException ex) {
-            LOG.log(Logger.Level.ERROR, null, ex);
+            SmallRyeGraphQLServletLogging.log.ioException(ex);
         }
     }
 
     private void handleInput(Reader inputReader, HttpServletResponse response) {
-        if (isDebugEnabled) {
-            inputReader = logInputReader(inputReader);
-        }
+        inputReader = logInputReader(inputReader);
 
         try (JsonReader jsonReader = jsonReaderFactory.createReader(inputReader)) {
 
@@ -95,7 +89,7 @@ public class ExecutionServlet extends HttpServlet {
                 }
             }
         } catch (Exception ex) {
-            LOG.log(Logger.Level.ERROR, null, ex);
+            SmallRyeGraphQLServletLogging.log.ioException(ex);
         }
     }
 
@@ -108,10 +102,10 @@ public class ExecutionServlet extends HttpServlet {
                 sb.append(buf, 0, len);
             }
             String jsonInput = sb.toString();
-            LOG.debugf("JSON input: %s", jsonInput);
+            SmallRyeGraphQLServletLogging.log.jsonInput(jsonInput);
             inputReader = new StringReader(jsonInput);
         } catch (Exception e) {
-            LOG.warnf(e, "Unable to log reader, %s", inputReader);
+            SmallRyeGraphQLServletLogging.log.unableToLogReader(inputReader);
         }
         return inputReader;
     }

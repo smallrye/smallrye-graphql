@@ -70,6 +70,16 @@
             <artifactId>jboss-logging</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- i18n -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-processor</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>
