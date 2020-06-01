@@ -23,6 +23,7 @@ class JsonStringReader extends Reader<JsonString> {
         if (type.isEnum())
             //noinspection rawtypes,unchecked
             return Enum.valueOf((Class) type.getRawType(), value.getString());
+
         ConstructionInfo constructor = type.scalarConstructor()
                 .orElseThrow(() -> new GraphQlClientValueException(location, value));
         try {
