@@ -25,7 +25,6 @@ import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
-import org.jboss.logging.Logger;
 
 /**
  * This creates an index from the classpath.
@@ -35,7 +34,6 @@ import org.jboss.logging.Logger;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class IndexInitializer {
-    private static final Logger LOG = Logger.getLogger(IndexInitializer.class.getName());
 
     public IndexView createIndex(Set<URL> urls) {
         List<IndexView> indexes = new ArrayList<>();
@@ -47,10 +45,10 @@ public class IndexInitializer {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream(JANDEX_IDX)) {
             IndexReader reader = new IndexReader(stream);
             IndexView i = reader.read();
-            LOG.info("Loaded index from [" + JANDEX_IDX + "]");
+            SmallRyeGraphQLServletLogging.log.loadedIndexFrom(JANDEX_IDX);
             indexes.add(i);
         } catch (IOException ex) {
-            LOG.info("No jandex index available, let's generate one...");
+            SmallRyeGraphQLServletLogging.log.generatingIndex();
         }
 
         // Classes in this artifact
@@ -70,13 +68,13 @@ public class IndexInitializer {
         for (URL url : urls) {
             try {
                 if (url.toString().endsWith(DOT_JAR) || url.toString().endsWith(DOT_WAR)) {
-                    LOG.debug("processing archive [" + url.toString() + "]");
+                    SmallRyeGraphQLServletLogging.log.processingFile(url.toString());
                     processJar(url.openStream(), indexer);
                 } else {
                     processFolder(url, indexer);
                 }
             } catch (IOException ex) {
-                LOG.warn("Cannot process file " + url.toString(), ex);
+                SmallRyeGraphQLServletLogging.log.cannotProcessFile(url.toString(), ex);
             }
         }
 
@@ -89,7 +87,7 @@ public class IndexInitializer {
             try {
                 urls.add(Paths.get(s).toUri().toURL());
             } catch (MalformedURLException e) {
-                LOG.warn("Cannot create URL from a JAR/WAR file included in the classpath", e);
+                SmallRyeGraphQLServletLogging.log.cannotCreateUrl(e);
             }
         }
 
@@ -112,11 +110,11 @@ public class IndexInitializer {
                     }
                 }
             } else {
-                LOG.warn("Ignoring url [" + url + "] as it's not a jar, war or folder");
+                SmallRyeGraphQLServletLogging.log.ignoringUrl(url);
             }
 
         } catch (URISyntaxException ex) {
-            LOG.warn("Could not process url [" + url + "] while indexing files", ex);
+            SmallRyeGraphQLServletLogging.log.couldNotProcessUrl(url, ex);
         }
     }
 
@@ -133,7 +131,7 @@ public class IndexInitializer {
 
     private void processFile(String fileName, InputStream is, Indexer indexer) throws IOException {
         if (fileName.endsWith(DOT_CLASS)) {
-            LOG.debug("\t indexing [" + fileName + "]");
+            SmallRyeGraphQLServletLogging.log.processingFile(fileName);
             indexer.index(is);
         } else if (fileName.endsWith(DOT_WAR)) {
             // necessary because of the thorntail arquillian adapter

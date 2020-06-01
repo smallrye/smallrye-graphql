@@ -18,7 +18,6 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import org.jboss.jandex.IndexView;
-import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.cdi.producer.GraphQLProducer;
@@ -32,7 +31,6 @@ import io.smallrye.graphql.schema.model.Schema;
  */
 @WebListener
 public class StartupListener implements ServletContextListener {
-    private static final Logger LOG = Logger.getLogger(StartupListener.class.getName());
 
     @Inject
     private GraphQLProducer graphQLProducer;
@@ -59,7 +57,7 @@ public class StartupListener implements ServletContextListener {
             GraphQLSchema graphQLSchema = graphQLProducer.initialize(schema);
 
             sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);
-            LOG.info("SmallRye GraphQL initialized");
+            SmallRyeGraphQLServletLogging.log.initialized();
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }
@@ -67,7 +65,7 @@ public class StartupListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        LOG.info("SmallRye GraphQL destroyed");
+        SmallRyeGraphQLServletLogging.log.destroyed();
     }
 
     private List<URL> toURLs(List<Path> paths) throws MalformedURLException {
@@ -86,7 +84,7 @@ public class StartupListener implements ServletContextListener {
                         .filter(Files::isRegularFile)
                         .collect(Collectors.toList()));
             } catch (IOException ex) {
-                LOG.warn("Error reading jars files in WEB-INF/lib - not scanning libs [" + ex.getMessage() + "]");
+                SmallRyeGraphQLServletLogging.log.ioException(ex);
             }
         }
         return jars;
