@@ -85,4 +85,8 @@ public class Reference implements Serializable {
         return graphQlClassName;
     }
 
+    public void setGraphQlClassName(String graphQlClassName) {
+        this.graphQlClassName = graphQlClassName;
+    }
+
 }
