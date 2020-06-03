@@ -9,7 +9,7 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.spi.ClassloadingService;
-import io.smallrye.graphql.transformation.DataFetchingException;
+import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * Help with the fields when fetching data.
@@ -30,7 +30,7 @@ public abstract class AbstractHelper {
      * @param field the field as created when scanning
      * @return the return value
      */
-    abstract Object afterRecursiveTransform(Object fieldValue, Field field) throws DataFetchingException;
+    abstract Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException;
 
     /**
      * This do the transform of a 'leaf' value
@@ -39,7 +39,7 @@ public abstract class AbstractHelper {
      * @param field the field as scanned
      * @return transformed value
      */
-    abstract Object singleTransform(Object argumentValue, Field field) throws DataFetchingException;
+    abstract Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException;
 
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
@@ -50,7 +50,7 @@ public abstract class AbstractHelper {
      * @return the argumentValue in the correct type and transformed
      */
     Object recursiveTransform(Object inputValue, Field field)
-            throws DataFetchingException {
+            throws AbstractDataFetcherException {
 
         if (inputValue == null) {
             return null;
@@ -88,7 +88,7 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return an array with the transformed values in.
      */
-    private Object recursiveTransformArray(Object array, Field field) throws DataFetchingException {
+    private Object recursiveTransformArray(Object array, Field field) throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
             array = ((Collection) array).toArray();
         }
@@ -129,7 +129,7 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return a collection with the transformed values in.
      */
-    private Object recursiveTransformCollection(Object argumentValue, Field field) throws DataFetchingException {
+    private Object recursiveTransformCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
 
         String collectionClassName = field.getArray().getClassName();
@@ -154,7 +154,7 @@ public abstract class AbstractHelper {
      * @param field the graphql-field
      * @return a optional with the transformed value in.
      */
-    private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field) throws DataFetchingException {
+    private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
         Collection givenCollection = getGivenCollection(argumentValue);
         if (givenCollection.isEmpty()) {

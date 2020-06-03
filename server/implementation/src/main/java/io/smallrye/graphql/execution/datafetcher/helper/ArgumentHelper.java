@@ -13,7 +13,7 @@ import io.smallrye.graphql.json.InputTransformFields;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.transformation.DataFetchingException;
+import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 
@@ -49,7 +49,7 @@ public class ArgumentHelper extends AbstractHelper {
      *
      * @return a (ordered) List of all argument values
      */
-    public Object[] getArguments(DataFetchingEnvironment dfe) throws DataFetchingException {
+    public Object[] getArguments(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
         Object[] argumentObjects = new Object[arguments.size()];
         int idx = 0;
         for (Argument argument : arguments) {
@@ -70,7 +70,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param argument the argument (as created while building the model)
      * @return the value of the argument
      */
-    private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws DataFetchingException {
+    private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws AbstractDataFetcherException {
         // If this is a source argument, just return the source. The source does 
         // not need transformation and would already be in the correct class type
         if (argument.isSourceArgument()) {
@@ -101,7 +101,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @return transformed value
      */
     @Override
-    Object singleTransform(Object argumentValue, Field field) throws DataFetchingException {
+    Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException {
         return Transformer.in(field, argumentValue);
     }
 
@@ -114,7 +114,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the value to use in the method call
      */
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws DataFetchingException {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException {
         String expectedType = field.getReference().getClassName();
         String receivedType = fieldValue.getClass().getName();
 
@@ -137,7 +137,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return the return value
      */
-    private Object correctObjectClass(Object argumentValue, Field field) throws DataFetchingException {
+    private Object correctObjectClass(Object argumentValue, Field field) throws AbstractDataFetcherException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
@@ -165,7 +165,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return a java object of this type.
      */
-    private Object correctComplexObjectFromMap(Map m, Field field) throws DataFetchingException {
+    private Object correctComplexObjectFromMap(Map m, Field field) throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
 
         // Let's see if there are any fields that needs transformation
@@ -195,7 +195,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return the correct object
      */
-    private Object correctComplexObjectFromJsonString(String jsonString, Field field) throws DataFetchingException {
+    private Object correctComplexObjectFromJsonString(String jsonString, Field field) throws AbstractDataFetcherException {
         Class ownerClass = classloadingService.loadClass(field.getReference().getClassName());
         try {
             Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());

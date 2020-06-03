@@ -23,7 +23,7 @@ public interface Transformer<IN, OUT> {
     DurationTransformer DURATION_TRANSFORMER = new DurationTransformer();
     CharTransformer CHAR_TRANSFORMER = new CharTransformer();
 
-    static Object out(Field field, Object object) throws DataFetchingException {
+    static Object out(Field field, Object object) throws AbstractDataFetcherException {
         if (!shouldTransform(field, object)) {
             return object;
         }
@@ -37,7 +37,7 @@ public interface Transformer<IN, OUT> {
         }
     }
 
-    static Object in(Field field, Object object) throws DataFetchingException {
+    static Object in(Field field, Object object) throws AbstractDataFetcherException {
         if (!shouldTransform(field, object)) {
             return object;
         }

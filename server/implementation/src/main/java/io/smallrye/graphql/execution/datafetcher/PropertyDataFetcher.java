@@ -4,7 +4,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.transformation.DataFetchingException;
+import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * Extending the default property data fetcher to intercept the result for some manipulation
@@ -26,7 +26,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
         try {
             // See if we need to transform
             return fieldHelper.transformResponse(resultFromMethodCall);
-        } catch (DataFetchingException ex) {
+        } catch (AbstractDataFetcherException ex) {
             SmallRyeGraphQLServerLogging.log.transformError(ex);
             return resultFromMethodCall;
         }

@@ -3,11 +3,11 @@ package io.smallrye.graphql.transformation;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 
-public abstract class DataFetchingException extends Exception {
-    public DataFetchingException() {
+public abstract class AbstractDataFetcherException extends Exception {
+    public AbstractDataFetcherException() {
     }
 
-    public DataFetchingException(Throwable cause) {
+    public AbstractDataFetcherException(Throwable cause) {
         super(cause);
     }
 
