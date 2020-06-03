@@ -61,13 +61,6 @@
             <version>${graphql-java.version}</version>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- OpenTracing -->
         <dependency>
             <groupId>io.opentracing</groupId>
@@ -116,6 +109,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
         <!-- i18n -->
         <dependency>
             <groupId>org.jboss.logging</groupId>

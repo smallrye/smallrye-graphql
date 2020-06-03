@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-client-generator-test</artifactId>
+    <name>SmallRye: GraphQL Client :: Generator Test</name>
 
     <build>
         <defaultGoal>verify</defaultGoal>
