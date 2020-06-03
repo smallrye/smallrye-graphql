@@ -340,7 +340,7 @@ public class Bootstrap {
         if (config != null && config.isTracingEnabled()) {
             decorators.add(new OpenTracingDecorator());
         }
-        if (config != null && config.isValidationEnabled()) {
+        if (config != null && config.isValidationEnabled() && operation.hasArguments()) {
             decorators.add(new ValidationDecorator());
         }
 
