@@ -38,7 +38,7 @@ public class AbstractDataFetcherDecorator implements DataFetcherDecorator {
      *
      * @param executionContext the current executionContext
      */
-    protected void before(final ExecutionContext executionContext) {
+    protected void before(final ExecutionContext executionContext) throws Exception {
 
     }
 

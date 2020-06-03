@@ -52,5 +52,9 @@ public interface Config {
 
     default boolean isTracingEnabled() {
         return false;
-    };
+    }
+
+    default boolean isValidationEnabled() {
+        return false;
+    }
 }

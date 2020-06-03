@@ -11,7 +11,8 @@
     </parent>
 
     <artifactId>smallrye-graphql-client-generator</artifactId>
-
+    <name>SmallRye: GraphQL Client :: Generator</name>
+    
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     </properties>
