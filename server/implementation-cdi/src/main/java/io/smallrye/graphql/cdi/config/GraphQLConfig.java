@@ -47,6 +47,10 @@ public class GraphQLConfig implements Config {
     private boolean tracingEnabled;
 
     @Inject
+    @ConfigProperty(name = ConfigKey.ENABLE_VALIDATION, defaultValue = "false")
+    private boolean validationEnabled;
+
+    @Inject
     @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_SCALARS, defaultValue = "true")
     private boolean includeScalarsInSchema;
 
@@ -89,6 +93,11 @@ public class GraphQLConfig implements Config {
     @Override
     public boolean isTracingEnabled() {
         return tracingEnabled;
+    }
+
+    @Override
+    public boolean isValidationEnabled() {
+        return validationEnabled;
     }
 
     public boolean isIncludeDirectivesInSchema() {
