@@ -1,5 +1,5 @@
 plugins {
-    id 'com.gradle.plugin-publish' version '0.11.0'
+    id 'com.gradle.plugin-publish' version '0.12.0'
     id 'java-gradle-plugin'
 }
 if (JavaVersion.current().isJava9Compatible()) {
@@ -49,7 +49,7 @@ pluginBundle {
 
 gradlePlugin {
     plugins {
-        quarkusPlugin {
+        smallryeGraphQLPlugin {
             id = 'io.smallrye.graphql'
             implementationClass = 'io.smallrye.graphql.gradle.SmallRyeGraphQLPlugin'
             displayName = 'SmallRye: MicroProfile GraphQL Gradle Plugin'
