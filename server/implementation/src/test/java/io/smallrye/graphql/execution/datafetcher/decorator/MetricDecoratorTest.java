@@ -1,13 +1,13 @@
 package io.smallrye.graphql.execution.datafetcher.decorator;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
@@ -18,8 +18,8 @@ import io.smallrye.graphql.spi.MetricsService;
 
 public class MetricDecoratorTest {
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
         MetricsService service = MetricsService.load();
         service.getMetricRegistry(MetricRegistry.Type.VENDOR);
         TestMetricsServiceImpl.vendorRegistry.simpleTimeMetadatas.clear();
@@ -96,7 +96,7 @@ public class MetricDecoratorTest {
     }
 
     @Test
-    public void testExceptionallyWorks() throws Exception {
+    public void testExceptionallyWorks() {
         MetricDecorator decorator = new MetricDecorator();
 
         DataFetchingEnvironment dfe = myFastQueryDfe();
@@ -109,7 +109,7 @@ public class MetricDecoratorTest {
         });
         try {
             decorator.execute(mockExecutionContext);
-            Assert.fail();
+            fail();
         } catch (Exception expected) {
         }
 

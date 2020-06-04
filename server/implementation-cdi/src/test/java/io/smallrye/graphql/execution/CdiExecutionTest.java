@@ -1,5 +1,11 @@
 package io.smallrye.graphql.execution;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -15,11 +21,12 @@ import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
-import org.jboss.weld.junit4.WeldInitiator;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.jboss.weld.junit5.WeldInitiator;
+import org.jboss.weld.junit5.WeldJunit5Extension;
+import org.jboss.weld.junit5.WeldSetup;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -32,15 +39,16 @@ import io.smallrye.graphql.schema.model.Schema;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@ExtendWith(WeldJunit5Extension.class)
 public class CdiExecutionTest {
     private static final Logger LOG = Logger.getLogger(CdiExecutionTest.class.getName());
 
     private ExecutionService executionService;
 
-    @Rule
+    @WeldSetup
     public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi);
 
-    @Before
+    @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
@@ -50,274 +58,275 @@ public class CdiExecutionTest {
     }
 
     @Test
-    public void testBasicQuery() throws IOException {
+    public void testBasicQuery() {
         JsonObject data = executeAndGetData(GET_HERO);
 
         JsonObject superHero = data.getJsonObject("superHero");
 
-        Assert.assertNotNull(superHero);
+        assertNotNull(superHero);
 
-        Assert.assertFalse("name should not be null", superHero.isNull("name"));
-        Assert.assertEquals("Iron Man", superHero.getString("name"));
+        assertFalse(superHero.isNull("name"), "name should not be null");
+        assertEquals("Iron Man", superHero.getString("name"));
 
-        Assert.assertFalse("primaryLocation should not be null", superHero.isNull("primaryLocation"));
-        Assert.assertEquals("Los Angeles, CA", superHero.getString("primaryLocation"));
+        assertFalse(superHero.isNull("primaryLocation"), "primaryLocation should not be null");
+        assertEquals("Los Angeles, CA", superHero.getString("primaryLocation"));
 
-        Assert.assertFalse("realName should not be null", superHero.isNull("realName"));
-        Assert.assertEquals("Tony Stark", superHero.getString("realName"));
+        assertFalse(superHero.isNull("realName"), "realName should not be null");
+        assertEquals("Tony Stark", superHero.getString("realName"));
 
         // To test @Source
-        Assert.assertFalse("currentLocation should not be null (@Source not working)", superHero.isNull("currentLocation"));
-        Assert.assertEquals("Wachovia", superHero.getString("currentLocation"));
+        assertFalse(superHero.isNull("currentLocation"), "currentLocation should not be null (@Source not working)");
+        assertEquals("Wachovia", superHero.getString("currentLocation"));
 
         // To test @Source with extra default parameter
-        Assert.assertFalse("secretToken should not be null (@Source with extra parameter not working)",
-                superHero.isNull("secretToken"));
-        Assert.assertTrue(
+        assertFalse(superHero.isNull("secretToken"),
+                "secretToken should not be null (@Source with extra parameter not working)");
+        assertTrue(
                 superHero.getJsonObject("secretToken").getString("value").startsWith("********-****-****-****-********"));
 
         // To test Number formatting (on return object fields)
-        Assert.assertFalse("idNumber should not be null", superHero.isNull("idNumber"));
-        Assert.assertEquals("ID-12345678", superHero.getString("idNumber"));
+        assertFalse(superHero.isNull("idNumber"), "idNumber should not be null");
+        assertEquals("ID-12345678", superHero.getString("idNumber"));
 
         // To test Date formatting (on return object fields)
-        Assert.assertFalse("Transformation on Date not working", superHero.isNull("dateOfLastCheckin"));
-        Assert.assertEquals("09/09/2019", superHero.getString("dateOfLastCheckin"));
+        assertFalse(superHero.isNull("dateOfLastCheckin"), "Transformation on Date not working");
+        assertEquals("09/09/2019", superHero.getString("dateOfLastCheckin"));
 
         // To test DateTime formatting (on return object fields)
-        Assert.assertFalse("Transformation on DateTime not working", superHero.isNull("timeOfLastBattle"));
-        Assert.assertEquals("08:30:01 06-09-2019", superHero.getString("timeOfLastBattle"));
+        assertFalse(superHero.isNull("timeOfLastBattle"), "Transformation on DateTime not working");
+        assertEquals("08:30:01 06-09-2019", superHero.getString("timeOfLastBattle"));
 
         // To test Time formatting (on return object fields)
-        Assert.assertFalse("Transformation on Time not working", superHero.isNull("patrolStartTime"));
-        Assert.assertEquals("08:00", superHero.getString("patrolStartTime"));
+        assertFalse(superHero.isNull("patrolStartTime"), "Transformation on Time not working");
+        assertEquals("08:00", superHero.getString("patrolStartTime"));
 
     }
 
     @Test
-    public void testDateTransformationOnQuery() throws IOException {
+    public void testDateTransformationOnQuery() {
         JsonObject data = executeAndGetData(TRANSFORMED_DATE);
 
-        Assert.assertFalse("transformedDate should not be null", data.isNull("transformedDate"));
+        assertFalse(data.isNull("transformedDate"), "transformedDate should not be null");
         String transformedDate = data.getString("transformedDate");
 
-        Assert.assertEquals("Date transformation on Query not working", "16 Aug 2016", transformedDate);
-
+        assertEquals("16 Aug 2016", transformedDate, "Date transformation on Query not working");
     }
 
     @Test
-    public void testNumberTransformationOnMutation() throws IOException {
+    public void testNumberTransformationOnMutation() {
         JsonObject data = executeAndGetData(TRANSFORMED_NUMBER);
 
-        Assert.assertFalse("transformedNumber should not be null", data.isNull("transformedNumber"));
-        Assert.assertEquals("Number transformation on Mutation not working", "number 345", data.getString("transformedNumber"));
+        assertFalse(data.isNull("transformedNumber"), "transformedNumber should not be null");
+        assertEquals("number 345", data.getString("transformedNumber"), "Number transformation on Mutation not working");
     }
 
     @Test
-    public void testNumberTransformationOnArgument() throws IOException {
+    public void testNumberTransformationOnArgument() {
         JsonObject data = executeAndGetData(TRANSFORMED_ARGUMENT);
 
-        Assert.assertFalse("idNumberWithCorrectFormat should not be null", data.isNull("idNumberWithCorrectFormat"));
-        Assert.assertFalse("idNumber should not be null", data.getJsonObject("idNumberWithCorrectFormat").isNull("idNumber"));
-        Assert.assertEquals("Number transformation on Argument not working", "ID-88888888",
-                data.getJsonObject("idNumberWithCorrectFormat").getString("idNumber"));
+        assertFalse(data.isNull("idNumberWithCorrectFormat"), "idNumberWithCorrectFormat should not be null");
+        assertFalse(data.getJsonObject("idNumberWithCorrectFormat").isNull("idNumber"), "idNumber should not be null");
+        assertEquals("ID-88888888", data.getJsonObject("idNumberWithCorrectFormat").getString("idNumber"),
+                "Number transformation on Argument not working");
 
     }
 
     @Test
-    public void testBasicMutation() throws IOException {
+    public void testBasicMutation() {
         JsonObject data = executeAndGetData(MUTATION_BASIC);
 
-        Assert.assertFalse("addHeroToTeam should not be null", data.isNull("addHeroToTeam"));
+        assertFalse(data.isNull("addHeroToTeam"), "addHeroToTeam should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("addHeroToTeam").isNull("name"));
-        Assert.assertEquals("Wrong team name while adding member", "Avengers",
-                data.getJsonObject("addHeroToTeam").getString("name"));
+        assertFalse(data.getJsonObject("addHeroToTeam").isNull("name"), "name should not be null");
+        assertEquals("Avengers", data.getJsonObject("addHeroToTeam").getString("name"),
+                "Wrong team name while adding member");
 
-        Assert.assertFalse("members should not be null", data.getJsonObject("addHeroToTeam").isNull("members"));
-        Assert.assertEquals("Wrong team size while adding member", 4,
-                data.getJsonObject("addHeroToTeam").getJsonArray("members").size());
+        assertFalse(data.getJsonObject("addHeroToTeam").isNull("members"), "members should not be null");
+        assertEquals(4, data.getJsonObject("addHeroToTeam").getJsonArray("members").size(),
+                "Wrong team size while adding member");
 
     }
 
     @Test
-    public void testMutationWithObjectArgument() throws IOException {
+    public void testMutationWithObjectArgument() {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX);
 
-        Assert.assertFalse("createNewHero should not be null", data.isNull("createNewHero"));
+        assertFalse(data.isNull("createNewHero"), "createNewHero should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("createNewHero").isNull("name"));
-        Assert.assertEquals("Wrong name while adding hero", "Captain America",
-                data.getJsonObject("createNewHero").getString("name"));
+        assertFalse(data.getJsonObject("createNewHero").isNull("name"), "name should not be null");
+        assertEquals("Captain America", data.getJsonObject("createNewHero").getString("name"),
+                "Wrong name while adding hero");
 
-        Assert.assertFalse("superPowers should not be null", data.getJsonObject("createNewHero").isNull("superPowers"));
-        Assert.assertEquals("Wrong size superPowers while adding member", 2,
-                data.getJsonObject("createNewHero").getJsonArray("superPowers").size());
+        assertFalse(data.getJsonObject("createNewHero").isNull("superPowers"), "superPowers should not be null");
+        assertEquals(2, data.getJsonObject("createNewHero").getJsonArray("superPowers").size(),
+                "Wrong size superPowers while adding member");
 
     }
 
     @Test
-    public void testMutationScalarJavaMapping() throws IOException {
+    public void testMutationScalarJavaMapping() {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_MAPPING);
 
-        Assert.assertFalse("provisionHero should not be null", data.isNull("provisionHero"));
+        assertFalse(data.isNull("provisionHero"), "provisionHero should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("provisionHero").isNull("name"));
-        Assert.assertEquals("Wrong name while provisioning hero", "Starlord",
-                data.getJsonObject("provisionHero").getString("name"));
+        assertFalse(data.getJsonObject("provisionHero").isNull("name"), "name should not be null");
+        assertEquals("Starlord", data.getJsonObject("provisionHero").getString("name"),
+                "Wrong name while provisioning hero");
 
-        Assert.assertFalse("equipment should not be null", data.getJsonObject("provisionHero").isNull("equipment"));
-        Assert.assertEquals("Wrong size equipment while provisioning member", 1,
-                data.getJsonObject("provisionHero").getJsonArray("equipment").size());
+        assertFalse(data.getJsonObject("provisionHero").isNull("equipment"), "equipment should not be null");
+        assertEquals(1, data.getJsonObject("provisionHero").getJsonArray("equipment").size(),
+                "Wrong size equipment while provisioning member");
 
     }
 
     @Test
-    public void testMutationWithComplexDefault() throws IOException {
+    public void testMutationWithComplexDefault() {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_DEFAULT);
 
-        Assert.assertFalse("provisionHero should not be null", data.isNull("provisionHero"));
+        assertFalse(data.isNull("provisionHero"), "provisionHero should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("provisionHero").isNull("name"));
-        Assert.assertEquals("Wrong name while provisioning hero", "Spider Man",
-                data.getJsonObject("provisionHero").getString("name"));
+        assertFalse(data.getJsonObject("provisionHero").isNull("name"), "name should not be null");
+        assertEquals("Spider Man", data.getJsonObject("provisionHero").getString("name"),
+                "Wrong name while provisioning hero");
 
-        Assert.assertFalse("equipment should not be null", data.getJsonObject("provisionHero").isNull("equipment"));
-        Assert.assertEquals("Wrong size equipment while provisioning member", 1,
-                data.getJsonObject("provisionHero").getJsonArray("equipment").size());
+        assertFalse(data.getJsonObject("provisionHero").isNull("equipment"), "equipment should not be null");
+        assertEquals(1, data.getJsonObject("provisionHero").getJsonArray("equipment").size(),
+                "Wrong size equipment while provisioning member");
 
     }
 
     @Test
-    public void testMutationWithArrayInput() throws IOException {
+    public void testMutationWithArrayInput() {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_ARRAY);
 
-        Assert.assertFalse("createNewHeroesWithArray should not be null", data.isNull("createNewHeroesWithArray"));
+        assertFalse(data.isNull("createNewHeroesWithArray"), "createNewHeroesWithArray should not be null");
 
-        Assert.assertEquals("Wrong size array while createNewHeroesWithArray", 1,
-                data.getJsonArray("createNewHeroesWithArray").size());
+        assertEquals(1, data.getJsonArray("createNewHeroesWithArray").size(),
+                "Wrong size array while createNewHeroesWithArray");
 
     }
 
     @Test
-    public void testMutationWithCollectionInput() throws IOException {
+    public void testMutationWithCollectionInput() {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_COLLECTION);
 
-        Assert.assertFalse("createNewHeroes should not be null", data.isNull("createNewHeroes"));
+        assertFalse(data.isNull("createNewHeroes"), "createNewHeroes should not be null");
 
-        Assert.assertEquals("Wrong size array while createNewHeroes", 1,
-                data.getJsonArray("createNewHeroes").size());
+        assertEquals(1, data.getJsonArray("createNewHeroes").size(),
+                "Wrong size array while createNewHeroes");
 
     }
 
     @Test
-    public void testMutationWithCollectionTransformationInput() throws IOException {
+    public void testMutationWithCollectionTransformationInput() {
         JsonObject data = executeAndGetData(MUTATION_COMPLEX_TRANSFORMATION_COLLECTION);
 
-        Assert.assertFalse("createNewHero should not be null", data.isNull("createNewHero"));
+        assertFalse(data.isNull("createNewHero"), "createNewHero should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("createNewHero").isNull("name"));
-        Assert.assertEquals("Wrong name while createNewHero hero", "Black Panther",
-                data.getJsonObject("createNewHero").getString("name"));
+        assertFalse(data.getJsonObject("createNewHero").isNull("name"), "name should not be null");
+        assertEquals("Black Panther", data.getJsonObject("createNewHero").getString("name"),
+                "Wrong name while createNewHero hero");
 
-        Assert.assertFalse("agesOfKids should not be null", data.getJsonObject("createNewHero").isNull("agesOfKids"));
+        assertFalse(data.getJsonObject("createNewHero").isNull("agesOfKids"), "agesOfKids should not be null");
 
         JsonArray jsonArray = data.getJsonObject("createNewHero").getJsonArray("agesOfKids");
-        Assert.assertEquals("Wrong size agesOfKids while createNewHero member", 2,
-                jsonArray.size());
+        assertEquals(2, jsonArray.size(),
+                "Wrong size agesOfKids while createNewHero member");
 
         Object[] receivedKids = new Object[] { jsonArray.getJsonString(0).toString(), jsonArray.getJsonString(1).toString() };
         Object[] expectedKids = new Object[] { "\"3 years\"", "\"5 years\"" };
 
-        Assert.assertArrayEquals(expectedKids, receivedKids);
+        assertArrayEquals(expectedKids, receivedKids);
 
     }
 
     @Test
-    public void testMutationWithScalarDateInput() throws IOException {
+    public void testMutationWithScalarDateInput() {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_DATE_INPUT);
 
-        Assert.assertFalse("startPatrolling should not be null", data.isNull("startPatrolling"));
+        assertFalse(data.isNull("startPatrolling"), "startPatrolling should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("startPatrolling").isNull("name"));
-        Assert.assertEquals("Wrong name while startPatrolling", "Starlord",
-                data.getJsonObject("startPatrolling").getString("name"));
+        assertFalse(data.getJsonObject("startPatrolling").isNull("name"), "name should not be null");
+        assertEquals("Starlord", data.getJsonObject("startPatrolling").getString("name"),
+                "Wrong name while startPatrolling");
 
-        Assert.assertFalse("patrolStartTime should not be null",
-                data.getJsonObject("startPatrolling").isNull("patrolStartTime"));
-        Assert.assertEquals("Wrong time while patrolStartTime", "20:00",
-                data.getJsonObject("startPatrolling").getString("patrolStartTime"));
+        assertFalse(data.getJsonObject("startPatrolling").isNull("patrolStartTime"),
+                "patrolStartTime should not be null");
+        assertEquals("20:00", data.getJsonObject("startPatrolling").getString("patrolStartTime"),
+                "Wrong time while patrolStartTime");
     }
 
     @Test
-    public void testMutationWithScalarNumberInput() throws IOException {
+    public void testMutationWithScalarNumberInput() {
         JsonObject data = executeAndGetData(MUTATION_SCALAR_NUMBER_INPUT);
 
-        Assert.assertFalse("idNumber should not be null", data.isNull("idNumber"));
+        assertFalse(data.isNull("idNumber"), "idNumber should not be null");
 
-        Assert.assertFalse("name should not be null", data.getJsonObject("idNumber").isNull("name"));
-        Assert.assertEquals("Wrong name while idNumber", "Starlord",
-                data.getJsonObject("idNumber").getString("name"));
+        assertFalse(data.getJsonObject("idNumber").isNull("name"), "name should not be null");
+        assertEquals("Starlord", data.getJsonObject("idNumber").getString("name"),
+                "Wrong name while idNumber");
 
-        Assert.assertFalse("idNumber should not be null",
-                data.getJsonObject("idNumber").isNull("idNumber"));
-        Assert.assertEquals("Wrong idNumber while idNumber", "ID-77777777",
-                data.getJsonObject("idNumber").getString("idNumber"));
+        assertFalse(data.getJsonObject("idNumber").isNull("idNumber"),
+                "idNumber should not be null");
+        assertEquals("ID-77777777", data.getJsonObject("idNumber").getString("idNumber"),
+                "Wrong idNumber while idNumber");
     }
 
     @Test
-    public void testMutationWithInvalidTimeInput() throws IOException {
+    public void testMutationWithInvalidTimeInput() {
         JsonArray errors = executeAndGetError(MUTATION_INVALID_TIME_SCALAR);
 
-        Assert.assertEquals("Wrong size for errors while startPatrolling with wrong date", 1,
-                errors.size());
+        assertEquals(1, errors.size(),
+                "Wrong size for errors while startPatrolling with wrong date");
 
         JsonObject error = errors.getJsonObject(0);
 
-        Assert.assertFalse("message should not be null", error.isNull("message"));
+        assertFalse(error.isNull("message"), "message should not be null");
 
-        Assert.assertEquals("Wrong error message while startPatrolling with wrong date",
+        assertEquals(
                 "Validation error of type WrongType: argument 'time' with value 'StringValue{value='Today'}' is not a valid 'Time' @ 'startPatrolling'",
-                error.getString("message"));
+                error.getString("message"),
+                "Wrong error message while startPatrolling with wrong date");
     }
 
     @Test
-    public void testMutationWithInvalidNumberInput() throws IOException {
+    public void testMutationWithInvalidNumberInput() {
         JsonArray errors = executeAndGetError(MUTATION_INVALID_NUMBER_SCALAR);
 
-        Assert.assertEquals("Wrong size for errors while updateItemPowerLevel with wrong numner", 1,
-                errors.size());
+        assertEquals(1, errors.size(),
+                "Wrong size for errors while updateItemPowerLevel with wrong numner");
 
         JsonObject error = errors.getJsonObject(0);
 
-        Assert.assertFalse("message should not be null", error.isNull("message"));
+        assertFalse(error.isNull("message"), "message should not be null");
 
-        Assert.assertEquals("Wrong error message while updateItemPowerLevel with wrong number",
+        assertEquals(
                 "Validation error of type WrongType: argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int' @ 'updateItemPowerLevel'",
-                error.getString("message"));
+                error.getString("message"),
+                "Wrong error message while updateItemPowerLevel with wrong number");
     }
 
     @Test
-    public void testDefaultTimeScalarFormat() throws IOException {
+    public void testDefaultTimeScalarFormat() {
         JsonObject data = executeAndGetData(QUERY_DEFAULT_TIME_FORMAT);
 
-        Assert.assertFalse("testScalarsInPojo should not be null", data.isNull("testScalarsInPojo"));
+        assertFalse(data.isNull("testScalarsInPojo"), "testScalarsInPojo should not be null");
 
-        Assert.assertFalse("timeObject should not be null", data.getJsonObject("testScalarsInPojo").isNull("timeObject"));
-        Assert.assertEquals("Wrong wrong time format", "11:46:34.263",
-                data.getJsonObject("testScalarsInPojo").getString("timeObject"));
+        assertFalse(data.getJsonObject("testScalarsInPojo").isNull("timeObject"), "timeObject should not be null");
+        assertEquals("11:46:34.263", data.getJsonObject("testScalarsInPojo").getString("timeObject"),
+                "Wrong wrong time format");
 
     }
 
     @Test
-    public void testInputWithDifferentNameOnInputAndType() throws IOException {
+    public void testInputWithDifferentNameOnInputAndType() {
         JsonObject data = executeAndGetData(MUTATION_NAME_DIFF_ON_INPUT_AND_TYPE);
 
-        Assert.assertFalse("createNewHero should not be null", data.isNull("createNewHero"));
+        assertFalse(data.isNull("createNewHero"), "createNewHero should not be null");
 
-        Assert.assertFalse("sizeOfTShirt should not be null", data.getJsonObject("createNewHero").isNull("sizeOfTShirt"));
-        Assert.assertEquals("Wrong sizeOfTShirt ", "XL",
-                data.getJsonObject("createNewHero").getString("sizeOfTShirt"));
+        assertFalse(data.getJsonObject("createNewHero").isNull("sizeOfTShirt"), "sizeOfTShirt should not be null");
+        assertEquals("XL", data.getJsonObject("createNewHero").getString("sizeOfTShirt"),
+                "Wrong sizeOfTShirt ");
 
     }
 
@@ -346,14 +355,12 @@ public class CdiExecutionTest {
     }
 
     private Config getGraphQLConfig() {
-        Config config = new Config() {
-
+        return new Config() {
             @Override
             public boolean isPrintDataFetcherException() {
                 return true;
             }
         };
-        return config;
     }
 
     private String getPrettyJson(JsonObject jsonObject) {
@@ -595,14 +602,14 @@ public class CdiExecutionTest {
             "}";
 
     // Create the CDI Beans in the TCK Tests app
-    private static Class heroFinder;
-    private static Class heroDatabase;
-    private static Class sidekickDatabase;
-    private static Class heroLocator;
+    private static final Class heroFinder;
+    private static final Class heroDatabase;
+    private static final Class sidekickDatabase;
+    private static final Class heroLocator;
 
-    private static Class scalarTestApi;
+    private static final Class scalarTestApi;
 
-    private static Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
+    private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
 
     static {
         try {

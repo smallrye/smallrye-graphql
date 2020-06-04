@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.creator;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -8,7 +9,7 @@ import org.jboss.jandex.ArrayType;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Classes;
 

@@ -1,5 +1,9 @@
 package io.smallrye.graphql.execution;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -14,9 +18,8 @@ import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -34,7 +37,7 @@ public class ExecutionTest {
 
     private ExecutionService executionService;
 
-    @Before
+    @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
@@ -44,17 +47,17 @@ public class ExecutionTest {
     }
 
     @Test
-    public void testBasicQuery() throws IOException {
+    public void testBasicQuery() {
         JsonObject data = executeAndGetData(TEST_QUERY);
 
         JsonObject testObject = data.getJsonObject("testObject");
 
-        Assert.assertNotNull(testObject);
+        assertNotNull(testObject);
 
-        Assert.assertFalse("name should not be null", testObject.isNull("name"));
-        Assert.assertEquals("Phillip", testObject.getString("name"));
+        assertFalse(testObject.isNull("name"), "name should not be null");
+        assertEquals("Phillip", testObject.getString("name"));
 
-        Assert.assertFalse("id should not be null", testObject.isNull("id"));
+        assertFalse(testObject.isNull("id"), "id should not be null");
 
     }
 

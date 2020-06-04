@@ -1,6 +1,6 @@
 package io.smallrye.graphql.schema.helper;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 
@@ -9,8 +9,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.AsyncApi;
@@ -32,7 +31,7 @@ public class FormatHelperTest {
         Optional<TransformInfo> format = FormatHelper.getFormat(type, annotations);
 
         TransformInfo transformInfo = format.get();
-        Assert.assertEquals("yyyy-MM-dd", transformInfo.getFormat());
+        assertEquals("yyyy-MM-dd", transformInfo.getFormat());
     }
 
     @Test
@@ -48,6 +47,6 @@ public class FormatHelperTest {
         Optional<TransformInfo> format = FormatHelper.getFormat(type, annotations);
 
         TransformInfo transformInfo = format.get();
-        Assert.assertEquals("yyyy-MM-dd", transformInfo.getFormat());
+        assertEquals("yyyy-MM-dd", transformInfo.getFormat());
     }
 }

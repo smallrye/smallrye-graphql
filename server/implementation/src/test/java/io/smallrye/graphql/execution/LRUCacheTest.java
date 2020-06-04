@@ -1,13 +1,16 @@
 package io.smallrye.graphql.execution;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LRUCacheTest {
     @Test
@@ -29,48 +32,48 @@ public class LRUCacheTest {
             return Integer.valueOf(1);
         });
         validateCache(lruCache, 1);
-        Assert.assertNotNull(lruCache.get(Integer.valueOf(1)));
+        assertNotNull(lruCache.get(Integer.valueOf(1)));
         testWorker(lruCache, k -> {
             return Integer.valueOf(k);
         });
         validateCache(lruCache, 1);
-        Assert.assertNull(lruCache.get(Integer.valueOf(1)));
+        assertNull(lruCache.get(Integer.valueOf(1)));
         // Now test a larger cache
         lruCache = new LRUCache<>(Runtime.getRuntime().availableProcessors() * 2);
         testWorker(lruCache, k -> {
             return Integer.valueOf(1);
         });
         validateCache(lruCache, 1);
-        Assert.assertNotNull(lruCache.get(Integer.valueOf(1)));
+        assertNotNull(lruCache.get(Integer.valueOf(1)));
         testWorker(lruCache, k -> {
             return Integer.valueOf(k);
         });
         validateCache(lruCache, Runtime.getRuntime().availableProcessors() * 2);
-        Assert.assertNull(lruCache.get(Integer.valueOf(1)));
+        assertNull(lruCache.get(Integer.valueOf(1)));
         // finally test the default cache size
         lruCache = new LRUCache<>(2048);
         testWorker(lruCache, k -> {
             return Integer.valueOf(1);
         });
         validateCache(lruCache, 1);
-        Assert.assertNotNull(lruCache.get(Integer.valueOf(1)));
+        assertNotNull(lruCache.get(Integer.valueOf(1)));
         testWorker(lruCache, k -> {
             return Integer.valueOf(k);
         });
         validateCache(lruCache, 2048);
-        Assert.assertNull(lruCache.get(Integer.valueOf(1)));
+        assertNull(lruCache.get(Integer.valueOf(1)));
     }
 
     private void validateCache(LRUCache<Integer, Integer> lruCache, int size) throws Exception {
         Field sizeField = LRUCache.class.getDeclaredField("size");
         sizeField.setAccessible(true);
         AtomicInteger lruCacheSize = (AtomicInteger) sizeField.get(lruCache);
-        Assert.assertEquals(size, lruCacheSize.get());
+        assertEquals(size, lruCacheSize.get());
         Field cacheField = LRUCache.class.getDeclaredField("cache");
         cacheField.setAccessible(true);
         @SuppressWarnings("rawtypes")
         Map cache = (Map) cacheField.get(lruCache);
-        Assert.assertEquals(size, cache.size());
+        assertEquals(size, cache.size());
     }
 
     private void testWorker(LRUCache<Integer, Integer> lruCache, Function<Integer, Integer> function) throws Exception {

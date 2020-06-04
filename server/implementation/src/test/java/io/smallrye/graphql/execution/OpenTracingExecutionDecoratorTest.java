@@ -1,8 +1,9 @@
 package io.smallrye.graphql.execution;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import graphql.ExecutionInput;
@@ -14,7 +15,7 @@ import io.smallrye.graphql.opentracing.MockTracerOpenTracingService;
 
 public class OpenTracingExecutionDecoratorTest {
 
-    @Before
+    @BeforeEach
     public void reset() {
         MockTracerOpenTracingService.MOCK_TRACER.reset();
     }
@@ -34,10 +35,10 @@ public class OpenTracingExecutionDecoratorTest {
         openTracingExecutionDecorator.before(executionInput);
         openTracingExecutionDecorator.after(executionInput, executionResult);
 
-        Assert.assertEquals("One span should be finished", 1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
+        assertEquals(1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size(), "One span should be finished");
         MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
-        Assert.assertEquals("GraphQL", span.operationName());
-        Assert.assertEquals("ExecutionId should be present in span", "1", span.tags().get("graphql.executionId"));
+        assertEquals("GraphQL", span.operationName());
+        assertEquals("1", span.tags().get("graphql.executionId"), "ExecutionId should be present in span");
     }
 
     @Test
@@ -56,11 +57,11 @@ public class OpenTracingExecutionDecoratorTest {
         openTracingExecutionDecorator.before(executionInput);
         openTracingExecutionDecorator.after(executionInput, executionResult);
 
-        Assert.assertEquals("One span should be finished", 1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size());
+        assertEquals(1, MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().size(), "One span should be finished");
         MockSpan span = MockTracerOpenTracingService.MOCK_TRACER.finishedSpans().get(0);
-        Assert.assertEquals("GraphQL:someOperation", span.operationName());
-        Assert.assertEquals("operation name should be present in span", "someOperation",
-                span.tags().get("graphql.operationName"));
+        assertEquals("GraphQL:someOperation", span.operationName());
+        assertEquals("someOperation", span.tags().get("graphql.operationName"),
+                "operation name should be present in span");
     }
 
 }

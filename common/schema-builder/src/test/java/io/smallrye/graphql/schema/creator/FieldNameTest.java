@@ -1,14 +1,14 @@
 package io.smallrye.graphql.schema.creator;
 
 import static io.smallrye.graphql.index.SchemaBuilderTest.indexDirectory;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.MethodInfo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.creator.fieldnameapp.SomeObjectAnnotatedGetters;
@@ -16,7 +16,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 
 public class FieldNameTest {
     @Test
-    public void testFieldNamePriority() throws Exception {
+    public void testFieldNamePriority() {
         Indexer indexer = new Indexer();
         indexDirectory(indexer, "io/smallrye/graphql/schema/creator/fieldnameapp");
         IndexView index = indexer.complete();
