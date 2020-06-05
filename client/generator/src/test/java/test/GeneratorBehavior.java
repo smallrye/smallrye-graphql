@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import org.assertj.core.data.MapEntry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import graphql.ErrorType;
 import graphql.GraphQLError;

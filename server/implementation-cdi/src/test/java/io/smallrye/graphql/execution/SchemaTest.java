@@ -1,15 +1,16 @@
 package io.smallrye.graphql.execution;
 
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -27,20 +28,20 @@ public class SchemaTest {
 
     private Schema schema;
 
-    @Before
+    @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         this.schema = SchemaBuilder.build(index);
-        Assert.assertNotNull(schema);
+        assertNotNull(schema);
     }
 
     @Test
-    public void testSchemaModelCreation() throws IOException {
+    public void testSchemaModelCreation() {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-        Assert.assertNotNull(graphQLSchema);
+        assertNotNull(graphQLSchema);
         String schemaString = new SchemaPrinter(new Config() {
         }).print(graphQLSchema);
-        Assert.assertNotNull(schemaString);
+        assertNotNull(schemaString);
 
         LOG.info(schemaString);
 
@@ -48,113 +49,113 @@ public class SchemaTest {
         List<String> lines = getLines(schemaString);
 
         // Test interface creation
-        Assert.assertTrue("Problem with Interface creation",
-                lines.contains("interface BasicInterface {"));
+        assertTrue(lines.contains("interface BasicInterface {"),
+                "Problem with Interface creation");
 
         // TODO: Test interface with interface
 
         // Test interface description
-        Assert.assertTrue("Problem with Interface description",
-                lines.contains("\"Basically any sentient being with a name\""));
+        assertTrue(lines.contains("\"Basically any sentient being with a name\""),
+                "Problem with Interface description");
 
         // Test type with interface
-        Assert.assertTrue("Problem with Type that implements an interface",
-                lines.contains("type SuperHero implements Character {"));
+        assertTrue(lines.contains("type SuperHero implements Character {"),
+                "Problem with Type that implements an interface");
 
         // Test type creation
-        Assert.assertTrue("Problem with Type creation",
-                lines.contains("type Item {"));
+        assertTrue(lines.contains("type Item {"),
+                "Problem with Type creation");
 
         // Test type description
-        Assert.assertTrue("Problem with Type description",
-                lines.contains("\"Something of use to a super hero\""));
+        assertTrue(lines.contains("\"Something of use to a super hero\""),
+                "Problem with Type description");
 
         // Test enum creation
-        Assert.assertTrue("Problem with Enum creation",
-                lines.contains("enum CountDown {"));
-        Assert.assertTrue("Problem with Enum values creation",
-                lines.contains("THREE"));
+        assertTrue(lines.contains("enum CountDown {"),
+                "Problem with Enum creation");
+        assertTrue(lines.contains("THREE"),
+                "Problem with Enum values creation");
 
         // Test enum usage in Field
-        Assert.assertTrue("Problem with Enum as a field",
-                lines.contains("countdownPlace: CountDown"));
+        assertTrue(lines.contains("countdownPlace: CountDown"),
+                "Problem with Enum as a field");
 
         // TODO: Test enum with description
         // TODO: Test enum usage in argument
 
         // Test default mandatory primitive
-        Assert.assertTrue("Problem with default mandatory primitive",
-                lines.contains("artificialIntelligenceRating: Boolean!"));
+        assertTrue(lines.contains("artificialIntelligenceRating: Boolean!"),
+                "Problem with default mandatory primitive");
 
         // Test non mandatory primitive
-        Assert.assertTrue("Problem with non null primitive",
-                lines.contains("supernatural: Boolean"));
+        assertTrue(lines.contains("supernatural: Boolean"),
+                "Problem with non null primitive");
 
         // Test date format description
-        Assert.assertTrue("Problem with date format description",
-                lines.contains("\"dd MMM yyyy 'at' HH:mm 'in zone' Z en-ZA\""));
+        assertTrue(lines.contains("\"dd MMM yyyy 'at' HH:mm 'in zone' Z en-ZA\""),
+                "Problem with date format description");
 
         // Test ID Scalar
-        Assert.assertTrue("Problem with Id Scalar field",
-                lines.contains("id: ID!"));
+        assertTrue(lines.contains("id: ID!"),
+                "Problem with Id Scalar field");
 
         // Test Mutation
-        Assert.assertTrue("Mutation type not created",
-                lines.contains("type Mutation {"));
+        assertTrue(lines.contains("type Mutation {"),
+                "Mutation type not created");
 
         // Test operation with arguments
-        Assert.assertTrue("Problem with Mutation operation with argument",
-                lines.contains("addHeroToTeam(hero: String, team: String): Team"));
+        assertTrue(lines.contains("addHeroToTeam(hero: String, team: String): Team"),
+                "Problem with Mutation operation with argument");
 
         // Test operation description
-        Assert.assertTrue("Problem with Mutation operation description",
-                lines.contains("\"Adds a hero to the specified team and returns the updated team.\""));
+        assertTrue(lines.contains("\"Adds a hero to the specified team and returns the updated team.\""),
+                "Problem with Mutation operation description");
 
         // TODO: Test default value json
         // provisionHero(hero: String, item: ItemInput = {}): SuperHero
 
         // Test default value
-        Assert.assertTrue("Problem with Default value in mutation operation argument",
-                lines.contains("updateItemPowerLevel(itemID: BigInteger!, powerLevel: Int = 5): Item"));
+        assertTrue(lines.contains("updateItemPowerLevel(itemID: BigInteger!, powerLevel: Int = 5): Item"),
+                "Problem with Default value in mutation operation argument");
 
-        Assert.assertTrue("Problem with Default value in query operation argument",
-                lines.contains("allHeroesIn(city: String = \"New York, NY\"): [SuperHero]"));
+        assertTrue(lines.contains("allHeroesIn(city: String = \"New York, NY\"): [SuperHero]"),
+                "Problem with Default value in query operation argument");
 
         // Test source
-        Assert.assertTrue("Problem with Source",
-                lines.contains("currentLocation: String"));
+        assertTrue(lines.contains("currentLocation: String"),
+                "Problem with Source");
 
         // Test source that is also a Query
-        Assert.assertTrue("Problem with Source that is also a query",
-                lines.contains("currentLocation(superHero: SuperHeroInput): String"));
+        assertTrue(lines.contains("currentLocation(superHero: SuperHeroInput): String"),
+                "Problem with Source that is also a query");
 
         // Test source with parameters
-        Assert.assertTrue("Problem with Source with parameters",
-                lines.contains("secretToken(maskFirstPart: Boolean = true): TopSecretToken"));
+        assertTrue(lines.contains("secretToken(maskFirstPart: Boolean = true): TopSecretToken"),
+                "Problem with Source with parameters");
 
         // Test multi-level array
-        Assert.assertTrue("Problem with Multi-level arrays",
-                lines.contains("trackHero(coordinates: [[BigDecimal]], name: String): SuperHero"));
+        assertTrue(lines.contains("trackHero(coordinates: [[BigDecimal]], name: String): SuperHero"),
+                "Problem with Multi-level arrays");
 
         // Test Query
-        Assert.assertTrue("Mutation type not created",
-                lines.contains("type Query {"));
+        assertTrue(lines.contains("type Query {"),
+                "Mutation type not created");
 
         // Test name starting with get
-        Assert.assertTrue("Names shoud not start with getX",
-                lines.contains("getaway: String"));
+        assertTrue(lines.contains("getaway: String"),
+                "Names should not start with getX");
 
         // Test description with date format
-        Assert.assertTrue("Problem with date scalar with description ",
-                lines.contains("\"This is another datetime (ISO-8601)\""));
+        assertTrue(lines.contains("\"This is another datetime (ISO-8601)\""),
+                "Problem with date scalar with description ");
 
         // Test number format description
-        Assert.assertTrue("Problem with number scalar default description ",
-                lines.contains("\"#,###.## en-GB\""));
+        assertTrue(lines.contains("\"#,###.## en-GB\""),
+                "Problem with number scalar default description ");
 
         // Test number format with description
-        Assert.assertTrue("Problem with number scalar with description ",
-                lines.contains("\"This is a formatted number (#0.0 en-GB)\""));
+        assertTrue(lines.contains("\"This is a formatted number (#0.0 en-GB)\""),
+                "Problem with number scalar with description ");
     }
 
     private List<String> getLines(String input) {

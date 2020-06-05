@@ -1,11 +1,14 @@
 package io.smallrye.graphql.index;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -17,8 +20,7 @@ import javax.json.bind.JsonbConfig;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
@@ -32,12 +34,12 @@ public class SchemaBuilderTest {
     private static final Logger LOG = Logger.getLogger(SchemaBuilderTest.class.getName());
 
     @Test
-    public void testSchemaModelCreation() throws IOException {
+    public void testSchemaModelCreation() {
 
         IndexView index = getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
         LOG.info(toString(schema));
-        Assert.assertNotNull(schema);
+        assertNotNull(schema);
     }
 
     @Test
@@ -57,42 +59,42 @@ public class SchemaBuilderTest {
         IndexView movieIndex = indexer.complete();
 
         ExecutorService executor = Executors.newFixedThreadPool(4);
-        Future<Schema> basicSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(basicIndex));
-        Future<Schema> heroSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(heroIndex));
-        Future<Schema> movieSchemaFuture = executor.submit((Callable<Schema>) () -> SchemaBuilder.build(movieIndex));
+        Future<Schema> basicSchemaFuture = executor.submit(() -> SchemaBuilder.build(basicIndex));
+        Future<Schema> heroSchemaFuture = executor.submit(() -> SchemaBuilder.build(heroIndex));
+        Future<Schema> movieSchemaFuture = executor.submit(() -> SchemaBuilder.build(movieIndex));
 
         Schema basicSchema = basicSchemaFuture.get();
         Schema heroSchema = heroSchemaFuture.get();
         Schema movieSchema = movieSchemaFuture.get();
 
-        Assert.assertNotNull(basicSchema);
-        Assert.assertNotNull(heroSchema);
-        Assert.assertNotNull(movieSchema);
+        assertNotNull(basicSchema);
+        assertNotNull(heroSchema);
+        assertNotNull(movieSchema);
 
         String basicSchemaString = toString(basicSchema);
         LOG.info(basicSchemaString);
-        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
-        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
-        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInterface"));
-        Assert.assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicEnum"));
-        Assert.assertFalse(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
-        Assert.assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
+        assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
+        assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
+        assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInterface"));
+        assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicEnum"));
+        assertFalse(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
+        assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
 
         String heroSchemaString = toString(heroSchema);
         LOG.info(heroSchemaString);
-        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
-        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
-        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Team"));
-        Assert.assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Character"));
-        Assert.assertFalse(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
-        Assert.assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
+        assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
+        assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
+        assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Team"));
+        assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Character"));
+        assertFalse(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
+        assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
 
         String movieSchemaString = toString(movieSchema);
         LOG.info(movieSchemaString);
-        Assert.assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
-        Assert.assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
-        Assert.assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
-        Assert.assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
+        assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
+        assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
+        assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
+        assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
     }
 
     static String toString(Schema schema) {

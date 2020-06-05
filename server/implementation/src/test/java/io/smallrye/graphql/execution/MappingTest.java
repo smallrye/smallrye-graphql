@@ -1,6 +1,6 @@
 package io.smallrye.graphql.execution;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -12,7 +12,7 @@ import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObject;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MappingTest {
 

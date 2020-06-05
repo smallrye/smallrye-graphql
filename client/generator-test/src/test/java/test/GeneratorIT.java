@@ -5,7 +5,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.io.File;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GeneratorIT {
     @Test

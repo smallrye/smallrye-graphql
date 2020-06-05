@@ -1,12 +1,14 @@
 package io.smallrye.graphql.schema.helper;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.AsyncApi;
@@ -24,7 +26,7 @@ public class NonNullHelperTest {
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(nonNullString);
 
-        Assert.assertTrue(NonNullHelper.markAsNonNull(type, annotationsForMethod));
+        assertTrue(NonNullHelper.markAsNonNull(type, annotationsForMethod));
     }
 
     @Test
@@ -37,7 +39,7 @@ public class NonNullHelperTest {
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(nonNullString);
 
-        Assert.assertFalse(NonNullHelper.markAsNonNull(type, annotationsForMethod));
+        assertFalse(NonNullHelper.markAsNonNull(type, annotationsForMethod));
     }
 
     @Test
@@ -50,7 +52,7 @@ public class NonNullHelperTest {
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(nonNullString);
 
-        Assert.assertTrue(NonNullHelper.markAsNonNull(type, annotationsForMethod));
+        assertTrue(NonNullHelper.markAsNonNull(type, annotationsForMethod));
     }
 
 }

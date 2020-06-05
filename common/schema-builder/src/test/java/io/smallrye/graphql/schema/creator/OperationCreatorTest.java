@@ -1,13 +1,13 @@
 package io.smallrye.graphql.schema.creator;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.IndexCreator;
 import io.smallrye.graphql.schema.model.Operation;
@@ -44,7 +44,7 @@ public class OperationCreatorTest {
 
         final Operation operation = operationCreator().createOperation(method, OperationType.Query, null);
 
-        Assert.assertEquals("publicQuery", operation.getName());
+        assertEquals("publicQuery", operation.getName());
     }
 
 }
