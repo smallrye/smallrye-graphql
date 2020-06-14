@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution.error;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.json.Json;
@@ -22,7 +23,7 @@ import graphql.validation.ValidationError;
 
 /**
  * Help to create the exceptions
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionErrorsService {
@@ -73,7 +74,8 @@ public class ExecutionErrorsService {
         addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
         objectBuilder.add(QUERYPATH, toJsonArray(error.getQueryPath()));
         addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
-
+        Map<String, Object> extensions = error.getExtensions();
+        populateCustomExtensions(objectBuilder, extensions);
         return Optional.of(objectBuilder.build());
     }
 
@@ -84,8 +86,18 @@ public class ExecutionErrorsService {
 
         addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
         addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
+        Map<String, Object> extensions = error.getExtensions();
+        populateCustomExtensions(objectBuilder, extensions);
 
         return Optional.of(objectBuilder.build());
+    }
+
+    private void populateCustomExtensions(JsonObjectBuilder objectBuilder, Map<String, Object> extensions) {
+        if (extensions != null) {
+            for (Map.Entry<String, Object> entry : extensions.entrySet()) {
+                addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
+            }
+        }
     }
 
     private JsonArray toJsonArray(List<?> list) {
