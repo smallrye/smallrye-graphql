@@ -1,21 +1,23 @@
 package io.smallrye.graphql.execution.error;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphqlErrorException;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for {@link ExecutionErrorsService}
@@ -39,7 +41,8 @@ class ExecutionErrorsServiceTest {
         GraphqlErrorException graphqlErrorException = GraphqlErrorException.newErrorException()
                 .extensions(extensions)
                 .build();
-        ExceptionWhileDataFetching exceptionWhileDataFetching = new ExceptionWhileDataFetching(ExecutionPath.rootPath(), graphqlErrorException, new SourceLocation(1, 1));
+        ExceptionWhileDataFetching exceptionWhileDataFetching = new ExceptionWhileDataFetching(ExecutionPath.rootPath(),
+                graphqlErrorException, new SourceLocation(1, 1));
 
         // When
         JsonArray jsonArray = executionErrorsService.toJsonErrors(Collections.singletonList(exceptionWhileDataFetching));
