@@ -3,7 +3,6 @@ package io.smallrye.graphql.execution.error;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.json.Json;
@@ -94,7 +93,7 @@ public class ExecutionErrorsService {
     }
 
     private void populateCustomExtensions(JsonObjectBuilder objectBuilder, Map<String, Object> extensions) {
-        if (Objects.nonNull(extensions)) {
+        if (extensions != null) {
             for (Map.Entry<String, Object> entry : extensions.entrySet()) {
                 addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
             }
