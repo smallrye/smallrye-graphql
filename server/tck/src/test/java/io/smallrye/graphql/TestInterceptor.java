@@ -29,6 +29,7 @@ import org.testng.TestListenerAdapter;
 /**
  * This allows us to override the input and output of the spec's TCK.
  * Sometimes this is needed when the spec should be updated bu can not yet
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TestInterceptor extends TestListenerAdapter {
