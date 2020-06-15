@@ -29,7 +29,7 @@ public class ProfileDB {
             Profile p = new Profile();
             p.setId(i);
             p.setLocale(Locale.UK.toString());
-            p.setTitle("Mr");
+            p.title = "Mr"; // Test public fields
             p.addName("Phillip");
             p.setSurname("Kruger");
             p.setUsername("phillip.kruger");
@@ -57,7 +57,7 @@ public class ProfileDB {
             p.setAnniversary(new java.sql.Date(1586374533106L));
             p.setMaritalStatus("maried");
             p.setUserAgent("Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:74.0) Gecko/20100101 Firefox/74.0");
-
+            p.addCreditCard("5678123409873231"); // Test transient fields
             return p;
         } catch (MalformedURLException | ParseException ex) {
             throw new RuntimeException(ex);

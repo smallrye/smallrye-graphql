@@ -1,8 +1,12 @@
 # testCustomDates
-1| type Profile        |   memberSince: DateTime                                    |   Custom java.util.Date (memberSince) should map to DateTime
-2| type Profile        |   anniversary: Date                                        |   Custom java.sql.Date (anniversary) should map to Date
-# 3| type Profile        |   birthDate: String                                        |   Custom java.util.Date (birthDate) with formatting should map to String
-# 4| type Profile        |   joinDate: String                                         |   Custom java.sql.Date (joinDate) with formatting should map to String
+1| type Profile             |   memberSince: DateTime           |   Custom java.util.Date (memberSince) should map to DateTime
+2| type Profile             |   anniversary: Date               |   Custom java.sql.Date (anniversary) should map to Date
+# 3| type Profile           |   birthDate: String               |   Custom java.util.Date (birthDate) with formatting should map to String
+# 4| type Profile           |   joinDate: String                |   Custom java.sql.Date (joinDate) with formatting should map to String
 
 # testURLScalarSupport
-3| type Profile         |   profilePictures: [String]                                |   URL Should map to String Scalar
+3| type Profile             |   profilePictures: [String]       |   URL Should map to String Scalar
+
+# testTransientPublicAndStaticFields
+4| type Profile             |   !creditCards: [String]          |   Credit card should not be visible as it's transient
+4| type Profile             |   title: String                   |   Title should be visible even if it's a public field

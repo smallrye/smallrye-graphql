@@ -85,12 +85,20 @@ public class InputTypeCreator implements Creator<InputType> {
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.IN, methodInfo.name())) {
                 String fieldName = MethodHelper.getPropertyName(Direction.IN, methodInfo.name());
-                FieldInfo fieldInfo = allFields.get(fieldName);
+                FieldInfo fieldInfo = allFields.remove(fieldName);
                 fieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo)
                         .ifPresent(inputType::addField);
-
             }
         }
+
+        // See what fields are left (this is fields without methods)
+        if (!allFields.isEmpty()) {
+            for (FieldInfo fieldInfo : allFields.values()) {
+                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo)
+                        .ifPresent(inputType::addField);
+            }
+        }
+
     }
 
     private static final String JAVA_DOT = "java.";

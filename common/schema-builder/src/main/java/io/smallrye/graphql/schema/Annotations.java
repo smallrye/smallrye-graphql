@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,18 @@ public class Annotations {
      */
     public static Annotations getAnnotationsForInterfaceField(MethodInfo methodInfo) {
         return getAnnotationsForOutputField(null, methodInfo);
+    }
+
+    /**
+     * Get used when creating fields on inputs and types.
+     * This is used for public fields
+     * 
+     * @param direction the direction
+     * @param fieldInfo the java property
+     * @return annotations for this field
+     */
+    public static Annotations getAnnotationsForPojo(Direction direction, FieldInfo fieldInfo) {
+        return getAnnotationsForPojo(direction, fieldInfo, null);
     }
 
     /**
@@ -270,6 +283,11 @@ public class Annotations {
         return Optional.empty();
     }
 
+    @Override
+    public String toString() {
+        return annotationsMap.toString();
+    }
+
     private boolean hasValidMethodAnnotation(DotName annotation) {
         if (containsKeyAndValidValue(annotation)) {
             AnnotationInstance annotationInstance = getAnnotation(annotation);
@@ -334,13 +352,14 @@ public class Annotations {
     private static Annotations getAnnotationsForInputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
 
-        List<org.jboss.jandex.Type> parameters = methodInfo.parameters();
-        if (parameters != null && !parameters.isEmpty()) {
-            org.jboss.jandex.Type param = parameters.get(ZERO);
-            Map<DotName, AnnotationInstance> parameterAnnotations = getAnnotationsWithFilter(param, Annotations.DATE_FORMAT,
-                    Annotations.NUMBER_FORMAT);
-            if (!parameterAnnotations.isEmpty()) {
-                annotationsForField.putAll(parameterAnnotations);
+        if (fieldInfo != null) {
+            annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
+        }
+        if (methodInfo != null) {
+            List<org.jboss.jandex.Type> parameters = methodInfo.parameters();
+            if (parameters != null && !parameters.isEmpty()) {
+                org.jboss.jandex.Type param = parameters.get(ZERO);
+                annotationsForField.putAll(getTypeUseAnnotations(param));
             }
         }
         return new Annotations(annotationsForField);
@@ -348,16 +367,25 @@ public class Annotations {
 
     private static Annotations getAnnotationsForOutputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
-        org.jboss.jandex.Type returnType = methodInfo.returnType();
-        if (returnType != null) {
-            Map<DotName, AnnotationInstance> returnTypeAnnotations = getAnnotationsWithFilter(returnType,
-                    Annotations.DATE_FORMAT,
-                    Annotations.NUMBER_FORMAT);
-            if (!returnTypeAnnotations.isEmpty()) {
-                annotationsForField.putAll(returnTypeAnnotations);
+        if (fieldInfo != null) {
+            annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
+        }
+        if (methodInfo != null) {
+            org.jboss.jandex.Type returnType = methodInfo.returnType();
+            if (returnType != null) {
+                annotationsForField.putAll(getTypeUseAnnotations(methodInfo.returnType()));
             }
         }
         return new Annotations(annotationsForField);
+    }
+
+    private static Map<DotName, AnnotationInstance> getTypeUseAnnotations(org.jboss.jandex.Type type) {
+        if (type != null) {
+            return getAnnotationsWithFilter(type,
+                    Annotations.DATE_FORMAT,
+                    Annotations.NUMBER_FORMAT);
+        }
+        return Collections.EMPTY_MAP;
     }
 
     private static Map<DotName, AnnotationInstance> getAnnotations(org.jboss.jandex.Type type) {
