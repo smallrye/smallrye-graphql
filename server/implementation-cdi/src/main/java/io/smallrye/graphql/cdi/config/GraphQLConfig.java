@@ -70,6 +70,10 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = ConfigKey.LOG_PAYLOAD, defaultValue = "false")
     private boolean logPayload;
 
+    @Inject
+    @ConfigProperty(name = ConfigKey.FIELD_VISIBILITY, defaultValue = Config.FIELD_VISIBILITY_DEFAULT)
+    private String fieldVisibility;
+
     @Override
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
@@ -135,6 +139,11 @@ public class GraphQLConfig implements Config {
         return logPayload;
     }
 
+    @Override
+    public String getFieldVisibility() {
+        return fieldVisibility;
+    }
+
     public void setHideErrorMessageList(Optional<List<String>> hideList) {
         this.hideList = hideList;
     }
@@ -181,5 +190,9 @@ public class GraphQLConfig implements Config {
 
     public void setLogPayload(boolean logPayload) {
         this.logPayload = logPayload;
+    }
+
+    public void setFieldVisibility(String fieldVisibility) {
+        this.fieldVisibility = fieldVisibility;
     }
 }

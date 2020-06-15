@@ -1,5 +1,7 @@
 package io.smallrye.graphql.bootstrap;
 
+import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
+import static graphql.schema.visibility.NoIntrospectionGraphqlFieldVisibility.NO_INTROSPECTION_FIELD_VISIBILITY;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.io.StringReader;
@@ -39,6 +41,8 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.visibility.BlockedFields;
+import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
@@ -153,6 +157,7 @@ public class Bootstrap {
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
+        codeRegistryBuilder.fieldVisibility(getGraphqlFieldVisibility());
         schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         return schemaBuilder.build();
@@ -576,8 +581,33 @@ public class Bootstrap {
         return false;
     }
 
+    /**
+     * This can hide certain fields in the schema (for security purposes)
+     * 
+     * @return The visibility
+     * @see www.graphql-java.com/documentation/v15/fieldvisibility/
+     */
+    private GraphqlFieldVisibility getGraphqlFieldVisibility() {
+        if (config != null) {
+            String fieldVisibility = config.getFieldVisibility();
+            if (fieldVisibility != null && !fieldVisibility.isEmpty()
+                    && fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
+                return NO_INTROSPECTION_FIELD_VISIBILITY;
+            } else {
+                String[] patterns = fieldVisibility.split(COMMA);
+                BlockedFields.Builder blockedFields = BlockedFields.newBlock();
+                for (String pattern : patterns) {
+                    blockedFields = blockedFields.addPattern(pattern);
+                }
+                return blockedFields.build();
+            }
+        }
+        return DEFAULT_FIELD_VISIBILITY;
+    }
+
     private static final String QUERY = "Query";
     private static final String MUTATION = "Mutation";
+    private static final String COMMA = ",";
 
     private static final Jsonb JSONB = JsonbBuilder.create();
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
