@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,8 +14,6 @@ import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
-
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 
 /**
  * The variables on the GraphQL Operation
@@ -33,7 +33,7 @@ public class GraphQLVariables {
 
         if (valueType.equals(JsonValue.ValueType.STRING)) {
             String stringVars = jsonInput.getString(VARIABLES);
-            SmallRyeGraphQLServerLogging.log.stringInputForVariables(stringVars);
+            log.stringInputForVariables(stringVars);
             return Optional.empty();
         } else {
             JsonValue jvariables = jsonInput.get(VARIABLES);

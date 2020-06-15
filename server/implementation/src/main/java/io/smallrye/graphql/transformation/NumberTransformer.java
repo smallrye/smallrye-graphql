@@ -1,9 +1,10 @@
 package io.smallrye.graphql.transformation;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -65,7 +66,7 @@ public class NumberTransformer implements Transformer<Number, Number> {
             return BigDecimal.valueOf(input.doubleValue());
         }
 
-        throw SmallRyeGraphQLServerMessages.msg.notAValidNumberType(typeClassName);
+        throw msg.notAValidNumberType(typeClassName);
     }
 
     public Number out(final Number object) {

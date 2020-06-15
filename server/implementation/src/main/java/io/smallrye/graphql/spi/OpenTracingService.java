@@ -1,10 +1,11 @@
 package io.smallrye.graphql.spi;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.util.ServiceLoader;
 
 import io.opentracing.Tracer;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 public interface OpenTracingService {
 
@@ -16,7 +17,7 @@ public interface OpenTracingService {
         } catch (Exception ex) {
             openTracingService = new OpenTracingService.DefaultOpenTracingService();
         }
-        SmallRyeGraphQLServerLogging.log.usingTracingService(openTracingService.getName());
+        log.usingTracingService(openTracingService.getName());
         return openTracingService;
     }
 
@@ -36,7 +37,7 @@ public interface OpenTracingService {
 
         @Override
         public Tracer getTracer() {
-            throw SmallRyeGraphQLServerMessages.msg.openTracingNotSupportedWithoutCDI();
+            throw msg.openTracingNotSupportedWithoutCDI();
         }
 
     }

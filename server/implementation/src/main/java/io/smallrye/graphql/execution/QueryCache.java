@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
@@ -13,7 +15,6 @@ import graphql.execution.instrumentation.parameters.InstrumentationValidationPar
 import graphql.execution.preparsed.PreparsedDocumentEntry;
 import graphql.execution.preparsed.PreparsedDocumentProvider;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 
 public class QueryCache extends SimpleInstrumentation implements PreparsedDocumentProvider {
     private static final int MAX_CACHE_SIZE = AccessController.doPrivileged((PrivilegedAction<Integer>) () -> {
@@ -34,7 +35,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
             executionFunctionTL.set(executionFunction);
             entry = computeFunction.apply(executionInput);
         } else {
-            SmallRyeGraphQLServerLogging.log.retrievedFromCache(query);
+            log.retrievedFromCache(query);
         }
         return entry;
     }
@@ -88,7 +89,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
             if (t == null && (validationErrors == null || validationErrors.isEmpty())) {
                 // valid, uncached query - add to cache
                 cache.computeIfAbsent(executionFunction.getQuery(), executionFunction);
-                SmallRyeGraphQLServerLogging.log.addedToCache(executionFunction.getQuery());
+                log.addedToCache(executionFunction.getQuery());
             }
         }
     }

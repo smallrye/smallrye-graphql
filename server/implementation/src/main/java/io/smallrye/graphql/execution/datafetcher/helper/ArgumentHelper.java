@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.util.List;
 import java.util.Map;
 
@@ -7,12 +9,12 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
 
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputTransformFields;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
@@ -124,6 +126,9 @@ public class ArgumentHelper extends AbstractHelper {
         } else if (Classes.isPrimitiveOf(expectedType, receivedType)) {
             //expected is a primitive, we got the wrapper
             return fieldValue;
+        } else if (field.getReference().getType().equals(ReferenceType.ENUM)) {
+            Class<?> enumClass = classloadingService.loadClass(field.getReference().getClassName());
+            return Enum.valueOf((Class<Enum>) enumClass, fieldValue.toString());
         } else {
             return correctObjectClass(fieldValue, field);
         }
@@ -147,7 +152,7 @@ public class ArgumentHelper extends AbstractHelper {
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
         } else {
-            SmallRyeGraphQLServerLogging.log.dontKnowHoToHandleArgument(field.getMethodName());
+            log.dontKnowHoToHandleArgument(field.getMethodName());
             return argumentValue;
         }
     }
@@ -204,5 +209,4 @@ public class ArgumentHelper extends AbstractHelper {
             throw new TransformException(jbe, field, jsonString);
         }
     }
-
 }

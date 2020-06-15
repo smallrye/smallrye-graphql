@@ -1,12 +1,13 @@
 package io.smallrye.graphql.spi;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ServiceLoader;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 
 /**
@@ -26,7 +27,7 @@ public interface ClassloadingService {
         } catch (Exception ex) {
             classloadingService = new DefaultClassloadingService();
         }
-        SmallRyeGraphQLServerLogging.log.usingClassLoadingService(classloadingService.getName());
+        log.usingClassLoadingService(classloadingService.getName());
         return classloadingService;
     }
 
@@ -50,7 +51,7 @@ public interface ClassloadingService {
                 });
             }
         } catch (PrivilegedActionException | ClassNotFoundException pae) {
-            throw SmallRyeGraphQLServerMessages.msg.canNotLoadClass(className, pae);
+            throw msg.canNotLoadClass(className, pae);
         }
     }
 

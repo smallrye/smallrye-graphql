@@ -1,10 +1,11 @@
 package io.smallrye.graphql.scalar.time;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.time.DateTimeException;
 
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * The Coercing used by dates
@@ -31,7 +32,7 @@ public class DateCoercing implements Coercing {
         if (input instanceof String) {
             return input;
         } else {
-            throw SmallRyeGraphQLServerMessages.msg.unknownDateFormat(input.toString());
+            throw msg.unknownDateFormat(input.toString());
         }
     }
 
@@ -43,7 +44,7 @@ public class DateCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (DateTimeException e) {
-            throw SmallRyeGraphQLServerMessages.msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
+            throw msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -52,7 +53,7 @@ public class DateCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (DateTimeException e) {
-            throw SmallRyeGraphQLServerMessages.msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
+            throw msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -65,7 +66,7 @@ public class DateCoercing implements Coercing {
             // We need to get a String value of this date
             return ((StringValue) input).getValue();
         } else {
-            throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(input.getClass().getSimpleName());
+            throw msg.coercingParseLiteralException(input.getClass().getSimpleName());
         }
 
     }

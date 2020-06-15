@@ -1,12 +1,13 @@
 package io.smallrye.graphql.execution.error;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import graphql.ExceptionWhileDataFetching;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.bootstrap.Config;
 
 /**
@@ -21,7 +22,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
 
     public ExceptionHandler(Config config) {
         this.config = config;
-        this.exceptionLists = new ExceptionLists(config.getBlackList(), config.getWhiteList());
+        this.exceptionLists = new ExceptionLists(config.getHideErrorMessageList(), config.getShowErrorMessageList());
     }
 
     @Override
@@ -32,7 +33,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
         ExceptionWhileDataFetching error = getExceptionWhileDataFetching(throwable, sourceLocation, path);
 
         if (config.isPrintDataFetcherException()) {
-            SmallRyeGraphQLServerLogging.log.dataFetchingError(throwable);
+            log.dataFetchingError(throwable);
         }
 
         return DataFetcherExceptionHandlerResult.newResult().error(error).build();
@@ -41,15 +42,15 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     private ExceptionWhileDataFetching getExceptionWhileDataFetching(Throwable throwable, SourceLocation sourceLocation,
             ExecutionPath path) {
         if (throwable instanceof RuntimeException) {
-            // Check for whitelist
-            if (exceptionLists.isWhitelisted(throwable)) {
+            // Check for showlist
+            if (exceptionLists.shouldShow(throwable)) {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);
             } else {
                 return new GraphQLExceptionWhileDataFetching(config.getDefaultErrorMessage(), path, throwable, sourceLocation);
             }
         } else {
-            // Check for blacklist
-            if (exceptionLists.isBlacklisted(throwable)) {
+            // Check for hidelist
+            if (exceptionLists.shouldHide(throwable)) {
                 return new GraphQLExceptionWhileDataFetching(config.getDefaultErrorMessage(), path, throwable, sourceLocation);
             } else {
                 return new GraphQLExceptionWhileDataFetching(path, throwable, sourceLocation);

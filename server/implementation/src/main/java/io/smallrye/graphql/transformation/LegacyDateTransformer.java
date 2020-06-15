@@ -1,5 +1,7 @@
 package io.smallrye.graphql.transformation;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -10,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 
 /**
@@ -49,7 +50,7 @@ public class LegacyDateTransformer implements Transformer<Date, String> {
             LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o);
             return Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
         }
-        throw SmallRyeGraphQLServerMessages.msg.cantParseDate(o.getClass().getName(), targetClassName);
+        throw msg.cantParseDate(o.getClass().getName(), targetClassName);
     }
 
     @Override

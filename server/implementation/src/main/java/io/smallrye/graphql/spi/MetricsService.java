@@ -1,11 +1,11 @@
 package io.smallrye.graphql.spi;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.util.ServiceLoader;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
-
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * Service that allows containers to plug in their own MP Metrics implementation.
@@ -20,7 +20,7 @@ public interface MetricsService {
         } catch (Exception ex) {
             metricsService = new DefaultMetricsService();
         }
-        SmallRyeGraphQLServerLogging.log.usingMetricsService(metricsService.getName());
+        log.usingMetricsService(metricsService.getName());
         return metricsService;
     }
 
@@ -40,7 +40,7 @@ public interface MetricsService {
 
         @Override
         public MetricRegistry getMetricRegistry(MetricRegistry.Type type) {
-            throw SmallRyeGraphQLServerMessages.msg.metricsNotSupportedWithoutCDI();
+            throw msg.metricsNotSupportedWithoutCDI();
         }
     }
 }

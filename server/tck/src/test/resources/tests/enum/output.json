@@ -1,0 +1,9 @@
+{
+    "data": {
+        "configurationByName": {
+            "name": "name",
+            "value": "value",
+            "configurationEnum": "testing_thingy"
+        }
+    }
+}

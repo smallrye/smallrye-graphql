@@ -15,7 +15,8 @@ public class NameHelper {
         } else if (graphQLType instanceof GraphQLList) {
             return getName(((GraphQLList) graphQLType).getWrappedType());
         }
-        return "";
+        return EMPTY;
     }
 
+    private static final String EMPTY = "";
 }

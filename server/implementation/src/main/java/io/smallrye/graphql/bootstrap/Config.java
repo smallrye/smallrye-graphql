@@ -18,11 +18,11 @@ public interface Config {
         return false;
     }
 
-    default Optional<List<String>> getBlackList() {
+    default Optional<List<String>> getHideErrorMessageList() {
         return Optional.empty();
     }
 
-    default Optional<List<String>> getWhiteList() {
+    default Optional<List<String>> getShowErrorMessageList() {
         return Optional.empty();
     }
 
@@ -55,6 +55,10 @@ public interface Config {
     }
 
     default boolean isValidationEnabled() {
+        return false;
+    }
+
+    default boolean logPayload() {
         return false;
     }
 }

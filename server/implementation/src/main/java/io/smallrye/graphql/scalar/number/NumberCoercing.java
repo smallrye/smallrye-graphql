@@ -1,5 +1,7 @@
 package io.smallrye.graphql.scalar.number;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -7,7 +9,6 @@ import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * The Coercing used by numbers
@@ -39,7 +40,7 @@ public class NumberCoercing implements Coercing {
         } else if (input instanceof String) {
             return input;
         } else {
-            throw SmallRyeGraphQLServerMessages.msg.numberFormatException(input.toString());
+            throw msg.numberFormatException(input.toString());
         }
 
     }
@@ -51,7 +52,7 @@ public class NumberCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (NumberFormatException e) {
-            throw SmallRyeGraphQLServerMessages.msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
+            throw msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -60,7 +61,7 @@ public class NumberCoercing implements Coercing {
         try {
             return convertImpl(input);
         } catch (NumberFormatException e) {
-            throw SmallRyeGraphQLServerMessages.msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
+            throw msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
         }
     }
 
@@ -80,7 +81,7 @@ public class NumberCoercing implements Coercing {
         } else if (input instanceof IntValue) {
             BigInteger value = ((IntValue) input).getValue();
             if (!converter.isInRange(value)) {
-                throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(name, value.toString());
+                throw msg.coercingParseLiteralException(name, value.toString());
             }
             return converter.fromBigInteger(value);
 
@@ -88,6 +89,6 @@ public class NumberCoercing implements Coercing {
             BigDecimal value = ((FloatValue) input).getValue();
             return converter.fromBigDecimal(value);
         }
-        throw SmallRyeGraphQLServerMessages.msg.coercingParseLiteralException(input.getClass().getSimpleName());
+        throw msg.coercingParseLiteralException(input.getClass().getSimpleName());
     }
 }
