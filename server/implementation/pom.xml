@@ -13,7 +13,7 @@
     <description>Implementation of the server side of the spec</description>
 
     <properties>
-        <graphql-java.version>14.1</graphql-java.version>
+        <graphql-java.version>15.0</graphql-java.version>
     </properties>
 
     <dependencies>

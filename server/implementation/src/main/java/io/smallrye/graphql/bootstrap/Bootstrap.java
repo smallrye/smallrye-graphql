@@ -238,6 +238,14 @@ public class Bootstrap {
                     .fields(createGraphQLFieldDefinitionsFromFields(interfaceType.getName(), interfaceType.getFields()));
         }
 
+        // Interfaces
+        if (interfaceType.hasInterfaces()) {
+            Set<Reference> interfaces = interfaceType.getInterfaces();
+            for (Reference i : interfaces) {
+                interfaceTypeBuilder = interfaceTypeBuilder.withInterface(GraphQLTypeReference.typeRef(i.getName()));
+            }
+        }
+
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
         codeRegistryBuilder.typeResolver(graphQLInterfaceType,

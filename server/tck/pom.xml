@@ -47,6 +47,9 @@
                         <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-server-tck</dependency> <!-- New 1.1-SNAPSHOT -->
                         <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency> <!-- Old 1.0.x -->
                     </dependenciesToScan>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
                 </configuration>
             </plugin>
             <plugin>

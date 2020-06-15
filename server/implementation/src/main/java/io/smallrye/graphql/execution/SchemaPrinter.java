@@ -24,7 +24,6 @@ public class SchemaPrinter {
         graphql.schema.idl.SchemaPrinter.Options options = graphql.schema.idl.SchemaPrinter.Options.defaultOptions();
         options = options.descriptionsAsHashComments(false);
         options = options.includeDirectives(config.isIncludeDirectivesInSchema());
-        options = options.includeExtendedScalarTypes(config.isIncludeScalarsInSchema());
         options = options.includeIntrospectionTypes(config.isIncludeIntrospectionTypesInSchema());
         options = options.includeScalarTypes(config.isIncludeScalarsInSchema());
         options = options.includeSchemaDefinition(config.isIncludeSchemaDefinitionInSchema());
