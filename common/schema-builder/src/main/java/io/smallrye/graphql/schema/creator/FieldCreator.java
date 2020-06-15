@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.creator;
 
+import java.lang.reflect.Modifier;
 import java.util.Optional;
 
 import org.jboss.jandex.FieldInfo;
@@ -91,7 +92,7 @@ public class FieldCreator {
     public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo) {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
-        if (!IgnoreHelper.shouldIgnore(annotationsForPojo)) {
+        if (!IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
             Type methodType = getMethodType(methodInfo, direction);
 
             // Name
@@ -128,6 +129,59 @@ public class FieldCreator {
             field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
 
             return Optional.of(field);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Creates a field from a public field.
+     * Used by Type and Input
+     * 
+     * @param direction the direction (in/out)
+     * @param fieldInfo the java property
+     * @return a Field model object
+     */
+    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo) {
+        if (Modifier.isPublic(fieldInfo.flags())) {
+            Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo);
+
+            if (!IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
+
+                // Name
+                String name = getFieldName(direction, annotationsForPojo, fieldInfo.name());
+
+                // Field Type
+                Type fieldType = fieldInfo.type();
+
+                // Description
+                Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForPojo, fieldType);
+
+                Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
+                        annotationsForPojo);
+
+                Field field = new Field(fieldInfo.name(),
+                        MethodHelper.getPropertyName(direction, fieldInfo.name()),
+                        name,
+                        maybeDescription.orElse(null),
+                        reference);
+
+                // NotNull
+                if (NonNullHelper.markAsNonNull(fieldType, annotationsForPojo)) {
+                    field.setNotNull(true);
+                }
+
+                // Array
+                field.setArray(ArrayCreator.createArray(fieldType, fieldType).orElse(null));
+
+                // TransformInfo
+                field.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
+
+                // Default Value
+                field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
+
+                return Optional.of(field);
+            }
+            return Optional.empty();
         }
         return Optional.empty();
     }

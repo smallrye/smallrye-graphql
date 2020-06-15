@@ -30,6 +30,14 @@
             <artifactId>smallrye-graphql-servlet</artifactId>
         </dependency>
         
+        <!-- The tests from out TCK -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-tck</artifactId>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <version>${project.version}</version>
+        </dependency>
         <!-- The UI -->
         <dependency>
             <groupId>${project.groupId}</groupId>

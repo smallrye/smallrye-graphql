@@ -4,13 +4,15 @@ import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 
 public class Profile {
+    public static String uuid = UUID.randomUUID().toString();
     private Integer id;
     private String locale;
-    private String title;
+    public String title;
     private List<String> names;
     private List<String> nicknames;
     private String surname;
@@ -43,7 +45,7 @@ public class Profile {
     private java.sql.Date anniversary;
     private String maritalStatus;
 
-    //    private List<CreditCard> creditCards;
+    private transient List<String> creditCards;
 
     private String userAgent;
 
@@ -61,14 +63,6 @@ public class Profile {
 
     public void setLocale(String locale) {
         this.locale = locale;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public List<String> getNames() {
@@ -247,6 +241,14 @@ public class Profile {
         this.userAgent = userAgent;
     }
 
+    public List<String> getCreditCards() {
+        return creditCards;
+    }
+
+    public void setCreditCards(List<String> creditCards) {
+        this.creditCards = creditCards;
+    }
+
     public void addName(String name) {
         if (names == null)
             names = new LinkedList<>();
@@ -320,8 +322,9 @@ public class Profile {
     //        relations.add(relation);
     //    }
 
-    //    public void addCreditCard(CreditCard card){
-    //        if(creditCards==null)creditCards = new LinkedList<>();
-    //        creditCards.add(card);
-    //    }
+    public void addCreditCard(String card) {
+        if (creditCards == null)
+            creditCards = new LinkedList<>();
+        creditCards.add(card);
+    }
 }

@@ -1,11 +1,12 @@
 {
   profile(profileId:1){
+    title
     names    
     surname
-    anniversary
-    birthDate
-    memberSince
-    joinDate
+    #anniversary
+    #birthDate
+    #memberSince
+    #joinDate
     profilePictures
   }
 }
