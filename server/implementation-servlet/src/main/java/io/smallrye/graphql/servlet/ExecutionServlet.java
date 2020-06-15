@@ -50,8 +50,11 @@ public class ExecutionServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         if (config.isAllowGet()) {
-            try (StringReader reader = new StringReader(request.getParameter(QUERY))) {
+            try (StringReader reader = new StringReader(
+                    "{\"query\":\"" + request.getParameter(QUERY).replace("\"", "\\\"") + "\"}")) {
                 handleInput(reader, response);
+            } catch (RuntimeException ex) {
+                SmallRyeGraphQLServletLogging.log.ioException(ex);
             }
         } else {
             try {
