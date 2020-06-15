@@ -61,4 +61,11 @@ public interface Config {
     default boolean logPayload() {
         return false;
     }
+
+    default String getFieldVisibility() {
+        return FIELD_VISIBILITY_DEFAULT;
+    }
+
+    public static final String FIELD_VISIBILITY_DEFAULT = "default";
+    public static final String FIELD_VISIBILITY_NO_INTROSPECTION = "no-introspection";
 }
