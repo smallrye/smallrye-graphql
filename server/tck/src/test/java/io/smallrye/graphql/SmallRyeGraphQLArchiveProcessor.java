@@ -43,7 +43,6 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
     public void process(Archive<?> applicationArchive, TestClass testClass) {
 
         if (applicationArchive instanceof WebArchive) {
-            LOG.info(System.getProperty("jboss.server.config.file.name"));
             LOG.info("\n ================================================================================"
                     + "\n Testing [" + testClass.getName() + "]"
                     + "\n ================================================================================"
