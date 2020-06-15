@@ -1,5 +1,7 @@
 package io.smallrye.graphql.transformation;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.TransformInfo;
 
@@ -46,7 +47,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         TemporalQuery<?> temporalAccessor = TEMPORAL_QUERYS.get(targetClassName);
 
         if (temporalAccessor == null || dateTimeFormatter == null) {
-            throw SmallRyeGraphQLServerMessages.msg.notValidDateOrTimeType(targetClassName);
+            throw msg.notValidDateOrTimeType(targetClassName);
         }
 
         return (Temporal) dateTimeFormatter.parse(o.toString(), temporalAccessor);

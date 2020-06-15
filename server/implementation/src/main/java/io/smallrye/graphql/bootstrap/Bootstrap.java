@@ -1,5 +1,7 @@
 package io.smallrye.graphql.bootstrap;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
@@ -91,7 +92,7 @@ public class Bootstrap {
             Bootstrap graphQLBootstrap = new Bootstrap(schema, config);
             return graphQLBootstrap.generateGraphQLSchema();
         } else {
-            SmallRyeGraphQLServerLogging.log.emptyOrNullSchema();
+            log.emptyOrNullSchema();
             return null;
         }
     }
@@ -464,7 +465,6 @@ public class Bootstrap {
                 return getCorrectScalarType(field);
             case ENUM:
                 return enumMap.get(className);
-            //case INTERFACE: ??        
             default:
                 return GraphQLTypeReference.typeRef(name);
         }
@@ -480,7 +480,6 @@ public class Bootstrap {
                 return getCorrectScalarType(field);
             case ENUM:
                 return enumMap.get(className);
-            //case INTERFACE: ??    
             default:
                 return GraphQLTypeReference.typeRef(name);
         }

@@ -1,12 +1,13 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
@@ -38,7 +39,7 @@ public class CollectionCreator {
         try {
             return (Collection<?>) type.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
-            SmallRyeGraphQLServerLogging.log.noArgConstructorMissing(type == null ? "null" : type.getName());
+            log.noArgConstructorMissing(type == null ? "null" : type.getName());
         }
         if (Set.class.isAssignableFrom(type)) {
             return new HashSet<>();

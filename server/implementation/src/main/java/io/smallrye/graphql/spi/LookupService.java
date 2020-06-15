@@ -1,10 +1,10 @@
 package io.smallrye.graphql.spi;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ServiceLoader;
-
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * Lookup service that allows multiple DI frameworks to use this.
@@ -23,7 +23,7 @@ public interface LookupService {
         } catch (Exception ex) {
             lookupService = new DefaultLookupService();
         }
-        SmallRyeGraphQLServerLogging.log.usingLookupService(lookupService.getName());
+        log.usingLookupService(lookupService.getName());
         return lookupService;
     }
 
@@ -55,7 +55,7 @@ public interface LookupService {
                 return declaringClass.getConstructor().newInstance();
             } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
-                throw SmallRyeGraphQLServerMessages.msg.countNotGetInstance(ex);
+                throw msg.countNotGetInstance(ex);
             }
         }
     }

@@ -46,6 +46,14 @@ public interface SmallRyeGraphQLServerLogging {
     @Message(id = 11004, value = "Returning argument as is, because we did not know how to handle it [%s]")
     void dontKnowHoToHandleArgument(String name);
 
+    @LogMessage(level = Logger.Level.INFO)
+    @Message(id = 11005, value = "Payload In [%s]")
+    void payloadIn(String payload);
+
+    @LogMessage(level = Logger.Level.INFO)
+    @Message(id = 11006, value = "Payload Out [%s]")
+    void payloadOut(String payload);
+
     /* 12000-12999: data fetching related logs */
 
     @LogMessage(level = Logger.Level.ERROR)

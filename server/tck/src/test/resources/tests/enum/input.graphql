@@ -1,0 +1,7 @@
+{
+    configurationByName(name: testing_thingy) {
+        name
+        value
+        configurationEnum
+    }
+}

@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 
@@ -8,7 +10,6 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -79,7 +80,7 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
             appendPartialResult(resultBuilder, dfe, graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, ex);
+            throw msg.dataFetcherException(operation, ex);
         }
 
         return resultBuilder.build();

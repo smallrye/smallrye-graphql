@@ -1,9 +1,10 @@
 package io.smallrye.graphql.execution.resolver;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import graphql.TypeResolutionEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.TypeResolver;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.schema.model.InterfaceType;
 
 /**
@@ -29,7 +30,7 @@ public class InterfaceResolver implements TypeResolver {
         if (graphQLObjectType != null) {
             return graphQLObjectType;
         } else {
-            throw SmallRyeGraphQLServerMessages.msg.concreteClassNotFoundForInterface(concreteClassName,
+            throw msg.concreteClassNotFoundForInterface(concreteClassName,
                     interfaceType.getClassName());
         }
     }

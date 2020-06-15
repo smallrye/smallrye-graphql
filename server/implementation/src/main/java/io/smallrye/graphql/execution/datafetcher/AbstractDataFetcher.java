@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -14,7 +16,6 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -134,7 +135,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         try {
             return operationClass.getMethod(operation.getMethodName(), getParameterClasses());
         } catch (NoSuchMethodException e) {
-            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, e);
+            throw msg.dataFetcherException(operation, e);
         }
     }
 
@@ -152,7 +153,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
             } else if (throwable instanceof Exception) {
                 throw (Exception) throwable;
             } else {
-                throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
+                throw msg.dataFetcherException(operation, throwable);
             }
         }
     }

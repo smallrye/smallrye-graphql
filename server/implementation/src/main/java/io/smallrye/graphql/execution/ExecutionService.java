@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,6 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
@@ -70,6 +71,11 @@ public class ExecutionService {
 
     public JsonObject execute(JsonObject jsonInput) {
         String query = jsonInput.getString(QUERY);
+
+        if (config.logPayload()) {
+            log.payloadIn(query);
+        }
+
         GraphQL g = getGraphQL();
         if (g != null) {
             // Query
@@ -96,9 +102,15 @@ public class ExecutionService {
             // Data
             returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
 
-            return returnObjectBuilder.build();
+            JsonObject jsonResponse = returnObjectBuilder.build();
+
+            if (config.logPayload()) {
+                log.payloadOut(jsonResponse.toString());
+            }
+
+            return jsonResponse;
         } else {
-            SmallRyeGraphQLServerLogging.log.noGraphQLMethodsFound();
+            log.noGraphQLMethodsFound();
             return null;
         }
     }
@@ -170,7 +182,7 @@ public class ExecutionService {
                         .preparsedDocumentProvider(queryCache)
                         .build();
             } else {
-                SmallRyeGraphQLServerLogging.log.noGraphQLMethodsFound();
+                log.noGraphQLMethodsFound();
             }
         }
         return this.graphQL;

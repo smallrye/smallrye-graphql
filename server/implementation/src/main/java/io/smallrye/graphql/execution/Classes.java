@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -17,8 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 
 /**
  * Class helper
@@ -68,7 +68,7 @@ public class Classes {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);
         }
-        throw SmallRyeGraphQLServerMessages.msg.unknownPrimitiveType(primitiveName);
+        throw msg.unknownPrimitiveType(primitiveName);
     }
 
     public static boolean isNumberLikeType(String className) {

@@ -20,11 +20,11 @@ public class GraphQLConfig implements Config {
 
     @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "")
-    private Optional<List<String>> blackList;
+    private Optional<List<String>> hideList;
 
     @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "")
-    private Optional<List<String>> whiteList;
+    private Optional<List<String>> showList;
 
     @Inject
     @ConfigProperty(name = ConfigKey.DEFAULT_ERROR_MESSAGE, defaultValue = "Server Error")
@@ -66,26 +66,36 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_INTROSPECTION_TYPES, defaultValue = "false")
     private boolean includeIntrospectionTypesInSchema;
 
+    @Inject
+    @ConfigProperty(name = ConfigKey.LOG_PAYLOAD, defaultValue = "false")
+    private boolean logPayload;
+
+    @Override
     public String getDefaultErrorMessage() {
         return defaultErrorMessage;
     }
 
+    @Override
     public boolean isPrintDataFetcherException() {
         return printDataFetcherException;
     }
 
-    public Optional<List<String>> getBlackList() {
-        return blackList;
+    @Override
+    public Optional<List<String>> getHideErrorMessageList() {
+        return hideList;
     }
 
-    public Optional<List<String>> getWhiteList() {
-        return whiteList;
+    @Override
+    public Optional<List<String>> getShowErrorMessageList() {
+        return showList;
     }
 
+    @Override
     public boolean isAllowGet() {
         return allowGet;
     }
 
+    @Override
     public boolean isMetricsEnabled() {
         return metricsEnabled;
     }
@@ -100,28 +110,37 @@ public class GraphQLConfig implements Config {
         return validationEnabled;
     }
 
+    @Override
     public boolean isIncludeDirectivesInSchema() {
         return includeDirectivesInSchema;
     }
 
+    @Override
     public boolean isIncludeSchemaDefinitionInSchema() {
         return includeSchemaDefinitionInSchema;
     }
 
+    @Override
     public boolean isIncludeIntrospectionTypesInSchema() {
         return includeIntrospectionTypesInSchema;
     }
 
+    @Override
     public boolean isIncludeScalarsInSchema() {
         return includeScalarsInSchema;
     }
 
-    public void setBlackList(Optional<List<String>> blackList) {
-        this.blackList = blackList;
+    @Override
+    public boolean logPayload() {
+        return logPayload;
     }
 
-    public void setWhiteList(Optional<List<String>> whiteList) {
-        this.whiteList = whiteList;
+    public void setHideErrorMessageList(Optional<List<String>> hideList) {
+        this.hideList = hideList;
+    }
+
+    public void setShowErrorMessageList(Optional<List<String>> showList) {
+        this.showList = showList;
     }
 
     public void setDefaultErrorMessage(String defaultErrorMessage) {
@@ -160,4 +179,7 @@ public class GraphQLConfig implements Config {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
     }
 
+    public void setLogPayload(boolean logPayload) {
+        this.logPayload = logPayload;
+    }
 }

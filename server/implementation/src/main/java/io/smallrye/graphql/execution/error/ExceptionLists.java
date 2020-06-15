@@ -11,28 +11,28 @@ import java.util.Optional;
  */
 public class ExceptionLists {
 
-    private final List<String> blackList;
-    private final List<String> whiteList;
+    private final List<String> hideList;
+    private final List<String> showList;
 
-    public ExceptionLists(Optional<List<String>> maybeBlackList, Optional<List<String>> maybeWhiteList) {
-        if (maybeBlackList.isPresent()) {
-            this.blackList = maybeBlackList.get();
+    public ExceptionLists(Optional<List<String>> maybeHideList, Optional<List<String>> maybeShowList) {
+        if (maybeHideList.isPresent()) {
+            this.hideList = maybeHideList.get();
         } else {
-            this.blackList = Collections.EMPTY_LIST;
+            this.hideList = Collections.EMPTY_LIST;
         }
-        if (maybeWhiteList.isPresent()) {
-            this.whiteList = maybeWhiteList.get();
+        if (maybeShowList.isPresent()) {
+            this.showList = maybeShowList.get();
         } else {
-            this.whiteList = Collections.EMPTY_LIST;
+            this.showList = Collections.EMPTY_LIST;
         }
     }
 
-    boolean isBlacklisted(Throwable throwable) {
-        return isListed(throwable, blackList);
+    boolean shouldHide(Throwable throwable) {
+        return isListed(throwable, hideList);
     }
 
-    boolean isWhitelisted(Throwable throwable) {
-        return isListed(throwable, whiteList);
+    boolean shouldShow(Throwable throwable) {
+        return isListed(throwable, showList);
     }
 
     private boolean isListed(Throwable throwable, List<String> classNames) {

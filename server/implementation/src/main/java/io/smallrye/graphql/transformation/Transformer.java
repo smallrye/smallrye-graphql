@@ -1,6 +1,7 @@
 package io.smallrye.graphql.transformation;
 
-import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -32,7 +33,7 @@ public interface Transformer<IN, OUT> {
             Transformer transformer = Transformer.transformer(field);
             return transformer.out(object);
         } catch (Exception e) {
-            SmallRyeGraphQLServerLogging.log.transformError(e);
+            log.transformError(e);
             throw new TransformException(e, field, object);
         }
     }
