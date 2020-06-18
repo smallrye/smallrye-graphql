@@ -23,7 +23,7 @@ import io.smallrye.graphql.execution.ExecutionService;
 
 /**
  * Executing the GraphQL request
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @WebServlet(name = "SmallRyeGraphQLExecutionServlet", urlPatterns = { "/graphql/*" }, loadOnStartup = 1)
@@ -48,33 +48,33 @@ public class ExecutionServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        if (config.isAllowGet()) {
-            try (StringReader reader = new StringReader(
-                    "{\"query\":\"" + request.getParameter(QUERY).replace("\"", "\\\"") + "\"}")) {
-                handleInput(reader, response);
-            } catch (RuntimeException ex) {
-                SmallRyeGraphQLServletLogging.log.ioException(ex);
-            }
-        } else {
-            try {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            if (config.isAllowGet()) {
+                try (StringReader reader = new StringReader(
+                        "{\"query\":\"" + request.getParameter(QUERY).replace("\"", "\\\"") + "\"}")) {
+                    handleInput(reader, response);
+                }
+            } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
-            } catch (IOException ex) {
-                SmallRyeGraphQLServletLogging.log.ioException(ex);
             }
+        } catch (IOException ex) {
+            SmallRyeGraphQLServletLogging.log.ioException(ex);
+            throw ex;
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try (BufferedReader reader = request.getReader()) {
             handleInput(reader, response);
         } catch (IOException ex) {
             SmallRyeGraphQLServletLogging.log.ioException(ex);
+            throw ex;
         }
     }
 
-    private void handleInput(Reader inputReader, HttpServletResponse response) {
+    private void handleInput(Reader inputReader, HttpServletResponse response) throws IOException {
         inputReader = logInputReader(inputReader);
 
         try (JsonReader jsonReader = jsonReaderFactory.createReader(inputReader)) {
@@ -91,8 +91,6 @@ public class ExecutionServlet extends HttpServlet {
                     out.flush();
                 }
             }
-        } catch (Exception ex) {
-            SmallRyeGraphQLServletLogging.log.ioException(ex);
         }
     }
 
