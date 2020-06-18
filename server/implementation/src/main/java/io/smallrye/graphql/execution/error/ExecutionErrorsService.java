@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.error;
 
+import static java.util.Locale.UK;
+
 import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import javax.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
+import io.smallrye.graphql.api.GraphQlErrorCode;
 
 /**
  * Help to create the exceptions
@@ -50,10 +53,7 @@ public class ExecutionErrorsService {
 
             JsonObjectBuilder resultBuilder = jsonBuilderFactory.createObjectBuilder(jsonErrors);
 
-            Optional<JsonObject> optionalExtensions = getOptionalExtensions(error);
-            if (optionalExtensions.isPresent()) {
-                resultBuilder.add(EXTENSIONS, optionalExtensions.get());
-            }
+            getOptionalExtensions(error).ifPresent(jsonObject -> resultBuilder.add(EXTENSIONS, jsonObject));
             return resultBuilder.build();
         }
     }
@@ -86,10 +86,23 @@ public class ExecutionErrorsService {
 
         addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
         addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
+        addKeyValue(objectBuilder, CODE, toErrorCode(exception));
         Map<String, Object> extensions = error.getExtensions();
         populateCustomExtensions(objectBuilder, extensions);
 
         return Optional.of(objectBuilder.build());
+    }
+
+    private String toErrorCode(Throwable exception) {
+        GraphQlErrorCode annotation = exception.getClass().getAnnotation(GraphQlErrorCode.class);
+        return (annotation == null)
+                ? camelToKebab(exception.getClass().getSimpleName().replaceAll("Exception$", ""))
+                : annotation.value();
+    }
+
+    private static String camelToKebab(String input) {
+        return String.join("-", input.split("(?=\\p{javaUpperCase})"))
+                .toLowerCase(UK);
     }
 
     private void populateCustomExtensions(JsonObjectBuilder objectBuilder, Map<String, Object> extensions) {
@@ -121,5 +134,6 @@ public class ExecutionErrorsService {
     private static final String QUERYPATH = "queryPath";
     private static final String CLASSIFICATION = "classification";
     private static final String EXTENSIONS = "extensions";
+    private static final String CODE = "code";
 
 }
