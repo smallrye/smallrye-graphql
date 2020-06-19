@@ -7,53 +7,56 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.DateFormat;
+import org.eclipse.microprofile.graphql.Description;
+
+import io.smallrye.graphql.api.MapTo;
 
 public class Profile {
     public static String uuid = UUID.randomUUID().toString();
-    private Integer id;
+    @Description("Testing map scalar to scalar")
+    @MapTo(Integer.class)
+    private Long id;
     private String locale;
     public String title;
     private List<String> names;
     private List<String> nicknames;
     private String surname;
     private String username;
-    private String idNumber;
+    @MapTo(String.class)
+    private IdNumber idNumber;
     private List<URL> coverphotos;
     private List<URL> profilePictures;
-
-    //    private Gender gender;
     @DateFormat("dd/MM/yyyy")
     private Date birthDate;
     private Date memberSince;
     private String favColor;
-    //    private List<Address> addresses;
-    private List<String> emailAddresses;
-    //    private List<Phone> phoneNumbers;
-    //    private List<ImClient> imClients;
-    //    private List<SocialMedia> socialMedias;
-    private URL website;
+    @Description("Testing map object to scalar")
+    @MapTo(String.class)
+    private Email email;
+    private Email alternativeEmail;
+    @MapTo(String.class)
+    private Website website;
+    @MapTo(String.class)
+    private List<Website> bookmarks;
     private List<String> taglines;
     private String biography;
     private String organization;
     private String occupation;
     private List<String> interests;
     private List<String> skills;
-
-    //    private List<Relation> relations;
     @DateFormat("dd/MM/yyyy")
     private java.sql.Date joinDate;
     private java.sql.Date anniversary;
     private String maritalStatus;
-
     private transient List<String> creditCards;
 
     private String userAgent;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -97,11 +100,11 @@ public class Profile {
         this.username = username;
     }
 
-    public String getIdNumber() {
+    public IdNumber getIdNumber() {
         return idNumber;
     }
 
-    public void setIdNumber(String idNumber) {
+    public void setIdNumber(IdNumber idNumber) {
         this.idNumber = idNumber;
     }
 
@@ -145,19 +148,19 @@ public class Profile {
         this.favColor = favColor;
     }
 
-    public List<String> getEmailAddresses() {
-        return emailAddresses;
+    public Email getEmail() {
+        return email;
     }
 
-    public void setEmailAddresses(List<String> emailAddresses) {
-        this.emailAddresses = emailAddresses;
+    public void setEmail(Email email) {
+        this.email = email;
     }
 
-    public URL getWebsite() {
+    public Website getWebsite() {
         return website;
     }
 
-    public void setWebsite(URL website) {
+    public void setWebsite(Website website) {
         this.website = website;
     }
 
@@ -273,32 +276,6 @@ public class Profile {
         profilePictures.add(profilePicture);
     }
 
-    //    public void addAddress(Address address){
-    //        if(addresses==null)addresses = new LinkedList<>();
-    //        addresses.add(address);
-    //    }
-
-    public void addEmailAddress(String emailAddress) {
-        if (emailAddresses == null)
-            emailAddresses = new LinkedList<>();
-        emailAddresses.add(emailAddress);
-    }
-
-    //    public void addPhoneNumber(Phone phoneNumber){
-    //        if(phoneNumbers==null)phoneNumbers = new LinkedList<>();
-    //        phoneNumbers.add(phoneNumber);
-    //    }
-
-    //    public void addImClient(ImClient imClient){
-    //        if(imClients==null)imClients = new LinkedList<>();
-    //        imClients.add(imClient);
-    //    }
-
-    //    public void addSocialMedia(SocialMedia socialMedia){
-    //        if(socialMedias==null)socialMedias = new LinkedList<>();
-    //        socialMedias.add(socialMedia);
-    //    }
-
     public void addTagline(String tagline) {
         if (taglines == null)
             taglines = new LinkedList<>();
@@ -317,14 +294,26 @@ public class Profile {
         skills.add(skill);
     }
 
-    //    public void addRelationship(Relation relation){
-    //        if(relations==null)relations = new LinkedList<>();
-    //        relations.add(relation);
-    //    }
-
     public void addCreditCard(String card) {
         if (creditCards == null)
             creditCards = new LinkedList<>();
         creditCards.add(card);
     }
+
+    public Email getAlternativeEmail() {
+        return alternativeEmail;
+    }
+
+    public void setAlternativeEmail(Email alternativeEmail) {
+        this.alternativeEmail = alternativeEmail;
+    }
+
+    public List<Website> getBookmarks() {
+        return bookmarks;
+    }
+
+    public void setBookmarks(List<Website> bookmarks) {
+        this.bookmarks = bookmarks;
+    }
+
 }

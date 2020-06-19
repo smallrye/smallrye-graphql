@@ -469,13 +469,13 @@ public class Bootstrap {
     }
 
     private GraphQLOutputType referenceGraphQLOutputType(Field field) {
-        Reference reference = field.getReference();
+        Reference reference = getCorrectFieldReference(field);
         ReferenceType type = reference.getType();
         String className = reference.getClassName();
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return getCorrectScalarType(field);
+                return getCorrectScalarType(reference);
             case ENUM:
                 return enumMap.get(className);
             default:
@@ -484,13 +484,13 @@ public class Bootstrap {
     }
 
     private GraphQLInputType referenceGraphQLInputType(Field field) {
-        Reference reference = field.getReference();
+        Reference reference = getCorrectFieldReference(field);
         ReferenceType type = reference.getType();
         String className = reference.getClassName();
         String name = reference.getName();
         switch (type) {
             case SCALAR:
-                return getCorrectScalarType(field);
+                return getCorrectScalarType(reference);
             case ENUM:
                 return enumMap.get(className);
             default:
@@ -498,8 +498,17 @@ public class Bootstrap {
         }
     }
 
-    private GraphQLScalarType getCorrectScalarType(Field field) {
-        return GraphQLScalarTypes.getScalarByName(field.getReference().getName());
+    private Reference getCorrectFieldReference(Field field) {
+        // First check if this is mapped to some other type
+        if (field.hasMappingInfo()) {
+            return field.getMappingInfo().getReference();
+        } else {
+            return field.getReference();
+        }
+    }
+
+    private GraphQLScalarType getCorrectScalarType(Reference fieldReference) {
+        return GraphQLScalarTypes.getScalarByName(fieldReference.getName());
     }
 
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {

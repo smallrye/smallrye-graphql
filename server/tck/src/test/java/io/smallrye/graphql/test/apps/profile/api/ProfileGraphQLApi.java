@@ -2,6 +2,7 @@ package io.smallrye.graphql.test.apps.profile.api;
 
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -25,4 +26,9 @@ public class ProfileGraphQLApi {
         return Configuration.getByName(name.toString());
     }
 
+    @Mutation
+    @Description("Add a new Profile")
+    public Profile addProfile(Profile profile) {
+        return ProfileDB.addProfile(profile);
+    }
 }

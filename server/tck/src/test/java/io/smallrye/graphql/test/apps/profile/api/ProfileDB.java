@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Create some test date for Profiles
@@ -16,31 +17,50 @@ import java.util.Map;
 public class ProfileDB {
     private static final Map<Integer, Profile> DB = new HashMap<>();
 
+    private static Random random = new Random();
+
     public static Profile getProfile(int id) {
         return DB.get(id);
+    }
+
+    public static Profile addProfile(Profile profile) {
+        if (profile.getId() == null)
+            profile.setId(getRandomId());
+        DB.put(profile.getId().intValue(), profile);
+        return profile;
     }
 
     static {
         DB.put(1, createProfile(1));
     }
 
+    private static Long getRandomId() {
+        long nextLong = random.nextLong();
+        if (DB.containsKey(nextLong)) {
+            return getRandomId();
+        }
+        return nextLong;
+    }
+
     private static Profile createProfile(int i) {
         try {
             Profile p = new Profile();
-            p.setId(i);
+            p.setId(Integer.valueOf(i).longValue());
             p.setLocale(Locale.UK.toString());
             p.title = "Mr"; // Test public fields
             p.addName("Phillip");
             p.setSurname("Kruger");
             p.setUsername("phillip.kruger");
-            p.setIdNumber("ABC123456789");
+            p.setIdNumber(IdNumber.fromString("ABC123456789"));
             p.addProfilePicture(new URL(
                     "https://avatars1.githubusercontent.com/u/6836179?s=460&u=8d34b60fb495daf689775b2c12ded76760cdb508&v=4"));
             p.setBirthDate(new SimpleDateFormat("yyyyMMdd").parse("19780703"));
             p.setMemberSinceDate(new SimpleDateFormat("yyyyMMdd").parse("20050101"));
             p.setFavColor("Green");
-            p.addEmailAddress("phillip.kruger@redhat.com");
-            p.setWebsite(new URL("https://www.phillip-kruger.com"));
+            p.setEmail(new Email("phillip.kruger@redhat.com"));
+            Website website = new Website();
+            website.setValue("https://www.phillip-kruger.com");
+            p.setWebsite(website);
             p.addTagline("Everything in it's right place");
             p.addTagline("I might be wrong");
             p.setBiography(LONG_TEXT);

@@ -16,6 +16,7 @@ import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -124,6 +125,7 @@ public class ReferenceCreator {
      * 
      * We need both the type and the getter/setter method as both is applicable.
      * 
+     * @param direction in or out
      * @param fieldType the field type
      * @param methodType the method type
      * @param annotations the annotations on the field and method
@@ -143,6 +145,19 @@ public class ReferenceCreator {
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo) {
+        return createReference(direction, classInfo, true);
+    }
+
+    /**
+     * This method create a reference to type that might not yet exist.
+     * It also store to be created later, if we do not already know about it.
+     * 
+     * @param direction the direction (in or out)
+     * @param classInfo the Java class
+     * @param createType create the type in the scema
+     * @return a reference
+     */
+    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType) {
         // Get the initial reference type. It's either Type or Input depending on the direction. This might change it 
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
@@ -154,7 +169,7 @@ public class ReferenceCreator {
                     .getAllKnownImplementors(classInfo.name());
             for (ClassInfo impl : knownDirectImplementors) {
                 // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all ?
-                createReference(direction, impl);
+                createReference(direction, impl, createType);
             }
             referenceType = ReferenceType.INTERFACE;
         } else if (Classes.isEnum(classInfo)) {
@@ -169,8 +184,9 @@ public class ReferenceCreator {
         Reference reference = new Reference(className, name, referenceType);
 
         // Now add it to the correct map
-        putIfAbsent(className, reference, referenceType);
-
+        if (createType) {
+            putIfAbsent(className, reference, referenceType);
+        }
         return reference;
     }
 
@@ -180,8 +196,9 @@ public class ReferenceCreator {
             Annotations annotations) {
 
         // In some case, like operations and interfaces, there is not fieldType
-        if (fieldType == null)
+        if (fieldType == null) {
             fieldType = methodType;
+        }
 
         String fieldTypeName = fieldType.name().toString();
 
@@ -207,7 +224,8 @@ public class ReferenceCreator {
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
-                return createReference(direction, classInfo);
+                boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
+                return createReference(direction, classInfo, shouldCreateType);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");

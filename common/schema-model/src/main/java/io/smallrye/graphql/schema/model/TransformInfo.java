@@ -3,7 +3,7 @@ package io.smallrye.graphql.schema.model;
 import java.io.Serializable;
 
 /**
- * Indicate the a field should apply transformation
+ * Indicate that a field should apply transformation
  * 
  * At the moment this is only on number and date scalars.
  * 

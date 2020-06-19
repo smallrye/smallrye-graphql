@@ -12,6 +12,7 @@ import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
@@ -90,6 +91,9 @@ public class ArgumentCreator {
 
             // TransformInfo
             argument.setTransformInfo(FormatHelper.getFormat(argumentType, annotationsForThisArgument).orElse(null));
+
+            // MappingInfo
+            argument.setMappingInfo(MappingHelper.getMapping(argument, annotationsForThisArgument).orElse(null));
 
             // Default Value
             argument.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForThisArgument).orElse(null));

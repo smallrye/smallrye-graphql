@@ -21,7 +21,7 @@ public class FormatHelper {
     }
 
     /**
-     * Tests, if any formatting is present.
+     * Test if any formatting is present.
      * 
      * @param annotations the annotations
      * @return if formatting is present

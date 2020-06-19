@@ -14,6 +14,7 @@ import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Field;
@@ -72,6 +73,9 @@ public class FieldCreator {
             // TransformInfo
             field.setTransformInfo(FormatHelper.getFormat(returnType, annotationsForMethod).orElse(null));
 
+            // MappingInfo
+            field.setMappingInfo(MappingHelper.getMapping(field, annotationsForMethod).orElse(null));
+
             // Default Value
             field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
 
@@ -125,6 +129,9 @@ public class FieldCreator {
             // TransformInfo
             field.setTransformInfo(FormatHelper.getFormat(methodType, annotationsForPojo).orElse(null));
 
+            // MappingInfo
+            field.setMappingInfo(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
+
             // Default Value
             field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
 
@@ -175,6 +182,9 @@ public class FieldCreator {
 
                 // TransformInfo
                 field.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
+
+                // MappingInfo
+                field.setMappingInfo(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
 
                 // Default Value
                 field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));

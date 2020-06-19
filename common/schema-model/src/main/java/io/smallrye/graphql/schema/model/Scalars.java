@@ -56,7 +56,7 @@ public class Scalars {
     }
 
     public static Reference getIDScalar(String className) {
-        return new Reference(className, "ID", ReferenceType.SCALAR, className);
+        return new Reference(className, ID, ReferenceType.SCALAR);
     }
 
     static {
