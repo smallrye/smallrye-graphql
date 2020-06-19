@@ -3,7 +3,7 @@ package io.smallrye.graphql.test.apps.error.api;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
-import io.smallrye.graphql.api.GraphQlErrorCode;
+import io.smallrye.graphql.api.ErrorCode;
 
 @GraphQLApi
 public class ErrorApi {
@@ -20,7 +20,7 @@ public class ErrorApi {
         throw new CustomBusinessException();
     }
 
-    @GraphQlErrorCode("some-business-error-code")
+    @ErrorCode("some-business-error-code")
     public static class AnnotatedCustomBusinessException extends RuntimeException {
     }
 

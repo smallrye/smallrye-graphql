@@ -18,7 +18,7 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
-import io.smallrye.graphql.api.GraphQlErrorCode;
+import io.smallrye.graphql.api.ErrorCode;
 
 /**
  * Test for {@link ExecutionErrorsService}
@@ -91,7 +91,7 @@ class ExecutionErrorsServiceTest {
 
     @Test
     void shouldMapClassAnnotationErrorCode() {
-        @GraphQlErrorCode("dummy-code")
+        @ErrorCode("dummy-code")
         class DummyBusinessException extends RuntimeException {
             public DummyBusinessException(String message) {
                 super(message);

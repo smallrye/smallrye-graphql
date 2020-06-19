@@ -45,8 +45,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.microprofile.graphql</groupId>
-            <artifactId>microprofile-graphql-api</artifactId>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-graphql-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

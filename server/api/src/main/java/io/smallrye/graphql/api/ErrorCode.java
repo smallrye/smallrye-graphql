@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target({ TYPE, ANNOTATION_TYPE })
-public @interface GraphQlErrorCode {
+public @interface ErrorCode {
     String value();
 }

@@ -22,7 +22,7 @@ import javax.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.api.GraphQlErrorCode;
+import io.smallrye.graphql.api.ErrorCode;
 
 /**
  * Help to create the exceptions
@@ -94,7 +94,8 @@ public class ExecutionErrorsService {
     }
 
     private String toErrorCode(Throwable exception) {
-        GraphQlErrorCode annotation = exception.getClass().getAnnotation(GraphQlErrorCode.class);
+        // TODO change to use the Model and the model needs to get this using Jandex
+        ErrorCode annotation = exception.getClass().getAnnotation(ErrorCode.class);
         return (annotation == null)
                 ? camelToKebab(exception.getClass().getSimpleName().replaceAll("Exception$", ""))
                 : annotation.value();
