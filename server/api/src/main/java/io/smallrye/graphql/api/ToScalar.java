@@ -33,16 +33,16 @@ import io.smallrye.common.annotation.Experimental;
  * <pre>
  * public class Profile {
  *     //  Map a Scalar to another existing Scalar
- *     {@literal @}MapTo(Integer.class)
- *     private Long id;
- * 
- *     // Map a POJO to another existing Scalar
- *     {@literal @}MapTo(String.class)
- *     private IdNumber idNumber;
- *
- *     // Map a List of POJOs to a list of existing Scalars
- *     {@literal @}MapTo(String.class)
- *     private List&lt;Website&gt; bookmarks;
+ *     {@literal @}ToScalar(Scalar.Int.class)
+     private Long id;
+ 
+     // Map a POJO to another existing Scalar
+     {@literal @}ToScalar(Scalar.String.class)
+     private IdNumber idNumber;
+
+     // Map a List of POJOs to a list of existing Scalars
+     {@literal @}ToScalar(Scalar.String.class)
+     private List&lt;Website&gt; bookmarks;
  *
  *     // other getters/setters...
  * }
@@ -55,9 +55,9 @@ import io.smallrye.common.annotation.Experimental;
 @Documented
 @Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
         "Subject to change.")
-public @interface MapTo {
+public @interface ToScalar {
     /**
-     * @return the class of the scalar to use.
+     * @return the scalar to use.
      */
-    Class<?> value();
+    Class<? extends Scalar> value();
 }

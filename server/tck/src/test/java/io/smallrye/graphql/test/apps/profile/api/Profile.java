@@ -9,12 +9,13 @@ import java.util.UUID;
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.Description;
 
-import io.smallrye.graphql.api.MapTo;
+import io.smallrye.graphql.api.Scalar;
+import io.smallrye.graphql.api.ToScalar;
 
 public class Profile {
     public static String uuid = UUID.randomUUID().toString();
     @Description("Testing map scalar to scalar")
-    @MapTo(Integer.class)
+    @ToScalar(Scalar.Int.class)
     private Long id;
     private String locale;
     public String title;
@@ -22,7 +23,7 @@ public class Profile {
     private List<String> nicknames;
     private String surname;
     private String username;
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     private IdNumber idNumber;
     private List<URL> coverphotos;
     private List<URL> profilePictures;
@@ -31,12 +32,12 @@ public class Profile {
     private Date memberSince;
     private String favColor;
     @Description("Testing map object to scalar")
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     private Email email;
     private Email alternativeEmail;
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     private Website website;
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     private List<Website> bookmarks;
     private List<String> taglines;
     private String biography;

@@ -3,11 +3,12 @@ package io.smallrye.graphql.index.app;
 import java.util.Date;
 import java.util.Set;
 
-import io.smallrye.graphql.api.MapTo;
+import io.smallrye.graphql.api.Scalar;
+import io.smallrye.graphql.api.ToScalar;
 
 public class Movie {
 
-    @MapTo(Integer.class)
+    @ToScalar(Scalar.Int.class)
     Long idLongThatShouldChangeToInt;
     String title;
     Date releaseDate;

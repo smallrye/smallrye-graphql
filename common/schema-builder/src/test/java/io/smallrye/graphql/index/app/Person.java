@@ -2,18 +2,19 @@ package io.smallrye.graphql.index.app;
 
 import java.util.Objects;
 
-import io.smallrye.graphql.api.MapTo;
+import io.smallrye.graphql.api.Scalar;
+import io.smallrye.graphql.api.ToScalar;
 
 public class Person {
     String firstName;
     String lastName;
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     Email email;
 
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     Website website;
 
-    @MapTo(String.class)
+    @ToScalar(Scalar.String.class)
     Phone phone;
 
     public String getFirstName() {

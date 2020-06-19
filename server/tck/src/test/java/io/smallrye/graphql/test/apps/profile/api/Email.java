@@ -3,7 +3,6 @@ package io.smallrye.graphql.test.apps.profile.api;
 public class Email {
     private String value;
 
-    // TODO: Remove
     public Email() {
     }
 

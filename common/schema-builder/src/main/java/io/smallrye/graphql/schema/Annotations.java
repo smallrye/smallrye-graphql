@@ -453,7 +453,7 @@ public class Annotations {
     private static final short ZERO = 0;
 
     // SmallRye GraphQL Annotations (Experimental)
-    public static final DotName MAP_TO = DotName.createSimple("io.smallrye.graphql.api.MapTo");
+    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");
