@@ -1,0 +1,24 @@
+{
+    "errors": [
+        {
+            "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 3
+                }
+            ],
+            "path": [
+                "unsupportedOperation"
+            ],
+            "extensions": {
+                "exception": "java.lang.UnsupportedOperationException",
+                "classification": "DataFetchingException",
+                "code": "unsupported-operation"
+            }
+        }
+    ],
+    "data": {
+        "unsupportedOperation": null
+    }
+}
