@@ -43,6 +43,18 @@ public class FieldHelper extends AbstractHelper {
         return Transformer.out(field, argumentValue);
     }
 
+    /**
+     * By now this is a 'leaf' value, i.e not a collection of array, so we just transform if needed.
+     * 
+     * @param argumentValue the value to map
+     * @param field the field as created while scanning
+     * @return mapped value
+     */
+    @Override
+    Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
+        return argumentValue;
+    }
+
     @Override
     protected Object afterRecursiveTransform(Object fieldValue, Field field) {
         return fieldValue;

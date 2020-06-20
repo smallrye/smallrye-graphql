@@ -2,6 +2,9 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -10,10 +13,11 @@ import javax.json.bind.JsonbException;
 
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.json.InputTransformFields;
+import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.MappingInfo;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -108,6 +112,59 @@ public class ArgumentHelper extends AbstractHelper {
     }
 
     /**
+     * By now this is a 'leaf' value, i.e not a collection of array, so we just map if needed.
+     *
+     * @param argumentValue the value to map
+     * @param field the field as created while scanning
+     * @return mapped value
+     */
+    @Override
+    Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
+        if (field.hasMappingInfo() && !field.getMappingInfo().getCreate().equals(MappingInfo.Create.NONE)) {
+            String expectedType = field.getReference().getClassName();
+            Class<?> expectedClass = classloadingService.loadClass(expectedType);
+
+            if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.CONSTRUCTOR)) {
+                // Try with contructor
+                try {
+                    Constructor<?> constructor = expectedClass.getConstructor(argumentValue.getClass());
+                    return constructor.newInstance(argumentValue);
+                } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                        | IllegalArgumentException | InvocationTargetException ex) {
+                    // TODO: Log to debug ?
+                }
+            } else if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.SET_VALUE)) {
+                // Try with setValue
+                try {
+                    // TODO: Maybe later allow annotation to indicate what method this should be ?
+                    Method setValueMethod = expectedClass.getMethod("setValue", argumentValue.getClass());
+                    Constructor<?> constructor = expectedClass.getConstructor();
+                    Object instance = constructor.newInstance();
+                    setValueMethod.invoke(instance, argumentValue);
+                    return instance;
+                } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                        | IllegalArgumentException | InvocationTargetException ex) {
+                    // TODO: Log to debug ?
+                }
+            } else if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.STATIC_FROM)) {
+                // Try with static from???
+                try {
+                    String simpleClassName = argumentValue.getClass().getSimpleName();
+                    String staticMethodName = "from" + simpleClassName;
+                    Method staticFromMethod = expectedClass.getMethod(staticMethodName, argumentValue.getClass());
+                    Object instance = staticFromMethod.invoke(null, argumentValue);
+                    return instance;
+                } catch (NoSuchMethodException | SecurityException | IllegalAccessException
+                        | IllegalArgumentException | InvocationTargetException ex) {
+                    // TODO: Log to debug ?
+                }
+            }
+        }
+        // Fall back to the original value
+        return argumentValue;
+    }
+
+    /**
      * Here we have the potential transformed input and just need to
      * get the correct type
      *
@@ -174,8 +231,8 @@ public class ArgumentHelper extends AbstractHelper {
         String className = field.getReference().getClassName();
 
         // Let's see if there are any fields that needs transformation
-        if (InputTransformFields.hasTransformationFields(className)) {
-            Map<String, Field> transformationFields = InputTransformFields.getTransformationFields(className);
+        if (InputFieldsInfo.hasTransformationFields(className)) {
+            Map<String, Field> transformationFields = InputFieldsInfo.getTransformationFields(className);
 
             for (Map.Entry<String, Field> entry : transformationFields.entrySet()) {
                 String fieldName = entry.getKey();
@@ -184,6 +241,21 @@ public class ArgumentHelper extends AbstractHelper {
                     Field fieldThatShouldTransform = entry.getValue();
                     valueThatShouldTransform = recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform);
                     m.put(fieldName, valueThatShouldTransform);
+                }
+            }
+        }
+
+        // Let's see if there are any fields that needs mapping
+        if (InputFieldsInfo.hasMappingFields(className)) {
+            Map<String, Field> mappingFields = InputFieldsInfo.getMappingFields(className);
+
+            for (Map.Entry<String, Field> entry : mappingFields.entrySet()) {
+                String fieldName = entry.getKey();
+                if (m.containsKey(fieldName)) {
+                    Object valueThatShouldMap = m.get(fieldName);
+                    Field fieldThatShouldMap = entry.getValue();
+                    valueThatShouldMap = recursiveMapping(valueThatShouldMap, fieldThatShouldMap);
+                    m.put(fieldName, valueThatShouldMap);
                 }
             }
         }

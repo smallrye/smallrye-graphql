@@ -22,6 +22,7 @@ public class Field implements Serializable {
     private boolean notNull = false;
     private Array array = null; // If this is a collection
     private TransformInfo transformInfo = null; // If the field should be transformed
+    private MappingInfo mappingInfo = null; // If the field is mapped to another type
     private String defaultValue = null;
 
     public Field() {
@@ -106,6 +107,18 @@ public class Field implements Serializable {
 
     public boolean hasTransformInfo() {
         return this.transformInfo != null;
+    }
+
+    public MappingInfo getMappingInfo() {
+        return mappingInfo;
+    }
+
+    public void setMappingInfo(MappingInfo mappingInfo) {
+        this.mappingInfo = mappingInfo;
+    }
+
+    public boolean hasMappingInfo() {
+        return this.mappingInfo != null;
     }
 
     public String getDefaultValue() {

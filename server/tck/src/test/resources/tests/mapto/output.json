@@ -1,0 +1,18 @@
+{
+  "data": {
+    "addProfile": {
+      "id": 2,
+      "names": [
+        "Charmaine"
+      ],
+      "surname": "Kruger",
+      "email": "charmaine.kruger@google.com",
+      "website": "http://www.charmaine-kruger.com",
+      "bookmarks": [
+        "http://www.google.com",
+        "http://www.redhat.com"
+      ],
+      "idNumber": "qwe123"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+    "errors": [
+        {
+            "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 3
+                }
+            ],
+            "path": [
+                "customBusinessException"
+            ],
+            "extensions": {
+                "exception": "io.smallrye.graphql.test.apps.error.api.ErrorApi$CustomBusinessException",
+                "classification": "DataFetchingException",
+                "code": "custom-business"
+            }
+        }
+    ],
+    "data": {
+        "customBusinessException": null
+    }
+}

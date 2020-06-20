@@ -3,12 +3,25 @@ package io.smallrye.graphql.index.app;
 import java.util.Date;
 import java.util.Set;
 
+import io.smallrye.graphql.api.Scalar;
+import io.smallrye.graphql.api.ToScalar;
+
 public class Movie {
 
+    @ToScalar(Scalar.Int.class)
+    Long idLongThatShouldChangeToInt;
     String title;
     Date releaseDate;
     Person director;
     Set<Person> topBilledCast;
+
+    public Long getIdLongThatShouldChangeToInt() {
+        return idLongThatShouldChangeToInt;
+    }
+
+    public void setIdLongThatShouldChangeToInt(Long idLongThatShouldChangeToInt) {
+        this.idLongThatShouldChangeToInt = idLongThatShouldChangeToInt;
+    }
 
     public String getTitle() {
         return title;

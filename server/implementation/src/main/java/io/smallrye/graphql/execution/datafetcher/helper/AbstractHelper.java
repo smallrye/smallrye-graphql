@@ -42,8 +42,16 @@ public abstract class AbstractHelper {
     abstract Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException;
 
     /**
-     * Here we actually do the transform. This method get called recursively in the case of arrays
+     * This does the mapping of a 'leaf' value
      * 
+     * @param argumentValue the value
+     * @param field the field as scanned
+     * @return mapped value
+     */
+    abstract Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException;
+
+    /**
+     * Here we actually do the transform. This method get called recursively in the case of arrays
      * 
      * @param inputValue the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
@@ -75,7 +83,41 @@ public abstract class AbstractHelper {
 
         // Recursive transformation done.
         return afterRecursiveTransform(inputValue, field);
+    }
 
+    /**
+     * Here we actually do the mapping. This method get called recursively in the case of arrays
+     * 
+     * @param inputValue the value we got from graphql-java or response from the method call
+     * @param field details about the expected type created while scanning the code
+     * @return the argumentValue in the correct type and mapped
+     */
+    Object recursiveMapping(Object inputValue, Field field)
+            throws AbstractDataFetcherException {
+
+        if (inputValue == null) {
+            return null;
+        }
+
+        String expectedType = field.getReference().getClassName();
+        if (field.hasArray()) {
+            // First handle the array if this is an array
+            if (field.getArray().getType().equals(io.smallrye.graphql.schema.model.Array.Type.ARRAY)) {
+
+                return recursiveMappingArray(inputValue, field);
+            } else {
+                return recursiveMappingCollection(inputValue, field);
+            }
+        } else if (Classes.isOptional(expectedType)) {
+            // Also handle optionals
+            return recursiveMappingOptional(inputValue, field);
+        } else {
+            // we need to transform before we make sure the type is correct
+            inputValue = singleMapping(inputValue, field);
+        }
+
+        // Recursive transformation done.
+        return inputValue;
     }
 
     /**
@@ -107,6 +149,39 @@ public abstract class AbstractHelper {
             Field fieldInCollection = getFieldInField(field);
             Object element = Array.get(array, i);
             Object targetElement = recursiveTransform(element, fieldInCollection);
+            Array.set(targetArray, i, targetElement);
+        }
+
+        return targetArray;
+    }
+
+    /**
+     * This just creates a new array and add values to it by calling the recursiveMapping method.
+     * This allows arrays of arrays and mapping inside arrays
+     * 
+     * @param array the array or list as from graphql-java,
+     * @param field the field as created while scanning
+     * @return an array with the mapped values in.
+     */
+    private Object recursiveMappingArray(Object array, Field field) throws AbstractDataFetcherException {
+        if (Classes.isCollection(array)) {
+            array = ((Collection) array).toArray();
+        }
+
+        Class classInCollection = getArrayType(field);
+
+        //Skip mapping if not needed
+        if (array.getClass().getComponentType().equals(classInCollection)) {
+            return array;
+        }
+
+        int length = Array.getLength(array);
+        Object targetArray = Array.newInstance(classInCollection, length);
+
+        for (int i = 0; i < length; i++) {
+            Field fieldInCollection = getFieldInField(field);
+            Object element = Array.get(array, i);
+            Object targetElement = recursiveMapping(element, fieldInCollection);
             Array.set(targetArray, i, targetElement);
         }
 
@@ -147,6 +222,29 @@ public abstract class AbstractHelper {
     }
 
     /**
+     * This just creates a new correct type collection and add values to it by calling the recursiveMapping method.
+     * This allows collections of collections and mapping inside collections
+     * 
+     * @param argumentValue the list as from graphql-java (always an arraylist)
+     * @param field the field as created while scanning
+     * @return a collection with the mapped values in.
+     */
+    private Object recursiveMappingCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
+        Collection givenCollection = getGivenCollection(argumentValue);
+        String collectionClassName = field.getArray().getClassName();
+        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
+
+        for (Object objectInGivenCollection : givenCollection) {
+            Field fieldInCollection = getFieldInField(field);
+            Object objectInCollection = recursiveMapping(objectInGivenCollection,
+                    fieldInCollection);
+            convertedCollection.add(objectInCollection);
+        }
+
+        return convertedCollection;
+    }
+
+    /**
      * This is not yet specified by MicroProfile GraphQL, but we support it by also allowing transformation the optional
      * element.
      * 
@@ -162,6 +260,25 @@ public abstract class AbstractHelper {
         } else {
             Object o = givenCollection.iterator().next();
             return Optional.of(recursiveTransform(o, field));
+        }
+
+    }
+
+    /**
+     * Add support for mapping an optional element.
+     * 
+     * @param argumentValue the value as from graphql-java
+     * @param field the graphql-field
+     * @return a optional with the mapped value in.
+     */
+    private Optional<Object> recursiveMappingOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
+        // Check the type and maybe apply transformation
+        Collection givenCollection = getGivenCollection(argumentValue);
+        if (givenCollection.isEmpty()) {
+            return Optional.empty();
+        } else {
+            Object o = givenCollection.iterator().next();
+            return Optional.of(recursiveMapping(o, field));
         }
 
     }
@@ -186,6 +303,8 @@ public abstract class AbstractHelper {
 
         // transform info
         child.setTransformInfo(owner.getTransformInfo());
+        // mapping info
+        child.setMappingInfo(owner.getMappingInfo());
         // default value
         child.setDefaultValue(owner.getDefaultValue());
 
