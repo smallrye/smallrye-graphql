@@ -189,7 +189,7 @@ public class Annotations {
      * Get a specific annotation
      * 
      * @param annotation the annotation you want
-     * @return the annotation instance or null
+     * @return the annotation value or null
      */
     public AnnotationValue getAnnotationValue(DotName annotation) {
         return this.annotationsMap.get(annotation).value();
@@ -451,6 +451,9 @@ public class Annotations {
     }
 
     private static final short ZERO = 0;
+
+    // SmallRye GraphQL Annotations (Experimental)
+    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");

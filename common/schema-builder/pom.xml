@@ -44,8 +44,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.microprofile.graphql</groupId>
-            <artifactId>microprofile-graphql-api</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-api</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

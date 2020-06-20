@@ -26,6 +26,7 @@ import java.util.UUID;
  */
 public class Scalars {
     private static final Map<String, Reference> scalarMap = new HashMap<>();
+    private static final Map<String, Reference> scalarNameMap = new HashMap<>();
     private static final Map<String, Reference> formattedScalarMap = new HashMap<>();
     private static final String STRING = "String";
     private static final String BOOLEAN = "Boolean";
@@ -47,8 +48,12 @@ public class Scalars {
         return scalarMap.containsKey(className);
     }
 
-    public static Reference getScalar(String className) {
-        return scalarMap.get(className);
+    public static Reference getScalar(String identifier) {
+        if (scalarMap.containsKey(identifier)) {
+            return scalarMap.get(identifier);
+        } else {
+            return scalarNameMap.get(identifier);
+        }
     }
 
     public static Reference getFormattedScalar(String className) {
@@ -56,21 +61,25 @@ public class Scalars {
     }
 
     public static Reference getIDScalar(String className) {
-        return new Reference(className, "ID", ReferenceType.SCALAR, className);
+        return new Reference(className, ID, ReferenceType.SCALAR);
     }
 
     static {
+        // The main java type should go first.
+
+        // Strings
+        populateScalar(String.class.getName(), STRING, String.class.getName());
         populateScalar(char.class.getName(), STRING, String.class.getName());
         populateScalar(Character.class.getName(), STRING, String.class.getName());
-        populateScalar(String.class.getName(), STRING, String.class.getName());
         populateScalar(UUID.class.getName(), STRING, String.class.getName());
-
         populateScalar(URL.class.getName(), STRING, String.class.getName());
         populateScalar(URI.class.getName(), STRING, String.class.getName());
 
+        // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);
         populateScalar(boolean.class.getName(), BOOLEAN);
 
+        // Integer
         populateScalar(Integer.class.getName(), INTEGER, Integer.class.getName());
         populateScalar(int.class.getName(), INTEGER, Integer.class.getName());
         populateScalar(Short.class.getName(), INTEGER, Integer.class.getName());
@@ -78,31 +87,39 @@ public class Scalars {
         populateScalar(Byte.class.getName(), INTEGER, Integer.class.getName());
         populateScalar(byte.class.getName(), INTEGER, Integer.class.getName());
 
+        // Float
         populateScalar(Float.class.getName(), FLOAT, Float.class.getName());
         populateScalar(float.class.getName(), FLOAT, Float.class.getName());
         populateScalar(Double.class.getName(), FLOAT, Float.class.getName());
         populateScalar(double.class.getName(), FLOAT, Float.class.getName());
 
+        // BigInteger
         populateScalar(BigInteger.class.getName(), BIGINTEGER, BigInteger.class.getName());
         populateScalar(Long.class.getName(), BIGINTEGER, BigInteger.class.getName());
         populateScalar(long.class.getName(), BIGINTEGER, BigInteger.class.getName());
 
+        // BigDecimal
         populateScalar(BigDecimal.class.getName(), BIGDECIMAL, BigDecimal.class.getName());
 
+        // Date
         populateScalar(LocalDate.class.getName(), DATE, String.class.getName());
         populateScalar(Date.class.getName(), DATE, String.class.getName());
 
+        // Time
         populateScalar(LocalTime.class.getName(), TIME, String.class.getName());
         populateScalar(Time.class.getName(), TIME, String.class.getName());
         populateScalar(OffsetTime.class.getName(), TIME, String.class.getName());
 
+        // DateTime
         populateScalar(LocalDateTime.class.getName(), DATETIME, String.class.getName());
         populateScalar(java.util.Date.class.getName(), DATETIME, String.class.getName());
         populateScalar(Timestamp.class.getName(), DATETIME, String.class.getName());
         populateScalar(ZonedDateTime.class.getName(), DATETIME, String.class.getName());
         populateScalar(OffsetDateTime.class.getName(), DATETIME, String.class.getName());
 
+        // Duration
         populateScalar(Duration.class.getName(), DURATION, String.class.getName());
+        // Duration
         populateScalar(Period.class.getName(), PERIOD, String.class.getName());
     }
 
@@ -111,7 +128,11 @@ public class Scalars {
     }
 
     private static void populateScalar(String className, String scalarName, String externalClassName) {
-        scalarMap.put(className, new Reference(className, scalarName, ReferenceType.SCALAR, externalClassName));
+        Reference reference = new Reference(className, scalarName, ReferenceType.SCALAR, externalClassName);
+        scalarMap.put(className, reference);
+
+        // looking up by name
+        scalarNameMap.putIfAbsent(scalarName, reference);
 
         //Currently, each scalar is formatted as String
         formattedScalarMap.put(className, new Reference(className, STRING, ReferenceType.SCALAR, String.class.getName()));

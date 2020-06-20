@@ -18,6 +18,6 @@ public class JsonInputRegistry {
 
     public static void register(InputType inputType) {
         JsonBCreator.register(inputType);
-        InputTransformFields.register(inputType);
+        InputFieldsInfo.register(inputType);
     }
 }

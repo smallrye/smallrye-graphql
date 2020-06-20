@@ -15,6 +15,7 @@ import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
+import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
@@ -92,6 +93,9 @@ public class OperationCreator {
 
         // TransformInfo
         operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));
+
+        // MappingInfo
+        operation.setMappingInfo(MappingHelper.getMapping(operation, annotationsForMethod).orElse(null));
 
         // Default Value
         operation.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));

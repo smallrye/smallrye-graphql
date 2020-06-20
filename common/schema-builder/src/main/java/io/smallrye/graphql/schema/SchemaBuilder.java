@@ -35,7 +35,7 @@ import io.smallrye.graphql.schema.model.Schema;
  * The creation of these type them self create more references to types (via Reference) that should be created and added to the
  * scheme.
  * 
- * It does above recursively until there is not more things to create.
+ * It does above recursively until there is now more things to create.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -63,8 +63,9 @@ public class SchemaBuilder {
     private SchemaBuilder() {
         referenceCreator = new ReferenceCreator();
         FieldCreator fieldCreator = new FieldCreator(referenceCreator);
-        inputTypeCreator = new InputTypeCreator(fieldCreator);
         ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
+
+        inputTypeCreator = new InputTypeCreator(fieldCreator);
         operationCreator = new OperationCreator(referenceCreator, argumentCreator);
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
         interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator);
