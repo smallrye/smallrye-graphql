@@ -1,9 +1,12 @@
 package io.smallrye.graphql.cdi.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Initialized;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -18,12 +21,22 @@ import io.smallrye.graphql.bootstrap.Config;
 @ApplicationScoped
 public class GraphQLConfig implements Config {
 
+    @Deprecated
     @Inject
-    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "")
-    private Optional<List<String>> hideList;
+    @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "") // EXCEPTION_HIDE_ERROR_MESSAGE_LIST
+    private Optional<List<String>> blackList;
 
     @Inject
+    @ConfigProperty(name = "mp.graphql.hideErrorMessage", defaultValue = "")
+    private Optional<List<String>> hideList;
+
+    @Deprecated
+    @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_WHITE_LIST, defaultValue = "")
+    private Optional<List<String>> whiteList;
+
+    @Inject
+    @ConfigProperty(name = "mp.graphql.showErrorMessage", defaultValue = "") // EXCEPTION_SHOW_ERROR_MESSAGE_LIST
     private Optional<List<String>> showList;
 
     @Inject
@@ -73,6 +86,11 @@ public class GraphQLConfig implements Config {
     @Inject
     @ConfigProperty(name = ConfigKey.FIELD_VISIBILITY, defaultValue = Config.FIELD_VISIBILITY_DEFAULT)
     private String fieldVisibility;
+
+    public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
+        hideList = mergeList(hideList, blackList);
+        showList = mergeList(showList, whiteList);
+    }
 
     @Override
     public String getDefaultErrorMessage() {
@@ -194,5 +212,22 @@ public class GraphQLConfig implements Config {
 
     public void setFieldVisibility(String fieldVisibility) {
         this.fieldVisibility = fieldVisibility;
+    }
+
+    private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {
+
+        List<String> combined = new ArrayList<>();
+        if (deprecatedList.isPresent()) {
+            combined.addAll(deprecatedList.get());
+        }
+        if (currentList.isPresent()) {
+            combined.addAll(currentList.get());
+        }
+
+        if (!combined.isEmpty()) {
+            return Optional.of(combined);
+        } else {
+            return Optional.empty();
+        }
     }
 }
