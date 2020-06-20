@@ -42,7 +42,7 @@ public abstract class AbstractHelper {
     abstract Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException;
 
     /**
-     * This do the mapping of a 'leaf' value
+     * This does the mapping of a 'leaf' value
      * 
      * @param argumentValue the value
      * @param field the field as scanned
