@@ -21,6 +21,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
+import org.eclipse.microprofile.graphql.tck.dynamic.ExecutionDynamicTest;
 import org.eclipse.microprofile.graphql.tck.dynamic.execution.TestData;
 import org.jboss.logging.Logger;
 import org.testng.ITestResult;
@@ -35,7 +36,7 @@ import org.testng.TestListenerAdapter;
 public class TestInterceptor extends TestListenerAdapter {
     private static final Logger LOG = Logger.getLogger(TestInterceptor.class.getName());
 
-    private static final String EXECUTION_TEST = "org.eclipse.microprofile.graphql.tck.dynamic.ExecutionDynamicTest";
+    private static final String EXECUTION_TEST = ExecutionDynamicTest.class.getName();
     private static final String TEST_SPECIFICATION = "testSpecification";
 
     private static final String OVERRIDES = "src/test/resources/overrides";
@@ -188,7 +189,7 @@ public class TestInterceptor extends TestListenerAdapter {
                     + "\n\t =================================================="
                     + "\n");
 
-            if (itr.getName().equals(TEST_SPECIFICATION) && !testDataMap.isEmpty()
+            if (itr.getName().startsWith(TEST_SPECIFICATION) && !testDataMap.isEmpty()
                     && testDataMap.containsKey(testData.getName())) {
 
                 TestData override = testDataMap.get(testData.getName());
