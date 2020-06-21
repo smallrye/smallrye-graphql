@@ -120,11 +120,11 @@ public class ArgumentHelper extends AbstractHelper {
      */
     @Override
     Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
-        if (field.hasMappingInfo() && !field.getMappingInfo().getCreate().equals(MappingInfo.Create.NONE)) {
+        if (shouldApplyMapping(field)) {
             String expectedType = field.getReference().getClassName();
             Class<?> expectedClass = classloadingService.loadClass(expectedType);
 
-            if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.CONSTRUCTOR)) {
+            if (getCreate(field).equals(MappingInfo.Create.CONSTRUCTOR)) {
                 // Try with contructor
                 try {
                     Constructor<?> constructor = expectedClass.getConstructor(argumentValue.getClass());
@@ -133,7 +133,7 @@ public class ArgumentHelper extends AbstractHelper {
                         | IllegalArgumentException | InvocationTargetException ex) {
                     // TODO: Log to debug ?
                 }
-            } else if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.SET_VALUE)) {
+            } else if (getCreate(field).equals(MappingInfo.Create.SET_VALUE)) {
                 // Try with setValue
                 try {
                     // TODO: Maybe later allow annotation to indicate what method this should be ?
@@ -146,7 +146,7 @@ public class ArgumentHelper extends AbstractHelper {
                         | IllegalArgumentException | InvocationTargetException ex) {
                     // TODO: Log to debug ?
                 }
-            } else if (field.getMappingInfo().getCreate().equals(MappingInfo.Create.STATIC_FROM)) {
+            } else if (getCreate(field).equals(MappingInfo.Create.STATIC_FROM)) {
                 // Try with static from???
                 try {
                     String simpleClassName = argumentValue.getClass().getSimpleName();
@@ -162,6 +162,21 @@ public class ArgumentHelper extends AbstractHelper {
         }
         // Fall back to the original value
         return argumentValue;
+    }
+
+    private boolean shouldApplyMapping(Field field) {
+        return field.getReference().hasMappingInfo()
+                && !field.getReference().getMappingInfo().getCreate().equals(MappingInfo.Create.NONE) ||
+                field.hasMappingInfo() && !field.getMappingInfo().getCreate().equals(MappingInfo.Create.NONE);
+    }
+
+    private MappingInfo.Create getCreate(Field field) {
+        if (field.getReference().hasMappingInfo()) {
+            return field.getReference().getMappingInfo().getCreate();
+        } else if (field.hasMappingInfo()) {
+            return field.getMappingInfo().getCreate();
+        }
+        return MappingInfo.Create.NONE;
     }
 
     /**

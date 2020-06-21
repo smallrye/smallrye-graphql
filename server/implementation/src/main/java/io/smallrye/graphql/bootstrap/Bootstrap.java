@@ -500,7 +500,10 @@ public class Bootstrap {
 
     private Reference getCorrectFieldReference(Field field) {
         // First check if this is mapped to some other type
-        if (field.hasMappingInfo()) {
+
+        if (field.getReference().hasMappingInfo()) { // Global
+            return field.getReference().getMappingInfo().getReference();
+        } else if (field.hasMappingInfo()) { // Per field
             return field.getMappingInfo().getReference();
         } else {
             return field.getReference();

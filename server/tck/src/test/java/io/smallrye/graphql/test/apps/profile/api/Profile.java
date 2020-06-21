@@ -50,6 +50,7 @@ public class Profile {
     private java.sql.Date anniversary;
     private String maritalStatus;
     private transient List<String> creditCards;
+    private TwitterHandle twitterHandle;
 
     private String userAgent;
 
@@ -317,4 +318,11 @@ public class Profile {
         this.bookmarks = bookmarks;
     }
 
+    public TwitterHandle getTwitterHandle() {
+        return twitterHandle;
+    }
+
+    public void setTwitterHandle(TwitterHandle twitterHandle) {
+        this.twitterHandle = twitterHandle;
+    }
 }

@@ -26,17 +26,6 @@ public class MappingHelper {
     private MappingHelper() {
     }
 
-    /**
-     * Test if any mapping is present.
-     * 
-     * @param annotations the annotations
-     * @return if mapping is present
-     */
-    public static boolean hasAnyMapping(Annotations annotations) {
-        Type type = getMapTo(annotations);
-        return type != null;
-    }
-
     public static boolean shouldCreateTypeInSchema(Annotations annotations) {
         return !hasAnyMapping(annotations);
     }
@@ -48,14 +37,24 @@ public class MappingHelper {
      * @return Potentially a MappingInfo model
      */
     public static Optional<MappingInfo> getMapping(Field field, Annotations annotations) {
+        return getMapping(field.getReference(), annotations);
+    }
+
+    /**
+     * Get the mapping for a certain reference.
+     * 
+     * @param annotations the annotations
+     * @return Potentially a MappingInfo model
+     */
+    public static Optional<MappingInfo> getMapping(Reference r, Annotations annotations) {
         Type type = getMapTo(annotations);
         if (type != null) {
             String scalarName = getScalarName(type);
             Reference reference = Scalars.getScalar(scalarName);
             MappingInfo mappingInfo = new MappingInfo(reference);
             // Check the way to create this.
-            String className = field.getReference().getClassName();
-            if (!field.getReference().getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
+            String className = r.getClassName();
+            if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
                 ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(className));
                 if (classInfo != null) {
                     // Get Parameter type
@@ -87,6 +86,11 @@ public class MappingHelper {
             // TODO: Support other than Scalar mapping 
         }
         return Optional.empty();
+    }
+
+    private static boolean hasAnyMapping(Annotations annotations) {
+        Type type = getMapTo(annotations);
+        return type != null;
     }
 
     private static String getScalarName(Type type) {

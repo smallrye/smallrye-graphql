@@ -51,7 +51,7 @@ import io.smallrye.common.annotation.Experimental;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
 @Documented
 @Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
         "Subject to change.")

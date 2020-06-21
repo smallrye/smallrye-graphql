@@ -10,27 +10,34 @@ import java.io.Serializable;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Reference implements Serializable {
-    private String graphQlClassName;
+
     private String className;
     private String name;
     private ReferenceType type;
+    private String graphQlClassName;
+    private MappingInfo mappingInfo = null; // If the type is mapped to another type
 
     public Reference() {
     }
 
-    public Reference(String javaName, String name, ReferenceType type, String graphQlClassName) {
-        this.className = javaName;
+    public Reference(String className, String name, ReferenceType type, String graphQlClassName) {
+        this(className, name, type, graphQlClassName, null);
+    }
+
+    public Reference(String className, String name, ReferenceType type, String graphQlClassName, MappingInfo mappingInfo) {
+        this.className = className;
         this.name = name;
         this.type = type;
         this.graphQlClassName = graphQlClassName;
+        this.mappingInfo = mappingInfo;
     }
 
-    public Reference(String javaName, String name, ReferenceType type) {
-        this(javaName, name, type, javaName);
+    public Reference(String className, String name, ReferenceType type) {
+        this(className, name, type, className, null);
     }
 
     public Reference(final Reference reference) {
-        this(reference.className, reference.name, reference.type, reference.graphQlClassName);
+        this(reference.className, reference.name, reference.type, reference.graphQlClassName, reference.mappingInfo);
     }
 
     /**
@@ -89,4 +96,15 @@ public class Reference implements Serializable {
         this.graphQlClassName = graphQlClassName;
     }
 
+    public MappingInfo getMappingInfo() {
+        return mappingInfo;
+    }
+
+    public void setMappingInfo(MappingInfo mappingInfo) {
+        this.mappingInfo = mappingInfo;
+    }
+
+    public boolean hasMappingInfo() {
+        return this.mappingInfo != null;
+    }
 }

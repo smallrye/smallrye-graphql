@@ -8,6 +8,7 @@ mutation CreatePerson{
       website: "http://www.charmaine-kruger.com"
       bookmarks: ["http://www.google.com","http://www.redhat.com"]
       idNumber: "qwe123"
+      twitterHandle: "charmainekruger"
     }
   ){
     id
@@ -17,5 +18,6 @@ mutation CreatePerson{
     website
     bookmarks
     idNumber
+    twitterHandle
   }
 }
