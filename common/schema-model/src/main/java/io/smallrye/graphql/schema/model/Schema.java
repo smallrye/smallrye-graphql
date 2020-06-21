@@ -23,6 +23,8 @@ public final class Schema implements Serializable {
     private Map<String, InterfaceType> interfaces = new HashMap();
     private Map<String, EnumType> enums = new HashMap();
 
+    private Map<String, ErrorInfo> errors = new HashMap();
+
     public Schema() {
     }
 
@@ -136,6 +138,26 @@ public final class Schema implements Serializable {
 
     public boolean hasEnums() {
         return !this.enums.isEmpty();
+    }
+
+    public Map<String, ErrorInfo> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(Map<String, ErrorInfo> errors) {
+        this.errors = errors;
+    }
+
+    public void addError(ErrorInfo error) {
+        this.errors.put(error.getClassName(), error);
+    }
+
+    public boolean containsError(String classname) {
+        return this.errors.containsKey(classname);
+    }
+
+    public boolean hasErrors() {
+        return !this.errors.isEmpty();
     }
 
 }

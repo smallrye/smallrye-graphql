@@ -18,7 +18,6 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
-import io.smallrye.graphql.api.ErrorCode;
 
 /**
  * Test for {@link ExecutionErrorsService}
@@ -87,22 +86,6 @@ class ExecutionErrorsServiceTest {
         JsonObject extensions = jsonArray.getJsonObject(0).getJsonObject("extensions");
         assertThat(extensions.getString("exception")).isEqualTo(DummyBusinessException.class.getName());
         assertThat(extensions.getString("code", null)).isEqualTo("dummy-business");
-    }
-
-    @Test
-    void shouldMapClassAnnotationErrorCode() {
-        @ErrorCode("dummy-code")
-        class DummyBusinessException extends RuntimeException {
-            public DummyBusinessException(String message) {
-                super(message);
-            }
-        }
-
-        JsonArray jsonArray = whenConverting(new DummyBusinessException("dummy-message"));
-
-        JsonObject extensions = jsonArray.getJsonObject(0).getJsonObject("extensions");
-        assertThat(extensions.getString("exception")).isEqualTo(DummyBusinessException.class.getName());
-        assertThat(extensions.getString("code", null)).isEqualTo("dummy-code");
     }
 
     private JsonArray whenConverting(RuntimeException exception) {
