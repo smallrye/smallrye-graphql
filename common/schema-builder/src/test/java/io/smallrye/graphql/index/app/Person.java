@@ -17,6 +17,8 @@ public class Person {
     @ToScalar(Scalar.String.class)
     Phone phone;
 
+    private TwitterHandle twitterHandle;
+
     public String getFirstName() {
         return firstName;
     }
@@ -55,6 +57,14 @@ public class Person {
 
     public void setPhone(Phone phone) {
         this.phone = phone;
+    }
+
+    public TwitterHandle getTwitterHandle() {
+        return twitterHandle;
+    }
+
+    public void setTwitterHandle(TwitterHandle twitterHandle) {
+        this.twitterHandle = twitterHandle;
     }
 
     @Override

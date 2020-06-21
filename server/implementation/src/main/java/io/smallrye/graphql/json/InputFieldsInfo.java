@@ -34,8 +34,8 @@ public class InputFieldsInfo {
                 }
 
                 // See if there is a mapping
-                if (field.hasMappingInfo()) {
-                    fieldsThatNeedsMapping.put(field.getName(), field);
+                if (field.hasMappingInfo() || field.getReference().hasMappingInfo()) {
+                    fieldsThatNeedsMapping.putIfAbsent(field.getName(), field);
                 }
             }
 

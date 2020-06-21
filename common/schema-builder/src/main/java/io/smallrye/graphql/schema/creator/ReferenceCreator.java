@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 
 import org.jboss.jandex.ClassInfo;
@@ -18,6 +19,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.MappingInfo;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
@@ -158,7 +160,7 @@ public class ReferenceCreator {
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType) {
-        // Get the initial reference type. It's either Type or Input depending on the direction. This might change it 
+        // Get the initial reference type. It's either Type or Input depending on the direction. This might change as 
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
 
@@ -183,8 +185,13 @@ public class ReferenceCreator {
 
         Reference reference = new Reference(className, name, referenceType);
 
+        // Map to Scalar info
+        boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotationsForClass);
+        Optional<MappingInfo> mapping = MappingHelper.getMapping(reference, annotationsForClass);
+        reference.setMappingInfo(mapping.orElse(null));
+
         // Now add it to the correct map
-        if (createType) {
+        if (shouldCreateType && createType) {
             putIfAbsent(className, reference, referenceType);
         }
         return reference;
