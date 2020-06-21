@@ -52,6 +52,7 @@ import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.OpenTracingDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.ValidationDecorator;
+import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
@@ -159,6 +160,9 @@ public class Bootstrap {
 
         codeRegistryBuilder.fieldVisibility(getGraphqlFieldVisibility());
         schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+
+        // register error info
+        ErrorInfoMap.register(schema.getErrors());
 
         return schemaBuilder.build();
     }

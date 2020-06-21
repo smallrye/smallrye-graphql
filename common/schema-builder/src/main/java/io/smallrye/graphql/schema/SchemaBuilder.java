@@ -6,10 +6,13 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.creator.ArgumentCreator;
 import io.smallrye.graphql.schema.creator.FieldCreator;
@@ -20,6 +23,7 @@ import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.model.ErrorInfo;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -40,6 +44,7 @@ import io.smallrye.graphql.schema.model.Schema;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilder {
+    private static final Logger LOG = Logger.getLogger(SchemaBuilder.class.getName());
 
     private final InputTypeCreator inputTypeCreator;
     private final TypeCreator typeCreator;
@@ -91,6 +96,9 @@ public class SchemaBuilder {
         // We might have missed something
         addOutstandingTypesToSchema(schema);
 
+        // Add all annotated errors (Exceptions)
+        addErrors(schema);
+
         // Reset the maps. 
         referenceCreator.clear();
 
@@ -138,6 +146,29 @@ public class SchemaBuilder {
         // If we missed something, that something might have created types we do not know about yet, so continue until we have everything
         if (!allDone) {
             addOutstandingTypesToSchema(schema);
+        }
+
+    }
+
+    private void addErrors(Schema schema) {
+        Collection<AnnotationInstance> errorAnnotations = ScanningContext.getIndex().getAnnotations(Annotations.ERROR_CODE);
+        if (errorAnnotations != null && !errorAnnotations.isEmpty()) {
+            for (AnnotationInstance errorAnnotation : errorAnnotations) {
+                AnnotationTarget annotationTarget = errorAnnotation.target();
+                if (annotationTarget.kind().equals(AnnotationTarget.Kind.CLASS)) {
+                    ClassInfo exceptionClass = annotationTarget.asClass();
+                    AnnotationValue value = errorAnnotation.value();
+                    if (value != null && value.asString() != null && !value.asString().isEmpty()) {
+                        schema.addError(new ErrorInfo(exceptionClass.name().toString(), value.asString()));
+                    } else {
+                        LOG.warn("Ignoring @ErrorCode on " + annotationTarget.toString() + " - Annotation value is not set");
+                    }
+                } else {
+                    LOG.warn("Ignoring @ErrorCode on " + annotationTarget.toString() + " - Wrong target, only apply to CLASS ["
+                            + annotationTarget.kind().toString() + "]");
+                }
+
+            }
         }
 
     }
