@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URLDecoder;
 
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonWriter;
@@ -51,10 +53,16 @@ public class ExecutionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             if (config.isAllowGet()) {
-                try (StringReader reader = new StringReader(
-                        "{\"query\":\"" + request.getParameter(QUERY).replace("\"", "\\\"") + "\"}")) {
-                    handleInput(reader, response);
+                String query = request.getParameter(QUERY);
+                String variables = request.getParameter(VARIABLES);
+
+                JsonObjectBuilder input = Json.createObjectBuilder();
+                input.add(QUERY, URLDecoder.decode(query, "UTF8"));
+                if (variables != null && !variables.isEmpty()) {
+                    JsonObject jsonObject = toJsonObject(URLDecoder.decode(variables, "UTF8"));
+                    input.add(VARIABLES, jsonObject);
                 }
+                handleInput(input.build(), response);
             } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
             }
@@ -75,43 +83,36 @@ public class ExecutionServlet extends HttpServlet {
     }
 
     private void handleInput(Reader inputReader, HttpServletResponse response) throws IOException {
-        inputReader = logInputReader(inputReader);
-
         try (JsonReader jsonReader = jsonReaderFactory.createReader(inputReader)) {
-
             JsonObject jsonInput = jsonReader.readObject();
+            handleInput(jsonInput, response);
+        }
+    }
 
-            JsonObject outputJson = executionService.execute(jsonInput);
-            if (outputJson != null) {
-                ServletOutputStream out = response.getOutputStream();
-                response.setContentType(APPLICATION_JSON_UTF8);
+    private void handleInput(JsonObject jsonInput, HttpServletResponse response) throws IOException {
+        JsonObject outputJson = executionService.execute(jsonInput);
+        if (outputJson != null) {
+            ServletOutputStream out = response.getOutputStream();
+            response.setContentType(APPLICATION_JSON_UTF8);
 
-                try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
-                    jsonWriter.writeObject(outputJson);
-                    out.flush();
-                }
+            try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
+                jsonWriter.writeObject(outputJson);
+                out.flush();
             }
         }
     }
 
-    private static Reader logInputReader(Reader inputReader) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            char[] buf = new char[4096];
-            int len;
-            while ((len = inputReader.read(buf)) > -1) {
-                sb.append(buf, 0, len);
-            }
-            String jsonInput = sb.toString();
-            SmallRyeGraphQLServletLogging.log.jsonInput(jsonInput);
-            inputReader = new StringReader(jsonInput);
-        } catch (Exception e) {
-            SmallRyeGraphQLServletLogging.log.unableToLogReader(inputReader);
+    private static JsonObject toJsonObject(String jsonString) {
+        if (jsonString == null || jsonString.isEmpty()) {
+            return null;
         }
-        return inputReader;
+        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
+            return jsonReader.readObject();
+        }
     }
 
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
 
     private static final String QUERY = "query";
+    private static final String VARIABLES = "variables";
 }
