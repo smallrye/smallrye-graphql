@@ -95,7 +95,7 @@ public class ExecutionService {
 
                 // Operation name
                 context.getOperationName().ifPresent(executionBuilder::operationName);
-                
+
                 // Context
                 executionBuilder.context(toGraphQLContext(context));
 
