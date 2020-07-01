@@ -23,8 +23,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import io.smallrye.common.annotation.Experimental;
+
 @Retention(RUNTIME)
 @Target({ TYPE, ANNOTATION_TYPE })
+@Experimental("Allow you to add an error code to the error. Not covered by the specification. " +
+        "Subject to change.")
 public @interface ErrorCode {
     String value();
 }

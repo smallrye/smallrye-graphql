@@ -9,11 +9,11 @@ import javax.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test a basic query
+ * Test the context
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ExecutionTest extends ExecutionTestBase {
+public class ContextTest extends ExecutionTestBase {
 
     @Test
     public void testBasicQuery() {
@@ -26,6 +26,10 @@ public class ExecutionTest extends ExecutionTestBase {
         assertFalse(testObject.isNull("name"), "name should not be null");
         assertEquals("Phillip", testObject.getString("name"));
 
+        JsonObject timestamp = testObject.getJsonObject("timestamp");
+        assertNotNull(timestamp);
+        assertNotNull(timestamp.getString("value"));
+
         assertFalse(testObject.isNull("id"), "id should not be null");
 
     }
@@ -34,6 +38,12 @@ public class ExecutionTest extends ExecutionTestBase {
             "  testObject(yourname:\"Phillip\") {\n" +
             "    id\n" +
             "    name\n" +
+            "    timestamp(indicator:\"xyz\"){" +
+            "       value" +
+            "    }" +
+            "    amounts{" +
+            "       amount" +
+            "    }" +
             "  }\n" +
             "}";
 

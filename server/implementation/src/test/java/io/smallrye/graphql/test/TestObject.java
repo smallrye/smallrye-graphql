@@ -1,5 +1,10 @@
 package io.smallrye.graphql.test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.microprofile.graphql.Name;
+
 /**
  * Some POJO
  * 
@@ -9,6 +14,8 @@ public class TestObject {
 
     private String id;
     private String name;
+    @Name("amounts")
+    private List<TestListObject> testListObjects = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -24,5 +31,17 @@ public class TestObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<TestListObject> getTestListObjects() {
+        return testListObjects;
+    }
+
+    public void setTestListObjects(List<TestListObject> testListObjects) {
+        this.testListObjects = testListObjects;
+    }
+
+    public void addTestListObject(TestListObject testListObject) {
+        testListObjects.add(testListObject);
     }
 }

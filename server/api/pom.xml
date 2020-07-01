@@ -18,10 +18,18 @@
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-api</artifactId>
         </dependency>
+        
         <!-- Smallrye common -->
         <dependency>
             <groupId>io.smallrye.common</groupId>
             <artifactId>smallrye-common-annotation</artifactId>
+        </dependency>
+        
+        <!-- From other MP Platform apis -->
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     

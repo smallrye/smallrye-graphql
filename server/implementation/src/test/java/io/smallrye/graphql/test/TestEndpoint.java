@@ -3,7 +3,12 @@ package io.smallrye.graphql.test;
 import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
+
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 
 /**
  * Basic test endpoint
@@ -19,7 +24,27 @@ public class TestEndpoint {
         TestObject testObject = new TestObject();
         testObject.setId(id);
         testObject.setName(yourname);
+        testObject.addTestListObject(new TestListObject());
+        printContext("testObject");
         return testObject;
     }
 
+    @Name("timestamp")
+    public TestSource getTestSource(@Source TestObject testObject, String indicator) {
+        printContext("timestamp (source)");
+        return new TestSource();
+    }
+
+    private void printContext(String from) {
+        Context context = SmallRyeContext.getContext();
+        System.err.println("================ " + from + " ================");
+        System.err.println(">>>>>> executionId = " + context.getExecutionId());
+        System.err.println(">>>>>> path = " + context.getPath());
+        System.err.println(">>>>>> query = " + context.getQuery());
+        System.err.println(">>>>>> arguments = " + context.getArguments());
+        System.err.println(">>>>>> operationName = " + context.getOperationName().orElse(""));
+        System.err.println(">>>>>> variables = " + context.getVariables().orElse(null));
+        System.err.println(">>>>>> source = " + context.getSource());
+        System.err.println(">>>>>> selectedFields = " + context.getSelectedFields());
+    }
 }

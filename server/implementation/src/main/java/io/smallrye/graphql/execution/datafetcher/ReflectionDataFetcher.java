@@ -53,9 +53,9 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * @return the result from the call.
      */
     @Override
-    public DataFetcherResult<Object> get(DataFetchingEnvironment dfe) throws Exception {
-        //TODO: custom context object?
-        final GraphQLContext context = GraphQLContext.newContext().build();
+    protected DataFetcherResult<Object> fetch(DataFetchingEnvironment dfe) throws Exception {
+        final GraphQLContext context = dfe.getContext();
+
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
         Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
