@@ -121,19 +121,23 @@ public class SmallRyeContext implements Context {
     }
 
     private boolean isScalar(SelectedField field) {
-        return isScalar(field.getFieldDefinition().getType());
+        GraphQLType graphQLType = unwrapGraphQLType(field.getFieldDefinition().getType());
+        return isScalar(graphQLType);
     }
 
     private boolean isScalar(GraphQLType gqlt) {
+        return GraphQLScalarType.class.isAssignableFrom(gqlt.getClass());
+    }
+
+    private GraphQLType unwrapGraphQLType(GraphQLType gqlt) {
         if (isNonNull(gqlt)) {
             GraphQLNonNull graphQLNonNull = (GraphQLNonNull) gqlt;
-            return isScalar(graphQLNonNull.getWrappedType());
+            return unwrapGraphQLType(graphQLNonNull.getWrappedType());
         } else if (isList(gqlt)) {
             GraphQLList graphQLList = (GraphQLList) gqlt;
-            return isScalar(graphQLList.getWrappedType());
+            return unwrapGraphQLType(graphQLList.getWrappedType());
         }
-
-        return GraphQLScalarType.class.isAssignableFrom(gqlt.getClass());
+        return gqlt;
     }
 
     private boolean isNonNull(GraphQLType gqlt) {
@@ -148,5 +152,5 @@ public class SmallRyeContext implements Context {
         return field.getQualifiedName().contains("/");
     }
 
-    private JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+    private final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
 }
