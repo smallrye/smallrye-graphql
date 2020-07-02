@@ -69,10 +69,7 @@ public interface Context {
      * @return the operation name if set
      */
     default Optional<String> getOperationName() {
-        if (hasOperationName()) {
-            return Optional.of(getRequest().getString(OPERATION_NAME));
-        }
-        return Optional.empty();
+        return Optional.ofNullable(hasOperationName() ? getRequest().getString(OPERATION_NAME) : null);
     }
 
     /**
@@ -179,9 +176,10 @@ public interface Context {
      * This leaky abstraction allows falling down to the underlying implementation
      * 
      * @param <T> the implementation class
+     * @param wrappedType the class type of T
      * @return instance of the implementation class
      */
-    public <T> T unwrap();
+    public <T> T unwrap(Class<T> wrappedType);
 
     /**
      * Help to parse the variables

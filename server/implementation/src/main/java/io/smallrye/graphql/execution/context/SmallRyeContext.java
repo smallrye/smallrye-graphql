@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.context;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +48,12 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public DataFetchingEnvironment unwrap() {
-        return this.dfe;
+    public <T> T unwrap(Class<T> wrappedType) {
+        // We only support DataFetchingEnvironment at this point
+        if (wrappedType.equals(DataFetchingEnvironment.class)) {
+            return (T) this.dfe;
+        }
+        throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
 
     @Override
