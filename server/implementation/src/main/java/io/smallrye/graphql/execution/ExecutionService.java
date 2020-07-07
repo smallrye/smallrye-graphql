@@ -21,12 +21,16 @@ import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
 import graphql.ExecutionInput;
+import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLContext;
 import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
@@ -45,8 +49,6 @@ public class ExecutionService {
 
     private final String executionIdPrefix;
     private final AtomicLong executionId = new AtomicLong();
-
-    private final GraphQLVariables graphQLVariables = new GraphQLVariables();
 
     private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
@@ -70,48 +72,57 @@ public class ExecutionService {
     }
 
     public JsonObject execute(JsonObject jsonInput) {
-        String query = jsonInput.getString(QUERY);
+        try {
+            SmallRyeContext.register(jsonInput);
 
-        if (config.logPayload()) {
-            log.payloadIn(query);
-        }
+            Context context = SmallRyeContext.getContext();
 
-        GraphQL g = getGraphQL();
-        if (g != null) {
-            // Query
-            ExecutionInput.Builder executionBuilder = ExecutionInput.newExecutionInput()
-                    .query(query)
-                    .executionId(ExecutionId.from(executionIdPrefix + executionId.getAndIncrement()));
-
-            // Variables
-            graphQLVariables.getVariables(jsonInput).ifPresent(executionBuilder::variables);
-
-            // Operation name
-            if (hasOperationName(jsonInput)) {
-                executionBuilder.operationName(jsonInput.getString(OPERATION_NAME));
-            }
-
-            ExecutionInput executionInput = executionBuilder.build();
-
-            ExecutionResult executionResult = execute(g, executionInput);
-
-            JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
-
-            // Errors
-            returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
-            // Data
-            returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
-
-            JsonObject jsonResponse = returnObjectBuilder.build();
+            String query = context.getQuery();
 
             if (config.logPayload()) {
-                log.payloadOut(jsonResponse.toString());
+                log.payloadIn(query);
             }
 
-            return jsonResponse;
-        } else {
-            log.noGraphQLMethodsFound();
-            return null;
+            GraphQL g = getGraphQL();
+            if (g != null) {
+                // Query
+                Builder executionBuilder = ExecutionInput.newExecutionInput()
+                        .query(query)
+                        .executionId(ExecutionId.from(executionIdPrefix + executionId.getAndIncrement()));
+
+                // Variables
+                context.getVariables().ifPresent(executionBuilder::variables);
+
+                // Operation name
+                context.getOperationName().ifPresent(executionBuilder::operationName);
+
+                // Context
+                executionBuilder.context(toGraphQLContext(context));
+
+                ExecutionInput executionInput = executionBuilder.build();
+
+                ExecutionResult executionResult = execute(g, executionInput);
+
+                JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
+
+                // Errors
+                returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
+                // Data
+                returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
+
+                JsonObject jsonResponse = returnObjectBuilder.build();
+
+                if (config.logPayload()) {
+                    log.payloadOut(jsonResponse.toString());
+                }
+
+                return jsonResponse;
+            } else {
+                log.noGraphQLMethodsFound();
+                return null;
+            }
+        } finally {
+            SmallRyeContext.remove();
         }
     }
 
@@ -132,6 +143,12 @@ public class ExecutionService {
             }
             throw e;
         }
+    }
+
+    private GraphQLContext toGraphQLContext(Context context) {
+        GraphQLContext.Builder builder = GraphQLContext.newContext();
+        builder = builder.of("context", context);
+        return builder.build();
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
@@ -189,14 +206,6 @@ public class ExecutionService {
 
     }
 
-    private boolean hasOperationName(JsonObject jsonInput) {
-        return jsonInput.containsKey(OPERATION_NAME)
-                && jsonInput.get(OPERATION_NAME) != null
-                && !jsonInput.get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL);
-    }
-
-    private static final String QUERY = "query";
-    private static final String OPERATION_NAME = "operationName";
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
 }

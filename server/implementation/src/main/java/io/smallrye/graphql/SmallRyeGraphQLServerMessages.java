@@ -67,4 +67,6 @@ public interface SmallRyeGraphQLServerMessages {
     @Message(id = 18, value = "Unknown date format [%s]")
     DateTimeException unknownDateFormat(String input);
 
+    @Message(id = 19, value = "Unsupported wrapped type. SmallRye only support DataFetchingEnvironment and not %s")
+    IllegalArgumentException unsupportedWrappedClass(String className);
 }

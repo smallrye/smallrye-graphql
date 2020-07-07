@@ -70,6 +70,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.spi.SchemaBuildingExtensionService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -163,6 +164,9 @@ public class Bootstrap {
 
         // register error info
         ErrorInfoMap.register(schema.getErrors());
+
+        // Allow custom extension
+        schemaBuilder = SchemaBuildingExtensionService.fireBeforeBuild(schemaBuilder);
 
         return schemaBuilder.build();
     }

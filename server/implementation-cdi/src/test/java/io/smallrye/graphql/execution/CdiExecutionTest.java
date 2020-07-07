@@ -31,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.cdi.CdiSchemaExtensionService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -46,7 +47,8 @@ public class CdiExecutionTest {
     private ExecutionService executionService;
 
     @WeldSetup
-    public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi);
+    public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi,
+            CdiSchemaExtensionService.class);
 
     @BeforeEach
     public void init() {

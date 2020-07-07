@@ -52,7 +52,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
      * @throws DataFetcherException if the reflective call fails
      */
     @Override
-    public CompletionStage<DataFetcherResult<Object>> get(DataFetchingEnvironment dfe) throws Exception {
+    protected CompletionStage<DataFetcherResult<Object>> fetch(DataFetchingEnvironment dfe) throws Exception {
         //TODO: custom context object?
         final GraphQLContext context = GraphQLContext.newContext().build();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);

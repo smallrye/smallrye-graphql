@@ -10,12 +10,14 @@ import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
+import graphql.GraphQLContext;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
 import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -57,6 +59,16 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         this.decorators = decorators;
     }
 
+    @Override
+    public T get(final DataFetchingEnvironment dfe) throws Exception {
+        GraphQLContext graphQLContext = dfe.getContext();
+        SmallRyeContext src = graphQLContext.get("context");
+
+        src.setDataFetchingEnvironment(dfe);
+
+        return fetch(dfe);
+    }
+
     /**
      * This makes the call on the method. We do the following:
      * 1) Get the correct instance of the class we want to make the call in using CDI. That allow the developer to still use
@@ -71,8 +83,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
      *
      * @throws Exception
      */
-    @Override
-    public abstract T get(final DataFetchingEnvironment dfe) throws Exception;
+    protected abstract T fetch(final DataFetchingEnvironment dfe) throws Exception;
 
     protected final DataFetcherResult.Builder<Object> appendPartialResult(
             DataFetcherResult.Builder<Object> resultBuilder,
