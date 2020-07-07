@@ -22,8 +22,6 @@ import io.smallrye.graphql.spi.MetricsService;
 @ApplicationScoped
 public class GraphQLProducer {
 
-    private Schema schema;
-
     @Inject
     GraphQLConfig graphQLConfig;
 
@@ -55,4 +53,8 @@ public class GraphQLProducer {
 
     @Produces
     GraphQLSchema graphQLSchema;
+
+    @Produces
+    @ApplicationScoped
+    Schema schema;
 }
