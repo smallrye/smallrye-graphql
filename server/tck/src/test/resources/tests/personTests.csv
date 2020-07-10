@@ -9,4 +9,8 @@
 
 # testTransientPublicAndStaticFields
 4| type Profile             |   !creditCards: [String]          |   Credit card should not be visible as it's transient
-4| type Profile             |   title: String                   |   Title should be visible even if it's a public field
+5| type Profile             |   title: String                   |   Title should be visible even if it's a public field
+
+# testEnumWithMethods
+6| enum Category            |   !FIELD_SHOULD_BE_IGNORED        |   Ignore on Enum field not working
+7| enum Category            |   !displayName                    |   Enum methods should not be part of the enum values

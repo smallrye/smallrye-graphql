@@ -54,6 +54,8 @@ public class Profile {
 
     private String userAgent;
 
+    private Category category;
+
     public Long getId() {
         return id;
     }
@@ -324,5 +326,13 @@ public class Profile {
 
     public void setTwitterHandle(TwitterHandle twitterHandle) {
         this.twitterHandle = twitterHandle;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }
