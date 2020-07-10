@@ -1,6 +1,8 @@
 package io.smallrye.graphql.schema.model;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -16,7 +18,7 @@ public final class InterfaceType extends Reference {
     private String description;
     private Set<Reference> interfaces = new LinkedHashSet<>();
 
-    private Set<Field> fields = new LinkedHashSet<>();
+    private Map<String, Field> fields = new LinkedHashMap<>();
 
     public InterfaceType() {
     }
@@ -34,20 +36,24 @@ public final class InterfaceType extends Reference {
         this.description = description;
     }
 
-    public Set<Field> getFields() {
+    public Map<String, Field> getFields() {
         return fields;
     }
 
-    public void setFields(Set<Field> fields) {
+    public void setFields(Map<String, Field> fields) {
         this.fields = fields;
     }
 
     public void addField(Field field) {
-        this.fields.add(field);
+        this.fields.put(field.getName(), field);
     }
 
     public boolean hasFields() {
         return !this.fields.isEmpty();
+    }
+
+    public boolean hasField(String fieldName) {
+        return this.fields.containsKey(fieldName);
     }
 
     public Set<Reference> getInterfaces() {

@@ -64,7 +64,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         GraphQLContext graphQLContext = dfe.getContext();
         SmallRyeContext src = graphQLContext.get("context");
 
-        src.setDataFetchingEnvironment(dfe);
+        src.setDataFromFetcher(dfe, operation);
 
         return fetch(dfe);
     }

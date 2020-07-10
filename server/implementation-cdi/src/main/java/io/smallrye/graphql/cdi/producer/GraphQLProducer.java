@@ -1,16 +1,19 @@
 package io.smallrye.graphql.cdi.producer;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.SchemaPrinter;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.spi.MetricsService;
 
@@ -46,6 +49,12 @@ public class GraphQLProducer {
     }
 
     @Produces
+    @RequestScoped
+    public Context getContext() {
+        return SmallRyeContext.getContext();
+    }
+
+    @Produces
     SchemaPrinter schemaPrinter;
 
     @Produces
@@ -55,6 +64,5 @@ public class GraphQLProducer {
     GraphQLSchema graphQLSchema;
 
     @Produces
-    @ApplicationScoped
     Schema schema;
 }

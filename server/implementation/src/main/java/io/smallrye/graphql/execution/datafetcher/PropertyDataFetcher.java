@@ -17,9 +17,11 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
 
     private final FieldHelper fieldHelper;
+    private final Field field;
 
     public PropertyDataFetcher(Field field) {
         super(field.getPropertyName());
+        this.field = field;
         this.fieldHelper = new FieldHelper(field);
     }
 
@@ -28,7 +30,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
 
         GraphQLContext graphQLContext = dfe.getContext();
         SmallRyeContext src = graphQLContext.get("context");
-        src.setDataFetchingEnvironment(dfe);
+        src.setDataFromFetcher(dfe, field);
 
         Object resultFromMethodCall = super.get(dfe);
         try {

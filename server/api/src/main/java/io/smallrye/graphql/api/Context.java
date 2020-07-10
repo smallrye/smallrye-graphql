@@ -116,6 +116,13 @@ public interface Context {
     public String getExecutionId();
 
     /**
+     * Get the field name
+     * 
+     * @return name of the field
+     */
+    public String getFieldName();
+
+    /**
      * Return true if the argument exist
      * 
      * @param name the argument name
@@ -170,7 +177,17 @@ public interface Context {
      * 
      * @return JsonArray of fields selected
      */
-    public JsonArray getSelectedFields();
+    default JsonArray getSelectedFields() {
+        return getSelectedFields(false);
+    }
+
+    /**
+     * Return the fields in the request
+     * 
+     * @param includeSourceFields should we include source fields ?
+     * @return JsonArray of fields selected
+     */
+    public JsonArray getSelectedFields(boolean includeSourceFields);
 
     /**
      * This leaky abstraction allows falling down to the underlying implementation
