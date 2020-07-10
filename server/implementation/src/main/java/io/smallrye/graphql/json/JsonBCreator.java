@@ -1,8 +1,8 @@
 package io.smallrye.graphql.json;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -29,7 +29,7 @@ public class JsonBCreator {
     protected static void register(InputType inputType) {
         if (inputType.hasFields()) {
             Map<String, String> namemapping = new HashMap<>();
-            Set<Field> fields = inputType.getFields();
+            Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
                 // See if the graphql name and property name is different
                 if (!field.getName().equals(field.getPropertyName())) {

@@ -1,6 +1,8 @@
 package io.smallrye.graphql.schema.model;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,8 +26,8 @@ public final class Type extends Reference {
 
     private String description;
 
-    private Set<Field> fields = new LinkedHashSet<>();
-    private Set<Operation> operations = new LinkedHashSet<>();
+    private Map<String, Field> fields = new LinkedHashMap<>();
+    private Map<String, Operation> operations = new LinkedHashMap<>();
 
     private Set<Reference> interfaces = new LinkedHashSet<>();
 
@@ -45,36 +47,44 @@ public final class Type extends Reference {
         this.description = description;
     }
 
-    public Set<Field> getFields() {
+    public Map<String, Field> getFields() {
         return fields;
     }
 
-    public void setFields(Set<Field> fields) {
+    public void setFields(Map<String, Field> fields) {
         this.fields = fields;
     }
 
     public void addField(Field field) {
-        this.fields.add(field);
+        this.fields.put(field.getName(), field);
     }
 
     public boolean hasFields() {
         return !this.fields.isEmpty();
     }
 
-    public Set<Operation> getOperations() {
+    public boolean hasField(String fieldName) {
+        return this.fields.containsKey(fieldName);
+    }
+
+    public Map<String, Operation> getOperations() {
         return operations;
     }
 
-    public void setOperations(Set<Operation> operations) {
+    public void setOperations(Map<String, Operation> operations) {
         this.operations = operations;
     }
 
     public void addOperation(Operation operation) {
-        this.operations.add(operation);
+        this.operations.put(operation.getName(), operation);
     }
 
     public boolean hasOperations() {
         return !this.operations.isEmpty();
+    }
+
+    public boolean hasOperation(String operationName) {
+        return this.operations.containsKey(operationName);
     }
 
     public Set<Reference> getInterfaces() {

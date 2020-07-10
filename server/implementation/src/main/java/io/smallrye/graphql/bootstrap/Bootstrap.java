@@ -45,6 +45,7 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.MetricNaming;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
@@ -80,8 +81,8 @@ import io.smallrye.graphql.spi.SchemaBuildingExtensionService;
  */
 public class Bootstrap {
 
-    private final Schema schema;
-    private final Config config;
+    private Schema schema;
+    private Config config;
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
@@ -132,7 +133,7 @@ public class Bootstrap {
         operations.addAll(schema.getMutations());
 
         for (final Type value : schema.getTypes().values()) {
-            operations.addAll(value.getOperations());
+            operations.addAll(value.getOperations().values());
         }
 
         return operations;
@@ -141,6 +142,7 @@ public class Bootstrap {
     private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
         this.config = config;
+        SmallRyeContext.setSchema(schema);
     }
 
     private GraphQLSchema generateGraphQLSchema() {
@@ -248,7 +250,8 @@ public class Bootstrap {
         // Fields 
         if (interfaceType.hasFields()) {
             interfaceTypeBuilder = interfaceTypeBuilder
-                    .fields(createGraphQLFieldDefinitionsFromFields(interfaceType.getName(), interfaceType.getFields()));
+                    .fields(createGraphQLFieldDefinitionsFromFields(interfaceType.getName(),
+                            interfaceType.getFields().values()));
         }
 
         // Interfaces
@@ -283,7 +286,7 @@ public class Bootstrap {
         // Fields
         if (inputType.hasFields()) {
             inputObjectTypeBuilder = inputObjectTypeBuilder
-                    .fields(createGraphQLInputObjectFieldsFromFields(inputType.getFields()));
+                    .fields(createGraphQLInputObjectFieldsFromFields(inputType.getFields().values()));
             // Register this input for posible JsonB usage 
             JsonInputRegistry.register(inputType);
         }
@@ -308,12 +311,12 @@ public class Bootstrap {
         // Fields
         if (type.hasFields()) {
             objectTypeBuilder = objectTypeBuilder
-                    .fields(createGraphQLFieldDefinitionsFromFields(type.getName(), type.getFields()));
+                    .fields(createGraphQLFieldDefinitionsFromFields(type.getName(), type.getFields().values()));
         }
 
         // Operations
         if (type.hasOperations()) {
-            for (Operation operation : type.getOperations()) {
+            for (Operation operation : type.getOperations().values()) {
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
                         operation);
                 objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
@@ -379,7 +382,7 @@ public class Bootstrap {
         return graphQLFieldDefinition;
     }
 
-    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(String ownerName, Set<Field> fields) {
+    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(String ownerName, Collection<Field> fields) {
         List<GraphQLFieldDefinition> graphQLFieldDefinitions = new ArrayList<>();
         for (Field field : fields) {
             graphQLFieldDefinitions.add(createGraphQLFieldDefinitionFromField(ownerName, field));
@@ -405,7 +408,7 @@ public class Bootstrap {
         return graphQLFieldDefinition;
     }
 
-    private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Set<Field> fields) {
+    private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Collection<Field> fields) {
         List<GraphQLInputObjectField> graphQLInputObjectFields = new ArrayList<>();
         for (Field field : fields) {
             graphQLInputObjectFields.add(createGraphQLInputObjectFieldFromField(field));

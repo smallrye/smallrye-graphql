@@ -20,6 +20,10 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.schema.SelectedField;
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Implements the Context from MicroProfile API.
@@ -27,11 +31,17 @@ import io.smallrye.graphql.api.Context;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContext implements Context {
+    private static Schema schema;
+
     private static final ThreadLocal<SmallRyeContext> current = new ThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {
         SmallRyeContext registry = new SmallRyeContext(jsonInput);
         current.set(registry);
+    }
+
+    public static void setSchema(Schema schema) {
+        SmallRyeContext.schema = schema;
     }
 
     public static Context getContext() {
@@ -82,37 +92,46 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
+    public String getFieldName() {
+        return dfe.getField().getName();
+    }
+
+    @Override
     public <T> T getSource() {
         return dfe.getSource();
     }
 
     @Override
-    public JsonArray getSelectedFields() {
+    public JsonArray getSelectedFields(boolean includeSourceFields) {
         DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
         List<SelectedField> fields = selectionSet.getFields();
-        return toJsonArrayBuilder(fields).build();
+        return toJsonArrayBuilder(fields, includeSourceFields).build();
     }
 
     private final JsonObject jsonObject;
     private DataFetchingEnvironment dfe;
+    private Field field;
 
     private SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
     }
 
-    public void setDataFetchingEnvironment(DataFetchingEnvironment dfe) {
+    public void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
         this.dfe = dfe;
+        this.field = field;
     }
 
-    private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields) {
+    private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {
         JsonArrayBuilder builder = jsonbuilder.createArrayBuilder();
 
         for (SelectedField field : fields) {
             if (!isFlattenScalar(field)) {
-                if (isScalar(field)) {
-                    builder = builder.add(field.getName());
-                } else {
-                    builder = builder.add(toJsonObjectBuilder(field));
+                if (includeSourceFields || !isSourceField(field)) {
+                    if (isScalar(field)) {
+                        builder = builder.add(field.getName());
+                    } else {
+                        builder = builder.add(toJsonObjectBuilder(field, includeSourceFields));
+                    }
                 }
             }
         }
@@ -120,10 +139,19 @@ public class SmallRyeContext implements Context {
         return builder;
     }
 
-    private JsonObjectBuilder toJsonObjectBuilder(SelectedField field) {
+    private JsonObjectBuilder toJsonObjectBuilder(SelectedField selectedField, boolean includeSourceFields) {
         JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
-        builder = builder.add(field.getName(), toJsonArrayBuilder(field.getSelectionSet().getFields()));
+        builder = builder.add(selectedField.getName(),
+                toJsonArrayBuilder(selectedField.getSelectionSet().getFields(), includeSourceFields));
         return builder;
+    }
+
+    private boolean isSourceField(SelectedField selectedField) {
+        if (field.getReference().getType().equals(ReferenceType.TYPE)) {
+            Type type = schema.getTypes().get(field.getReference().getName());
+            return type.hasOperation(selectedField.getName());
+        }
+        return false; // Only Type has source field (for now)
     }
 
     private boolean isScalar(SelectedField field) {

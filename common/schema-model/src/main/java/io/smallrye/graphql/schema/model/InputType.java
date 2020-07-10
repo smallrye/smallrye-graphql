@@ -1,7 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Represent a GraphQL Input Type.
@@ -19,7 +19,7 @@ public final class InputType extends Reference {
 
     private String description;
 
-    private Set<Field> fields = new LinkedHashSet<>();
+    private Map<String, Field> fields = new LinkedHashMap<>();
 
     public InputType() {
     }
@@ -37,19 +37,23 @@ public final class InputType extends Reference {
         this.description = description;
     }
 
-    public Set<Field> getFields() {
+    public Map<String, Field> getFields() {
         return fields;
     }
 
-    public void setFields(Set<Field> fields) {
+    public void setFields(Map<String, Field> fields) {
         this.fields = fields;
     }
 
     public void addField(Field field) {
-        this.fields.add(field);
+        this.fields.put(field.getName(), field);
     }
 
     public boolean hasFields() {
         return !this.fields.isEmpty();
+    }
+
+    public boolean hasField(String fieldName) {
+        return this.fields.containsKey(fieldName);
     }
 }

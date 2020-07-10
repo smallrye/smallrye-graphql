@@ -1,8 +1,8 @@
 package io.smallrye.graphql.json;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
@@ -25,7 +25,7 @@ public class InputFieldsInfo {
             Map<String, Field> fieldsThatNeedsTransformation = new HashMap<>();
             Map<String, Field> fieldsThatNeedsMapping = new HashMap<>();
 
-            Set<Field> fields = inputType.getFields();
+            Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
                 // See if there is a transformation
                 if (field.hasTransformInfo()
