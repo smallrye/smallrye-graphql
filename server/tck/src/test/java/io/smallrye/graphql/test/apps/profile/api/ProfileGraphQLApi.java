@@ -1,10 +1,14 @@
 package io.smallrye.graphql.test.apps.profile.api;
 
+import javax.inject.Inject;
+
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+
+import io.smallrye.graphql.api.Context;
 
 /**
  * Profile API
@@ -13,6 +17,9 @@ import org.eclipse.microprofile.graphql.Query;
  */
 @GraphQLApi
 public class ProfileGraphQLApi {
+
+    @Inject
+    Context context;
 
     @Query("profile")
     @Description("Get a Profile by ID")
@@ -24,6 +31,11 @@ public class ProfileGraphQLApi {
     @Description("Get a configuration by name")
     public Configuration getByName(@Name("name") ConfigurationEnum name) {
         return Configuration.getByName(name.toString());
+    }
+
+    @Query("context")
+    public String getPathFromContext() {
+        return context.getPath();
     }
 
     @Mutation
