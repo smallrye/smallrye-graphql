@@ -40,7 +40,9 @@ class RequestBuilder {
     }
 
     private void buildParam(TypeInfo type, Object value) {
-        if (value instanceof Boolean || value instanceof Number)
+        if (value == null)
+            request.append("null");
+        else if (value instanceof Boolean || value instanceof Number)
             request.append(value);
         else if (type.isScalar())
             buildScalarParam(value);
