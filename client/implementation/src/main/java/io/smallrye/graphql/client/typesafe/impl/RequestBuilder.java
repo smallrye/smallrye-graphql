@@ -1,13 +1,13 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 class RequestBuilder {
     private final MethodInfo method;
@@ -42,7 +42,7 @@ class RequestBuilder {
     private void buildParam(TypeInfo type, Object value) {
         if (value == null)
             request.append("null");
-        else if (value instanceof Boolean || value instanceof Number)
+        else if (value instanceof Boolean || value instanceof Number || type.isEnum())
             request.append(value);
         else if (type.isScalar())
             buildScalarParam(value);
