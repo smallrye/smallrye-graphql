@@ -185,4 +185,58 @@ public class MutationBehavior {
                 .isEqualTo("say(greeting: {greeting: {text: null, count: 5}, when: null}) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
+
+    @SuppressWarnings("unused")
+    private enum SomeEnum {
+        ONE,
+        TWO,
+        THREE
+    }
+
+    private static class GreetingEnum {
+        String text;
+        SomeEnum someEnum;
+
+        @SuppressWarnings("unused")
+        public GreetingEnum() {
+        }
+
+        private GreetingEnum(String text, SomeEnum someEnum) {
+            this.text = text;
+            this.someEnum = someEnum;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            GreetingEnum that = (GreetingEnum) o;
+            return Objects.equals(text, that.text) &&
+                    someEnum == that.someEnum;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(text, someEnum);
+        }
+    }
+
+    @GraphQlClientApi
+    interface MutationWithEnumApi {
+        @Mutation
+        Greeting say(GreetingEnum greeting);
+    }
+
+    @Test
+    public void shouldCallMutationWithEnum() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        MutationWithEnumApi api = fixture.builder().build(MutationWithEnumApi.class);
+
+        Greeting greeting = api.say(new GreetingEnum("one", SomeEnum.ONE));
+
+        then(fixture.mutation()).isEqualTo("say(greeting: {text: 'one', someEnum: ONE}) {text count}");
+        then(greeting).isEqualTo(new Greeting("ho", 3));
+    }
 }

@@ -42,7 +42,7 @@ class RequestBuilder {
     private void buildParam(TypeInfo type, Object value) {
         if (value == null)
             request.append("null");
-        else if (value instanceof Boolean || value instanceof Number)
+        else if (value instanceof Boolean || value instanceof Number || type.isEnum())
             request.append(value);
         else if (type.isScalar())
             buildScalarParam(value);

@@ -3,9 +3,9 @@
 # ignore Maven generated target folders
 ~
 target
+formatter-maven-cache.properties
 
 # ignore Gradle generated build folders
-~
 build
 
 # ignore downloaded maven

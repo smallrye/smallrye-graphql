@@ -51,4 +51,20 @@ public class EnumBehavior {
         then(fixture.query()).isEqualTo("episodes");
         then(episode).containsExactly(NEWHOPE, EMPIRE, JEDI);
     }
+
+    @GraphQlClientApi
+    interface EpisodeFilterApi {
+        List<String> characters(Episode episode);
+    }
+
+    @Test
+    public void shouldCallEnumFilterQuery() {
+        fixture.returnsData("'characters':['Luke', 'Darth']");
+        EpisodeFilterApi api = fixture.builder().build(EpisodeFilterApi.class);
+
+        List<String> characters = api.characters(JEDI);
+
+        then(fixture.query()).isEqualTo("characters(episode: JEDI)");
+        then(characters).containsExactly("Luke", "Darth");
+    }
 }
