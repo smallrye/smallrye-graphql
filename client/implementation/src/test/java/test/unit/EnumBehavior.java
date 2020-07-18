@@ -1,14 +1,15 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.assertj.core.api.BDDAssertions.then;
 import static test.unit.EnumBehavior.Episode.EMPIRE;
 import static test.unit.EnumBehavior.Episode.JEDI;
 import static test.unit.EnumBehavior.Episode.NEWHOPE;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 public class EnumBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
