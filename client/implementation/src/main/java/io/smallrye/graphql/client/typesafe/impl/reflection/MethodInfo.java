@@ -8,6 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -132,7 +134,14 @@ public class MethodInfo {
 
     public Object invoke(Object instance, Object... args) {
         try {
-            method.setAccessible(true);
+            if (System.getSecurityManager() == null) {
+                method.setAccessible(true);
+            } else {
+                AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                    method.setAccessible(true);
+                    return null;
+                });
+            }
             return method.invoke(instance, args);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException)
