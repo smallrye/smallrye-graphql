@@ -112,8 +112,9 @@ public class MethodInfo {
 
     private <A extends Annotation> Stream<A> resolveInheritedAnnotations(Class<?> declaring, Class<A> type) {
         Stream<A> stream = resolveAnnotations(declaring, type);
-        for (Class<?> i : declaring.getInterfaces())
+        for (Class<?> i : declaring.getInterfaces()) {
             stream = Stream.concat(stream, resolveInheritedAnnotations(i, type));
+        }
         return stream;
     }
 
