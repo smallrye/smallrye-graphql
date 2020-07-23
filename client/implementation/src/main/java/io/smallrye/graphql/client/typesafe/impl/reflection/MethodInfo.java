@@ -1,5 +1,11 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Query;
+
+import javax.enterprise.inject.Stereotype;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
@@ -14,14 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import javax.enterprise.inject.Stereotype;
-
-import org.eclipse.microprofile.graphql.Mutation;
-import org.eclipse.microprofile.graphql.Query;
-
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
 public class MethodInfo {
     public static MethodInfo of(Method method, Object... args) {
@@ -49,20 +47,20 @@ public class MethodInfo {
 
     public String getName() {
         return queryName()
-                .orElseGet(() -> mutationName()
-                        .orElseGet(this::methodName));
+            .orElseGet(() -> mutationName()
+                .orElseGet(this::methodName));
     }
 
     private Optional<String> queryName() {
         return ifAnnotated(Query.class)
-                .map(Query::value)
-                .filter(CollectionUtils::nonEmpty);
+            .map(Query::value)
+            .filter(CollectionUtils::nonEmpty);
     }
 
     private Optional<String> mutationName() {
         return ifAnnotated(Mutation.class)
-                .map(Mutation::value)
-                .filter(CollectionUtils::nonEmpty);
+            .map(Mutation::value)
+            .filter(CollectionUtils::nonEmpty);
     }
 
     private String methodName() {
@@ -93,9 +91,9 @@ public class MethodInfo {
         List<ParameterInfo> list = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
             list.add(new ParameterInfo(this,
-                    parameters[i],
-                    new TypeInfo(null, method.getGenericParameterTypes()[i]),
-                    parameterValues[i]));
+                parameters[i],
+                new TypeInfo(null, method.getGenericParameterTypes()[i]),
+                parameterValues[i]));
         }
         return list.stream();
     }
@@ -104,22 +102,29 @@ public class MethodInfo {
         return type;
     }
 
-    public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<A> type) {
+    public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<?> declaring, Class<A> type) {
         return Stream.concat(resolveAnnotations(method, type),
-                resolveAnnotations(method.getDeclaringClass(), type))
-                .filter(Objects::nonNull);
+            resolveInheritedAnnotations(declaring, type))
+            .filter(Objects::nonNull);
+    }
+
+    private <A extends Annotation> Stream<A> resolveInheritedAnnotations(Class<?> declaring, Class<A> type) {
+        Stream<A> stream = resolveAnnotations(declaring, type);
+        for (Class<?> i : declaring.getInterfaces())
+            stream = Stream.concat(stream, resolveInheritedAnnotations(i, type));
+        return stream;
     }
 
     private static <A extends Annotation> Stream<A> resolveAnnotations(AnnotatedElement annotatedElement, Class<A> type) {
         return Stream.concat(Stream.of(annotatedElement.getAnnotationsByType(type)),
-                resolveStereotypes(annotatedElement.getAnnotations(), type));
+            resolveStereotypes(annotatedElement.getAnnotations(), type));
     }
 
     private static <A extends Annotation> Stream<A> resolveStereotypes(Annotation[] annotations, Class<A> type) {
         return Stream.of(annotations)
-                .map(Annotation::annotationType)
-                .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
-                .flatMap(a -> resolveAnnotations(a, type));
+            .map(Annotation::annotationType)
+            .filter(annotation -> annotation.isAnnotationPresent(Stereotype.class))
+            .flatMap(a -> resolveAnnotations(a, type));
     }
 
     public Object invoke(Object instance, Object... args) {
@@ -163,7 +168,7 @@ public class MethodInfo {
 
     public boolean isAccessibleFrom(TypeInfo caller) {
         return this.isPublic()
-                || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
-                || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
+            || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
+            || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
     }
 }
