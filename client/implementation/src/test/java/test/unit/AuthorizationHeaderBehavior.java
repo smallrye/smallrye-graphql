@@ -117,7 +117,7 @@ public class AuthorizationHeaderBehavior {
         withCredentials("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             ConfigKeyAuthorizationHeadersApi api = fixture.builder()
-                .build(ConfigKeyAuthorizationHeadersApi.class);
+                    .build(ConfigKeyAuthorizationHeadersApi.class);
 
             api.greeting();
 

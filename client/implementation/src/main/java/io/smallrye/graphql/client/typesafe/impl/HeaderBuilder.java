@@ -1,5 +1,16 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
+import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Base64;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
@@ -7,15 +18,6 @@ import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
-
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Base64;
-
-import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toMultivaluedMap;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class HeaderBuilder {
     private final Class<?> api;
