@@ -14,6 +14,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -101,9 +105,16 @@ public class TypeInfo {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
                         fields(rawType.getSuperclass()),
-                        Stream.of(rawType.getDeclaredFields())
+                        Stream.of(getDeclaredFields(rawType))
                                 .filter(this::isGraphQlField)
                                 .map(field -> new FieldInfo(this, field)));
+    }
+
+    private Field[] getDeclaredFields(Class<?> type) {
+        if (System.getSecurityManager() == null) {
+            return type.getDeclaredFields();
+        }
+        return AccessController.doPrivileged((PrivilegedAction<Field[]>) () -> type.getDeclaredFields());
     }
 
     private boolean isGraphQlField(Field field) {
@@ -156,11 +167,26 @@ public class TypeInfo {
 
     public Object newInstance() {
         try {
-            Constructor<?> noArgsConstructor = getRawType().getDeclaredConstructor();
+            Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
             noArgsConstructor.setAccessible(true);
             return noArgsConstructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("can't instantiate " + type, e);
+        }
+    }
+
+    private Constructor<?> getDeclaredConstructor(Class<?> type) throws NoSuchMethodException {
+        if (System.getSecurityManager() == null) {
+            return type.getDeclaredConstructor();
+        }
+        try {
+            return AccessController
+                    .doPrivileged((PrivilegedExceptionAction<Constructor<?>>) () -> type.getDeclaredConstructor());
+        } catch (PrivilegedActionException pae) {
+            if (pae.getCause() instanceof NoSuchMethodException) {
+                throw (NoSuchMethodException) pae.getCause();
+            }
+            throw new RuntimeException(pae.getCause());
         }
     }
 
@@ -209,9 +235,23 @@ public class TypeInfo {
 
     public Optional<MethodInfo> getMethod(String name) {
         try {
-            return Optional.of(MethodInfo.of(((Class<?>) this.type).getDeclaredMethod(name)));
+            return Optional.of(MethodInfo.of(getDeclaredMethod((Class<?>) this.type, name)));
         } catch (NoSuchMethodException e) {
             return Optional.empty();
+        }
+    }
+
+    private Method getDeclaredMethod(Class<?> type, String name) throws NoSuchMethodException {
+        if (System.getSecurityManager() == null) {
+            return type.getDeclaredMethod(name);
+        }
+        try {
+            return AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () -> type.getDeclaredMethod(name));
+        } catch (PrivilegedActionException pae) {
+            if (pae.getCause() instanceof NoSuchMethodException) {
+                throw (NoSuchMethodException) pae.getCause();
+            }
+            throw new RuntimeException(pae.getCause());
         }
     }
 
