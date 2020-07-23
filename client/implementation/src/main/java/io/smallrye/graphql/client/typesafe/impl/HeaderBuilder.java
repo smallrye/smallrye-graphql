@@ -20,14 +20,16 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class HeaderBuilder {
+    private final Class<?> api;
     private final MethodInfo method;
 
-    public HeaderBuilder(MethodInfo method) {
+    public HeaderBuilder(Class<?> api, MethodInfo method) {
+        this.api = api;
         this.method = method;
     }
 
     public MultivaluedMap<String, Object> build() {
-        MultivaluedMap<String, Object> headers = method.getResolvedAnnotations(Header.class)
+        MultivaluedMap<String, Object> headers = method.getResolvedAnnotations(api, Header.class)
                 .map(header -> new SimpleEntry<>(header.name(), resolveValue(header)))
                 .collect(toMultivaluedMap());
         method.parameters()
@@ -36,7 +38,7 @@ public class HeaderBuilder {
                     Header header = parameter.getAnnotations(Header.class)[0];
                     headers.add(header.name(), parameter.getValue());
                 });
-        method.getResolvedAnnotations(AuthorizationHeader.class)
+        method.getResolvedAnnotations(api, AuthorizationHeader.class)
                 .findFirst()
                 .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
                 .ifPresent(auth -> headers.add("Authorization", auth));

@@ -85,7 +85,10 @@ public class AuthorizationHeaderBehavior {
 
     @GraphQlClientApi
     @AuthorizationHeader(confPrefix = "*")
-    public interface InheritedAuthorizationHeadersApi {
+    public interface InheritedAuthorizationHeadersApi extends BaseAuthorizationHeadersApi {
+    }
+
+    public interface BaseAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
     }
@@ -104,7 +107,7 @@ public class AuthorizationHeaderBehavior {
 
     @GraphQlClientApi(configKey = "foo")
     @AuthorizationHeader
-    public interface InheritedConfigKeyAuthorizationHeadersApi {
+    public interface ConfigKeyAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
     }
@@ -113,8 +116,8 @@ public class AuthorizationHeaderBehavior {
     public void shouldAddInheritedConfigKeyAuthorizationHeader() {
         withCredentials("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
-            InheritedConfigKeyAuthorizationHeadersApi api = fixture.builder()
-                    .build(InheritedConfigKeyAuthorizationHeadersApi.class);
+            ConfigKeyAuthorizationHeadersApi api = fixture.builder()
+                    .build(ConfigKeyAuthorizationHeadersApi.class);
 
             api.greeting();
 
@@ -136,7 +139,7 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddAuthenticatedHeader() {
+    public void shouldAddStereotypedHeader() {
         withCredentials("", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             AuthenticatedHeaderApi api = fixture.builder().build(AuthenticatedHeaderApi.class);

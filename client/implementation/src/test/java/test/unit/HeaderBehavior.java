@@ -525,4 +525,40 @@ public class HeaderBehavior {
 
         then(fixture.sentHeader("H")).isEqualTo("V");
     }
+
+    @GraphQlClientApi
+    @Header(name = "H1", constant = "V1")
+    @Header(name = "overwrite", constant = "sub")
+    interface InheritingHeadersApi extends Base, SideBase {
+    }
+
+    @Header(name = "H2", constant = "V2")
+    @Header(name = "overwrite", constant = "super")
+    interface Base extends SuperBase {
+        @Header(name = "H3", constant = "V3")
+        String greeting();
+    }
+
+    @Header(name = "H4", constant = "V4")
+    interface SideBase {
+    }
+
+    @Header(name = "H5", constant = "V5")
+    interface SuperBase {
+    }
+
+    @Test
+    public void shouldAddExtendedHeaders() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        InheritingHeadersApi api = fixture.builder().build(InheritingHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H1")).isEqualTo("V1");
+        then(fixture.sentHeader("H2")).isEqualTo("V2");
+        then(fixture.sentHeader("H3")).isEqualTo("V3");
+        then(fixture.sentHeader("H4")).isEqualTo("V4");
+        then(fixture.sentHeader("H5")).isEqualTo("V5");
+        then(fixture.sentHeader("overwrite")).isEqualTo("sub");
+    }
 }

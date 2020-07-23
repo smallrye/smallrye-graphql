@@ -104,10 +104,18 @@ public class MethodInfo {
         return type;
     }
 
-    public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<A> type) {
+    public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<?> declaring, Class<A> type) {
         return Stream.concat(resolveAnnotations(method, type),
-                resolveAnnotations(method.getDeclaringClass(), type))
+                resolveInheritedAnnotations(declaring, type))
                 .filter(Objects::nonNull);
+    }
+
+    private <A extends Annotation> Stream<A> resolveInheritedAnnotations(Class<?> declaring, Class<A> type) {
+        Stream<A> stream = resolveAnnotations(declaring, type);
+        for (Class<?> i : declaring.getInterfaces()) {
+            stream = Stream.concat(stream, resolveInheritedAnnotations(i, type));
+        }
+        return stream;
     }
 
     private static <A extends Annotation> Stream<A> resolveAnnotations(AnnotatedElement annotatedElement, Class<A> type) {

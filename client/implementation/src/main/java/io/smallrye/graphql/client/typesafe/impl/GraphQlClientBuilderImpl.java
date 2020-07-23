@@ -42,7 +42,7 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
         WebTarget webTarget = client.target(resolveEndpoint(apiClass));
         GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget);
         return apiClass.cast(Proxy.newProxyInstance(apiClass.getClassLoader(), new Class<?>[] { apiClass },
-                (proxy, method, args) -> graphQlClient.invoke(MethodInfo.of(method, args))));
+                (proxy, method, args) -> graphQlClient.invoke(apiClass, MethodInfo.of(method, args))));
     }
 
     private void readConfig(GraphQlClientApi annotation) {
