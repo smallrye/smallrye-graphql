@@ -2,6 +2,8 @@ package io.smallrye.graphql.client.typesafe.impl;
 
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -41,8 +43,15 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
 
         WebTarget webTarget = client.target(resolveEndpoint(apiClass));
         GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget);
-        return apiClass.cast(Proxy.newProxyInstance(apiClass.getClassLoader(), new Class<?>[] { apiClass },
+        return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> graphQlClient.invoke(apiClass, MethodInfo.of(method, args))));
+    }
+
+    private ClassLoader getClassLoader(Class<?> apiClass) {
+        if (System.getSecurityManager() == null) {
+            return apiClass.getClassLoader();
+        }
+        return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> apiClass.getClassLoader());
     }
 
     private void readConfig(GraphQlClientApi annotation) {
