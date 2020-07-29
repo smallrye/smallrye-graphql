@@ -45,7 +45,12 @@ public class SmallRyeContext implements Context {
     }
 
     public static Context getContext() {
-        return current.get();
+        SmallRyeContext context = current.get();
+        if (context != null) {
+            return context;
+        } else {
+            throw new ContextNotActiveException();
+        }
     }
 
     public static void remove() {
