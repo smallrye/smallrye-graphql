@@ -4,7 +4,6 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
 import static java.util.Objects.requireNonNull;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -104,17 +103,16 @@ public class TypeInfo {
     private Stream<FieldInfo> fields(Class<?> rawType) {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
-                        fields(rawType.getSuperclass()),
-                        Stream.of(getDeclaredFields(rawType))
-                                .filter(this::isGraphQlField)
-                                .map(field -> new FieldInfo(this, field)));
+                fields(rawType.getSuperclass()),
+                Stream.of(getDeclaredFields(rawType))
+                        .filter(this::isGraphQlField)
+                        .map(field -> new FieldInfo(this, field)));
     }
 
     private Field[] getDeclaredFields(Class<?> type) {
-        if (System.getSecurityManager() == null) {
+        if (System.getSecurityManager() == null)
             return type.getDeclaredFields();
-        }
-        return AccessController.doPrivileged((PrivilegedAction<Field[]>) () -> type.getDeclaredFields());
+        return AccessController.doPrivileged((PrivilegedAction<Field[]>) type::getDeclaredFields);
     }
 
     private boolean isGraphQlField(Field field) {
@@ -127,10 +125,11 @@ public class TypeInfo {
 
     public boolean isScalar() {
         return isPrimitive()
-                || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
                 || Number.class.isAssignableFrom(getRawType())
-                || CharSequence.class.isAssignableFrom(getRawType())
                 || isEnum()
+                || CharSequence.class.isAssignableFrom(getRawType())
+                || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
+                || java.util.Date.class.equals(getRawType())
                 || scalarConstructor().isPresent();
     }
 
@@ -143,13 +142,10 @@ public class TypeInfo {
     }
 
     public Optional<ConstructionInfo> scalarConstructor() {
-        return Stream.of(getRawType().getMethods()).filter(this::isStaticStringConstructor)
+        return Stream.of(getRawType().getMethods())
+                .filter(this::isStaticStringConstructor)
                 .findFirst()
                 .map(ConstructionInfo::new);
-    }
-
-    private boolean hasOneStringParameter(Executable executable) {
-        return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
     }
 
     private boolean isStaticStringConstructor(Method method) {
@@ -163,6 +159,19 @@ public class TypeInfo {
                 && Modifier.isStatic(method.getModifiers())
                 && method.getReturnType().equals(type)
                 && hasOneStringParameter(method);
+    }
+
+    private boolean hasOneStringParameter(Executable executable) {
+        return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
+    }
+
+
+    public String stringValue(Object value) {
+        if (java.util.Date.class.equals(getRawType()))
+            return ((java.util.Date) value).toInstant().toString();
+        return value.toString()
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n");
     }
 
     public Object newInstance() {
@@ -180,8 +189,8 @@ public class TypeInfo {
             return type.getDeclaredConstructor();
         }
         try {
-            return AccessController
-                    .doPrivileged((PrivilegedExceptionAction<Constructor<?>>) () -> type.getDeclaredConstructor());
+            return AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>)
+                    type::getDeclaredConstructor);
         } catch (PrivilegedActionException pae) {
             if (pae.getCause() instanceof NoSuchMethodException) {
                 throw (NoSuchMethodException) pae.getCause();
@@ -229,28 +238,22 @@ public class TypeInfo {
         throw new GraphQlClientException("unsupported reflection type " + type.getClass());
     }
 
-    public <A extends Annotation> Stream<A> getAnnotations(Class<A> type) {
-        return Stream.of(((Class<?>) this.type).getAnnotationsByType(type));
+    public Optional<MethodInfo> getMethod(String name, Class<?>... args) {
+        return getDeclaredMethod((Class<?>) this.type, name, args)
+                .map(MethodInfo::of);
     }
 
-    public Optional<MethodInfo> getMethod(String name) {
+    private Optional<Method> getDeclaredMethod(Class<?> type, String name, Class<?>... args) {
         try {
-            return Optional.of(MethodInfo.of(getDeclaredMethod((Class<?>) this.type, name)));
+            if (System.getSecurityManager() == null)
+                return Optional.of(type.getDeclaredMethod(name, args));
+            return Optional.of(AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () ->
+                    type.getDeclaredMethod(name, args)));
         } catch (NoSuchMethodException e) {
             return Optional.empty();
-        }
-    }
-
-    private Method getDeclaredMethod(Class<?> type, String name) throws NoSuchMethodException {
-        if (System.getSecurityManager() == null) {
-            return type.getDeclaredMethod(name);
-        }
-        try {
-            return AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () -> type.getDeclaredMethod(name));
         } catch (PrivilegedActionException pae) {
-            if (pae.getCause() instanceof NoSuchMethodException) {
-                throw (NoSuchMethodException) pae.getCause();
-            }
+            if (pae.getCause() instanceof NoSuchMethodException)
+                return Optional.empty();
             throw new RuntimeException(pae.getCause());
         }
     }

@@ -83,15 +83,13 @@ class GraphQlClientProxy {
         while (type.isOptional())
             type = type.getItemType();
 
-        if (type.isScalar()) {
+        if (type.isScalar())
             return "";
-        } else if (type.isCollection()) {
+        if (type.isCollection())
             return fields(type.getItemType());
-        } else {
-            return type.fields()
-                    .map(this::field)
-                    .collect(joining(" ", " {", "}"));
-        }
+        return type.fields()
+                .map(this::field)
+                .collect(joining(" ", " {", "}"));
     }
 
     private String field(FieldInfo field) {

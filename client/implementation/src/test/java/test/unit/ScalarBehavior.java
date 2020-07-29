@@ -6,7 +6,9 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Date;
 
 import javax.ws.rs.core.Response;
 
@@ -844,5 +846,23 @@ class ScalarBehavior {
 
         then(fixture.query()).isEqualTo("getting");
         then(value).isEqualTo("foo");
+    }
+
+    @GraphQlClientApi
+    interface DateApi {
+        Date foo(Date date);
+    }
+
+    @Test
+    void shouldCallDateQuery() {
+        Instant in = Instant.ofEpochMilli(123456789);
+        Instant out = Instant.ofEpochMilli(987654321);
+        fixture.returnsData("'foo':'" + out + "'");
+        DateApi api = fixture.builder().build(DateApi.class);
+
+        Date value = api.foo(Date.from(in));
+
+        then(fixture.query()).isEqualTo("foo(date: '" + in + "')");
+        then(value).isEqualTo(Date.from(out));
     }
 }

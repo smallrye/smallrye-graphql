@@ -42,23 +42,27 @@ class RequestBuilder {
     private void buildParam(TypeInfo type, Object value) {
         if (value == null)
             request.append("null");
-        else if (value instanceof Boolean || value instanceof Number || type.isEnum())
-            request.append(value);
         else if (type.isScalar())
-            buildScalarParam(value);
+            buildScalarParam(type, value);
         else if (type.isCollection())
             buildArrayParam(type.getItemType(), (List<?>) value);
         else
             buildObjectParam(type, value);
     }
 
-    private void buildScalarParam(Object value) {
-        request
-                .append("\"")
-                .append(value.toString()
-                        .replace("\"", "\\\"")
-                        .replace("\n", "\\n"))
-                .append("\"");
+    private void buildScalarParam(TypeInfo type, Object value) {
+        boolean quoted = !unquoted(type);
+        if (quoted)
+            request.append("\"");
+        request.append(type.stringValue(value));
+        if (quoted)
+            request.append("\"");
+    }
+
+    public boolean unquoted(TypeInfo type) {
+        return type.isPrimitive()
+                || Number.class.isAssignableFrom(type.getRawType())
+                || type.isEnum();
     }
 
     private void buildArrayParam(TypeInfo itemType, List<?> values) {

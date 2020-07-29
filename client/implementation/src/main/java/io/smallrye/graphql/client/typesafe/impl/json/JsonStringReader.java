@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
+import java.time.Instant;
+
 import javax.json.JsonString;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
@@ -23,6 +25,9 @@ class JsonStringReader extends Reader<JsonString> {
         if (type.isEnum())
             //noinspection rawtypes,unchecked
             return Enum.valueOf((Class) type.getRawType(), value.getString());
+
+        if (java.util.Date.class.equals(this.type.getRawType()))
+            return java.util.Date.from(Instant.parse(value.getString()));
 
         ConstructionInfo constructor = type.scalarConstructor()
                 .orElseThrow(() -> new GraphQlClientValueException(location, value));
