@@ -48,10 +48,9 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     }
 
     private ClassLoader getClassLoader(Class<?> apiClass) {
-        if (System.getSecurityManager() == null) {
+        if (System.getSecurityManager() == null)
             return apiClass.getClassLoader();
-        }
-        return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> apiClass.getClassLoader());
+        return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) apiClass::getClassLoader);
     }
 
     private void readConfig(GraphQlClientApi annotation) {
