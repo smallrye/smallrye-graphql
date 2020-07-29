@@ -103,10 +103,10 @@ public class TypeInfo {
     private Stream<FieldInfo> fields(Class<?> rawType) {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
-                fields(rawType.getSuperclass()),
-                Stream.of(getDeclaredFields(rawType))
-                        .filter(this::isGraphQlField)
-                        .map(field -> new FieldInfo(this, field)));
+                        fields(rawType.getSuperclass()),
+                        Stream.of(getDeclaredFields(rawType))
+                                .filter(this::isGraphQlField)
+                                .map(field -> new FieldInfo(this, field)));
     }
 
     private Field[] getDeclaredFields(Class<?> type) {
@@ -165,7 +165,6 @@ public class TypeInfo {
         return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
     }
 
-
     public String stringValue(Object value) {
         if (java.util.Date.class.equals(getRawType()))
             return ((java.util.Date) value).toInstant().toString();
@@ -189,8 +188,7 @@ public class TypeInfo {
             return type.getDeclaredConstructor();
         }
         try {
-            return AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>)
-                    type::getDeclaredConstructor);
+            return AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>) type::getDeclaredConstructor);
         } catch (PrivilegedActionException pae) {
             if (pae.getCause() instanceof NoSuchMethodException) {
                 throw (NoSuchMethodException) pae.getCause();
@@ -247,8 +245,8 @@ public class TypeInfo {
         try {
             if (System.getSecurityManager() == null)
                 return Optional.of(type.getDeclaredMethod(name, args));
-            return Optional.of(AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () ->
-                    type.getDeclaredMethod(name, args)));
+            return Optional.of(AccessController
+                    .doPrivileged((PrivilegedExceptionAction<Method>) () -> type.getDeclaredMethod(name, args)));
         } catch (NoSuchMethodException e) {
             return Optional.empty();
         } catch (PrivilegedActionException pae) {
