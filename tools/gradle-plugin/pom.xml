@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-tools-parent</artifactId>
         <version>1.0.7-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
+    
     <artifactId>smallrye-graphql-gradle-plugin</artifactId>
     <name>SmallRye: GraphQL Tools :: Gradle</name>
     <description>a Gradle plugin that can generate the schema on build</description>
     
-    <packaging>pom</packaging>
-
     <properties>
         <gradle.executable>./gradlew</gradle.executable>
-        <gradle.task>build</gradle.task>
-        <skip.gradle.build>false</skip.gradle.build>
+        <gradle.version>6.1.1</gradle.version>
     </properties>
 
     <dependencies>
@@ -45,10 +41,78 @@
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>3.0.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-base-services</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-build-init</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-core</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-core-api</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-logging</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-model-core</artifactId>
+            <version>${gradle.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
     </dependencies>
 
     <build>
         <plugins>
+            <!-- copy all dependencies to target/dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <useBaseVersion>true</useBaseVersion>
+                            <addParentPoms>true</addParentPoms>
+                            <copyPom>true</copyPom>
+                            <useRepositoryLayout>true</useRepositoryLayout>
+                            <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- execute Gradle command -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -61,17 +125,13 @@
                             <executable>${gradle.executable}</executable>
                             <arguments>
                                 <argument>clean</argument>
-                                <argument>${gradle.task}</argument>
+                                <argument>build</argument>
                                 <argument>-Pdescription=${project.description}</argument>
+                                <argument>-Pgroup=${project.groupId}</argument>
                                 <argument>-Pversion=${project.version}</argument>
                                 <argument>-S</argument>
                                 <argument>--stacktrace</argument>
                             </arguments>
-                            <environmentVariables>
-                                <MAVEN_LOCAL_REPO>${settings.localRepository}</MAVEN_LOCAL_REPO>
-                                <GRADLE_OPTS>${env.MAVEN_OPTS}</GRADLE_OPTS>
-                            </environmentVariables>
-                            <skip>${skip.gradle.build}</skip>
                         </configuration>
                         <goals>
                             <goal>exec</goal>
@@ -79,6 +139,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- copy generated JARs -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-gradle-jars</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>build/libs/</directory>
+                                    <includes>
+                                        <include>${project.artifactId}-${project.version}.jar</include>
+                                        <include>${project.artifactId}-${project.version}-javadoc.jar</include>
+                                        <include>${project.artifactId}-${project.version}-sources.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- attach copied JARs to build -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -93,36 +182,35 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>build/libs/smallrye-graphql-gradle-plugin-${project.version}.jar</file>
-                                    <type>jar</type>
-                                </artifact>
-                                <artifact>
-                                    <file>build/libs/smallrye-graphql-gradle-plugin-${project.version}-javadoc.jar</file>
+                                    <file>target/${project.artifactId}-${project.version}-javadoc.jar</file>
                                     <type>jar</type>
                                     <classifier>javadoc</classifier>
                                 </artifact>
                                 <artifact>
-                                    <file>build/libs/smallrye-graphql-gradle-plugin-${project.version}-sources.jar</file>
+                                    <file>target/${project.artifactId}-${project.version}-sources.jar</file>
                                     <type>jar</type>
                                     <classifier>sources</classifier>
                                 </artifact>
                             </artifacts>
-                            <skipAttach>${skip.gradle.build}</skipAttach>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <!-- Do not deploy this project-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>gradle</id>
+            <url>https://repo.gradle.org/gradle/libs-releases-local</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <profiles>
         <profile>

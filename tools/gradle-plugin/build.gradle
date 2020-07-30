@@ -1,4 +1,5 @@
 plugins {
+    id'java'
     id 'com.gradle.plugin-publish' version '0.12.0'
     id 'java-gradle-plugin'
 }
@@ -18,6 +19,7 @@ compileTestJava {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url 'target/dependencies' }
 }
 
 dependencies {
@@ -29,6 +31,21 @@ dependencies {
     implementation "org.jboss:jandex:2.1.3.Final"
     implementation "org.jboss.logging:jboss-logging:3.4.1.Final"
 }
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+    dependsOn javadoc
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    dependsOn classes
+}
+
+assemble.dependsOn javadocJar
+assemble.dependsOn sourcesJar
 
 test {
     testLogging {
