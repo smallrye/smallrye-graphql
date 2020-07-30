@@ -28,4 +28,9 @@ public class ErrorApi {
     public String annotatedCustomBusinessException() {
         throw new AnnotatedCustomBusinessException();
     }
+
+    @Query
+    public String securityException() {
+        throw new SecurityException("User is not authorized");
+    }
 }
