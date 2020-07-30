@@ -53,6 +53,7 @@
             <artifactId>gradle-base-services</artifactId>
             <version>${gradle.version}</version>
             <scope>provided</scope>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.gradle</groupId>
