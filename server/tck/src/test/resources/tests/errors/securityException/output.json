@@ -12,7 +12,7 @@
                 "securityException"
             ],
             "extensions": {
-                "exception": "java.lang.SecurityException",
+                "exception": "java.security.AccessControlException",
                 "classification": "DataFetchingException",
                 "code": "data-fetcher"
             }
