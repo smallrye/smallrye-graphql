@@ -191,5 +191,5 @@ public class SmallRyeContext implements Context {
         return field.getQualifiedName().contains("/");
     }
 
-    private final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
 }
