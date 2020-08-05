@@ -1,7 +1,9 @@
 package io.smallrye.graphql.test;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
@@ -27,6 +29,16 @@ public class TestEndpoint {
         testObject.addTestListObject(new TestListObject());
         printContext("testObject");
         return testObject;
+    }
+
+    @Query
+    public String[] arrayDefault(@DefaultValue("[\"creature\",\"comfort\"]") String[] values) {
+        return values;
+    }
+
+    @Query
+    public List<String> listDefault(@DefaultValue("[\"electric\",\"blue\"]") List<String> values) {
+        return values;
     }
 
     @Name("timestamp")

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
@@ -34,5 +35,10 @@ public class MovieTriviaController {
     @Query
     public Set<Movie> moviesReleasedAfter(@Name("date") Date d) {
         return movies.stream().filter(m -> m.getReleaseDate().after(d)).collect(Collectors.toSet());
+    }
+
+    @Query
+    public String[] arrayDefault(@DefaultValue("[\"creature\",\"comfort\"]") String[] values) {
+        return values;
     }
 }
