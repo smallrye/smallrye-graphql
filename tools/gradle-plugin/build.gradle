@@ -5,6 +5,10 @@ plugins {
 if (JavaVersion.current().isJava9Compatible()) {
     compileJava.options.compilerArgs.addAll(['--release', '8'])
 }
+sourceSets {
+    main.java.srcDirs = ['plugin/src/main/java']
+    main.resources.srcDirs = ['plugin/src/main/resources']
+}
 compileJava {
     options.encoding = 'UTF-8'
     sourceCompatibility = '1.8'
