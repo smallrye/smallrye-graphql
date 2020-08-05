@@ -47,6 +47,7 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
@@ -575,7 +576,15 @@ public class Bootstrap {
         }
 
         if (isJsonString(jsonString)) {
-            Class<?> type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+            Class<?> type;
+            if (field.hasArray()) {
+                type = ClassloadingService.load().loadClass(field.getArray().getClassName());
+                if (Collection.class.isAssignableFrom(type)) {
+                    type = CollectionCreator.newCollection(field.getArray().getClassName()).getClass();
+                }
+            } else {
+                type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+            }
             return JSONB.fromJson(jsonString, type);
         }
 

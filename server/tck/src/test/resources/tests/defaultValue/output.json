@@ -1,0 +1,20 @@
+{
+  "data": {
+    "withvalues1": [
+      "foo",
+      "bar"
+    ],
+    "withoutvalues1": [
+      "creature",
+      "comfort"
+    ],
+    "withvalues2": [
+      "ping",
+      "pong"
+    ],
+    "withoutvalues2": [
+      "electric",
+      "blue"
+    ]
+  }
+}

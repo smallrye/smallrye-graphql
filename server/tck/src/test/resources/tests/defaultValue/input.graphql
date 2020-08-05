@@ -1,0 +1,6 @@
+{
+  withvalues1:arrayDefault(values:["foo","bar"])
+  withoutvalues1:arrayDefault
+  withvalues2:listDefault(values:["ping","pong"])
+  withoutvalues2:listDefault
+}
