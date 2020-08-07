@@ -2,12 +2,10 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
@@ -53,21 +51,12 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * @return the result from the call.
      */
     @Override
-    protected DataFetcherResult<Object> fetch(DataFetchingEnvironment dfe) throws Exception {
-        final GraphQLContext context = dfe.getContext();
-
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
-
-        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
-        Object declaringObject = lookupService.getInstance(operationClass);
-        Method m = getMethod(operationClass);
+    protected DataFetcherResult<Object> fetch(
+            final DataFetcherResult.Builder<Object> resultBuilder,
+            final DataFetchingEnvironment dfe) throws Exception {
 
         try {
-            Object[] transformedArguments = argumentHelper.getArguments(dfe);
-
-            ExecutionContextImpl executionContext = new ExecutionContextImpl(declaringObject, m, transformedArguments, context,
-                    dfe,
-                    decorators.iterator());
+            ExecutionContext executionContext = createExecutionContext(dfe);
 
             Object resultFromMethodCall = execute(executionContext);
 

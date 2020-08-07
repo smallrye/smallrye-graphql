@@ -5,11 +5,13 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import org.dataloader.DataLoaderRegistry;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.SchemaPrinter;
@@ -38,12 +40,16 @@ public class GraphQLProducer {
     }
 
     public GraphQLSchema initialize() {
-        this.graphQLSchema = Bootstrap.bootstrap(schema, graphQLConfig);
+        BootstrapedResult bootstraped = Bootstrap.bootstrap(schema, graphQLConfig);
+
         if (graphQLConfig.isMetricsEnabled()) {
             MetricRegistry vendorRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
             Bootstrap.registerMetrics(schema, vendorRegistry);
         }
-        this.executionService = new ExecutionService(graphQLConfig, graphQLSchema);
+        this.graphQLSchema = bootstraped.getGraphQLSchema();
+        this.dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
+
+        this.executionService = new ExecutionService(graphQLConfig, graphQLSchema, dataLoaderRegistry);
         this.schemaPrinter = new SchemaPrinter(graphQLConfig);
         return this.graphQLSchema;
     }
@@ -62,6 +68,9 @@ public class GraphQLProducer {
 
     @Produces
     GraphQLSchema graphQLSchema;
+
+    @Produces
+    DataLoaderRegistry dataLoaderRegistry;
 
     @Produces
     Schema schema;

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ExecutionTest extends ExecutionTestBase {
 
-    @Test
+    //@Test
     public void testBasicQuery() {
         JsonObject data = executeAndGetData(TEST_QUERY);
 
@@ -30,10 +31,37 @@ public class ExecutionTest extends ExecutionTestBase {
 
     }
 
+    @Test
+    public void testBasicListQuery() {
+        JsonObject data = executeAndGetData(TEST_LIST_QUERY);
+
+        JsonArray testObjects = data.getJsonArray("testObjects");
+
+        assertNotNull(testObjects);
+        assertEquals(2, testObjects.size());
+        JsonObject testObject = testObjects.getJsonObject(0);
+        assertNotNull(testObject);
+
+        assertFalse(testObject.isNull("name"), "name should not be null");
+        assertEquals("Phillip", testObject.getString("name"));
+
+        assertFalse(testObject.isNull("id"), "id should not be null");
+    }
+
     private static final String TEST_QUERY = "{\n" +
             "  testObject(yourname:\"Phillip\") {\n" +
             "    id\n" +
             "    name\n" +
+            "  }\n" +
+            "}";
+
+    private static final String TEST_LIST_QUERY = "{\n" +
+            "  testObjects {\n" +
+            "    id\n" +
+            "    name\n" +
+            "    timestamps {\n" +
+            "       value\n" +
+            "    }\n" +
             "  }\n" +
             "}";
 

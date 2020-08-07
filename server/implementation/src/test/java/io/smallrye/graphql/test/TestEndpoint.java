@@ -1,5 +1,6 @@
 package io.smallrye.graphql.test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,13 +23,16 @@ public class TestEndpoint {
 
     @Query
     public TestObject getTestObject(String yourname) {
-        String id = UUID.randomUUID().toString();
-        TestObject testObject = new TestObject();
-        testObject.setId(id);
-        testObject.setName(yourname);
-        testObject.addTestListObject(new TestListObject());
+        TestObject testObject = createTestObject(yourname);
         printContext("testObject");
         return testObject;
+    }
+
+    @Query
+    public List<TestObject> getTestObjects() {
+        TestObject p = createTestObject("Phillip");
+        TestObject c = createTestObject("Charmaine");
+        return Arrays.asList(new TestObject[] { p, c });
     }
 
     @Query
@@ -47,6 +51,11 @@ public class TestEndpoint {
         return new TestSource();
     }
 
+    @Name("timestamps")
+    public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {
+        return Arrays.asList(new TestSource[] { new TestSource() });
+    }
+
     private void printContext(String from) {
         Context context = SmallRyeContext.getContext();
         System.err.println("================ " + from + " ================");
@@ -58,5 +67,14 @@ public class TestEndpoint {
         System.err.println(">>>>>> variables = " + context.getVariables().orElse(null));
         System.err.println(">>>>>> source = " + context.getSource());
         System.err.println(">>>>>> selectedFields = " + context.getSelectedFields());
+    }
+
+    private TestObject createTestObject(String name) {
+        String id = UUID.randomUUID().toString();
+        TestObject testObject = new TestObject();
+        testObject.setId(id);
+        testObject.setName(name);
+        testObject.addTestListObject(new TestListObject());
+        return testObject;
     }
 }

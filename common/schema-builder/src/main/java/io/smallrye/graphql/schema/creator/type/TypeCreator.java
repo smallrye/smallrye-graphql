@@ -112,13 +112,21 @@ public class TypeCreator implements Creator<Type> {
     }
 
     private void addOperations(Type type, ClassInfo classInfo) {
-        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceOperationHelper.getAllSourceAnnotations();
+        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceOperationHelper.getSourceAnnotations();
+        addOperations(sourceFields, type, classInfo, OperationType.Source);
+
+        Map<DotName, List<MethodParameterInfo>> sourceListFields = SourceOperationHelper.getSourceListAnnotations();
+        addOperations(sourceListFields, type, classInfo, OperationType.SourceList);
+    }
+
+    private void addOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type, ClassInfo classInfo,
+            OperationType operationType) {
         // See if there is source operations for this class
         if (sourceFields.containsKey(classInfo.name())) {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
                 MethodInfo methodInfo = methodParameterInfo.method();
-                Operation operation = operationCreator.createOperation(methodInfo, OperationType.Source, type);
+                Operation operation = operationCreator.createOperation(methodInfo, operationType, type);
                 type.addOperation(operation);
             }
         }

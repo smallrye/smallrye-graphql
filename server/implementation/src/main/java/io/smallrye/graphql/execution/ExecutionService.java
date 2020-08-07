@@ -20,6 +20,8 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
+import org.dataloader.DataLoaderRegistry;
+
 import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
@@ -43,7 +45,7 @@ public class ExecutionService {
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
-    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+    private static final Jsonb jsonB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
 
@@ -56,13 +58,21 @@ public class ExecutionService {
 
     private final GraphQLSchema graphQLSchema;
 
+    private final DataLoaderRegistry dataLoaderRegistry;
+
     private GraphQL graphQL;
 
     private final List<ExecutionDecorator> executionDecorators = new ArrayList<>();
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
+        this(config, graphQLSchema, null);
+    }
+
+    public ExecutionService(Config config, GraphQLSchema graphQLSchema, DataLoaderRegistry dataLoaderRegistry) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
+        this.dataLoaderRegistry = dataLoaderRegistry;
+
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
 
@@ -98,6 +108,9 @@ public class ExecutionService {
 
                 // Context
                 executionBuilder.context(toGraphQLContext(context));
+
+                // DataLoaders
+                executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
 
                 ExecutionInput executionInput = executionBuilder.build();
 
@@ -180,7 +193,7 @@ public class ExecutionService {
     }
 
     private JsonValue toJsonValue(Object pojo) {
-        String json = JSONB.toJson(pojo);
+        String json = jsonB.toJson(pojo);
         try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
             return reader.readValue();
         }

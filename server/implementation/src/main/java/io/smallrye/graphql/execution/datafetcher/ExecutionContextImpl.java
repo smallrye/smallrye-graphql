@@ -15,7 +15,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 
     private final Object[] arguments;
 
-    private final GraphQLContext newGraphQLContext;
+    private final GraphQLContext graphQLContext;
 
     private final DataFetchingEnvironment dataFetchingEnvironment;
 
@@ -24,13 +24,12 @@ public class ExecutionContextImpl implements ExecutionContext {
     public ExecutionContextImpl(Object target,
             Method method,
             Object[] arguments,
-            GraphQLContext newGraphQLContext,
             DataFetchingEnvironment dataFetchingEnvironment,
             Iterator<DataFetcherDecorator> decoratorIterator) {
         this.target = target;
         this.method = method;
         this.arguments = arguments;
-        this.newGraphQLContext = newGraphQLContext;
+        this.graphQLContext = dataFetchingEnvironment.getContext();
         this.dataFetchingEnvironment = dataFetchingEnvironment;
         this.decoratorIterator = decoratorIterator;
     }
@@ -51,8 +50,8 @@ public class ExecutionContextImpl implements ExecutionContext {
     }
 
     @Override
-    public GraphQLContext newGraphQLContext() {
-        return newGraphQLContext;
+    public GraphQLContext graphQLContext() {
+        return graphQLContext;
     }
 
     @Override

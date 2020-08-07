@@ -13,7 +13,7 @@ public class MockExecutionContext implements ExecutionContext {
 
     private Object[] arguments;
 
-    private GraphQLContext newGraphQLContext;
+    private GraphQLContext graphQLContext;
 
     private DataFetchingEnvironment dataFetchingEnvironment;
 
@@ -35,8 +35,8 @@ public class MockExecutionContext implements ExecutionContext {
     }
 
     @Override
-    public GraphQLContext newGraphQLContext() {
-        return newGraphQLContext;
+    public GraphQLContext graphQLContext() {
+        return graphQLContext;
     }
 
     @Override
@@ -61,8 +61,8 @@ public class MockExecutionContext implements ExecutionContext {
         this.arguments = arguments;
     }
 
-    public void setNewGraphQLContext(final GraphQLContext newGraphQLContext) {
-        this.newGraphQLContext = newGraphQLContext;
+    public void setGraphQLContext(final GraphQLContext graphQLContext) {
+        this.graphQLContext = graphQLContext;
     }
 
     public void setDataFetchingEnvironment(final DataFetchingEnvironment dataFetchingEnvironment) {

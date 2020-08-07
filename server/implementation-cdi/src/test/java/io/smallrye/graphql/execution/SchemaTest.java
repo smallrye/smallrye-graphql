@@ -46,7 +46,7 @@ public class SchemaTest {
 
     @Test
     public void testSchemaModelCreation() {
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema).getGraphQLSchema();
         assertNotNull(graphQLSchema);
         String schemaString = new SchemaPrinter(new Config() {
         }).print(graphQLSchema);

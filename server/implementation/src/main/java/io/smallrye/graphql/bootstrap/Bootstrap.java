@@ -82,23 +82,28 @@ import io.smallrye.graphql.spi.SchemaBuildingExtensionService;
  */
 public class Bootstrap {
 
-    private Schema schema;
-    private Config config;
-    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
+    private final Schema schema;
+    private final Config config;
+    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry(); // TODO: Move to context
 
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
-    public static GraphQLSchema bootstrap(Schema schema) {
+    public static BootstrapedResult bootstrap(Schema schema) {
         return bootstrap(schema, null);
     }
 
-    public static GraphQLSchema bootstrap(Schema schema, Config config) {
+    public static BootstrapedResult bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
-            Bootstrap graphQLBootstrap = new Bootstrap(schema, config);
-            return graphQLBootstrap.generateGraphQLSchema();
+            try {
+                BootstrapContext.init();
+                new Bootstrap(schema, config).generateGraphQLSchema();
+                return new BootstrapedResult(BootstrapContext.getGraphQLSchema(), BootstrapContext.getDataLoaderRegistry());
+            } finally {
+                BootstrapContext.remove();
+            }
         } else {
             log.emptyOrNullSchema();
             return null;
@@ -128,7 +133,7 @@ public class Bootstrap {
                 });
     }
 
-    public static Collection<Operation> findAllOperations(Schema schema) {
+    private static Collection<Operation> findAllOperations(Schema schema) {
         Collection<Operation> operations = new ArrayList<>();
         operations.addAll(schema.getQueries());
         operations.addAll(schema.getMutations());
@@ -146,7 +151,7 @@ public class Bootstrap {
         SmallRyeContext.setSchema(schema);
     }
 
-    private GraphQLSchema generateGraphQLSchema() {
+    private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         createGraphQLEnumTypes();
@@ -171,7 +176,7 @@ public class Bootstrap {
         // Allow custom extension
         schemaBuilder = SchemaBuildingExtensionService.fireBeforeBuild(schemaBuilder);
 
-        return schemaBuilder.build();
+        BootstrapContext.setGraphQLSchema(schemaBuilder.build());
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -360,14 +365,16 @@ public class Bootstrap {
 
         // DataFetcher
         Collection<DataFetcherDecorator> decorators = new ArrayList<>();
-        if (config != null && config.isMetricsEnabled()) {
-            decorators.add(new MetricDecorator());
-        }
-        if (config != null && config.isTracingEnabled()) {
-            decorators.add(new OpenTracingDecorator());
-        }
-        if (config != null && config.isValidationEnabled() && operation.hasArguments()) {
-            decorators.add(new ValidationDecorator());
+        if (config != null) {
+            if (config.isMetricsEnabled()) {
+                decorators.add(new MetricDecorator());
+            }
+            if (config.isTracingEnabled()) {
+                decorators.add(new OpenTracingDecorator());
+            }
+            if (config.isValidationEnabled() && operation.hasArguments()) {
+                decorators.add(new ValidationDecorator());
+            }
         }
 
         DataFetcher<?> datafetcher;

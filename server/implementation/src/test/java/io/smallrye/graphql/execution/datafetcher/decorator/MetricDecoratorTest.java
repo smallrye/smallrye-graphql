@@ -34,7 +34,7 @@ public class MetricDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
 
         decorator.execute(mockExecutionContext);
         decorator.execute(mockExecutionContext);
@@ -44,7 +44,7 @@ public class MetricDecoratorTest {
 
         MockExecutionContext mockExecutionContext2 = new MockExecutionContext();
         mockExecutionContext2.setDataFetchingEnvironment(dfe2);
-        mockExecutionContext2.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext2.setGraphQLContext(GraphQLContext.newContext().build());
 
         decorator.execute(mockExecutionContext2);
         decorator.execute(mockExecutionContext2);
@@ -62,7 +62,7 @@ public class MetricDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         final CompletableFuture<Object> result = new CompletableFuture<>();
         mockExecutionContext.setResult(result);
 
@@ -82,7 +82,7 @@ public class MetricDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         final CompletableFuture<Object> result = new CompletableFuture<>();
         mockExecutionContext.setResult(result);
 
@@ -103,7 +103,7 @@ public class MetricDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         mockExecutionContext.setResult(() -> {
             throw new RuntimeException();
         });

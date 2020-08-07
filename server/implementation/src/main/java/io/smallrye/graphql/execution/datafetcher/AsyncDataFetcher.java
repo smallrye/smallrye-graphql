@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -11,7 +10,6 @@ import java.util.concurrent.CompletionStage;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
@@ -52,21 +50,12 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
      * @throws DataFetcherException if the reflective call fails
      */
     @Override
-    protected CompletionStage<DataFetcherResult<Object>> fetch(DataFetchingEnvironment dfe) throws Exception {
-        //TODO: custom context object?
-        final GraphQLContext context = GraphQLContext.newContext().build();
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
-
-        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
-        Method m = getMethod(operationClass);
-
-        Object declaringObject = lookupService.getInstance(operationClass);
+    protected CompletionStage<DataFetcherResult<Object>> fetch(
+            final DataFetcherResult.Builder<Object> resultBuilder,
+            final DataFetchingEnvironment dfe) throws Exception {
 
         try {
-            Object[] transformedArguments = argumentHelper.getArguments(dfe);
-            ExecutionContextImpl executionContext = new ExecutionContextImpl(declaringObject, m, transformedArguments, context,
-                    dfe,
-                    decorators.iterator());
+            ExecutionContext executionContext = createExecutionContext(dfe);
 
             CompletionStage<Object> futureResult = execute(executionContext);
 
@@ -79,7 +68,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
                 if (throwable != null) {
                     if (throwable instanceof GraphQLException) {
                         GraphQLException graphQLException = (GraphQLException) throwable;
-                        appendPartialResult(resultBuilder, dfe, graphQLException);
+                        appendPartialResult(resultBuilder, executionContext.dataFetchingEnvironment(), graphQLException);
                     } else if (throwable instanceof Exception) {
                         throw msg.dataFetcherException(operation, throwable);
                     } else if (throwable instanceof Error) {
@@ -89,7 +78,7 @@ public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFe
                     try {
                         resultBuilder.data(fieldHelper.transformResponse(result));
                     } catch (AbstractDataFetcherException te) {
-                        te.appendDataFetcherResult(resultBuilder, dfe);
+                        te.appendDataFetcherResult(resultBuilder, executionContext.dataFetchingEnvironment());
                     }
                 }
 

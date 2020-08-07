@@ -4,10 +4,16 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
+import org.dataloader.BatchLoader;
+import org.dataloader.DataLoader;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.GraphQLContext;
@@ -17,6 +23,7 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.bootstrap.BootstrapContext;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
@@ -24,8 +31,10 @@ import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
     protected final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms
@@ -57,16 +66,50 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         this.fieldHelper = new FieldHelper(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.decorators = decorators;
+
+        if (operation.getOperationType().equals(OperationType.SourceList)) {
+            BootstrapContext.registerBatchLoader(operation.getName(), createBatchLoader());
+        }
     }
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
+        // Context
         GraphQLContext graphQLContext = dfe.getContext();
         SmallRyeContext src = graphQLContext.get("context");
-
         src.setDataFromFetcher(dfe, operation);
 
-        return fetch(dfe);
+        // Batch
+        if (operation.getOperationType().equals(OperationType.SourceList)) {
+            Object source = dfe.getSource();
+            System.err.println(">>>>>>>>>>>>>>> BATCH !!!!!!!!!!!!!!!!! " + source.getClass().getName());
+            List<Object> keys = new ArrayList<>();
+            keys.add(source);
+            DataLoader<Object, Object> dataLoader = dfe.getDataLoader(operation.getName()); // TODO: Is this unique enough ?
+
+            //return dataLoader.loadMany(keys).get();
+        }
+
+        final GraphQLContext context = dfe.getContext();
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
+        return fetch(resultBuilder, dfe);
+    }
+
+    private BatchLoader<Object, Object> createBatchLoader() {
+        BatchLoader<Object, Object> batchLoader = new BatchLoader<Object, Object>() {
+            @Override
+            public CompletionStage<List<Object>> load(List<Object> keys) {
+                return CompletableFuture.supplyAsync(() -> doSourceListCall(keys));
+            }
+        };
+        return batchLoader;
+    }
+
+    private List<Object> doSourceListCall(List<Object> keys) {
+        System.err.println(">>>>>>>>>>>>>>> doSourceListCall " + keys);
+
+        return Arrays.asList(new String[] { "a", "b" }); // TODO: Implement this.
     }
 
     /**
@@ -83,7 +126,9 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
      *
      * @throws Exception
      */
-    protected abstract T fetch(final DataFetchingEnvironment dfe) throws Exception;
+    protected abstract T fetch(
+            final DataFetcherResult.Builder<Object> resultBuilder,
+            final DataFetchingEnvironment dfe) throws Exception;
 
     protected final DataFetcherResult.Builder<Object> appendPartialResult(
             DataFetcherResult.Builder<Object> resultBuilder,
@@ -167,6 +212,16 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
                 throw msg.dataFetcherException(operation, throwable);
             }
         }
+    }
+
+    protected ExecutionContext createExecutionContext(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
+        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
+        Object declaringObject = lookupService.getInstance(operationClass);
+        Method m = getMethod(operationClass);
+
+        Object[] transformedArguments = argumentHelper.getArguments(dfe);
+        return new ExecutionContextImpl(declaringObject, m, transformedArguments, dfe, decorators.iterator());
+
     }
 
 }

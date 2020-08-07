@@ -51,7 +51,7 @@ public class OpenTracingDecorator extends AbstractDataFetcherDecorator {
                 .startActive(false);
 
         final Span span = scope.span();
-        executionContext.newGraphQLContext().put(PARENT_SPAN_KEY, span);
+        executionContext.graphQLContext().put(PARENT_SPAN_KEY, span);
 
         spans.put(executionContext, span);
     }

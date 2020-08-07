@@ -32,7 +32,7 @@ public class OpenTracingDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
 
         decorator.execute(mockExecutionContext);
 
@@ -50,7 +50,7 @@ public class OpenTracingDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         final CompletableFuture<Object> result = new CompletableFuture<>();
         mockExecutionContext.setResult(result);
 
@@ -74,7 +74,7 @@ public class OpenTracingDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         CompletableFuture<String> future = new CompletableFuture<>();
         CompletableFuture<String> asyncFutur = future.thenApplyAsync(Function.identity());//Let future complete in different Thread
         mockExecutionContext.setResult(asyncFutur);
@@ -100,7 +100,7 @@ public class OpenTracingDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         final CompletableFuture<Object> result = new CompletableFuture<>();
         mockExecutionContext.setResult(result);
 
@@ -124,7 +124,7 @@ public class OpenTracingDecoratorTest {
 
         MockExecutionContext mockExecutionContext = new MockExecutionContext();
         mockExecutionContext.setDataFetchingEnvironment(dfe);
-        mockExecutionContext.setNewGraphQLContext(GraphQLContext.newContext().build());
+        mockExecutionContext.setGraphQLContext(GraphQLContext.newContext().build());
         mockExecutionContext.setResult(() -> {
             throw new RuntimeException();
         });

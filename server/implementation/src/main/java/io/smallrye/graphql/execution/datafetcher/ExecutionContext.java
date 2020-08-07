@@ -36,7 +36,7 @@ public interface ExecutionContext {
      *
      * @return the GraphQLContext
      */
-    GraphQLContext newGraphQLContext();
+    GraphQLContext graphQLContext();
 
     /**
      * The current DataFetchingEnvironment

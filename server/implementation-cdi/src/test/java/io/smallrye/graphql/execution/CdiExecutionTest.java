@@ -19,6 +19,7 @@ import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 
+import org.dataloader.DataLoaderRegistry;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 import org.jboss.weld.junit5.WeldInitiator;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.cdi.CdiSchemaExtensionService;
 import io.smallrye.graphql.schema.SchemaBuilder;
@@ -54,9 +56,10 @@ public class CdiExecutionTest {
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema);
+        BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
+        DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
+        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, dataLoaderRegistry);
     }
 
     @Test
