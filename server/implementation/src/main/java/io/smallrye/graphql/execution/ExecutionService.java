@@ -110,7 +110,9 @@ public class ExecutionService {
                 executionBuilder.context(toGraphQLContext(context));
 
                 // DataLoaders
-                executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
+                if (dataLoaderRegistry != null) {
+                    executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
+                }
 
                 ExecutionInput executionInput = executionBuilder.build();
 

@@ -30,6 +30,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
 
         GraphQLContext graphQLContext = dfe.getContext();
         SmallRyeContext src = graphQLContext.get("context");
+
         src.setDataFromFetcher(dfe, field);
 
         Object resultFromMethodCall = super.get(dfe);

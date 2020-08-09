@@ -37,12 +37,19 @@ import io.smallrye.common.annotation.Experimental;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Experimental("Request context to allow downstream operations to get insight into the request. Not covered by the specification. "
-        +
-        "Subject to change.")
+        + "Subject to change.")
 public interface Context {
     public static final String QUERY = "query";
     public static final String OPERATION_NAME = "operationName";
     public static final String VARIABLES = "variables";
+
+    public enum OperationType {
+        Query,
+        Mutation,
+        Source,
+        SourceList,
+        Subscription
+    }
 
     /**
      * Get the full body of the request.
@@ -188,6 +195,13 @@ public interface Context {
      * @return JsonArray of fields selected
      */
     public JsonArray getSelectedFields(boolean includeSourceFields);
+
+    /**
+     * Return the type (Query, Mutation ext)
+     * 
+     * @return enum that indicate the operation type
+     */
+    public OperationType getOperationType();
 
     /**
      * This leaky abstraction allows falling down to the underlying implementation

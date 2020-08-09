@@ -6,7 +6,6 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.dataloader.DataLoaderRegistry;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
@@ -17,7 +16,6 @@ import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.spi.MetricsService;
 
 /**
  * Produces the GraphQL Services
@@ -42,10 +40,6 @@ public class GraphQLProducer {
     public GraphQLSchema initialize() {
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema, graphQLConfig);
 
-        if (graphQLConfig.isMetricsEnabled()) {
-            MetricRegistry vendorRegistry = MetricsService.load().getMetricRegistry(MetricRegistry.Type.VENDOR);
-            Bootstrap.registerMetrics(schema, vendorRegistry);
-        }
         this.graphQLSchema = bootstraped.getGraphQLSchema();
         this.dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
 

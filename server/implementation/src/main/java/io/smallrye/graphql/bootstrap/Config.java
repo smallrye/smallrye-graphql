@@ -30,10 +30,6 @@ public interface Config {
         return false;
     }
 
-    default boolean isMetricsEnabled() {
-        return false;
-    }
-
     default boolean isIncludeScalarsInSchema() {
         return false;
     }
@@ -54,8 +50,16 @@ public interface Config {
         return false;
     }
 
+    default boolean isMetricsEnabled() {
+        return false;
+    }
+
     default boolean isValidationEnabled() {
         return false;
+    }
+
+    default boolean isEventingEnabled() {
+        return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled();
     }
 
     default boolean logPayload() {

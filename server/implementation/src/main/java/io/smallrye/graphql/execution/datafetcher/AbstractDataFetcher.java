@@ -24,11 +24,13 @@ import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.BootstrapContext;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
+import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -40,6 +42,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
     protected final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms
     protected final ClassloadingService classloadingService = ClassloadingService.load(); // Allows multiple classloading mechanisms
 
+    protected final Config config;
     protected final Operation operation;
     protected final FieldHelper fieldHelper;
     protected final ArgumentHelper argumentHelper;
@@ -61,7 +64,8 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
      * @param decorators collection of decorators to invoke before and after fetching the data
      *
      */
-    protected AbstractDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
+    protected AbstractDataFetcher(Config config, Operation operation, Collection<DataFetcherDecorator> decorators) {
+        this.config = config;
         this.operation = operation;
         this.fieldHelper = new FieldHelper(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
@@ -74,26 +78,35 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
+        EventEmitter.start(config);
+
         // Context
         GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext src = graphQLContext.get("context");
-        src.setDataFromFetcher(dfe, operation);
+        SmallRyeContext requestContext = graphQLContext.get("context");
+        requestContext.setDataFromFetcher(dfe, operation);
 
-        // Batch
-        if (operation.getOperationType().equals(OperationType.SourceList)) {
-            Object source = dfe.getSource();
-            System.err.println(">>>>>>>>>>>>>>> BATCH !!!!!!!!!!!!!!!!! " + source.getClass().getName());
-            List<Object> keys = new ArrayList<>();
-            keys.add(source);
-            DataLoader<Object, Object> dataLoader = dfe.getDataLoader(operation.getName()); // TODO: Is this unique enough ?
+        try {
+            EventEmitter.fireBeforeDataFetch(requestContext);
 
-            //return dataLoader.loadMany(keys).get();
+            // Batch
+            if (operation.getOperationType().equals(OperationType.SourceList)) {
+                Object source = dfe.getSource();
+                System.err.println(">>>>>>>>>>>>>>> BATCH !!!!!!!!!!!!!!!!! " + source.getClass().getName());
+                List<Object> keys = new ArrayList<>();
+                keys.add(source);
+                DataLoader<Object, Object> dataLoader = dfe.getDataLoader(operation.getName()); // TODO: Is this unique enough ?
+
+                //return dataLoader.loadMany(keys).get();
+            }
+
+            final GraphQLContext context = dfe.getContext();
+            final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
+            return fetch(resultBuilder, dfe);
+        } finally {
+            EventEmitter.fireAfterDataFetch(requestContext);
+            EventEmitter.end();
         }
-
-        final GraphQLContext context = dfe.getContext();
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
-
-        return fetch(resultBuilder, dfe);
     }
 
     private BatchLoader<Object, Object> createBatchLoader() {

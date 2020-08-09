@@ -33,7 +33,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.cdi.CdiSchemaExtensionService;
+import io.smallrye.graphql.cdi.event.CdiEventingService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -50,7 +50,7 @@ public class CdiExecutionTest {
 
     @WeldSetup
     public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi,
-            CdiSchemaExtensionService.class);
+            CdiEventingService.class);
 
     @BeforeEach
     public void init() {
@@ -611,7 +611,6 @@ public class CdiExecutionTest {
     private static final Class heroDatabase;
     private static final Class sidekickDatabase;
     private static final Class heroLocator;
-
     private static final Class scalarTestApi;
 
     private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);

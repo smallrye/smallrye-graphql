@@ -15,9 +15,13 @@ public class BootstrapContext {
 
     private static final ThreadLocal<BootstrapContext> current = new ThreadLocal<>();
 
-    public static void init() {
+    public static void start() {
         BootstrapContext registry = new BootstrapContext();
         current.set(registry);
+    }
+
+    public static void end() {
+        current.remove();
     }
 
     public static void setGraphQLSchema(GraphQLSchema graphQLSchema) {
@@ -38,10 +42,6 @@ public class BootstrapContext {
 
     public static DataLoaderRegistry getDataLoaderRegistry() {
         return getBootstrapContext().dataLoaderRegistry;
-    }
-
-    public static void remove() {
-        current.remove();
     }
 
     private static BootstrapContext getBootstrapContext() {

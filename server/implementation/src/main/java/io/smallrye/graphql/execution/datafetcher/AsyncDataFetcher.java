@@ -12,6 +12,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -23,12 +24,12 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  */
 public class AsyncDataFetcher extends AbstractDataFetcher<CompletionStage<DataFetcherResult<Object>>> {
 
-    public AsyncDataFetcher(Operation operation) {
-        this(operation, Collections.emptyList());
+    public AsyncDataFetcher(Config config, Operation operation) {
+        this(config, operation, Collections.emptyList());
     }
 
-    public AsyncDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
-        super(operation, decorators);
+    public AsyncDataFetcher(Config config, Operation operation, Collection<DataFetcherDecorator> decorators) {
+        super(config, operation, decorators);
     }
 
     /**

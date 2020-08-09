@@ -12,6 +12,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
+import graphql.language.OperationDefinition;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.GraphQLList;
@@ -113,6 +114,23 @@ public class SmallRyeContext implements Context {
         return toJsonArrayBuilder(fields, includeSourceFields).build();
     }
 
+    @Override
+    public OperationType getOperationType() {
+
+        if (dfe.getOperationDefinition().getOperation().equals(OperationDefinition.Operation.MUTATION)) {
+            return OperationType.Mutation;
+        } else if (dfe.getOperationDefinition().getOperation().equals(OperationDefinition.Operation.SUBSCRIPTION)) {
+            return OperationType.Subscription;
+        } else if (dfe.getOperationDefinition().getOperation().equals(OperationDefinition.Operation.QUERY)
+                && dfe.getSource() != null) {
+            return OperationType.Source;
+        }
+        // TODO: New Source List ?
+
+        return OperationType.Query;
+
+    }
+
     private final JsonObject jsonObject;
     private DataFetchingEnvironment dfe;
     private Field field;
@@ -192,4 +210,5 @@ public class SmallRyeContext implements Context {
     }
 
     private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+
 }

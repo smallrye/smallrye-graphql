@@ -20,10 +20,6 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
-
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
@@ -44,17 +40,16 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.MetricNaming;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
-import io.smallrye.graphql.execution.datafetcher.decorator.MetricDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.OpenTracingDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.ValidationDecorator;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
+import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
@@ -66,13 +61,11 @@ import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.ClassloadingService;
-import io.smallrye.graphql.spi.SchemaBuildingExtensionService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -98,51 +91,18 @@ public class Bootstrap {
     public static BootstrapedResult bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
             try {
-                BootstrapContext.init();
+                EventEmitter.start(config);
+                BootstrapContext.start();
                 new Bootstrap(schema, config).generateGraphQLSchema();
                 return new BootstrapedResult(BootstrapContext.getGraphQLSchema(), BootstrapContext.getDataLoaderRegistry());
             } finally {
-                BootstrapContext.remove();
+                BootstrapContext.start();
+                EventEmitter.end();
             }
         } else {
             log.emptyOrNullSchema();
             return null;
         }
-    }
-
-    public static void registerMetrics(Schema schema, MetricRegistry metricRegistry) {
-        findAllOperations(schema)
-                .forEach(operation -> {
-                    final String description;
-                    final String name = MetricNaming.fromOperation(operation);
-                    if (operation.getOperationType() == OperationType.Mutation) {
-                        description = "Call statistics for the mutation '" + operation.getName() + "'";
-                    } else if (operation.getOperationType() == OperationType.Query) {
-                        description = "Call statistics for the query '" + operation.getName() + "'";
-                    } else {
-                        description = "Call statistics for the query '" + operation.getName()
-                                + "' on type '" + operation.getContainingType().getName() + "'";
-                    }
-
-                    Metadata metadata = Metadata.builder()
-                            .withName(name)
-                            .withType(MetricType.SIMPLE_TIMER)
-                            .withDescription(description)
-                            .build();
-                    metricRegistry.simpleTimer(metadata);
-                });
-    }
-
-    private static Collection<Operation> findAllOperations(Schema schema) {
-        Collection<Operation> operations = new ArrayList<>();
-        operations.addAll(schema.getQueries());
-        operations.addAll(schema.getMutations());
-
-        for (final Type value : schema.getTypes().values()) {
-            operations.addAll(value.getOperations().values());
-        }
-
-        return operations;
     }
 
     private Bootstrap(Schema schema, Config config) {
@@ -174,7 +134,7 @@ public class Bootstrap {
         ErrorInfoMap.register(schema.getErrors());
 
         // Allow custom extension
-        schemaBuilder = SchemaBuildingExtensionService.fireBeforeBuild(schemaBuilder);
+        schemaBuilder = EventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
         BootstrapContext.setGraphQLSchema(schemaBuilder.build());
     }
@@ -188,6 +148,7 @@ public class Bootstrap {
         if (schema.hasQueries()) {
             Set<Operation> queries = schema.getQueries();
             for (Operation queryOperation : queries) {
+                queryOperation = EventEmitter.fireCreateOperation(queryOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(QUERY,
                         queryOperation);
                 queryBuilder = queryBuilder.field(graphQLFieldDefinition);
@@ -207,6 +168,7 @@ public class Bootstrap {
 
             Set<Operation> mutations = schema.getMutations();
             for (Operation mutationOperation : mutations) {
+                mutationOperation = EventEmitter.fireCreateOperation(mutationOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(MUTATION,
                         mutationOperation);
                 mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
@@ -323,6 +285,7 @@ public class Bootstrap {
         // Operations
         if (type.hasOperations()) {
             for (Operation operation : type.getOperations().values()) {
+                operation = EventEmitter.fireCreateOperation(operation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
                         operation);
                 objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
@@ -366,9 +329,7 @@ public class Bootstrap {
         // DataFetcher
         Collection<DataFetcherDecorator> decorators = new ArrayList<>();
         if (config != null) {
-            if (config.isMetricsEnabled()) {
-                decorators.add(new MetricDecorator());
-            }
+
             if (config.isTracingEnabled()) {
                 decorators.add(new OpenTracingDecorator());
             }
@@ -379,9 +340,9 @@ public class Bootstrap {
 
         DataFetcher<?> datafetcher;
         if (operation.isAsync()) {
-            datafetcher = new AsyncDataFetcher(operation, decorators);
+            datafetcher = new AsyncDataFetcher(config, operation, decorators);
         } else {
-            datafetcher = new ReflectionDataFetcher(operation, decorators);
+            datafetcher = new ReflectionDataFetcher(config, operation, decorators);
         }
 
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,

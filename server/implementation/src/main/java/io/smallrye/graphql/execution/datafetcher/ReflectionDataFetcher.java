@@ -8,6 +8,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -34,8 +35,8 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * @param decorators collection of decorators to invoke before and after fetching the data
      *
      */
-    public ReflectionDataFetcher(Operation operation, Collection<DataFetcherDecorator> decorators) {
-        super(operation, decorators);
+    public ReflectionDataFetcher(Config config, Operation operation, Collection<DataFetcherDecorator> decorators) {
+        super(config, operation, decorators);
     }
 
     /**
