@@ -19,6 +19,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
@@ -39,7 +40,7 @@ public class InputTypeCreator implements Creator<InputType> {
     }
 
     @Override
-    public InputType create(ClassInfo classInfo) {
+    public InputType create(ClassInfo classInfo, Reference reference) {
         if (!classInfo.hasNoArgsConstructor() ||
                 !Modifier.isPublic(classInfo.method("<init>").flags())) {
             throw new IllegalArgumentException(
@@ -52,7 +53,8 @@ public class InputTypeCreator implements Creator<InputType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INPUT, classInfo, annotations);
+        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INPUT, classInfo, annotations,
+                TypeNameHelper.createParametrizedTypeNameExtension(reference));
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
@@ -60,12 +62,12 @@ public class InputTypeCreator implements Creator<InputType> {
         InputType inputType = new InputType(classInfo.name().toString(), name, description);
 
         // Fields
-        addFields(inputType, classInfo);
+        addFields(inputType, classInfo, reference);
 
         return inputType;
     }
 
-    private void addFields(InputType inputType, ClassInfo classInfo) {
+    private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
@@ -86,7 +88,7 @@ public class InputTypeCreator implements Creator<InputType> {
             if (MethodHelper.isPropertyMethod(Direction.IN, methodInfo.name())) {
                 String fieldName = MethodHelper.getPropertyName(Direction.IN, methodInfo.name());
                 FieldInfo fieldInfo = allFields.remove(fieldName);
-                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo)
+                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo, methodInfo, reference)
                         .ifPresent(inputType::addField);
             }
         }
@@ -94,7 +96,7 @@ public class InputTypeCreator implements Creator<InputType> {
         // See what fields are left (this is fields without methods)
         if (!allFields.isEmpty()) {
             for (FieldInfo fieldInfo : allFields.values()) {
-                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo)
+                fieldCreator.createFieldForPojo(Direction.IN, fieldInfo, reference)
                         .ifPresent(inputType::addField);
             }
         }

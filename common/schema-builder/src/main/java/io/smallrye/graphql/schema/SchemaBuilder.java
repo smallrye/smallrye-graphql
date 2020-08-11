@@ -177,7 +177,7 @@ public class SchemaBuilder {
         while (!referenceCreator.values(referenceType).isEmpty()) {
             Reference reference = referenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
-            consumer.accept((T) creator.create(classInfo));
+            consumer.accept((T) creator.create(classInfo, reference));
         }
     }
 
@@ -190,7 +190,7 @@ public class SchemaBuilder {
             Reference reference = referenceCreator.values(referenceType).poll();
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(reference.getClassName()));
             if (!contains.test(reference.getName())) {
-                consumer.accept((T) creator.create(classInfo));
+                consumer.accept((T) creator.create(classInfo, reference));
                 allDone = false;
             }
         }

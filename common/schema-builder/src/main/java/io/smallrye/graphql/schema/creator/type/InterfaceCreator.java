@@ -40,13 +40,14 @@ public class InterfaceCreator implements Creator<InterfaceType> {
     }
 
     @Override
-    public InterfaceType create(ClassInfo classInfo) {
+    public InterfaceType create(ClassInfo classInfo, Reference reference) {
         LOG.debug("Creating Interface from " + classInfo.name().toString());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INTERFACE, classInfo, annotations);
+        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INTERFACE, classInfo, annotations,
+                TypeNameHelper.createParametrizedTypeNameExtension(reference));
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
@@ -54,7 +55,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         InterfaceType interfaceType = new InterfaceType(classInfo.name().toString(), name, description);
 
         // Fields
-        addFields(interfaceType, classInfo);
+        addFields(interfaceType, classInfo, reference);
 
         // Interfaces
         addInterfaces(interfaceType, classInfo);
@@ -62,7 +63,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         return interfaceType;
     }
 
-    private void addFields(InterfaceType interfaceType, ClassInfo classInfo) {
+    private void addFields(InterfaceType interfaceType, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();
 
@@ -75,7 +76,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
 
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
-                fieldCreator.createFieldForInterface(methodInfo)
+                fieldCreator.createFieldForInterface(methodInfo, reference)
                         .ifPresent(interfaceType::addField);
             }
         }

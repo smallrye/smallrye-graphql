@@ -61,7 +61,7 @@ public class Scalars {
     }
 
     public static Reference getIDScalar(String className) {
-        return new Reference(className, ID, ReferenceType.SCALAR);
+        return new Reference(className, ID, ReferenceType.SCALAR, null);
     }
 
     static {
@@ -128,14 +128,14 @@ public class Scalars {
     }
 
     private static void populateScalar(String className, String scalarName, String externalClassName) {
-        Reference reference = new Reference(className, scalarName, ReferenceType.SCALAR, externalClassName);
+        Reference reference = new Reference(className, scalarName, ReferenceType.SCALAR, externalClassName, null);
         scalarMap.put(className, reference);
 
         // looking up by name
         scalarNameMap.putIfAbsent(scalarName, reference);
 
         //Currently, each scalar is formatted as String
-        formattedScalarMap.put(className, new Reference(className, STRING, ReferenceType.SCALAR, String.class.getName()));
+        formattedScalarMap.put(className, new Reference(className, STRING, ReferenceType.SCALAR, String.class.getName(), null));
     }
 
 }

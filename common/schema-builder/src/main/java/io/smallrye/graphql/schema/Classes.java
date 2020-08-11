@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -72,21 +73,8 @@ public class Classes {
      * @return true if it is
      */
     public static boolean isNumberLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type,
-                BYTE,
-                BYTE_PRIMATIVE,
-                SHORT,
-                SHORT_PRIMATIVE,
-                INTEGER,
-                INTEGER_PRIMATIVE,
-                BIG_INTEGER,
-                DOUBLE,
-                DOUBLE_PRIMATIVE,
-                BIG_DECIMAL,
-                LONG,
-                LONG_PRIMATIVE,
-                FLOAT,
-                FLOAT_PRIMATIVE);
+        return isTypeOrCollectionThereOf(type, BYTE, BYTE_PRIMATIVE, SHORT, SHORT_PRIMATIVE, INTEGER, INTEGER_PRIMATIVE,
+                BIG_INTEGER, DOUBLE, DOUBLE_PRIMATIVE, BIG_DECIMAL, LONG, LONG_PRIMATIVE, FLOAT, FLOAT_PRIMATIVE);
     }
 
     /**
@@ -96,17 +84,8 @@ public class Classes {
      * @return true if it is
      */
     public static boolean isDateLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type,
-                LOCALDATE,
-                LOCALTIME,
-                LOCALDATETIME,
-                ZONEDDATETIME,
-                OFFSETDATETIME,
-                OFFSETTIME,
-                UTIL_DATE,
-                SQL_DATE,
-                SQL_TIMESTAMP,
-                SQL_TIME);
+        return isTypeOrCollectionThereOf(type, LOCALDATE, LOCALTIME, LOCALDATETIME, ZONEDDATETIME, OFFSETDATETIME, OFFSETTIME,
+                UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME);
     }
 
     private static boolean isTypeOrCollectionThereOf(Type type, DotName... valid) {
@@ -132,6 +111,68 @@ public class Classes {
     public static boolean isAsyncType(Type type) {
         return type.name().equals(COMPLETABLE_FUTURE) || type.name().equals(COMPLETION_STAGE);
     }
+
+    /**
+     * Return true if type is java array, or it is Collection type which is handled as GraphQL array
+     * 
+     * @param type to check
+     * @return
+     * @see #isCollection(Type)
+     */
+    public static boolean isCollectionOrArray(Type type) {
+        return type.kind().equals(Type.Kind.ARRAY) || isCollection(type);
+    }
+
+    /**
+     * Return true if type is java Collection type which is handled as GraphQL array
+     * 
+     * @param type to check
+     * @return
+     * @see #isCollectionOrArray(Type)
+     */
+    public static boolean isCollection(Type type) {
+        if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+
+            ClassInfo clazz = ScanningContext.getIndex().getClassByName(type.name());
+            if (clazz == null) {
+                // use classloader instead of jandex to handle basic java classes/interfaces
+                try {
+                    Class<?> clazzLoaded = Classes.class.getClassLoader().loadClass(type.name().toString());
+                    return Collection.class.isAssignableFrom(clazzLoaded);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Info not found in Jandex index nor classpath for class name:" + type.name());
+                }
+            }
+            if (clazz.name().equals(COLLECTION)) {
+                return true;
+            }
+
+            // we have to go recursively over all super-interfaces as Jandex provides only direct interfaces
+            // implemented in the class itself
+            for (Type intf : clazz.interfaceTypes()) {
+                if (isCollection(intf))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return true if given type is parametrized type unwrapped/handled by the runtime before the serialization
+     * (Optional<>, CompletableFutur<>, CompletionStage<> etc)
+     * 
+     * @param type to be checked
+     * @return true if type is unwrapped by the runtime
+     * @see #isOptional(Type)
+     * @see #isAsyncType(Type)
+     */
+    public static boolean isUnwrappedType(Type type) {
+        return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE) && (isOptional(type) // Optional<>
+                || isAsyncType(type)) // CompletableFutur or CompletionStage
+        ;
+    }
+
+    public static final DotName COLLECTION = DotName.createSimple(Collection.class.getName());
 
     public static final DotName ENUM = DotName.createSimple(Enum.class.getName());
     public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());

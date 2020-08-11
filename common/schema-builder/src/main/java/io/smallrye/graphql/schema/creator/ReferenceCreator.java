@@ -1,14 +1,17 @@
 package io.smallrye.graphql.schema.creator;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Type;
+import org.jboss.jandex.TypeVariable;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -46,8 +49,8 @@ public class ReferenceCreator {
     private final Map<String, Reference> interfaceReferenceMap = new HashMap<>();
 
     /**
-     * Clear the scanned references. This is done when we created all references and do not need to
-     * remember what to scan.
+     * Clear the scanned references. This is done when we created all references and do not need to remember what to
+     * scan.
      */
     public void clear() {
         inputReferenceMap.clear();
@@ -72,9 +75,8 @@ public class ReferenceCreator {
     }
 
     /**
-     * Get a reference to a field type for an operation
-     * Direction is OUT on a field (and IN on an argument)
-     * In the case of operations, there is no fields (only methods)
+     * Get a reference to a field type for an operation Direction is OUT on a field (and IN on an argument) In the case
+     * of operations, there is no fields (only methods)
      * 
      * @param fieldType the java type
      * @param annotationsForMethod annotation on this operations method
@@ -85,9 +87,8 @@ public class ReferenceCreator {
     }
 
     /**
-     * Get a reference to a argument type for an operation
-     * Direction is IN on an argument (and OUT on a field)
-     * In the case of operation, there is no field (only methods)
+     * Get a reference to a argument type for an operation Direction is IN on an argument (and OUT on a field) In the
+     * case of operation, there is no field (only methods)
      * 
      * @param argumentType the java type
      * @param annotationsForThisArgument annotations on this argument
@@ -98,8 +99,7 @@ public class ReferenceCreator {
     }
 
     /**
-     * Get a reference to a source argument type for an operation
-     * Direction is OUT on an argument.
+     * Get a reference to a source argument type for an operation Direction is OUT on an argument.
      *
      * @param argumentType the java type
      * @param annotationsForThisArgument annotations on this argument
@@ -118,8 +118,9 @@ public class ReferenceCreator {
      * @param annotationsForThisMethod annotations on this method
      * @return a reference to the type
      */
-    public Reference createReferenceForInterfaceField(Type methodType, Annotations annotationsForThisMethod) {
-        return getReference(Direction.OUT, null, methodType, annotationsForThisMethod);
+    public Reference createReferenceForInterfaceField(Type methodType, Annotations annotationsForThisMethod,
+            Reference parentObjectReference) {
+        return getReference(Direction.OUT, null, methodType, annotationsForThisMethod, parentObjectReference);
     }
 
     /**
@@ -131,36 +132,38 @@ public class ReferenceCreator {
      * @param fieldType the field type
      * @param methodType the method type
      * @param annotations the annotations on the field and method
+     * @param parentObjectReference Reference of the parent PoJo use so we can evaluate generics types
      * @return a reference to the type
      */
-    public Reference createReferenceForPojoField(Direction direction, Type fieldType, Type methodType,
-            Annotations annotations) {
-        return getReference(direction, fieldType, methodType, annotations);
+    public Reference createReferenceForPojoField(Direction direction, Type fieldType, Type methodType, Annotations annotations,
+            Reference parentObjectReference) {
+        return getReference(direction, fieldType, methodType, annotations, parentObjectReference);
     }
 
     /**
-     * This method create a reference to type that might not yet exist.
-     * It also store to be created later, if we do not already know about it.
+     * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
+     * already know about it.
      * 
      * @param direction the direction (in or out)
      * @param classInfo the Java class
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo) {
-        return createReference(direction, classInfo, true);
+        return createReference(direction, classInfo, true, null);
     }
 
     /**
-     * This method create a reference to type that might not yet exist.
-     * It also store to be created later, if we do not already know about it.
+     * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
+     * already know about it.
      * 
      * @param direction the direction (in or out)
      * @param classInfo the Java class
-     * @param createType create the type in the scema
+     * @param createType create the type in the schema
      * @return a reference
      */
-    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType) {
-        // Get the initial reference type. It's either Type or Input depending on the direction. This might change as 
+    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType,
+            List<Type> parametrizedTypeArguments) {
+        // Get the initial reference type. It's either Type or Input depending on the direction. This might change as
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
 
@@ -170,8 +173,9 @@ public class ReferenceCreator {
             Collection<ClassInfo> knownDirectImplementors = ScanningContext.getIndex()
                     .getAllKnownImplementors(classInfo.name());
             for (ClassInfo impl : knownDirectImplementors) {
-                // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all ?
-                createReference(direction, impl, createType);
+                // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all
+                // ?
+                createReference(direction, impl, createType, parametrizedTypeArguments);
             }
             referenceType = ReferenceType.INTERFACE;
         } else if (Classes.isEnum(classInfo)) {
@@ -181,9 +185,27 @@ public class ReferenceCreator {
         // Now we should have the correct reference type.
         String className = classInfo.name().toString();
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
-        String name = TypeNameHelper.getAnyTypeName(referenceType, classInfo, annotationsForClass);
+        String name = TypeNameHelper.getAnyTypeName(referenceType, classInfo, annotationsForClass,
+                TypeNameHelper.createParametrizedTypeNameExtension(parametrizedTypeArguments));
 
-        Reference reference = new Reference(className, name, referenceType);
+        Map<String, Reference> parametrizedTypeArgumentsReferences = null;
+        if (parametrizedTypeArguments != null && referenceType != ReferenceType.ENUM) {
+            List<TypeVariable> tvl = new ArrayList<>();
+            collectTypeVariables(tvl, classInfo);
+            parametrizedTypeArgumentsReferences = new HashMap<>();
+            int i = 0;
+            for (Type pat : parametrizedTypeArguments) {
+                if (i >= tvl.size()) {
+                    throw new SchemaBuilderException(
+                            "List of type variables is not correct for class " + classInfo + " and generics argument " + pat);
+                } else {
+                    parametrizedTypeArgumentsReferences.put(tvl.get(i++).identifier(),
+                            getReference(direction, pat, null, null));
+                }
+            }
+        }
+
+        Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences);
 
         // Map to Scalar info
         boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotationsForClass);
@@ -192,15 +214,28 @@ public class ReferenceCreator {
 
         // Now add it to the correct map
         if (shouldCreateType && createType) {
-            putIfAbsent(className, reference, referenceType);
+            putIfAbsent(name, reference, referenceType);
         }
         return reference;
     }
 
-    private Reference getReference(Direction direction,
-            Type fieldType,
-            Type methodType,
-            Annotations annotations) {
+    private void collectTypeVariables(List<TypeVariable> tvl, ClassInfo classInfo) {
+        if (classInfo == null)
+            return;
+        if (classInfo.typeParameters() != null) {
+            tvl.addAll(classInfo.typeParameters());
+        }
+        if (classInfo.superClassType() != null) {
+            collectTypeVariables(tvl, ScanningContext.getIndex().getClassByName(classInfo.superName()));
+        }
+    }
+
+    private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations) {
+        return getReference(direction, fieldType, methodType, annotations, null);
+    }
+
+    private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations,
+            Reference parentObjectReference) {
 
         // In some case, like operations and interfaces, there is not fieldType
         if (fieldType == null) {
@@ -209,7 +244,7 @@ public class ReferenceCreator {
 
         String fieldTypeName = fieldType.name().toString();
 
-        if (annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
+        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
             // ID
             return Scalars.getIDScalar(fieldTypeName);
         } else if (Scalars.isScalar(fieldTypeName)) {
@@ -219,28 +254,80 @@ public class ReferenceCreator {
             }
             return Scalars.getScalar(fieldTypeName);
         } else if (fieldType.kind().equals(Type.Kind.ARRAY)) {
-            // Array 
+            // java Array
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
             return getReference(direction, typeInArray, typeInMethodArray, annotations);
-        } else if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
-            // Collections
+        } else if (Classes.isCollection(fieldType) || Classes.isUnwrappedType(fieldType)) {
+            // Collections and unwrapped types
             Type typeInCollection = fieldType.asParameterizedType().arguments().get(0);
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
             return getReference(direction, typeInCollection, typeInMethodCollection, annotations);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
+                List<Type> parametrizedTypeArguments = new ArrayList<>();
+                collectParametrizedTypeArguments(parametrizedTypeArguments, classInfo);
+
                 boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
-                return createReference(direction, classInfo, shouldCreateType);
+                return createReference(direction, classInfo, shouldCreateType,
+                        parametrizedTypeArguments.isEmpty() ? null : parametrizedTypeArguments);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
                 return Scalars.getScalar(String.class.getName()); // default
             }
+        } else if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            // Type.Kind.PARAMETERIZED_TYPE handles generics PoJos here, collections and unwrapped types are catched
+            // before.
+            // We have to add parametrized types into returned reference object name, and also store parameter types
+            // into reference so they can be used for later processing of types
+            ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
+            if (classInfo != null) {
+
+                List<Type> parametrizedTypeArguments = fieldType.asParameterizedType().arguments();
+
+                boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
+                return createReference(direction, classInfo, shouldCreateType, parametrizedTypeArguments);
+            } else {
+                LOG.warn("Class [" + fieldType.name()
+                        + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
+                return Scalars.getScalar(String.class.getName()); // default
+            }
+        } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
+            if (parentObjectReference == null || parentObjectReference.getParametrizedTypeArguments() == null) {
+                throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
+                        + "] as parent object reference is missing or incomplete");
+            }
+
+            LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: "
+                    + fieldType.asTypeVariable().identifier());
+
+            Reference ret = parentObjectReference.getParametrizedTypeArguments().get(fieldType.asTypeVariable().identifier());
+
+            if (ret == null) {
+                throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
+                        + "] as parent object reference doesn't contain necessary info");
+            }
+
+            return ret;
         } else {
             throw new SchemaBuilderException(
                     "Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind() + "]");
+        }
+    }
+
+    private void collectParametrizedTypeArguments(List<Type> parametrizedTypeArguments, ClassInfo classInfo) {
+        if (classInfo == null)
+            return;
+        if (classInfo.superClassType() != null) {
+
+            if (classInfo.superClassType().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                parametrizedTypeArguments.addAll(classInfo.superClassType().asParameterizedType().arguments());
+            }
+
+            collectParametrizedTypeArguments(parametrizedTypeArguments,
+                    ScanningContext.getIndex().getClassByName(classInfo.superName()));
         }
     }
 

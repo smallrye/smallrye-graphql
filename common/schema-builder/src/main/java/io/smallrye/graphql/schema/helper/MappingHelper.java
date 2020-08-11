@@ -102,7 +102,7 @@ public class MappingHelper {
     }
 
     private static Type getMapTo(Annotations annotations) {
-        if (annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
+        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR);
             if (annotationValue != null) {
                 return annotationValue.asClass();

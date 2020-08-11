@@ -51,13 +51,14 @@ public class TypeCreator implements Creator<Type> {
     }
 
     @Override
-    public Type create(ClassInfo classInfo) {
-        LOG.debug("Creating Type from " + classInfo.name().toString());
+    public Type create(ClassInfo classInfo, Reference reference) {
+        LOG.debug("Creating Type from " + classInfo.name().toString() + " for reference " + reference.getName());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.TYPE, classInfo, annotations);
+        String name = TypeNameHelper.getAnyTypeName(ReferenceType.TYPE, classInfo, annotations,
+                TypeNameHelper.createParametrizedTypeNameExtension(reference));
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
@@ -65,7 +66,7 @@ public class TypeCreator implements Creator<Type> {
         Type type = new Type(classInfo.name().toString(), name, description);
 
         // Fields
-        addFields(type, classInfo);
+        addFields(type, classInfo, reference);
 
         // Operations
         addOperations(type, classInfo);
@@ -76,7 +77,7 @@ public class TypeCreator implements Creator<Type> {
         return type;
     }
 
-    private void addFields(Type type, ClassInfo classInfo) {
+    private void addFields(Type type, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
@@ -97,7 +98,7 @@ public class TypeCreator implements Creator<Type> {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
                 String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
                 FieldInfo fieldInfo = allFields.remove(fieldName);
-                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo)
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference)
                         .ifPresent(type::addField);
             }
         }
@@ -105,7 +106,7 @@ public class TypeCreator implements Creator<Type> {
         // See what fields are left (this is fields without methods)
         if (!allFields.isEmpty()) {
             for (FieldInfo fieldInfo : allFields.values()) {
-                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo)
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, reference)
                         .ifPresent(type::addField);
             }
         }

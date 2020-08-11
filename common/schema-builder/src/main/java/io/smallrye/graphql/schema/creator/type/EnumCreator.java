@@ -14,6 +14,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.EnumType;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
@@ -25,7 +26,7 @@ public class EnumCreator implements Creator<EnumType> {
     private static final Logger LOG = Logger.getLogger(EnumCreator.class.getName());
 
     @Override
-    public EnumType create(ClassInfo classInfo) {
+    public EnumType create(ClassInfo classInfo, Reference reference) {
         LOG.debug("Creating enum from " + classInfo.name().toString());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
