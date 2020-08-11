@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.metrics;
+package io.smallrye.graphql.cdi.event.metrics;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -16,13 +16,14 @@ import org.eclipse.microprofile.metrics.annotation.RegistryType;
 
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.GraphQLConfig;
-import io.smallrye.graphql.cdi.event.AfterDataFetch;
-import io.smallrye.graphql.cdi.event.BeforeDataFetch;
+import io.smallrye.graphql.cdi.event.annotation.AfterDataFetch;
+import io.smallrye.graphql.cdi.event.annotation.BeforeDataFetch;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Listening for event and create metrics from it
  * 
+ * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @ApplicationScoped
@@ -48,8 +49,6 @@ public class MetricsEventListener {
                     .withDescription(description)
                     .build();
             metricRegistry.simpleTimer(metadata);
-
-            System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> METRICS Create Operation : " + name);
         }
     }
 
@@ -71,17 +70,21 @@ public class MetricsEventListener {
     }
 
     private String getName(Context context) {
-        return PRE + context.getOperationType().toString() + "_" + context.getFieldName();
+        return PRE + context.getOperationType().toString() + UNDERSCORE + context.getFieldName();
     }
 
     private String getName(Operation operation) {
-        return PRE + operation.getOperationType().toString() + "_" + operation.getName();
+        return PRE + operation.getOperationType().toString() + UNDERSCORE + operation.getName();
     }
 
     private String getDescription(Operation operation) {
-        return "Call statistics for the " + operation.getOperationType().toString().toLowerCase() + " '" + operation.getName()
+        return "Call statistics for the "
+                + operation.getOperationType().toString().toLowerCase()
+                + " '"
+                + operation.getName()
                 + "'";
     }
 
     private static final String PRE = "mp_graphql_";
+    private static final String UNDERSCORE = "_";
 }

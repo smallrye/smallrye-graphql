@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package io.smallrye.graphql.cdi.event;
+package io.smallrye.graphql.cdi.event.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

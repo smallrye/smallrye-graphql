@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -33,6 +34,7 @@ import io.smallrye.common.annotation.Experimental;
 
 /**
  * Holing context for the current request
+ * There are two parts to this. The initial request, that can be a aggregation of requests, and the current execution context.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -197,11 +199,45 @@ public interface Context {
     public JsonArray getSelectedFields(boolean includeSourceFields);
 
     /**
-     * Return the type (Query, Mutation ext)
+     * Return the current type (Query, Mutation ext)
+     * Current type means the type currently being executed.
      * 
      * @return enum that indicate the operation type
      */
     public OperationType getOperationType();
+
+    /**
+     * Return all the operation types requested (unique list)
+     * A Request can contain more than one operation. This will return a unique list of types.
+     * So if there is 2 Queries, it will only return one QUERY type, but if there is two
+     * queries and a mutation, it will return QUERY,MUTATION
+     * 
+     * @return
+     */
+    public List<OperationType> getRequestedOperationTypes();
+
+    /**
+     * Return all exceptions that has happened up to now
+     * 
+     * @return Stack of throwable, if any
+     */
+    public Stack<Throwable> getExceptionStack();
+
+    /**
+     * Return if there is any exceptions
+     * 
+     * @return true/false
+     */
+    default boolean hasException() {
+        return getExceptionStack() != null && !getExceptionStack().isEmpty();
+    }
+
+    /**
+     * Return the type name of the parent (if any)
+     * 
+     * @return the parent type name maybe
+     */
+    public Optional<String> getParentTypeName();
 
     /**
      * This leaky abstraction allows falling down to the underlying implementation

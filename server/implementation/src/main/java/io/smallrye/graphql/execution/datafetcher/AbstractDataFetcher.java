@@ -78,15 +78,10 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-        EventEmitter.start(config);
-
         // Context
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext requestContext = graphQLContext.get("context");
-        requestContext.setDataFromFetcher(dfe, operation);
-
+        SmallRyeContext.setDataFromFetcher(dfe, operation);
         try {
-            EventEmitter.fireBeforeDataFetch(requestContext);
+            EventEmitter.fireBeforeDataFetch();
 
             // Batch
             if (operation.getOperationType().equals(OperationType.SourceList)) {
@@ -103,10 +98,13 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
             final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
             return fetch(resultBuilder, dfe);
+        } catch (Exception e) {
+            EventEmitter.fireOnDataFetchError();
+            throw e;
         } finally {
-            EventEmitter.fireAfterDataFetch(requestContext);
-            EventEmitter.end();
+            EventEmitter.fireAfterDataFetch();
         }
+
     }
 
     private BatchLoader<Object, Object> createBatchLoader() {

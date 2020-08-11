@@ -7,7 +7,7 @@ import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
- * Some event during bootstrap and execution that allows extension
+ * Some events during bootstrap and execution that allows extension
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -25,12 +25,22 @@ public interface EventingService {
     }
 
     // Execution
-    default void beforeDataFetch(Context context) {
 
+    default void beforeExecute(Context context) {
+    }
+
+    default void errorExecute(Context context) {
+    }
+
+    default void afterExecute(Context context) {
+    }
+
+    default void beforeDataFetch(Context context) {
+    }
+
+    default void errorDataFetch(Context context) {
     }
 
     default void afterDataFetch(Context context) {
-
     }
-
 }

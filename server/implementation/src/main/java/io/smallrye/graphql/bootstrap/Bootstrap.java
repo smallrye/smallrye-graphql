@@ -46,7 +46,6 @@ import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
-import io.smallrye.graphql.execution.datafetcher.decorator.OpenTracingDecorator;
 import io.smallrye.graphql.execution.datafetcher.decorator.ValidationDecorator;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
@@ -330,9 +329,6 @@ public class Bootstrap {
         Collection<DataFetcherDecorator> decorators = new ArrayList<>();
         if (config != null) {
 
-            if (config.isTracingEnabled()) {
-                decorators.add(new OpenTracingDecorator());
-            }
             if (config.isValidationEnabled() && operation.hasArguments()) {
                 decorators.add(new ValidationDecorator());
             }

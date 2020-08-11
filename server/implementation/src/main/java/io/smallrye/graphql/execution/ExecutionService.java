@@ -3,7 +3,6 @@ package io.smallrye.graphql.execution;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,6 +34,7 @@ import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
+import io.smallrye.graphql.execution.event.EventEmitter;
 
 /**
  * Executing the GraphQL request
@@ -62,8 +62,6 @@ public class ExecutionService {
 
     private GraphQL graphQL;
 
-    private final List<ExecutionDecorator> executionDecorators = new ArrayList<>();
-
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this(config, graphQLSchema, null);
     }
@@ -75,16 +73,12 @@ public class ExecutionService {
 
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
-
-        if (config != null && config.isTracingEnabled()) {
-            executionDecorators.add(new OpenTracingExecutionDecorator());
-        }
     }
 
     public JsonObject execute(JsonObject jsonInput) {
+        EventEmitter.start(config);
+        SmallRyeContext.register(jsonInput);
         try {
-            SmallRyeContext.register(jsonInput);
-
             Context context = SmallRyeContext.getContext();
 
             String query = context.getQuery();
@@ -115,8 +109,14 @@ public class ExecutionService {
                 }
 
                 ExecutionInput executionInput = executionBuilder.build();
-
-                ExecutionResult executionResult = execute(g, executionInput);
+                // Update context
+                SmallRyeContext.setDataFromExecution(executionInput);
+                // Notify before
+                EventEmitter.fireBeforeExecute();
+                // Execute
+                ExecutionResult executionResult = g.execute(executionInput);
+                // Notify after
+                EventEmitter.fireAfterExecute();
 
                 JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
@@ -136,27 +136,13 @@ public class ExecutionService {
                 log.noGraphQLMethodsFound();
                 return null;
             }
+        } catch (Throwable t) {
+            SmallRyeContext.addError(t);
+            EventEmitter.fireOnExecuteError();
+            throw t;
         } finally {
             SmallRyeContext.remove();
-        }
-    }
-
-    private ExecutionResult execute(final GraphQL g, final ExecutionInput executionInput) {
-
-        for (ExecutionDecorator decorator : executionDecorators) {
-            decorator.before(executionInput);
-        }
-        try {
-            ExecutionResult executionResult = g.execute(executionInput);
-            for (ExecutionDecorator decorator : executionDecorators) {
-                decorator.after(executionInput, executionResult);
-            }
-            return executionResult;
-        } catch (Throwable e) {
-            for (ExecutionDecorator decorator : executionDecorators) {
-                decorator.onError(executionInput, e);
-            }
-            throw e;
+            EventEmitter.end();
         }
     }
 

@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -27,11 +26,9 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment dfe) {
+        SmallRyeContext.setDataFromFetcher(dfe, field);
 
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext src = graphQLContext.get("context");
-
-        src.setDataFromFetcher(dfe, field);
+        // TODO: Fire before datafetch here ? Might not be needed, or maybe allow via config ?
 
         Object resultFromMethodCall = super.get(dfe);
         try {

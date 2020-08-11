@@ -8,6 +8,12 @@ import javax.enterprise.inject.spi.CDI;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.cdi.event.annotation.AfterDataFetch;
+import io.smallrye.graphql.cdi.event.annotation.AfterExecute;
+import io.smallrye.graphql.cdi.event.annotation.BeforeDataFetch;
+import io.smallrye.graphql.cdi.event.annotation.BeforeExecute;
+import io.smallrye.graphql.cdi.event.annotation.ErrorDataFetch;
+import io.smallrye.graphql.cdi.event.annotation.ErrorExecute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 
@@ -32,8 +38,28 @@ public class CdiEventingService implements EventingService {
     }
 
     @Override
+    public void beforeExecute(Context context) {
+        fire(context, BeforeExecute.LITERAL);
+    }
+
+    @Override
+    public void errorExecute(Context context) {
+        fire(context, ErrorExecute.LITERAL);
+    }
+
+    @Override
+    public void afterExecute(Context context) {
+        fire(context, AfterExecute.LITERAL);
+    }
+
+    @Override
     public void beforeDataFetch(Context context) {
-        fire(context, new BeforeDataFetch.BeforeDataFetchLiteral());
+        fire(context, BeforeDataFetch.LITERAL);
+    }
+
+    @Override
+    public void errorDataFetch(Context context) {
+        fire(context, ErrorDataFetch.LITERAL);
     }
 
     @Override
