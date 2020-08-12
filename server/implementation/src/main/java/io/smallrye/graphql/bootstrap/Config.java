@@ -58,8 +58,12 @@ public interface Config {
         return false;
     }
 
-    default boolean isEventingEnabled() {
-        return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled();
+    default boolean isEventsEnabled() {
+        return false;
+    }
+
+    default boolean shouldEmmitEvents() {
+        return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
     }
 
     default boolean logPayload() {
@@ -68,6 +72,10 @@ public interface Config {
 
     default String getFieldVisibility() {
         return FIELD_VISIBILITY_DEFAULT;
+    }
+
+    default <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
+        return defaultValue;
     }
 
     public static final String FIELD_VISIBILITY_DEFAULT = "default";

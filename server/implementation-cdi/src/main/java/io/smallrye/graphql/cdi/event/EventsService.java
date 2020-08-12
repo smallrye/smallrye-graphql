@@ -2,28 +2,22 @@ package io.smallrye.graphql.cdi.event;
 
 import java.lang.annotation.Annotation;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.event.annotation.AfterDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.AfterExecute;
-import io.smallrye.graphql.cdi.event.annotation.BeforeDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.BeforeExecute;
-import io.smallrye.graphql.cdi.event.annotation.ErrorDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.ErrorExecute;
+import io.smallrye.graphql.cdi.config.ConfigKey;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 
 /**
  * Implements the EventingService interface and use CDI Events
+ * This allows users to take part in the events.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class CdiEventingService implements EventingService {
+public class EventsService implements EventingService {
 
     @Override
     public GraphQLSchema.Builder beforeSchemaBuild(GraphQLSchema.Builder builder) {
@@ -58,6 +52,11 @@ public class CdiEventingService implements EventingService {
     }
 
     @Override
+    public void beforeInvoke(Context context) throws Exception {
+        fire(context, BeforeInvoke.LITERAL);
+    }
+
+    @Override
     public void errorDataFetch(Context context) {
         fire(context, ErrorDataFetch.LITERAL);
     }
@@ -65,6 +64,11 @@ public class CdiEventingService implements EventingService {
     @Override
     public void afterDataFetch(Context context) {
         fire(context, AfterDataFetch.LITERAL);
+    }
+
+    @Override
+    public String getConfigKey() {
+        return ConfigKey.ENABLE_EVENTS;
     }
 
     private void fire(Object o, Annotation... annotation) {

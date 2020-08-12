@@ -1,6 +1,8 @@
 package io.smallrye.graphql.execution.event;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -22,8 +24,8 @@ public class EventEmitter {
     private static final ThreadLocal<EventEmitter> current = new ThreadLocal<>();
 
     public static void start(Config config) {
-        if (config != null && config.isEventingEnabled()) {
-            EventEmitter eventEmitter = new EventEmitter();
+        if (config != null && config.shouldEmmitEvents()) {
+            EventEmitter eventEmitter = new EventEmitter(config);
             current.set(eventEmitter);
         }
     }
@@ -82,6 +84,13 @@ public class EventEmitter {
         emitter().ifPresent((t) -> t.emmitBeforeDataFetch());
     }
 
+    public static void fireBeforeDataFetchMethodInvoke() throws Exception {
+        Optional<EventEmitter> emitter = emitter();
+        if (emitter.isPresent()) {
+            emitter.get().emmitBeforeDataFetchMethodInvoke();
+        }
+    }
+
     public static void fireOnDataFetchError() {
         emitter().ifPresent((t) -> t.emmitOnDataFetchError());
     }
@@ -99,39 +108,41 @@ public class EventEmitter {
         }
     }
 
-    private final ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
+    private static final ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
 
-    private EventEmitter() {
+    private final List<EventingService> enabledServices = new ArrayList<>();
+
+    private EventEmitter(Config config) {
+        Iterator<EventingService> it = eventingServices.iterator();
+        while (it.hasNext()) {
+            EventingService eventingService = it.next();
+            String configKey = eventingService.getConfigKey();
+            boolean enabled = config.getConfigValue(configKey, boolean.class, false);
+            if (enabled) {
+                enabledServices.add(eventingService);
+            }
+        }
     }
 
     // Execution 
 
     private void emmitBeforeExecute() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.beforeExecute(context);
         }
     }
 
     private void emmitOnExecuteError() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.errorExecute(context);
         }
     }
 
     private void emmitAfterExecute() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.afterExecute(context);
         }
     }
@@ -139,54 +150,44 @@ public class EventEmitter {
     // Execution - DataFetching
     private void emmitBeforeDataFetch() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.beforeDataFetch(context);
+        }
+    }
+
+    private void emmitBeforeDataFetchMethodInvoke() throws Exception {
+        Context context = SmallRyeContext.getContext();
+        for (EventingService extensionService : enabledServices) {
+            extensionService.beforeInvoke(context);
         }
     }
 
     private void emmitOnDataFetchError() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.errorDataFetch(context);
         }
     }
 
     private void emmitAfterDataFetch() {
         Context context = SmallRyeContext.getContext();
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             extensionService.afterDataFetch(context);
         }
     }
 
     // Schema bootstrap
     private GraphQLSchema.Builder emmitBeforeSchemaBuild(GraphQLSchema.Builder builder) {
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             builder = extensionService.beforeSchemaBuild(builder);
         }
-
         return builder;
     }
 
     private Operation emmitCreateOperation(Operation operation) {
-        Iterator<EventingService> it = eventingServices.iterator();
-
-        while (it.hasNext()) {
-            EventingService extensionService = it.next();
+        for (EventingService extensionService : enabledServices) {
             operation = extensionService.createOperation(operation);
         }
-
         return operation;
     }
 }

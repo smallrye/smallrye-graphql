@@ -4,16 +4,13 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoader;
-import org.dataloader.DataLoader;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.GraphQLContext;
@@ -26,7 +23,6 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.BootstrapContext;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
-import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
@@ -36,7 +32,6 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
-import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
     protected final LookupService lookupService = LookupService.load(); // Allows multiple lookup mechanisms
@@ -46,7 +41,6 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
     protected final Operation operation;
     protected final FieldHelper fieldHelper;
     protected final ArgumentHelper argumentHelper;
-    protected final Collection<DataFetcherDecorator> decorators;
     protected List<Class<?>> parameterClasses;
 
     /**
@@ -61,15 +55,13 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
      * ArgumentHelper: The same as above, except for every parameter on the way in.
      *
      * @param operation the operation
-     * @param decorators collection of decorators to invoke before and after fetching the data
      *
      */
-    protected AbstractDataFetcher(Config config, Operation operation, Collection<DataFetcherDecorator> decorators) {
+    protected AbstractDataFetcher(Config config, Operation operation) {
         this.config = config;
         this.operation = operation;
         this.fieldHelper = new FieldHelper(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
-        this.decorators = decorators;
 
         if (operation.getOperationType().equals(OperationType.SourceList)) {
             BootstrapContext.registerBatchLoader(operation.getName(), createBatchLoader());
@@ -81,18 +73,19 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         // Context
         SmallRyeContext.setDataFromFetcher(dfe, operation);
         try {
+
             EventEmitter.fireBeforeDataFetch();
 
             // Batch
-            if (operation.getOperationType().equals(OperationType.SourceList)) {
-                Object source = dfe.getSource();
-                System.err.println(">>>>>>>>>>>>>>> BATCH !!!!!!!!!!!!!!!!! " + source.getClass().getName());
-                List<Object> keys = new ArrayList<>();
-                keys.add(source);
-                DataLoader<Object, Object> dataLoader = dfe.getDataLoader(operation.getName()); // TODO: Is this unique enough ?
+            //if (operation.getOperationType().equals(OperationType.SourceList)) {
+            //    Object source = dfe.getSource();
+            //    System.err.println(">>>>>>>>>>>>>>> BATCH !!!!!!!!!!!!!!!!! " + source.getClass().getName());
+            //    List<Object> keys = new ArrayList<>();
+            //    keys.add(source);
+            //    DataLoader<Object, Object> dataLoader = dfe.getDataLoader(operation.getName()); // TODO: Is this unique enough ?
 
-                //return dataLoader.loadMany(keys).get();
-            }
+            //return dataLoader.loadMany(keys).get();
+            //}
 
             final GraphQLContext context = dfe.getContext();
             final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
@@ -189,7 +182,7 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
     }
 
     /**
-     * Gets the methode needed by this data fetcher.
+     * Gets the method needed by this data fetcher.
      *
      * If the method is not found, an {@code DataFetcherException} is thrown.
      *
@@ -206,9 +199,18 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
         }
     }
 
-    protected final <R> R execute(ExecutionContext executionContext) throws Exception {
+    protected final <R> R execute(final DataFetchingEnvironment dfe) throws Exception {
+
+        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
+        Object operationInstance = lookupService.getInstance(operationClass);
+        Method operationMethod = getMethod(operationClass);
+        Object[] transformedArguments = argumentHelper.getArguments(dfe);
+
+        SmallRyeContext.setReflectionDataFromFetcher(operationInstance, operationMethod, transformedArguments);
+
         try {
-            return (R) executionContext.proceed();
+            EventEmitter.fireBeforeDataFetchMethodInvoke();
+            return (R) operationMethod.invoke(operationInstance, transformedArguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
             Throwable throwable = ex.getCause();
@@ -224,15 +226,4 @@ public abstract class AbstractDataFetcher<T> implements DataFetcher<T> {
             }
         }
     }
-
-    protected ExecutionContext createExecutionContext(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
-        Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
-        Object declaringObject = lookupService.getInstance(operationClass);
-        Method m = getMethod(operationClass);
-
-        Object[] transformedArguments = argumentHelper.getArguments(dfe);
-        return new ExecutionContextImpl(declaringObject, m, transformedArguments, dfe, decorators.iterator());
-
-    }
-
 }

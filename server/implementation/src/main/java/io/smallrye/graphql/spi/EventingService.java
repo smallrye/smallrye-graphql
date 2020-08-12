@@ -15,6 +15,9 @@ public interface EventingService {
 
     ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
 
+    // Config key
+    public String getConfigKey();
+
     // Schema bootstrap
     default GraphQLSchema.Builder beforeSchemaBuild(GraphQLSchema.Builder builder) {
         return builder;
@@ -36,6 +39,9 @@ public interface EventingService {
     }
 
     default void beforeDataFetch(Context context) {
+    }
+
+    default void beforeInvoke(Context context) throws Exception {
     }
 
     default void errorDataFetch(Context context) {

@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.event.annotation;
+package io.smallrye.graphql.cdi.event;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

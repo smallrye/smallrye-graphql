@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
+import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
  * Implements the Context from MicroProfile API.
@@ -42,6 +44,7 @@ import io.smallrye.graphql.schema.model.Type;
 public class SmallRyeContext implements Context {
     private static Schema schema;
 
+    protected final ClassloadingService classloadingService = ClassloadingService.load();
     private static final ThreadLocal<SmallRyeContext> current = new ThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {
@@ -74,8 +77,22 @@ public class SmallRyeContext implements Context {
     public static void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
         SmallRyeContext context = current.get();
         if (context != null) {
-            context.setDataFetchingEnvironment(dfe);
-            context.setField(field);
+            context.dfe = dfe;
+            context.field = field;
+        } else {
+            throw new ContextNotActiveException();
+        }
+    }
+
+    public static void setReflectionDataFromFetcher(
+            Object operationInstance,
+            Method operationMethod,
+            Object[] operationTransformedArguments) {
+        SmallRyeContext context = current.get();
+        if (context != null) {
+            context.operationInstance = operationInstance;
+            context.operationMethod = operationMethod;
+            context.operationTransformedArguments = operationTransformedArguments;
         } else {
             throw new ContextNotActiveException();
         }
@@ -215,6 +232,21 @@ public class SmallRyeContext implements Context {
         return Optional.empty();
     }
 
+    @Override
+    public Object getOperationInstance() {
+        return operationInstance;
+    }
+
+    @Override
+    public Method getOperationMethod() {
+        return operationMethod;
+    }
+
+    @Override
+    public Object[] getOperationTransformedArguments() {
+        return operationTransformedArguments;
+    }
+
     private Optional<String> getName(GraphQLType graphQLType) {
         if (graphQLType instanceof GraphQLNamedType) {
             return Optional.of(((GraphQLNamedType) graphQLType).getName());
@@ -249,29 +281,24 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private Document document;
     private Field field;
+
+    private Object operationInstance;
+    private Method operationMethod;
+    private Object[] operationTransformedArguments;
+
     private Stack<Throwable> exceptionStack;
 
     private SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
     }
 
-    private void setField(Field field) {
-        this.field = field;
-    }
-
-    private void setDataFetchingEnvironment(DataFetchingEnvironment dfe) {
-        this.dfe = dfe;
-    }
-
     private void setExecutionInput(ExecutionInput executionInput) {
         this.executionInput = executionInput;
-
         try {
             this.document = parser.parseDocument(executionInput.getQuery());
         } catch (InvalidSyntaxException e) {
             // TODO: LOG ??
         }
-
     }
 
     private void addThrowable(Throwable t) {

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package io.smallrye.graphql.cdi.event.annotation;
+package io.smallrye.graphql.cdi.event;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -15,18 +15,18 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 
 /**
- * CDI Event fired after execute
+ * CDI Event fired after DataFetch
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE })
-public @interface AfterExecute {
+public @interface AfterDataFetch {
 
-    static AfterExecute.AfterExecuteLiteral LITERAL = new AfterExecute.AfterExecuteLiteral();
+    static AfterDataFetchLiteral LITERAL = new AfterDataFetchLiteral();
 
-    class AfterExecuteLiteral extends AnnotationLiteral<AfterExecute> implements AfterExecute {
+    class AfterDataFetchLiteral extends AnnotationLiteral<AfterDataFetch> implements AfterDataFetch {
 
     }
 }

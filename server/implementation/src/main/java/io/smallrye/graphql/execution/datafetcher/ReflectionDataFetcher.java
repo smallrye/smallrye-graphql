@@ -2,14 +2,11 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.util.Collection;
-
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
@@ -32,11 +29,10 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * ArgumentHelper: The same as above, except for every parameter on the way in.
      *
      * @param operation the operation
-     * @param decorators collection of decorators to invoke before and after fetching the data
      *
      */
-    public ReflectionDataFetcher(Config config, Operation operation, Collection<DataFetcherDecorator> decorators) {
-        super(config, operation, decorators);
+    public ReflectionDataFetcher(Config config, Operation operation) {
+        super(config, operation);
     }
 
     /**
@@ -57,9 +53,7 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
             final DataFetchingEnvironment dfe) throws Exception {
 
         try {
-            ExecutionContext executionContext = createExecutionContext(dfe);
-
-            Object resultFromMethodCall = execute(executionContext);
+            Object resultFromMethodCall = execute(dfe);
 
             // See if we need to transform on the way out
             resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));

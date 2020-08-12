@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.event.tracing;
+package io.smallrye.graphql.cdi.tracing;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
+import javax.enterprise.inject.spi.CDI;
 
 import graphql.ExecutionInput;
 import graphql.GraphQLContext;
@@ -25,53 +23,47 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.config.GraphQLConfig;
-import io.smallrye.graphql.cdi.event.annotation.AfterDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.AfterExecute;
-import io.smallrye.graphql.cdi.event.annotation.BeforeDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.BeforeExecute;
-import io.smallrye.graphql.cdi.event.annotation.ErrorDataFetch;
-import io.smallrye.graphql.cdi.event.annotation.ErrorExecute;
+import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.spi.EventingService;
 
 /**
  * Listening for event and create traces from it
- * 
+ *
  * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ApplicationScoped
-public class TracingEventListener {
+public class TracingService implements EventingService {
 
     private static final Object PARENT_SPAN_KEY = Span.class;
 
     private final Map<Context, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
     private final Map<Context, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
-    @Inject
-    Tracer tracer;
+    private final Tracer tracer;
 
-    @Inject
-    GraphQLConfig graphQLConfig;
-
-    public void beforeExecute(@Observes @BeforeExecute Context context) {
-        if (graphQLConfig.isTracingEnabled()) {
-            ExecutionInput executionInput = context.unwrap(ExecutionInput.class);
-            String operationName = getOperationName(executionInput);
-
-            Scope scope = tracer.buildSpan(operationName)
-                    .asChildOf(tracer.activeSpan())
-                    .withTag("graphql.executionId", context.getExecutionId())
-                    .withTag("graphql.operationType", getOperationNameString(context.getRequestedOperationTypes()))
-                    .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
-                    .startActive(true);
-
-            scopes.put(context, scope);
-
-            ((GraphQLContext) executionInput.getContext()).put(Span.class, scope.span()); // TODO: Do we need this ?
-        }
+    public TracingService() {
+        this.tracer = CDI.current().select(Tracer.class).get();
     }
 
-    public void errorExecute(@Observes @ErrorExecute Context context) {
+    @Override
+    public void beforeExecute(Context context) {
+        ExecutionInput executionInput = context.unwrap(ExecutionInput.class);
+        String operationName = getOperationName(executionInput);
+
+        Scope scope = tracer.buildSpan(operationName)
+                .asChildOf(tracer.activeSpan())
+                .withTag("graphql.executionId", context.getExecutionId())
+                .withTag("graphql.operationType", getOperationNameString(context.getRequestedOperationTypes()))
+                .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
+                .startActive(true);
+
+        scopes.put(context, scope);
+
+        ((GraphQLContext) executionInput.getContext()).put(Span.class, scope.span()); // TODO: Do we need this ?
+    }
+
+    @Override
+    public void errorExecute(Context context) {
         Scope scope = scopes.remove(context);
         if (scope != null) {
             Map<String, Object> error = new HashMap<>();
@@ -85,62 +77,67 @@ public class TracingEventListener {
         }
     }
 
-    public void afterExecute(@Observes @AfterExecute Context context) {
+    @Override
+    public void afterExecute(Context context) {
         Scope scope = scopes.remove(context);
         if (scope != null) {
             scope.close();
         }
     }
 
-    public void beforeDataLoad(@Observes @BeforeDataFetch Context context) {
-        if (graphQLConfig.isTracingEnabled()) {
-            final DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+    @Override
+    public void beforeDataFetch(Context context) {
+        final DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
 
-            Span parentSpan = getParentSpan(tracer, env);
+        Span parentSpan = getParentSpan(tracer, env);
 
-            Scope scope = tracer.buildSpan(getOperationName(env))
-                    .asChildOf(parentSpan)
-                    .withTag("graphql.executionId", context.getExecutionId())
-                    .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
-                    .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
-                    .withTag("graphql.parent", context.getParentTypeName().orElse(EMPTY))
-                    .withTag("graphql.field", context.getFieldName())
-                    .withTag("graphql.path", context.getPath())
-                    .startActive(false);
+        Scope scope = tracer.buildSpan(getOperationName(env))
+                .asChildOf(parentSpan)
+                .withTag("graphql.executionId", context.getExecutionId())
+                .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
+                .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
+                .withTag("graphql.parent", context.getParentTypeName().orElse(EMPTY))
+                .withTag("graphql.field", context.getFieldName())
+                .withTag("graphql.path", context.getPath())
+                .startActive(false);
 
-            final Span span = scope.span();
+        final Span span = scope.span();
 
-            GraphQLContext graphQLContext = env.getContext();
-            graphQLContext.put(PARENT_SPAN_KEY, span);
+        GraphQLContext graphQLContext = env.getContext();
+        graphQLContext.put(PARENT_SPAN_KEY, span);
 
-            spans.put(context, span);
-        }
+        spans.put(context, span);
     }
 
-    public void errorDataLoad(@Observes @ErrorDataFetch Context context) {
-        if (graphQLConfig.isTracingEnabled() && context.hasException()) {
+    @Override
+    public void errorDataFetch(Context context) {
+        if (context.getExceptionStack() != null && !context.getExceptionStack().isEmpty()) {
             Throwable t = context.getExceptionStack().peek();
             Span span = spans.get(context);
             logError(span, t);
         }
     }
 
-    public void afterDataLoad(@Observes @AfterDataFetch Context context) {
-        if (graphQLConfig.isTracingEnabled()) {
-            Span span = spans.remove(context);
-            span.finish();
+    @Override
+    public void afterDataFetch(Context context) {
+        Span span = spans.remove(context);
+        span.finish();
 
-            /**
-             * TODO
-             * 
-             * @implNote The current scope must be closed in the thread in which it was opened,
-             *           after work in the current thread has ended.
-             *           So you can't use {@code before} because it is executed before the work in the current thread is
-             *           finished,
-             *           but you can't use {@code after} either because it can run in another thread.
-             */
-            tracer.scopeManager().active().close();
-        }
+        /**
+         * TODO
+         *
+         * @implNote The current scope must be closed in the thread in which it
+         *           was opened, after work in the current thread has ended. So you can't
+         *           use {@code before} because it is executed before the work in the
+         *           current thread is finished, but you can't use {@code after} either
+         *           because it can run in another thread.
+         */
+        tracer.scopeManager().active().close();
+    }
+
+    @Override
+    public String getConfigKey() {
+        return ConfigKey.ENABLE_TRACING;
     }
 
     private Span getParentSpan(Tracer tracer, final DataFetchingEnvironment env) {

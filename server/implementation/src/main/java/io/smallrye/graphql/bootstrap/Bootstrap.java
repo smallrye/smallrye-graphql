@@ -45,8 +45,6 @@ import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
-import io.smallrye.graphql.execution.datafetcher.decorator.DataFetcherDecorator;
-import io.smallrye.graphql.execution.datafetcher.decorator.ValidationDecorator;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -326,19 +324,11 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        Collection<DataFetcherDecorator> decorators = new ArrayList<>();
-        if (config != null) {
-
-            if (config.isValidationEnabled() && operation.hasArguments()) {
-                decorators.add(new ValidationDecorator());
-            }
-        }
-
         DataFetcher<?> datafetcher;
         if (operation.isAsync()) {
-            datafetcher = new AsyncDataFetcher(config, operation, decorators);
+            datafetcher = new AsyncDataFetcher(config, operation);
         } else {
-            datafetcher = new ReflectionDataFetcher(config, operation, decorators);
+            datafetcher = new ReflectionDataFetcher(config, operation);
         }
 
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
