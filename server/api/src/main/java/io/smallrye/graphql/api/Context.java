@@ -16,7 +16,6 @@
 
 package io.smallrye.graphql.api;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,27 +144,6 @@ public interface Context {
      * This return the argument instance if it exists
      */
     public <T> T getArgument(String name);
-
-    /**
-     * Get a loaded instance of the operation class
-     * 
-     * @return instance
-     */
-    public Object getOperationInstance();
-
-    /**
-     * Get the applicable method that declared the current request
-     * 
-     * @return the applicable method
-     */
-    public Method getOperationMethod();
-
-    /**
-     * Get the (already transformed) arguments for the method
-     * 
-     * @return array of argument instances
-     */
-    public Object[] getOperationTransformedArguments();
 
     /**
      * Same as above but with the option to do a default value

@@ -1,5 +1,6 @@
 package io.smallrye.graphql.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ public class TestEndpoint {
 
     @Query
     public List<TestObject> getTestObjects() {
+        System.err.println(">>>>>>>>>>>>>>>>>> List call !!!!! ");
         TestObject p = createTestObject("Phillip");
         TestObject c = createTestObject("Charmaine");
         return Arrays.asList(new TestObject[] { p, c });
@@ -53,7 +55,14 @@ public class TestEndpoint {
 
     @Name("timestamps")
     public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {
-        return Arrays.asList(new TestSource[] { new TestSource() });
+
+        System.err.println(">>>>>>>>>>>>>>>>>> Batch call !!!!! " + testObjects);
+        List<TestSource> batched = new ArrayList<>();
+        for (TestObject testObject : testObjects) {
+            batched.add(new TestSource());
+        }
+
+        return batched;
     }
 
     private void printContext(String from) {

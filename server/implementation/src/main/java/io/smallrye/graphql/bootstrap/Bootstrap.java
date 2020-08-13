@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import javax.json.Json;
 import javax.json.JsonReader;
@@ -20,7 +22,11 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
+import org.dataloader.BatchLoader;
+import org.dataloader.DataLoader;
+
 import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
@@ -41,10 +47,10 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
-import io.smallrye.graphql.execution.datafetcher.AsyncDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -63,6 +69,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -283,7 +290,19 @@ public class Bootstrap {
         if (type.hasOperations()) {
             for (Operation operation : type.getOperations().values()) {
                 operation = EventEmitter.fireCreateOperation(operation);
+
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
+                        operation);
+                objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
+            }
+        }
+
+        // Batch Operations
+        if (type.hasBatchOperations()) {
+            for (Operation operation : type.getBatchOperations().values()) {
+                operation = EventEmitter.fireCreateOperation(operation);
+
+                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromBatchOperation(type.getName(),
                         operation);
                 objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
             }
@@ -307,6 +326,42 @@ public class Bootstrap {
         InterfaceOutputRegistry.register(type, graphQLObjectType);
     }
 
+    private GraphQLFieldDefinition createGraphQLFieldDefinitionFromBatchOperation(String operationTypeName,
+            Operation operation) {
+        // Fields
+        GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
+                .name(operation.getName())
+                .description(operation.getDescription());
+
+        // Return field
+        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(operation));
+
+        // Arguments
+        if (operation.hasArguments()) {
+            fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
+        }
+
+        BatchLoader<Object, Object> batchLoader = createBatchLoader(operation);
+        BootstrapContext.registerBatchLoader(operation.getName(), batchLoader);
+
+        DataFetcher<?> datafetcher = new DataFetcher() {
+            @Override
+            public Object get(DataFetchingEnvironment environment) {
+                Object source = environment.getSource();
+                System.err.println(">>>>>>>>>>>>>>>>> Batching -> " + source);
+                DataLoader<Object, Object> dataLoader = environment.getDataLoader(operation.getName());
+                return dataLoader.load(source);
+            }
+        };
+
+        GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
+
+        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
+                graphQLFieldDefinition.getName()), datafetcher);
+
+        return graphQLFieldDefinition;
+    }
+
     private GraphQLFieldDefinition createGraphQLFieldDefinitionFromOperation(String operationTypeName, Operation operation) {
         // Fields
         GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
@@ -325,11 +380,12 @@ public class Bootstrap {
 
         // DataFetcher
         DataFetcher<?> datafetcher;
-        if (operation.isAsync()) {
-            datafetcher = new AsyncDataFetcher(config, operation);
-        } else {
-            datafetcher = new ReflectionDataFetcher(config, operation);
-        }
+        // TODO: Add Async back
+        //if (operation.isAsync()) {
+        //    datafetcher = new AsyncDataFetcher(config, operation);
+        //} else {
+        datafetcher = new ReflectionDataFetcher(config, operation);
+        //}
 
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
@@ -590,6 +646,32 @@ public class Bootstrap {
         }
         return DEFAULT_FIELD_VISIBILITY;
     }
+
+    private BatchLoader<Object, Object> createBatchLoader(Operation operation) {
+        BatchLoader<Object, Object> batchLoader = new BatchLoader<Object, Object>() {
+            @Override
+            public CompletionStage<List<Object>> load(List<Object> keys) {
+
+                System.err.println(">>>>>>>>>>>>>>> load " + keys);
+                return CompletableFuture.supplyAsync(() -> doSourceListCall(keys, operation));
+            }
+
+            private List<Object> doSourceListCall(List<Object> keys, Operation operation) {
+                ReflectionHelper reflectionHelper = new ReflectionHelper(operation);
+                try {
+                    return (List<Object>) reflectionHelper.invoke(keys);
+                } catch (Exception ex) {
+                    // TODO: Handle this
+                    throw new RuntimeException(ex);
+                }
+            }
+
+        };
+        return batchLoader;
+    }
+
+    protected final LookupService lookupService = LookupService.load();
+    protected final ClassloadingService classloadingService = ClassloadingService.load();
 
     private static final String QUERY = "Query";
     private static final String MUTATION = "Mutation";

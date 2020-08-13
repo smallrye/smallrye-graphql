@@ -4,6 +4,7 @@ import java.util.ServiceLoader;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
@@ -41,7 +42,7 @@ public interface EventingService {
     default void beforeDataFetch(Context context) {
     }
 
-    default void beforeInvoke(Context context) throws Exception {
+    default void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
     }
 
     default void errorDataFetch(Context context) {

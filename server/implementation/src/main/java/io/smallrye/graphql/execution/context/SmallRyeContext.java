@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,20 +78,6 @@ public class SmallRyeContext implements Context {
         if (context != null) {
             context.dfe = dfe;
             context.field = field;
-        } else {
-            throw new ContextNotActiveException();
-        }
-    }
-
-    public static void setReflectionDataFromFetcher(
-            Object operationInstance,
-            Method operationMethod,
-            Object[] operationTransformedArguments) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.operationInstance = operationInstance;
-            context.operationMethod = operationMethod;
-            context.operationTransformedArguments = operationTransformedArguments;
         } else {
             throw new ContextNotActiveException();
         }
@@ -232,21 +217,6 @@ public class SmallRyeContext implements Context {
         return Optional.empty();
     }
 
-    @Override
-    public Object getOperationInstance() {
-        return operationInstance;
-    }
-
-    @Override
-    public Method getOperationMethod() {
-        return operationMethod;
-    }
-
-    @Override
-    public Object[] getOperationTransformedArguments() {
-        return operationTransformedArguments;
-    }
-
     private Optional<String> getName(GraphQLType graphQLType) {
         if (graphQLType instanceof GraphQLNamedType) {
             return Optional.of(((GraphQLNamedType) graphQLType).getName());
@@ -281,10 +251,6 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private Document document;
     private Field field;
-
-    private Object operationInstance;
-    private Method operationMethod;
-    private Object[] operationTransformedArguments;
 
     private Stack<Throwable> exceptionStack;
 

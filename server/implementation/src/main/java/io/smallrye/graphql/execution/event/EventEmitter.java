@@ -84,10 +84,10 @@ public class EventEmitter {
         emitter().ifPresent((t) -> t.emmitBeforeDataFetch());
     }
 
-    public static void fireBeforeDataFetchMethodInvoke() throws Exception {
+    public static void fireBeforeMethodInvoke(InvokeInfo invokeInfo) throws Exception {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            emitter.get().emmitBeforeDataFetchMethodInvoke();
+            emitter.get().emmitBeforeDataFetchMethodInvoke(invokeInfo);
         }
     }
 
@@ -155,10 +155,9 @@ public class EventEmitter {
         }
     }
 
-    private void emmitBeforeDataFetchMethodInvoke() throws Exception {
-        Context context = SmallRyeContext.getContext();
+    private void emmitBeforeDataFetchMethodInvoke(InvokeInfo invokeInfo) throws Exception {
         for (EventingService extensionService : enabledServices) {
-            extensionService.beforeInvoke(context);
+            extensionService.beforeInvoke(invokeInfo);
         }
     }
 

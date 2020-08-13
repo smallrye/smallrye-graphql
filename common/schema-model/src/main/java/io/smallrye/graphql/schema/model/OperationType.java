@@ -9,6 +9,5 @@ public enum OperationType {
     Query,
     Mutation,
     Source,
-    SourceList,
     Subscription
 }

@@ -7,8 +7,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 
-import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.spi.EventingService;
 
 /**
@@ -18,11 +18,16 @@ public class ValidationService implements EventingService {
     private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
 
     @Override
-    public void beforeInvoke(Context context) throws Exception {
-        Object declaringObject = context.getOperationInstance();
-        Method method = context.getOperationMethod();
-        Object[] arguments = context.getOperationTransformedArguments();
+    public void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
+        System.out.println(">>>>>>>>>>>> BEFORE INVOKE");
+        Object declaringObject = invokeInfo.getOperationInstance();
+        System.out.println(">>>>>>>>>>>> declaringObject = " + declaringObject);
+        Method method = invokeInfo.getOperationMethod();
+        System.out.println(">>>>>>>>>>>> method = " + method);
 
+        Object[] arguments = invokeInfo.getOperationTransformedArguments();
+
+        System.out.println(">>>>>>>>>>>> arguments = " + arguments);
         Set<ConstraintViolation<Object>> violations = VALIDATOR_FACTORY.getValidator()
                 .forExecutables().validateParameters(declaringObject, method, arguments);
 

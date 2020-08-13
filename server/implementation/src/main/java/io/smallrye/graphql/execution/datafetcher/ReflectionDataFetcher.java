@@ -1,14 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
-
-import org.eclipse.microprofile.graphql.GraphQLException;
-
 import graphql.execution.DataFetcherResult;
-import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * Fetch data using some bean lookup and Reflection
@@ -47,27 +41,54 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      * @param dfe the Data Fetching Environment from graphql-java
      * @return the result from the call.
      */
-    @Override
-    protected DataFetcherResult<Object> fetch(
-            final DataFetcherResult.Builder<Object> resultBuilder,
-            final DataFetchingEnvironment dfe) throws Exception {
+    //    @Override
+    //    protected DataFetcherResult<Object> fetch(
+    //            final DataFetcherResult.Builder<Object> resultBuilder,
+    //            final DataFetchingEnvironment dfe) throws Exception {
+    //
+    //        try {
+    //            Object resultFromMethodCall = execute(dfe);
+    //
+    //            // See if we need to transform on the way out
+    //            resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
+    //        } catch (AbstractDataFetcherException pe) {
+    //            //Arguments or result couldn't be transformed
+    //            pe.appendDataFetcherResult(resultBuilder, dfe);
+    //        } catch (GraphQLException graphQLException) {
+    //            appendPartialResult(resultBuilder, dfe, graphQLException);
+    //        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
+    //            //m.invoke failed
+    //            throw msg.dataFetcherException(operation, ex);
+    //        }
+    //
+    //        return resultBuilder.build();
+    //    }
 
-        try {
-            Object resultFromMethodCall = execute(dfe);
-
-            // See if we need to transform on the way out
-            resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
-        } catch (AbstractDataFetcherException pe) {
-            //Arguments or result couldn't be transformed
-            pe.appendDataFetcherResult(resultBuilder, dfe);
-        } catch (GraphQLException graphQLException) {
-            appendPartialResult(resultBuilder, dfe, graphQLException);
-        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
-            //m.invoke failed
-            throw msg.dataFetcherException(operation, ex);
-        }
-
-        return resultBuilder.build();
-    }
-
+    //    @Override
+    //    protected Object execute(DataFetcherResult.Builder<Object> resultBuilder,
+    //            final DataFetchingEnvironment dfe,
+    //            Object operationInstance,
+    //            Method operationMethod,
+    //            Object[] transformedArguments) throws Exception {
+    //        try {
+    //            EventEmitter.fireBeforeDataFetchMethodInvoke();
+    //            Object resultFromMethodCall = operationMethod.invoke(operationInstance, transformedArguments);
+    //            // See if we need to transform on the way out
+    //            return fieldHelper.transformResponse(resultFromMethodCall));
+    //            return resultBuilder.build();
+    //        } catch (InvocationTargetException ex) {
+    //            //Invoked method has thrown something, unwrap
+    //            Throwable throwable = ex.getCause();
+    //
+    //            if (throwable instanceof Error) {
+    //                throw (Error) throwable;
+    //            } else if (throwable instanceof GraphQLException) {
+    //                throw (GraphQLException) throwable;
+    //            } else if (throwable instanceof Exception) {
+    //                throw (Exception) throwable;
+    //            } else {
+    //                throw msg.dataFetcherException(operation, throwable);
+    //            }
+    //        }
+    //    }
 }
