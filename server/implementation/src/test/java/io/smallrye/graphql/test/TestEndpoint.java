@@ -25,13 +25,11 @@ public class TestEndpoint {
     @Query
     public TestObject getTestObject(String yourname) {
         TestObject testObject = createTestObject(yourname);
-        printContext("testObject");
         return testObject;
     }
 
     @Query
     public List<TestObject> getTestObjects() {
-        System.err.println(">>>>>>>>>>>>>>>>>> List call !!!!! ");
         TestObject p = createTestObject("Phillip");
         TestObject c = createTestObject("Charmaine");
         return Arrays.asList(new TestObject[] { p, c });
@@ -47,16 +45,14 @@ public class TestEndpoint {
         return values;
     }
 
+    // This method will be ignored, with a WARN in the log, due to below duplicate
     @Name("timestamp")
     public TestSource getTestSource(@Source TestObject testObject, String indicator) {
-        printContext("timestamp (source)");
         return new TestSource();
     }
 
-    @Name("timestamps")
+    @Name("timestamp")
     public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {
-
-        System.err.println(">>>>>>>>>>>>>>>>>> Batch call !!!!! " + testObjects);
         List<TestSource> batched = new ArrayList<>();
         for (TestObject testObject : testObjects) {
             batched.add(new TestSource());
@@ -65,17 +61,15 @@ public class TestEndpoint {
         return batched;
     }
 
-    private void printContext(String from) {
+    @Query
+    public ContextInfo testContext() {
         Context context = SmallRyeContext.getContext();
-        System.err.println("================ " + from + " ================");
-        System.err.println(">>>>>> executionId = " + context.getExecutionId());
-        System.err.println(">>>>>> path = " + context.getPath());
-        System.err.println(">>>>>> query = " + context.getQuery());
-        System.err.println(">>>>>> arguments = " + context.getArguments());
-        System.err.println(">>>>>> operationName = " + context.getOperationName().orElse(""));
-        System.err.println(">>>>>> variables = " + context.getVariables().orElse(null));
-        System.err.println(">>>>>> source = " + context.getSource());
-        System.err.println(">>>>>> selectedFields = " + context.getSelectedFields());
+
+        ContextInfo contextInfo = new ContextInfo();
+        contextInfo.executionId = context.getExecutionId();
+        contextInfo.path = context.getPath();
+        contextInfo.query = context.getQuery();
+        return contextInfo;
     }
 
     private TestObject createTestObject(String name) {

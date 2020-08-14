@@ -289,11 +289,16 @@ public class Bootstrap {
         // Operations
         if (type.hasOperations()) {
             for (Operation operation : type.getOperations().values()) {
-                operation = EventEmitter.fireCreateOperation(operation);
+                String name = operation.getName();
+                if (!type.hasBatchOperation(name)) {
+                    operation = EventEmitter.fireCreateOperation(operation);
 
-                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
-                        operation);
-                objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
+                    GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
+                            operation);
+                    objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
+                } else {
+                    log.duplicateOperation(operation.getName());
+                }
             }
         }
 
@@ -348,7 +353,6 @@ public class Bootstrap {
             @Override
             public Object get(DataFetchingEnvironment environment) {
                 Object source = environment.getSource();
-                System.err.println(">>>>>>>>>>>>>>>>> Batching -> " + source);
                 DataLoader<Object, Object> dataLoader = environment.getDataLoader(operation.getName());
                 return dataLoader.load(source);
             }

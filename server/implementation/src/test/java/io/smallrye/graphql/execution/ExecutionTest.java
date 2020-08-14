@@ -52,8 +52,8 @@ public class ExecutionTest extends ExecutionTestBase {
         assertFalse(testObject.isNull("id"), "id should not be null");
 
         // Testing batch
-        assertFalse(testObject.isNull("timestamps"), "timestamps should not be null");
-        assertFalse(testObject.get("timestamps").asJsonObject().isNull("value"), "timestamps value should not be null");
+        assertFalse(testObject.isNull("timestamp"), "timestamp should not be null");
+        assertFalse(testObject.get("timestamp").asJsonObject().isNull("value"), "timestamp value should not be null");
 
     }
 
@@ -71,7 +71,7 @@ public class ExecutionTest extends ExecutionTestBase {
             "  testObjects {\n" +
             "    id\n" +
             "    name\n" +
-            "    timestamps {\n" +
+            "    timestamp {\n" +
             "       value\n" +
             "    }\n" +
             "  }\n" +

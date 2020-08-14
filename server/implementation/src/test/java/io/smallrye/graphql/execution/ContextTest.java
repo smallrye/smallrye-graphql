@@ -16,34 +16,26 @@ import org.junit.jupiter.api.Test;
 public class ContextTest extends ExecutionTestBase {
 
     @Test
-    public void testBasicQuery() {
+    public void testContext() {
         JsonObject data = executeAndGetData(TEST_QUERY);
 
-        JsonObject testObject = data.getJsonObject("testObject");
+        JsonObject testObject = data.getJsonObject("testContext");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("Phillip", testObject.getString("name"));
+        assertFalse(testObject.isNull("executionId"), "executionId should not be null");
 
-        JsonObject timestamp = testObject.getJsonObject("timestamp");
-        assertNotNull(timestamp);
-        assertNotNull(timestamp.getString("value"));
+        assertFalse(testObject.isNull("path"), "path should not be null");
+        assertEquals("/testContext", testObject.getString("path"));
 
-        assertFalse(testObject.isNull("id"), "id should not be null");
-
+        assertFalse(testObject.isNull("query"), "query should not be null");
     }
 
     private static final String TEST_QUERY = "{\n" +
-            "  testObject(yourname:\"Phillip\") {\n" +
-            "    id\n" +
-            "    name\n" +
-            "    timestamp(indicator:\"xyz\"){" +
-            "       value" +
-            "    }" +
-            "    amounts{" +
-            "       amount" +
-            "    }" +
+            "  testContext {\n" +
+            "    executionId\n" +
+            "    path\n" +
+            "    query\n" +
             "  }\n" +
             "}";
 
