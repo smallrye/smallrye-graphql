@@ -247,9 +247,11 @@ public class ReferenceCreator {
     private void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
         Map<String, Reference> map = getReferenceMap(referenceType);
         Queue<Reference> queue = getReferenceQueue(referenceType);
-        if (!map.containsKey(key)) {
-            map.put(key, reference);
-            queue.add(reference);
+        if (map != null && queue != null) {
+            if (!map.containsKey(key)) {
+                map.put(key, reference);
+                queue.add(reference);
+            }
         }
     }
 

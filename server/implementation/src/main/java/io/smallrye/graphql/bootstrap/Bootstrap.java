@@ -636,16 +636,18 @@ public class Bootstrap {
     private GraphqlFieldVisibility getGraphqlFieldVisibility() {
         if (config != null) {
             String fieldVisibility = config.getFieldVisibility();
-            if (fieldVisibility != null && !fieldVisibility.isEmpty()
-                    && fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
-                return NO_INTROSPECTION_FIELD_VISIBILITY;
-            } else {
-                String[] patterns = fieldVisibility.split(COMMA);
-                BlockedFields.Builder blockedFields = BlockedFields.newBlock();
-                for (String pattern : patterns) {
-                    blockedFields = blockedFields.addPattern(pattern);
+            if (fieldVisibility != null && !fieldVisibility.isEmpty()) {
+
+                if (fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
+                    return NO_INTROSPECTION_FIELD_VISIBILITY;
+                } else {
+                    String[] patterns = fieldVisibility.split(COMMA);
+                    BlockedFields.Builder blockedFields = BlockedFields.newBlock();
+                    for (String pattern : patterns) {
+                        blockedFields = blockedFields.addPattern(pattern);
+                    }
+                    return blockedFields.build();
                 }
-                return blockedFields.build();
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
