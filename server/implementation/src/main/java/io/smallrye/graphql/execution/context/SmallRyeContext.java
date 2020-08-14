@@ -241,7 +241,6 @@ public class SmallRyeContext implements Context {
                 && source != null) {
             return OperationType.Source;
         }
-        // TODO: New Source List ?
         return OperationType.Query;
     }
 

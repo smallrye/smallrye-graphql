@@ -19,15 +19,11 @@ public class ValidationService implements EventingService {
 
     @Override
     public void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
-        System.out.println(">>>>>>>>>>>> BEFORE INVOKE");
         Object declaringObject = invokeInfo.getOperationInstance();
-        System.out.println(">>>>>>>>>>>> declaringObject = " + declaringObject);
         Method method = invokeInfo.getOperationMethod();
-        System.out.println(">>>>>>>>>>>> method = " + method);
 
         Object[] arguments = invokeInfo.getOperationTransformedArguments();
 
-        System.out.println(">>>>>>>>>>>> arguments = " + arguments);
         Set<ConstraintViolation<Object>> violations = VALIDATOR_FACTORY.getValidator()
                 .forExecutables().validateParameters(declaringObject, method, arguments);
 
