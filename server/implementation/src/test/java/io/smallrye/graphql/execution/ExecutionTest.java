@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
  */
 public class ExecutionTest extends ExecutionTestBase {
 
-    //@Test
+    @Test
     public void testBasicQuery() {
         JsonObject data = executeAndGetData(TEST_QUERY);
 
@@ -28,6 +28,10 @@ public class ExecutionTest extends ExecutionTestBase {
         assertEquals("Phillip", testObject.getString("name"));
 
         assertFalse(testObject.isNull("id"), "id should not be null");
+
+        // Testing source
+        assertFalse(testObject.isNull("timestamp"), "timestamp should not be null");
+        assertFalse(testObject.get("timestamp").asJsonObject().isNull("value"), "timestamp value should not be null");
 
     }
 
@@ -46,12 +50,20 @@ public class ExecutionTest extends ExecutionTestBase {
         assertEquals("Phillip", testObject.getString("name"));
 
         assertFalse(testObject.isNull("id"), "id should not be null");
+
+        // Testing batch
+        assertFalse(testObject.isNull("timestamps"), "timestamps should not be null");
+        assertFalse(testObject.get("timestamps").asJsonObject().isNull("value"), "timestamps value should not be null");
+
     }
 
     private static final String TEST_QUERY = "{\n" +
             "  testObject(yourname:\"Phillip\") {\n" +
             "    id\n" +
             "    name\n" +
+            "    timestamp {\n" +
+            "       value\n" +
+            "    }\n" +
             "  }\n" +
             "}";
 
