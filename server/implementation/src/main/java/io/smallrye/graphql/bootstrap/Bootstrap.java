@@ -383,13 +383,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher;
-        // TODO: Add Async back
-        //if (operation.isAsync()) {
-        //    datafetcher = new AsyncDataFetcher(config, operation);
-        //} else {
-        datafetcher = new ReflectionDataFetcher(config, operation);
-        //}
+        DataFetcher<?> datafetcher = new ReflectionDataFetcher(config, operation);
 
         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
@@ -657,8 +651,6 @@ public class Bootstrap {
         BatchLoader<Object, Object> batchLoader = new BatchLoader<Object, Object>() {
             @Override
             public CompletionStage<List<Object>> load(List<Object> keys) {
-
-                System.err.println(">>>>>>>>>>>>>>> load " + keys);
                 return CompletableFuture.supplyAsync(() -> doSourceListCall(keys, operation));
             }
 

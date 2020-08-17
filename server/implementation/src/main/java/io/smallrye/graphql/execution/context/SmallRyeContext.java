@@ -56,20 +56,13 @@ public class SmallRyeContext implements Context {
     }
 
     public static Context getContext() {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            return context;
-        } else {
-            throw new ContextNotActiveException();
-        }
+        return current.get();
     }
 
     public static void setDataFromExecution(ExecutionInput executionInput) {
         SmallRyeContext context = current.get();
         if (context != null) {
             context.setExecutionInput(executionInput);
-        } else {
-            throw new ContextNotActiveException();
         }
     }
 
@@ -78,8 +71,6 @@ public class SmallRyeContext implements Context {
         if (context != null) {
             context.dfe = dfe;
             context.field = field;
-        } else {
-            throw new ContextNotActiveException();
         }
     }
 
@@ -87,8 +78,6 @@ public class SmallRyeContext implements Context {
         SmallRyeContext context = current.get();
         if (context != null) {
             context.addThrowable(t);
-        } else {
-            throw new ContextNotActiveException();
         }
     }
 
@@ -103,7 +92,7 @@ public class SmallRyeContext implements Context {
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
-        // We only support DataFetchingEnvironment at this point
+        // We only support DataFetchingEnvironment and ExecutionInput at this point
         if (wrappedType.equals(DataFetchingEnvironment.class)) {
             return (T) this.dfe;
         } else if (wrappedType.equals(ExecutionInput.class)) {

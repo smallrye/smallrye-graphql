@@ -1,15 +1,42 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
+import org.eclipse.microprofile.graphql.GraphQLException;
+
+import graphql.GraphQLContext;
+import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
+import graphql.execution.ExecutionPath;
+import graphql.language.SourceLocation;
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
+import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
+import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * Fetch data using some bean lookup and Reflection
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult<Object>> {
+public class ReflectionDataFetcher<T> implements DataFetcher<T> {
+
+    private final Config config;
+    private final Operation operation;
+    private final FieldHelper fieldHelper;
+    private final ReflectionHelper reflectionHelper;
+    private final ArgumentHelper argumentHelper;
 
     /**
      * We use this reflection data fetcher on operations (so Queries, Mutations and Source)
@@ -26,69 +53,133 @@ public class ReflectionDataFetcher extends AbstractDataFetcher<DataFetcherResult
      *
      */
     public ReflectionDataFetcher(Config config, Operation operation) {
-        super(config, operation);
+        this.config = config;
+        this.operation = operation;
+        this.fieldHelper = new FieldHelper(operation);
+        this.reflectionHelper = new ReflectionHelper(operation);
+        this.argumentHelper = new ArgumentHelper(operation.getArguments());
     }
 
-    /**
-     * This makes the call on the method. We do the following:
-     * 1) Get the correct instance of the class we want to make the call in using CDI. That allow the developer to still use
-     * Scopes in the bean.
-     * 2) Get the argument values (if any) from graphql-java and make sue they are in the correct type, and if needed,
-     * transformed.
-     * 3) Make a call on the method with the correct arguments
-     * 4) get the result and if needed transform it before we return it.
-     * 
-     * @param dfe the Data Fetching Environment from graphql-java
-     * @return the result from the call.
-     */
-    //    @Override
-    //    protected DataFetcherResult<Object> fetch(
-    //            final DataFetcherResult.Builder<Object> resultBuilder,
-    //            final DataFetchingEnvironment dfe) throws Exception {
-    //
-    //        try {
-    //            Object resultFromMethodCall = execute(dfe);
-    //
-    //            // See if we need to transform on the way out
-    //            resultBuilder.data(fieldHelper.transformResponse(resultFromMethodCall));
-    //        } catch (AbstractDataFetcherException pe) {
-    //            //Arguments or result couldn't be transformed
-    //            pe.appendDataFetcherResult(resultBuilder, dfe);
-    //        } catch (GraphQLException graphQLException) {
-    //            appendPartialResult(resultBuilder, dfe, graphQLException);
-    //        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
-    //            //m.invoke failed
-    //            throw msg.dataFetcherException(operation, ex);
-    //        }
-    //
-    //        return resultBuilder.build();
-    //    }
+    @Override
+    public T get(final DataFetchingEnvironment dfe) throws Exception {
+        if (operation.isAsync()) {
+            return (T) getAsync(dfe);
+        } else {
+            return (T) getSync(dfe);
+        }
+    }
 
-    //    @Override
-    //    protected Object execute(DataFetcherResult.Builder<Object> resultBuilder,
-    //            final DataFetchingEnvironment dfe,
-    //            Object operationInstance,
-    //            Method operationMethod,
-    //            Object[] transformedArguments) throws Exception {
-    //        try {
-    //            EventEmitter.fireBeforeDataFetchMethodInvoke();
-    //            Object resultFromMethodCall = operationMethod.invoke(operationInstance, transformedArguments);
-    //            // See if we need to transform on the way out
-    //            return fieldHelper.transformResponse(resultFromMethodCall));
-    //            return resultBuilder.build();
-    //        } catch (InvocationTargetException ex) {
-    //            //Invoked method has thrown something, unwrap
-    //            Throwable throwable = ex.getCause();
-    //
-    //            if (throwable instanceof Error) {
-    //                throw (Error) throwable;
-    //            } else if (throwable instanceof GraphQLException) {
-    //                throw (GraphQLException) throwable;
-    //            } else if (throwable instanceof Exception) {
-    //                throw (Exception) throwable;
-    //            } else {
-    //                throw msg.dataFetcherException(operation, throwable);
-    //            }
-    //        }
-    //    }
+    private DataFetcherResult<Object> getSync(final DataFetchingEnvironment dfe) throws Exception {
+
+        SmallRyeContext.setDataFromFetcher(dfe, operation);
+
+        final GraphQLContext context = dfe.getContext();
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
+        try {
+            EventEmitter.fireBeforeDataFetch();
+            Object[] transformedArguments = argumentHelper.getArguments(dfe);
+            Object resultFromMethodCall = reflectionHelper.invoke(transformedArguments);
+            Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
+            resultBuilder.data(resultFromTransform);
+        } catch (AbstractDataFetcherException abstractDataFetcherException) {
+            //Arguments or result couldn't be transformed
+            abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
+            SmallRyeContext.addError(abstractDataFetcherException);
+            EventEmitter.fireOnDataFetchError();
+        } catch (GraphQLException graphQLException) {
+            appendPartialResult(resultBuilder, dfe, graphQLException);
+            SmallRyeContext.addError(graphQLException);
+            EventEmitter.fireOnDataFetchError();
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
+            //m.invoke failed
+            SmallRyeContext.addError(ex);
+            EventEmitter.fireOnDataFetchError();
+            throw msg.dataFetcherException(operation, ex);
+        } finally {
+            EventEmitter.fireAfterDataFetch();
+        }
+
+        return resultBuilder.build();
+    }
+
+    private CompletionStage<DataFetcherResult<Object>> getAsync(final DataFetchingEnvironment dfe) throws Exception {
+
+        SmallRyeContext.setDataFromFetcher(dfe, operation);
+
+        final GraphQLContext context = dfe.getContext();
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
+        try {
+            EventEmitter.fireBeforeDataFetch();
+            Object[] transformedArguments = argumentHelper.getArguments(dfe);
+            CompletionStage<Object> futureResultFromMethodCall = reflectionHelper.invoke(transformedArguments);
+
+            return futureResultFromMethodCall.handle((result, throwable) -> {
+                if (throwable instanceof CompletionException) {
+                    //Exception thrown by underlying method may be wrapped in CompletionException
+                    throwable = throwable.getCause();
+                }
+
+                if (throwable != null) {
+                    if (throwable instanceof GraphQLException) {
+                        GraphQLException graphQLException = (GraphQLException) throwable;
+                        appendPartialResult(resultBuilder, dfe, graphQLException);
+                    } else if (throwable instanceof Exception) {
+                        throw msg.dataFetcherException(operation, throwable);
+                    } else if (throwable instanceof Error) {
+                        throw ((Error) throwable);
+                    }
+                } else {
+                    try {
+                        resultBuilder.data(fieldHelper.transformResponse(result));
+                    } catch (AbstractDataFetcherException te) {
+                        te.appendDataFetcherResult(resultBuilder, dfe);
+                    }
+                }
+
+                return resultBuilder.build();
+            });
+
+        } catch (AbstractDataFetcherException abstractDataFetcherException) {
+            //Arguments or result couldn't be transformed
+            abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
+            SmallRyeContext.addError(abstractDataFetcherException);
+            EventEmitter.fireOnDataFetchError();
+        } catch (GraphQLException graphQLException) {
+            appendPartialResult(resultBuilder, dfe, graphQLException);
+            SmallRyeContext.addError(graphQLException);
+            EventEmitter.fireOnDataFetchError();
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
+            //m.invoke failed
+            SmallRyeContext.addError(ex);
+            EventEmitter.fireOnDataFetchError();
+            throw msg.dataFetcherException(operation, ex);
+        } finally {
+            EventEmitter.fireAfterDataFetch();
+        }
+
+        return CompletableFuture.completedFuture(resultBuilder.build());
+
+    }
+
+    private DataFetcherResult.Builder<Object> appendPartialResult(
+            DataFetcherResult.Builder<Object> resultBuilder,
+            DataFetchingEnvironment dfe,
+            GraphQLException graphQLException) {
+        DataFetcherExceptionHandlerParameters handlerParameters = DataFetcherExceptionHandlerParameters
+                .newExceptionParameters()
+                .dataFetchingEnvironment(dfe)
+                .exception(graphQLException)
+                .build();
+
+        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
+        ExecutionPath path = handlerParameters.getPath();
+        GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
+                sourceLocation);
+
+        return resultBuilder
+                .data(graphQLException.getPartialResults())
+                .error(error);
+    }
 }

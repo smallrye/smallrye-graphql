@@ -34,13 +34,13 @@ public class ReflectionHelper {
         this.operation = operation;
     }
 
-    public Object invoke(Object... arguments) throws Exception {
+    public <T> T invoke(Object... arguments) throws Exception {
 
         init();
 
         try {
             EventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
-            return this.method.invoke(this.operationInstance, arguments);
+            return (T) this.method.invoke(this.operationInstance, arguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
             Throwable throwable = ex.getCause();
