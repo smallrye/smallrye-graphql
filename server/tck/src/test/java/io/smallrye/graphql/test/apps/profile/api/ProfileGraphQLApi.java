@@ -56,7 +56,7 @@ public class ProfileGraphQLApi {
     }
 
     // This method will be ignored due to below batch
-    public Integer getCount(@Source Profile profiles) {
+    public Integer getCount(@Source Profile profile) {
         sourceMethodExecutionCount = sourceMethodExecutionCount + 1;
 
         return sourceMethodExecutionCount;
@@ -67,6 +67,14 @@ public class ProfileGraphQLApi {
         List<Integer> batched = new ArrayList<>();
         for (Profile profile : profiles) {
             batched.add(sourceMethodExecutionCount);
+        }
+        return batched;
+    }
+
+    public List<Timestamp> getTimestamp(@Source List<Profile> profiles) {
+        List<Timestamp> batched = new ArrayList<>();
+        for (Profile profile : profiles) {
+            batched.add(new Timestamp()); // Test that transformation still works on batch
         }
         return batched;
     }
