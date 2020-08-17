@@ -29,7 +29,6 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -69,7 +68,6 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.ClassloadingService;
-import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -81,7 +79,6 @@ public class Bootstrap {
 
     private final Schema schema;
     private final Config config;
-    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry(); // TODO: Move to context
 
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
@@ -131,8 +128,8 @@ public class Bootstrap {
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
-        codeRegistryBuilder.fieldVisibility(getGraphqlFieldVisibility());
-        schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+        BootstrapContext.getCodeRegistryBuilder().fieldVisibility(getGraphqlFieldVisibility());
+        schemaBuilder = schemaBuilder.codeRegistry(BootstrapContext.getCodeRegistryBuilder().build());
 
         // register error info
         ErrorInfoMap.register(schema.getErrors());
@@ -236,7 +233,7 @@ public class Bootstrap {
 
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
-        codeRegistryBuilder.typeResolver(graphQLInterfaceType,
+        BootstrapContext.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
                 new InterfaceResolver(interfaceType));
 
         interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
@@ -360,7 +357,7 @@ public class Bootstrap {
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
-        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
+        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
@@ -383,9 +380,9 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = new ReflectionDataFetcher(config, operation);
+        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation);
 
-        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName,
+        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
@@ -411,7 +408,7 @@ public class Bootstrap {
 
         // DataFetcher
         PropertyDataFetcher datafetcher = new PropertyDataFetcher(field);
-        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(ownerName,
+        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(ownerName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
@@ -667,9 +664,6 @@ public class Bootstrap {
         };
         return batchLoader;
     }
-
-    protected final LookupService lookupService = LookupService.load();
-    protected final ClassloadingService classloadingService = ClassloadingService.load();
 
     private static final String QUERY = "Query";
     private static final String MUTATION = "Mutation";

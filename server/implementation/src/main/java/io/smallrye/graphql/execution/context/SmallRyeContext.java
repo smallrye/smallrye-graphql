@@ -32,7 +32,6 @@ import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
-import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
  * Implements the Context from MicroProfile API.
@@ -42,7 +41,6 @@ import io.smallrye.graphql.spi.ClassloadingService;
 public class SmallRyeContext implements Context {
     private static Schema schema;
 
-    protected final ClassloadingService classloadingService = ClassloadingService.load();
     private static final ThreadLocal<SmallRyeContext> current = new ThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {

@@ -15,7 +15,6 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -32,7 +31,6 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  */
 public class ReflectionDataFetcher<T> implements DataFetcher<T> {
 
-    private final Config config;
     private final Operation operation;
     private final FieldHelper fieldHelper;
     private final ReflectionHelper reflectionHelper;
@@ -52,8 +50,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
      * @param operation the operation
      *
      */
-    public ReflectionDataFetcher(Config config, Operation operation) {
-        this.config = config;
+    public ReflectionDataFetcher(Operation operation) {
         this.operation = operation;
         this.fieldHelper = new FieldHelper(operation);
         this.reflectionHelper = new ReflectionHelper(operation);

@@ -4,6 +4,7 @@ import org.dataloader.BatchLoader;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 
 /**
@@ -44,6 +45,10 @@ public class BootstrapContext {
         return getBootstrapContext().dataLoaderRegistry;
     }
 
+    public static GraphQLCodeRegistry.Builder getCodeRegistryBuilder() {
+        return getBootstrapContext().codeRegistryBuilder;
+    }
+
     private static BootstrapContext getBootstrapContext() {
         BootstrapContext context = current.get();
         if (context != null) {
@@ -55,6 +60,7 @@ public class BootstrapContext {
 
     private GraphQLSchema graphQLSchema;
     private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
+    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     private BootstrapContext() {
     }
