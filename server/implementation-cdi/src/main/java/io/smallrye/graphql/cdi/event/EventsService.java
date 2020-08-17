@@ -38,11 +38,6 @@ public class EventsService implements EventingService {
     }
 
     @Override
-    public void errorExecute(Context context) {
-        fire(context, ErrorExecute.LITERAL);
-    }
-
-    @Override
     public void afterExecute(Context context) {
         fire(context, AfterExecute.LITERAL);
     }
@@ -58,13 +53,18 @@ public class EventsService implements EventingService {
     }
 
     @Override
-    public void errorDataFetch(Context context) {
-        fire(context, ErrorDataFetch.LITERAL);
+    public void afterDataFetch(Context context) {
+        fire(context, AfterDataFetch.LITERAL);
     }
 
     @Override
-    public void afterDataFetch(Context context) {
-        fire(context, AfterDataFetch.LITERAL);
+    public void errorExecute(String executionId, Throwable t) {
+        fire(new ErrorInfo(executionId, t), ErrorExecute.LITERAL);
+    }
+
+    @Override
+    public void errorDataFetch(String executionId, Throwable t) {
+        fire(new ErrorInfo(executionId, t), ErrorDataFetch.LITERAL);
     }
 
     @Override

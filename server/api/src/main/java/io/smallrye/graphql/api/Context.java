@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -215,22 +214,6 @@ public interface Context {
      * @return
      */
     public List<OperationType> getRequestedOperationTypes();
-
-    /**
-     * Return all exceptions that has happened up to now
-     * 
-     * @return Stack of throwable, if any
-     */
-    public Stack<Throwable> getExceptionStack();
-
-    /**
-     * Return if there is any exceptions
-     * 
-     * @return true/false
-     */
-    default boolean hasException() {
-        return getExceptionStack() != null && !getExceptionStack().isEmpty();
-    }
 
     /**
      * Return the type name of the parent (if any)

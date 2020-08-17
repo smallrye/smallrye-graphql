@@ -33,10 +33,10 @@ public interface EventingService {
     default void beforeExecute(Context context) {
     }
 
-    default void errorExecute(Context context) {
+    default void afterExecute(Context context) {
     }
 
-    default void afterExecute(Context context) {
+    default void errorExecute(String executionId, Throwable t) {
     }
 
     default void beforeDataFetch(Context context) {
@@ -45,9 +45,9 @@ public interface EventingService {
     default void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
     }
 
-    default void errorDataFetch(Context context) {
+    default void afterDataFetch(Context context) {
     }
 
-    default void afterDataFetch(Context context) {
+    default void errorDataFetch(String executionId, Throwable t) {
     }
 }

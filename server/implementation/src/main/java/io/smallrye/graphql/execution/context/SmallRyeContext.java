@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Stack;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -71,13 +70,6 @@ public class SmallRyeContext implements Context {
         if (context != null) {
             context.dfe = dfe;
             context.field = field;
-        }
-    }
-
-    public static void addError(Throwable t) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.addThrowable(t);
         }
     }
 
@@ -194,11 +186,6 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public Stack<Throwable> getExceptionStack() {
-        return exceptionStack;
-    }
-
-    @Override
     public Optional<String> getParentTypeName() {
         if (dfe != null) {
             return getName(dfe.getParentType());
@@ -240,8 +227,6 @@ public class SmallRyeContext implements Context {
     private Document document;
     private Field field;
 
-    private Stack<Throwable> exceptionStack;
-
     private SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
     }
@@ -253,12 +238,6 @@ public class SmallRyeContext implements Context {
         } catch (InvalidSyntaxException e) {
             // TODO: LOG ??
         }
-    }
-
-    private void addThrowable(Throwable t) {
-        if (this.exceptionStack == null)
-            this.exceptionStack = new Stack<>();
-        this.exceptionStack.add(t);
     }
 
     private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {

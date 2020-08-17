@@ -78,6 +78,10 @@ public class ExecutionService {
     public JsonObject execute(JsonObject jsonInput) {
         EventEmitter.start(config);
         SmallRyeContext.register(jsonInput);
+
+        // ExecutionId
+        ExecutionId finalExecutionId = ExecutionId.from(executionIdPrefix + executionId.getAndIncrement());
+
         try {
             Context context = SmallRyeContext.getContext();
 
@@ -92,7 +96,7 @@ public class ExecutionService {
                 // Query
                 Builder executionBuilder = ExecutionInput.newExecutionInput()
                         .query(query)
-                        .executionId(ExecutionId.from(executionIdPrefix + executionId.getAndIncrement()));
+                        .executionId(finalExecutionId);
 
                 // Variables
                 context.getVariables().ifPresent(executionBuilder::variables);
@@ -137,8 +141,7 @@ public class ExecutionService {
                 return null;
             }
         } catch (Throwable t) {
-            SmallRyeContext.addError(t);
-            EventEmitter.fireOnExecuteError();
+            EventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
             throw t;
         } finally {
             SmallRyeContext.remove();

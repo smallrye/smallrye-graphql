@@ -72,8 +72,11 @@ public class EventEmitter {
         emitter().ifPresent((t) -> t.emmitBeforeExecute());
     }
 
-    public static void fireOnExecuteError() {
-        emitter().ifPresent((t) -> t.emmitOnExecuteError());
+    public static void fireOnExecuteError(String executionId, Throwable t) {
+        Optional<EventEmitter> emitter = emitter();
+        if (emitter.isPresent()) {
+            emitter.get().emmitOnExecuteError(executionId, t);
+        }
     }
 
     public static void fireAfterExecute() {
@@ -91,8 +94,11 @@ public class EventEmitter {
         }
     }
 
-    public static void fireOnDataFetchError() {
-        emitter().ifPresent((t) -> t.emmitOnDataFetchError());
+    public static void fireOnDataFetchError(String executionId, Throwable t) {
+        Optional<EventEmitter> emitter = emitter();
+        if (emitter.isPresent()) {
+            emitter.get().emmitOnDataFetchError(executionId, t);
+        }
     }
 
     public static void fireAfterDataFetch() {
@@ -133,10 +139,9 @@ public class EventEmitter {
         }
     }
 
-    private void emmitOnExecuteError() {
-        Context context = SmallRyeContext.getContext();
+    private void emmitOnExecuteError(String executionId, Throwable t) {
         for (EventingService extensionService : enabledServices) {
-            extensionService.errorExecute(context);
+            extensionService.errorExecute(executionId, t);
         }
     }
 
@@ -161,10 +166,9 @@ public class EventEmitter {
         }
     }
 
-    private void emmitOnDataFetchError() {
-        Context context = SmallRyeContext.getContext();
+    private void emmitOnDataFetchError(String executionId, Throwable t) {
         for (EventingService extensionService : enabledServices) {
-            extensionService.errorDataFetch(context);
+            extensionService.errorDataFetch(executionId, t);
         }
     }
 

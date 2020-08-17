@@ -36,8 +36,8 @@ public class TracingService implements EventingService {
 
     private static final Object PARENT_SPAN_KEY = Span.class;
 
-    private final Map<Context, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
-    private final Map<Context, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<String, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<String, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
     private final Tracer tracer;
 
@@ -57,29 +57,14 @@ public class TracingService implements EventingService {
                 .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
                 .startActive(true);
 
-        scopes.put(context, scope);
+        scopes.put(context.getExecutionId(), scope);
 
         ((GraphQLContext) executionInput.getContext()).put(Span.class, scope.span()); // TODO: Do we need this ?
     }
 
     @Override
-    public void errorExecute(Context context) {
-        Scope scope = scopes.remove(context);
-        if (scope != null) {
-            Map<String, Object> error = new HashMap<>();
-            Throwable throwable = context.getExceptionStack().peek();
-            if (throwable != null) {
-                error.put("event.object", throwable);
-            }
-            error.put("event", "error");
-            scope.span().log(error);
-            scope.close();
-        }
-    }
-
-    @Override
     public void afterExecute(Context context) {
-        Scope scope = scopes.remove(context);
+        Scope scope = scopes.remove(context.getExecutionId());
         if (scope != null) {
             scope.close();
         }
@@ -106,21 +91,32 @@ public class TracingService implements EventingService {
         GraphQLContext graphQLContext = env.getContext();
         graphQLContext.put(PARENT_SPAN_KEY, span);
 
-        spans.put(context, span);
+        spans.put(context.getExecutionId(), span);
     }
 
     @Override
-    public void errorDataFetch(Context context) {
-        if (context.getExceptionStack() != null && !context.getExceptionStack().isEmpty()) {
-            Throwable t = context.getExceptionStack().peek();
-            Span span = spans.get(context);
-            logError(span, t);
+    public void errorDataFetch(String executionId, Throwable t) {
+
+        Span span = spans.get(executionId);
+        logError(span, t);
+
+    }
+
+    @Override
+    public void errorExecute(String executionId, Throwable t) {
+        Scope scope = scopes.remove(executionId);
+        if (scope != null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("event.object", t);
+            error.put("event", "error");
+            scope.span().log(error);
+            scope.close();
         }
     }
 
     @Override
     public void afterDataFetch(Context context) {
-        Span span = spans.remove(context);
+        Span span = spans.remove(context.getExecutionId());
         span.finish();
 
         /**

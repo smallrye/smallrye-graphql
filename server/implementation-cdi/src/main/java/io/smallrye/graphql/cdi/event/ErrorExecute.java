@@ -9,7 +9,7 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Qualifier;
 
 /**
- * CDI Event fired on error while executing
+ * CDI Event fired when an error happened during Execute
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -18,7 +18,7 @@ import javax.inject.Qualifier;
 @Target({ ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE })
 public @interface ErrorExecute {
 
-    static ErrorExecute.ErrorExecuteLiteral LITERAL = new ErrorExecute.ErrorExecuteLiteral();
+    static ErrorExecuteLiteral LITERAL = new ErrorExecuteLiteral();
 
     class ErrorExecuteLiteral extends AnnotationLiteral<ErrorExecute> implements ErrorExecute {
 

@@ -1,5 +1,8 @@
 package io.smallrye.graphql.test.apps.profile.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.graphql.Description;
@@ -7,6 +10,7 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 
 import io.smallrye.graphql.api.Context;
 
@@ -18,6 +22,8 @@ import io.smallrye.graphql.api.Context;
 @GraphQLApi
 public class ProfileGraphQLApi {
 
+    int sourceMethodExecutionCount = 0;
+
     @Inject
     Context context;
 
@@ -25,6 +31,11 @@ public class ProfileGraphQLApi {
     @Description("Get a Profile by ID")
     public Profile getProfile(int profileId) {
         return ProfileDB.getProfile(profileId);
+    }
+
+    @Query
+    public List<Profile> getProfiles() {
+        return ProfileDB.getProfiles();
     }
 
     @Query("configurationByName")
@@ -42,5 +53,21 @@ public class ProfileGraphQLApi {
     @Description("Add a new Profile")
     public Profile addProfile(Profile profile) {
         return ProfileDB.addProfile(profile);
+    }
+
+    // This method will be ignored due to below batch
+    public Integer getCount(@Source Profile profiles) {
+        sourceMethodExecutionCount = sourceMethodExecutionCount + 1;
+
+        return sourceMethodExecutionCount;
+    }
+
+    public List<Integer> getCount(@Source List<Profile> profiles) {
+        sourceMethodExecutionCount = sourceMethodExecutionCount + 1;
+        List<Integer> batched = new ArrayList<>();
+        for (Profile profile : profiles) {
+            batched.add(sourceMethodExecutionCount);
+        }
+        return batched;
     }
 }

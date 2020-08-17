@@ -62,22 +62,24 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-        if (operation.isAsync()) {
-            return (T) getAsync(dfe);
-        } else {
-            return (T) getSync(dfe);
-        }
-    }
-
-    private DataFetcherResult<Object> getSync(final DataFetchingEnvironment dfe) throws Exception {
-
         SmallRyeContext.setDataFromFetcher(dfe, operation);
 
         final GraphQLContext context = dfe.getContext();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
+        EventEmitter.fireBeforeDataFetch();
+
+        if (operation.isAsync()) {
+            return (T) getAsync(dfe, resultBuilder);
+        } else {
+            return (T) getSync(dfe, resultBuilder);
+        }
+    }
+
+    private DataFetcherResult<Object> getSync(final DataFetchingEnvironment dfe,
+            final DataFetcherResult.Builder<Object> resultBuilder) throws Exception {
+
         try {
-            EventEmitter.fireBeforeDataFetch();
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
             Object resultFromMethodCall = reflectionHelper.invoke(transformedArguments);
             Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
@@ -85,16 +87,13 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-            SmallRyeContext.addError(abstractDataFetcherException);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
             appendPartialResult(resultBuilder, dfe, graphQLException);
-            SmallRyeContext.addError(graphQLException);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            SmallRyeContext.addError(ex);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw msg.dataFetcherException(operation, ex);
         } finally {
             EventEmitter.fireAfterDataFetch();
@@ -103,15 +102,10 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         return resultBuilder.build();
     }
 
-    private CompletionStage<DataFetcherResult<Object>> getAsync(final DataFetchingEnvironment dfe) throws Exception {
-
-        SmallRyeContext.setDataFromFetcher(dfe, operation);
-
-        final GraphQLContext context = dfe.getContext();
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+    private CompletionStage<DataFetcherResult<Object>> getAsync(final DataFetchingEnvironment dfe,
+            final DataFetcherResult.Builder<Object> resultBuilder) throws Exception {
 
         try {
-            EventEmitter.fireBeforeDataFetch();
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
             CompletionStage<Object> futureResultFromMethodCall = reflectionHelper.invoke(transformedArguments);
 
@@ -122,6 +116,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
                 }
 
                 if (throwable != null) {
+                    EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                     if (throwable instanceof GraphQLException) {
                         GraphQLException graphQLException = (GraphQLException) throwable;
                         appendPartialResult(resultBuilder, dfe, graphQLException);
@@ -144,16 +139,13 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-            SmallRyeContext.addError(abstractDataFetcherException);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
             appendPartialResult(resultBuilder, dfe, graphQLException);
-            SmallRyeContext.addError(graphQLException);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            SmallRyeContext.addError(ex);
-            EventEmitter.fireOnDataFetchError();
+            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw msg.dataFetcherException(operation, ex);
         } finally {
             EventEmitter.fireAfterDataFetch();
