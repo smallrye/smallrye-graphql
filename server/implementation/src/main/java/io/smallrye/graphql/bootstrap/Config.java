@@ -62,7 +62,7 @@ public interface Config {
         return false;
     }
 
-    default boolean shouldEmmitEvents() {
+    default boolean shouldEmitEvents() {
         return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
     }
 

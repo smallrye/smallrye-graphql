@@ -24,7 +24,7 @@ public class EventEmitter {
     private static final ThreadLocal<EventEmitter> current = new ThreadLocal<>();
 
     public static void start(Config config) {
-        if (config != null && config.shouldEmmitEvents()) {
+        if (config != null && config.shouldEmitEvents()) {
             EventEmitter eventEmitter = new EventEmitter(config);
             current.set(eventEmitter);
         }
@@ -46,7 +46,7 @@ public class EventEmitter {
     public static GraphQLSchema.Builder fireBeforeSchemaBuild(GraphQLSchema.Builder builder) {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            return emitter.get().emmitBeforeSchemaBuild(builder);
+            return emitter.get().emitBeforeSchemaBuild(builder);
         }
         return builder;
     }
@@ -61,7 +61,7 @@ public class EventEmitter {
     public static Operation fireCreateOperation(Operation operation) {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            return emitter.get().emmitCreateOperation(operation);
+            return emitter.get().emitCreateOperation(operation);
         }
         return operation;
     }
@@ -69,40 +69,40 @@ public class EventEmitter {
     // While execuring requests
 
     public static void fireBeforeExecute() {
-        emitter().ifPresent((t) -> t.emmitBeforeExecute());
+        emitter().ifPresent((t) -> t.emitBeforeExecute());
     }
 
     public static void fireOnExecuteError(String executionId, Throwable t) {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            emitter.get().emmitOnExecuteError(executionId, t);
+            emitter.get().emitOnExecuteError(executionId, t);
         }
     }
 
     public static void fireAfterExecute() {
-        emitter().ifPresent((t) -> t.emmitAfterExecute());
+        emitter().ifPresent((t) -> t.emitAfterExecute());
     }
 
     public static void fireBeforeDataFetch() {
-        emitter().ifPresent((t) -> t.emmitBeforeDataFetch());
+        emitter().ifPresent((t) -> t.emitBeforeDataFetch());
     }
 
     public static void fireBeforeMethodInvoke(InvokeInfo invokeInfo) throws Exception {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            emitter.get().emmitBeforeDataFetchMethodInvoke(invokeInfo);
+            emitter.get().emitBeforeDataFetchMethodInvoke(invokeInfo);
         }
     }
 
     public static void fireOnDataFetchError(String executionId, Throwable t) {
         Optional<EventEmitter> emitter = emitter();
         if (emitter.isPresent()) {
-            emitter.get().emmitOnDataFetchError(executionId, t);
+            emitter.get().emitOnDataFetchError(executionId, t);
         }
     }
 
     public static void fireAfterDataFetch() {
-        emitter().ifPresent((t) -> t.emmitAfterDataFetch());
+        emitter().ifPresent((t) -> t.emitAfterDataFetch());
     }
 
     private static Optional<EventEmitter> emitter() {
@@ -114,38 +114,42 @@ public class EventEmitter {
         }
     }
 
-    private static final ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
+    private final ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
 
     private final List<EventingService> enabledServices = new ArrayList<>();
 
     private EventEmitter(Config config) {
         Iterator<EventingService> it = eventingServices.iterator();
         while (it.hasNext()) {
-            EventingService eventingService = it.next();
-            String configKey = eventingService.getConfigKey();
-            boolean enabled = config.getConfigValue(configKey, boolean.class, false);
-            if (enabled) {
-                enabledServices.add(eventingService);
+            try {
+                EventingService eventingService = it.next();
+                String configKey = eventingService.getConfigKey();
+                boolean enabled = config.getConfigValue(configKey, boolean.class, false);
+                if (enabled) {
+                    enabledServices.add(eventingService);
+                }
+            } catch (Throwable t) {
+                // Ignore that service...
             }
         }
     }
 
     // Execution 
 
-    private void emmitBeforeExecute() {
+    private void emitBeforeExecute() {
         Context context = SmallRyeContext.getContext();
         for (EventingService extensionService : enabledServices) {
             extensionService.beforeExecute(context);
         }
     }
 
-    private void emmitOnExecuteError(String executionId, Throwable t) {
+    private void emitOnExecuteError(String executionId, Throwable t) {
         for (EventingService extensionService : enabledServices) {
             extensionService.errorExecute(executionId, t);
         }
     }
 
-    private void emmitAfterExecute() {
+    private void emitAfterExecute() {
         Context context = SmallRyeContext.getContext();
         for (EventingService extensionService : enabledServices) {
             extensionService.afterExecute(context);
@@ -153,26 +157,26 @@ public class EventEmitter {
     }
 
     // Execution - DataFetching
-    private void emmitBeforeDataFetch() {
+    private void emitBeforeDataFetch() {
         Context context = SmallRyeContext.getContext();
         for (EventingService extensionService : enabledServices) {
             extensionService.beforeDataFetch(context);
         }
     }
 
-    private void emmitBeforeDataFetchMethodInvoke(InvokeInfo invokeInfo) throws Exception {
+    private void emitBeforeDataFetchMethodInvoke(InvokeInfo invokeInfo) throws Exception {
         for (EventingService extensionService : enabledServices) {
             extensionService.beforeInvoke(invokeInfo);
         }
     }
 
-    private void emmitOnDataFetchError(String executionId, Throwable t) {
+    private void emitOnDataFetchError(String executionId, Throwable t) {
         for (EventingService extensionService : enabledServices) {
             extensionService.errorDataFetch(executionId, t);
         }
     }
 
-    private void emmitAfterDataFetch() {
+    private void emitAfterDataFetch() {
         Context context = SmallRyeContext.getContext();
         for (EventingService extensionService : enabledServices) {
             extensionService.afterDataFetch(context);
@@ -180,14 +184,14 @@ public class EventEmitter {
     }
 
     // Schema bootstrap
-    private GraphQLSchema.Builder emmitBeforeSchemaBuild(GraphQLSchema.Builder builder) {
+    private GraphQLSchema.Builder emitBeforeSchemaBuild(GraphQLSchema.Builder builder) {
         for (EventingService extensionService : enabledServices) {
             builder = extensionService.beforeSchemaBuild(builder);
         }
         return builder;
     }
 
-    private Operation emmitCreateOperation(Operation operation) {
+    private Operation emitCreateOperation(Operation operation) {
         for (EventingService extensionService : enabledServices) {
             operation = extensionService.createOperation(operation);
         }
