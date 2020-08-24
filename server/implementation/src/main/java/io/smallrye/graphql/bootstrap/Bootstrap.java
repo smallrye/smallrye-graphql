@@ -13,8 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import javax.json.Json;
 import javax.json.JsonReader;
@@ -23,10 +21,8 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
 import org.dataloader.BatchLoader;
-import org.dataloader.DataLoader;
 
 import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
@@ -45,11 +41,12 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
-import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -343,18 +340,10 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        BatchLoader<Object, Object> batchLoader = createBatchLoader(operation);
+        BatchLoader<Object, Object> batchLoader = new SourceBatchLoader(operation);
         BootstrapContext.registerBatchLoader(operation.getName(), batchLoader);
 
-        DataFetcher<?> datafetcher = new DataFetcher() {
-            @Override
-            public Object get(DataFetchingEnvironment environment) {
-                Object source = environment.getSource();
-                DataLoader<Object, Object> dataLoader = environment.getDataLoader(operation.getName());
-                return dataLoader.load(source);
-            }
-        };
-
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
@@ -642,27 +631,6 @@ public class Bootstrap {
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
-    }
-
-    private BatchLoader<Object, Object> createBatchLoader(Operation operation) {
-        BatchLoader<Object, Object> batchLoader = new BatchLoader<Object, Object>() {
-            @Override
-            public CompletionStage<List<Object>> load(List<Object> keys) {
-                return CompletableFuture.supplyAsync(() -> doSourceListCall(keys, operation));
-            }
-
-            private List<Object> doSourceListCall(List<Object> keys, Operation operation) {
-                ReflectionHelper reflectionHelper = new ReflectionHelper(operation);
-                try {
-                    return (List<Object>) reflectionHelper.invoke(keys);
-                } catch (Exception ex) {
-                    // TODO: Handle this
-                    throw new RuntimeException(ex);
-                }
-            }
-
-        };
-        return batchLoader;
     }
 
     private static final String QUERY = "Query";
