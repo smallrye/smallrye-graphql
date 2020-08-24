@@ -20,6 +20,10 @@ public class ArrayCreator {
     private ArrayCreator() {
     }
 
+    public static Optional<Array> createArray(Type type) {
+        return createArray(null, type, false);
+    }
+
     /**
      * Create an Array for a Type.
      * This is used by operations, arguments and interfaces, as there is no field type
@@ -27,8 +31,8 @@ public class ArrayCreator {
      * @param type the java method/argument type
      * @return optional array
      */
-    public static Optional<Array> createArray(Type type) {
-        return createArray(null, type);
+    public static Optional<Array> createArray(Type type, boolean batched) {
+        return createArray(null, type, batched);
     }
 
     /**
@@ -39,7 +43,11 @@ public class ArrayCreator {
      * @return optional array
      */
     public static Optional<Array> createArray(Type fieldType, Type methodType) {
-        if (isCollectionOrArray(methodType)) {
+        return createArray(fieldType, methodType, false);
+    }
+
+    public static Optional<Array> createArray(Type fieldType, Type methodType, boolean batched) {
+        if (isCollectionOrArray(methodType) && !batched) {
             Array.Type arrayType = getModelType(methodType);
             int depth = getParameterizedDepth(methodType);
             Array array = new Array(methodType.name().toString(), arrayType, depth);
@@ -48,7 +56,7 @@ public class ArrayCreator {
                 array.setNotEmpty(true);
             }
             return Optional.of(array);
-        } else if (isParameterizedType(methodType)) {
+        } else if (isParameterizedType(methodType) || batched) {
             Type nestedType = methodType.asParameterizedType().arguments().get(0);
             return createArray(nestedType);
         }

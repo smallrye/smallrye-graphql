@@ -56,7 +56,13 @@
             <artifactId>jakarta.validation-api</artifactId>
             <version>2.0.2</version><!-- TODO should we manage this version -->
         </dependency>
-
+        <!-- OpenTracing -->
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
         <!-- HTTP client used in tests -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

@@ -46,13 +46,13 @@ public class MetricTest {
     @InSequence(99)
     public void verifyMetricsAreRegisteredEagerly() {
         SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Query_get"));
-        Assert.assertNotNull("Metric should be registered eagerly", metricForHelloQuery);
+        Assert.assertNotNull("Metric should be registered eagerly (Query)", metricForHelloQuery);
 
         SimpleTimer metricForMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Mutation_mutate"));
-        Assert.assertNotNull("Metric should be registered eagerly", metricForMutation);
+        Assert.assertNotNull("Metric should be registered eagerly (Mutation)", metricForMutation);
 
-        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Foo_description"));
-        Assert.assertNotNull("Metric should be registered eagerly", metricForSource);
+        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Source_description"));
+        Assert.assertNotNull("Metric should be registered eagerly (Source)", metricForSource);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class MetricTest {
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
                 metricForMutation.getElapsedTime().toNanos() > 0);
 
-        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Foo_description"));
+        SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql_Source_description"));
         Assert.assertEquals("The get{description} query was called once, this should be reflected in metric value",
                 1, metricForSource.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",

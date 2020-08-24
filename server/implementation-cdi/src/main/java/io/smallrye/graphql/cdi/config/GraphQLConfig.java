@@ -21,6 +21,9 @@ import io.smallrye.graphql.bootstrap.Config;
 @ApplicationScoped
 public class GraphQLConfig implements Config {
 
+    @Inject
+    org.eclipse.microprofile.config.Config microProfileConfig;
+
     @Deprecated
     @Inject
     @ConfigProperty(name = ConfigKey.EXCEPTION_BLACK_LIST, defaultValue = "") // EXCEPTION_HIDE_ERROR_MESSAGE_LIST
@@ -62,6 +65,10 @@ public class GraphQLConfig implements Config {
     @Inject
     @ConfigProperty(name = ConfigKey.ENABLE_VALIDATION, defaultValue = "false")
     private boolean validationEnabled;
+
+    @Inject
+    @ConfigProperty(name = ConfigKey.ENABLE_EVENTS, defaultValue = "false")
+    private boolean eventsEnabled;
 
     @Inject
     @ConfigProperty(name = ConfigKey.SCHEMA_INCLUDE_SCALARS, defaultValue = "true")
@@ -133,6 +140,11 @@ public class GraphQLConfig implements Config {
     }
 
     @Override
+    public boolean isEventsEnabled() {
+        return eventsEnabled;
+    }
+
+    @Override
     public boolean isIncludeDirectivesInSchema() {
         return includeDirectivesInSchema;
     }
@@ -160,6 +172,11 @@ public class GraphQLConfig implements Config {
     @Override
     public String getFieldVisibility() {
         return fieldVisibility;
+    }
+
+    @Override
+    public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
+        return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
     }
 
     public void setHideErrorMessageList(Optional<List<String>> hideList) {

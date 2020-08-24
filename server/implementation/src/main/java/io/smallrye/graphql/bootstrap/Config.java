@@ -30,10 +30,6 @@ public interface Config {
         return false;
     }
 
-    default boolean isMetricsEnabled() {
-        return false;
-    }
-
     default boolean isIncludeScalarsInSchema() {
         return false;
     }
@@ -54,8 +50,20 @@ public interface Config {
         return false;
     }
 
+    default boolean isMetricsEnabled() {
+        return false;
+    }
+
     default boolean isValidationEnabled() {
         return false;
+    }
+
+    default boolean isEventsEnabled() {
+        return false;
+    }
+
+    default boolean shouldEmitEvents() {
+        return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
     }
 
     default boolean logPayload() {
@@ -64,6 +72,10 @@ public interface Config {
 
     default String getFieldVisibility() {
         return FIELD_VISIBILITY_DEFAULT;
+    }
+
+    default <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
+        return defaultValue;
     }
 
     public static final String FIELD_VISIBILITY_DEFAULT = "default";

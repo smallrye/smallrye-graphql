@@ -112,16 +112,25 @@ public class TypeCreator implements Creator<Type> {
     }
 
     private void addOperations(Type type, ClassInfo classInfo) {
-        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceOperationHelper.getAllSourceAnnotations();
+        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceOperationHelper.getSourceAnnotations();
+        Map<DotName, List<MethodParameterInfo>> batchedFields = SourceOperationHelper.getSourceListAnnotations();
+        type.setOperations(toOperations(sourceFields, type, classInfo, false));
+        type.setBatchOperations(toOperations(batchedFields, type, classInfo, true));
+    }
+
+    private Map<String, Operation> toOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type,
+            ClassInfo classInfo, boolean batched) {
         // See if there is source operations for this class
+        Map<String, Operation> operations = new HashMap<>();
         if (sourceFields.containsKey(classInfo.name())) {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
                 MethodInfo methodInfo = methodParameterInfo.method();
-                Operation operation = operationCreator.createOperation(methodInfo, OperationType.Source, type);
-                type.addOperation(operation);
+                Operation o = operationCreator.createOperation(methodInfo, OperationType.Source, type, batched);
+                operations.put(o.getName(), o);
             }
         }
+        return operations;
     }
 
     private void addInterfaces(Type type, ClassInfo classInfo) {
