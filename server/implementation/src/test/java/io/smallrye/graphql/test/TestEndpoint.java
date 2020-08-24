@@ -65,6 +65,8 @@ public class TestEndpoint {
     public ContextInfo testContext() {
         Context context = SmallRyeContext.getContext();
 
+        System.out.println(context.toString());
+
         ContextInfo contextInfo = new ContextInfo();
         contextInfo.executionId = context.getExecutionId();
         contextInfo.path = context.getPath();

@@ -303,5 +303,24 @@ public class SmallRyeContext implements Context {
         return field.getQualifiedName().contains("/");
     }
 
+    @Override
+    public String toString() {
+        return "SmallRyeContext {\n"
+                + "executionId = " + getExecutionId() + ",\n"
+                + "request = " + getRequest() + ",\n"
+                + "operationName = " + getOperationName().orElse(null) + ",\n"
+                + "operationTypes = " + getRequestedOperationTypes() + ",\n"
+                + "parentTypeName = " + getParentTypeName().orElse(null) + ",\n"
+                + "variables = " + getVariables().orElse(null) + ",\n"
+                + "query = " + getQuery() + ",\n"
+                + "fieldName = " + getFieldName() + ",\n"
+                + "selectedFields = " + getSelectedFields() + ",\n"
+                + "source = " + getSource() + ",\n"
+                + "arguments = " + getArguments() + ",\n"
+                + "fieldName = " + getFieldName() + ",\n"
+                + "path = " + getPath() + "\n"
+                + "}";
+    }
+
     private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
 }
