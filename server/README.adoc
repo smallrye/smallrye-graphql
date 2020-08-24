@@ -4,15 +4,19 @@
 
 === From MicroProfile GraphQL
 
-* `mp.graphql.defaultErrorMessage` - Error message for blacklisted exceptions. Default "Server Error".
-* `mp.graphql.exceptionsBlackList` - Exceptions to be blacklisted. Default Runtime Exceptions.
-* `mp.graphql.exceptionsWhiteList` - Exceptions to be whitelisted. Default Checked Exceptions.
+* `mp.graphql.defaultErrorMessage` - Error message for hidden exceptions. Default "Server Error".
+* `mp.graphql.hideErrorMessage` - Exceptions that will be hidden. Default Runtime Exceptions.
+* `mp.graphql.showErrorMessage` - Exceptions that will not be hidden. Default Checked Exceptions.
 
 === From SmallRye GraphQL
 
 * `smallrye.graphql.printDataFetcherException` - Include the stacktrace of the data fetching exception in the log output. Default false.
 * `smallrye.graphql.allowGet` - Allow HTTP GET Methods. Default false.
 * `smallrye.graphql.metrics.enabled` - Enable Metrics. Default false.
+* `smallrye.graphql.tracing.enabled` - Enable Tracing. Default false.
+* `smallrye.graphql.validation.enabled` - Enable Bean Validation. Default false.
+* `smallrye.graphql.logPayload` - Log the payload in the log file. Default false.
+* `smallrye.graphql.fieldVisibility` - To control the field visibility on introspection.
 * `smallrye.graphql.schema.includeScalars` - Include Scalar definitions in the schema. Default true.
 * `smallrye.graphql.schema.includeSchemaDefinition` - Include Schema definition. Default false.
 * `smallrye.graphql.schema.includeDirectives` - Include directives in the schema. Default false.

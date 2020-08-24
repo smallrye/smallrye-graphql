@@ -4,7 +4,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
@@ -19,6 +21,10 @@ public class ProfileDB {
 
     private static Random random = new Random();
 
+    public static List<Profile> getProfiles() {
+        return new ArrayList<>(DB.values());
+    }
+
     public static Profile getProfile(int id) {
         return DB.get(id);
     }
@@ -32,6 +38,10 @@ public class ProfileDB {
 
     static {
         DB.put(1, createProfile(1));
+        DB.put(2, createProfile(2));
+        DB.put(3, createProfile(3));
+        DB.put(4, createProfile(4));
+        DB.put(5, createProfile(5));
     }
 
     private static Long getRandomId() {

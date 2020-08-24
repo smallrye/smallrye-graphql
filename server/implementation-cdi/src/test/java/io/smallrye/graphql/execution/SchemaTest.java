@@ -9,17 +9,12 @@ import java.util.Scanner;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
-import org.jboss.weld.junit5.WeldInitiator;
-import org.jboss.weld.junit5.WeldJunit5Extension;
-import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.cdi.CdiSchemaExtensionService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -28,14 +23,10 @@ import io.smallrye.graphql.schema.model.Schema;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ExtendWith(WeldJunit5Extension.class)
 public class SchemaTest {
     private static final Logger LOG = Logger.getLogger(SchemaTest.class.getName());
 
     private Schema schema;
-
-    @WeldSetup
-    public WeldInitiator weld = WeldInitiator.of(CdiSchemaExtensionService.class);
 
     @BeforeEach
     public void init() {
@@ -46,7 +37,7 @@ public class SchemaTest {
 
     @Test
     public void testSchemaModelCreation() {
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema).getGraphQLSchema();
         assertNotNull(graphQLSchema);
         String schemaString = new SchemaPrinter(new Config() {
         }).print(graphQLSchema);

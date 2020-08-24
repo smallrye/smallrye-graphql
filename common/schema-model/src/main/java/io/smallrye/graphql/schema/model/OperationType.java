@@ -8,5 +8,6 @@ package io.smallrye.graphql.schema.model;
 public enum OperationType {
     Query,
     Mutation,
-    Source
+    Source,
+    Subscription
 }

@@ -1,7 +1,10 @@
 package io.smallrye.graphql.index.app;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,6 +13,7 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 
 @GraphQLApi
 public class MovieTriviaController {
@@ -40,5 +44,18 @@ public class MovieTriviaController {
     @Query
     public String[] arrayDefault(@DefaultValue("[\"creature\",\"comfort\"]") String[] values) {
         return values;
+    }
+
+    public String getTimestamp(@Source Movie movie) {
+        return LocalDateTime.now().toString();
+    }
+
+    public List<String> getTimestamp(@Source List<Movie> movies) {
+        List<String> batched = new ArrayList<>();
+        for (Movie movie : movies) {
+            batched.add(LocalDateTime.now().toString());
+        }
+
+        return batched;
     }
 }

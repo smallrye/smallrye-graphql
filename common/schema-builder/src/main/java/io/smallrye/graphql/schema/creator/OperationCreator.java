@@ -38,6 +38,11 @@ public class OperationCreator {
         this.argumentCreator = argumentCreator;
     }
 
+    public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
+            final io.smallrye.graphql.schema.model.Type type) {
+        return createOperation(methodInfo, operationType, type, false);
+    }
+
     /**
      * This creates a single operation.
      * It translate to one entry under a query / mutation in the schema or
@@ -49,7 +54,8 @@ public class OperationCreator {
      * @return a Operation that defines this GraphQL Operation
      */
     public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
-            final io.smallrye.graphql.schema.model.Type type) {
+            final io.smallrye.graphql.schema.model.Type type, boolean batched) {
+
         if (!Modifier.isPublic(methodInfo.flags())) {
             throw new IllegalArgumentException(
                     "Method " + methodInfo.declaringClass().name().toString() + "#" + methodInfo.name()
@@ -86,7 +92,7 @@ public class OperationCreator {
         }
 
         // Array
-        operation.setArray(ArrayCreator.createArray(fieldType).orElse(null));
+        operation.setArray(ArrayCreator.createArray(fieldType, batched).orElse(null));
 
         // Async
         operation.setAsync(Classes.isAsyncType(fieldType));

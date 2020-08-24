@@ -24,6 +24,10 @@ public interface SmallRyeGraphQLServerLogging {
     @Message(id = 10001, value = "No GraphQL methods found. Try annotating your methods with @Query or @Mutation")
     void noGraphQLMethodsFound();
 
+    @LogMessage(level = Logger.Level.WARN)
+    @Message(id = 10002, value = "Operation [%s] also exist as a batch operation - ignoring the non-batch operation")
+    void duplicateOperation(String operationName);
+
     /* 11000-11999: query related logs */
 
     @LogMessage(level = Logger.Level.WARN)

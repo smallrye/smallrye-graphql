@@ -28,6 +28,7 @@ public final class Type extends Reference {
 
     private Map<String, Field> fields = new LinkedHashMap<>();
     private Map<String, Operation> operations = new LinkedHashMap<>();
+    private Map<String, Operation> batchOperations = new LinkedHashMap<>();
 
     private Set<Reference> interfaces = new LinkedHashSet<>();
 
@@ -85,6 +86,26 @@ public final class Type extends Reference {
 
     public boolean hasOperation(String operationName) {
         return this.operations.containsKey(operationName);
+    }
+
+    public Map<String, Operation> getBatchOperations() {
+        return batchOperations;
+    }
+
+    public void setBatchOperations(Map<String, Operation> operations) {
+        this.batchOperations = operations;
+    }
+
+    public void addBatchOperation(Operation operation) {
+        this.batchOperations.put(operation.getName(), operation);
+    }
+
+    public boolean hasBatchOperations() {
+        return !this.batchOperations.isEmpty();
+    }
+
+    public boolean hasBatchOperation(String operationName) {
+        return this.batchOperations.containsKey(operationName);
     }
 
     public Set<Reference> getInterfaces() {
