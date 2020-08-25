@@ -20,8 +20,6 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import org.dataloader.BatchLoader;
-
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
@@ -41,7 +39,6 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
@@ -340,8 +337,7 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        BatchLoader<Object, Object> batchLoader = new SourceBatchLoader(operation);
-        BootstrapContext.registerBatchLoader(operation.getName(), batchLoader);
+        BootstrapContext.registerBatchLoader(operation);
 
         DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();

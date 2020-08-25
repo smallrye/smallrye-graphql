@@ -1,11 +1,16 @@
 package io.smallrye.graphql.execution.batchloader;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import org.dataloader.BatchLoader;
+import org.dataloader.BatchLoaderEnvironment;
+import org.dataloader.BatchLoaderWithContext;
 
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.schema.model.Operation;
 
@@ -14,7 +19,7 @@ import io.smallrye.graphql.schema.model.Operation;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class SourceBatchLoader implements BatchLoader<Object, Object> {
+public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object> {
     private final Operation operation;
 
     public SourceBatchLoader(Operation operation) {
@@ -22,17 +27,37 @@ public class SourceBatchLoader implements BatchLoader<Object, Object> {
     }
 
     @Override
-    public CompletionStage<List<Object>> load(List<Object> keys) {
-        return CompletableFuture.supplyAsync(() -> doSourceListCall(keys, this.operation));
+    public CompletionStage<List<Object>> load(List<Object> keys, BatchLoaderEnvironment ble) {
+        Context context = SmallRyeContext.getContext();
+        Object[] arguments = getArguments(keys, ble);
+
+        return CompletableFuture.supplyAsync(() -> doSourceListCall(arguments, context));
     }
 
-    private List<Object> doSourceListCall(List<Object> keys, Operation operation) {
-        ReflectionHelper reflectionHelper = new ReflectionHelper(operation);
+    private List<Object> doSourceListCall(Object[] arguments, Context context) {
+        ReflectionHelper reflectionHelper = new ReflectionHelper(operation); // Have to do this here as this is a seperate thread
+        SmallRyeContext.register(context.getRequest()); // For this thread
+
         try {
-            return (List<Object>) reflectionHelper.invoke(keys);
+            return (List<Object>) reflectionHelper.invoke(arguments);
         } catch (Exception ex) {
             // TODO: Handle this
             throw new RuntimeException(ex);
         }
     }
+
+    private Object[] getArguments(List<Object> keys, BatchLoaderEnvironment ble) {
+
+        List<Object> arguments = new ArrayList<>();
+        arguments.add(keys);
+
+        List<Object> keyContextsList = ble.getKeyContextsList();
+        if (keyContextsList != null && !keyContextsList.isEmpty()) {
+            Object[] otherArguments = (Object[]) keyContextsList.get(0);
+            arguments.addAll(Arrays.asList(otherArguments));
+        }
+
+        return arguments.toArray();
+    }
+
 }

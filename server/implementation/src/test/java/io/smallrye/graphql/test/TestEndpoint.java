@@ -52,7 +52,7 @@ public class TestEndpoint {
     }
 
     @Name("timestamp")
-    public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {//, String indicator) {
+    public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {
         List<TestSource> batched = new ArrayList<>();
         for (TestObject testObject : testObjects) {
             batched.add(new TestSource());
