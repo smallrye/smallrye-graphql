@@ -1,5 +1,7 @@
 package io.smallrye.graphql.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,13 +24,15 @@ public class TestEndpoint {
 
     @Query
     public TestObject getTestObject(String yourname) {
-        String id = UUID.randomUUID().toString();
-        TestObject testObject = new TestObject();
-        testObject.setId(id);
-        testObject.setName(yourname);
-        testObject.addTestListObject(new TestListObject());
-        printContext("testObject");
+        TestObject testObject = createTestObject(yourname);
         return testObject;
+    }
+
+    @Query
+    public List<TestObject> getTestObjects() {
+        TestObject p = createTestObject("Phillip");
+        TestObject c = createTestObject("Charmaine");
+        return Arrays.asList(new TestObject[] { p, c });
     }
 
     @Query
@@ -41,22 +45,41 @@ public class TestEndpoint {
         return values;
     }
 
+    // This method will be ignored, with a WARN in the log, due to below duplicate
     @Name("timestamp")
     public TestSource getTestSource(@Source TestObject testObject, String indicator) {
-        printContext("timestamp (source)");
         return new TestSource();
     }
 
-    private void printContext(String from) {
+    @Name("timestamp")
+    public List<TestSource> getTestSources(@Source List<TestObject> testObjects) {
+        List<TestSource> batched = new ArrayList<>();
+        for (TestObject testObject : testObjects) {
+            batched.add(new TestSource());
+        }
+
+        return batched;
+    }
+
+    @Query
+    public ContextInfo testContext() {
         Context context = SmallRyeContext.getContext();
-        System.err.println("================ " + from + " ================");
-        System.err.println(">>>>>> executionId = " + context.getExecutionId());
-        System.err.println(">>>>>> path = " + context.getPath());
-        System.err.println(">>>>>> query = " + context.getQuery());
-        System.err.println(">>>>>> arguments = " + context.getArguments());
-        System.err.println(">>>>>> operationName = " + context.getOperationName().orElse(""));
-        System.err.println(">>>>>> variables = " + context.getVariables().orElse(null));
-        System.err.println(">>>>>> source = " + context.getSource());
-        System.err.println(">>>>>> selectedFields = " + context.getSelectedFields());
+
+        System.out.println(context.toString());
+
+        ContextInfo contextInfo = new ContextInfo();
+        contextInfo.executionId = context.getExecutionId();
+        contextInfo.path = context.getPath();
+        contextInfo.query = context.getQuery();
+        return contextInfo;
+    }
+
+    private TestObject createTestObject(String name) {
+        String id = UUID.randomUUID().toString();
+        TestObject testObject = new TestObject();
+        testObject.setId(id);
+        testObject.setName(name);
+        testObject.addTestListObject(new TestListObject());
+        return testObject;
     }
 }

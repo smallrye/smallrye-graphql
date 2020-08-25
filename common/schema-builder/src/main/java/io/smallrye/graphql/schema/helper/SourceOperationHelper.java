@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.helper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodParameterInfo;
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -24,10 +26,26 @@ import io.smallrye.graphql.schema.ScanningContext;
 public class SourceOperationHelper {
     private static final Logger LOG = Logger.getLogger(SourceOperationHelper.class.getName());
 
+    private static Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(
+            Type.Kind.CLASS,
+            Type.Kind.PRIMITIVE);
+
+    private static Map<DotName, List<MethodParameterInfo>> sourceListAnnotations = scanAllSourceAnnotations(
+            Type.Kind.PARAMETERIZED_TYPE,
+            Type.Kind.ARRAY);
+
     private SourceOperationHelper() {
     }
 
-    public static Map<DotName, List<MethodParameterInfo>> getAllSourceAnnotations() {
+    public static Map<DotName, List<MethodParameterInfo>> getSourceAnnotations() {
+        return sourceAnnotations;
+    }
+
+    public static Map<DotName, List<MethodParameterInfo>> getSourceListAnnotations() {
+        return sourceListAnnotations;
+    }
+
+    private static Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(Type.Kind... forReturnType) {
         Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
         Collection<AnnotationInstance> sourceAnnotations = ScanningContext.getIndex().getAnnotations(Annotations.SOURCE);
         for (AnnotationInstance ai : sourceAnnotations) {
@@ -35,14 +53,28 @@ public class SourceOperationHelper {
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
                 MethodParameterInfo methodParameter = target.asMethodParameter();
                 short position = methodParameter.position();
-                DotName name = methodParameter.method().parameters().get(position).name();
-                sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
+                Type returnType = methodParameter.method().parameters().get(position);
+                if (forReturnType == null || Arrays.asList(forReturnType).contains(returnType.kind())) {
+                    DotName name = getName(returnType);
+                    sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
+                }
             } else {
                 LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind() + ". Only expecting @"
                         + Annotations.SOURCE.local() + " on Method parameters");
             }
         }
         return sourceFields;
+    }
+
+    private static DotName getName(Type returnType) {
+        if (returnType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+            Type typeInCollection = returnType.asParameterizedType().arguments().get(0);
+            return getName(typeInCollection);
+        } else if (returnType.kind().equals(Type.Kind.ARRAY)) {
+            Type typeInArray = returnType.asArrayType().component();
+            return getName(typeInArray);
+        }
+        return returnType.name();
     }
 
 }

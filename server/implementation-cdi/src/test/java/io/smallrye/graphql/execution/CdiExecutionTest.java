@@ -19,6 +19,7 @@ import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 
+import org.dataloader.DataLoaderRegistry;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 import org.jboss.weld.junit5.WeldInitiator;
@@ -30,8 +31,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.cdi.CdiSchemaExtensionService;
+import io.smallrye.graphql.cdi.event.EventsService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -48,15 +50,16 @@ public class CdiExecutionTest {
 
     @WeldSetup
     public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi,
-            CdiSchemaExtensionService.class);
+            EventsService.class);
 
     @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema);
+        BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
+        DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
+        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, dataLoaderRegistry);
     }
 
     @Test
@@ -608,7 +611,6 @@ public class CdiExecutionTest {
     private static final Class heroDatabase;
     private static final Class sidekickDatabase;
     private static final Class heroLocator;
-
     private static final Class scalarTestApi;
 
     private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);

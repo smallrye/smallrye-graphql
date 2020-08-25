@@ -2,8 +2,10 @@ package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -12,9 +14,15 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
+import graphql.ExecutionInput;
+import graphql.language.Document;
+import graphql.language.OperationDefinition;
+import graphql.parser.InvalidSyntaxException;
+import graphql.parser.Parser;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
@@ -45,11 +53,21 @@ public class SmallRyeContext implements Context {
     }
 
     public static Context getContext() {
+        return current.get();
+    }
+
+    public static void setDataFromExecution(ExecutionInput executionInput) {
         SmallRyeContext context = current.get();
         if (context != null) {
-            return context;
-        } else {
-            throw new ContextNotActiveException();
+            context.setExecutionInput(executionInput);
+        }
+    }
+
+    public static void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
+        SmallRyeContext context = current.get();
+        if (context != null) {
+            context.dfe = dfe;
+            context.field = field;
         }
     }
 
@@ -64,66 +82,160 @@ public class SmallRyeContext implements Context {
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
-        // We only support DataFetchingEnvironment at this point
+        // We only support DataFetchingEnvironment and ExecutionInput at this point
         if (wrappedType.equals(DataFetchingEnvironment.class)) {
             return (T) this.dfe;
+        } else if (wrappedType.equals(ExecutionInput.class)) {
+            return (T) this.executionInput;
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
 
     @Override
     public boolean hasArgument(String name) {
-        return dfe.containsArgument(name);
+        if (dfe != null) {
+            return dfe.containsArgument(name);
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public <T> T getArgument(String name) {
-        return dfe.getArgument(name);
+        if (dfe != null) {
+            return dfe.getArgument(name);
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public Map<String, Object> getArguments() {
-        return dfe.getArguments();
+        if (dfe != null) {
+            return dfe.getArguments();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public String getPath() {
-        return dfe.getExecutionStepInfo().getPath().toString();
+        if (dfe != null) {
+            return dfe.getExecutionStepInfo().getPath().toString();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public String getExecutionId() {
-        return dfe.getExecutionId().toString();
+        if (dfe != null) {
+            return dfe.getExecutionId().toString();
+        } else if (executionInput != null) {
+            return executionInput.getExecutionId().toString();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public String getFieldName() {
-        return dfe.getField().getName();
+        if (dfe != null) {
+            return dfe.getField().getName();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public <T> T getSource() {
-        return dfe.getSource();
+        if (dfe != null) {
+            return dfe.getSource();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
     @Override
     public JsonArray getSelectedFields(boolean includeSourceFields) {
-        DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
-        List<SelectedField> fields = selectionSet.getFields();
-        return toJsonArrayBuilder(fields, includeSourceFields).build();
+        if (dfe != null) {
+            DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
+            List<SelectedField> fields = selectionSet.getFields();
+            return toJsonArrayBuilder(fields, includeSourceFields).build();
+        }
+        throw new DataFetchingNotActiveException();
     }
 
+    @Override
+    public OperationType getOperationType() {
+        if (dfe != null) {
+            return getOperationTypeFromDefinition(dfe.getOperationDefinition(), dfe.getSource());
+        }
+        throw new DataFetchingNotActiveException();
+    }
+
+    @Override
+    public List<OperationType> getRequestedOperationTypes() {
+        List<OperationType> allRequestedTypes = new ArrayList<>();
+
+        if (document != null) {
+            List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
+            for (OperationDefinition definition : definitions) {
+                OperationType operationType = getOperationTypeFromDefinition(definition);
+                if (!allRequestedTypes.contains(operationType)) {
+                    allRequestedTypes.add(operationType);
+                }
+            }
+        }
+        return allRequestedTypes;
+    }
+
+    @Override
+    public Optional<String> getParentTypeName() {
+        if (dfe != null) {
+            return getName(dfe.getParentType());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> getName(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLNamedType) {
+            return Optional.of(((GraphQLNamedType) graphQLType).getName());
+        } else if (graphQLType instanceof GraphQLNonNull) {
+            return getName(((GraphQLNonNull) graphQLType).getWrappedType());
+        } else if (graphQLType instanceof GraphQLList) {
+            return getName(((GraphQLList) graphQLType).getWrappedType());
+        }
+        return Optional.empty();
+    }
+
+    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition) {
+        return getOperationTypeFromDefinition(definition, null);
+    }
+
+    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition, T source) {
+        if (definition.getOperation().equals(OperationDefinition.Operation.MUTATION)) {
+            return OperationType.Mutation;
+        } else if (definition.getOperation().equals(OperationDefinition.Operation.SUBSCRIPTION)) {
+            return OperationType.Subscription;
+        } else if (definition.getOperation().equals(OperationDefinition.Operation.QUERY)
+                && source != null) {
+            return OperationType.Source;
+        }
+        return OperationType.Query;
+    }
+
+    private final Parser parser = new Parser();
     private final JsonObject jsonObject;
     private DataFetchingEnvironment dfe;
+    private ExecutionInput executionInput;
+    private Document document;
     private Field field;
 
     private SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
     }
 
-    public void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        this.dfe = dfe;
-        this.field = field;
+    private void setExecutionInput(ExecutionInput executionInput) {
+        this.executionInput = executionInput;
+        try {
+            this.document = parser.parseDocument(executionInput.getQuery());
+        } catch (InvalidSyntaxException e) {
+            // TODO: LOG ??
+        }
     }
 
     private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {
@@ -189,6 +301,25 @@ public class SmallRyeContext implements Context {
 
     private boolean isFlattenScalar(SelectedField field) {
         return field.getQualifiedName().contains("/");
+    }
+
+    @Override
+    public String toString() {
+        return "SmallRyeContext {\n"
+                + "executionId = " + getExecutionId() + ",\n"
+                + "request = " + getRequest() + ",\n"
+                + "operationName = " + getOperationName().orElse(null) + ",\n"
+                + "operationTypes = " + getRequestedOperationTypes() + ",\n"
+                + "parentTypeName = " + getParentTypeName().orElse(null) + ",\n"
+                + "variables = " + getVariables().orElse(null) + ",\n"
+                + "query = " + getQuery() + ",\n"
+                + "fieldName = " + getFieldName() + ",\n"
+                + "selectedFields = " + getSelectedFields() + ",\n"
+                + "source = " + getSource() + ",\n"
+                + "arguments = " + getArguments() + ",\n"
+                + "fieldName = " + getFieldName() + ",\n"
+                + "path = " + getPath() + "\n"
+                + "}";
     }
 
     private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);

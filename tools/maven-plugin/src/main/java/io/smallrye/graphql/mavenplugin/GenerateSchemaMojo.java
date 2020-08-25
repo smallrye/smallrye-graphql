@@ -26,6 +26,7 @@ import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
@@ -89,7 +90,11 @@ public class GenerateSchemaMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         IndexView index = createIndex();
         String schema = generateSchema(index);
-        write(schema);
+        if (schema != null) {
+            write(schema);
+        } else {
+            getLog().warn("No Schema generated. Check that your code contains the MicroProfile GraphQL Annotations");
+        }
     }
 
     private IndexView createIndex() throws MojoExecutionException {
@@ -157,8 +162,12 @@ public class GenerateSchemaMojo extends AbstractMojo {
             }
         };
         Schema internalSchema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
-        return new SchemaPrinter(config).print(graphQLSchema);
+        BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema);
+        if (bootstraped != null) {
+            GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
+            return new SchemaPrinter(config).print(graphQLSchema);
+        }
+        return null;
     }
 
     private void write(String schema) throws MojoExecutionException {
