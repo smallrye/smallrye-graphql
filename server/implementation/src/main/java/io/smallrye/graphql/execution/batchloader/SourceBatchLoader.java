@@ -1,5 +1,8 @@
 package io.smallrye.graphql.execution.batchloader;
 
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +34,27 @@ public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object>
         Context context = SmallRyeContext.getContext();
         Object[] arguments = getArguments(keys, ble);
 
-        return CompletableFuture.supplyAsync(() -> doSourceListCall(arguments, context));
+        final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return AccessController.doPrivileged(new PrivilegedExceptionAction<List<Object>>() {
+                    @Override
+                    public List<Object> run() {
+                        ClassLoader originalTccl = Thread.currentThread().getContextClassLoader();
+                        Thread.currentThread().setContextClassLoader(tccl);
+                        try {
+                            return doSourceListCall(arguments, context);
+                        } finally {
+                            if (originalTccl != null) {
+                                Thread.currentThread().setContextClassLoader(tccl);
+                            }
+                        }
+                    }
+                });
+            } catch (PrivilegedActionException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private List<Object> doSourceListCall(Object[] arguments, Context context) {
