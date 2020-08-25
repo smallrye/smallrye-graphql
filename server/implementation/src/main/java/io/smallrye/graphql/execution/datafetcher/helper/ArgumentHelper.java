@@ -5,6 +5,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -56,15 +57,18 @@ public class ArgumentHelper extends AbstractHelper {
      * @return a (ordered) List of all argument values
      */
     public Object[] getArguments(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
-        Object[] argumentObjects = new Object[arguments.size()];
-        int idx = 0;
-        for (Argument argument : arguments) {
-            Object argumentValue = getArgument(dfe, argument);
-            argumentObjects[idx] = argumentValue;
-            idx++;
-        }
+        return getArguments(dfe, false);
+    }
 
-        return argumentObjects;
+    public Object[] getArguments(DataFetchingEnvironment dfe, boolean excludeSource) throws AbstractDataFetcherException {
+        List<Object> argumentObjects = new LinkedList<>();
+        for (Argument argument : arguments) {
+            if (!argument.isSourceArgument() || !excludeSource) {
+                Object argumentValue = getArgument(dfe, argument);
+                argumentObjects.add(argumentValue);
+            }
+        }
+        return argumentObjects.toArray();
     }
 
     /**

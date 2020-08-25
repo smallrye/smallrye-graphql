@@ -1,11 +1,14 @@
 package io.smallrye.graphql.bootstrap;
 
-import org.dataloader.BatchLoader;
+import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoaderHelper;
+import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Some context while bootstrapping
@@ -29,8 +32,10 @@ public class BootstrapContext {
         getBootstrapContext().graphQLSchema = graphQLSchema;
     }
 
-    public static void registerBatchLoader(String name, BatchLoader<?, ?> batchLoader) {
-        getBootstrapContext().dataLoaderRegistry.register(name, DataLoader.newDataLoader(batchLoader));
+    public static void registerBatchLoader(Operation operation) {
+        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation);
+        getBootstrapContext().dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation),
+                DataLoader.newDataLoader(batchLoader));
     }
 
     public static void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {

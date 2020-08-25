@@ -71,7 +71,12 @@ public class ProfileGraphQLApi {
         return batched;
     }
 
-    public List<Timestamp> getTimestamp(@Source List<Profile> profiles) {
+    // This method will be ignored due to below batch
+    public Timestamp getTimestamp(@Source Profile profile, int random) {
+        return new Timestamp();
+    }
+
+    public List<Timestamp> getTimestamp(@Source List<Profile> profiles, int random) {
         List<Timestamp> batched = new ArrayList<>();
         for (Profile profile : profiles) {
             batched.add(new Timestamp()); // Test that transformation still works on batch
