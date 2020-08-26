@@ -112,8 +112,9 @@ public class TypeCreator implements Creator<Type> {
     }
 
     private void addOperations(Type type, ClassInfo classInfo) {
-        Map<DotName, List<MethodParameterInfo>> sourceFields = SourceOperationHelper.getSourceAnnotations();
-        Map<DotName, List<MethodParameterInfo>> batchedFields = SourceOperationHelper.getSourceListAnnotations();
+        SourceOperationHelper sourceOperationHelper = new SourceOperationHelper();
+        Map<DotName, List<MethodParameterInfo>> sourceFields = sourceOperationHelper.getSourceAnnotations();
+        Map<DotName, List<MethodParameterInfo>> batchedFields = sourceOperationHelper.getSourceListAnnotations();
         type.setOperations(toOperations(sourceFields, type, classInfo, false));
         type.setBatchOperations(toOperations(batchedFields, type, classInfo, true));
     }
