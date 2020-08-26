@@ -24,28 +24,28 @@ import io.smallrye.graphql.schema.ScanningContext;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SourceOperationHelper {
-    private static final Logger LOG = Logger.getLogger(SourceOperationHelper.class.getName());
+    private final Logger LOG = Logger.getLogger(SourceOperationHelper.class.getName());
 
-    private static Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(
+    private Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(
             Type.Kind.CLASS,
             Type.Kind.PRIMITIVE);
 
-    private static Map<DotName, List<MethodParameterInfo>> sourceListAnnotations = scanAllSourceAnnotations(
+    private Map<DotName, List<MethodParameterInfo>> sourceListAnnotations = scanAllSourceAnnotations(
             Type.Kind.PARAMETERIZED_TYPE,
             Type.Kind.ARRAY);
 
-    private SourceOperationHelper() {
+    public SourceOperationHelper() {
     }
 
-    public static Map<DotName, List<MethodParameterInfo>> getSourceAnnotations() {
+    public Map<DotName, List<MethodParameterInfo>> getSourceAnnotations() {
         return sourceAnnotations;
     }
 
-    public static Map<DotName, List<MethodParameterInfo>> getSourceListAnnotations() {
+    public Map<DotName, List<MethodParameterInfo>> getSourceListAnnotations() {
         return sourceListAnnotations;
     }
 
-    private static Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(Type.Kind... forReturnType) {
+    private Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(Type.Kind... forReturnType) {
         Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
         Collection<AnnotationInstance> sourceAnnotations = ScanningContext.getIndex().getAnnotations(Annotations.SOURCE);
         for (AnnotationInstance ai : sourceAnnotations) {
@@ -66,7 +66,7 @@ public class SourceOperationHelper {
         return sourceFields;
     }
 
-    private static DotName getName(Type returnType) {
+    private DotName getName(Type returnType) {
         if (returnType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             Type typeInCollection = returnType.asParameterizedType().arguments().get(0);
             return getName(typeInCollection);
