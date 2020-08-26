@@ -14,7 +14,7 @@
             "extensions": {
                 "exception": "java.security.AccessControlException",
                 "classification": "DataFetchingException",
-                "code": "data-fetcher"
+                "code": "access-control"
             }
         }
     ],

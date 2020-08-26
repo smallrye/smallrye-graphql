@@ -91,7 +91,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
             EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
-            throw msg.dataFetcherException(operation, ex);
+            throw ex;
         } finally {
             EventEmitter.fireAfterDataFetch();
         }
@@ -143,7 +143,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
             EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
-            throw msg.dataFetcherException(operation, ex);
+            throw ex;
         } finally {
             EventEmitter.fireAfterDataFetch();
         }
