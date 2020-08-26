@@ -1,5 +1,7 @@
 package io.smallrye.graphql.test.apps.error.api;
 
+import java.security.AccessControlException;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -27,5 +29,10 @@ public class ErrorApi {
     @Query
     public String annotatedCustomBusinessException() {
         throw new AnnotatedCustomBusinessException();
+    }
+
+    @Query
+    public String securityException() {
+        throw new AccessControlException("User is not authorized");
     }
 }

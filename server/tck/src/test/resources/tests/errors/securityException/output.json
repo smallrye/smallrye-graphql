@@ -1,0 +1,24 @@
+{
+    "errors": [
+        {
+            "message": "User is not authorized",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 3
+                }
+            ],
+            "path": [
+                "securityException"
+            ],
+            "extensions": {
+                "exception": "java.security.AccessControlException",
+                "classification": "DataFetchingException",
+                "code": "data-fetcher"
+            }
+        }
+    ],
+    "data": {
+        "securityException": null
+    }
+}
