@@ -36,6 +36,49 @@ jobs:
       - name: build with maven
         run: mvn -B formatter:validate impsort:check install --file pom.xml
 
+  wildfly-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8]
+    name: WildFly GraphQL feature pack tests
+
+    steps:
+      - uses: actions/checkout@v2
+        name: checkout
+
+      - name: checkout WildFly feature pack repository
+        uses: actions/checkout@v2
+        with:
+          repository: wildfly-extras/wildfly-graphql-feature-pack
+          ref: master
+          path: wildfly-graphql-feature-pack
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v1.3.0
+        name: set up jdk ${{matrix.java}}
+        with:
+          java-version: ${{matrix.java}}
+
+      - name: build with maven
+        run: mvn -B install -DskipTests --file pom.xml
+
+      - name: Install xmllint
+        run: sudo apt-get install libxml2-utils
+
+      - name: run WildFly feature pack tests
+        run: |
+          SMALLRYE_VERSION=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' pom.xml) && \
+          echo "SMALLRYE_VERSION=$SMALLRYE_VERSION" && \
+          mvn install -Dversion.io.smallrye.graphql=$SMALLRYE_VERSION --file wildfly-graphql-feature-pack/pom.xml
+
   quality:
     needs: [build]
     if: github.event_name == 'push' && github.repository == 'smallrye/smallrye-graphql'
