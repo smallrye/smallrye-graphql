@@ -96,7 +96,7 @@ public class Bootstrap {
             }
         } else {
             log.emptyOrNullSchema();
-            return null;
+            return new BootstrapedResult();
         }
     }
 
