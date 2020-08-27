@@ -15,6 +15,7 @@
 * `smallrye.graphql.metrics.enabled` - Enable Metrics. Default false.
 * `smallrye.graphql.tracing.enabled` - Enable Tracing. Default false.
 * `smallrye.graphql.validation.enabled` - Enable Bean Validation. Default false.
+* `smallrye.graphql.events.enabled` - Enable Eventing. Default false. Will be automatically enable if one of metrics, tracing or bean validation is enabled.
 * `smallrye.graphql.logPayload` - Log the payload in the log file. Default false.
 * `smallrye.graphql.fieldVisibility` - To control the field visibility on introspection.
 * `smallrye.graphql.schema.includeScalars` - Include Scalar definitions in the schema. Default true.

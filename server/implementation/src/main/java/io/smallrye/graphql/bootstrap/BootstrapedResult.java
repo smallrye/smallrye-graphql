@@ -11,8 +11,11 @@ import graphql.schema.GraphQLSchema;
  */
 public class BootstrapedResult {
 
-    private final GraphQLSchema graphQLSchema;
-    private final DataLoaderRegistry dataLoaderRegistry;
+    private GraphQLSchema graphQLSchema = null;
+    private DataLoaderRegistry dataLoaderRegistry = null;
+
+    public BootstrapedResult() {
+    }
 
     public BootstrapedResult(GraphQLSchema graphQLSchema, DataLoaderRegistry dataLoaderRegistry) {
         this.graphQLSchema = graphQLSchema;
