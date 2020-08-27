@@ -24,9 +24,11 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object> {
     private final Operation operation;
+    private final ReflectionHelper reflectionHelper;
 
     public SourceBatchLoader(Operation operation) {
         this.operation = operation;
+        this.reflectionHelper = new ReflectionHelper(operation);
     }
 
     @Override
@@ -58,7 +60,6 @@ public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object>
     }
 
     private List<Object> doSourceListCall(Object[] arguments, Context context) {
-        ReflectionHelper reflectionHelper = new ReflectionHelper(operation); // Have to do this here as this is a seperate thread
         SmallRyeContext.register(context.getRequest()); // For this thread
 
         try {

@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
+import static io.smallrye.graphql.transformation.Transformer.shouldTransform;
+
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.Transformer;
@@ -40,7 +42,11 @@ public class FieldHelper extends AbstractHelper {
      */
     @Override
     Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException {
-        return Transformer.out(field, argumentValue);
+        if (!shouldTransform(field)) {
+            return argumentValue;
+        } else {
+            return Transformer.out(field, argumentValue);
+        }
     }
 
     /**

@@ -25,7 +25,7 @@ public interface Transformer<IN, OUT> {
     CharTransformer CHAR_TRANSFORMER = new CharTransformer();
 
     static Object out(Field field, Object object) throws AbstractDataFetcherException {
-        if (!shouldTransform(field, object)) {
+        if (!shouldTransform(field)) {
             return object;
         }
 
@@ -39,7 +39,7 @@ public interface Transformer<IN, OUT> {
     }
 
     static Object in(Field field, Object object) throws AbstractDataFetcherException {
-        if (!shouldTransform(field, object)) {
+        if (!shouldTransform(field)) {
             return object;
         }
         try {
@@ -91,10 +91,9 @@ public interface Transformer<IN, OUT> {
      * Transformation is only possible for scalars and only needed if types don't match.
      *
      * @param field the field
-     * @param object the object
      * @return if transformation is needed
      */
-    static boolean shouldTransform(Field field, Object object) {
+    public static boolean shouldTransform(Field field) {
         return field.getReference().getType() == ReferenceType.SCALAR
                 && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName());
     }
