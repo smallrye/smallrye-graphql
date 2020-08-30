@@ -1,4 +1,4 @@
-package io.smallrye.graphql.tests.metrics;
+package io.smallrye.graphql.test.integration.metrics;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

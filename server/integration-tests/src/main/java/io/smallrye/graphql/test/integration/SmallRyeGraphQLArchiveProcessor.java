@@ -1,4 +1,4 @@
-package io.smallrye.graphql.tests;
+package io.smallrye.graphql.test.integration;
 
 import java.io.File;
 import java.util.Arrays;

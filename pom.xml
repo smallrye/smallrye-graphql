@@ -23,6 +23,7 @@
         <version.smallrye-common>1.3.0</version.smallrye-common>
         <version.opentracing>0.31.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
+        <version.jakarta-validation>2.0.2</version.jakarta-validation>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.0.Final</slf4j-jboss-logging.version>
@@ -112,6 +113,13 @@
                 <version>${version.smallrye-common}</version>
             </dependency>
 
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${version.jakarta-validation}</version>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- Dependencies provided by the project -->
             <dependency>
                 <groupId>${project.groupId}</groupId>
@@ -169,6 +177,7 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- Tests -->
             <dependency>
                 <groupId>org.jboss.slf4j</groupId>
                 <artifactId>slf4j-jboss-logging</artifactId>

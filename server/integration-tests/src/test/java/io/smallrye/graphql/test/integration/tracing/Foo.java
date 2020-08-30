@@ -1,4 +1,4 @@
-package io.smallrye.graphql.tests.tracing;
+package io.smallrye.graphql.test.integration.tracing;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

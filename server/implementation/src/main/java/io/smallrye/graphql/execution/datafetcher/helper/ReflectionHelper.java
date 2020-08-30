@@ -27,20 +27,20 @@ public class ReflectionHelper {
     private final ClassloadingService classloadingService = ClassloadingService.load();
 
     private final Operation operation;
-    private Object operationInstance;
-    private Method method;
+    private final Class<?> operationClass;
+    private final Method method;
 
     public ReflectionHelper(Operation operation) {
         this.operation = operation;
+        this.operationClass = classloadingService.loadClass(operation.getClassName());
+        this.method = lookupMethod(operationClass, operation);
     }
 
     public <T> T invoke(Object... arguments) throws Exception {
-
-        init();
-
         try {
+            Object operationInstance = lookupService.getInstance(operationClass);
             EventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
-            return (T) this.method.invoke(this.operationInstance, arguments);
+            return (T) this.method.invoke(operationInstance, arguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
             Throwable throwable = ex.getCause();
@@ -54,14 +54,6 @@ public class ReflectionHelper {
             } else {
                 throw msg.dataFetcherException(operation, throwable);
             }
-        }
-    }
-
-    private void init() {
-        if (this.method == null) {
-            Class<?> operationClass = classloadingService.loadClass(operation.getClassName());
-            this.method = lookupMethod(operationClass, operation);
-            this.operationInstance = lookupService.getInstance(operationClass);
         }
     }
 

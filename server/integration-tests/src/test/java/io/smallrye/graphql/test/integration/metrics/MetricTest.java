@@ -1,4 +1,4 @@
-package io.smallrye.graphql.tests.metrics;
+package io.smallrye.graphql.test.integration.metrics;
 
 import java.net.URL;
 
@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.tests.SimpleGraphQLClient;
+import io.smallrye.graphql.test.integration.SimpleGraphQLClient;
 
 @RunWith(Arquillian.class)
 public class MetricTest {

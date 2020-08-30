@@ -16,7 +16,7 @@
     
     <properties>
         <!-- We use WF to run the TCK and do IT and run the runner project -->
-        <version.wildfly>20.0.0.Final</version.wildfly>
+        <version.wildfly>20.0.1.Final</version.wildfly>
     </properties>
     
     <modules>
@@ -24,9 +24,9 @@
         <module>implementation</module>
         <module>implementation-cdi</module>
         <module>implementation-servlet</module>
-        <module>integration-tests</module>
         <module>tck</module>
         <module>runner</module>
+        <module>integration-tests</module>
     </modules>
     
 </project>

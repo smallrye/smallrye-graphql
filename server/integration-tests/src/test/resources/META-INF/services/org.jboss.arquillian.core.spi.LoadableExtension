@@ -1,1 +1,1 @@
-io.smallrye.graphql.tests.SmallRyeGraphQLExtension
+io.smallrye.graphql.test.integration.SmallRyeGraphQLExtension

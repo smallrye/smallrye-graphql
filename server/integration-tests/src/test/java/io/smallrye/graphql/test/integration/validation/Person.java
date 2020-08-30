@@ -1,4 +1,4 @@
-package io.smallrye.graphql.tests.validation;
+package io.smallrye.graphql.test.integration.validation;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
