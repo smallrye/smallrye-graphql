@@ -20,9 +20,14 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderRegistry;
+
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -39,6 +44,8 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoaderHelper;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
@@ -75,11 +82,14 @@ public class Bootstrap {
     private final Config config;
     private final EventEmitter eventEmitter;
 
-    private final BootstrapContext bootstrapContext = new BootstrapContext();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
+
+    private GraphQLSchema graphQLSchema;
+    private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
+    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     public static BootstrapedResult bootstrap(Schema schema) {
         return bootstrap(schema, null);
@@ -87,10 +97,9 @@ public class Bootstrap {
 
     public static BootstrapedResult bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
-
             Bootstrap bootstrap = new Bootstrap(schema, config);
-            BootstrapContext bc = bootstrap.generateGraphQLSchema();
-            return new BootstrapedResult(bc.getGraphQLSchema(), bc.getDataLoaderRegistry());
+            bootstrap.generateGraphQLSchema();
+            return new BootstrapedResult(bootstrap.graphQLSchema, bootstrap.dataLoaderRegistry);
         } else {
             log.emptyOrNullSchema();
             return new BootstrapedResult();
@@ -104,7 +113,7 @@ public class Bootstrap {
         SmallRyeContext.setSchema(schema);
     }
 
-    private BootstrapContext generateGraphQLSchema() {
+    private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         createGraphQLEnumTypes();
@@ -120,8 +129,8 @@ public class Bootstrap {
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
-        bootstrapContext.getCodeRegistryBuilder().fieldVisibility(getGraphqlFieldVisibility());
-        schemaBuilder = schemaBuilder.codeRegistry(bootstrapContext.getCodeRegistryBuilder().build());
+        this.codeRegistryBuilder.fieldVisibility(getGraphqlFieldVisibility());
+        schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         // register error info
         ErrorInfoMap.register(schema.getErrors());
@@ -129,9 +138,7 @@ public class Bootstrap {
         // Allow custom extension
         schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
-        bootstrapContext.setGraphQLSchema(schemaBuilder.build());
-
-        return bootstrapContext;
+        this.graphQLSchema = schemaBuilder.build();
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -227,10 +234,8 @@ public class Bootstrap {
 
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
-        bootstrapContext.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
-                new InterfaceResolver(interfaceType));
-
-        interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
+        this.codeRegistryBuilder.typeResolver(graphQLInterfaceType, new InterfaceResolver(interfaceType));
+        this.interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
     }
 
     private void createGraphQLInputObjectTypes() {
@@ -337,13 +342,13 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        bootstrapContext.registerBatchLoader(operation, config);
+        registerBatchLoader(operation, config);
 
         DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
-        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -367,8 +372,8 @@ public class Bootstrap {
         // DataFetcher
         DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation, config);
 
-        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -393,8 +398,8 @@ public class Bootstrap {
 
         // DataFetcher
         PropertyDataFetcher datafetcher = new PropertyDataFetcher(field);
-        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(ownerName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(ownerName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -627,6 +632,15 @@ public class Bootstrap {
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
+    }
+
+    public void registerBatchLoader(Operation operation, Config config) {
+        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation, config);
+        this.dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
+    }
+
+    public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
+        this.dataLoaderRegistry.register(name, dataLoader);
     }
 
     private static final String QUERY = "Query";
