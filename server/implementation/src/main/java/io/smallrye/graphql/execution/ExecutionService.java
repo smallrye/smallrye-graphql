@@ -60,6 +60,8 @@ public class ExecutionService {
 
     private final DataLoaderRegistry dataLoaderRegistry;
 
+    private final EventEmitter eventEmitter;
+
     private GraphQL graphQL;
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
@@ -70,13 +72,12 @@ public class ExecutionService {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
         this.dataLoaderRegistry = dataLoaderRegistry;
-
+        this.eventEmitter = new EventEmitter(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
     }
 
     public JsonObject execute(JsonObject jsonInput) {
-        EventEmitter.start(config);
         SmallRyeContext.register(jsonInput);
 
         // ExecutionId
@@ -116,11 +117,11 @@ public class ExecutionService {
                 // Update context
                 SmallRyeContext.setDataFromExecution(executionInput);
                 // Notify before
-                EventEmitter.fireBeforeExecute();
+                eventEmitter.fireBeforeExecute();
                 // Execute
                 ExecutionResult executionResult = g.execute(executionInput);
                 // Notify after
-                EventEmitter.fireAfterExecute();
+                eventEmitter.fireAfterExecute();
 
                 JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
@@ -141,11 +142,10 @@ public class ExecutionService {
                 return null;
             }
         } catch (Throwable t) {
-            EventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
+            eventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
             throw t;
         } finally {
             SmallRyeContext.remove();
-            EventEmitter.end();
         }
     }
 

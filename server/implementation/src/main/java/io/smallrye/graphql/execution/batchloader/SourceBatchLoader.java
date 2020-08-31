@@ -13,8 +13,10 @@ import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
+import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
@@ -23,12 +25,13 @@ import io.smallrye.graphql.schema.model.Operation;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object> {
-    private final Operation operation;
-    private final ReflectionHelper reflectionHelper;
 
-    public SourceBatchLoader(Operation operation) {
-        this.operation = operation;
-        this.reflectionHelper = new ReflectionHelper(operation);
+    private final ReflectionHelper reflectionHelper;
+    private final EventEmitter eventEmitter;
+
+    public SourceBatchLoader(Operation operation, Config config) {
+        this.eventEmitter = new EventEmitter(config);
+        this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
     }
 
     @Override

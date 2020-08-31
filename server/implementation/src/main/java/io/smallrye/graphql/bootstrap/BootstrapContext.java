@@ -17,57 +17,32 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public class BootstrapContext {
 
-    private static final ThreadLocal<BootstrapContext> current = new ThreadLocal<>();
-
-    public static void start() {
-        BootstrapContext registry = new BootstrapContext();
-        current.set(registry);
-    }
-
-    public static void end() {
-        current.remove();
-    }
-
-    public static void setGraphQLSchema(GraphQLSchema graphQLSchema) {
-        getBootstrapContext().graphQLSchema = graphQLSchema;
-    }
-
-    public static void registerBatchLoader(Operation operation) {
-        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation);
-        getBootstrapContext().dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation),
-                DataLoader.newDataLoader(batchLoader));
-    }
-
-    public static void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
-        getBootstrapContext().dataLoaderRegistry.register(name, dataLoader);
-    }
-
-    public static GraphQLSchema getGraphQLSchema() {
-        return getBootstrapContext().graphQLSchema;
-    }
-
-    public static DataLoaderRegistry getDataLoaderRegistry() {
-        return getBootstrapContext().dataLoaderRegistry;
-    }
-
-    public static GraphQLCodeRegistry.Builder getCodeRegistryBuilder() {
-        return getBootstrapContext().codeRegistryBuilder;
-    }
-
-    private static BootstrapContext getBootstrapContext() {
-        BootstrapContext context = current.get();
-        if (context != null) {
-            return context;
-        } else {
-            throw new RuntimeException("Bootstrap context not available");
-        }
-    }
-
     private GraphQLSchema graphQLSchema;
     private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
-    private BootstrapContext() {
+    public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
+        this.graphQLSchema = graphQLSchema;
     }
 
+    public void registerBatchLoader(Operation operation, Config config) {
+        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation, config);
+        this.dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
+    }
+
+    public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
+        this.dataLoaderRegistry.register(name, dataLoader);
+    }
+
+    public GraphQLSchema getGraphQLSchema() {
+        return this.graphQLSchema;
+    }
+
+    public DataLoaderRegistry getDataLoaderRegistry() {
+        return this.dataLoaderRegistry;
+    }
+
+    public GraphQLCodeRegistry.Builder getCodeRegistryBuilder() {
+        return this.codeRegistryBuilder;
+    }
 }

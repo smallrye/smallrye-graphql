@@ -27,11 +27,13 @@ public class ReflectionHelper {
     private final ClassloadingService classloadingService = ClassloadingService.load();
 
     private final Operation operation;
+    private final EventEmitter eventEmitter;
     private final Class<?> operationClass;
     private final Method method;
 
-    public ReflectionHelper(Operation operation) {
+    public ReflectionHelper(Operation operation, EventEmitter eventEmitter) {
         this.operation = operation;
+        this.eventEmitter = eventEmitter;
         this.operationClass = classloadingService.loadClass(operation.getClassName());
         this.method = lookupMethod(operationClass, operation);
     }
@@ -39,7 +41,7 @@ public class ReflectionHelper {
     public <T> T invoke(Object... arguments) throws Exception {
         try {
             Object operationInstance = lookupService.getInstance(operationClass);
-            EventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
+            eventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
             return (T) this.method.invoke(operationInstance, arguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap

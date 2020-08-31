@@ -15,6 +15,7 @@ import graphql.execution.ExecutionPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -35,6 +36,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
     private final FieldHelper fieldHelper;
     private final ReflectionHelper reflectionHelper;
     private final ArgumentHelper argumentHelper;
+    private final EventEmitter eventEmitter;
 
     /**
      * We use this reflection data fetcher on operations (so Queries, Mutations and Source)
@@ -50,10 +52,11 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
      * @param operation the operation
      *
      */
-    public ReflectionDataFetcher(Operation operation) {
+    public ReflectionDataFetcher(Operation operation, Config config) {
         this.operation = operation;
+        this.eventEmitter = new EventEmitter(config);
         this.fieldHelper = new FieldHelper(operation);
-        this.reflectionHelper = new ReflectionHelper(operation);
+        this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
     }
 
@@ -64,7 +67,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         final GraphQLContext context = dfe.getContext();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
-        EventEmitter.fireBeforeDataFetch();
+        eventEmitter.fireBeforeDataFetch();
 
         if (operation.isAsync()) {
             return (T) getAsync(dfe, resultBuilder);
@@ -84,16 +87,16 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
             appendPartialResult(resultBuilder, dfe, graphQLException);
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw ex;
         } finally {
-            EventEmitter.fireAfterDataFetch();
+            eventEmitter.fireAfterDataFetch();
         }
 
         return resultBuilder.build();
@@ -113,7 +116,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
                 }
 
                 if (throwable != null) {
-                    EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                    eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                     if (throwable instanceof GraphQLException) {
                         GraphQLException graphQLException = (GraphQLException) throwable;
                         appendPartialResult(resultBuilder, dfe, graphQLException);
@@ -136,16 +139,16 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
             appendPartialResult(resultBuilder, dfe, graphQLException);
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
-            EventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
+            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw ex;
         } finally {
-            EventEmitter.fireAfterDataFetch();
+            eventEmitter.fireAfterDataFetch();
         }
 
         return CompletableFuture.completedFuture(resultBuilder.build());

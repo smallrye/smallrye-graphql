@@ -73,7 +73,9 @@ public class Bootstrap {
 
     private final Schema schema;
     private final Config config;
+    private final EventEmitter eventEmitter;
 
+    private final BootstrapContext bootstrapContext = new BootstrapContext();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
@@ -85,15 +87,10 @@ public class Bootstrap {
 
     public static BootstrapedResult bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
-            try {
-                EventEmitter.start(config);
-                BootstrapContext.start();
-                new Bootstrap(schema, config).generateGraphQLSchema();
-                return new BootstrapedResult(BootstrapContext.getGraphQLSchema(), BootstrapContext.getDataLoaderRegistry());
-            } finally {
-                BootstrapContext.start();
-                EventEmitter.end();
-            }
+
+            Bootstrap bootstrap = new Bootstrap(schema, config);
+            BootstrapContext bc = bootstrap.generateGraphQLSchema();
+            return new BootstrapedResult(bc.getGraphQLSchema(), bc.getDataLoaderRegistry());
         } else {
             log.emptyOrNullSchema();
             return new BootstrapedResult();
@@ -103,10 +100,11 @@ public class Bootstrap {
     private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
         this.config = config;
+        this.eventEmitter = new EventEmitter(config);
         SmallRyeContext.setSchema(schema);
     }
 
-    private void generateGraphQLSchema() {
+    private BootstrapContext generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         createGraphQLEnumTypes();
@@ -122,16 +120,18 @@ public class Bootstrap {
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
-        BootstrapContext.getCodeRegistryBuilder().fieldVisibility(getGraphqlFieldVisibility());
-        schemaBuilder = schemaBuilder.codeRegistry(BootstrapContext.getCodeRegistryBuilder().build());
+        bootstrapContext.getCodeRegistryBuilder().fieldVisibility(getGraphqlFieldVisibility());
+        schemaBuilder = schemaBuilder.codeRegistry(bootstrapContext.getCodeRegistryBuilder().build());
 
         // register error info
         ErrorInfoMap.register(schema.getErrors());
 
         // Allow custom extension
-        schemaBuilder = EventEmitter.fireBeforeSchemaBuild(schemaBuilder);
+        schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
-        BootstrapContext.setGraphQLSchema(schemaBuilder.build());
+        bootstrapContext.setGraphQLSchema(schemaBuilder.build());
+
+        return bootstrapContext;
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -143,7 +143,7 @@ public class Bootstrap {
         if (schema.hasQueries()) {
             Set<Operation> queries = schema.getQueries();
             for (Operation queryOperation : queries) {
-                queryOperation = EventEmitter.fireCreateOperation(queryOperation);
+                queryOperation = eventEmitter.fireCreateOperation(queryOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(QUERY,
                         queryOperation);
                 queryBuilder = queryBuilder.field(graphQLFieldDefinition);
@@ -163,7 +163,7 @@ public class Bootstrap {
 
             Set<Operation> mutations = schema.getMutations();
             for (Operation mutationOperation : mutations) {
-                mutationOperation = EventEmitter.fireCreateOperation(mutationOperation);
+                mutationOperation = eventEmitter.fireCreateOperation(mutationOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(MUTATION,
                         mutationOperation);
                 mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
@@ -227,7 +227,7 @@ public class Bootstrap {
 
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
-        BootstrapContext.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
+        bootstrapContext.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
                 new InterfaceResolver(interfaceType));
 
         interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
@@ -282,7 +282,7 @@ public class Bootstrap {
             for (Operation operation : type.getOperations().values()) {
                 String name = operation.getName();
                 if (!type.hasBatchOperation(name)) {
-                    operation = EventEmitter.fireCreateOperation(operation);
+                    operation = eventEmitter.fireCreateOperation(operation);
 
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
                             operation);
@@ -296,7 +296,7 @@ public class Bootstrap {
         // Batch Operations
         if (type.hasBatchOperations()) {
             for (Operation operation : type.getBatchOperations().values()) {
-                operation = EventEmitter.fireCreateOperation(operation);
+                operation = eventEmitter.fireCreateOperation(operation);
 
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromBatchOperation(type.getName(),
                         operation);
@@ -337,12 +337,12 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        BootstrapContext.registerBatchLoader(operation);
+        bootstrapContext.registerBatchLoader(operation, config);
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
+        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
@@ -365,9 +365,9 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation);
+        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation, config);
 
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
+        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
@@ -393,7 +393,7 @@ public class Bootstrap {
 
         // DataFetcher
         PropertyDataFetcher datafetcher = new PropertyDataFetcher(field);
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(ownerName,
+        bootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(ownerName,
                 graphQLFieldDefinition.getName()), datafetcher);
 
         return graphQLFieldDefinition;
