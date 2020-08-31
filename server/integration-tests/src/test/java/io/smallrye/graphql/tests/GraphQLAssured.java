@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.integration;
+package io.smallrye.graphql.tests;
 
 import java.net.URL;
 

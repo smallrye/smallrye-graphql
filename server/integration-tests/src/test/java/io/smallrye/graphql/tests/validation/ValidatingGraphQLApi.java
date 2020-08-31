@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.integration.validation;
+package io.smallrye.graphql.tests.validation;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.validation.Valid;

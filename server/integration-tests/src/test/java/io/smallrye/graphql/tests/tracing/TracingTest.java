@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.integration.tracing;
+package io.smallrye.graphql.tests.tracing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.test.integration.GraphQLAssured;
+import io.smallrye.graphql.tests.GraphQLAssured;
 
 @RunWith(Arquillian.class)
 public class TracingTest {

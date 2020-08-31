@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.integration;
+package io.smallrye.graphql.tests;
 
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.core.spi.LoadableExtension;
