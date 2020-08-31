@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
@@ -79,8 +80,8 @@ public class StartupListener implements ServletContextListener {
     private List<Path> getJarsInLib(Path libFolder) {
         List<Path> jars = new ArrayList<>();
         if (libFolder != null && Files.isDirectory(libFolder)) {
-            try {
-                jars.addAll(Files.walk(libFolder)
+            try (Stream<Path> libFolderStream = Files.walk(libFolder)) {
+                jars.addAll(libFolderStream
                         .filter(Files::isRegularFile)
                         .collect(Collectors.toList()));
             } catch (IOException ex) {

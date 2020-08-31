@@ -8,6 +8,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -130,11 +131,13 @@ public class GenerateSchemaMojo extends AbstractMojo {
     // index the classes of this Maven module
     private Index indexModuleClasses() throws IOException {
         Indexer indexer = new Indexer();
-        List<Path> classFiles = Files.walk(classesDir.toPath())
-                .filter(path -> path.toString().endsWith(".class"))
-                .collect(Collectors.toList());
-        for (Path path : classFiles) {
-            indexer.index(Files.newInputStream(path));
+        try (Stream<Path> classesDirStream = Files.walk(classesDir.toPath())) {
+            List<Path> classFiles = classesDirStream
+                    .filter(path -> path.toString().endsWith(".class"))
+                    .collect(Collectors.toList());
+            for (Path path : classFiles) {
+                indexer.index(Files.newInputStream(path));
+            }
         }
         return indexer.complete();
     }
