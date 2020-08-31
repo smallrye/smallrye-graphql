@@ -84,7 +84,7 @@
                 <version>2.0.2.Final</version>    
                 <configuration>
                     <version>${version.wildfly}</version> 
-                    <server-config>standalone-full.xml</server-config>
+                    <server-config>standalone-microprofile.xml</server-config>
                     <systemProperties>
                         <jboss.tx.node.id>1</jboss.tx.node.id>
                     </systemProperties>

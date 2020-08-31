@@ -104,6 +104,9 @@
                     <environmentVariables>
                         <JBOSS_HOME>${project.build.directory}/wildfly-${version.wildfly}</JBOSS_HOME>
                     </environmentVariables>
+                    <systemProperties>
+                        <jboss.server.config.file.name>standalone-microprofile.xml</jboss.server.config.file.name>
+                    </systemProperties>
                 </configuration>
             </plugin>
             <plugin>
