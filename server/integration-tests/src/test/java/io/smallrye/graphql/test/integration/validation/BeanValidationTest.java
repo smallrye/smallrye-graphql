@@ -14,7 +14,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.test.integration.SimpleGraphQLClient;
+import io.smallrye.graphql.test.integration.GraphQLAssured;
 
 @RunWith(Arquillian.class)
 @RunAsClient
@@ -33,20 +33,20 @@ public class BeanValidationTest {
 
     @Test
     public void shouldAcceptValidPersonData() throws Exception {
-        SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
+        GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
 
-        String response = client
-                .query("mutation {update(person: { firstName: \"Jane\", lastName: \"Doe\", age: 87 }) { firstName }}");
+        String response = graphQLAssured
+                .post("mutation {update(person: { firstName: \"Jane\", lastName: \"Doe\", age: 87 }) { firstName }}");
 
         assertThat(response).isEqualTo("{\"data\":{\"update\":{\"firstName\":\"Jane\"}}}");
     }
 
     @Test
     public void shouldFailInvalidPersonData() throws Exception {
-        SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
+        GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
 
-        String response = client
-                .query("mutation {update(person: { firstName: \"*\", lastName: \"\", age: -1 }) { firstName }}");
+        String response = graphQLAssured
+                .post("mutation {update(person: { firstName: \"*\", lastName: \"\", age: -1 }) { firstName }}");
 
         assertThat(response).isNotNull();
         assertThat(response).isNotEmpty();

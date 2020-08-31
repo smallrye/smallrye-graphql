@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.test.integration.SimpleGraphQLClient;
+import io.smallrye.graphql.test.integration.GraphQLAssured;
 
 @RunWith(Arquillian.class)
 public class MetricTest {
@@ -59,12 +59,12 @@ public class MetricTest {
     @RunAsClient
     @InSequence(100)
     public void invokeApi() throws Exception {
-        SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
-        client.query("{get {version}}");
-        client.query("{get {version}}");
-        client.query("mutation {mutate{version}}");
-        client.query("mutation {mutate{version}}");
-        client.query("{get {description}}");
+        GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
+        graphQLAssured.post("{get {version}}");
+        graphQLAssured.post("{get {version}}");
+        graphQLAssured.post("mutation {mutate{version}}");
+        graphQLAssured.post("mutation {mutate{version}}");
+        graphQLAssured.post("{get {description}}");
     }
 
     @Test
@@ -88,5 +88,4 @@ public class MetricTest {
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
                 metricForSource.getElapsedTime().toNanos() > 0);
     }
-
 }

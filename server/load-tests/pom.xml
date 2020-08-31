@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-server-parent</artifactId>
         <version>1.0.9-SNAPSHOT</version>
     </parent>
-
-    <artifactId>smallrye-graphql-runner</artifactId>
-    <name>SmallRye: GraphQL Server :: Runner</name>
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>smallrye-graphql-load-tests</artifactId>
+    <name>SmallRye: GraphQL Server :: Load Tests</name>
     <packaging>war</packaging>
-
+    
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -22,7 +22,7 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
 
     </properties>
-
+    
     <dependencies>
         <!-- The implementation (We just use Servlet for now)-->
         <dependency>
@@ -38,17 +38,11 @@
             <type>test-jar</type>
             <version>${project.version}</version>
         </dependency>
-        <!-- The UI -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql-ui-graphiql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
 
     <build>
         <finalName>${project.artifactId}</finalName>
-
+        
         <plugins>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
@@ -83,7 +77,6 @@
                     </execution>
                 </executions>
             </plugin>
-            
         
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
@@ -95,20 +88,57 @@
                     <systemProperties>
                         <jboss.tx.node.id>1</jboss.tx.node.id>
                     </systemProperties>
-                    <!-- So that you can log into localhost:9990 -->
-                    <add-user>
-                        <users>
-                            <user>
-                                <username>admin</username>
-                                <password>admin</password>
-                                <groups>
-                                    <group>admin</group>
-                                </groups>
-                            </user>
-                        </users>
-                    </add-user>
                 </configuration>
-            </plugin>    
+                <executions>
+                    <execution>
+                        <id>start-wildfly</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                            <goal>deploy-only</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-wildfly</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>com.lazerycode.jmeter</groupId>
+                <artifactId>jmeter-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <generateReports>true</generateReports>
+                </configuration>
+                <executions>
+                     <!--Generate JMeter configuration--> 
+                    <execution>
+                        <id>configuration</id>
+                        <goals>
+                            <goal>configure</goal>
+                        </goals>
+                    </execution>
+                     <!--Run JMeter tests--> 
+                    <execution>
+                        <id>jmeter-tests</id>
+                        <goals>
+                            <goal>jmeter</goal>
+                        </goals>
+                    </execution>
+                     <!--Fail build on errors in test--> 
+                    <execution>
+                        <id>jmeter-check-results</id>
+                        <goals>
+                            <goal>results</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
