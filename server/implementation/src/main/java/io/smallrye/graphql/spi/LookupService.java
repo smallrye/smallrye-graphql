@@ -17,7 +17,13 @@ public interface LookupService {
 
     ServiceLoader<LookupService> lookupServices = ServiceLoader.load(LookupService.class);
 
-    static LookupService load() {
+    LookupService lookupService = vvvload();
+
+    static LookupService get() {
+        return lookupService;
+    }
+
+    static LookupService vvvload() {
         LookupService lookupService;
         try {
             lookupService = lookupServices.iterator().next();

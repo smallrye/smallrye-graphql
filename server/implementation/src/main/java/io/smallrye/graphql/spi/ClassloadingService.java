@@ -21,6 +21,12 @@ public interface ClassloadingService {
 
     ServiceLoader<ClassloadingService> classloadingServices = ServiceLoader.load(ClassloadingService.class);
 
+    ClassloadingService classloadingService = load();
+
+    static ClassloadingService get() {
+        return classloadingService;
+    }
+
     static ClassloadingService load() {
         ClassloadingService classloadingService;
         try {

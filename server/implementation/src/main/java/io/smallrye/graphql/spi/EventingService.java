@@ -1,7 +1,5 @@
 package io.smallrye.graphql.spi;
 
-import java.util.ServiceLoader;
-
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.event.InvokeInfo;
@@ -13,8 +11,6 @@ import io.smallrye.graphql.schema.model.Operation;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface EventingService {
-
-    ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
 
     // Config key
     public String getConfigKey();

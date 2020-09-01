@@ -91,6 +91,8 @@ public class Bootstrap {
     private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
+    private final ClassloadingService classloadingService = ClassloadingService.get();
+
     public static BootstrapedResult bootstrap(Schema schema) {
         return bootstrap(schema, null);
     }
@@ -573,12 +575,12 @@ public class Bootstrap {
         if (isJsonString(jsonString)) {
             Class<?> type;
             if (field.hasArray()) {
-                type = ClassloadingService.load().loadClass(field.getArray().getClassName());
+                type = classloadingService.loadClass(field.getArray().getClassName());
                 if (Collection.class.isAssignableFrom(type)) {
                     type = CollectionCreator.newCollection(field.getArray().getClassName()).getClass();
                 }
             } else {
-                type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+                type = classloadingService.loadClass(field.getReference().getClassName());
             }
             return JSONB.fromJson(jsonString, type);
         }

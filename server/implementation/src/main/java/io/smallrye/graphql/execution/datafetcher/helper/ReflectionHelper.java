@@ -23,8 +23,8 @@ import io.smallrye.graphql.spi.LookupService;
  */
 public class ReflectionHelper {
 
-    private final LookupService lookupService = LookupService.load();
-    private final ClassloadingService classloadingService = ClassloadingService.load();
+    private final LookupService lookupService = LookupService.get();
+    private final ClassloadingService classloadingService = ClassloadingService.get();
 
     private final Operation operation;
     private final EventEmitter eventEmitter;
