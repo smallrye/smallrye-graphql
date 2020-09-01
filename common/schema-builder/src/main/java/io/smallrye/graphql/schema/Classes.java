@@ -117,7 +117,6 @@ public class Classes {
      * 
      * @param type to check
      * @return if this is a collection or array
-     * @see #isCollection(Type)
      */
     public static boolean isCollectionOrArray(Type type) {
         return type.kind().equals(Type.Kind.ARRAY) || isCollection(type);
@@ -128,7 +127,6 @@ public class Classes {
      * 
      * @param type to check
      * @return if this is a collection
-     * @see #isCollectionOrArray(Type)
      */
     public static boolean isCollection(Type type) {
         if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
@@ -163,8 +161,6 @@ public class Classes {
      * 
      * @param type to be checked
      * @return true if type is unwrapped by the runtime
-     * @see #isOptional(Type)
-     * @see #isAsyncType(Type)
      */
     public static boolean isUnwrappedType(Type type) {
         return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE) && (isOptional(type) // Optional<>
