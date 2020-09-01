@@ -62,8 +62,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                
                 <executions>
                     <execution>
+                        <configuration>
+                            <includes>
+                                <include>**/apps/*</include>
+                            </includes>
+                        </configuration>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>

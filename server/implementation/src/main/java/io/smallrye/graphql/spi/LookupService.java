@@ -15,11 +15,18 @@ import java.util.ServiceLoader;
  */
 public interface LookupService {
 
-    static LookupService load() {
+    ServiceLoader<LookupService> lookupServices = ServiceLoader.load(LookupService.class);
+
+    LookupService lookupService = vvvload();
+
+    static LookupService get() {
+        return lookupService;
+    }
+
+    static LookupService vvvload() {
         LookupService lookupService;
         try {
-            ServiceLoader<LookupService> sl = ServiceLoader.load(LookupService.class);
-            lookupService = sl.iterator().next();
+            lookupService = lookupServices.iterator().next();
         } catch (Exception ex) {
             lookupService = new DefaultLookupService();
         }

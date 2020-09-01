@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+import static io.smallrye.graphql.transformation.Transformer.shouldTransform;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -112,7 +113,11 @@ public class ArgumentHelper extends AbstractHelper {
      */
     @Override
     Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException {
-        return Transformer.in(field, argumentValue);
+        if (!shouldTransform(field)) {
+            return argumentValue;
+        } else {
+            return Transformer.in(field, argumentValue);
+        }
     }
 
     /**

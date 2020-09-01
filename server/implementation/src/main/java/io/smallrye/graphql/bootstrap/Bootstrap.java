@@ -20,9 +20,14 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderRegistry;
+
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -39,6 +44,8 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
+import io.smallrye.graphql.execution.batchloader.SourceBatchLoaderHelper;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
@@ -73,11 +80,18 @@ public class Bootstrap {
 
     private final Schema schema;
     private final Config config;
+    private final EventEmitter eventEmitter;
 
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
+
+    private GraphQLSchema graphQLSchema;
+    private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
+    private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
+
+    private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static BootstrapedResult bootstrap(Schema schema) {
         return bootstrap(schema, null);
@@ -85,15 +99,9 @@ public class Bootstrap {
 
     public static BootstrapedResult bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
-            try {
-                EventEmitter.start(config);
-                BootstrapContext.start();
-                new Bootstrap(schema, config).generateGraphQLSchema();
-                return new BootstrapedResult(BootstrapContext.getGraphQLSchema(), BootstrapContext.getDataLoaderRegistry());
-            } finally {
-                BootstrapContext.start();
-                EventEmitter.end();
-            }
+            Bootstrap bootstrap = new Bootstrap(schema, config);
+            bootstrap.generateGraphQLSchema();
+            return new BootstrapedResult(bootstrap.graphQLSchema, bootstrap.dataLoaderRegistry);
         } else {
             log.emptyOrNullSchema();
             return new BootstrapedResult();
@@ -103,6 +111,7 @@ public class Bootstrap {
     private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
         this.config = config;
+        this.eventEmitter = new EventEmitter(config);
         SmallRyeContext.setSchema(schema);
     }
 
@@ -122,16 +131,16 @@ public class Bootstrap {
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
-        BootstrapContext.getCodeRegistryBuilder().fieldVisibility(getGraphqlFieldVisibility());
-        schemaBuilder = schemaBuilder.codeRegistry(BootstrapContext.getCodeRegistryBuilder().build());
+        this.codeRegistryBuilder.fieldVisibility(getGraphqlFieldVisibility());
+        schemaBuilder = schemaBuilder.codeRegistry(codeRegistryBuilder.build());
 
         // register error info
         ErrorInfoMap.register(schema.getErrors());
 
         // Allow custom extension
-        schemaBuilder = EventEmitter.fireBeforeSchemaBuild(schemaBuilder);
+        schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
-        BootstrapContext.setGraphQLSchema(schemaBuilder.build());
+        this.graphQLSchema = schemaBuilder.build();
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -143,7 +152,7 @@ public class Bootstrap {
         if (schema.hasQueries()) {
             Set<Operation> queries = schema.getQueries();
             for (Operation queryOperation : queries) {
-                queryOperation = EventEmitter.fireCreateOperation(queryOperation);
+                queryOperation = eventEmitter.fireCreateOperation(queryOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(QUERY,
                         queryOperation);
                 queryBuilder = queryBuilder.field(graphQLFieldDefinition);
@@ -163,7 +172,7 @@ public class Bootstrap {
 
             Set<Operation> mutations = schema.getMutations();
             for (Operation mutationOperation : mutations) {
-                mutationOperation = EventEmitter.fireCreateOperation(mutationOperation);
+                mutationOperation = eventEmitter.fireCreateOperation(mutationOperation);
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(MUTATION,
                         mutationOperation);
                 mutationBuilder = mutationBuilder.field(graphQLFieldDefinition);
@@ -227,10 +236,8 @@ public class Bootstrap {
 
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
-        BootstrapContext.getCodeRegistryBuilder().typeResolver(graphQLInterfaceType,
-                new InterfaceResolver(interfaceType));
-
-        interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
+        this.codeRegistryBuilder.typeResolver(graphQLInterfaceType, new InterfaceResolver(interfaceType));
+        this.interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
     }
 
     private void createGraphQLInputObjectTypes() {
@@ -282,7 +289,7 @@ public class Bootstrap {
             for (Operation operation : type.getOperations().values()) {
                 String name = operation.getName();
                 if (!type.hasBatchOperation(name)) {
-                    operation = EventEmitter.fireCreateOperation(operation);
+                    operation = eventEmitter.fireCreateOperation(operation);
 
                     GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(type.getName(),
                             operation);
@@ -296,7 +303,7 @@ public class Bootstrap {
         // Batch Operations
         if (type.hasBatchOperations()) {
             for (Operation operation : type.getBatchOperations().values()) {
-                operation = EventEmitter.fireCreateOperation(operation);
+                operation = eventEmitter.fireCreateOperation(operation);
 
                 GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromBatchOperation(type.getName(),
                         operation);
@@ -337,13 +344,13 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        BootstrapContext.registerBatchLoader(operation);
+        registerBatchLoader(operation, config);
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -365,10 +372,10 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation);
+        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation, config);
 
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(operationTypeName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -393,8 +400,8 @@ public class Bootstrap {
 
         // DataFetcher
         PropertyDataFetcher datafetcher = new PropertyDataFetcher(field);
-        BootstrapContext.getCodeRegistryBuilder().dataFetcher(FieldCoordinates.coordinates(ownerName,
-                graphQLFieldDefinition.getName()), datafetcher);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(ownerName, graphQLFieldDefinition.getName()),
+                datafetcher);
 
         return graphQLFieldDefinition;
     }
@@ -568,12 +575,12 @@ public class Bootstrap {
         if (isJsonString(jsonString)) {
             Class<?> type;
             if (field.hasArray()) {
-                type = ClassloadingService.load().loadClass(field.getArray().getClassName());
+                type = classloadingService.loadClass(field.getArray().getClassName());
                 if (Collection.class.isAssignableFrom(type)) {
                     type = CollectionCreator.newCollection(field.getArray().getClassName()).getClass();
                 }
             } else {
-                type = ClassloadingService.load().loadClass(field.getReference().getClassName());
+                type = classloadingService.loadClass(field.getReference().getClassName());
             }
             return JSONB.fromJson(jsonString, type);
         }
@@ -627,6 +634,15 @@ public class Bootstrap {
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
+    }
+
+    public void registerBatchLoader(Operation operation, Config config) {
+        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation, config);
+        this.dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
+    }
+
+    public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
+        this.dataLoaderRegistry.register(name, dataLoader);
     }
 
     private static final String QUERY = "Query";

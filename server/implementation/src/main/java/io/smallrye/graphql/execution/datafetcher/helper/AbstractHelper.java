@@ -18,7 +18,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  */
 public abstract class AbstractHelper {
 
-    protected final ClassloadingService classloadingService = ClassloadingService.load();
+    protected final ClassloadingService classloadingService = ClassloadingService.get();
 
     protected AbstractHelper() {
     }

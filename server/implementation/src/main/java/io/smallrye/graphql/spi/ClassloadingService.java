@@ -19,11 +19,18 @@ import io.smallrye.graphql.execution.Classes;
  */
 public interface ClassloadingService {
 
+    ServiceLoader<ClassloadingService> classloadingServices = ServiceLoader.load(ClassloadingService.class);
+
+    ClassloadingService classloadingService = load();
+
+    static ClassloadingService get() {
+        return classloadingService;
+    }
+
     static ClassloadingService load() {
         ClassloadingService classloadingService;
         try {
-            ServiceLoader<ClassloadingService> sl = ServiceLoader.load(ClassloadingService.class);
-            classloadingService = sl.iterator().next();
+            classloadingService = classloadingServices.iterator().next();
         } catch (Exception ex) {
             classloadingService = new DefaultClassloadingService();
         }

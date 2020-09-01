@@ -4,6 +4,7 @@ import org.dataloader.DataLoader;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.batchloader.SourceBatchLoaderHelper;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
@@ -18,11 +19,13 @@ import io.smallrye.graphql.schema.model.Operation;
 public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     private final Operation operation;
+    private final EventEmitter eventEmitter;
     private final ArgumentHelper argumentHelper;
     private final String batchLoaderName;
 
-    public BatchDataFetcher(Operation operation) {
+    public BatchDataFetcher(Operation operation, Config config) {
         this.operation = operation;
+        this.eventEmitter = new EventEmitter(config);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.batchLoaderName = SourceBatchLoaderHelper.getName(operation);
     }
@@ -30,7 +33,7 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
         SmallRyeContext.setDataFromFetcher(dfe, operation);
-        EventEmitter.fireBeforeDataFetch();
+        eventEmitter.fireBeforeDataFetch();
         Object[] transformedArguments = argumentHelper.getArguments(dfe, true);
         Object source = dfe.getSource();
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);

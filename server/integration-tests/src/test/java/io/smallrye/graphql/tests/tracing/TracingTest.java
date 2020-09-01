@@ -16,7 +16,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.tests.SimpleGraphQLClient;
+import io.smallrye.graphql.tests.GraphQLAssured;
 
 @RunWith(Arquillian.class)
 public class TracingTest {
@@ -37,8 +37,8 @@ public class TracingTest {
     @RunAsClient
     @InSequence(100)
     public void invokeApi() throws Exception {
-        SimpleGraphQLClient client = new SimpleGraphQLClient(testingURL);
-        String response = client.query("{"
+        GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
+        String response = graphQLAssured.post("{"
                 + " get {"
                 + "     version"
                 + "     tracerString"
