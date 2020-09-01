@@ -116,7 +116,7 @@ public class Classes {
      * Return true if type is java array, or it is Collection type which is handled as GraphQL array
      * 
      * @param type to check
-     * @return
+     * @return if this is a collection or array
      * @see #isCollection(Type)
      */
     public static boolean isCollectionOrArray(Type type) {
@@ -127,7 +127,7 @@ public class Classes {
      * Return true if type is java Collection type which is handled as GraphQL array
      * 
      * @param type to check
-     * @return
+     * @return if this is a collection
      * @see #isCollectionOrArray(Type)
      */
     public static boolean isCollection(Type type) {
@@ -159,7 +159,7 @@ public class Classes {
 
     /**
      * Return true if given type is parametrized type unwrapped/handled by the runtime before the serialization
-     * (Optional<>, CompletableFutur<>, CompletionStage<> etc)
+     * (Optional&lt;&gt;, CompletableFutur&lt;&gt;, CompletionStage&lt;&gt; etc)
      * 
      * @param type to be checked
      * @return true if type is unwrapped by the runtime
