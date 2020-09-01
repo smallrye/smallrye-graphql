@@ -33,6 +33,9 @@ jobs:
         with:
           java-version: ${{matrix.java}}
 
+      - name: Install graphviz
+        run: sudo apt install graphviz
+        
       - name: build with maven
         run: mvn -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml
 
