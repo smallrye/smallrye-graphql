@@ -2,6 +2,8 @@ package io.smallrye.graphql.schema.creator.type;
 
 import org.jboss.jandex.ClassInfo;
 
+import io.smallrye.graphql.schema.model.Reference;
+
 /**
  * Something that can create object types on the schema
  * 
@@ -10,5 +12,5 @@ import org.jboss.jandex.ClassInfo;
  */
 public interface Creator<T> {
 
-    public T create(ClassInfo classInfo);
+    public T create(ClassInfo classInfo, Reference reference);
 }

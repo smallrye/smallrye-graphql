@@ -87,9 +87,11 @@ public class FormatHelper {
     }
 
     private static Optional<TransformInfo> getNumberFormat(Annotations annotations) {
-        Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
-        if (numberFormatAnnotation.isPresent()) {
-            return getNumberFormat(numberFormatAnnotation.get());
+        if (annotations != null) {
+            Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
+            if (numberFormatAnnotation.isPresent()) {
+                return getNumberFormat(numberFormatAnnotation.get());
+            }
         }
         return Optional.empty();
     }
@@ -108,11 +110,12 @@ public class FormatHelper {
     }
 
     private static Optional<TransformInfo> getDateFormat(Annotations annotations) {
-        Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
-        if (dateFormatAnnotation.isPresent()) {
-            return getDateFormat(dateFormatAnnotation.get());
+        if (annotations != null) {
+            Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
+            if (dateFormatAnnotation.isPresent()) {
+                return getDateFormat(dateFormatAnnotation.get());
+            }
         }
-
         return Optional.empty();
     }
 

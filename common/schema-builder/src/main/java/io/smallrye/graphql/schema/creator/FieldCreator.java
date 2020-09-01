@@ -40,7 +40,7 @@ public class FieldCreator {
      * @param methodInfo the java method
      * @return a Field model object
      */
-    public Optional<Field> createFieldForInterface(MethodInfo methodInfo) {
+    public Optional<Field> createFieldForInterface(MethodInfo methodInfo, Reference parentObjectReference) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForMethod)) {
@@ -54,7 +54,8 @@ public class FieldCreator {
 
             // Field Type
             validateFieldType(Direction.OUT, methodInfo);
-            Reference reference = referenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod);
+            Reference reference = referenceCreator.createReferenceForInterfaceField(returnType, annotationsForMethod,
+                    parentObjectReference);
 
             Field field = new Field(methodInfo.name(),
                     MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
@@ -93,7 +94,8 @@ public class FieldCreator {
      * @param methodInfo the java method
      * @return a Field model object
      */
-    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo) {
+    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo,
+            Reference parentObjectReference) {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
         if (!IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
@@ -110,7 +112,7 @@ public class FieldCreator {
             Type fieldType = getFieldType(fieldInfo, methodType);
 
             Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
-                    annotationsForPojo);
+                    annotationsForPojo, parentObjectReference);
 
             Field field = new Field(methodInfo.name(),
                     MethodHelper.getPropertyName(direction, methodInfo.name()),
@@ -148,7 +150,7 @@ public class FieldCreator {
      * @param fieldInfo the java property
      * @return a Field model object
      */
-    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo) {
+    public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, Reference parentObjectReference) {
         if (Modifier.isPublic(fieldInfo.flags())) {
             Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo);
 
@@ -164,7 +166,7 @@ public class FieldCreator {
                 Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForPojo, fieldType);
 
                 Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
-                        annotationsForPojo);
+                        annotationsForPojo, parentObjectReference);
 
                 Field field = new Field(fieldInfo.name(),
                         MethodHelper.getPropertyName(direction, fieldInfo.name()),

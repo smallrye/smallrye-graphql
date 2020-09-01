@@ -97,7 +97,7 @@ public class SchemaBuilderTest {
         assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
     }
 
-    static String toString(Schema schema) {
+    public static String toString(Schema schema) {
 
         JsonbConfig config = new JsonbConfig()
                 .withFormatting(true);
