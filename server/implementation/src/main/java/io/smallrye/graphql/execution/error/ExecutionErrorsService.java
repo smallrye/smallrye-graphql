@@ -117,9 +117,11 @@ public class ExecutionErrorsService {
 
     private JsonArray toJsonArray(List<?> list) {
         JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
-        for (Object o : list) {
-            if (o != null)
-                arrayBuilder.add(o.toString());
+        if (list != null && !list.isEmpty()) {
+            for (Object o : list) {
+                if (o != null)
+                    arrayBuilder.add(o.toString());
+            }
         }
         return arrayBuilder.build();
     }
