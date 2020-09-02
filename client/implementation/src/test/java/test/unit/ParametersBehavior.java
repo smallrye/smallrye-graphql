@@ -57,8 +57,24 @@ public class ParametersBehavior {
     }
 
     @GraphQlClientApi
-    interface BooleanParamApi {
+    interface BoolParamApi {
         String greeting(boolean really);
+    }
+
+    @Test
+    public void shouldCallBoolParamQuery() {
+        fixture.returnsData("'greeting':'ho'");
+        BoolParamApi api = fixture.builder().build(BoolParamApi.class);
+
+        String greeting = api.greeting(true);
+
+        then(fixture.query()).isEqualTo("greeting(really: true)");
+        then(greeting).isEqualTo("ho");
+    }
+
+    @GraphQlClientApi
+    interface BooleanParamApi {
+        String greeting(Boolean really);
     }
 
     @Test

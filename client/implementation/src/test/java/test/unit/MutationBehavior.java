@@ -112,15 +112,15 @@ public class MutationBehavior {
         GreetingListMutationApi api = fixture.builder().build(GreetingListMutationApi.class);
 
         Greeting greeting = api.say(asList(
-                new Greeting("one", 5),
-                null,
-                new Greeting("three", 5)));
+            new Greeting("one", 5),
+            null,
+            new Greeting("three", 5)));
 
         then(fixture.mutation()).isEqualTo("say(greets: [" +
-                "{text: 'one', count: 5}, " +
-                "null, " +
-                "{text: 'three', count: 5}" +
-                "]) {text count}");
+            "{text: 'one', count: 5}, " +
+            "null, " +
+            "{text: 'three', count: 5}" +
+            "]) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -128,8 +128,7 @@ public class MutationBehavior {
         Greeting greeting;
         LocalDateTime when;
 
-        @SuppressWarnings("unused")
-        GreetingContainer() {
+        @SuppressWarnings("unused") GreetingContainer() {
         }
 
         GreetingContainer(Greeting greeting, LocalDateTime when) {
@@ -145,7 +144,7 @@ public class MutationBehavior {
                 return false;
             GreetingContainer that = (GreetingContainer) o;
             return Objects.equals(greeting, that.greeting) &&
-                    Objects.equals(when, that.when);
+                Objects.equals(when, that.when);
         }
 
         @Override
@@ -169,8 +168,8 @@ public class MutationBehavior {
         Greeting greeting = api.say(new GreetingContainer(new Greeting("one", 5), now));
 
         then(fixture.mutation()).isEqualTo("say(greeting: {" +
-                "greeting: {text: 'one', count: 5}, " +
-                "when: '" + now + "'}) {text count}");
+            "greeting: {text: 'one', count: 5}, " +
+            "when: '" + now + "'}) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -182,7 +181,7 @@ public class MutationBehavior {
         Greeting greeting = api.say(new GreetingContainer(new Greeting(null, 5), null));
 
         then(fixture.mutation())
-                .isEqualTo("say(greeting: {greeting: {text: null, count: 5}, when: null}) {text count}");
+            .isEqualTo("say(greeting: {greeting: {text: null, count: 5}, when: null}) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -214,7 +213,7 @@ public class MutationBehavior {
                 return false;
             GreetingEnum that = (GreetingEnum) o;
             return Objects.equals(text, that.text) &&
-                    someEnum == that.someEnum;
+                someEnum == that.someEnum;
         }
 
         @Override
@@ -238,5 +237,105 @@ public class MutationBehavior {
 
         then(fixture.mutation()).isEqualTo("say(greeting: {text: 'one', someEnum: ONE}) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
+    }
+
+    private static class PrimitiveTypesClass {
+        boolean b = true;
+        char c = 'a';
+        byte y = 0x7;
+        short s = 0xff;
+        int i = 123456;
+        long l = 987654321L;
+        float f = 12.34f;
+        double d = 56.78d;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            PrimitiveTypesClass that = (PrimitiveTypesClass) o;
+            return this.b == that.b
+                && this.c == that.c
+                && this.y == that.y
+                && this.s == that.s
+                && this.i == that.i
+                && this.l == that.l
+                && this.f == that.f
+                && this.d == that.d;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(b, c, y, s, i, l, f, d);
+        }
+    }
+
+    @GraphQlClientApi
+    interface MutationWithPrimitivesApi {
+        @Mutation
+        String run(PrimitiveTypesClass primitives);
+    }
+
+    @Test
+    public void shouldCallMutationWithPrimitives() {
+        fixture.returnsData("'run':'okay'");
+        MutationWithPrimitivesApi api = fixture.builder().build(MutationWithPrimitivesApi.class);
+
+        String result = api.run(new PrimitiveTypesClass());
+
+        then(fixture.mutation()).isEqualTo("run(primitives: {b: true, c: a, y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(result).isEqualTo("okay");
+    }
+
+    private static class PrimitiveWrapperTypesClass {
+        Boolean b = true;
+        Character c = 'a';
+        Byte y = 0x7;
+        Short s = 0xff;
+        Integer i = 123456;
+        Long l = 987654321L;
+        Float f = 12.34f;
+        Double d = 56.78d;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            PrimitiveWrapperTypesClass that = (PrimitiveWrapperTypesClass) o;
+            return this.b.equals(that.b)
+                && this.c.equals(that.c)
+                && this.y.equals(that.y)
+                && this.s.equals(that.s)
+                && this.i.equals(that.i)
+                && this.l.equals(that.l)
+                && this.f.equals(that.f)
+                && this.d.equals(that.d);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(b, c, y, s, i, l, f, d);
+        }
+    }
+
+    @GraphQlClientApi
+    interface MutationWithPrimitiveWrappersApi {
+        @Mutation
+        String run(PrimitiveWrapperTypesClass primitives);
+    }
+
+    @Test
+    public void shouldCallMutationWithPrimitiveWrappers() {
+        fixture.returnsData("'run':'okay'");
+        MutationWithPrimitiveWrappersApi api = fixture.builder().build(MutationWithPrimitiveWrappersApi.class);
+
+        String result = api.run(new PrimitiveWrapperTypesClass());
+
+        then(fixture.mutation()).isEqualTo("run(primitives: {b: true, c: 'a', y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(result).isEqualTo("okay");
     }
 }

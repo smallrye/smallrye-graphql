@@ -61,6 +61,7 @@ class RequestBuilder {
 
     public boolean unquoted(TypeInfo type) {
         return type.isPrimitive()
+                || Boolean.class.isAssignableFrom(type.getRawType())
                 || Number.class.isAssignableFrom(type.getRawType())
                 || type.isEnum();
     }
