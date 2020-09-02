@@ -30,6 +30,9 @@ jobs:
         with:
           java-version: 8
 
+      - name: Install graphviz
+        run: sudo apt install graphviz
+        
       - name: maven release ${{steps.metadata.outputs.current-version}}
         run: |
           java -version
