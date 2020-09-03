@@ -47,18 +47,23 @@ public class ArrayCreator {
     }
 
     public static Optional<Array> createArray(Type fieldType, Type methodType, boolean batched) {
-        if (Classes.isCollectionOrArray(methodType) && !batched) {
-            Array.Type arrayType = getModelType(methodType);
-            int depth = getParameterizedDepth(methodType);
-            Array array = new Array(methodType.name().toString(), arrayType, depth);
-            // NotNull
-            if (markParameterizedTypeNonNull(fieldType, methodType)) {
-                array.setNotEmpty(true);
+        if (Classes.isCollectionOrArray(methodType)) {
+            if (batched) {
+                Type nestedType = methodType.asParameterizedType().arguments().get(0);
+                return createArray(nestedType);
+            } else {
+                Array.Type arrayType = getModelType(methodType);
+                int depth = getParameterizedDepth(methodType);
+                Array array = new Array(methodType.name().toString(), arrayType, depth);
+                // NotNull
+                if (markParameterizedTypeNonNull(fieldType, methodType)) {
+                    array.setNotEmpty(true);
+                }
+                return Optional.of(array);
             }
-            return Optional.of(array);
-        } else if (Classes.isUnwrappedType(methodType) || batched) {
+        } else if (Classes.isUnwrappedType(methodType)) {
             Type nestedType = methodType.asParameterizedType().arguments().get(0);
-            return createArray(nestedType);
+            return createArray(nestedType, batched);
         }
         return Optional.empty();
     }

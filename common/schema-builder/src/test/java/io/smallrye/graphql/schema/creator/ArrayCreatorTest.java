@@ -116,4 +116,27 @@ public class ArrayCreatorTest {
         assertTrue(ArrayCreator.createArray(type).isPresent());
     }
 
+    @Test
+    public void shouldNotCreateArrayForCompletionStageBatched() {
+        final ParameterizedType stringList = ParameterizedType.create(DotName.createSimple(List.class.getName()),
+                new Type[] { STRING_TYPE }, null);
+        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE, new Type[] { stringList },
+                null);
+
+        assertFalse(ArrayCreator.createArray(completionStage, true).isPresent());
+    }
+
+    @Test
+    public void shouldCreateArrayForCompletionStageBatchedList() {
+        final ParameterizedType stringList = ParameterizedType.create(DotName.createSimple(List.class.getName()),
+                new Type[] { STRING_TYPE }, null);
+        final ParameterizedType stringStringList = ParameterizedType.create(DotName.createSimple(List.class.getName()),
+                new Type[] { stringList }, null);
+        final ParameterizedType completionStage = ParameterizedType.create(Classes.COMPLETION_STAGE,
+                new Type[] { stringStringList },
+                null);
+
+        assertTrue(ArrayCreator.createArray(completionStage, true).isPresent());
+    }
+
 }

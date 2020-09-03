@@ -27,46 +27,57 @@ import io.smallrye.graphql.schema.model.Operation;
 public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object> {
 
     private final ReflectionHelper reflectionHelper;
-    private final EventEmitter eventEmitter;
+    private final boolean async;
 
     public SourceBatchLoader(Operation operation, Config config) {
-        this.eventEmitter = new EventEmitter(config);
+        EventEmitter eventEmitter = new EventEmitter(config);
         this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
+        async = operation.isAsync();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CompletionStage<List<Object>> load(List<Object> keys, BatchLoaderEnvironment ble) {
         Context context = SmallRyeContext.getContext();
         Object[] arguments = getArguments(keys, ble);
 
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return AccessController.doPrivileged(new PrivilegedExceptionAction<List<Object>>() {
-                    @Override
-                    public List<Object> run() {
-                        ClassLoader originalTccl = Thread.currentThread().getContextClassLoader();
-                        Thread.currentThread().setContextClassLoader(tccl);
-                        try {
-                            return doSourceListCall(arguments, context);
-                        } finally {
-                            if (originalTccl != null) {
-                                Thread.currentThread().setContextClassLoader(tccl);
-                            }
-                        }
-                    }
-                });
-            } catch (PrivilegedActionException e) {
-                throw new RuntimeException(e);
-            }
-        });
+
+        if (async) {
+            return (CompletableFuture<List<Object>>) invokePrivileged(context, arguments, tccl);
+        } else {
+            return CompletableFuture.supplyAsync(() -> (List<Object>) invokePrivileged(context, arguments, tccl));
+        }
     }
 
-    private List<Object> doSourceListCall(Object[] arguments, Context context) {
+    private Object invokePrivileged(Context context, Object[] arguments, ClassLoader tccl) {
+        try {
+            return AccessController
+                    .doPrivileged(new PrivilegedExceptionAction<Object>() {
+                        @Override
+                        public Object run() {
+                            ClassLoader originalTccl = Thread.currentThread()
+                                    .getContextClassLoader();
+                            Thread.currentThread().setContextClassLoader(tccl);
+                            try {
+                                return doSourceCall(arguments, context);
+                            } finally {
+                                if (originalTccl != null) {
+                                    Thread.currentThread().setContextClassLoader(tccl);
+                                }
+                            }
+                        }
+                    });
+        } catch (PrivilegedActionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Object doSourceCall(Object[] arguments, Context context) {
         SmallRyeContext.register(context.getRequest()); // For this thread
 
         try {
-            return (List<Object>) reflectionHelper.invoke(arguments);
+            return reflectionHelper.invoke(arguments);
         } catch (Exception ex) {
             // TODO: Handle this
             throw new RuntimeException(ex);
