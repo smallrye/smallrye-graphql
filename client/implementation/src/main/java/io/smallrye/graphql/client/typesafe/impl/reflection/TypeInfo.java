@@ -126,6 +126,7 @@ public class TypeInfo {
     public boolean isScalar() {
         return isPrimitive()
                 || Number.class.isAssignableFrom(getRawType())
+                || Boolean.class.isAssignableFrom(getRawType())
                 || isEnum()
                 || CharSequence.class.isAssignableFrom(getRawType())
                 || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)

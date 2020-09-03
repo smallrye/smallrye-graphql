@@ -145,14 +145,16 @@ public class NestedBehavior {
     private static class Greeting {
         String text;
         int code;
+        Boolean successful;
 
         @SuppressWarnings("unused")
         Greeting() {
         }
 
-        Greeting(String text, int code) {
+        Greeting(String text, int code, Boolean successful) {
             this.text = text;
             this.code = code;
+            this.successful = successful;
         }
 
         @Override
@@ -162,24 +164,24 @@ public class NestedBehavior {
             if (o == null || getClass() != o.getClass())
                 return false;
             Greeting greeting = (Greeting) o;
-            return code == greeting.code && text.equals(greeting.text);
+            return code == greeting.code && text.equals(greeting.text) && successful == greeting.successful;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(text, code);
+            return Objects.hash(text, code, successful);
         }
     }
 
     @Test
     public void shouldCallObjectQuery() {
-        fixture.returnsData("'greeting':{'text':'foo','code':5}");
+        fixture.returnsData("'greeting':{'text':'foo','code':5, 'successful':true}");
         ObjectApi api = fixture.builder().build(ObjectApi.class);
 
         Greeting greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code}");
-        then(greeting).isEqualTo(new Greeting("foo", 5));
+        then(fixture.query()).isEqualTo("greeting {text code successful}");
+        then(greeting).isEqualTo(new Greeting("foo", 5, true));
     }
 
     @Test
@@ -222,15 +224,19 @@ public class NestedBehavior {
 
     @Test
     public void shouldCallObjectListQuery() {
-        fixture.returnsData("'greetings':[{'text':'a','code':1},{'text':'b','code':2}]");
+        fixture.returnsData("'greetings':["
+                + "{'text':'a','code':1},"
+                + "{'text':'b','code':2,'successful':true},"
+                + "{'text':'c','code':3,'successful':false}]");
         ObjectListApi api = fixture.builder().build(ObjectListApi.class);
 
         List<Greeting> greeting = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings {text code}");
+        then(fixture.query()).isEqualTo("greetings {text code successful}");
         then(greeting).containsExactly(
-                new Greeting("a", 1),
-                new Greeting("b", 2));
+                new Greeting("a", 1, null),
+                new Greeting("b", 2, true),
+                new Greeting("c", 3, false));
     }
 
     @Test
@@ -318,9 +324,9 @@ public class NestedBehavior {
 
         GreetingContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greeting {text code} count}");
+        then(fixture.query()).isEqualTo("container {greeting {text code successful} count}");
         then(container).isEqualTo(new GreetingContainer(
-                new Greeting("a", 1), 3));
+                new Greeting("a", 1, null), 3));
     }
 
     @GraphQlClientApi
@@ -366,9 +372,9 @@ public class NestedBehavior {
 
         GreetingsContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greetings {text code} count}");
+        then(fixture.query()).isEqualTo("container {greetings {text code successful} count}");
         then(container).isEqualTo(new GreetingsContainer(
-                asList(new Greeting("a", 1), new Greeting("b", 2)), 3));
+                asList(new Greeting("a", 1, null), new Greeting("b", 2, null)), 3));
     }
 
     @GraphQlClientApi
@@ -442,9 +448,9 @@ public class NestedBehavior {
 
         WrappedGreetingContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greeting {value {text code}} count}");
+        then(fixture.query()).isEqualTo("container {greeting {value {text code successful}} count}");
         then(container).isEqualTo(new WrappedGreetingContainer(
-                new Wrapper<>(new Greeting("a", 1)), 3));
+                new Wrapper<>(new Greeting("a", 1, null)), 3));
     }
 
     @GraphQlClientApi
@@ -611,8 +617,8 @@ public class NestedBehavior {
 
         Sub sub = api.call();
 
-        then(fixture.query()).isEqualTo("call {greeting {text code} count}");
-        then(sub.greeting).isEqualTo(new Greeting("a", 1));
+        then(fixture.query()).isEqualTo("call {greeting {text code successful} count}");
+        then(sub.greeting).isEqualTo(new Greeting("a", 1, null));
         then(sub.count).isEqualTo(3);
     }
 

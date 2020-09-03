@@ -239,4 +239,106 @@ public class MutationBehavior {
         then(fixture.mutation()).isEqualTo("say(greeting: {text: 'one', someEnum: ONE}) {text count}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
+
+    private static class PrimitiveTypesClass {
+        boolean b = true;
+        char c = 'a';
+        byte y = 0x7;
+        short s = 0xff;
+        int i = 123456;
+        long l = 987654321L;
+        float f = 12.34f;
+        double d = 56.78d;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            PrimitiveTypesClass that = (PrimitiveTypesClass) o;
+            return this.b == that.b
+                    && this.c == that.c
+                    && this.y == that.y
+                    && this.s == that.s
+                    && this.i == that.i
+                    && this.l == that.l
+                    && this.f == that.f
+                    && this.d == that.d;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(b, c, y, s, i, l, f, d);
+        }
+    }
+
+    @GraphQlClientApi
+    interface MutationWithPrimitivesApi {
+        @Mutation
+        String run(PrimitiveTypesClass primitives);
+    }
+
+    @Test
+    public void shouldCallMutationWithPrimitives() {
+        fixture.returnsData("'run':'okay'");
+        MutationWithPrimitivesApi api = fixture.builder().build(MutationWithPrimitivesApi.class);
+
+        String result = api.run(new PrimitiveTypesClass());
+
+        then(fixture.mutation())
+                .isEqualTo("run(primitives: {b: true, c: a, y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(result).isEqualTo("okay");
+    }
+
+    private static class PrimitiveWrapperTypesClass {
+        Boolean b = true;
+        Character c = 'a';
+        Byte y = 0x7;
+        Short s = 0xff;
+        Integer i = 123456;
+        Long l = 987654321L;
+        Float f = 12.34f;
+        Double d = 56.78d;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            PrimitiveWrapperTypesClass that = (PrimitiveWrapperTypesClass) o;
+            return this.b.equals(that.b)
+                    && this.c.equals(that.c)
+                    && this.y.equals(that.y)
+                    && this.s.equals(that.s)
+                    && this.i.equals(that.i)
+                    && this.l.equals(that.l)
+                    && this.f.equals(that.f)
+                    && this.d.equals(that.d);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(b, c, y, s, i, l, f, d);
+        }
+    }
+
+    @GraphQlClientApi
+    interface MutationWithPrimitiveWrappersApi {
+        @Mutation
+        String run(PrimitiveWrapperTypesClass primitives);
+    }
+
+    @Test
+    public void shouldCallMutationWithPrimitiveWrappers() {
+        fixture.returnsData("'run':'okay'");
+        MutationWithPrimitiveWrappersApi api = fixture.builder().build(MutationWithPrimitiveWrappersApi.class);
+
+        String result = api.run(new PrimitiveWrapperTypesClass());
+
+        then(fixture.mutation())
+                .isEqualTo("run(primitives: {b: true, c: 'a', y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(result).isEqualTo("okay");
+    }
 }
