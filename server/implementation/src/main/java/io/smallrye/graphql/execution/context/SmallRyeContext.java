@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -171,7 +172,9 @@ public class SmallRyeContext implements Context {
     public List<OperationType> getRequestedOperationTypes() {
         List<OperationType> allRequestedTypes = new ArrayList<>();
 
-        if (document != null) {
+        if (documentSupplier != null) {
+            Document document = documentSupplier.get();
+            documentSupplier = () -> document;
             List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
             for (OperationDefinition definition : definitions) {
                 OperationType operationType = getOperationTypeFromDefinition(definition);
@@ -222,7 +225,7 @@ public class SmallRyeContext implements Context {
     private final JsonObject jsonObject;
     private DataFetchingEnvironment dfe;
     private ExecutionInput executionInput;
-    private Document document;
+    private volatile Supplier<Document> documentSupplier;
     private Field field;
 
     private SmallRyeContext(final JsonObject jsonObject) {
@@ -232,7 +235,7 @@ public class SmallRyeContext implements Context {
     private void setExecutionInput(ExecutionInput executionInput) {
         this.executionInput = executionInput;
         try {
-            this.document = parser.parseDocument(executionInput.getQuery());
+            this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery());
         } catch (InvalidSyntaxException e) {
             // TODO: LOG ??
         }
