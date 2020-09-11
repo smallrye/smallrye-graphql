@@ -54,7 +54,7 @@ public class ReflectionDataFetcher<T> implements DataFetcher<T> {
      */
     public ReflectionDataFetcher(Operation operation, Config config) {
         this.operation = operation;
-        this.eventEmitter = new EventEmitter(config);
+        this.eventEmitter = EventEmitter.getInstance(config);
         this.fieldHelper = new FieldHelper(operation);
         this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());

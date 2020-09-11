@@ -30,7 +30,7 @@ public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object>
     private final boolean async;
 
     public SourceBatchLoader(Operation operation, Config config) {
-        EventEmitter eventEmitter = new EventEmitter(config);
+        EventEmitter eventEmitter = EventEmitter.getInstance(config);
         this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
         async = operation.isAsync();
     }
