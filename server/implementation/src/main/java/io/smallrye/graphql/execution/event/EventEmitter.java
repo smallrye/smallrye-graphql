@@ -1,9 +1,13 @@
 package io.smallrye.graphql.execution.event;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
+
+import org.jboss.logging.Logger;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
@@ -19,15 +23,21 @@ import io.smallrye.graphql.spi.EventingService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class EventEmitter {
-
-    private final ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
+    private static final Logger LOG = Logger.getLogger(EventEmitter.class);
+    private static final Map<Config, EventEmitter> INSTANCES = new IdentityHashMap<>();
     private final List<EventingService> enabledServices = new ArrayList<>();
 
-    public EventEmitter(Config config) {
+    public static EventEmitter getInstance(Config config) {
+        return INSTANCES.computeIfAbsent(config, k -> new EventEmitter(config));
+    }
+
+    private EventEmitter(Config config) {
+        ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
         Iterator<EventingService> it = eventingServices.iterator();
         while (it.hasNext()) {
+            EventingService eventingService = null;
             try {
-                EventingService eventingService = it.next();
+                eventingService = it.next();
                 String configKey = eventingService.getConfigKey();
                 boolean enabled = config.getConfigValue(configKey, boolean.class, false);
                 if (enabled) {
@@ -35,6 +45,9 @@ public class EventEmitter {
                 }
             } catch (Throwable t) {
                 // Ignore that service...
+                if (LOG.isDebugEnabled()) {
+                    LOG.warn("Failed to register eventing service, " + eventingService, t);
+                }
             }
         }
     }

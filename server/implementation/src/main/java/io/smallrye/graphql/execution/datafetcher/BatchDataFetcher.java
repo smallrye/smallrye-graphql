@@ -25,7 +25,7 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     public BatchDataFetcher(Operation operation, Config config) {
         this.operation = operation;
-        this.eventEmitter = new EventEmitter(config);
+        this.eventEmitter = EventEmitter.getInstance(config);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.batchLoaderName = SourceBatchLoaderHelper.getName(operation);
     }

@@ -72,7 +72,7 @@ public class ExecutionService {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
         this.dataLoaderRegistry = dataLoaderRegistry;
-        this.eventEmitter = new EventEmitter(config);
+        this.eventEmitter = EventEmitter.getInstance(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
     }

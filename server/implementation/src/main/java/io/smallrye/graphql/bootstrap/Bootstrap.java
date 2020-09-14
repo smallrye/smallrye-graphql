@@ -111,7 +111,7 @@ public class Bootstrap {
     private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
         this.config = config;
-        this.eventEmitter = new EventEmitter(config);
+        this.eventEmitter = EventEmitter.getInstance(config);
         SmallRyeContext.setSchema(schema);
     }
 
