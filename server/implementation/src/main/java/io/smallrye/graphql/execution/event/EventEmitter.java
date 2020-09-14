@@ -46,7 +46,7 @@ public class EventEmitter {
             } catch (Throwable t) {
                 // Ignore that service...
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Failed to register eventing service, " + eventingService, t);
+                    LOG.warn("Failed to register eventing service, " + eventingService, t);
                 }
             }
         }
