@@ -152,5 +152,34 @@
                 <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
             </properties>
         </profile>
+        <!-- if -DskipTests is provided, make sure we don't unnecessarily start and stop a testing WildFly instance -->
+        <profile>
+            <id>load-tests-disabled</id>
+            <activation>
+                <property>
+                    <name>skipTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-maven-plugin</artifactId>
+                        <version>2.0.2.Final</version>
+                        <executions>
+                            <execution>
+                                <id>start-wildfly</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>stop-wildfly</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
