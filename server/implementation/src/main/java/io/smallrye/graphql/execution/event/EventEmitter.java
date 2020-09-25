@@ -45,7 +45,7 @@ public class EventEmitter {
                 }
             } catch (Throwable t) {
                 // Ignore that service...
-                LOG.warn("Failed to register eventing service, " + eventingService, t);
+                LOG.warn("Failed to register eventing service, " + eventingService + ", ignoring...");
             }
         }
     }

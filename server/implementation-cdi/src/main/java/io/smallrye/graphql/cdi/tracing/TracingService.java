@@ -39,19 +39,15 @@ public class TracingService implements EventingService {
     private final Map<String, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
     private final Map<String, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
-    private final Tracer tracer;
-
-    public TracingService() {
-        this.tracer = CDI.current().select(Tracer.class).get();
-    }
+    private Tracer tracer;
 
     @Override
     public void beforeExecute(Context context) {
         ExecutionInput executionInput = context.unwrap(ExecutionInput.class);
         String operationName = getOperationName(executionInput);
 
-        Scope scope = tracer.buildSpan(operationName)
-                .asChildOf(tracer.activeSpan())
+        Scope scope = getTracer().buildSpan(operationName)
+                .asChildOf(getTracer().activeSpan())
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getRequestedOperationTypes()))
                 .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
@@ -74,9 +70,9 @@ public class TracingService implements EventingService {
     public void beforeDataFetch(Context context) {
         final DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
 
-        Span parentSpan = getParentSpan(tracer, env);
+        Span parentSpan = getParentSpan(getTracer(), env);
 
-        Scope scope = tracer.buildSpan(getOperationName(env))
+        Scope scope = getTracer().buildSpan(getOperationName(env))
                 .asChildOf(parentSpan)
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
@@ -128,12 +124,19 @@ public class TracingService implements EventingService {
          *           current thread is finished, but you can't use {@code after} either
          *           because it can run in another thread.
          */
-        tracer.scopeManager().active().close();
+        getTracer().scopeManager().active().close();
     }
 
     @Override
     public String getConfigKey() {
         return ConfigKey.ENABLE_TRACING;
+    }
+
+    private Tracer getTracer() {
+        if (tracer == null) {
+            this.tracer = CDI.current().select(Tracer.class).get();
+        }
+        return tracer;
     }
 
     private Span getParentSpan(Tracer tracer, final DataFetchingEnvironment env) {
