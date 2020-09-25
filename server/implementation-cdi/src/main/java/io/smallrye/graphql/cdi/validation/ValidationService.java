@@ -15,7 +15,7 @@ import io.smallrye.graphql.spi.EventingService;
  * Validate input before execution
  */
 public class ValidationService implements EventingService {
-    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+    private static ValidatorFactory VALIDATOR_FACTORY = null;
 
     @Override
     public void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
@@ -24,6 +24,9 @@ public class ValidationService implements EventingService {
 
         Object[] arguments = invokeInfo.getOperationTransformedArguments();
 
+        if (VALIDATOR_FACTORY == null) {
+            VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+        }
         Set<ConstraintViolation<Object>> violations = VALIDATOR_FACTORY.getValidator()
                 .forExecutables().validateParameters(declaringObject, method, arguments);
 

@@ -27,14 +27,10 @@ import io.smallrye.graphql.spi.EventingService;
  */
 public class MetricsService implements EventingService {
 
-    private final MetricRegistry metricRegistry;
+    private MetricRegistry metricRegistry;
     private final Map<Context, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
     private static final String METRIC_NAME = "mp_graphql";
     private final String DESCRIPTION = "Call statistics for the operation denoted by the 'name' tag";
-
-    public MetricsService() {
-        this.metricRegistry = CDI.current().select(MetricRegistry.class, new VendorType()).get();
-    }
 
     @Override
     public Operation createOperation(Operation operation) {
@@ -45,7 +41,7 @@ public class MetricsService implements EventingService {
                 .withType(MetricType.SIMPLE_TIMER)
                 .withDescription(DESCRIPTION)
                 .build();
-        metricRegistry.simpleTimer(metadata, tags);
+        getMetricRegistry().simpleTimer(metadata, tags);
         return operation;
     }
 
@@ -59,7 +55,7 @@ public class MetricsService implements EventingService {
         Long startTime = startTimes.remove(context);
         if (startTime != null) {
             long duration = System.nanoTime() - startTime;
-            metricRegistry.simpleTimer(METRIC_NAME, getTags(context))
+            getMetricRegistry().simpleTimer(METRIC_NAME, getTags(context))
                     .update(Duration.ofNanos(duration));
         }
     }
@@ -67,6 +63,13 @@ public class MetricsService implements EventingService {
     @Override
     public String getConfigKey() {
         return ConfigKey.ENABLE_METRICS;
+    }
+
+    private MetricRegistry getMetricRegistry() {
+        if (metricRegistry == null) {
+            this.metricRegistry = CDI.current().select(MetricRegistry.class, new VendorType()).get();
+        }
+        return metricRegistry;
     }
 
     private Tag[] getTags(Context context) {
