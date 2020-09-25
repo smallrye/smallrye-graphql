@@ -120,4 +120,8 @@ public class Reference implements Serializable {
     public Map<String, Reference> getParametrizedTypeArguments() {
         return parametrizedTypeArguments;
     }
+
+    public void setParametrizedTypeArguments(Map<String, Reference> parametrizedTypeArguments) {
+        this.parametrizedTypeArguments = parametrizedTypeArguments;
+    }
 }
