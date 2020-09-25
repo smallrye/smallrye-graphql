@@ -3,6 +3,8 @@ package io.smallrye.graphql.schema.test_generics;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
@@ -10,6 +12,10 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.index.SchemaBuilderTest;
 import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 
 public class GenericsTest {
@@ -29,24 +35,73 @@ public class GenericsTest {
         String schemaString = SchemaBuilderTest.toString(schema);
         LOG.info(schemaString);
 
-        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.InterfaceWithOneGenericsParam"));
-        assertTrue(schemaString.contains("InterfaceWithOneGenericsParam_Int"));
-        assertTrue(schemaString.contains("InterfaceWithOneGenericsParam_String"));
+        // check types consistency in the scheme
+        boolean correct = checkTypesInOperations(schema, schema.getQueries());
+        correct = checkTypesInOperations(schema, schema.getMutations()) && correct;
+        assertTrue(correct, "References in schema are invalid, see errors in log");
 
-        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithoutGenerics"));
-        assertTrue(schemaString.contains("ClassWithoutGenerics"));
+        // check type names in type definitions
+        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithoutGenerics\""));
+        assertTrue(schemaString.contains("\"ClassWithoutGenerics\": {"));
 
-        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParamToString2"));
-        assertTrue(schemaString.contains("ClassWithOneGenericsParamToString2_String"));
+        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParam\""));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_String\": {"));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_Integer\": {"));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_StringInput\": {"));
 
-        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParam"));
-        assertTrue(schemaString.contains("ClassWithOneGenericsParam_String"));
-        assertTrue(schemaString.contains("ClassWithOneGenericsParam_Int"));
-        assertTrue(schemaString.contains("ClassWithOneGenericsParam_StringInput"));
+        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithTwoGenericsParams\""));
+        assertTrue(schemaString.contains("\"ClassWithTwoGenericsParams_String_ClassWithOneGenericsParam_Integer\": {"));
 
-        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithTwoGenericsParams"));
-        assertTrue(schemaString.contains("ClassWithTwoGenericsParams_String_ClassWithOneGenericsParam_Integer"));
+        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParamToString2\""));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamToString2_String\": {"));
 
+        // appendix from generics is added even to classes with @Name and other annotations
+        assertTrue(schemaString
+                .contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParamWithNameAnnotation\""));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamWithNameAnnotationChanged_Integer\": {"));
+
+        // check type names in interface definitions
+        assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.InterfaceWithOneGenericsParam\""));
+        assertTrue(schemaString.contains("\"InterfaceWithOneGenericsParam_Integer\": {"));
+        assertTrue(schemaString.contains("\"InterfaceWithOneGenericsParam_String\": {"));
+    }
+
+    protected boolean checkTypesInOperations(Schema schema, Set<Operation> ops) {
+        boolean correct = true;
+        for (Operation op : ops) {
+            correct = checkType(schema, op.getReference()) && correct;
+            for (Argument arg : op.getArguments()) {
+                correct = checkType(schema, arg.getReference()) && correct;
+            }
+        }
+        return correct;
+    }
+
+    protected boolean checkType(Schema schema, Reference reference) {
+        ReferenceType referenceType = reference.getType();
+        String referenceName = reference.getName();
+        if (referenceType == ReferenceType.INTERFACE) {
+            if (!schema.getInterfaces().containsKey(referenceName)) {
+                LOG.errorv("Missing interface: {0}", referenceName);
+                return false;
+            }
+        } else if (referenceType == ReferenceType.TYPE) {
+            if (!schema.getTypes().containsKey(referenceName)) {
+                LOG.errorv("Missing type: {0}", referenceName);
+                return false;
+            }
+        } else if (referenceType == ReferenceType.INPUT) {
+            if (!schema.getInputs().containsKey(referenceName)) {
+                LOG.errorv("Missing input: {0}", referenceName);
+                return false;
+            }
+        } else if (referenceType == ReferenceType.ENUM) {
+            if (!schema.getEnums().containsKey(referenceName)) {
+                LOG.errorv("Missing enum: {0}", referenceName);
+                return false;
+            }
+        }
+        return true;
     }
 
 }

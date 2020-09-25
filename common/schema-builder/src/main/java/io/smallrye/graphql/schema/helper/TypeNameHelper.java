@@ -66,15 +66,17 @@ public class TypeNameHelper {
 
     private static String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName,
             String parametrizedTypeNameExtension, String postFix) {
-        if (annotations.containsKeyAndValidValue(typeName)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(typeName);
-            return annotationValue.asString().trim();
-        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
-            return annotations.getAnnotationValue(Annotations.NAME).asString().trim();
-        }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(classInfo.name().local());
+
+        if (annotations.containsKeyAndValidValue(typeName)) {
+            AnnotationValue annotationValue = annotations.getAnnotationValue(typeName);
+            sb.append(annotationValue.asString().trim());
+        } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            sb.append(annotations.getAnnotationValue(Annotations.NAME).asString().trim());
+        } else {
+            sb.append(classInfo.name().local());
+        }
 
         if (parametrizedTypeNameExtension != null)
             sb.append(parametrizedTypeNameExtension);
@@ -99,7 +101,16 @@ public class TypeNameHelper {
         StringBuilder sb = new StringBuilder();
         for (Reference gp : reference.getParametrizedTypeArguments().values()) {
             sb.append("_");
-            sb.append(gp.getName());
+
+            // next code must match with #appendParametrizedArgumet() to create same named types! See bug #418.
+            // If parametrized type is generic we have to use it's graphQL name which contains necessary extensions
+            // already. For rest we always use names derived from the java class name to match with
+            // #appendParametrizedArgumet()
+            if (gp.getParametrizedTypeArguments() == null || gp.getParametrizedTypeArguments().isEmpty()) {
+                sb.append(gp.getClassName().substring(gp.getClassName().lastIndexOf(".") + 1));
+            } else {
+                sb.append(gp.getName());
+            }
         }
         return sb.toString();
     }
