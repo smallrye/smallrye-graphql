@@ -237,7 +237,7 @@ public class Bootstrap {
         GraphQLInterfaceType graphQLInterfaceType = interfaceTypeBuilder.build();
         // To resolve the concrete class
         this.codeRegistryBuilder.typeResolver(graphQLInterfaceType, new InterfaceResolver(interfaceType));
-        this.interfaceMap.put(interfaceType.getClassName(), graphQLInterfaceType);
+        this.interfaceMap.put(interfaceType.getName(), graphQLInterfaceType);
     }
 
     private void createGraphQLInputObjectTypes() {
@@ -262,7 +262,7 @@ public class Bootstrap {
         }
 
         GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
-        inputMap.put(inputType.getClassName(), graphQLInputObjectType);
+        inputMap.put(inputType.getName(), graphQLInputObjectType);
     }
 
     private void createGraphQLObjectTypes() {
@@ -315,15 +315,15 @@ public class Bootstrap {
         if (type.hasInterfaces()) {
             Set<Reference> interfaces = type.getInterfaces();
             for (Reference i : interfaces) {
-                if (interfaceMap.containsKey(i.getClassName())) {
-                    GraphQLInterfaceType graphQLInterfaceType = interfaceMap.get(i.getClassName());
+                if (interfaceMap.containsKey(i.getName())) {
+                    GraphQLInterfaceType graphQLInterfaceType = interfaceMap.get(i.getName());
                     objectTypeBuilder = objectTypeBuilder.withInterface(graphQLInterfaceType);
                 }
             }
         }
 
         GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
-        typeMap.put(type.getClassName(), graphQLObjectType);
+        typeMap.put(type.getName(), graphQLObjectType);
 
         // Register this output for interface type resolving
         InterfaceOutputRegistry.register(type, graphQLObjectType);

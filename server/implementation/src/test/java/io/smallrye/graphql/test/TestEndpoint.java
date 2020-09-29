@@ -45,6 +45,18 @@ public class TestEndpoint {
         return values;
     }
 
+    // issue #429 reproducer part 1
+    @Query
+    public ClassWithOneGenericsParam<String> getGeneric1() {
+        return null;
+    }
+
+    // issue #429 reproducer part 2
+    @Query
+    public ClassWithOneGenericsParam<Integer> getGeneric2() {
+        return null;
+    }
+
     // This method will be ignored, with a WARN in the log, due to below duplicate
     @Name("timestamp")
     public TestSource getTestSource(@Source TestObject testObject, String indicator) {
