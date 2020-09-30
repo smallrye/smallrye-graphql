@@ -1,0 +1,14 @@
+{
+  "data": {
+    "books": {
+      "addBook": {
+        "isbn": "0-877-73515-8",
+        "published": "1910-01-01",
+        "title": "Art of war",
+        "authors": [
+          "Sun Tzu"
+        ]
+      }
+    }
+  }
+}
