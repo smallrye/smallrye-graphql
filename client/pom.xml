@@ -19,5 +19,6 @@
         <module>generator</module>
         <module>generator-test</module>
         <module>tck</module>
+        <module>all</module>
     </modules>
 </project>
