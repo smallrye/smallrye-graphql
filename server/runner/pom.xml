@@ -30,14 +30,6 @@
             <artifactId>smallrye-graphql-servlet</artifactId>
         </dependency>
         
-        <!-- The tests from our TCK -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql-tck</artifactId>
-            <classifier>tests</classifier>
-            <type>test-jar</type>
-            <version>${project.version}</version>
-        </dependency>
         <!-- The UI -->
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -76,9 +68,18 @@
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>smallrye-graphql-tck</artifactId>
+                                    <type>test-jar</type>
+                                    <classifier>tests</classifier>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
-                            <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                            
                         </configuration>
                     </execution>
                 </executions>

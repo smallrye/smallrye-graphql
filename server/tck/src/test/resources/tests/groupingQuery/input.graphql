@@ -1,0 +1,17 @@
+{
+  films{
+    allFilms{
+      title
+      leadActors
+      published
+      searchLink
+    }
+  }
+  books{
+    book(name:"Lord of the Flies"){
+      title
+      authors
+      published
+    }
+  }
+}
