@@ -26,6 +26,7 @@ import io.smallrye.graphql.schema.model.MappingInfo;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Here we create references to things that might not yet exist.
@@ -47,6 +48,12 @@ public class ReferenceCreator {
     private final Map<String, Reference> typeReferenceMap = new HashMap<>();
     private final Map<String, Reference> enumReferenceMap = new HashMap<>();
     private final Map<String, Reference> interfaceReferenceMap = new HashMap<>();
+
+    private final TypeAutoNameStrategy autoNameStrategy;
+
+    public ReferenceCreator(TypeAutoNameStrategy autoNameStrategy) {
+        this.autoNameStrategy = autoNameStrategy;
+    }
 
     /**
      * Clear the scanned references. This is done when we created all references and do not need to remember what to
@@ -185,8 +192,8 @@ public class ReferenceCreator {
         // Now we should have the correct reference type.
         String className = classInfo.name().toString();
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
-        String name = TypeNameHelper.getAnyTypeName(referenceType, classInfo, annotationsForClass,
-                TypeNameHelper.createParametrizedTypeNameExtension(parametrizedTypeArguments));
+        String name = TypeNameHelper.getAnyTypeName(parametrizedTypeArguments, referenceType, classInfo, annotationsForClass,
+                this.autoNameStrategy);
 
         Map<String, Reference> parametrizedTypeArgumentsReferences = null;
         if (parametrizedTypeArguments != null && referenceType != ReferenceType.ENUM) {

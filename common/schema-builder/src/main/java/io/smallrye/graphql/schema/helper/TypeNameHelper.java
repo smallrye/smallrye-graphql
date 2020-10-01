@@ -13,6 +13,7 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Helping with Name of types in the schema
@@ -35,22 +36,34 @@ public class TypeNameHelper {
      * @param annotationsForThisClass annotations on this class
      * @return name of this type
      */
-    public static String getAnyTypeName(ReferenceType referenceType, ClassInfo classInfo, Annotations annotationsForThisClass) {
-        return getAnyTypeName(referenceType, classInfo, annotationsForThisClass, null);
+    public static String getAnyTypeName(List<Type> parametrizedTypeArguments, ReferenceType referenceType, ClassInfo classInfo,
+            Annotations annotationsForThisClass, TypeAutoNameStrategy autoNameStrategy) {
+        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(parametrizedTypeArguments);
+        return getAnyTypeName(parametrizedTypeNameExtension, referenceType, classInfo, annotationsForThisClass,
+                autoNameStrategy);
     }
 
-    public static String getAnyTypeName(ReferenceType referenceType, ClassInfo classInfo, Annotations annotationsForThisClass,
-            String parametrizedTypeNameExtension) {
+    public static String getAnyTypeName(Reference reference, ReferenceType referenceType, ClassInfo classInfo,
+            Annotations annotationsForThisClass, TypeAutoNameStrategy autoNameStrategy) {
+        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(reference);
+        return getAnyTypeName(parametrizedTypeNameExtension, referenceType, classInfo, annotationsForThisClass,
+                autoNameStrategy);
+    }
+
+    private static String getAnyTypeName(String parametrizedTypeNameExtension, ReferenceType referenceType, ClassInfo classInfo,
+            Annotations annotationsForThisClass, TypeAutoNameStrategy autoNameStrategy) {
         if (Classes.isEnum(classInfo)) {
-            return getNameForClassType(classInfo, annotationsForThisClass, Annotations.ENUM, parametrizedTypeNameExtension);
+            return getNameForClassType(classInfo, annotationsForThisClass, Annotations.ENUM, parametrizedTypeNameExtension,
+                    autoNameStrategy);
         } else if (Classes.isInterface(classInfo)) {
             return getNameForClassType(classInfo, annotationsForThisClass, Annotations.INTERFACE,
-                    parametrizedTypeNameExtension);
+                    parametrizedTypeNameExtension, autoNameStrategy);
         } else if (referenceType.equals(ReferenceType.TYPE)) {
-            return getNameForClassType(classInfo, annotationsForThisClass, Annotations.TYPE, parametrizedTypeNameExtension);
+            return getNameForClassType(classInfo, annotationsForThisClass, Annotations.TYPE, parametrizedTypeNameExtension,
+                    autoNameStrategy);
         } else if (referenceType.equals(ReferenceType.INPUT)) {
             return getNameForClassType(classInfo, annotationsForThisClass, Annotations.INPUT, parametrizedTypeNameExtension,
-                    INPUT);
+                    INPUT, autoNameStrategy);
         } else if (referenceType.equals(ReferenceType.SCALAR)) {
             return classInfo.name().withoutPackagePrefix();
         } else {
@@ -60,12 +73,12 @@ public class TypeNameHelper {
     }
 
     private static String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName,
-            String parametrizedTypeNameExtension) {
-        return getNameForClassType(classInfo, annotations, typeName, parametrizedTypeNameExtension, null);
+            String parametrizedTypeNameExtension, TypeAutoNameStrategy autoNameStrategy) {
+        return getNameForClassType(classInfo, annotations, typeName, parametrizedTypeNameExtension, null, autoNameStrategy);
     }
 
     private static String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName,
-            String parametrizedTypeNameExtension, String postFix) {
+            String parametrizedTypeNameExtension, String postFix, TypeAutoNameStrategy autoNameStrategy) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -75,7 +88,7 @@ public class TypeNameHelper {
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             sb.append(annotations.getAnnotationValue(Annotations.NAME).asString().trim());
         } else {
-            sb.append(classInfo.name().local());
+            sb.append(applyNamingStrategy(classInfo, autoNameStrategy));
         }
 
         if (parametrizedTypeNameExtension != null)
@@ -85,7 +98,7 @@ public class TypeNameHelper {
         return sb.toString();
     }
 
-    public static String createParametrizedTypeNameExtension(List<Type> parametrizedTypeArguments) {
+    private static String createParametrizedTypeNameExtension(List<Type> parametrizedTypeArguments) {
         if (parametrizedTypeArguments == null || parametrizedTypeArguments.isEmpty())
             return null;
         StringBuilder sb = new StringBuilder();
@@ -95,14 +108,14 @@ public class TypeNameHelper {
         return sb.toString();
     }
 
-    public static String createParametrizedTypeNameExtension(Reference reference) {
+    private static String createParametrizedTypeNameExtension(Reference reference) {
         if (reference.getParametrizedTypeArguments() == null || reference.getParametrizedTypeArguments().isEmpty())
             return null;
         StringBuilder sb = new StringBuilder();
         for (Reference gp : reference.getParametrizedTypeArguments().values()) {
             sb.append("_");
 
-            // next code must match with #appendParametrizedArgumet() to create same named types! See bug #418.
+            // next code must match with #appendParametrizedArgument() to create same named types! See bug #418.
             // If parametrized type is generic we have to use it's graphQL name which contains necessary extensions
             // already. For rest we always use names derived from the java class name to match with
             // #appendParametrizedArgumet()
@@ -115,8 +128,20 @@ public class TypeNameHelper {
         return sb.toString();
     }
 
+    private static String applyNamingStrategy(ClassInfo classInfo, TypeAutoNameStrategy autoNameStrategy) {
+        if (autoNameStrategy.equals(TypeAutoNameStrategy.Full)) {
+            return classInfo.name().toString().replaceAll("\\.", UNDERSCORE).replaceAll("\\$", "");
+        } else if (autoNameStrategy.equals(TypeAutoNameStrategy.MergeInnerClass)) {
+            DotName enclosingClass = classInfo.enclosingClass();
+            if (enclosingClass != null) {
+                return enclosingClass.local() + classInfo.name().local();
+            }
+        }
+        return classInfo.name().local(); // Default
+    }
+
     private static final void appendParametrizedArgumet(StringBuilder sb, Type gp) {
-        sb.append("_");
+        sb.append(UNDERSCORE);
         sb.append(gp.name().local());
         if (gp.kind().equals(Kind.PARAMETERIZED_TYPE)) {
             for (Type t : gp.asParameterizedType().arguments()) {
@@ -126,4 +151,5 @@ public class TypeNameHelper {
     }
 
     private static final String INPUT = "Input";
+    private static final String UNDERSCORE = "_";
 }

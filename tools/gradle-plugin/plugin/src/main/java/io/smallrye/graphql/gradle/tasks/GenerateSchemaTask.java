@@ -37,6 +37,7 @@ import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Generate schema task.
@@ -54,6 +55,8 @@ public class GenerateSchemaTask extends DefaultTask {
     private boolean includeDirectives = false;
     private boolean includeSchemaDefinition = false;
     private boolean includeIntrospectionTypes = false;
+    private String typeAutoNameStrategy = "Default";
+    
     private File classesDir = new File(getProject().getBuildDir(), "classes");
 
     @Optional
@@ -155,6 +158,16 @@ public class GenerateSchemaTask extends DefaultTask {
         this.includeIntrospectionTypes = includeIntrospectionTypes;
     }
 
+    @Input
+    public String getTypeAutoNameStrategy() {
+        return typeAutoNameStrategy;
+    }
+
+    @Option(option = "type-auto-name-strategy", description = "The naming strategy to follow when creating types. Default, MergeInnerClass, Full ")
+    public void setTypeAutoNameStrategy(boolean includeIntrospectionTypes) {
+        this.typeAutoNameStrategy = typeAutoNameStrategy;
+    }
+    
     @Optional
     @InputDirectory
     public File getClassesDir() {
@@ -248,7 +261,8 @@ public class GenerateSchemaTask extends DefaultTask {
                 return includeIntrospectionTypes;
             }
         };
-        Schema internalSchema = SchemaBuilder.build(index);
+        TypeAutoNameStrategy autoNameStrategy = TypeAutoNameStrategy.valueOf(typeAutoNameStrategy);
+        Schema internalSchema = SchemaBuilder.build(index, autoNameStrategy);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema);
         if(bootstraped!=null){
             GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();

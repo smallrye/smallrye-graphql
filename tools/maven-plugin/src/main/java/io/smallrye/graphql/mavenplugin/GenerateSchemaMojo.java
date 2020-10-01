@@ -32,6 +32,7 @@ import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 @Mojo(name = "generate-schema", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class GenerateSchemaMojo extends AbstractMojo {
@@ -77,6 +78,9 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "false", property = "includeIntrospectionTypes")
     private boolean includeIntrospectionTypes;
+
+    @Parameter(defaultValue = "Default", property = "typeAutoNameStrategy")
+    private String typeAutoNameStrategy;
 
     @Parameter(defaultValue = "${project}")
     private MavenProject mavenProject;
@@ -164,7 +168,9 @@ public class GenerateSchemaMojo extends AbstractMojo {
                 return includeIntrospectionTypes;
             }
         };
-        Schema internalSchema = SchemaBuilder.build(index);
+
+        TypeAutoNameStrategy autoNameStrategy = TypeAutoNameStrategy.valueOf(typeAutoNameStrategy);
+        Schema internalSchema = SchemaBuilder.build(index, autoNameStrategy);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema);
         if (bootstraped != null) {
             GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();

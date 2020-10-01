@@ -21,6 +21,7 @@ import javax.servlet.annotation.WebListener;
 import org.jboss.jandex.IndexView;
 
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.cdi.producer.GraphQLProducer;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
@@ -35,6 +36,9 @@ public class StartupListener implements ServletContextListener {
 
     @Inject
     private GraphQLProducer graphQLProducer;
+
+    @Inject
+    GraphQLConfig config;
 
     private final IndexInitializer indexInitializer = new IndexInitializer();
 
@@ -54,7 +58,7 @@ public class StartupListener implements ServletContextListener {
 
             IndexView index = indexInitializer.createIndex(warURLs);
 
-            Schema schema = SchemaBuilder.build(index); // Get the smallrye schema
+            Schema schema = SchemaBuilder.build(index, config.getTypeAutoNameStrategy()); // Get the smallrye schema
             GraphQLSchema graphQLSchema = graphQLProducer.initialize(schema);
 
             sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);

@@ -19,6 +19,7 @@ import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This creates an interface object.
@@ -33,10 +34,13 @@ public class InterfaceCreator implements Creator<InterfaceType> {
 
     private final ReferenceCreator referenceCreator;
     private final FieldCreator fieldCreator;
+    private final TypeAutoNameStrategy autoNameStrategy;
 
-    public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator) {
+    public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator,
+            TypeAutoNameStrategy autoNameStrategy) {
         this.referenceCreator = referenceCreator;
         this.fieldCreator = fieldCreator;
+        this.autoNameStrategy = autoNameStrategy;
     }
 
     @Override
@@ -46,8 +50,8 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INTERFACE, classInfo, annotations,
-                TypeNameHelper.createParametrizedTypeNameExtension(reference));
+        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.INTERFACE, classInfo, annotations,
+                autoNameStrategy);
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

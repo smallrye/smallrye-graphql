@@ -27,6 +27,7 @@ import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Type;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This creates a type object.
@@ -43,11 +44,14 @@ public class TypeCreator implements Creator<Type> {
     private final ReferenceCreator referenceCreator;
     private final FieldCreator fieldCreator;
     private final OperationCreator operationCreator;
+    private final TypeAutoNameStrategy autoNameStrategy;
 
-    public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator) {
+    public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator,
+            TypeAutoNameStrategy autoNameStrategy) {
         this.referenceCreator = referenceCreator;
         this.fieldCreator = fieldCreator;
         this.operationCreator = operationCreator;
+        this.autoNameStrategy = autoNameStrategy;
     }
 
     @Override
@@ -57,8 +61,7 @@ public class TypeCreator implements Creator<Type> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.TYPE, classInfo, annotations,
-                TypeNameHelper.createParametrizedTypeNameExtension(reference));
+        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.TYPE, classInfo, annotations, autoNameStrategy);
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

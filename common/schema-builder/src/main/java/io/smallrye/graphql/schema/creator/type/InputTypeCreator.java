@@ -21,6 +21,7 @@ import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This creates an input type object.
@@ -34,9 +35,11 @@ public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     private final FieldCreator fieldCreator;
+    private final TypeAutoNameStrategy autoNameStrategy;
 
-    public InputTypeCreator(FieldCreator fieldCreator) {
+    public InputTypeCreator(FieldCreator fieldCreator, TypeAutoNameStrategy autoNameStrategy) {
         this.fieldCreator = fieldCreator;
+        this.autoNameStrategy = autoNameStrategy;
     }
 
     @Override
@@ -53,8 +56,7 @@ public class InputTypeCreator implements Creator<InputType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(ReferenceType.INPUT, classInfo, annotations,
-                TypeNameHelper.createParametrizedTypeNameExtension(reference));
+        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.INPUT, classInfo, annotations, autoNameStrategy);
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

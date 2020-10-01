@@ -21,6 +21,7 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 public class GenericsTest {
 
@@ -33,7 +34,7 @@ public class GenericsTest {
         SchemaBuilderTest.indexDirectory(indexer, "io/smallrye/graphql/schema/test_generics");
         Index index = indexer.complete();
 
-        Schema schema = SchemaBuilder.build(index);
+        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
         assertNotNull(schema);
 
         String schemaString = SchemaBuilderTest.toString(schema);
