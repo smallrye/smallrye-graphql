@@ -17,36 +17,44 @@ public class Reference implements Serializable {
     private String graphQlClassName;
     private MappingInfo mappingInfo = null; // If the type is mapped to another type
     private Map<String, Reference> parametrizedTypeArguments;
+    private boolean addParametrizedTypeNameExtension;
 
     public Reference() {
     }
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName,
-            Map<String, Reference> parametrizedTypeArguments) {
-        this(className, name, type, graphQlClassName, parametrizedTypeArguments, null);
+            Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension) {
+        this(className, name, type, graphQlClassName, parametrizedTypeArguments, addParametrizedTypeNameExtension, null);
+    }
+
+    public Reference(String className, String name, ReferenceType type, String graphQlClassName) {
+        this(className, name, type, graphQlClassName, null, false, null);
     }
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName,
-            Map<String, Reference> parametrizedTypeArguments, MappingInfo mappingInfo) {
+            Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension,
+            MappingInfo mappingInfo) {
         this.className = className;
         this.name = name;
         this.type = type;
         this.graphQlClassName = graphQlClassName;
         this.parametrizedTypeArguments = parametrizedTypeArguments;
         this.mappingInfo = mappingInfo;
+        this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
     }
 
     public Reference(String className, String name, ReferenceType type) {
-        this(className, name, type, className, null, null);
+        this(className, name, type, className, null, false, null);
     }
 
-    public Reference(String className, String name, ReferenceType type, Map<String, Reference> parametrizedTypeArguments) {
-        this(className, name, type, className, parametrizedTypeArguments, null);
+    public Reference(String className, String name, ReferenceType type, Map<String, Reference> parametrizedTypeArguments,
+            boolean addParametrizedTypeNameExtension) {
+        this(className, name, type, className, parametrizedTypeArguments, addParametrizedTypeNameExtension, null);
     }
 
     public Reference(final Reference reference) {
         this(reference.className, reference.name, reference.type, reference.graphQlClassName,
-                reference.parametrizedTypeArguments, reference.mappingInfo);
+                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.mappingInfo);
     }
 
     /**
@@ -124,4 +132,21 @@ public class Reference implements Serializable {
     public void setParametrizedTypeArguments(Map<String, Reference> parametrizedTypeArguments) {
         this.parametrizedTypeArguments = parametrizedTypeArguments;
     }
+
+    public boolean isAddParametrizedTypeNameExtension() {
+        return addParametrizedTypeNameExtension;
+    }
+
+    public void setAddParametrizedTypeNameExtension(boolean addParametrizedTypeNameExtension) {
+        this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
+    }
+
+    @Override
+    public String toString() {
+        return "Reference [className=" + className + ", name=" + name + ", type=" + type + ", graphQlClassName="
+                + graphQlClassName + ", mappingInfo=" + mappingInfo + ", addParametrizedTypeNameExtension="
+                + addParametrizedTypeNameExtension
+                + ", parametrizedTypeArguments=" + parametrizedTypeArguments + "]";
+    }
+
 }

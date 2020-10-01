@@ -5,4 +5,5 @@ public class ClassWithOneGenericsParamToString2 extends ClassWithOneGenericsPara
     public String getMe() {
         return null;
     }
+
 }

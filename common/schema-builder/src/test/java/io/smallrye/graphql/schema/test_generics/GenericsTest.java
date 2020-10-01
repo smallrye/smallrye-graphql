@@ -16,11 +16,15 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.index.SchemaBuilderTest;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
+import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 public class GenericsTest {
@@ -43,7 +47,15 @@ public class GenericsTest {
         // check types consistency in the scheme
         boolean correct = checkTypesInOperations(schema, merge(schema.getQueries()));
         correct = checkTypesInOperations(schema, merge(schema.getMutations())) && correct;
+        correct = checkTypesInTypes(schema, schema.getTypes().values()) && correct;
+        correct = checkTypesInInputTypes(schema, schema.getInputs().values()) && correct;
+        correct = checkTypesInInterfaceTypes(schema, schema.getInterfaces().values()) && correct;
+
         assertTrue(correct, "References in schema are invalid, see errors in log");
+
+        //check arrays are returned correctly
+        checkOperationReturnsArray(merge(schema.getQueries()));
+        checkOperationReturnsArray(merge(schema.getMutations()));
 
         // check type names in type definitions
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithoutGenerics\""));
@@ -51,24 +63,54 @@ public class GenericsTest {
 
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParam\""));
         assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_String\": {"));
-        assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_Integer\": {"));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_Int\": {"));
         assertTrue(schemaString.contains("\"ClassWithOneGenericsParam_StringInput\": {"));
 
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithTwoGenericsParams\""));
-        assertTrue(schemaString.contains("\"ClassWithTwoGenericsParams_String_ClassWithOneGenericsParam_Integer\": {"));
+        assertTrue(schemaString.contains("\"ClassWithTwoGenericsParams_String_ClassWithOneGenericsParam_Int\": {"));
+        assertTrue(schemaString.contains("\"ClassWithTwoGenericsParams_String_Int\": {"));
 
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParamToString2\""));
-        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamToString2_String\": {"));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamToString2\": {"));
+
+        // error #423 tests
+        assertTrue(schemaString
+                .contains("io.smallrye.graphql.schema.test_generics.ClassWithGenericAttributeResolvedFromEnclosingClass\""));
+        assertTrue(schemaString.contains("\"ClassWithGenericAttributeResolvedFromEnclosingClass_String\": {"));
+        assertTrue(schemaString.contains(
+                "io.smallrye.graphql.schema.test_generics.ClassWithGenericListAttributeResolvedFromEnclosingClass\""));
+        assertTrue(schemaString.contains("\"ClassWithGenericListAttributeResolvedFromEnclosingClass_DateTime\": {"));
+        assertTrue(schemaString.contains(
+                "io.smallrye.graphql.schema.test_generics.ClassWithGenericArrayAttributeResolvedFromEnclosingClass\""));
+        assertTrue(schemaString.contains("\"ClassWithGenericArrayAttributeResolvedFromEnclosingClass_Int\": {"));
 
         // appendix from generics is added even to classes with @Name and other annotations
         assertTrue(schemaString
                 .contains("io.smallrye.graphql.schema.test_generics.ClassWithOneGenericsParamWithNameAnnotation\""));
-        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamWithNameAnnotationChanged_Integer\": {"));
+        assertTrue(schemaString.contains("\"ClassWithOneGenericsParamWithNameAnnotationChanged_Int\": {"));
 
         // check type names in interface definitions
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.InterfaceWithOneGenericsParam\""));
-        assertTrue(schemaString.contains("\"InterfaceWithOneGenericsParam_Integer\": {"));
+        assertTrue(schemaString.contains("\"InterfaceWithOneGenericsParam_Int\": {"));
         assertTrue(schemaString.contains("\"InterfaceWithOneGenericsParam_String\": {"));
+    }
+
+    /**
+     * Checks that operations with name starting by "getListOf" or "getArrayOf" return GraphQL array, and other no.
+     * 
+     * @param ops
+     */
+    protected void checkOperationReturnsArray(Collection<Operation> ops) {
+        for (Operation o : ops) {
+            String on = o.getMethodName();
+            if (on.startsWith("getListOf") || on.startsWith("getArrayOf") || on.startsWith("setListOf")
+                    || on.startsWith("setArrayOf")) {
+                assertTrue(o.getArray() != null, "GraphQL array have to be returned for operation named " + o.getMethodName());
+            } else {
+                assertTrue(o.getArray() == null, "GraphQL array MUST NOT be returned for operation named " + o.getMethodName());
+            }
+        }
+
     }
 
     protected boolean checkTypesInOperations(Schema schema, Collection<Operation> ops) {
@@ -78,6 +120,44 @@ public class GenericsTest {
             for (Argument arg : op.getArguments()) {
                 correct = checkType(schema, arg.getReference()) && correct;
             }
+        }
+        return correct;
+    }
+
+    protected boolean checkTypesInTypes(Schema schema, Collection<Type> ops) {
+        boolean correct = true;
+
+        for (Type op : ops) {
+            correct = checkTypesInFields(schema, op.getFields().values()) && correct;
+            correct = checkInterfacesExist(schema, op.getInterfaces()) && correct;
+        }
+        return correct;
+    }
+
+    protected boolean checkTypesInInputTypes(Schema schema, Collection<InputType> ops) {
+        boolean correct = true;
+
+        for (InputType op : ops) {
+            correct = checkTypesInFields(schema, op.getFields().values()) && correct;
+        }
+        return correct;
+    }
+
+    protected boolean checkTypesInInterfaceTypes(Schema schema, Collection<InterfaceType> ops) {
+        boolean correct = true;
+
+        for (InterfaceType op : ops) {
+            correct = checkTypesInFields(schema, op.getFields().values()) && correct;
+            correct = checkInterfacesExist(schema, op.getInterfaces()) && correct;
+        }
+        return correct;
+    }
+
+    protected boolean checkTypesInFields(Schema schema, Collection<Field> ops) {
+        boolean correct = true;
+
+        for (Field f : ops) {
+            correct = checkType(schema, f.getReference()) && correct;
         }
         return correct;
     }
@@ -125,4 +205,22 @@ public class GenericsTest {
         }
         return all;
     }
+
+    private boolean checkInterfacesExist(Schema schema, Set<Reference> interfaceReferences) {
+        if (interfaceReferences != null) {
+            for (Reference interfaceReference : interfaceReferences) {
+                String referenceName = interfaceReference.getName();
+                if (!schema.getInterfaces().containsKey(referenceName)) {
+                    LOG.errorv("Missing interface: {0}", referenceName);
+                    return false;
+                }
+                if (interfaceReference.getType() != ReferenceType.INTERFACE) {
+                    LOG.errorv("InterfaceReference has bad type for interface: {0}", referenceName);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }
