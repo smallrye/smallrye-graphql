@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -23,7 +24,9 @@ import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.helper.GroupHelper;
 import io.smallrye.graphql.schema.model.ErrorInfo;
+import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -87,7 +90,8 @@ public class SchemaBuilder {
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             List<MethodInfo> methods = apiClass.methods();
-            addOperations(schema, methods);
+            Optional<Group> group = GroupHelper.getGroup(graphQLApiAnnotation);
+            addOperations(group, schema, methods);
         }
 
         // The above queries and mutations reference some models (input / type / interfaces / enum), let's create those
@@ -205,15 +209,15 @@ public class SchemaBuilder {
      * @param schema the schema to add the operation to.
      * @param methodInfoList the java methods.
      */
-    private void addOperations(Schema schema, List<MethodInfo> methodInfoList) {
+    private void addOperations(Optional<Group> group, Schema schema, List<MethodInfo> methodInfoList) {
         for (MethodInfo methodInfo : methodInfoList) {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
                 Operation query = operationCreator.createOperation(methodInfo, OperationType.Query, null);
-                schema.addQuery(query);
+                schema.addQuery(group.orElse(null), query);
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
                 Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation, null);
-                schema.addMutation(mutation);
+                schema.addMutation(group.orElse(null), mutation);
             }
         }
     }

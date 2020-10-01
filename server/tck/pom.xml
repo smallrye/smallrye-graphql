@@ -67,7 +67,7 @@
                     <execution>
                         <configuration>
                             <includes>
-                                <include>**/apps/*</include>
+                                <include>**/apps/**</include>
                             </includes>
                         </configuration>
                         <goals>

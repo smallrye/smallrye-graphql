@@ -1,0 +1,37 @@
+{
+  "data": {
+    "films": {
+      "allFilms": [
+        {
+          "title": "The Game",
+          "leadActors": [
+            "Michael Douglas",
+            "Deborah Kara Unger",
+            "Sean Penn"
+          ],
+          "published": "1998-01-09",
+          "searchLink": "https://www.google.com/search?q=Film+The+Game"
+        },
+        {
+          "title": "Fight Club",
+          "leadActors": [
+            "Brad Pitt",
+            "Edward Norton",
+            "Helena Bonham Carter"
+          ],
+          "published": "2000-01-28",
+          "searchLink": "https://www.google.com/search?q=Film+Fight+Club"
+        }
+      ]
+    },
+    "books": {
+      "book": {
+        "title": "Lord of the Flies",
+        "authors": [
+          "William Golding"
+        ],
+        "published": "1954-09-17"
+      }
+    }
+  }
+}
