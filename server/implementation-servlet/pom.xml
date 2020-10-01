@@ -12,7 +12,7 @@
     <name>SmallRye: GraphQL Server :: Servlet</name>
 
     <properties>
-        <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
+        <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
     </properties>
 
     <dependencies>
