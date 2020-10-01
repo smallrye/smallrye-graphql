@@ -15,8 +15,8 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Set<Operation> queries = new HashSet<>();
-    private Set<Operation> mutations = new HashSet<>();
+    private Map<Group, Set<Operation>> queries = new HashMap<>();
+    private Map<Group, Set<Operation>> mutations = new HashMap<>();
 
     private Map<String, InputType> inputs = new HashMap<>();
     private Map<String, Type> types = new HashMap();
@@ -28,32 +28,32 @@ public final class Schema implements Serializable {
     public Schema() {
     }
 
-    public Set<Operation> getQueries() {
+    public Map<Group, Set<Operation>> getQueries() {
         return queries;
     }
 
-    public void setQueries(Set<Operation> queries) {
+    public void setQueries(Map<Group, Set<Operation>> queries) {
         this.queries = queries;
     }
 
-    public void addQuery(Operation query) {
-        this.queries.add(query);
+    public void addQuery(Group group, Operation query) {
+        addToOperationMap(this.queries, group, query);
     }
 
     public boolean hasQueries() {
         return !this.queries.isEmpty();
     }
 
-    public Set<Operation> getMutations() {
+    public Map<Group, Set<Operation>> getMutations() {
         return mutations;
     }
 
-    public void setMutations(Set<Operation> mutations) {
+    public void setMutations(Map<Group, Set<Operation>> mutations) {
         this.mutations = mutations;
     }
 
-    public void addMutation(Operation mutation) {
-        this.mutations.add(mutation);
+    public void addMutation(Group group, Operation mutation) {
+        addToOperationMap(this.mutations, group, mutation);
     }
 
     public boolean hasMutations() {
@@ -160,4 +160,15 @@ public final class Schema implements Serializable {
         return !this.errors.isEmpty();
     }
 
+    private void addToOperationMap(Map<Group, Set<Operation>> map, Group group, Operation query) {
+        Set<Operation> set;
+
+        if (map.containsKey(group)) {
+            set = map.get(group);
+        } else {
+            set = new HashSet<>();
+        }
+        set.add(query);
+        map.put(group, set);
+    }
 }
