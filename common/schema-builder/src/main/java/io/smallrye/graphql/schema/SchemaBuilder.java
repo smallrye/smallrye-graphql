@@ -32,6 +32,7 @@ import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This builds schema model using Jandex.
@@ -52,7 +53,7 @@ public class SchemaBuilder {
     private final InputTypeCreator inputTypeCreator;
     private final TypeCreator typeCreator;
     private final InterfaceCreator interfaceCreator;
-    private final EnumCreator enumCreator = new EnumCreator();
+    private final EnumCreator enumCreator;
     private final ReferenceCreator referenceCreator;
     private final OperationCreator operationCreator;
 
@@ -62,21 +63,22 @@ public class SchemaBuilder {
      * @param index the Jandex index
      * @return the Schema
      */
-    public static Schema build(IndexView index) {
+    public static Schema build(IndexView index, TypeAutoNameStrategy autoNameStrategy) {
         ScanningContext.register(index);
-        SchemaBuilder graphQLBootstrap = new SchemaBuilder();
+        SchemaBuilder graphQLBootstrap = new SchemaBuilder(autoNameStrategy);
         return graphQLBootstrap.generateSchema();
     }
 
-    private SchemaBuilder() {
-        referenceCreator = new ReferenceCreator();
+    private SchemaBuilder(TypeAutoNameStrategy autoNameStrategy) {
+        enumCreator = new EnumCreator(autoNameStrategy);
+        referenceCreator = new ReferenceCreator(autoNameStrategy);
         FieldCreator fieldCreator = new FieldCreator(referenceCreator);
         ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
 
-        inputTypeCreator = new InputTypeCreator(fieldCreator);
+        inputTypeCreator = new InputTypeCreator(fieldCreator, autoNameStrategy);
         operationCreator = new OperationCreator(referenceCreator, argumentCreator);
-        typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
-        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator);
+        typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator, autoNameStrategy);
+        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy);
     }
 
     private Schema generateSchema() {

@@ -23,6 +23,7 @@ import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Base class for execution tests
@@ -37,7 +38,7 @@ public class ExecutionTestBase {
     @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
-        Schema schema = SchemaBuilder.build(index);
+        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
         GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
         DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();

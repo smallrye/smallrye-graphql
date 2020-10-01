@@ -17,6 +17,8 @@ public class TestObject {
     @Name("amounts")
     private List<TestListObject> testListObjects = new ArrayList<>();
 
+    private Number number;
+
     public String getId() {
         return id;
     }
@@ -43,5 +45,19 @@ public class TestObject {
 
     public void addTestListObject(TestListObject testListObject) {
         testListObjects.add(testListObject);
+    }
+
+    public Number getNumber() {
+        return number;
+    }
+
+    public void setNumber(Number number) {
+        this.number = number;
+    }
+
+    enum Number {
+        ONE,
+        TWO,
+        THREE
     }
 }

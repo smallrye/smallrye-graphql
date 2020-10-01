@@ -36,6 +36,7 @@ import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.cdi.event.EventsService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Test a basic query
@@ -55,7 +56,7 @@ public class CdiExecutionTest {
     @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
-        Schema schema = SchemaBuilder.build(index);
+        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
         GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
         DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();

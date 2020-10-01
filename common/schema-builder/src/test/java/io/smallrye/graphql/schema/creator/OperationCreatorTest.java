@@ -12,11 +12,12 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.schema.IndexCreator;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
+import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 public class OperationCreatorTest {
 
     private OperationCreator operationCreator() {
-        ReferenceCreator referenceCreator = new ReferenceCreator();
+        ReferenceCreator referenceCreator = new ReferenceCreator(TypeAutoNameStrategy.Default);
         ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
         return new OperationCreator(referenceCreator, argumentCreator);
     }
