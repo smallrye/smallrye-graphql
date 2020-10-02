@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
@@ -12,7 +13,15 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.index.SchemaBuilderTest;
 import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.InterfaceType;
+import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Type;
 
 public class GenericsTest {
 
@@ -41,8 +50,8 @@ public class GenericsTest {
         assertTrue(correct, "References in schema are invalid, see errors in log");
 
         //check arrays are returned correctly
-        checkOperationReturnsArray(merge(schema.getQueries()));
-        checkOperationReturnsArray(merge(schema.getMutations()));
+        checkOperationReturnsArray(schema.getQueries());
+        checkOperationReturnsArray(schema.getMutations());
 
         // check type names in type definitions
         assertTrue(schemaString.contains("io.smallrye.graphql.schema.test_generics.ClassWithoutGenerics\""));
