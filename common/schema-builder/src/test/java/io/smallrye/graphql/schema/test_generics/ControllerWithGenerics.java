@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.test_generics;
 
 import java.util.Date;
+import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
@@ -21,6 +22,16 @@ public class ControllerWithGenerics {
 
     @Query
     public ClassWithOneGenericsParam<String> getClassWithOneGenericsParamInControllerString() {
+        return null;
+    }
+
+    @Query
+    public List<ClassWithOneGenericsParam<String>> getListOfClassWithOneGenericsParamInControllerString() {
+        return null;
+    }
+
+    @Query
+    public ClassWithOneGenericsParam<String>[] getArrayOfClassWithOneGenericsParamInControllerString() {
         return null;
     }
 
@@ -50,6 +61,16 @@ public class ControllerWithGenerics {
     }
 
     @Query
+    public ClassWithTwoGenericsParams<String, ClassWithOneGenericsParam<Integer>>[] getArrayOfClassWithTwoGenericsParamsWithNestedOneGenericsParamInControllerString() {
+        return null;
+    }
+
+    @Query
+    public List<ClassWithTwoGenericsParams<String, ClassWithOneGenericsParam<Integer>>> getListOfClassWithTwoGenericsParamsWithNestedOneGenericsParamInControllerString() {
+        return null;
+    }
+
+    @Query
     public InterfaceWithOneGenericsParam<String> getInterfaceWithOneGenericsParamInControllerString() {
         return null;
     }
@@ -74,9 +95,66 @@ public class ControllerWithGenerics {
         return null;
     }
 
+    // error #423 replicator
+    @Query
+    public ClassWithGenericAttributeResolvedFromEnclosingClass<String> getClassWithGenericAttributeResolvedFromEnclosingClass() {
+        return null;
+    }
+
+    // error #423 replicator
+    @Query
+    public ClassWithGenericListAttributeResolvedFromEnclosingClass<Date> getClassWithGenericListAttributeResolvedFromEnclosingClass() {
+        return null;
+    }
+
+    // error #423 replicator
+    @Query
+    public ClassWithGenericArrayAttributeResolvedFromEnclosingClass<Integer> getClassWithGenericArrayAttributeResolvedFromEnclosingClass() {
+        return null;
+    }
+
+    @Query
+    public ClassWithOneGenericsParamFromInterface<Long> getClassWithOneGenericsParamFromInterface() {
+        return null;
+    }
+
+    @Query
+    public List<ClassWithOneGenericsParamFromInterface<Long>> getListOfClassWithOneGenericsParamFromInterface() {
+        return null;
+    }
+
+    @Query
+    public ClassWithOneGenericsParamFromInterface<Long>[] getArrayOfClassWithOneGenericsParamFromInterface() {
+        return null;
+    }
+
     @Mutation
-    public InterfaceWithOneGenericsParam<String> setClassWithOneGenericsParamInControllerString(
+    public InterfaceWithOneGenericsParam<String> setClassWithOneGenericsParamInControllerStringReturnInterface(
             ClassWithOneGenericsParam<String> param1) {
+        return null;
+    }
+
+    @Mutation
+    public ClassWithOneGenericsParam<String> setClassWithOneGenericsParamInControllerString(
+            ClassWithOneGenericsParam<String> param1) {
+        return null;
+    }
+
+    @Mutation
+    public ClassWithOneGenericsParam<String>[] setArrayOfClassWithOneGenericsParamInControllerString(
+            ClassWithOneGenericsParam<String> param1) {
+        return null;
+    }
+
+    @Mutation
+    public ClassWithGenericArrayAttributeResolvedFromEnclosingClass<Integer> setClassWithGenericArrayAttributeResolvedFromEnclosingClass(
+            ClassWithGenericArrayAttributeResolvedFromEnclosingClass<Integer> param1) {
+        return null;
+    }
+
+    @Mutation
+    public InterfaceWithOneGenericsParam<Integer> setClassWithOneGenericsParamInControllerIntegerReturnInterface(
+            ClassWithOneGenericsParam<Integer> param1) {
         return null;
     }
 }

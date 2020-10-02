@@ -4,12 +4,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.jandex.TypeVariable;
 import org.jboss.logging.Logger;
@@ -156,7 +158,7 @@ public class ReferenceCreator {
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo) {
-        return createReference(direction, classInfo, true, null);
+        return createReference(direction, classInfo, true, null, null, true);
     }
 
     /**
@@ -169,7 +171,8 @@ public class ReferenceCreator {
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType,
-            List<Type> parametrizedTypeArguments) {
+            Reference parentObjectReference, Map<String, Reference> parametrizedTypeArgumentsReferences,
+            boolean addParametrizedTypeNameExtension) {
         // Get the initial reference type. It's either Type or Input depending on the direction. This might change as
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
@@ -182,7 +185,29 @@ public class ReferenceCreator {
             for (ClassInfo impl : knownDirectImplementors) {
                 // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all
                 // ?
-                createReference(direction, impl, createType, parametrizedTypeArguments);
+
+                // translate parametrizedTypeArgumentsReferences to match class implementing interface
+                Map<String, Reference> parametrizedTypeArgumentsReferencesImpl = null;
+                if (!classInfo.typeParameters().isEmpty()) {
+                    ParameterizedType interfaceType = null;
+                    for (Type it : impl.interfaceTypes()) {
+                        if (it.name().equals(classInfo.name())) {
+                            interfaceType = it.asParameterizedType();
+                        }
+                    }
+                    parametrizedTypeArgumentsReferencesImpl = new HashMap<>();
+
+                    int i = 0;
+                    for (TypeVariable tp : classInfo.typeParameters()) {
+                        parametrizedTypeArgumentsReferencesImpl.put(
+                                interfaceType.arguments().get(i++).asTypeVariable().identifier(),
+                                parametrizedTypeArgumentsReferences.get(tp.identifier()));
+                    }
+
+                }
+
+                createReference(direction, impl, createType, parentObjectReference, parametrizedTypeArgumentsReferencesImpl,
+                        true);
             }
             referenceType = ReferenceType.INTERFACE;
         } else if (Classes.isEnum(classInfo)) {
@@ -192,27 +217,15 @@ public class ReferenceCreator {
         // Now we should have the correct reference type.
         String className = classInfo.name().toString();
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
-        String name = TypeNameHelper.getAnyTypeName(parametrizedTypeArguments, referenceType, classInfo, annotationsForClass,
+        String name = TypeNameHelper.getAnyTypeName(
+                addParametrizedTypeNameExtension
+                        ? TypeNameHelper.createParametrizedTypeNameExtension(parametrizedTypeArgumentsReferences)
+                        : null,
+                referenceType, classInfo, annotationsForClass,
                 this.autoNameStrategy);
 
-        Map<String, Reference> parametrizedTypeArgumentsReferences = null;
-        if (parametrizedTypeArguments != null && referenceType != ReferenceType.ENUM) {
-            List<TypeVariable> tvl = new ArrayList<>();
-            collectTypeVariables(tvl, classInfo);
-            parametrizedTypeArgumentsReferences = new HashMap<>();
-            int i = 0;
-            for (Type pat : parametrizedTypeArguments) {
-                if (i >= tvl.size()) {
-                    throw new SchemaBuilderException(
-                            "List of type variables is not correct for class " + classInfo + " and generics argument " + pat);
-                } else {
-                    parametrizedTypeArgumentsReferences.put(tvl.get(i++).identifier(),
-                            getReference(direction, pat, null, null));
-                }
-            }
-        }
-
-        Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences);
+        Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences,
+                addParametrizedTypeNameExtension);
 
         // Map to Scalar info
         boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotationsForClass);
@@ -224,17 +237,6 @@ public class ReferenceCreator {
             putIfAbsent(name, reference, referenceType);
         }
         return reference;
-    }
-
-    private void collectTypeVariables(List<TypeVariable> tvl, ClassInfo classInfo) {
-        if (classInfo == null)
-            return;
-        if (classInfo.typeParameters() != null) {
-            tvl.addAll(classInfo.typeParameters());
-        }
-        if (classInfo.superClassType() != null) {
-            collectTypeVariables(tvl, ScanningContext.getIndex().getClassByName(classInfo.superName()));
-        }
     }
 
     private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations) {
@@ -264,21 +266,33 @@ public class ReferenceCreator {
             // java Array
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
-            return getReference(direction, typeInArray, typeInMethodArray, annotations);
+            return getReference(direction, typeInArray, typeInMethodArray, annotations, parentObjectReference);
         } else if (Classes.isCollection(fieldType) || Classes.isUnwrappedType(fieldType)) {
             // Collections and unwrapped types
             Type typeInCollection = fieldType.asParameterizedType().arguments().get(0);
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
-            return getReference(direction, typeInCollection, typeInMethodCollection, annotations);
+            return getReference(direction, typeInCollection, typeInMethodCollection, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
-                List<Type> parametrizedTypeArguments = new ArrayList<>();
-                collectParametrizedTypeArguments(parametrizedTypeArguments, classInfo);
+
+                Map<String, Reference> parametrizedTypeArgumentsReferences = null;
+
+                ParameterizedType parametrizedParentType = findParametrizedParentType(classInfo);
+                if (parametrizedParentType != null) {
+                    ClassInfo ci = ScanningContext.getIndex().getClassByName(parametrizedParentType.name());
+                    if (ci == null) {
+                        throw new SchemaBuilderException(
+                                "No class info found for parametrizedParentType name [" + parametrizedParentType.name() + "]");
+                    }
+
+                    parametrizedTypeArgumentsReferences = collectParametrizedTypes(ci, parametrizedParentType.arguments(),
+                            direction, parentObjectReference);
+                }
 
                 boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
-                return createReference(direction, classInfo, shouldCreateType,
-                        parametrizedTypeArguments.isEmpty() ? null : parametrizedTypeArguments);
+                return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
+                        parametrizedTypeArgumentsReferences, false);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
@@ -293,9 +307,12 @@ public class ReferenceCreator {
             if (classInfo != null) {
 
                 List<Type> parametrizedTypeArguments = fieldType.asParameterizedType().arguments();
+                Map<String, Reference> parametrizedTypeArgumentsReferences = collectParametrizedTypes(classInfo,
+                        parametrizedTypeArguments, direction, parentObjectReference);
 
                 boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
-                return createReference(direction, classInfo, shouldCreateType, parametrizedTypeArguments);
+                return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
+                        parametrizedTypeArgumentsReferences, true);
             } else {
                 LOG.warn("Class [" + fieldType.name()
                         + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
@@ -304,7 +321,7 @@ public class ReferenceCreator {
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
             if (parentObjectReference == null || parentObjectReference.getParametrizedTypeArguments() == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
-                        + "] as parent object reference is missing or incomplete");
+                        + "] as parent object reference is missing or incomplete: " + parentObjectReference);
             }
 
             LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: "
@@ -314,7 +331,7 @@ public class ReferenceCreator {
 
             if (ret == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
-                        + "] as parent object reference doesn't contain necessary info");
+                        + "] as parent object reference doesn't contain necessary info: " + parentObjectReference);
             }
 
             return ret;
@@ -324,18 +341,46 @@ public class ReferenceCreator {
         }
     }
 
-    private void collectParametrizedTypeArguments(List<Type> parametrizedTypeArguments, ClassInfo classInfo) {
+    public Map<String, Reference> collectParametrizedTypes(ClassInfo classInfo, List<? extends Type> parametrizedTypeArguments,
+            Direction direction, Reference parentObjectReference) {
+        Map<String, Reference> parametrizedTypeArgumentsReferences = null;
+        if (parametrizedTypeArguments != null) {
+            List<TypeVariable> tvl = new ArrayList<>();
+            collectTypeVariables(tvl, classInfo);
+            parametrizedTypeArgumentsReferences = new LinkedHashMap<>();
+            int i = 0;
+            for (Type pat : parametrizedTypeArguments) {
+                if (i >= tvl.size()) {
+                    throw new SchemaBuilderException(
+                            "List of type variables is not correct for class " + classInfo + " and generics argument " + pat);
+                } else {
+                    parametrizedTypeArgumentsReferences.put(tvl.get(i++).identifier(),
+                            getReference(direction, pat, null, null, parentObjectReference));
+                }
+            }
+        }
+        return parametrizedTypeArgumentsReferences;
+    }
+
+    private void collectTypeVariables(List<TypeVariable> tvl, ClassInfo classInfo) {
         if (classInfo == null)
             return;
-        if (classInfo.superClassType() != null) {
-
-            if (classInfo.superClassType().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
-                parametrizedTypeArguments.addAll(classInfo.superClassType().asParameterizedType().arguments());
-            }
-
-            collectParametrizedTypeArguments(parametrizedTypeArguments,
-                    ScanningContext.getIndex().getClassByName(classInfo.superName()));
+        if (classInfo.typeParameters() != null) {
+            tvl.addAll(classInfo.typeParameters());
         }
+        if (classInfo.superClassType() != null) {
+            collectTypeVariables(tvl, ScanningContext.getIndex().getClassByName(classInfo.superName()));
+        }
+    }
+
+    public ParameterizedType findParametrizedParentType(ClassInfo classInfo) {
+        if (classInfo != null && classInfo.superClassType() != null && !Classes.isEnum(classInfo)) {
+            if (classInfo.superClassType().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                return classInfo.superClassType().asParameterizedType();
+            }
+            return findParametrizedParentType(ScanningContext.getIndex().getClassByName(classInfo.superName()));
+        }
+        return null;
     }
 
     private void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {

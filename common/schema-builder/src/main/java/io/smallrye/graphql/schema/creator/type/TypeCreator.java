@@ -32,9 +32,9 @@ import io.smallrye.graphql.schema.model.Type;
 /**
  * This creates a type object.
  * 
- * The type object has fields that might reference other types that should still be created.
- * It might also implement some interfaces that should be created.
- * It might also have some operations that reference other types that should still be created.
+ * The type object has fields that might reference other types that should still be created. It might also implement
+ * some interfaces that should be created. It might also have some operations that reference other types that should
+ * still be created.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -75,7 +75,7 @@ public class TypeCreator implements Creator<Type> {
         addOperations(type, classInfo);
 
         // Interfaces
-        addInterfaces(type, classInfo);
+        addInterfaces(type, classInfo, reference);
 
         return type;
     }
@@ -101,16 +101,14 @@ public class TypeCreator implements Creator<Type> {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
                 String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
                 FieldInfo fieldInfo = allFields.remove(fieldName);
-                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference)
-                        .ifPresent(type::addField);
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference).ifPresent(type::addField);
             }
         }
 
         // See what fields are left (this is fields without methods)
         if (!allFields.isEmpty()) {
             for (FieldInfo fieldInfo : allFields.values()) {
-                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, reference)
-                        .ifPresent(type::addField);
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, reference).ifPresent(type::addField);
             }
         }
     }
@@ -138,14 +136,22 @@ public class TypeCreator implements Creator<Type> {
         return operations;
     }
 
-    private void addInterfaces(Type type, ClassInfo classInfo) {
-        List<DotName> interfaceNames = classInfo.interfaceNames();
-        for (DotName interfaceName : interfaceNames) {
+    private void addInterfaces(Type type, ClassInfo classInfo, Reference reference) {
+        List<org.jboss.jandex.Type> interfaceNames = classInfo.interfaceTypes();
+        for (org.jboss.jandex.Type interfaceType : interfaceNames) {
             // Ignore java interfaces (like Serializable)
-            if (!interfaceName.toString().startsWith(JAVA_DOT)) {
-                ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceName);
+            if (!interfaceType.name().toString().startsWith(JAVA_DOT)) {
+                ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceType.name());
                 if (interfaceInfo != null) {
-                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo);
+
+                    Map<String, Reference> parametrizedTypeArgumentsReferences = null;
+
+                    if (interfaceType.kind().equals(org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE))
+                        parametrizedTypeArgumentsReferences = referenceCreator.collectParametrizedTypes(interfaceInfo,
+                                interfaceType.asParameterizedType().arguments(), Direction.OUT, reference);
+
+                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, reference,
+                            parametrizedTypeArgumentsReferences, true);
                     type.addInterface(interfaceRef);
                 }
             }
