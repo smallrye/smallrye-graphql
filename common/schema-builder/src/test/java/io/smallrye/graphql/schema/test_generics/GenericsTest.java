@@ -12,18 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.index.SchemaBuilderTest;
 import io.smallrye.graphql.schema.SchemaBuilder;
-import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Group;
-import io.smallrye.graphql.schema.model.InputType;
-import io.smallrye.graphql.schema.model.InterfaceType;
-import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.schema.model.Reference;
-import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.Type;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
-
 
 public class GenericsTest {
 
