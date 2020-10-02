@@ -15,9 +15,13 @@ import org.jboss.jandex.IndexView;
  */
 public class Indexer {
 
-    public static IndexView getTCKIndex() {
+    public static IndexView getAllTestIndex() {
+        return getTestIndex("io/smallrye/graphql/test");
+    }
+
+    public static IndexView getTestIndex(String packageName) {
         org.jboss.jandex.Indexer indexer = new org.jboss.jandex.Indexer();
-        indexDirectory(indexer, "io/smallrye/graphql/test");
+        indexDirectory(indexer, packageName);
         return indexer.complete();
     }
 

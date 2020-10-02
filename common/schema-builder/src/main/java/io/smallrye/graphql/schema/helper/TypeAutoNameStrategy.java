@@ -1,4 +1,4 @@
-package io.smallrye.graphql.schema.model;
+package io.smallrye.graphql.schema.helper;
 
 /**
  * Naming strategy for type

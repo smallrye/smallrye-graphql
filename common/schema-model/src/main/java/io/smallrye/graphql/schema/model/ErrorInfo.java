@@ -1,11 +1,13 @@
 package io.smallrye.graphql.schema.model;
 
+import java.io.Serializable;
+
 /**
  * Represent info on a Exception.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public final class ErrorInfo {
+public final class ErrorInfo implements Serializable {
 
     private String className;
     private String errorCode;

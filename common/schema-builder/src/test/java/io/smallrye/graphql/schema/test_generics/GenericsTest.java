@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
@@ -16,12 +13,10 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.index.SchemaBuilderTest;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 public class GenericsTest {
 
@@ -34,15 +29,15 @@ public class GenericsTest {
         SchemaBuilderTest.indexDirectory(indexer, "io/smallrye/graphql/schema/test_generics");
         Index index = indexer.complete();
 
-        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
+        Schema schema = SchemaBuilder.build(index);
         assertNotNull(schema);
 
         String schemaString = SchemaBuilderTest.toString(schema);
         LOG.info(schemaString);
 
         // check types consistency in the scheme
-        boolean correct = checkTypesInOperations(schema, merge(schema.getQueries()));
-        correct = checkTypesInOperations(schema, merge(schema.getMutations())) && correct;
+        boolean correct = checkTypesInOperations(schema, schema.getQueries());
+        correct = checkTypesInOperations(schema, schema.getMutations()) && correct;
         assertTrue(correct, "References in schema are invalid, see errors in log");
 
         // check type names in type definitions
@@ -115,14 +110,5 @@ public class GenericsTest {
                     break;
             }
         return true;
-    }
-
-    private Set<Operation> merge(Map<Group, Set<Operation>> map) {
-        Set<Operation> all = new HashSet<>();
-        Collection<Set<Operation>> values = map.values();
-        for (Set<Operation> o : values) {
-            all.addAll(o);
-        }
-        return all;
     }
 }

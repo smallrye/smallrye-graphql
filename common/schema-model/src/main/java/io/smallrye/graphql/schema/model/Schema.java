@@ -15,8 +15,11 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private Map<Group, Set<Operation>> queries = new HashMap<>();
-    private Map<Group, Set<Operation>> mutations = new HashMap<>();
+    private Set<Operation> queries = new HashSet<>();
+    private Set<Operation> mutations = new HashSet<>();
+
+    private Map<Group, Set<Operation>> groupedQueries = new HashMap<>();
+    private Map<Group, Set<Operation>> groupedMutations = new HashMap<>();
 
     private Map<String, InputType> inputs = new HashMap<>();
     private Map<String, Type> types = new HashMap();
@@ -28,36 +31,72 @@ public final class Schema implements Serializable {
     public Schema() {
     }
 
-    public Map<Group, Set<Operation>> getQueries() {
+    public Set<Operation> getQueries() {
         return queries;
     }
 
-    public void setQueries(Map<Group, Set<Operation>> queries) {
+    public void setQueries(Set<Operation> queries) {
         this.queries = queries;
     }
 
-    public void addQuery(Group group, Operation query) {
-        addToOperationMap(this.queries, group, query);
+    public void addQuery(Operation query) {
+        this.queries.add(query);
+    }
+
+    public boolean hasOperations() {
+        return hasQueries() || hasGroupedQueries() || hasMutations() || hasGroupedMutations();
     }
 
     public boolean hasQueries() {
         return !this.queries.isEmpty();
     }
 
-    public Map<Group, Set<Operation>> getMutations() {
+    public Set<Operation> getMutations() {
         return mutations;
     }
 
-    public void setMutations(Map<Group, Set<Operation>> mutations) {
+    public void setMutations(Set<Operation> mutations) {
         this.mutations = mutations;
     }
 
-    public void addMutation(Group group, Operation mutation) {
-        addToOperationMap(this.mutations, group, mutation);
+    public void addMutation(Operation mutation) {
+        this.mutations.add(mutation);
     }
 
     public boolean hasMutations() {
         return !this.mutations.isEmpty();
+    }
+
+    public Map<Group, Set<Operation>> getGroupedQueries() {
+        return groupedQueries;
+    }
+
+    public void setGroupedQueries(Map<Group, Set<Operation>> groupedQueries) {
+        this.groupedQueries = groupedQueries;
+    }
+
+    public void addGroupedQuery(Group group, Operation query) {
+        addToOperationMap(this.groupedQueries, group, query);
+    }
+
+    public boolean hasGroupedQueries() {
+        return !this.groupedQueries.isEmpty();
+    }
+
+    public Map<Group, Set<Operation>> getGroupedMutations() {
+        return groupedMutations;
+    }
+
+    public void setGroupedMutations(Map<Group, Set<Operation>> groupedMutations) {
+        this.groupedMutations = groupedMutations;
+    }
+
+    public void addGroupedMutation(Group group, Operation mutation) {
+        addToOperationMap(this.groupedMutations, group, mutation);
+    }
+
+    public boolean hasGroupedMutations() {
+        return !this.groupedMutations.isEmpty();
     }
 
     public Map<String, InputType> getInputs() {

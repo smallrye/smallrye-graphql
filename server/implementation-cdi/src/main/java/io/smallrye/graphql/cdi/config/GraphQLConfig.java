@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Configuration for GraphQL
@@ -94,10 +93,6 @@ public class GraphQLConfig implements Config {
     @Inject
     @ConfigProperty(name = ConfigKey.FIELD_VISIBILITY, defaultValue = Config.FIELD_VISIBILITY_DEFAULT)
     private String fieldVisibility;
-
-    @Inject
-    @ConfigProperty(name = ConfigKey.TYPE_AUTO_NAME_STRATEGY, defaultValue = "Default")
-    private TypeAutoNameStrategy autoNameStrategy;
 
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
         hideList = mergeList(hideList, blackList);
@@ -234,14 +229,6 @@ public class GraphQLConfig implements Config {
 
     public void setFieldVisibility(String fieldVisibility) {
         this.fieldVisibility = fieldVisibility;
-    }
-
-    public TypeAutoNameStrategy getTypeAutoNameStrategy() {
-        return autoNameStrategy;
-    }
-
-    public void setTypeAutoNameStrategy(TypeAutoNameStrategy autoNameStrategy) {
-        this.autoNameStrategy = autoNameStrategy;
     }
 
     private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {

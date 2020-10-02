@@ -100,7 +100,7 @@ public class Bootstrap {
     }
 
     public static BootstrapedResult bootstrap(Schema schema, Config config) {
-        if (schema != null && (schema.hasQueries() || schema.hasMutations())) {
+        if (schema != null && (schema.hasOperations())) {
             Bootstrap bootstrap = new Bootstrap(schema, config);
             bootstrap.generateGraphQLSchema();
             return new BootstrapedResult(bootstrap.graphQLSchema, bootstrap.dataLoaderRegistry);
@@ -146,75 +146,80 @@ public class Bootstrap {
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
-        if (schema.hasQueries()) {
-            GraphQLObjectType.Builder rootBuilder = GraphQLObjectType.newObject()
-                    .name(QUERY)
-                    .description(QUERY_DESCRIPTION);
+        GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
+                .name(QUERY)
+                .description(QUERY_DESCRIPTION);
 
-            GraphQLObjectType query = getRootObject(QUERY, QUERY_DESCRIPTION, schema.getQueries());
-            if (query.getFieldDefinitions() != null && !query.getFieldDefinitions().isEmpty()) {
-                schemaBuilder.query(query);
-            }
-        } else {
-            // Default empty
-            schemaBuilder.query(EMPTY_QUERY);
+        if (schema.hasQueries()) {
+            addRootObject(queryBuilder, schema.getQueries(), QUERY);
         }
+        if (schema.hasGroupedQueries()) {
+            addGroupedRootObject(queryBuilder, schema.getGroupedQueries(), QUERY);
+        }
+
+        GraphQLObjectType query = queryBuilder.build();
+        schemaBuilder.query(query);
     }
 
     private void addMutations(GraphQLSchema.Builder schemaBuilder) {
+        GraphQLObjectType.Builder mutationBuilder = GraphQLObjectType.newObject()
+                .name(MUTATION)
+                .description(MUTATION_DESCRIPTION);
+
         if (schema.hasMutations()) {
-            GraphQLObjectType mutation = getRootObject(MUTATION, MUTATION_DESCRIPTION, schema.getMutations());
-            if (mutation.getFieldDefinitions() != null && !mutation.getFieldDefinitions().isEmpty()) {
-                schemaBuilder.mutation(mutation);
-            }
+            addRootObject(mutationBuilder, schema.getMutations(), MUTATION);
+        }
+        if (schema.hasGroupedMutations()) {
+            addGroupedRootObject(mutationBuilder, schema.getGroupedMutations(), MUTATION);
+        }
+
+        GraphQLObjectType mutation = mutationBuilder.build();
+        if (mutation.getFieldDefinitions() != null && !mutation.getFieldDefinitions().isEmpty()) {
+            schemaBuilder.mutation(mutation);
         }
     }
 
-    private GraphQLObjectType getRootObject(String rootName, String rootDescription, Map<Group, Set<Operation>> operationMap) {
+    private void addRootObject(GraphQLObjectType.Builder rootBuilder, Set<Operation> operations,
+            String rootName) {
 
-        GraphQLObjectType.Builder rootBuilder = GraphQLObjectType.newObject()
-                .name(rootName)
-                .description(rootDescription);
+        for (Operation operation : operations) {
+            operation = eventEmitter.fireCreateOperation(operation);
+            GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(rootName,
+                    operation);
+            rootBuilder.field(graphQLFieldDefinition);
+        }
+    }
 
+    private void addGroupedRootObject(GraphQLObjectType.Builder rootBuilder,
+            Map<Group, Set<Operation>> operationMap, String rootName) {
         Set<Map.Entry<Group, Set<Operation>>> operationsSet = operationMap.entrySet();
 
         for (Map.Entry<Group, Set<Operation>> operationsEntry : operationsSet) {
             Group group = operationsEntry.getKey();
             Set<Operation> operations = operationsEntry.getValue();
 
-            if (group == null) {
-                for (Operation operation : operations) {
-                    operation = eventEmitter.fireCreateOperation(operation);
-                    GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(rootName,
-                            operation);
-                    rootBuilder = rootBuilder.field(graphQLFieldDefinition);
+            GraphQLObjectType namedType = createNamedType(rootName, group, operations);
+
+            GraphQLFieldDefinition.Builder graphQLFieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition()
+                    .name(group.getName()).description(group.getDescription());
+
+            graphQLFieldDefinitionBuilder.type(namedType);
+
+            // DataFetcher (Just a dummy)
+            DataFetcher datafetcher = new DataFetcher() {
+                public Object get(DataFetchingEnvironment dfe) throws Exception {
+                    return namedType.getName();
                 }
-            } else {
+            };
 
-                GraphQLObjectType namedType = createNamedType(rootName, group, operations);
+            GraphQLFieldDefinition namedField = graphQLFieldDefinitionBuilder.build();
 
-                GraphQLFieldDefinition.Builder graphQLFieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition()
-                        .name(group.getName()).description(group.getDescription());
+            this.codeRegistryBuilder.dataFetcherIfAbsent(
+                    FieldCoordinates.coordinates(rootName, namedField.getName()),
+                    datafetcher);
 
-                graphQLFieldDefinitionBuilder.type(namedType);
-
-                // DataFetcher (Just a dummy)
-                DataFetcher datafetcher = new DataFetcher() {
-                    public Object get(DataFetchingEnvironment dfe) throws Exception {
-                        return namedType.getName();
-                    }
-                };
-
-                GraphQLFieldDefinition namedField = graphQLFieldDefinitionBuilder.build();
-
-                this.codeRegistryBuilder.dataFetcherIfAbsent(
-                        FieldCoordinates.coordinates(rootName, namedField.getName()),
-                        datafetcher);
-
-                rootBuilder = rootBuilder.field(namedField);
-            }
+            rootBuilder.field(namedField);
         }
-        return rootBuilder.build();
     }
 
     private GraphQLObjectType createNamedType(String parent, Group group, Set<Operation> operations) {
@@ -709,8 +714,4 @@ public class Bootstrap {
 
     private static final Jsonb JSONB = JsonbBuilder.create();
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
-
-    private static final GraphQLObjectType EMPTY_QUERY = GraphQLObjectType.newObject()
-            .name("Empty")
-            .description("Empty query").build();
 }

@@ -25,6 +25,7 @@ import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
 import io.smallrye.graphql.schema.helper.GroupHelper;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.ErrorInfo;
 import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.Operation;
@@ -32,7 +33,6 @@ import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This builds schema model using Jandex.
@@ -61,6 +61,17 @@ public class SchemaBuilder {
      * This builds the Schema from Jandex
      * 
      * @param index the Jandex index
+     * @return the Schema
+     */
+    public static Schema build(IndexView index) {
+        return build(index, TypeAutoNameStrategy.Default);
+    }
+
+    /**
+     * This builds the Schema from Jandex
+     * 
+     * @param index the Jandex index
+     * @param autoNameStrategy the naming strategy
      * @return the Schema
      */
     public static Schema build(IndexView index, TypeAutoNameStrategy autoNameStrategy) {
@@ -216,10 +227,18 @@ public class SchemaBuilder {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
                 Operation query = operationCreator.createOperation(methodInfo, OperationType.Query, null);
-                schema.addQuery(group.orElse(null), query);
+                if (group.isPresent()) {
+                    schema.addGroupedQuery(group.get(), query);
+                } else {
+                    schema.addQuery(query);
+                }
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
                 Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation, null);
-                schema.addMutation(group.orElse(null), mutation);
+                if (group.isPresent()) {
+                    schema.addGroupedMutation(group.get(), mutation);
+                } else {
+                    schema.addMutation(mutation);
+                }
             }
         }
     }
