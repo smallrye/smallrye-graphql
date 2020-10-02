@@ -23,26 +23,29 @@ import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Base class for execution tests
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ExecutionTestBase {
+public abstract class ExecutionTestBase {
     protected static final Logger LOG = Logger.getLogger(ExecutionTestBase.class.getName());
 
     protected ExecutionService executionService;
 
     @BeforeEach
     public void init() {
-        IndexView index = Indexer.getTCKIndex();
-        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
+        IndexView index = getIndex();
+        Schema schema = SchemaBuilder.build(index);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
         GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
         DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
         this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, dataLoaderRegistry);
+    }
+
+    protected IndexView getIndex() {
+        return Indexer.getAllTestIndex();
     }
 
     protected JsonObject executeAndGetData(String graphQL) {

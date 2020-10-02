@@ -12,11 +12,11 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This create an Enum Type.

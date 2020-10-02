@@ -58,7 +58,7 @@ public class StartupListener implements ServletContextListener {
 
             IndexView index = indexInitializer.createIndex(warURLs);
 
-            Schema schema = SchemaBuilder.build(index, config.getTypeAutoNameStrategy()); // Get the smallrye schema
+            Schema schema = SchemaBuilder.build(index); // Get the smallrye schema
             GraphQLSchema graphQLSchema = graphQLProducer.initialize(schema);
 
             sce.getServletContext().setAttribute(SchemaServlet.SCHEMA_PROP, graphQLSchema);

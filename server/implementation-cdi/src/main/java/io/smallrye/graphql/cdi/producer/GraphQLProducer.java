@@ -37,6 +37,12 @@ public class GraphQLProducer {
         return initialize();
     }
 
+    public GraphQLSchema initialize(Schema schema, GraphQLConfig graphQLConfig) {
+        this.schema = schema;
+        this.graphQLConfig = graphQLConfig;
+        return initialize();
+    }
+
     public GraphQLSchema initialize() {
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema, graphQLConfig);
 

@@ -15,11 +15,11 @@ import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * This creates an interface object.
