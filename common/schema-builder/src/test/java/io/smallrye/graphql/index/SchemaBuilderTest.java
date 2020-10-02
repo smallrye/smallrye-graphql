@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Test the model creation
@@ -38,7 +37,7 @@ public class SchemaBuilderTest {
     public void testSchemaModelCreation() {
 
         IndexView index = getTCKIndex();
-        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
+        Schema schema = SchemaBuilder.build(index);
         LOG.info(toString(schema));
         assertNotNull(schema);
     }
@@ -60,9 +59,9 @@ public class SchemaBuilderTest {
         IndexView movieIndex = indexer.complete();
 
         ExecutorService executor = Executors.newFixedThreadPool(4);
-        Future<Schema> basicSchemaFuture = executor.submit(() -> SchemaBuilder.build(basicIndex, TypeAutoNameStrategy.Default));
-        Future<Schema> heroSchemaFuture = executor.submit(() -> SchemaBuilder.build(heroIndex, TypeAutoNameStrategy.Default));
-        Future<Schema> movieSchemaFuture = executor.submit(() -> SchemaBuilder.build(movieIndex, TypeAutoNameStrategy.Default));
+        Future<Schema> basicSchemaFuture = executor.submit(() -> SchemaBuilder.build(basicIndex));
+        Future<Schema> heroSchemaFuture = executor.submit(() -> SchemaBuilder.build(heroIndex));
+        Future<Schema> movieSchemaFuture = executor.submit(() -> SchemaBuilder.build(movieIndex));
 
         Schema basicSchema = basicSchemaFuture.get();
         Schema heroSchema = heroSchemaFuture.get();

@@ -10,9 +10,9 @@ import org.jboss.jandex.MethodInfo;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.IndexCreator;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 public class OperationCreatorTest {
 

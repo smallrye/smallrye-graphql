@@ -11,7 +11,6 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Helping with Name of types in the schema

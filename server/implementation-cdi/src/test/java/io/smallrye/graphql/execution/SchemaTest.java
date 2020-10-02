@@ -17,7 +17,6 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
 /**
  * Test the graphql-java Schema creation from the schema model
@@ -32,7 +31,7 @@ public class SchemaTest {
     @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
-        this.schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
+        this.schema = SchemaBuilder.build(index);
         assertNotNull(schema);
     }
 

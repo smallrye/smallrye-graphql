@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -7,7 +8,7 @@ import java.util.Objects;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class Group {
+public class Group implements Serializable {
     private String name;
     private String description;
 

@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
@@ -27,6 +24,7 @@ import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.TypeAutoNameStrategy;
 
+
 public class GenericsTest {
 
     private static final Logger LOG = Logger.getLogger(GenericsTest.class.getName());
@@ -38,15 +36,15 @@ public class GenericsTest {
         SchemaBuilderTest.indexDirectory(indexer, "io/smallrye/graphql/schema/test_generics");
         Index index = indexer.complete();
 
-        Schema schema = SchemaBuilder.build(index, TypeAutoNameStrategy.Default);
+        Schema schema = SchemaBuilder.build(index);
         assertNotNull(schema);
 
         String schemaString = SchemaBuilderTest.toString(schema);
         LOG.info(schemaString);
 
         // check types consistency in the scheme
-        boolean correct = checkTypesInOperations(schema, merge(schema.getQueries()));
-        correct = checkTypesInOperations(schema, merge(schema.getMutations())) && correct;
+        boolean correct = checkTypesInOperations(schema, schema.getQueries());
+        correct = checkTypesInOperations(schema, schema.getMutations()) && correct;
         correct = checkTypesInTypes(schema, schema.getTypes().values()) && correct;
         correct = checkTypesInInputTypes(schema, schema.getInputs().values()) && correct;
         correct = checkTypesInInterfaceTypes(schema, schema.getInterfaces().values()) && correct;
@@ -197,15 +195,6 @@ public class GenericsTest {
         return true;
     }
 
-    private Set<Operation> merge(Map<Group, Set<Operation>> map) {
-        Set<Operation> all = new HashSet<>();
-        Collection<Set<Operation>> values = map.values();
-        for (Set<Operation> o : values) {
-            all.addAll(o);
-        }
-        return all;
-    }
-
     private boolean checkInterfacesExist(Schema schema, Set<Reference> interfaceReferences) {
         if (interfaceReferences != null) {
             for (Reference interfaceReference : interfaceReferences) {
@@ -222,5 +211,4 @@ public class GenericsTest {
         }
         return true;
     }
-
 }
