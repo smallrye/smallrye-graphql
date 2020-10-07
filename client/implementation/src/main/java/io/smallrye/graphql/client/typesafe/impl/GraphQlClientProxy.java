@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.util.Stack;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -122,9 +123,13 @@ class GraphQlClientProxy {
 
     private JsonObject readResponse(String request, String response) {
         JsonObject responseJson = jsonReaderFactory.createReader(new StringReader(response)).readObject();
-        if (responseJson.containsKey("errors") && !responseJson.isNull("errors"))
+        if (responseJson.containsKey("errors") && !isEmpty(responseJson.getJsonArray("errors")))
             throw new GraphQlClientException("errors from service: " + responseJson.getJsonArray("errors") + ":\n  " + request);
         return responseJson;
+    }
+
+    private boolean isEmpty(JsonArray array) {
+        return array == null || array.isEmpty();
     }
 
     private JsonValue getData(MethodInfo method, JsonObject responseJson) {

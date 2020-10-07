@@ -53,6 +53,10 @@ class GraphQlClientFixture {
         this.response = Response.ok("{\"data\":{" + data.replace('\'', '\"') + "}}").build();
     }
 
+    void returnsDataEmptyError(String data) {
+        this.response = Response.ok("{\"errors\":[], \"data\":{" + data.replace('\'', '\"') + "}}").build();
+    }
+
     void returns(Response response) {
         this.response = response;
     }
