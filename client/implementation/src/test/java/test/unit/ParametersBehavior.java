@@ -1,14 +1,18 @@
 package test.unit;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.BDDAssertions.then;
-
-import java.util.List;
-import java.util.Objects;
-
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.BDDAssertions.then;
 
 public class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -97,8 +101,7 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused")
-        Greeting() {
+        @SuppressWarnings("unused") Greeting() {
         }
 
         Greeting(String text, int count) {
@@ -135,13 +138,29 @@ public class ParametersBehavior {
 
     @GraphQlClientApi
     interface ArrayParamApi {
-        boolean greetings(List<String> greets);
+        boolean greetings(String[] greets);
     }
 
     @Test
     public void shouldCallArrayParamQuery() {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
+
+        boolean success = api.greetings(new String[]{"hi", "ho"});
+
+        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(success).isTrue();
+    }
+
+    @GraphQlClientApi
+    interface ListParamApi {
+        boolean greetings(List<String> greets);
+    }
+
+    @Test
+    public void shouldCallListParamQuery() {
+        fixture.returnsData("'greetings':true");
+        ListParamApi api = fixture.builder().build(ListParamApi.class);
 
         boolean success = api.greetings(asList("hi", "ho"));
 
@@ -150,14 +169,62 @@ public class ParametersBehavior {
     }
 
     @GraphQlClientApi
-    interface ObjectArrayParamApi {
+    interface SetParamApi {
+        boolean greetings(Set<String> greets);
+    }
+
+    @Test
+    public void shouldCallSetParamQuery() {
+        fixture.returnsData("'greetings':true");
+        SetParamApi api = fixture.builder().build(SetParamApi.class);
+
+        boolean success = api.greetings(new HashSet<>(asList("hi", "ho")));
+
+        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(success).isTrue();
+    }
+
+    @GraphQlClientApi
+    interface QueueParamApi {
+        boolean greetings(Queue<String> greets);
+    }
+
+    @Test
+    public void shouldCallQueueParamQuery() {
+        fixture.returnsData("'greetings':true");
+        QueueParamApi api = fixture.builder().build(QueueParamApi.class);
+
+        boolean success = api.greetings(new ArrayDeque<>(asList("hi", "ho")));
+
+        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(success).isTrue();
+    }
+
+    @GraphQlClientApi
+    interface CollectionParamApi {
+        boolean greetings(Collection<String> greets);
+    }
+
+    @Test
+    public void shouldCallCollectionParamQuery() {
+        fixture.returnsData("'greetings':true");
+        CollectionParamApi api = fixture.builder().build(CollectionParamApi.class);
+
+        boolean success = api.greetings(asList("hi", "ho"));
+
+        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(success).isTrue();
+    }
+
+    @GraphQlClientApi
+    interface ObjectListParamApi {
         boolean greetings(List<Greeting> greets);
     }
 
     @Test
-    public void shouldCallObjectArrayParamQuery() {
+    public void shouldCallObjectListParamQuery() {
         fixture.returnsData("'greetings':true");
-        ObjectArrayParamApi api = fixture.builder().build(ObjectArrayParamApi.class);
+        ObjectListParamApi api = fixture.builder().build(ObjectListParamApi.class);
 
         boolean success = api.greetings(asList(new Greeting("hi", 5), new Greeting("ho", 3)));
 
@@ -166,26 +233,26 @@ public class ParametersBehavior {
     }
 
     @GraphQlClientApi
-    interface ArrayObjectParamApi {
-        boolean foo(ArrayObject bar);
+    interface ListObjectParamApi {
+        boolean foo(ListObject bar);
     }
 
-    private static class ArrayObject {
+    private static class ListObject {
         List<String> texts;
         int count;
 
-        ArrayObject(List<String> texts, int count) {
+        ListObject(List<String> texts, int count) {
             this.texts = texts;
             this.count = count;
         }
     }
 
     @Test
-    public void shouldCallArrayObjectParamQuery() {
+    public void shouldCallListObjectParamQuery() {
         fixture.returnsData("'foo':true");
-        ArrayObjectParamApi api = fixture.builder().build(ArrayObjectParamApi.class);
+        ListObjectParamApi api = fixture.builder().build(ListObjectParamApi.class);
 
-        boolean success = api.foo(new ArrayObject(asList("hi", "ho"), 3));
+        boolean success = api.foo(new ListObject(asList("hi", "ho"), 3));
 
         then(fixture.query()).isEqualTo("foo(bar: {texts: ['hi', 'ho'], count: 3})");
         then(success).isTrue();

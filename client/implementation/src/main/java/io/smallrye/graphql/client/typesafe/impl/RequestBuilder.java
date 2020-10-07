@@ -1,13 +1,16 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 class RequestBuilder {
     private final MethodInfo method;
@@ -20,8 +23,8 @@ class RequestBuilder {
     String build() {
         request.append(method.getName());
         List<ParameterInfo> parameters = method.parameters()
-                .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
-                .collect(toList());
+            .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
+            .collect(toList());
         if (parameters.size() > 0) {
             request.append("(");
             Repeated repeated = new Repeated(", ");
@@ -45,9 +48,17 @@ class RequestBuilder {
         else if (type.isScalar())
             buildScalarParam(type, value);
         else if (type.isCollection())
-            buildArrayParam(type.getItemType(), (List<?>) value);
+            buildArrayParam(type.getItemType(), asList(value));
         else
             buildObjectParam(type, value);
+    }
+
+    private List<?> asList(Object value) {
+        if (value instanceof List)
+            return (List<?>) value;
+        if (value.getClass().isArray())
+            return Arrays.asList((Object[]) value);
+        return new ArrayList<>((Collection<?>) value);
     }
 
     private void buildScalarParam(TypeInfo type, Object value) {
@@ -61,9 +72,9 @@ class RequestBuilder {
 
     public boolean unquoted(TypeInfo type) {
         return type.isPrimitive()
-                || Boolean.class.isAssignableFrom(type.getRawType())
-                || Number.class.isAssignableFrom(type.getRawType())
-                || type.isEnum();
+            || Boolean.class.isAssignableFrom(type.getRawType())
+            || Number.class.isAssignableFrom(type.getRawType())
+            || type.isEnum();
     }
 
     private void buildArrayParam(TypeInfo itemType, List<?> values) {
