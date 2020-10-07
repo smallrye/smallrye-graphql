@@ -28,6 +28,17 @@ public class AnnotationBehavior {
         then(greeting).isEqualTo("dummy-greeting");
     }
 
+    @Test
+    public void shouldIgnoreEmptyError() {
+        fixture.returnsDataEmptyError("'greeting':'dummy-greeting'");
+        RenamedStringApi api = fixture.builder().build(RenamedStringApi.class);
+
+        String greeting = api.foo();
+
+        then(fixture.query()).isEqualTo("greeting");
+        then(greeting).isEqualTo("dummy-greeting");
+    }
+
     @GraphQlClientApi
     interface RenamedParamApi {
         String greeting(@Name("who") String foo);
