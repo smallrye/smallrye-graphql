@@ -1,16 +1,16 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import io.smallrye.graphql.client.typesafe.api.Header;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
+import io.smallrye.graphql.client.typesafe.api.Header;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class RequestBuilder {
     private final MethodInfo method;
@@ -23,8 +23,8 @@ class RequestBuilder {
     String build() {
         request.append(method.getName());
         List<ParameterInfo> parameters = method.parameters()
-            .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
-            .collect(toList());
+                .filter(parameterInfo -> !parameterInfo.isAnnotated(Header.class))
+                .collect(toList());
         if (parameters.size() > 0) {
             request.append("(");
             Repeated repeated = new Repeated(", ");
@@ -72,9 +72,9 @@ class RequestBuilder {
 
     public boolean unquoted(TypeInfo type) {
         return type.isPrimitive()
-            || Boolean.class.isAssignableFrom(type.getRawType())
-            || Number.class.isAssignableFrom(type.getRawType())
-            || type.isEnum();
+                || Boolean.class.isAssignableFrom(type.getRawType())
+                || Number.class.isAssignableFrom(type.getRawType())
+                || type.isEnum();
     }
 
     private void buildArrayParam(TypeInfo itemType, List<?> values) {

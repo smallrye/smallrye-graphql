@@ -1,7 +1,7 @@
 package test.unit;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import org.junit.jupiter.api.Test;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -11,8 +11,9 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
 public class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -101,7 +102,8 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") Greeting() {
+        @SuppressWarnings("unused")
+        Greeting() {
         }
 
         Greeting(String text, int count) {
@@ -146,7 +148,7 @@ public class ParametersBehavior {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
 
-        boolean success = api.greetings(new String[]{"hi", "ho"});
+        boolean success = api.greetings(new String[] { "hi", "ho" });
 
         then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
         then(success).isTrue();
