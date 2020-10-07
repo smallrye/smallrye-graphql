@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
 import static java.util.stream.Collectors.joining;
+import static javax.json.JsonValue.ValueType.ARRAY;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -8,7 +9,6 @@ import java.io.StringReader;
 import java.util.Stack;
 
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -123,13 +123,15 @@ class GraphQlClientProxy {
 
     private JsonObject readResponse(String request, String response) {
         JsonObject responseJson = jsonReaderFactory.createReader(new StringReader(response)).readObject();
-        if (responseJson.containsKey("errors") && !isEmpty(responseJson.getJsonArray("errors")))
+        if (hasErrors(responseJson))
             throw new GraphQlClientException("errors from service: " + responseJson.getJsonArray("errors") + ":\n  " + request);
         return responseJson;
     }
 
-    private boolean isEmpty(JsonArray array) {
-        return array == null || array.isEmpty();
+    private boolean hasErrors(JsonObject responseJson) {
+        return responseJson.containsKey("errors")
+                && responseJson.get("errors").getValueType() == ARRAY
+                && !responseJson.getJsonArray("errors").isEmpty();
     }
 
     private JsonValue getData(MethodInfo method, JsonObject responseJson) {

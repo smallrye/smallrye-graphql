@@ -2,6 +2,9 @@ package io.smallrye.graphql.client.typesafe.impl;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import io.smallrye.graphql.client.typesafe.api.Header;
@@ -45,9 +48,17 @@ class RequestBuilder {
         else if (type.isScalar())
             buildScalarParam(type, value);
         else if (type.isCollection())
-            buildArrayParam(type.getItemType(), (List<?>) value);
+            buildArrayParam(type.getItemType(), asList(value));
         else
             buildObjectParam(type, value);
+    }
+
+    private List<?> asList(Object value) {
+        if (value instanceof List)
+            return (List<?>) value;
+        if (value.getClass().isArray())
+            return Arrays.asList((Object[]) value);
+        return new ArrayList<>((Collection<?>) value);
     }
 
     private void buildScalarParam(TypeInfo type, Object value) {
