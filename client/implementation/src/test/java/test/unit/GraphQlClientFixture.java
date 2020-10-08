@@ -1,6 +1,5 @@
 package test.unit;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -15,6 +14,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -27,14 +27,14 @@ import io.smallrye.graphql.client.typesafe.impl.GraphQlClientBuilderImpl;
 
 class GraphQlClientFixture {
     private final Client mockClient = mock(Client.class);
+    private final WebTarget mockWebTarget = mock(WebTarget.class);
     private final Invocation.Builder mockInvocationBuilder = mock(Invocation.Builder.class);
     private Response response;
+    private Entity<String> entitySent;
 
     GraphQlClientFixture() {
-        WebTarget mockWebTarget = mock(WebTarget.class);
-
         given(mockClient.target(any(URI.class))).willReturn(mockWebTarget);
-        given(mockWebTarget.request(APPLICATION_JSON_TYPE)).willReturn(mockInvocationBuilder);
+        given(mockWebTarget.request(any(MediaType.class))).willReturn(mockInvocationBuilder);
         given(mockInvocationBuilder.headers(any())).willReturn(mockInvocationBuilder);
         given(mockInvocationBuilder.post(any())).will(i -> response);
     }
@@ -66,18 +66,21 @@ class GraphQlClientFixture {
     }
 
     String rawQuery() {
-        return queryBody(captureRequestEntity(), "query");
+        return queryBody(entitySent().getEntity(), "query");
     }
 
     String mutation() {
-        return queryBody(captureRequestEntity(), "mutation").replace('\"', '\'');
+        return queryBody(entitySent().getEntity(), "mutation").replace('\"', '\'');
     }
 
-    private String captureRequestEntity() {
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
-        BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
-        return captor.getValue().getEntity();
+    private Entity<String> entitySent() {
+        if (entitySent == null) {
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
+            BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
+            entitySent = captor.getValue();
+        }
+        return entitySent;
     }
 
     private String queryBody(String response, String operation) {
@@ -100,10 +103,23 @@ class GraphQlClientFixture {
     }
 
     MultivaluedMap<String, Object> sentHeaders() {
+        MultivaluedMap<String, Object> map = captureExplicitHeaders();
+        map.putSingle("Accept", captureAcceptHeader());
+        map.putSingle("Content-Type", entitySent().getMediaType());
+        return map;
+    }
+
+    private MultivaluedMap<String, Object> captureExplicitHeaders() {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<MultivaluedMap<String, Object>> captor = ArgumentCaptor.forClass(MultivaluedMap.class);
         BDDMockito.then(mockInvocationBuilder).should().headers(captor.capture());
         MultivaluedMap<String, Object> map = captor.getValue();
         return (map == null) ? new MultivaluedHashMap<>() : map;
+    }
+
+    private MediaType captureAcceptHeader() {
+        ArgumentCaptor<MediaType> captor = ArgumentCaptor.forClass(MediaType.class);
+        BDDMockito.then(mockWebTarget).should().request(captor.capture());
+        return captor.getValue();
     }
 }
