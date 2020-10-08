@@ -561,4 +561,21 @@ public class HeaderBehavior {
         then(fixture.sentHeader("H5")).isEqualTo("V5");
         then(fixture.sentHeader("overwrite")).isEqualTo("sub");
     }
+
+    @GraphQlClientApi
+    interface SimpleApi {
+        String greeting(String target);
+    }
+
+    @Test
+    public void shouldAddCharsetRequestAndResponseHeaders() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        SimpleApi api = fixture.builder().build(SimpleApi.class);
+
+        api.greeting("foo");
+
+        then(fixture.query()).isEqualTo("greeting(target: 'foo')");
+        then(fixture.sentHeader("Content-Type")).hasToString("application/json;charset=utf-8");
+        then(fixture.sentHeader("Accept")).hasToString("application/json;charset=utf-8");
+    }
 }
