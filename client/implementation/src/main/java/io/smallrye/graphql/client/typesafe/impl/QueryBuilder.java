@@ -6,15 +6,15 @@ import java.util.Stack;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
-class RequestBuilder {
-    private final MethodInfo method;
+class QueryBuilder {
+    private final MethodInvocation method;
     private final Stack<String> typeStack = new Stack<>();
 
-    public RequestBuilder(MethodInfo method) {
+    public QueryBuilder(MethodInvocation method) {
         this.method = method;
     }
 

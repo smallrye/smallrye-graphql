@@ -23,8 +23,7 @@ class JsonStringReader extends Reader<JsonString> {
         if (String.class.equals(type.getRawType()))
             return value.getString();
         if (type.isEnum())
-            //noinspection rawtypes,unchecked
-            return Enum.valueOf((Class) type.getRawType(), value.getString());
+            return enumValue();
 
         if (java.util.Date.class.equals(this.type.getRawType()))
             return java.util.Date.from(Instant.parse(value.getString()));
@@ -36,5 +35,10 @@ class JsonStringReader extends Reader<JsonString> {
         } catch (Exception e) {
             throw new GraphQlClientException("can't create scalar " + location, e);
         }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private Enum<?> enumValue() {
+        return Enum.valueOf((Class) type.getRawType(), value.getString());
     }
 }

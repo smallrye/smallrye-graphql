@@ -239,9 +239,9 @@ public class TypeInfo {
         throw new GraphQlClientException("unsupported reflection type " + type.getClass());
     }
 
-    public Optional<MethodInfo> getMethod(String name, Class<?>... args) {
+    public Optional<MethodInvocation> getMethod(String name, Class<?>... args) {
         return getDeclaredMethod((Class<?>) this.type, name, args)
-                .map(MethodInfo::of);
+                .map(MethodInvocation::of);
     }
 
     private Optional<Method> getDeclaredMethod(Class<?> type, String name, Class<?>... args) {

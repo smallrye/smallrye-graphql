@@ -11,6 +11,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.json.Json;
@@ -33,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class GraphQlClientProxy {
@@ -43,13 +45,14 @@ class GraphQlClientProxy {
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
+    private final Map<String, String> queryCache = new HashMap<>();
     private final WebTarget target;
 
     GraphQlClientProxy(WebTarget target) {
         this.target = target;
     }
 
-    Object invoke(Class<?> api, MethodInfo method) {
+    Object invoke(Class<?> api, MethodInvocation method) {
         MultivaluedMap<String, Object> headers = new HeaderBuilder(api, method).build();
         String request = request(method);
 
@@ -60,15 +63,15 @@ class GraphQlClientProxy {
         return fromJson(method, request, response);
     }
 
-    private String request(MethodInfo method) {
+    private String request(MethodInvocation method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        request.add("query", new RequestBuilder(method).build());
+        request.add("query", queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build()));
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
         return request.build().toString();
     }
 
-    private JsonObjectBuilder variables(MethodInfo method) {
+    private JsonObjectBuilder variables(MethodInvocation method) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         method.valueParameters().forEach(parameter -> builder.add(parameter.getName(), value(parameter.getValue())));
         return builder;
@@ -142,7 +145,7 @@ class GraphQlClientProxy {
         return response.readEntity(String.class);
     }
 
-    private Object fromJson(MethodInfo method, String request, String response) {
+    private Object fromJson(MethodInvocation method, String request, String response) {
         JsonObject responseJson = readResponse(request, response);
         JsonValue value = getData(method, responseJson);
         return JsonReader.readFrom(method, value);
@@ -161,7 +164,7 @@ class GraphQlClientProxy {
                 && !responseJson.getJsonArray("errors").isEmpty();
     }
 
-    private JsonValue getData(MethodInfo method, JsonObject responseJson) {
+    private JsonValue getData(MethodInvocation method, JsonObject responseJson) {
         JsonObject data = responseJson.getJsonObject("data");
         if (!data.containsKey(method.getName()))
             throw new GraphQlClientException("no data for '" + method.getName() + "':\n  " + data);

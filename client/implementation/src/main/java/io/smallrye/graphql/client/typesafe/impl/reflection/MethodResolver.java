@@ -14,7 +14,7 @@ public class MethodResolver {
         this.expression = expression;
     }
 
-    public MethodInfo resolve() {
+    public MethodInvocation resolve() {
         TypeInfo ownerType;
         int lastDot = expression.lastIndexOf('.');
         if (lastDot >= 0) { // class.method specified
@@ -24,7 +24,7 @@ public class MethodResolver {
             ownerType = callerType;
         }
 
-        MethodInfo method = resolveEnclosing(ownerType, expression)
+        MethodInvocation method = resolveEnclosing(ownerType, expression)
                 .orElseThrow(() -> new GraphQlClientException("no no-arg method '" + expression + "' found in " + ownerType));
 
         if (!method.isAccessibleFrom(callerType))
@@ -33,7 +33,7 @@ public class MethodResolver {
         return method;
     }
 
-    private Optional<MethodInfo> resolveEnclosing(TypeInfo type, String expression) {
+    private Optional<MethodInvocation> resolveEnclosing(TypeInfo type, String expression) {
         return type.enclosingTypes()
                 .map(t -> t.getMethod(expression).orElse(null))
                 .filter(Objects::nonNull)

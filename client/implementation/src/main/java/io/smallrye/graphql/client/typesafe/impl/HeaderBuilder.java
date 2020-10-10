@@ -15,15 +15,15 @@ import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class HeaderBuilder {
     private final Class<?> api;
-    private final MethodInfo method;
+    private final MethodInvocation method;
 
-    public HeaderBuilder(Class<?> api, MethodInfo method) {
+    public HeaderBuilder(Class<?> api, MethodInvocation method) {
         this.api = api;
         this.method = method;
     }
@@ -56,7 +56,7 @@ public class HeaderBuilder {
 
     private Object resolveMethodValue(String methodName) {
         TypeInfo declaringType = method.getDeclaringType();
-        MethodInfo method = new MethodResolver(declaringType, methodName).resolve();
+        MethodInvocation method = new MethodResolver(declaringType, methodName).resolve();
         if (!method.isStatic())
             throw new GraphQlClientException("referenced header method '" + methodName + "'" +
                     " in " + declaringType.getTypeName() + " is not static");

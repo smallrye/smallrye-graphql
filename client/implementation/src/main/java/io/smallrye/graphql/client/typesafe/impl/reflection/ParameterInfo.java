@@ -9,12 +9,12 @@ import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 
 public class ParameterInfo {
-    private final MethodInfo method;
+    private final MethodInvocation method;
     private final Parameter parameter;
     private final TypeInfo type;
     private final Object value;
 
-    public ParameterInfo(MethodInfo method, Parameter parameter, TypeInfo type, Object value) {
+    public ParameterInfo(MethodInvocation method, Parameter parameter, TypeInfo type, Object value) {
         this.method = method;
         this.parameter = parameter;
         this.type = type;

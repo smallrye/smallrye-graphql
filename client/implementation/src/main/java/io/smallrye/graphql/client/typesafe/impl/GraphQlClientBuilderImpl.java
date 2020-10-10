@@ -13,7 +13,7 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
 public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     private String configKey = null;
@@ -44,7 +44,7 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
         WebTarget webTarget = client.target(resolveEndpoint(apiClass));
         GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> graphQlClient.invoke(apiClass, MethodInfo.of(method, args))));
+                (proxy, method, args) -> graphQlClient.invoke(apiClass, MethodInvocation.of(method, args))));
     }
 
     private ClassLoader getClassLoader(Class<?> apiClass) {

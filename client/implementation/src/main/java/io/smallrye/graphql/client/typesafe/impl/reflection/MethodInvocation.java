@@ -24,16 +24,16 @@ import org.eclipse.microprofile.graphql.Query;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
-public class MethodInfo {
-    public static MethodInfo of(Method method, Object... args) {
-        return new MethodInfo(new TypeInfo(null, method.getDeclaringClass()), method, args);
+public class MethodInvocation {
+    public static MethodInvocation of(Method method, Object... args) {
+        return new MethodInvocation(new TypeInfo(null, method.getDeclaringClass()), method, args);
     }
 
     private final TypeInfo type;
     private final Method method;
     private final Object[] parameterValues;
 
-    private MethodInfo(TypeInfo type, Method method, Object[] parameterValues) {
+    private MethodInvocation(TypeInfo type, Method method, Object[] parameterValues) {
         this.type = type;
         this.method = method;
         this.parameterValues = parameterValues;
@@ -42,6 +42,10 @@ public class MethodInfo {
     @Override
     public String toString() {
         return type + "#" + method.getName();
+    }
+
+    public String getKey() {
+        return method.toGenericString();
     }
 
     public boolean isQuery() {
