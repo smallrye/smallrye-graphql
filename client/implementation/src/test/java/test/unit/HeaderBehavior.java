@@ -574,7 +574,8 @@ public class HeaderBehavior {
 
         api.greeting("foo");
 
-        then(fixture.query()).isEqualTo("greeting(target: 'foo')");
+        then(fixture.query()).isEqualTo("greeting(target: $target)");
+        then(fixture.variables()).isEqualTo("{'target':'foo'}");
         then(fixture.sentHeader("Content-Type")).hasToString("application/json;charset=utf-8");
         then(fixture.sentHeader("Accept")).hasToString("application/json;charset=utf-8");
     }

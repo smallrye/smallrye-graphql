@@ -1,6 +1,6 @@
 package test.unit;
 
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -8,9 +8,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
-
-import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -683,37 +684,6 @@ class ScalarBehavior {
         }
 
         @Test
-        void shouldFailStringQueryNotFound() {
-            fixture.returns(Response.serverError().type(TEXT_PLAIN_TYPE).entity("failed").build());
-            StringApi api = fixture.builder().build(StringApi.class);
-
-            GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
-
-            then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\nfailed");
-        }
-
-        @Test
-        void shouldFailOnQueryError() {
-            fixture.returns(Response.ok("{\"errors\":[{\"message\":\"failed\"}]}").build());
-            StringApi api = fixture.builder().build(StringApi.class);
-
-            GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
-
-            then(thrown).hasMessage("errors from service: [{\"message\":\"failed\"}]:\n" +
-                    "  {\"query\":\"query { greeting }\"}");
-        }
-
-        @Test
-        void shouldFailOnMissingQueryResponse() {
-            fixture.returnsData("");
-            StringApi api = fixture.builder().build(StringApi.class);
-
-            GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
-
-            then(thrown).hasMessage("no data for 'greeting':\n  {}");
-        }
-
-        @Test
         void shouldCallScalarWithValueOfQuery() {
             fixture.returnsData("'foo':123456");
             ScalarWithValueOfApi api = fixture.builder().build(ScalarWithValueOfApi.class);
@@ -849,6 +819,63 @@ class ScalarBehavior {
     }
 
     @GraphQlClientApi
+    interface LocalDateTimeApi {
+        LocalDateTime foo(LocalDateTime date);
+    }
+
+    @Test
+    void shouldCallLocalDateTimeQuery() {
+        LocalDateTime in = LocalDateTime.ofEpochSecond(123456789, 987654321, UTC);
+        LocalDateTime out = LocalDateTime.ofEpochSecond(987654321, 123456789, UTC);
+        fixture.returnsData("'foo':'" + out + "'");
+        LocalDateTimeApi api = fixture.builder().build(LocalDateTimeApi.class);
+
+        LocalDateTime value = api.foo(in);
+
+        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+        then(value).isEqualTo(out);
+    }
+
+    @GraphQlClientApi
+    interface ZonedDateTimeApi {
+        ZonedDateTime foo(ZonedDateTime date);
+    }
+
+    @Test
+    void shouldCallZonedDateTimeQuery() {
+        ZonedDateTime in = ZonedDateTime.of(2020, 10, 9, 15, 58, 21, 0, ZoneOffset.ofHours(2));
+        ZonedDateTime out = ZonedDateTime.of(2018, 1, 9, 1, 2, 3, 4, ZoneOffset.ofHours(-2));
+        fixture.returnsData("'foo':'" + out + "'");
+        ZonedDateTimeApi api = fixture.builder().build(ZonedDateTimeApi.class);
+
+        ZonedDateTime value = api.foo(in);
+
+        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+        then(value).isEqualTo(out);
+    }
+
+    @GraphQlClientApi
+    interface InstantApi {
+        Instant foo(Instant instant);
+    }
+
+    @Test
+    void shouldCallInstantQuery() {
+        Instant in = Instant.ofEpochMilli(123456789);
+        Instant out = Instant.ofEpochMilli(987654321);
+        fixture.returnsData("'foo':'" + out + "'");
+        InstantApi api = fixture.builder().build(InstantApi.class);
+
+        Instant value = api.foo(in);
+
+        then(fixture.query()).isEqualTo("foo(instant: $instant)");
+        then(fixture.variables()).isEqualTo("{'instant':'" + in + "'}");
+        then(value).isEqualTo(out);
+    }
+
+    @GraphQlClientApi
     interface DateApi {
         Date foo(Date date);
     }
@@ -862,7 +889,10 @@ class ScalarBehavior {
 
         Date value = api.foo(Date.from(in));
 
-        then(fixture.query()).isEqualTo("foo(date: '" + in + "')");
+        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
         then(value).isEqualTo(Date.from(out));
     }
+
+    // there's only special code for Date; java.time works out of the box, so we dont' test them all
 }

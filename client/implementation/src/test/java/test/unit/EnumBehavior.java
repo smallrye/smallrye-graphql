@@ -64,7 +64,8 @@ public class EnumBehavior {
 
         List<String> characters = api.characters(JEDI);
 
-        then(fixture.query()).isEqualTo("characters(episode: JEDI)");
+        then(fixture.query()).isEqualTo("characters(episode: $episode)");
+        then(fixture.variables()).isEqualTo("{'episode':'JEDI'}");
         then(characters).containsExactly("Luke", "Darth");
     }
 }

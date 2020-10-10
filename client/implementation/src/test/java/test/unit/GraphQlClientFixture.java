@@ -9,7 +9,7 @@ import java.io.StringReader;
 import java.net.URI;
 
 import javax.json.Json;
-import javax.json.JsonReader;
+import javax.json.JsonObject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
@@ -30,7 +31,7 @@ class GraphQlClientFixture {
     private final WebTarget mockWebTarget = mock(WebTarget.class);
     private final Invocation.Builder mockInvocationBuilder = mock(Invocation.Builder.class);
     private Response response;
-    private Entity<String> entitySent;
+    private Entity<JsonObject> entitySent;
 
     GraphQlClientFixture() {
         given(mockClient.target(any(URI.class))).willReturn(mockWebTarget);
@@ -50,42 +51,48 @@ class GraphQlClientFixture {
     }
 
     void returnsData(String data) {
-        this.response = Response.ok("{\"data\":{" + data.replace('\'', '\"') + "}}").build();
+        returns(Response.ok("{\"data\":{" + data.replace('\'', '\"') + "}}"));
     }
 
-    void returnsDataEmptyError(String data) {
-        this.response = Response.ok("{\"errors\":[], \"data\":{" + data.replace('\'', '\"') + "}}").build();
+    void returns(ResponseBuilder response) {
+        this.response = response.build();
     }
 
-    void returns(Response response) {
-        this.response = response;
+    String variables() {
+        return rawVariables().replace('\"', '\'');
+    }
+
+    String rawVariables() {
+        JsonObject variables = entitySent().getEntity().getJsonObject("variables");
+        return String.valueOf(variables);
+    }
+
+    String operationName() {
+        return entitySent().getEntity().getString("operationName", "null");
     }
 
     String query() {
-        return rawQuery().replace('\"', '\'');
-    }
-
-    String rawQuery() {
-        return queryBody(entitySent().getEntity(), "query");
+        return queryBody(entitySent().getEntity(), "query").replace('\"', '\'');
     }
 
     String mutation() {
         return queryBody(entitySent().getEntity(), "mutation").replace('\"', '\'');
     }
 
-    private Entity<String> entitySent() {
+    private Entity<JsonObject> entitySent() {
         if (entitySent == null) {
             @SuppressWarnings("unchecked")
             ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
             BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
-            entitySent = captor.getValue();
+            Entity<String> stringEntity = captor.getValue();
+            JsonObject jsonObject = Json.createReader(new StringReader(stringEntity.getEntity())).readObject();
+            entitySent = Entity.entity(jsonObject, stringEntity.getMediaType());
         }
         return entitySent;
     }
 
-    private String queryBody(String response, String operation) {
-        JsonReader reader = Json.createReader(new StringReader(response));
-        String query = reader.readObject().getString("query");
+    private String queryBody(JsonObject response, String operation) {
+        String query = response.getString("query");
         then(query).startsWith(operation);
         query = query.substring(operation.length()).trim();
         then(query).startsWith("{").endsWith("}");
