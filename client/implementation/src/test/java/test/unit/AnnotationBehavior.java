@@ -2,6 +2,8 @@ package test.unit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.List;
+
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
@@ -77,5 +79,28 @@ public class AnnotationBehavior {
         then(fixture.query()).isEqualTo("greeting {foo key}");
         then(greeting.text).isEqualTo("foo");
         then(greeting.code).isEqualTo(5);
+    }
+
+    private static class Thing {
+        List<OtherThing> otherThings;
+    }
+
+    private static class OtherThing {
+        String someValue;
+    }
+
+    @GraphQlClientApi
+    interface ThingsApi {
+        Thing things();
+    }
+
+    @Test
+    public void shouldHandleUnannotatedContainerField() throws Exception {
+        fixture.returnsData("'things': {'otherThings': [null]}");
+        ThingsApi stuff = fixture.builder().build(ThingsApi.class);
+
+        Thing things = stuff.things();
+
+        then(things.otherThings).hasSize(1);
     }
 }

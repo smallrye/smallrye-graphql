@@ -17,6 +17,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -199,13 +200,15 @@ public class TypeInfo {
     }
 
     public boolean isNonNull() {
-        if (ifClass(c -> c.isAnnotationPresent(NonNull.class)))
+        if (ifClass(c -> c.isAnnotationPresent(NonNull.class))) {
             return true; // TODO test
-        if (!container.isCollection())
+        }
+        if (!container.isCollection()) {
             return false; // TODO test
-        // TODO this is not generally correct
-        AnnotatedType annotatedArg = container.annotatedArgs[0];
-        return annotatedArg.isAnnotationPresent(NonNull.class);
+        }
+        return Arrays.stream(container.annotatedArgs).sequential()
+                .filter(arg -> arg.isAnnotationPresent(NonNull.class))
+                .findFirst().isPresent();
     }
 
     public Class<?> getRawType() {
