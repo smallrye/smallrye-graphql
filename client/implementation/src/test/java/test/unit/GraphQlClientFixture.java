@@ -1,6 +1,5 @@
 package test.unit;
 
-import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -72,11 +71,7 @@ class GraphQlClientFixture {
     }
 
     String query() {
-        return queryBody(entitySent().getEntity(), "query").replace('\"', '\'');
-    }
-
-    String mutation() {
-        return queryBody(entitySent().getEntity(), "mutation").replace('\"', '\'');
+        return entitySent().getEntity().getString("query").replace('\"', '\'');
     }
 
     private Entity<JsonObject> entitySent() {
@@ -89,14 +84,6 @@ class GraphQlClientFixture {
             entitySent = Entity.entity(jsonObject, stringEntity.getMediaType());
         }
         return entitySent;
-    }
-
-    private String queryBody(JsonObject response, String operation) {
-        String query = response.getString("query");
-        then(query).startsWith(operation);
-        query = query.substring(operation.length()).trim();
-        then(query).startsWith("{").endsWith("}");
-        return query.substring(1, query.length() - 1).trim();
     }
 
     Object sentHeader(String name) {

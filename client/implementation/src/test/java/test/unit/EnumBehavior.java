@@ -32,7 +32,7 @@ public class EnumBehavior {
 
         Episode episode = api.episode();
 
-        then(fixture.query()).isEqualTo("episode");
+        then(fixture.query()).isEqualTo("query episode { episode }");
         then(episode).isEqualTo(JEDI);
     }
 
@@ -48,7 +48,7 @@ public class EnumBehavior {
 
         List<Episode> episode = api.episodes();
 
-        then(fixture.query()).isEqualTo("episodes");
+        then(fixture.query()).isEqualTo("query episodes { episodes }");
         then(episode).containsExactly(NEWHOPE, EMPIRE, JEDI);
     }
 
@@ -64,7 +64,7 @@ public class EnumBehavior {
 
         List<String> characters = api.characters(JEDI);
 
-        then(fixture.query()).isEqualTo("characters(episode: $episode)");
+        then(fixture.query()).isEqualTo("query characters($episode: Episode) { characters(episode: $episode) }");
         then(fixture.variables()).isEqualTo("{'episode':'JEDI'}");
         then(characters).containsExactly("Luke", "Darth");
     }

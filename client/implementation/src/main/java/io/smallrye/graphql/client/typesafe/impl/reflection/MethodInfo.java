@@ -10,11 +10,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.Stereotype;
@@ -89,17 +88,25 @@ public class MethodInfo {
             return new AnnotatedType[0];
     }
 
-    public Stream<ParameterInfo> parameters() {
+    public boolean hasValueParameters() {
+        return valueParameters().count() > 0;
+    }
+
+    public Stream<ParameterInfo> valueParameters() {
+        return parameters().filter(ParameterInfo::isValueParameter);
+    }
+
+    public Stream<ParameterInfo> headerParameters() {
+        return parameters().filter(ParameterInfo::isHeaderParameter);
+    }
+
+    private Stream<ParameterInfo> parameters() {
         Parameter[] parameters = method.getParameters();
-        assert parameters.length == ((parameterValues == null) ? 0 : parameterValues.length);
-        List<ParameterInfo> list = new ArrayList<>();
-        for (int i = 0; i < parameters.length; i++) {
-            list.add(new ParameterInfo(this,
-                    parameters[i],
-                    new TypeInfo(null, method.getGenericParameterTypes()[i]),
-                    parameterValues[i]));
-        }
-        return list.stream();
+        return IntStream.range(0, parameters.length)
+                .mapToObj(i -> new ParameterInfo(this,
+                        parameters[i],
+                        new TypeInfo(null, method.getGenericParameterTypes()[i]),
+                        parameterValues[i]));
     }
 
     public TypeInfo getDeclaringType() {

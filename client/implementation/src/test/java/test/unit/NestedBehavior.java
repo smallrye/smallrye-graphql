@@ -29,7 +29,7 @@ public class NestedBehavior {
 
         Set<String> greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings");
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
         then(greetings).containsExactly("a", "b");
     }
 
@@ -89,7 +89,7 @@ public class NestedBehavior {
 
         List<String> greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings");
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
         then(greetings).containsExactly("a", "b");
     }
 
@@ -100,7 +100,7 @@ public class NestedBehavior {
 
         List<String> greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings");
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
         then(greetings).containsExactly("a", null);
     }
 
@@ -133,7 +133,7 @@ public class NestedBehavior {
 
         String[] greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings");
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
         then(greetings).containsExactly("a", "b");
     }
 
@@ -180,7 +180,7 @@ public class NestedBehavior {
 
         Greeting greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code successful}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text code successful} }");
         then(greeting).isEqualTo(new Greeting("foo", 5, true));
     }
 
@@ -232,7 +232,7 @@ public class NestedBehavior {
 
         List<Greeting> greeting = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings {text code successful}");
+        then(fixture.query()).isEqualTo("query greetings { greetings {text code successful} }");
         then(greeting).containsExactly(
                 new Greeting("a", 1, null),
                 new Greeting("b", 2, true),
@@ -278,7 +278,7 @@ public class NestedBehavior {
 
         StringContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greeting count}");
+        then(fixture.query()).isEqualTo("query container { container {greeting count} }");
         then(container.greeting).isEqualTo("hi");
         then(container.count).isEqualTo(5);
     }
@@ -324,7 +324,7 @@ public class NestedBehavior {
 
         GreetingContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greeting {text code successful} count}");
+        then(fixture.query()).isEqualTo("query container { container {greeting {text code successful} count} }");
         then(container).isEqualTo(new GreetingContainer(
                 new Greeting("a", 1, null), 3));
     }
@@ -372,7 +372,7 @@ public class NestedBehavior {
 
         GreetingsContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greetings {text code successful} count}");
+        then(fixture.query()).isEqualTo("query container { container {greetings {text code successful} count} }");
         then(container).isEqualTo(new GreetingsContainer(
                 asList(new Greeting("a", 1, null), new Greeting("b", 2, null)), 3));
     }
@@ -448,7 +448,7 @@ public class NestedBehavior {
 
         WrappedGreetingContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {greeting {value {text code successful}} count}");
+        then(fixture.query()).isEqualTo("query container { container {greeting {value {text code successful}} count} }");
         then(container).isEqualTo(new WrappedGreetingContainer(
                 new Wrapper<>(new Greeting("a", 1, null)), 3));
     }
@@ -494,7 +494,7 @@ public class NestedBehavior {
 
         WrappedByteContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {code {value} count}");
+        then(fixture.query()).isEqualTo("query container { container {code {value} count} }");
         then(container).isEqualTo(new WrappedByteContainer(
                 new Wrapper<>((byte) 123), 3));
     }
@@ -551,7 +551,7 @@ public class NestedBehavior {
 
         WrappedListByteContainer container = api.container();
 
-        then(fixture.query()).isEqualTo("container {codes count}");
+        then(fixture.query()).isEqualTo("query container { container {codes count} }");
         then(container).isEqualTo(new WrappedListByteContainer(
                 asList((byte) 'a', (byte) 'b', (byte) 'c'), 3));
     }
@@ -589,7 +589,7 @@ public class NestedBehavior {
 
         ClassWithTransientAndStaticFields foo = api.foo();
 
-        then(fixture.query()).isEqualTo("foo {text code}");
+        then(fixture.query()).isEqualTo("query foo { foo {text code} }");
         then(foo.text).isEqualTo("foo");
         then(foo.code).isEqualTo(5);
         then(foo.ignoreMe).isFalse();
@@ -617,7 +617,7 @@ public class NestedBehavior {
 
         Sub sub = api.call();
 
-        then(fixture.query()).isEqualTo("call {greeting {text code successful} count}");
+        then(fixture.query()).isEqualTo("query call { call {greeting {text code successful} count} }");
         then(sub.greeting).isEqualTo(new Greeting("a", 1, null));
         then(sub.count).isEqualTo(3);
     }
@@ -642,7 +642,7 @@ public class NestedBehavior {
 
         ObjectPrivateDefaultConstructor call = api.call();
 
-        then(fixture.query()).isEqualTo("call {foo}");
+        then(fixture.query()).isEqualTo("query call { call {foo} }");
         then(call.foo).isEqualTo("a");
     }
 
@@ -693,7 +693,7 @@ public class NestedBehavior {
 
         MissingNullableField result = api.call();
 
-        then(fixture.query()).isEqualTo("call {foo bar}");
+        then(fixture.query()).isEqualTo("query call { call {foo bar} }");
         then(result.foo).isEqualTo("a");
         then(result.bar).isNull();
     }

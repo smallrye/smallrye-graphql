@@ -6,6 +6,7 @@ import java.lang.reflect.Parameter;
 import org.eclipse.microprofile.graphql.Name;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.Header;
 
 public class ParameterInfo {
     private final MethodInfo method;
@@ -43,6 +44,14 @@ public class ParameterInfo {
 
     public <A extends Annotation> A[] getAnnotations(Class<A> type) {
         return parameter.getAnnotationsByType(type);
+    }
+
+    public boolean isHeaderParameter() {
+        return isAnnotated(Header.class);
+    }
+
+    public boolean isValueParameter() {
+        return !isAnnotated(Header.class);
     }
 
     public boolean isAnnotated(Class<? extends Annotation> annotationClass) {

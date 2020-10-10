@@ -16,7 +16,8 @@ public class ErrorBehavior {
 
     @GraphQlClientApi
     interface StringApi {
-        @SuppressWarnings("UnusedReturnValue") String greeting();
+        @SuppressWarnings("UnusedReturnValue")
+        String greeting();
     }
 
     @Test
@@ -27,7 +28,7 @@ public class ErrorBehavior {
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
         then(thrown).hasMessage("errors from service: [{\"message\":\"failed\"}]:\n" +
-                "  {\"query\":\"query { greeting }\",\"variables\":{},\"operationName\":\"greeting\"}");
+                "  {\"query\":\"query greeting { greeting }\",\"variables\":{},\"operationName\":\"greeting\"}");
     }
 
     @Test
@@ -57,7 +58,7 @@ public class ErrorBehavior {
 
         String greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(greeting).isEqualTo("dummy-greeting");
     }
 }

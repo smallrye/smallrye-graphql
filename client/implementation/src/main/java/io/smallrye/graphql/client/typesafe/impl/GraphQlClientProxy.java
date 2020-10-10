@@ -1,6 +1,5 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static java.util.stream.Collectors.joining;
 import static javax.json.JsonValue.ValueType.ARRAY;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -12,7 +11,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Stack;
 import java.util.stream.Stream;
 
 import javax.json.Json;
@@ -46,7 +44,6 @@ class GraphQlClientProxy {
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final WebTarget target;
-    private final Stack<String> typeStack = new Stack<>();
 
     GraphQlClientProxy(WebTarget target) {
         this.target = target;
@@ -65,59 +62,15 @@ class GraphQlClientProxy {
 
     private String request(MethodInfo method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        request.add("query",
-                operation(method)
-                        + " { "
-                        + new RequestBuilder(method).build()
-                        + fields(method.getReturnType())
-                        + " }");
+        request.add("query", new RequestBuilder(method).build());
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
         return request.build().toString();
     }
 
-    private String operation(MethodInfo method) {
-        return method.isQuery() ? "query" : "mutation";
-    }
-
-    private String fields(TypeInfo type) {
-        if (typeStack.contains(type.getTypeName()))
-            throw new GraphQlClientException("field recursion found");
-        try {
-            typeStack.push(type.getTypeName());
-
-            return recursionCheckedFields(type);
-        } finally {
-            typeStack.pop();
-        }
-    }
-
-    private String recursionCheckedFields(TypeInfo type) {
-        while (type.isOptional())
-            type = type.getItemType();
-
-        if (type.isScalar())
-            return "";
-        if (type.isCollection())
-            return fields(type.getItemType());
-        return type.fields()
-                .map(this::field)
-                .collect(joining(" ", " {", "}"));
-    }
-
-    private String field(FieldInfo field) {
-        TypeInfo type = field.getType();
-        if (type.isScalar() || type.isCollection() && type.getItemType().isScalar()) {
-            return field.getName();
-        } else {
-            return field.getName() + fields(type);
-        }
-    }
-
     private JsonObjectBuilder variables(MethodInfo method) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        method.parameters().forEach(parameter ->
-                builder.add(parameter.getName(), value(parameter.getValue())));
+        method.valueParameters().forEach(parameter -> builder.add(parameter.getName(), value(parameter.getValue())));
         return builder;
     }
 

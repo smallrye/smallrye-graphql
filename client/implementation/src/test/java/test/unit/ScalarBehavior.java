@@ -41,7 +41,7 @@ class ScalarBehavior {
 
             boolean bool = api.bool();
 
-            then(fixture.query()).isEqualTo("bool");
+            then(fixture.query()).isEqualTo("query bool { bool }");
             then(bool).isTrue();
         }
 
@@ -102,7 +102,7 @@ class ScalarBehavior {
 
             Boolean bool = api.bool();
 
-            then(fixture.query()).isEqualTo("bool");
+            then(fixture.query()).isEqualTo("query bool { bool }");
             then(bool).isTrue();
         }
     }
@@ -126,7 +126,7 @@ class ScalarBehavior {
 
             Byte code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo((byte) 5);
         }
 
@@ -137,7 +137,7 @@ class ScalarBehavior {
 
             byte code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo((byte) 5);
         }
 
@@ -183,7 +183,7 @@ class ScalarBehavior {
 
             Character c = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(c).isEqualTo('a');
         }
 
@@ -204,7 +204,7 @@ class ScalarBehavior {
 
             Character c = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(c).isEqualTo('a');
         }
 
@@ -237,7 +237,7 @@ class ScalarBehavior {
 
             char c = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(c).isEqualTo('a');
         }
 
@@ -271,7 +271,7 @@ class ScalarBehavior {
 
             Short code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo((short) 5);
         }
 
@@ -304,7 +304,7 @@ class ScalarBehavior {
 
             short code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo((short) 5);
         }
     }
@@ -328,7 +328,7 @@ class ScalarBehavior {
 
             Integer code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo(5);
         }
 
@@ -372,7 +372,7 @@ class ScalarBehavior {
 
             int code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo(5);
         }
     }
@@ -396,7 +396,7 @@ class ScalarBehavior {
 
             Long code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo(5L);
         }
 
@@ -429,7 +429,7 @@ class ScalarBehavior {
 
             long code = api.code();
 
-            then(fixture.query()).isEqualTo("code");
+            then(fixture.query()).isEqualTo("query code { code }");
             then(code).isEqualTo(5L);
         }
     }
@@ -453,7 +453,7 @@ class ScalarBehavior {
 
             Float number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(123.456f);
         }
 
@@ -464,7 +464,7 @@ class ScalarBehavior {
 
             float number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(123.456f);
         }
     }
@@ -488,7 +488,7 @@ class ScalarBehavior {
 
             Double number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(123.456D);
         }
 
@@ -499,7 +499,7 @@ class ScalarBehavior {
 
             double number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(123.456D);
         }
     }
@@ -519,7 +519,7 @@ class ScalarBehavior {
 
             BigInteger number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(reallyLongInteger);
         }
 
@@ -531,7 +531,7 @@ class ScalarBehavior {
 
             BigInteger number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(notSoLongInteger);
         }
     }
@@ -551,7 +551,7 @@ class ScalarBehavior {
 
             BigDecimal number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(reallyLongDecimal);
         }
 
@@ -563,7 +563,7 @@ class ScalarBehavior {
 
             BigDecimal number = api.number();
 
-            then(fixture.query()).isEqualTo("number");
+            then(fixture.query()).isEqualTo("query number { number }");
             then(number).isEqualTo(notSoLongDecimal);
         }
     }
@@ -679,7 +679,7 @@ class ScalarBehavior {
 
             String greeting = api.greeting();
 
-            then(fixture.query()).isEqualTo("greeting");
+            then(fixture.query()).isEqualTo("query greeting { greeting }");
             then(greeting).isEqualTo("dummy-greeting");
         }
 
@@ -690,7 +690,7 @@ class ScalarBehavior {
 
             Integer value = api.foo();
 
-            then(fixture.query()).isEqualTo("foo");
+            then(fixture.query()).isEqualTo("query foo { foo }");
             then(value).isEqualTo(123456);
         }
 
@@ -702,7 +702,7 @@ class ScalarBehavior {
 
             LocalDate value = api.now();
 
-            then(fixture.query()).isEqualTo("now");
+            then(fixture.query()).isEqualTo("query now { now }");
             then(value).isEqualTo(now);
         }
 
@@ -713,7 +713,7 @@ class ScalarBehavior {
 
             NonScalarWithStringConstructor result = api.foo();
 
-            then(fixture.query()).isEqualTo("foo {value}");
+            then(fixture.query()).isEqualTo("query foo { foo {value} }");
             then(result.value).isEqualTo("1234");
         }
 
@@ -735,7 +735,7 @@ class ScalarBehavior {
 
             ScalarWithStringConstructorMethod value = api.foo();
 
-            then(fixture.query()).isEqualTo("foo");
+            then(fixture.query()).isEqualTo("query foo { foo }");
             then(value.text).isEqualTo("bar");
         }
 
@@ -746,7 +746,7 @@ class ScalarBehavior {
 
             ScalarWithOfConstructorMethod value = api.foo();
 
-            then(fixture.query()).isEqualTo("foo");
+            then(fixture.query()).isEqualTo("query foo { foo }");
             then(value.text).isEqualTo("x-bar");
         }
     }
@@ -770,7 +770,7 @@ class ScalarBehavior {
 
         String value = api.getGreeting();
 
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(value).isEqualTo("foo");
     }
 
@@ -781,7 +781,7 @@ class ScalarBehavior {
 
         String value = api.get();
 
-        then(fixture.query()).isEqualTo("get");
+        then(fixture.query()).isEqualTo("query get { get }");
         then(value).isEqualTo("foo");
     }
 
@@ -792,7 +792,7 @@ class ScalarBehavior {
 
         String value = api.getG();
 
-        then(fixture.query()).isEqualTo("g");
+        then(fixture.query()).isEqualTo("query g { g }");
         then(value).isEqualTo("foo");
     }
 
@@ -803,7 +803,7 @@ class ScalarBehavior {
 
         String value = api.gets();
 
-        then(fixture.query()).isEqualTo("gets");
+        then(fixture.query()).isEqualTo("query gets { gets }");
         then(value).isEqualTo("foo");
     }
 
@@ -814,7 +814,7 @@ class ScalarBehavior {
 
         String value = api.getting();
 
-        then(fixture.query()).isEqualTo("getting");
+        then(fixture.query()).isEqualTo("query getting { getting }");
         then(value).isEqualTo("foo");
     }
 
@@ -832,7 +832,7 @@ class ScalarBehavior {
 
         LocalDateTime value = api.foo(in);
 
-        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.query()).isEqualTo("query foo($date: LocalDateTime) { foo(date: $date) }");
         then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
         then(value).isEqualTo(out);
     }
@@ -851,7 +851,7 @@ class ScalarBehavior {
 
         ZonedDateTime value = api.foo(in);
 
-        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.query()).isEqualTo("query foo($date: ZonedDateTime) { foo(date: $date) }");
         then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
         then(value).isEqualTo(out);
     }
@@ -870,7 +870,7 @@ class ScalarBehavior {
 
         Instant value = api.foo(in);
 
-        then(fixture.query()).isEqualTo("foo(instant: $instant)");
+        then(fixture.query()).isEqualTo("query foo($instant: Instant) { foo(instant: $instant) }");
         then(fixture.variables()).isEqualTo("{'instant':'" + in + "'}");
         then(value).isEqualTo(out);
     }
@@ -889,7 +889,7 @@ class ScalarBehavior {
 
         Date value = api.foo(Date.from(in));
 
-        then(fixture.query()).isEqualTo("foo(date: $date)");
+        then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
         then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
         then(value).isEqualTo(Date.from(out));
     }

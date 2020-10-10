@@ -32,12 +32,10 @@ public class HeaderBuilder {
         MultivaluedMap<String, Object> headers = method.getResolvedAnnotations(api, Header.class)
                 .map(header -> new SimpleEntry<>(header.name(), resolveValue(header)))
                 .collect(toMultivaluedMap());
-        method.parameters()
-                .filter(parameter -> parameter.isAnnotated(Header.class))
-                .forEach(parameter -> {
-                    Header header = parameter.getAnnotations(Header.class)[0];
-                    headers.add(header.name(), parameter.getValue());
-                });
+        method.headerParameters().forEach(parameter -> {
+            Header header = parameter.getAnnotations(Header.class)[0];
+            headers.add(header.name(), parameter.getValue());
+        });
         method.getResolvedAnnotations(api, AuthorizationHeader.class)
                 .findFirst()
                 .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
