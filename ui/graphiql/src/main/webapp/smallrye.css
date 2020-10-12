@@ -1,0 +1,15 @@
+body {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+}
+#graphiql {
+    height: 100vh;
+}
+.graphiql-container .topBar{
+    background:#343a40;
+}
+.graphiql-container .execute-button{
+    box-shadow:unset;
+}
