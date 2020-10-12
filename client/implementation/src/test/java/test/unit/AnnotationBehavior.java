@@ -26,18 +26,7 @@ public class AnnotationBehavior {
 
         String greeting = api.foo();
 
-        then(fixture.query()).isEqualTo("greeting");
-        then(greeting).isEqualTo("dummy-greeting");
-    }
-
-    @Test
-    public void shouldIgnoreEmptyError() {
-        fixture.returnsDataEmptyError("'greeting':'dummy-greeting'");
-        RenamedStringApi api = fixture.builder().build(RenamedStringApi.class);
-
-        String greeting = api.foo();
-
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(greeting).isEqualTo("dummy-greeting");
     }
 
@@ -53,7 +42,8 @@ public class AnnotationBehavior {
 
         String greeting = api.greeting("foo");
 
-        then(fixture.query()).isEqualTo("greeting(who: 'foo')");
+        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
+        then(fixture.variables()).isEqualTo("{'who':'foo'}");
         then(greeting).isEqualTo("hi, foo");
     }
 
@@ -76,7 +66,7 @@ public class AnnotationBehavior {
 
         Greeting greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {foo key}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {foo key} }");
         then(greeting.text).isEqualTo("foo");
         then(greeting.code).isEqualTo(5);
     }
@@ -86,6 +76,7 @@ public class AnnotationBehavior {
     }
 
     private static class OtherThing {
+        @SuppressWarnings("unused")
         String someValue;
     }
 
@@ -95,7 +86,7 @@ public class AnnotationBehavior {
     }
 
     @Test
-    public void shouldHandleUnannotatedContainerField() throws Exception {
+    public void shouldHandleUnannotatedContainerField() {
         fixture.returnsData("'things': {'otherThings': [null]}");
         ThingsApi stuff = fixture.builder().build(ThingsApi.class);
 

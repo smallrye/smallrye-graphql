@@ -9,11 +9,11 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class JsonReader extends Reader<JsonValue> {
-    public static Object readFrom(MethodInfo method, JsonValue value) {
+    public static Object readFrom(MethodInvocation method, JsonValue value) {
         TypeInfo type = method.getReturnType();
         return readJson(new Location(type, method.toString()), type, value);
     }

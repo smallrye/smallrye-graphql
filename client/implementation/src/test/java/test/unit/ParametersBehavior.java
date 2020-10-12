@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
+import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
@@ -30,7 +31,27 @@ public class ParametersBehavior {
 
         String greeting = api.greeting("foo");
 
-        then(fixture.query()).isEqualTo("greeting(who: 'foo')");
+        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
+        then(fixture.variables()).isEqualTo("{'who':'foo'}");
+        then(fixture.operationName()).isEqualTo("greeting");
+        then(greeting).isEqualTo("hi, foo");
+    }
+
+    @GraphQlClientApi
+    interface RenamedParamApi {
+        String greeting(@Name("who") String foo);
+    }
+
+    @Test
+    public void shouldCallRenamedParamQuery() {
+        fixture.returnsData("'greeting':'hi, foo'");
+        RenamedParamApi api = fixture.builder().build(RenamedParamApi.class);
+
+        String greeting = api.greeting("foo");
+
+        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
+        then(fixture.variables()).isEqualTo("{'who':'foo'}");
+        then(fixture.operationName()).isEqualTo("greeting");
         then(greeting).isEqualTo("hi, foo");
     }
 
@@ -41,7 +62,8 @@ public class ParametersBehavior {
 
         String greeting = api.greeting("foo\"bar'\n");
 
-        then(fixture.rawQuery()).isEqualTo("greeting(who: \"foo\\\"bar'\\n\")");
+        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
+        then(fixture.rawVariables()).isEqualTo("{\"who\":\"foo\\\"bar'\\n\"}");
         then(greeting).isEqualTo("hi, foo");
     }
 
@@ -57,7 +79,8 @@ public class ParametersBehavior {
 
         String greeting = api.greeting("foo", 3);
 
-        then(fixture.query()).isEqualTo("greeting(who: 'foo', count: 3)");
+        then(fixture.query()).isEqualTo("query greeting($who: String, $count: Int!) { greeting(who: $who, count: $count) }");
+        then(fixture.variables()).isEqualTo("{'who':'foo','count':3}");
         then(greeting).isEqualTo("hi, foo 3");
     }
 
@@ -73,7 +96,8 @@ public class ParametersBehavior {
 
         String greeting = api.greeting(true);
 
-        then(fixture.query()).isEqualTo("greeting(really: true)");
+        then(fixture.query()).isEqualTo("query greeting($really: Boolean!) { greeting(really: $really) }");
+        then(fixture.variables()).isEqualTo("{'really':true}");
         then(greeting).isEqualTo("ho");
     }
 
@@ -87,9 +111,10 @@ public class ParametersBehavior {
         fixture.returnsData("'greeting':'ho'");
         BooleanParamApi api = fixture.builder().build(BooleanParamApi.class);
 
-        String greeting = api.greeting(true);
+        String greeting = api.greeting(false);
 
-        then(fixture.query()).isEqualTo("greeting(really: true)");
+        then(fixture.query()).isEqualTo("query greeting($really: Boolean) { greeting(really: $really) }");
+        then(fixture.variables()).isEqualTo("{'really':false}");
         then(greeting).isEqualTo("ho");
     }
 
@@ -134,7 +159,8 @@ public class ParametersBehavior {
 
         Greeting greeting = api.say(new Greeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("say(greet: {text: 'hi', count: 5}) {text count}");
+        then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -150,7 +176,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(new String[] { "hi", "ho" });
 
-        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
         then(success).isTrue();
     }
 
@@ -166,7 +193,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(asList("hi", "ho"));
 
-        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
         then(success).isTrue();
     }
 
@@ -182,7 +210,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(new HashSet<>(asList("hi", "ho")));
 
-        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
         then(success).isTrue();
     }
 
@@ -198,7 +227,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(new ArrayDeque<>(asList("hi", "ho")));
 
-        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
         then(success).isTrue();
     }
 
@@ -214,7 +244,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(asList("hi", "ho"));
 
-        then(fixture.query()).isEqualTo("greetings(greets: ['hi', 'ho'])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
         then(success).isTrue();
     }
 
@@ -230,7 +261,8 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(asList(new Greeting("hi", 5), new Greeting("ho", 3)));
 
-        then(fixture.query()).isEqualTo("greetings(greets: [{text: 'hi', count: 5}, {text: 'ho', count: 3}])");
+        then(fixture.query()).isEqualTo("query greetings($greets: [Greeting]) { greetings(greets: $greets) }");
+        then(fixture.variables()).isEqualTo("{'greets':[{'text':'hi','count':5},{'text':'ho','count':3}]}");
         then(success).isTrue();
     }
 
@@ -256,7 +288,8 @@ public class ParametersBehavior {
 
         boolean success = api.foo(new ListObject(asList("hi", "ho"), 3));
 
-        then(fixture.query()).isEqualTo("foo(bar: {texts: ['hi', 'ho'], count: 3})");
+        then(fixture.query()).isEqualTo("query foo($bar: ListObject) { foo(bar: $bar) }");
+        then(fixture.variables()).isEqualTo("{'bar':{'texts':['hi','ho'],'count':3}}");
         then(success).isTrue();
     }
 }

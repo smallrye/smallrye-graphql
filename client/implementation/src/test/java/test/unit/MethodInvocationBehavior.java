@@ -6,9 +6,9 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
-public class MethodInfoBehavior {
+public class MethodInvocationBehavior {
 
     private String foo(String echo) {
         return "foo " + echo;
@@ -16,8 +16,8 @@ public class MethodInfoBehavior {
 
     @Test
     public void canInvokePrivateMethod() throws Exception {
-        Method foo = this.getClass().getDeclaredMethod("foo", new Class<?>[] { String.class });
-        MethodInfo mi = MethodInfo.of(foo, "bar");
+        Method foo = this.getClass().getDeclaredMethod("foo", String.class);
+        MethodInvocation mi = MethodInvocation.of(foo, "bar");
         then(mi.invoke(this, "bar")).isEqualTo("foo bar");
     }
 }

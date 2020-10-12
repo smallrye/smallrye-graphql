@@ -167,14 +167,6 @@ public class TypeInfo {
         return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
     }
 
-    public String stringValue(Object value) {
-        if (java.util.Date.class.equals(getRawType()))
-            return ((java.util.Date) value).toInstant().toString();
-        return value.toString()
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n");
-    }
-
     public Object newInstance() {
         try {
             Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
@@ -199,16 +191,23 @@ public class TypeInfo {
         }
     }
 
+    public String graphQlTypeName() {
+        Class<?> rawType = getRawType();
+        if (rawType == boolean.class)
+            return "Boolean!";
+        if (rawType == int.class)
+            return "Int!";
+        String basicName = isCollection() ? "[" + getItemType().graphQlTypeName() + "]" : rawType.getSimpleName();
+        return basicName + (isNonNull() ? "!" : "");
+    }
+
     public boolean isNonNull() {
-        if (ifClass(c -> c.isAnnotationPresent(NonNull.class))) {
+        if (ifClass(c -> c.isAnnotationPresent(NonNull.class)))
             return true; // TODO test
-        }
-        if (!container.isCollection()) {
+        if (container == null || !container.isCollection())
             return false; // TODO test
-        }
         return Arrays.stream(container.annotatedArgs).sequential()
-                .filter(arg -> arg.isAnnotationPresent(NonNull.class))
-                .findFirst().isPresent();
+                .anyMatch(arg -> arg.isAnnotationPresent(NonNull.class));
     }
 
     public Class<?> getRawType() {
@@ -240,9 +239,9 @@ public class TypeInfo {
         throw new GraphQlClientException("unsupported reflection type " + type.getClass());
     }
 
-    public Optional<MethodInfo> getMethod(String name, Class<?>... args) {
+    public Optional<MethodInvocation> getMethod(String name, Class<?>... args) {
         return getDeclaredMethod((Class<?>) this.type, name, args)
-                .map(MethodInfo::of);
+                .map(MethodInvocation::of);
     }
 
     private Optional<Method> getDeclaredMethod(Class<?> type, String name, Class<?>... args) {

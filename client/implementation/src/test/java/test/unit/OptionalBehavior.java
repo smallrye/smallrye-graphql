@@ -25,7 +25,7 @@ public class OptionalBehavior {
 
         Optional<String> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(greeting).isEmpty();
     }
 
@@ -36,7 +36,7 @@ public class OptionalBehavior {
 
         Optional<String> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(greeting).contains("hi");
     }
 
@@ -81,7 +81,7 @@ public class OptionalBehavior {
 
         Optional<Greeting> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text code} }");
         then(greeting).contains(new Greeting("hi", 5));
     }
 
@@ -92,7 +92,7 @@ public class OptionalBehavior {
 
         Optional<Greeting> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text code} }");
         then(greeting).isEmpty();
     }
 
@@ -108,7 +108,7 @@ public class OptionalBehavior {
 
         Optional<List<Greeting>> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text code} }");
         assert greeting.isPresent();
         then(greeting.get()).contains(new Greeting("hi", 5), new Greeting("ho", 7));
     }
@@ -120,7 +120,7 @@ public class OptionalBehavior {
 
         Optional<List<Greeting>> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting {text code}");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text code} }");
         assert greeting.isPresent();
         then(greeting.get()).isEmpty();
     }
@@ -137,7 +137,7 @@ public class OptionalBehavior {
 
         List<Optional<Greeting>> greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings {text code}");
+        then(fixture.query()).isEqualTo("query greetings { greetings {text code} }");
         then(greetings).containsExactly(
                 Optional.of(new Greeting("hi", 5)),
                 Optional.of(new Greeting("ho", 7)));
@@ -150,7 +150,7 @@ public class OptionalBehavior {
 
         List<Optional<Greeting>> greetings = api.greetings();
 
-        then(fixture.query()).isEqualTo("greetings {text code}");
+        then(fixture.query()).isEqualTo("query greetings { greetings {text code} }");
         then(greetings).isEmpty();
     }
 
@@ -166,7 +166,7 @@ public class OptionalBehavior {
 
         Optional<Optional<String>> greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("greeting");
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
         then(greeting).contains(Optional.of("hi"));
     }
 }

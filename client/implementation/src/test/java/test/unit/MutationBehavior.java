@@ -28,7 +28,8 @@ public class MutationBehavior {
 
         String greeting = api.createSome("input");
 
-        then(fixture.mutation()).isEqualTo("createSome(thing: 'input')");
+        then(fixture.query()).isEqualTo("mutation createSome($thing: String) { createSome(thing: $thing) }");
+        then(fixture.variables()).isEqualTo("{'thing':'input'}");
         then(greeting).isEqualTo("output");
     }
 
@@ -39,7 +40,8 @@ public class MutationBehavior {
 
         String greeting = api.createSome(null);
 
-        then(fixture.mutation()).isEqualTo("createSome(thing: null)");
+        then(fixture.query()).isEqualTo("mutation createSome($thing: String) { createSome(thing: $thing) }");
+        then(fixture.variables()).isEqualTo("{'thing':null}");
         then(greeting).isEqualTo("output");
     }
 
@@ -85,7 +87,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new Greeting("hi", 5));
 
-        then(fixture.mutation()).isEqualTo("say(greet: {text: 'hi', count: 5}) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -96,7 +99,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new Greeting(null, 5));
 
-        then(fixture.mutation()).isEqualTo("say(greet: {text: null, count: 5}) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':null,'count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -116,11 +120,12 @@ public class MutationBehavior {
                 null,
                 new Greeting("three", 5)));
 
-        then(fixture.mutation()).isEqualTo("say(greets: [" +
-                "{text: 'one', count: 5}, " +
-                "null, " +
-                "{text: 'three', count: 5}" +
-                "]) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greets: [Greeting]) { say(greets: $greets) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greets':[" +
+                "{'text':'one','count':5}," +
+                "null," +
+                "{'text':'three','count':5}" +
+                "]}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -168,9 +173,10 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting("one", 5), now));
 
-        then(fixture.mutation()).isEqualTo("say(greeting: {" +
-                "greeting: {text: 'one', count: 5}, " +
-                "when: '" + now + "'}) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingContainer) { say(greeting: $greeting) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greeting':{" +
+                "'greeting':{'text':'one','count':5}," +
+                "'when':'" + now + "'}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -181,8 +187,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting(null, 5), null));
 
-        then(fixture.mutation())
-                .isEqualTo("say(greeting: {greeting: {text: null, count: 5}, when: null}) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingContainer) { say(greeting: $greeting) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greeting':{'greeting':{'text':null,'count':5},'when':null}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -236,7 +242,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingEnum("one", SomeEnum.ONE));
 
-        then(fixture.mutation()).isEqualTo("say(greeting: {text: 'one', someEnum: ONE}) {text count}");
+        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingEnum) { say(greeting: $greeting) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greeting':{'text':'one','someEnum':'ONE'}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -247,7 +254,7 @@ public class MutationBehavior {
         short s = 0xff;
         int i = 123456;
         long l = 987654321L;
-        float f = 12.34f;
+        float f = 1.0f;
         double d = 56.78d;
 
         @Override
@@ -286,8 +293,9 @@ public class MutationBehavior {
 
         String result = api.run(new PrimitiveTypesClass());
 
-        then(fixture.mutation())
-                .isEqualTo("run(primitives: {b: true, c: a, y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(fixture.query()).isEqualTo("mutation run($primitives: PrimitiveTypesClass) { run(primitives: $primitives) }");
+        then(fixture.variables())
+                .isEqualTo("{'primitives':{'b':true,'c':'a','y':7,'s':255,'i':123456,'l':987654321,'f':1.0,'d':56.78}}");
         then(result).isEqualTo("okay");
     }
 
@@ -298,7 +306,7 @@ public class MutationBehavior {
         Short s = 0xff;
         Integer i = 123456;
         Long l = 987654321L;
-        Float f = 12.34f;
+        Float f = 1.0f;
         Double d = 56.78d;
 
         @Override
@@ -337,8 +345,10 @@ public class MutationBehavior {
 
         String result = api.run(new PrimitiveWrapperTypesClass());
 
-        then(fixture.mutation())
-                .isEqualTo("run(primitives: {b: true, c: 'a', y: 7, s: 255, i: 123456, l: 987654321, f: 12.34, d: 56.78})");
+        then(fixture.query())
+                .isEqualTo("mutation run($primitives: PrimitiveWrapperTypesClass) { run(primitives: $primitives) }");
+        then(fixture.variables())
+                .isEqualTo("{'primitives':{'b':true,'c':'a','y':7,'s':255,'i':123456,'l':987654321,'f':1.0,'d':56.78}}");
         then(result).isEqualTo("okay");
     }
 }

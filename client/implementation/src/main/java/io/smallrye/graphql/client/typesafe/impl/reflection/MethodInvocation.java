@@ -10,11 +10,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.Stereotype;
@@ -25,16 +24,16 @@ import org.eclipse.microprofile.graphql.Query;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
-public class MethodInfo {
-    public static MethodInfo of(Method method, Object... args) {
-        return new MethodInfo(new TypeInfo(null, method.getDeclaringClass()), method, args);
+public class MethodInvocation {
+    public static MethodInvocation of(Method method, Object... args) {
+        return new MethodInvocation(new TypeInfo(null, method.getDeclaringClass()), method, args);
     }
 
     private final TypeInfo type;
     private final Method method;
     private final Object[] parameterValues;
 
-    private MethodInfo(TypeInfo type, Method method, Object[] parameterValues) {
+    private MethodInvocation(TypeInfo type, Method method, Object[] parameterValues) {
         this.type = type;
         this.method = method;
         this.parameterValues = parameterValues;
@@ -43,6 +42,10 @@ public class MethodInfo {
     @Override
     public String toString() {
         return type + "#" + method.getName();
+    }
+
+    public String getKey() {
+        return method.toGenericString();
     }
 
     public boolean isQuery() {
@@ -89,17 +92,25 @@ public class MethodInfo {
             return new AnnotatedType[0];
     }
 
-    public Stream<ParameterInfo> parameters() {
+    public boolean hasValueParameters() {
+        return valueParameters().count() > 0;
+    }
+
+    public Stream<ParameterInfo> valueParameters() {
+        return parameters().filter(ParameterInfo::isValueParameter);
+    }
+
+    public Stream<ParameterInfo> headerParameters() {
+        return parameters().filter(ParameterInfo::isHeaderParameter);
+    }
+
+    private Stream<ParameterInfo> parameters() {
         Parameter[] parameters = method.getParameters();
-        assert parameters.length == ((parameterValues == null) ? 0 : parameterValues.length);
-        List<ParameterInfo> list = new ArrayList<>();
-        for (int i = 0; i < parameters.length; i++) {
-            list.add(new ParameterInfo(this,
-                    parameters[i],
-                    new TypeInfo(null, method.getGenericParameterTypes()[i]),
-                    parameterValues[i]));
-        }
-        return list.stream();
+        return IntStream.range(0, parameters.length)
+                .mapToObj(i -> new ParameterInfo(this,
+                        parameters[i],
+                        new TypeInfo(null, method.getGenericParameterTypes()[i]),
+                        parameterValues[i]));
     }
 
     public TypeInfo getDeclaringType() {

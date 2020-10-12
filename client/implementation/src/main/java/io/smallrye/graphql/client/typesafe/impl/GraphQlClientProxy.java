@@ -1,15 +1,23 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static java.util.stream.Collectors.joining;
 import static javax.json.JsonValue.ValueType.ARRAY;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 import java.io.StringReader;
-import java.util.Stack;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -27,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInfo;
+import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class GraphQlClientProxy {
@@ -37,14 +45,14 @@ class GraphQlClientProxy {
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
+    private final Map<String, String> queryCache = new HashMap<>();
     private final WebTarget target;
-    private final Stack<String> typeStack = new Stack<>();
 
     GraphQlClientProxy(WebTarget target) {
         this.target = target;
     }
 
-    Object invoke(Class<?> api, MethodInfo method) {
+    Object invoke(Class<?> api, MethodInvocation method) {
         MultivaluedMap<String, Object> headers = new HeaderBuilder(api, method).build();
         String request = request(method);
 
@@ -55,53 +63,73 @@ class GraphQlClientProxy {
         return fromJson(method, request, response);
     }
 
-    private String request(MethodInfo method) {
+    private String request(MethodInvocation method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        request.add("query",
-                operation(method)
-                        + " { "
-                        + new RequestBuilder(method).build()
-                        + fields(method.getReturnType())
-                        + " }");
+        request.add("query", queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build()));
+        request.add("variables", variables(method));
+        request.add("operationName", method.getName());
         return request.build().toString();
     }
 
-    private String operation(MethodInfo method) {
-        return method.isQuery() ? "query" : "mutation";
+    private JsonObjectBuilder variables(MethodInvocation method) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        method.valueParameters().forEach(parameter -> builder.add(parameter.getName(), value(parameter.getValue())));
+        return builder;
     }
 
-    private String fields(TypeInfo type) {
-        if (typeStack.contains(type.getTypeName()))
-            throw new GraphQlClientException("field recursion found");
-        try {
-            typeStack.push(type.getTypeName());
-
-            return recursionCheckedFields(type);
-        } finally {
-            typeStack.pop();
-        }
-    }
-
-    private String recursionCheckedFields(TypeInfo type) {
-        while (type.isOptional())
-            type = type.getItemType();
-
+    private JsonValue value(Object value) {
+        if (value == null)
+            return JsonValue.NULL;
+        TypeInfo type = TypeInfo.of(value.getClass());
         if (type.isScalar())
-            return "";
+            return scalarValue(value);
         if (type.isCollection())
-            return fields(type.getItemType());
-        return type.fields()
-                .map(this::field)
-                .collect(joining(" ", " {", "}"));
+            return arrayValue(value);
+        return objectValue(value, type.fields());
     }
 
-    private String field(FieldInfo field) {
-        TypeInfo type = field.getType();
-        if (type.isScalar() || type.isCollection() && type.getItemType().isScalar()) {
-            return field.getName();
-        } else {
-            return field.getName() + fields(type);
-        }
+    private JsonValue scalarValue(Object value) {
+        if (value instanceof String)
+            return Json.createValue((String) value);
+        if (value instanceof Date)
+            return Json.createValue(((Date) value).toInstant().toString());
+        if (value instanceof Enum)
+            return Json.createValue(((Enum<?>) value).name());
+        if (value instanceof Boolean)
+            return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
+        if (value instanceof Byte)
+            return Json.createValue((Byte) value);
+        if (value instanceof Short)
+            return Json.createValue((Short) value);
+        if (value instanceof Integer)
+            return Json.createValue((Integer) value);
+        if (value instanceof Long)
+            return Json.createValue((Long) value);
+        if (value instanceof Double)
+            return Json.createValue((Double) value);
+        if (value instanceof Float)
+            return Json.createValue((Float) value);
+        if (value instanceof BigInteger)
+            return Json.createValue((BigInteger) value);
+        if (value instanceof BigDecimal)
+            return Json.createValue((BigDecimal) value);
+        return Json.createValue(value.toString());
+    }
+
+    private JsonArray arrayValue(Object value) {
+        JsonArrayBuilder array = Json.createArrayBuilder();
+        values(value).forEach(item -> array.add(value(item)));
+        return array.build();
+    }
+
+    private Collection<?> values(Object value) {
+        return value.getClass().isArray() ? Arrays.asList((Object[]) value) : (Collection<?>) value;
+    }
+
+    private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        fields.forEach(field -> builder.add(field.getName(), value(field.get(object))));
+        return builder.build();
     }
 
     private String post(String request, MultivaluedMap<String, Object> headers) {
@@ -117,7 +145,7 @@ class GraphQlClientProxy {
         return response.readEntity(String.class);
     }
 
-    private Object fromJson(MethodInfo method, String request, String response) {
+    private Object fromJson(MethodInvocation method, String request, String response) {
         JsonObject responseJson = readResponse(request, response);
         JsonValue value = getData(method, responseJson);
         return JsonReader.readFrom(method, value);
@@ -136,7 +164,7 @@ class GraphQlClientProxy {
                 && !responseJson.getJsonArray("errors").isEmpty();
     }
 
-    private JsonValue getData(MethodInfo method, JsonObject responseJson) {
+    private JsonValue getData(MethodInvocation method, JsonObject responseJson) {
         JsonObject data = responseJson.getJsonObject("data");
         if (!data.containsKey(method.getName()))
             throw new GraphQlClientException("no data for '" + method.getName() + "':\n  " + data);
