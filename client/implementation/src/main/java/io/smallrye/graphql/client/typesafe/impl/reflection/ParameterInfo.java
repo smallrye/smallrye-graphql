@@ -37,7 +37,10 @@ public class ParameterInfo {
         if (parameter.isAnnotationPresent(Name.class))
             return parameter.getAnnotation(Name.class).value();
         if (!parameter.isNamePresent())
-            throw new GraphQlClientException("compile with -parameters to add the parameter names to the class file");
+            throw new GraphQlClientException("Missing name information for " + this + ".\n" +
+                    "You can either annotate all parameters with @Name, " +
+                    "or compile your source code with the -parameters options, " +
+                    "so the parameter names are compiled into the class file and available at runtime.");
         return parameter.getName();
     }
 
