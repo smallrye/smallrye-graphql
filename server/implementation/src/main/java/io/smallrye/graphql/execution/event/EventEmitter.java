@@ -32,20 +32,25 @@ public class EventEmitter {
     }
 
     private EventEmitter(Config config) {
-        ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
-        Iterator<EventingService> it = eventingServices.iterator();
-        while (it.hasNext()) {
+        if (config != null) {
+            ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
+            Iterator<EventingService> it = eventingServices.iterator();
+
             EventingService eventingService = null;
-            try {
-                eventingService = it.next();
-                String configKey = eventingService.getConfigKey();
-                boolean enabled = config.getConfigValue(configKey, boolean.class, false);
-                if (enabled) {
-                    enabledServices.add(eventingService);
+            while (it.hasNext()) {
+                try {
+                    eventingService = it.next();
+                    String configKey = eventingService.getConfigKey();
+                    boolean enabled = config.getConfigValue(configKey, boolean.class, false);
+                    if (enabled) {
+                        enabledServices.add(eventingService);
+                    }
+                } catch (Throwable t) {
+                    // Ignore that service...
+                    Throwable cause = t.getCause();
+                    LOG.warn("Failed to register " + t.getMessage()
+                            + (cause != null ? "\n\tCaused by: " + cause.toString() : ""));
                 }
-            } catch (Throwable t) {
-                // Ignore that service...
-                LOG.warn("Failed to register eventing service, " + eventingService + ", ignoring...");
             }
         }
     }
