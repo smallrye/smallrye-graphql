@@ -34,8 +34,6 @@ import io.smallrye.graphql.spi.EventingService;
  */
 public class TracingService implements EventingService {
 
-    private static final Object PARENT_SPAN_KEY = Span.class;
-
     private final Map<String, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
     private final Map<String, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
@@ -85,7 +83,7 @@ public class TracingService implements EventingService {
         final Span span = scope.span();
 
         GraphQLContext graphQLContext = env.getContext();
-        graphQLContext.put(PARENT_SPAN_KEY, span);
+        graphQLContext.put(Span.class, span);
 
         spans.put(context.getExecutionId(), span);
     }
@@ -141,13 +139,13 @@ public class TracingService implements EventingService {
 
     private Span getParentSpan(Tracer tracer, final DataFetchingEnvironment env) {
         final GraphQLContext localContext = env.getLocalContext();
-        if (localContext != null && localContext.hasKey(PARENT_SPAN_KEY)) {
-            return localContext.get(PARENT_SPAN_KEY);
+        if (localContext != null && localContext.hasKey(Span.class)) {
+            return localContext.get(Span.class);
         }
 
         final GraphQLContext rootContext = env.getContext();
-        if (rootContext != null && rootContext.hasKey(PARENT_SPAN_KEY)) {
-            return rootContext.get(PARENT_SPAN_KEY);
+        if (rootContext != null && rootContext.hasKey(Span.class)) {
+            return rootContext.get(Span.class);
         }
 
         return tracer.activeSpan();
