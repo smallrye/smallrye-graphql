@@ -2,8 +2,6 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.AnnotatedParameterizedType;
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -82,14 +80,7 @@ public class MethodInvocation {
     }
 
     public TypeInfo getReturnType() {
-        return new TypeInfo(type, method.getGenericReturnType(), returnTypeAnnotations());
-    }
-
-    private AnnotatedType[] returnTypeAnnotations() {
-        if (method.getAnnotatedReturnType() instanceof AnnotatedParameterizedType)
-            return ((AnnotatedParameterizedType) method.getAnnotatedReturnType()).getAnnotatedActualTypeArguments();
-        else
-            return new AnnotatedType[0];
+        return new TypeInfo(type, method.getGenericReturnType(), method.getAnnotatedReturnType());
     }
 
     public boolean hasValueParameters() {
@@ -109,7 +100,6 @@ public class MethodInvocation {
         return IntStream.range(0, parameters.length)
                 .mapToObj(i -> new ParameterInfo(this,
                         parameters[i],
-                        new TypeInfo(null, method.getGenericParameterTypes()[i]),
                         parameterValues[i]));
     }
 
