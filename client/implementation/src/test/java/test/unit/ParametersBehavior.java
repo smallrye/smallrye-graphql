@@ -128,7 +128,7 @@ public class ParametersBehavior {
 
         Greeting greeting = api.say(new Greeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("query say($greet: GreetingInput) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting.text).isEqualTo("ho");
         then(greeting.count).isEqualTo(3);
@@ -161,7 +161,7 @@ public class ParametersBehavior {
 
         RenamedGreeting greeting = api.say(new RenamedGreeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("query say($greet: GreetingInput) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting.text).isEqualTo("ho");
         then(greeting.count).isEqualTo(3);
@@ -298,7 +298,7 @@ public class ParametersBehavior {
 
         boolean success = api.greetings(asList(new Greeting("hi", 5), new Greeting("ho", 3)));
 
-        then(fixture.query()).isEqualTo("query greetings($greets: [Greeting]) { greetings(greets: $greets) }");
+        then(fixture.query()).isEqualTo("query greetings($greets: [GreetingInput]) { greetings(greets: $greets) }");
         then(fixture.variables()).isEqualTo("{'greets':[{'text':'hi','count':5},{'text':'ho','count':3}]}");
         then(success).isTrue();
     }
@@ -325,7 +325,7 @@ public class ParametersBehavior {
 
         boolean success = api.foo(new ListObject(asList("hi", "ho"), 3));
 
-        then(fixture.query()).isEqualTo("query foo($bar: ListObject) { foo(bar: $bar) }");
+        then(fixture.query()).isEqualTo("query foo($bar: ListObjectInput) { foo(bar: $bar) }");
         then(fixture.variables()).isEqualTo("{'bar':{'texts':['hi','ho'],'count':3}}");
         then(success).isTrue();
     }

@@ -26,9 +26,9 @@ public class ParameterInfo {
         return "parameter '" + parameter.getName() + "' in " + method;
     }
 
-    public String graphQlTypeName() {
+    public String graphQlInputTypeName() {
         if (type.isScalar()) {
-            return type.graphQlTypeName() + optionalExclamationMark(type);
+            return graphQlInputTypeName(type) + optionalExclamationMark(type);
         } else if (type.isCollection()) {
             return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
         } else {
@@ -37,7 +37,28 @@ public class ParameterInfo {
     }
 
     private String withExclamationMark(TypeInfo itemType) {
-        return itemType.graphQlTypeName() + optionalExclamationMark(itemType);
+        return graphQlInputTypeName(itemType) + optionalExclamationMark(itemType);
+    }
+
+    private String graphQlInputTypeName(TypeInfo type) {
+        return simpleInputTypeName(type);
+    }
+
+    private String simpleInputTypeName(TypeInfo type) {
+        if (type.isAnnotated(Name.class))
+            return type.getAnnotation(Name.class).value() + "Input";
+        switch (type.getSimpleName()) {
+            case "boolean":
+            case "Boolean":
+                return "Boolean";
+            case "int":
+            case "Integer":
+            case "long":
+            case "Long":
+                return "Int";
+            default:
+                return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");
+        }
     }
 
     private String optionalExclamationMark(TypeInfo itemType) {

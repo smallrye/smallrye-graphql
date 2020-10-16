@@ -4,6 +4,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
 import static java.util.Objects.requireNonNull;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
@@ -24,7 +25,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
-import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
@@ -192,25 +192,9 @@ public class TypeInfo {
         }
     }
 
-    public String graphQlTypeName() {
-        if (type instanceof Class) {
-            Class<?> cls = (Class<?>) this.type;
-            if (cls.isAnnotationPresent(Name.class))
-                return cls.getAnnotation(Name.class).value();
-            String simpleName = cls.getSimpleName();
-            switch (simpleName) {
-                case "boolean":
-                case "Boolean":
-                    return "Boolean";
-                case "int":
-                case "Integer":
-                case "long":
-                case "Long":
-                    return "Int";
-                default:
-                    return simpleName;
-            }
-        }
+    public String getSimpleName() {
+        if (type instanceof Class)
+            return ((Class<?>) type).getSimpleName();
         return type.getTypeName();
     }
 
@@ -292,5 +276,13 @@ public class TypeInfo {
         for (Class<?> enclosing = getRawType(); enclosing != null; enclosing = enclosing.getEnclosingClass())
             builder.accept(TypeInfo.of(enclosing));
         return builder.build();
+    }
+
+    public boolean isAnnotated(Class<? extends Annotation> type) {
+        return ifClass(c -> c.isAnnotationPresent(type)); // other type uses are not annotated in this sense
+    }
+
+    public <T extends Annotation> T getAnnotation(Class<T> type) {
+        return ((Class<?>) this.type).getAnnotation(type);
     }
 }
