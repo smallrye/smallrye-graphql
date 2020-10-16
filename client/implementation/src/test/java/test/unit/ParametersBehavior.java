@@ -7,7 +7,6 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -112,27 +111,13 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") Greeting() {
+        @SuppressWarnings("unused")
+        Greeting() {
         }
 
         Greeting(String text, int count) {
             this.text = text;
             this.count = count;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            Greeting greeting = (Greeting) o;
-            return count == greeting.count && text.equals(greeting.text);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(text, count);
         }
     }
 
@@ -145,7 +130,41 @@ public class ParametersBehavior {
 
         then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
-        then(greeting).isEqualTo(new Greeting("ho", 3));
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
+    }
+
+    @GraphQlClientApi
+    interface RenamedObjectParamApi {
+        RenamedGreeting say(RenamedGreeting greet);
+    }
+
+    @Name("Greeting")
+    private static class RenamedGreeting {
+        String text;
+        int count;
+
+        @SuppressWarnings("unused")
+        RenamedGreeting() {
+        }
+
+        RenamedGreeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+    }
+
+    @Test
+    public void shouldCallRenamedObjectParamQuery() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        RenamedObjectParamApi api = fixture.builder().build(RenamedObjectParamApi.class);
+
+        RenamedGreeting greeting = api.say(new RenamedGreeting("hi", 5));
+
+        then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
     }
 
     @GraphQlClientApi
@@ -158,7 +177,7 @@ public class ParametersBehavior {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
 
-        boolean success = api.greetings(new String[]{ "hi", "ho" });
+        boolean success = api.greetings(new String[] { "hi", "ho" });
 
         then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
         then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");

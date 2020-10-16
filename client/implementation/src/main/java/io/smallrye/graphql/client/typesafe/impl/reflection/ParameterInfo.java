@@ -28,7 +28,7 @@ public class ParameterInfo {
 
     public String graphQlTypeName() {
         if (type.isScalar()) {
-            return scalarName() + optionalExclamationMark(type);
+            return type.graphQlTypeName() + optionalExclamationMark(type);
         } else if (type.isCollection()) {
             return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
         } else {
@@ -36,23 +36,8 @@ public class ParameterInfo {
         }
     }
 
-    private String scalarName() {
-        switch (type.getSimpleName()) {
-            case "boolean":
-            case "Boolean":
-                return "Boolean";
-            case "int":
-            case "Integer":
-            case "long":
-            case "Long":
-                return "Int";
-            default:
-                return type.getSimpleName();
-        }
-    }
-
     private String withExclamationMark(TypeInfo itemType) {
-        return itemType.getSimpleName() + optionalExclamationMark(itemType);
+        return itemType.graphQlTypeName() + optionalExclamationMark(itemType);
     }
 
     private String optionalExclamationMark(TypeInfo itemType) {

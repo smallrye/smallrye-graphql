@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
@@ -104,10 +105,10 @@ public class TypeInfo {
     private Stream<FieldInfo> fields(Class<?> rawType) {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
-                fields(rawType.getSuperclass()),
-                Stream.of(getDeclaredFields(rawType))
-                        .filter(this::isGraphQlField)
-                        .map(field -> new FieldInfo(this, field)));
+                        fields(rawType.getSuperclass()),
+                        Stream.of(getDeclaredFields(rawType))
+                                .filter(this::isGraphQlField)
+                                .map(field -> new FieldInfo(this, field)));
     }
 
     private Field[] getDeclaredFields(Class<?> type) {
@@ -191,9 +192,25 @@ public class TypeInfo {
         }
     }
 
-    public String getSimpleName() {
-        if (type instanceof Class)
-            return ((Class<?>) type).getSimpleName();
+    public String graphQlTypeName() {
+        if (type instanceof Class) {
+            Class<?> cls = (Class<?>) this.type;
+            if (cls.isAnnotationPresent(Name.class))
+                return cls.getAnnotation(Name.class).value();
+            String simpleName = cls.getSimpleName();
+            switch (simpleName) {
+                case "boolean":
+                case "Boolean":
+                    return "Boolean";
+                case "int":
+                case "Integer":
+                case "long":
+                case "Long":
+                    return "Int";
+                default:
+                    return simpleName;
+            }
+        }
         return type.getTypeName();
     }
 
