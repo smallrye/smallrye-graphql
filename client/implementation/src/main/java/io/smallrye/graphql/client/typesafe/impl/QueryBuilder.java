@@ -34,7 +34,7 @@ class QueryBuilder {
     }
 
     private String declare(ParameterInfo parameter) {
-        return "$" + parameter.getName() + ": " + parameter.getType().graphQlTypeName();
+        return "$" + parameter.getName() + ": " + parameter.graphQlInputTypeName();
     }
 
     private String bind(ParameterInfo parameter) {

@@ -4,6 +4,8 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
 import static java.util.Objects.requireNonNull;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -17,7 +19,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -30,8 +31,8 @@ import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 public class TypeInfo {
     private final TypeInfo container;
-    private final Type type;
-    private final AnnotatedType[] annotatedArgs;
+    private final Type type; // TODO only use annotatedType
+    private final AnnotatedType annotatedType;
 
     private TypeInfo itemType;
     private Class<?> rawType;
@@ -41,18 +42,18 @@ public class TypeInfo {
     }
 
     TypeInfo(TypeInfo container, Type type) {
-        this(container, type, new AnnotatedType[0]);
+        this(container, type, null);
     }
 
-    TypeInfo(TypeInfo container, Type type, AnnotatedType[] annotatedArgs) {
+    TypeInfo(TypeInfo container, Type type, AnnotatedType annotatedType) {
         this.container = container;
         this.type = requireNonNull(type);
-        this.annotatedArgs = annotatedArgs;
+        this.annotatedType = annotatedType;
     }
 
     @Override
     public String toString() {
-        return ((type instanceof Class) ? ((Class<?>) type).getName() : type)
+        return ((annotatedType == null) ? ((type instanceof Class) ? ((Class<?>) type).getName() : type) : annotatedType)
                 + ((container == null) ? "" : " in " + container);
     }
 
@@ -191,23 +192,20 @@ public class TypeInfo {
         }
     }
 
-    public String graphQlTypeName() {
-        Class<?> rawType = getRawType();
-        if (rawType == boolean.class)
-            return "Boolean!";
-        if (rawType == int.class)
-            return "Int!";
-        String basicName = isCollection() ? "[" + getItemType().graphQlTypeName() + "]" : rawType.getSimpleName();
-        return basicName + (isNonNull() ? "!" : "");
+    public String getSimpleName() {
+        if (type instanceof Class)
+            return ((Class<?>) type).getSimpleName();
+        return type.getTypeName();
     }
 
     public boolean isNonNull() {
-        if (ifClass(c -> c.isAnnotationPresent(NonNull.class)))
-            return true; // TODO test
-        if (container == null || !container.isCollection())
+        if (ifClass(c -> c.isPrimitive() || c.isAnnotationPresent(NonNull.class)))
+            return true;
+        if (annotatedType != null)
+            return annotatedType.isAnnotationPresent(NonNull.class);
+        if (container == null || !container.isCollection() || container.annotatedType == null)
             return false; // TODO test
-        return Arrays.stream(container.annotatedArgs).sequential()
-                .anyMatch(arg -> arg.isAnnotationPresent(NonNull.class));
+        return container.annotatedType.isAnnotationPresent(NonNull.class);
     }
 
     public Class<?> getRawType() {
@@ -219,14 +217,22 @@ public class TypeInfo {
     public TypeInfo getItemType() {
         assert isCollection() || isOptional();
         if (itemType == null)
-            itemType = new TypeInfo(this, computeItemType());
+            itemType = new TypeInfo(this, computeItemType(), computeAnnotatedItemType());
         return this.itemType;
     }
 
     private Type computeItemType() {
+        if (annotatedType instanceof AnnotatedParameterizedType)
+            return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[0].getType();
         if (type instanceof ParameterizedType)
             return ((ParameterizedType) type).getActualTypeArguments()[0];
         return ((Class<?>) type).getComponentType();
+    }
+
+    private AnnotatedType computeAnnotatedItemType() {
+        if (annotatedType instanceof AnnotatedParameterizedType)
+            return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[0];
+        return null;
     }
 
     private Class<?> raw(Type type) {
@@ -270,5 +276,13 @@ public class TypeInfo {
         for (Class<?> enclosing = getRawType(); enclosing != null; enclosing = enclosing.getEnclosingClass())
             builder.accept(TypeInfo.of(enclosing));
         return builder.build();
+    }
+
+    public boolean isAnnotated(Class<? extends Annotation> type) {
+        return ifClass(c -> c.isAnnotationPresent(type)); // other type uses are not annotated in this sense
+    }
+
+    public <T extends Annotation> T getAnnotation(Class<T> type) {
+        return ((Class<?>) this.type).getAnnotation(type);
     }
 }

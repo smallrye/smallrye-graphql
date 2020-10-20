@@ -14,10 +14,10 @@ public class ParameterInfo {
     private final TypeInfo type;
     private final Object value;
 
-    public ParameterInfo(MethodInvocation method, Parameter parameter, TypeInfo type, Object value) {
+    public ParameterInfo(MethodInvocation method, Parameter parameter, Object value) {
         this.method = method;
         this.parameter = parameter;
-        this.type = type;
+        this.type = new TypeInfo(null, parameter.getType(), parameter.getAnnotatedType());
         this.value = value;
     }
 
@@ -26,8 +26,43 @@ public class ParameterInfo {
         return "parameter '" + parameter.getName() + "' in " + method;
     }
 
-    public TypeInfo getType() {
-        return this.type;
+    public String graphQlInputTypeName() {
+        if (type.isScalar()) {
+            return graphQlInputTypeName(type) + optionalExclamationMark(type);
+        } else if (type.isCollection()) {
+            return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
+        } else {
+            return withExclamationMark(type);
+        }
+    }
+
+    private String withExclamationMark(TypeInfo itemType) {
+        return graphQlInputTypeName(itemType) + optionalExclamationMark(itemType);
+    }
+
+    private String graphQlInputTypeName(TypeInfo type) {
+        return simpleInputTypeName(type);
+    }
+
+    private String simpleInputTypeName(TypeInfo type) {
+        if (type.isAnnotated(Name.class))
+            return type.getAnnotation(Name.class).value() + "Input";
+        switch (type.getSimpleName()) {
+            case "boolean":
+            case "Boolean":
+                return "Boolean";
+            case "int":
+            case "Integer":
+            case "long":
+            case "Long":
+                return "Int";
+            default:
+                return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");
+        }
+    }
+
+    private String optionalExclamationMark(TypeInfo itemType) {
+        return itemType.isNonNull() ? "!" : "";
     }
 
     public Object getValue() {
@@ -50,14 +85,10 @@ public class ParameterInfo {
     }
 
     public boolean isHeaderParameter() {
-        return isAnnotated(Header.class);
+        return parameter.getAnnotationsByType((Class<? extends Annotation>) Header.class).length > 0;
     }
 
     public boolean isValueParameter() {
-        return !isAnnotated(Header.class);
-    }
-
-    public boolean isAnnotated(Class<? extends Annotation> annotationClass) {
-        return parameter.getAnnotationsByType(annotationClass).length > 0;
+        return !isHeaderParameter();
     }
 }

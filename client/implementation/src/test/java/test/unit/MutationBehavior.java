@@ -87,7 +87,7 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new Greeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("mutation say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("mutation say($greet: GreetingInput) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
@@ -99,7 +99,7 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new Greeting(null, 5));
 
-        then(fixture.query()).isEqualTo("mutation say($greet: Greeting) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("mutation say($greet: GreetingInput) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':null,'count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
@@ -120,7 +120,7 @@ public class MutationBehavior {
                 null,
                 new Greeting("three", 5)));
 
-        then(fixture.query()).isEqualTo("mutation say($greets: [Greeting]) { say(greets: $greets) {text count} }");
+        then(fixture.query()).isEqualTo("mutation say($greets: [GreetingInput]) { say(greets: $greets) {text count} }");
         then(fixture.variables()).isEqualTo("{'greets':[" +
                 "{'text':'one','count':5}," +
                 "null," +
@@ -173,7 +173,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting("one", 5), now));
 
-        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingContainer) { say(greeting: $greeting) {text count} }");
+        then(fixture.query())
+                .isEqualTo("mutation say($greeting: GreetingContainerInput) { say(greeting: $greeting) {text count} }");
         then(fixture.variables()).isEqualTo("{'greeting':{" +
                 "'greeting':{'text':'one','count':5}," +
                 "'when':'" + now + "'}}");
@@ -187,7 +188,8 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting(null, 5), null));
 
-        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingContainer) { say(greeting: $greeting) {text count} }");
+        then(fixture.query())
+                .isEqualTo("mutation say($greeting: GreetingContainerInput) { say(greeting: $greeting) {text count} }");
         then(fixture.variables()).isEqualTo("{'greeting':{'greeting':{'text':null,'count':5},'when':null}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
@@ -211,22 +213,6 @@ public class MutationBehavior {
             this.text = text;
             this.someEnum = someEnum;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            GreetingEnum that = (GreetingEnum) o;
-            return Objects.equals(text, that.text) &&
-                    someEnum == that.someEnum;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(text, someEnum);
-        }
     }
 
     @GraphQlClientApi
@@ -242,12 +228,12 @@ public class MutationBehavior {
 
         Greeting greeting = api.say(new GreetingEnum("one", SomeEnum.ONE));
 
-        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingEnum) { say(greeting: $greeting) {text count} }");
+        then(fixture.query()).isEqualTo("mutation say($greeting: GreetingEnumInput) { say(greeting: $greeting) {text count} }");
         then(fixture.variables()).isEqualTo("{'greeting':{'text':'one','someEnum':'ONE'}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
-    private static class PrimitiveTypesClass {
+    private static class PrimitiveTypes {
         boolean b = true;
         char c = 'a';
         byte y = 0x7;
@@ -263,7 +249,7 @@ public class MutationBehavior {
                 return true;
             if (o == null || getClass() != o.getClass())
                 return false;
-            PrimitiveTypesClass that = (PrimitiveTypesClass) o;
+            PrimitiveTypes that = (PrimitiveTypes) o;
             return this.b == that.b
                     && this.c == that.c
                     && this.y == that.y
@@ -283,7 +269,7 @@ public class MutationBehavior {
     @GraphQlClientApi
     interface MutationWithPrimitivesApi {
         @Mutation
-        String run(PrimitiveTypesClass primitives);
+        String run(PrimitiveTypes primitives);
     }
 
     @Test
@@ -291,15 +277,15 @@ public class MutationBehavior {
         fixture.returnsData("'run':'okay'");
         MutationWithPrimitivesApi api = fixture.builder().build(MutationWithPrimitivesApi.class);
 
-        String result = api.run(new PrimitiveTypesClass());
+        String result = api.run(new PrimitiveTypes());
 
-        then(fixture.query()).isEqualTo("mutation run($primitives: PrimitiveTypesClass) { run(primitives: $primitives) }");
+        then(fixture.query()).isEqualTo("mutation run($primitives: PrimitiveTypesInput) { run(primitives: $primitives) }");
         then(fixture.variables())
                 .isEqualTo("{'primitives':{'b':true,'c':'a','y':7,'s':255,'i':123456,'l':987654321,'f':1.0,'d':56.78}}");
         then(result).isEqualTo("okay");
     }
 
-    private static class PrimitiveWrapperTypesClass {
+    private static class PrimitiveWrapperTypes {
         Boolean b = true;
         Character c = 'a';
         Byte y = 0x7;
@@ -315,7 +301,7 @@ public class MutationBehavior {
                 return true;
             if (o == null || getClass() != o.getClass())
                 return false;
-            PrimitiveWrapperTypesClass that = (PrimitiveWrapperTypesClass) o;
+            PrimitiveWrapperTypes that = (PrimitiveWrapperTypes) o;
             return this.b.equals(that.b)
                     && this.c.equals(that.c)
                     && this.y.equals(that.y)
@@ -335,7 +321,7 @@ public class MutationBehavior {
     @GraphQlClientApi
     interface MutationWithPrimitiveWrappersApi {
         @Mutation
-        String run(PrimitiveWrapperTypesClass primitives);
+        String run(PrimitiveWrapperTypes primitives);
     }
 
     @Test
@@ -343,10 +329,10 @@ public class MutationBehavior {
         fixture.returnsData("'run':'okay'");
         MutationWithPrimitiveWrappersApi api = fixture.builder().build(MutationWithPrimitiveWrappersApi.class);
 
-        String result = api.run(new PrimitiveWrapperTypesClass());
+        String result = api.run(new PrimitiveWrapperTypes());
 
         then(fixture.query())
-                .isEqualTo("mutation run($primitives: PrimitiveWrapperTypesClass) { run(primitives: $primitives) }");
+                .isEqualTo("mutation run($primitives: PrimitiveWrapperTypesInput) { run(primitives: $primitives) }");
         then(fixture.variables())
                 .isEqualTo("{'primitives':{'b':true,'c':'a','y':7,'s':255,'i':123456,'l':987654321,'f':1.0,'d':56.78}}");
         then(result).isEqualTo("okay");
