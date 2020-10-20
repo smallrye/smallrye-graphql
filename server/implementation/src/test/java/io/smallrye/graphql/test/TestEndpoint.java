@@ -45,16 +45,16 @@ public class TestEndpoint {
         return values;
     }
 
-    // issue #429 reproducer part 1
+    // issues #429 and #472 reproducer part 1
     @Query
-    public ClassWithOneGenericsParam<String> getGeneric1() {
-        return null;
+    public InterfaceWithOneGenericsParam<String> getGeneric1() {
+        return new ClassWithOneGenericsParam<>("my param 1", "my name");
     }
 
-    // issue #429 reproducer part 2
+    // issues #429 and #472 reproducer part 2
     @Query
-    public ClassWithOneGenericsParam<Integer> getGeneric2() {
-        return null;
+    public InterfaceWithOneGenericsParam<Integer> getGeneric2() {
+        return new ClassWithOneGenericsParam<>(22, "my name");
     }
 
     // This method will be ignored, with a WARN in the log, due to below duplicate

@@ -25,13 +25,13 @@ public class InterfaceResolver implements TypeResolver {
 
         String concreteClassName = tre.getObject().getClass().getName();
 
-        GraphQLObjectType graphQLObjectType = InterfaceOutputRegistry.getGraphQLObjectType(interfaceType.getClassName(),
+        GraphQLObjectType graphQLObjectType = InterfaceOutputRegistry.getGraphQLObjectType(interfaceType,
                 concreteClassName);
         if (graphQLObjectType != null) {
             return graphQLObjectType;
         } else {
             throw msg.concreteClassNotFoundForInterface(concreteClassName,
-                    interfaceType.getClassName());
+                    interfaceType.getName());
         }
     }
 
