@@ -1,18 +1,21 @@
 package io.smallrye.graphql.schema;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-class ClassesTest {
+public class ClassesTest {
 
     enum TestEnum {
-        A, B, C;
+        A,
+        B,
+        C;
     }
 
     @Test
-    public void isEnumAcceptsNullParameter() throws Exception {
+    public void isEnumAcceptsNullParameter() {
         assertFalse(Classes.isEnum(null));
     }
 
