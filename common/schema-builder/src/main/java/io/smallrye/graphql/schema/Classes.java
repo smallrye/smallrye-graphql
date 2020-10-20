@@ -63,7 +63,7 @@ public class Classes {
     public static boolean isEnum(ClassInfo classInfo) {
         if (classInfo == null)
             return false;
-        return classInfo.superName().equals(ENUM);
+        return ENUM.equals(classInfo.superName());
     }
 
     /**
