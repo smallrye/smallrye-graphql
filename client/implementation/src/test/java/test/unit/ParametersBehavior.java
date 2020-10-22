@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.Type;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
@@ -111,8 +113,7 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused")
-        Greeting() {
+        @SuppressWarnings("unused") Greeting() {
         }
 
         Greeting(String text, int count) {
@@ -144,8 +145,7 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused")
-        RenamedGreeting() {
+        @SuppressWarnings("unused") RenamedGreeting() {
         }
 
         RenamedGreeting(String text, int count) {
@@ -168,6 +168,71 @@ public class ParametersBehavior {
     }
 
     @GraphQlClientApi
+    interface NamedInputObjectParamApi {
+        NamedInputGreeting say(NamedInputGreeting greet);
+    }
+
+    @Input("Greet")
+    private static class NamedInputGreeting {
+        String text;
+        int count;
+
+        @SuppressWarnings("unused") NamedInputGreeting() {
+        }
+
+        NamedInputGreeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+    }
+
+    @Test
+    public void shouldCallNamedInputObjectParamQuery() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        NamedInputObjectParamApi api = fixture.builder().build(NamedInputObjectParamApi.class);
+
+        NamedInputGreeting greeting = api.say(new NamedInputGreeting("hi", 5));
+
+        then(fixture.query()).isEqualTo("query say($greet: Greet) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
+    }
+
+    @GraphQlClientApi
+    interface TypeAndInputObjectParamApi {
+        TypeAndInputGreeting say(TypeAndInputGreeting greet);
+    }
+
+    @Type("Gretel")
+    @Input("Greet")
+    private static class TypeAndInputGreeting {
+        String text;
+        int count;
+
+        @SuppressWarnings("unused") TypeAndInputGreeting() {
+        }
+
+        TypeAndInputGreeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+    }
+
+    @Test
+    public void shouldCallTypeAndInputObjectParamQuery() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        TypeAndInputObjectParamApi api = fixture.builder().build(TypeAndInputObjectParamApi.class);
+
+        TypeAndInputGreeting greeting = api.say(new TypeAndInputGreeting("hi", 5));
+
+        then(fixture.query()).isEqualTo("query say($greet: Greet) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
+    }
+
+    @GraphQlClientApi
     interface ArrayParamApi {
         boolean greetings(String[] greets);
     }
@@ -177,7 +242,7 @@ public class ParametersBehavior {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
 
-        boolean success = api.greetings(new String[] { "hi", "ho" });
+        boolean success = api.greetings(new String[]{ "hi", "ho" });
 
         then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
         then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
