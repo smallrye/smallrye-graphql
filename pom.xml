@@ -21,7 +21,7 @@
         <version.eclipse.microprofile.metrics>2.3.2</version.eclipse.microprofile.metrics>
         <version.smallrye-config>1.9.2</version.smallrye-config>
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
-        <version.smallrye-common>1.4.0</version.smallrye-common>
+        <version.smallrye-common>1.4.1</version.smallrye-common>
         <version.opentracing>0.31.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
