@@ -203,6 +203,39 @@ public class ParametersBehavior {
     }
 
     @GraphQlClientApi
+    interface NamedTypeObjectParamApi {
+        NamedTypeGreeting say(NamedTypeGreeting greet);
+    }
+
+    @Type("Greet")
+    private static class NamedTypeGreeting {
+        String text;
+        int count;
+
+        @SuppressWarnings("unused")
+        NamedTypeGreeting() {
+        }
+
+        NamedTypeGreeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+    }
+
+    @Test
+    public void shouldCallNamedTypeObjectParamQuery() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        NamedTypeObjectParamApi api = fixture.builder().build(NamedTypeObjectParamApi.class);
+
+        NamedTypeGreeting greeting = api.say(new NamedTypeGreeting("hi", 5));
+
+        then(fixture.query()).isEqualTo("query say($greet: GreetInput) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
+    }
+
+    @GraphQlClientApi
     interface TypeAndInputObjectParamApi {
         TypeAndInputGreeting say(TypeAndInputGreeting greet);
     }
