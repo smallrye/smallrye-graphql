@@ -113,7 +113,8 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") Greeting() {
+        @SuppressWarnings("unused")
+        Greeting() {
         }
 
         Greeting(String text, int count) {
@@ -145,7 +146,8 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") RenamedGreeting() {
+        @SuppressWarnings("unused")
+        RenamedGreeting() {
         }
 
         RenamedGreeting(String text, int count) {
@@ -177,7 +179,8 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") NamedInputGreeting() {
+        @SuppressWarnings("unused")
+        NamedInputGreeting() {
         }
 
         NamedInputGreeting(String text, int count) {
@@ -210,7 +213,8 @@ public class ParametersBehavior {
         String text;
         int count;
 
-        @SuppressWarnings("unused") TypeAndInputGreeting() {
+        @SuppressWarnings("unused")
+        TypeAndInputGreeting() {
         }
 
         TypeAndInputGreeting(String text, int count) {
@@ -242,7 +246,7 @@ public class ParametersBehavior {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.builder().build(ArrayParamApi.class);
 
-        boolean success = api.greetings(new String[]{ "hi", "ho" });
+        boolean success = api.greetings(new String[] { "hi", "ho" });
 
         then(fixture.query()).isEqualTo("query greetings($greets: [String]) { greetings(greets: $greets) }");
         then(fixture.variables()).isEqualTo("{'greets':['hi','ho']}");
