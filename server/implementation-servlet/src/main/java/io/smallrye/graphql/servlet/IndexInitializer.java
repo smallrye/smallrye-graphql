@@ -133,7 +133,7 @@ public class IndexInitializer {
         if (fileName.endsWith(DOT_CLASS)) {
             SmallRyeGraphQLServletLogging.log.processingFile(fileName);
             indexer.index(is);
-        } else if (fileName.endsWith(DOT_WAR)) {
+        } else if (fileName.endsWith(DOT_WAR) || fileName.endsWith(DOT_JAR)) {
             // necessary because of the thorntail arquillian adapter
             processJar(is, indexer);
         }
