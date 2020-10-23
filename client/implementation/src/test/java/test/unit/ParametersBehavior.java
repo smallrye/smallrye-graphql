@@ -163,7 +163,7 @@ public class ParametersBehavior {
 
         RenamedGreeting greeting = api.say(new RenamedGreeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("query say($greet: GreetingInput) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("query say($greet: Greeting) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting.text).isEqualTo("ho");
         then(greeting.count).isEqualTo(3);

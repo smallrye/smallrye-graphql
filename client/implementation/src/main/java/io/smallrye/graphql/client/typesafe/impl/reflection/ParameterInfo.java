@@ -49,7 +49,7 @@ public class ParameterInfo {
         if (type.isAnnotated(Input.class))
             return type.getAnnotation(Input.class).value();
         if (type.isAnnotated(Name.class))
-            return type.getAnnotation(Name.class).value() + "Input";
+            return type.getAnnotation(Name.class).value();
         switch (type.getSimpleName()) {
             case "boolean":
             case "Boolean":
