@@ -5,7 +5,6 @@ import java.lang.reflect.Parameter;
 
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.Type;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
@@ -49,8 +48,6 @@ public class ParameterInfo {
     private String simpleInputTypeName(TypeInfo type) {
         if (type.isAnnotated(Input.class))
             return type.getAnnotation(Input.class).value();
-        if (type.isAnnotated(Type.class))
-            return type.getAnnotation(Type.class).value() + "Input";
         if (type.isAnnotated(Name.class))
             return type.getAnnotation(Name.class).value() + "Input";
         switch (type.getSimpleName()) {

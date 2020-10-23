@@ -229,7 +229,7 @@ public class ParametersBehavior {
 
         NamedTypeGreeting greeting = api.say(new NamedTypeGreeting("hi", 5));
 
-        then(fixture.query()).isEqualTo("query say($greet: GreetInput) { say(greet: $greet) {text count} }");
+        then(fixture.query()).isEqualTo("query say($greet: NamedTypeGreetingInput) { say(greet: $greet) {text count} }");
         then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
         then(greeting.text).isEqualTo("ho");
         then(greeting.count).isEqualTo(3);
