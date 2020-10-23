@@ -20,9 +20,11 @@ import javax.json.bind.JsonbConfig;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -95,6 +97,24 @@ public class SchemaBuilderTest {
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
         assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
         assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
+    }
+
+    /**
+     * Test a schema where two Java classes map to the same GraphQL type. Such schema should not be allowed to create.
+     */
+    @Test
+    public void testSchemaWithDuplicates() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/a");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/b");
+            IndexView index = indexer.complete();
+            SchemaBuilder.build(index);
+            Assertions.fail("Schema should not build when there are multiple classes mapped to the same type");
+        } catch (SchemaBuilderException e) {
+            // ok
+        }
     }
 
     public static String toString(Schema schema) {
