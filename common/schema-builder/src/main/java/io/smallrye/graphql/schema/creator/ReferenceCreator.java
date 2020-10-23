@@ -390,6 +390,14 @@ public class ReferenceCreator {
             if (!map.containsKey(key)) {
                 map.put(key, reference);
                 queue.add(reference);
+            } else {
+                String existingClass = map.get(key).getClassName();
+                String newClass = reference.getClassName();
+                if (!existingClass.equals(newClass)) {
+                    throw new SchemaBuilderException(
+                            "Classes " + existingClass + " and " + newClass + " map to the same GraphQL type '" + key + "', " +
+                                    "consider using the @Name annotation or a different naming strategy to distinguish between them");
+                }
             }
         }
     }
