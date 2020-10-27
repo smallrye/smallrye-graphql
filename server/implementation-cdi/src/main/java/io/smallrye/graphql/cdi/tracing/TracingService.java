@@ -34,6 +34,7 @@ import io.smallrye.graphql.spi.EventingService;
  */
 public class TracingService implements EventingService {
 
+    private final String SPAN_CLASS = "io.opentracing.Span";
     private final Map<String, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
     private final Map<String, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
@@ -53,7 +54,7 @@ public class TracingService implements EventingService {
 
         scopes.put(context.getExecutionId(), scope);
 
-        ((GraphQLContext) executionInput.getContext()).put(Span.class, scope.span()); // TODO: Do we need this ?
+        ((GraphQLContext) executionInput.getContext()).put(SPAN_CLASS, scope.span()); // TODO: Do we need this ?
     }
 
     @Override
@@ -83,7 +84,7 @@ public class TracingService implements EventingService {
         final Span span = scope.span();
 
         GraphQLContext graphQLContext = env.getContext();
-        graphQLContext.put(Span.class, span);
+        graphQLContext.put(SPAN_CLASS, span);
 
         spans.put(context.getExecutionId(), span);
     }
