@@ -32,14 +32,23 @@ public class Classes {
     }
 
     /**
+     * Check if this is a Parameterized type
+     * 
+     * @param type
+     * @return
+     */
+    public static boolean isParameterized(Type type) {
+        return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE);
+    }
+
+    /**
      * Check if a certain type is Optional
      * 
      * @param type the type
      * @return true if it is
      */
     public static boolean isOptional(Type type) {
-        Type.Kind kind = type.kind();
-        return kind.equals(Type.Kind.PARAMETERIZED_TYPE) && type.name().equals(OPTIONAL);
+        return isParameterized(type) && type.name().equals(OPTIONAL);
     }
 
     /**
@@ -129,7 +138,7 @@ public class Classes {
      * @return if this is a collection
      */
     public static boolean isCollection(Type type) {
-        if (type.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+        if (isParameterized(type)) {
 
             ClassInfo clazz = ScanningContext.getIndex().getClassByName(type.name());
             if (clazz == null) {
@@ -163,8 +172,8 @@ public class Classes {
      * @return true if type is unwrapped by the runtime
      */
     public static boolean isUnwrappedType(Type type) {
-        return type.kind().equals(Type.Kind.PARAMETERIZED_TYPE) && (isOptional(type) // Optional<>
-                || isAsyncType(type)) // CompletableFutur or CompletionStage
+        return isParameterized(type) && (isOptional(type) // Optional<>
+                || isAsyncType(type)) // CompletableFuture or CompletionStage
         ;
     }
 

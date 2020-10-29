@@ -4,6 +4,9 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,6 +39,39 @@ public class ReflectionHelper {
         this.eventEmitter = eventEmitter;
         this.operationClass = classloadingService.loadClass(operation.getClassName());
         this.method = lookupMethod(operationClass, operation);
+    }
+
+    public <T> T invokePrivileged(Object... arguments) {
+        final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        return invokePrivileged(tccl, arguments);
+    }
+
+    public <T> T invokePrivileged(final ClassLoader classLoader, Object... arguments) {
+
+        try {
+            return (T) AccessController
+                    .doPrivileged(new PrivilegedExceptionAction<Object>() {
+                        @Override
+                        public Object run() {
+                            ClassLoader originalTccl = Thread.currentThread()
+                                    .getContextClassLoader();
+                            Thread.currentThread().setContextClassLoader(classLoader);
+
+                            try {
+                                return invoke(arguments);
+                            } catch (Exception ex) {
+                                // TODO: Handle this better.
+                                throw new RuntimeException(ex);
+                            } finally {
+                                if (originalTccl != null) {
+                                    Thread.currentThread().setContextClassLoader(classLoader);
+                                }
+                            }
+                        }
+                    });
+        } catch (PrivilegedActionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public <T> T invoke(Object... arguments) throws Exception {

@@ -1,0 +1,40 @@
+package io.smallrye.graphql.execution;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import javax.json.JsonObject;
+
+import org.jboss.jandex.IndexView;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Test a basic async endpoint
+ * 
+ * @author Phillip Kruger (phillip.kruger@redhat.com)
+ */
+public class AsyncTest extends ExecutionTestBase {
+
+    protected IndexView getIndex() {
+        return Indexer.getTestIndex("io/smallrye/graphql/test/async");
+    }
+
+    @Test
+    public void testBasicQuery() {
+        JsonObject data = executeAndGetData(TEST_QUERY);
+
+        JsonObject book = data.getJsonObject("book");
+
+        assertNotNull(book);
+
+        assertFalse(book.isNull("title"), "title should not be null");
+    }
+
+    private static final String TEST_QUERY = "{\n" +
+            "  book(name: \"Lord of the Flies\"){\n" +
+            "    title\n" +
+            "    authors\n" +
+            "  }\n" +
+            "}";
+
+}
