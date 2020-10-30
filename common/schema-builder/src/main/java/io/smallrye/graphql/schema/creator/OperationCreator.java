@@ -19,6 +19,7 @@ import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.GenericsInfo;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -94,8 +95,10 @@ public class OperationCreator {
         // Array
         operation.setArray(ArrayCreator.createArray(fieldType, batched).orElse(null));
 
-        // Async
-        operation.setAsync(Classes.isAsyncType(fieldType));
+        // GenericsInfo
+        if (Classes.isParameterized(fieldType)) {
+            operation.setGenericsInfo(new GenericsInfo(fieldType.name().toString()));
+        }
 
         // TransformInfo
         operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));

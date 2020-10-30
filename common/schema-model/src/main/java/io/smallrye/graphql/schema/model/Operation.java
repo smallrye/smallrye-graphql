@@ -22,7 +22,7 @@ public final class Operation extends Field {
 
     private Reference containingType;
 
-    private boolean async;
+    private GenericsInfo genericsInfo;
 
     public Operation() {
     }
@@ -74,11 +74,11 @@ public final class Operation extends Field {
         this.containingType = containingType;
     }
 
-    public boolean isAsync() {
-        return async;
+    public GenericsInfo getGenericsInfo() {
+        return genericsInfo;
     }
 
-    public void setAsync(final boolean async) {
-        this.async = async;
+    public void setGenericsInfo(GenericsInfo genericsInfo) {
+        this.genericsInfo = genericsInfo;
     }
 }

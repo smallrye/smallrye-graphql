@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
@@ -49,12 +50,20 @@ public abstract class ExecutionTestBase {
     }
 
     protected JsonObject executeAndGetData(String graphQL) {
-        JsonObject result = executionService.execute(toJsonObject(graphQL));
+
+        JsonObject input = toJsonObject(graphQL);
+        String prettyInput = getPrettyJson(input);
+        LOG.info(prettyInput);
+        JsonObject result = executionService.execute(input);
 
         String prettyData = getPrettyJson(result);
         LOG.info(prettyData);
 
-        return result.getJsonObject(DATA);
+        JsonValue value = result.get(DATA);
+        if (value != null) {
+            return result.getJsonObject(DATA);
+        }
+        return null;
     }
 
     private JsonObject toJsonObject(String graphQL) {

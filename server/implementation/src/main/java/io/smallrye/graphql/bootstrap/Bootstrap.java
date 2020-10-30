@@ -46,12 +46,12 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
-import io.smallrye.graphql.execution.batchloader.SourceBatchLoaderHelper;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
+import io.smallrye.graphql.execution.datafetcher.PlugableDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
-import io.smallrye.graphql.execution.datafetcher.ReflectionDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -94,6 +94,8 @@ public class Bootstrap {
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     private final ClassloadingService classloadingService = ClassloadingService.get();
+
+    private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
 
     public static BootstrapedResult bootstrap(Schema schema) {
         return bootstrap(schema, null);
@@ -431,7 +433,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = new ReflectionDataFetcher(operation, config);
+        DataFetcher<?> datafetcher = new PlugableDataFetcher(operation, config);
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
                 datafetcher);
@@ -697,7 +699,7 @@ public class Bootstrap {
 
     public void registerBatchLoader(Operation operation, Config config) {
         BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation, config);
-        this.dataLoaderRegistry.register(SourceBatchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
+        this.dataLoaderRegistry.register(batchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
     }
 
     public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
