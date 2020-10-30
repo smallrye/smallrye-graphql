@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class AsyncTest extends ExecutionTestBase {
+public class CompletableFutureTest extends ExecutionTestBase {
 
     protected IndexView getIndex() {
         return Indexer.getTestIndex("io/smallrye/graphql/test/async");

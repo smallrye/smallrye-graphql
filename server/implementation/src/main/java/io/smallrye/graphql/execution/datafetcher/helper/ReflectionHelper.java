@@ -52,25 +52,20 @@ public class ReflectionHelper {
             return (T) AccessController
                     .doPrivileged(new PrivilegedExceptionAction<Object>() {
                         @Override
-                        public Object run() {
+                        public Object run() throws Exception {
                             ClassLoader originalTccl = Thread.currentThread()
                                     .getContextClassLoader();
                             Thread.currentThread().setContextClassLoader(classLoader);
 
                             try {
                                 return invoke(arguments);
-                            } catch (Exception ex) {
-                                // TODO: Handle this better.
-                                throw new RuntimeException(ex);
                             } finally {
-                                if (originalTccl != null) {
-                                    Thread.currentThread().setContextClassLoader(classLoader);
-                                }
+                                Thread.currentThread().setContextClassLoader(classLoader);
                             }
                         }
                     });
         } catch (PrivilegedActionException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getCause());
         }
     }
 
