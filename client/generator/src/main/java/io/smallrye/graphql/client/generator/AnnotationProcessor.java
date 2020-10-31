@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.StandardLocation.CLASS_OUTPUT;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -105,7 +106,7 @@ public class AnnotationProcessor extends AbstractProcessor {
         String pkg = qualified.substring(0, lastDot);
         String cls = qualified.substring(lastDot + 1);
         FileObject someResource = processingEnv.getFiler().getResource(CLASS_OUTPUT, pkg, cls + ".java");
-        String someSourcePath = qualified.replace('.', '/') + ".java";
+        String someSourcePath = qualified.replace('.', File.separatorChar) + ".java";
         int index = someResource.getName().indexOf(someSourcePath);
         return someResource.getName().substring(0, index);
     }
