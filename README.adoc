@@ -11,7 +11,7 @@ SmallRye GraphQL is an implementation of {microprofile-graphql}[Eclipse MicroPro
 
 == Instructions
 
-=== Testing against the released v 1.0.2 of MicroProfile GraphQL
+=== Testing against the released v 1.0.3 of MicroProfile GraphQL
 
 [source,bash]
 ----
