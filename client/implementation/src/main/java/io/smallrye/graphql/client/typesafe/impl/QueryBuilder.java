@@ -54,7 +54,7 @@ class QueryBuilder {
     }
 
     private String recursionCheckedFields(TypeInfo type) {
-        while (type.isOptional())
+        while (type.isOptional() || type.isErrorOr())
             type = type.getItemType();
 
         if (type.isScalar())

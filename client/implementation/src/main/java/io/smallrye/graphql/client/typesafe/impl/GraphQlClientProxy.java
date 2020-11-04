@@ -1,11 +1,9 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
-import static javax.json.JsonValue.ValueType.ARRAY;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -21,7 +19,6 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonReaderFactory;
 import javax.json.JsonValue;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -33,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
@@ -43,7 +39,6 @@ class GraphQlClientProxy {
     private static final MediaType APPLICATION_JSON_UTF8 = APPLICATION_JSON_TYPE.withCharset("utf-8");
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final Map<String, String> queryCache = new HashMap<>();
     private final WebTarget target;
@@ -56,19 +51,22 @@ class GraphQlClientProxy {
         MultivaluedMap<String, Object> headers = new HeaderBuilder(api, method).build();
         String request = request(method);
 
-        log.info("request graphql: {}", request);
         String response = post(request, headers);
-        log.info("response graphql: {}", response);
+        log.debug("response graphql: {}", response);
 
-        return fromJson(method, request, response);
+        return new ResultBuilder(method, queryCache, response).read();
     }
 
     private String request(MethodInvocation method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        request.add("query", queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build()));
+        String query = queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build());
+        request.add("query", query);
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
-        return request.build().toString();
+        log.info("request graphql: {}", query);
+        String requestString = request.build().toString();
+        log.debug("full graphql request: {}", requestString);
+        return requestString;
     }
 
     private JsonObjectBuilder variables(MethodInvocation method) {
@@ -143,31 +141,5 @@ class GraphQlClientProxy {
                     status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
                     response.readEntity(String.class));
         return response.readEntity(String.class);
-    }
-
-    private Object fromJson(MethodInvocation method, String request, String response) {
-        JsonObject responseJson = readResponse(request, response);
-        JsonValue value = getData(method, responseJson);
-        return JsonReader.readFrom(method, value);
-    }
-
-    private JsonObject readResponse(String request, String response) {
-        JsonObject responseJson = jsonReaderFactory.createReader(new StringReader(response)).readObject();
-        if (hasErrors(responseJson))
-            throw new GraphQlClientException("errors from service: " + responseJson.getJsonArray("errors") + ":\n  " + request);
-        return responseJson;
-    }
-
-    private boolean hasErrors(JsonObject responseJson) {
-        return responseJson.containsKey("errors")
-                && responseJson.get("errors").getValueType() == ARRAY
-                && !responseJson.getJsonArray("errors").isEmpty();
-    }
-
-    private JsonValue getData(MethodInvocation method, JsonObject responseJson) {
-        JsonObject data = responseJson.getJsonObject("data");
-        if (!data.containsKey(method.getName()))
-            throw new GraphQlClientException("no data for '" + method.getName() + "':\n  " + data);
-        return data.get(method.getName());
     }
 }

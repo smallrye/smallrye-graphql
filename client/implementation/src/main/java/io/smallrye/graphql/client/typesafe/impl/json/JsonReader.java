@@ -1,5 +1,9 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
+import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.isListOf;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
 import java.util.Optional;
 
 import javax.json.JsonArray;
@@ -8,21 +12,21 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.GraphQlClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class JsonReader extends Reader<JsonValue> {
-    public static Object readFrom(MethodInvocation method, JsonValue value) {
-        TypeInfo type = method.getReturnType();
-        return readJson(new Location(type, method.toString()), type, value);
+    public static Object readJson(String description, TypeInfo type, JsonValue value) {
+        return readJson(new Location(type, description), type, value);
     }
 
     static Object readJson(Location location, TypeInfo type, JsonValue value) {
         return new JsonReader(type, location, value).read();
     }
 
-    JsonReader(TypeInfo type, Location location, JsonValue value) {
+    private JsonReader(TypeInfo type, Location location, JsonValue value) {
         super(type, location, value);
     }
 
@@ -30,7 +34,35 @@ public class JsonReader extends Reader<JsonValue> {
     Object read() {
         if (type.isOptional())
             return Optional.ofNullable(readJson(location, type.getItemType(), value));
+        if (type.isErrorOr())
+            return readErrorOr();
+        if (isListOfErrors(value) && !isGraphQlErrorsType())
+            throw cantApplyErrors(readGraphQlClientErrors());
         return reader(location).read();
+    }
+
+    private ErrorOr<Object> readErrorOr() {
+        if (isListOfErrors(value))
+            return ErrorOr.ofErrors(readGraphQlClientErrors());
+        return ErrorOr.of(readJson(location, type.getItemType(), value));
+    }
+
+    private List<GraphQlClientError> readGraphQlClientErrors() {
+        return value.asJsonArray().stream()
+                .map(item -> (GraphQlClientError) readJson(location, TypeInfo.of(GraphQlClientErrorImpl.class), item))
+                .collect(toList());
+    }
+
+    private boolean isListOfErrors(JsonValue jsonValue) {
+        return isListOf(jsonValue, ErrorOr.class.getSimpleName());
+    }
+
+    private boolean isGraphQlErrorsType() {
+        return GraphQlClientError.class.isAssignableFrom(type.getRawType());
+    }
+
+    private GraphQlClientException cantApplyErrors(List<GraphQlClientError> errors) {
+        return new GraphQlClientException("can't apply errors to " + location, errors);
     }
 
     private Reader<?> reader(Location location) {
