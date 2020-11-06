@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
+import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
 
@@ -28,8 +29,8 @@ public class ParameterInfo {
     }
 
     public String graphQlInputTypeName() {
-        if (type.isScalar()) {
-            return graphQlInputTypeName(type) + optionalExclamationMark(type);
+        if (parameter.isAnnotationPresent(Id.class)) {
+            return "ID" + optionalExclamationMark(type);
         } else if (type.isCollection()) {
             return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
         } else {
@@ -42,23 +43,45 @@ public class ParameterInfo {
     }
 
     private String graphQlInputTypeName(TypeInfo type) {
-        return simpleInputTypeName(type);
-    }
-
-    private String simpleInputTypeName(TypeInfo type) {
         if (type.isAnnotated(Input.class))
             return type.getAnnotation(Input.class).value();
         if (type.isAnnotated(Name.class))
             return type.getAnnotation(Name.class).value();
         switch (type.getSimpleName()) {
+            case "int":
+            case "Integer":
+            case "short":
+            case "Short":
+            case "byte":
+            case "Byte":
+                return "Int";
+            case "float":
+            case "Float":
+            case "double":
+            case "Double":
+                return "Float";
+            case "String":
+            case "char":
+            case "Character":
+                return "String";
             case "boolean":
             case "Boolean":
                 return "Boolean";
-            case "int":
-            case "Integer":
+            case "BigInteger":
             case "long":
             case "Long":
-                return "Int";
+                return "BigInteger";
+            case "BigDecimal":
+                return "BigDecimal";
+            case "LocalDate":
+                return "Date";
+            case "LocalTime":
+            case "OffsetTime":
+                return "Time";
+            case "LocalDateTime":
+            case "OffsetDateTime":
+            case "ZonedDateTime":
+                return "DateTime";
             default:
                 return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");
         }

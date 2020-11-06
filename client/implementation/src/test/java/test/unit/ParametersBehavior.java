@@ -552,7 +552,7 @@ public class ParametersBehavior {
 
         String greeting = api.greeting(123L);
 
-        then(fixture.query()).isEqualTo("query greeting($who: Int) { greeting(who: $who) }");
+        then(fixture.query()).isEqualTo("query greeting($who: BigInteger) { greeting(who: $who) }");
         then(fixture.variables()).isEqualTo("{'who':123}");
         then(fixture.operationName()).isEqualTo("greeting");
         then(greeting).isEqualTo("hi, foo");
@@ -570,7 +570,7 @@ public class ParametersBehavior {
 
         String greeting = api.greeting(123L);
 
-        then(fixture.query()).isEqualTo("query greeting($who: Int!) { greeting(who: $who) }");
+        then(fixture.query()).isEqualTo("query greeting($who: BigInteger!) { greeting(who: $who) }");
         then(fixture.variables()).isEqualTo("{'who':123}");
         then(fixture.operationName()).isEqualTo("greeting");
         then(greeting).isEqualTo("hi, foo");
@@ -588,7 +588,7 @@ public class ParametersBehavior {
 
         String greeting = api.greeting(123L);
 
-        then(fixture.query()).isEqualTo("query greeting($who: Int!) { greeting(who: $who) }");
+        then(fixture.query()).isEqualTo("query greeting($who: BigInteger!) { greeting(who: $who) }");
         then(fixture.variables()).isEqualTo("{'who':123}");
         then(fixture.operationName()).isEqualTo("greeting");
         then(greeting).isEqualTo("hi, foo");

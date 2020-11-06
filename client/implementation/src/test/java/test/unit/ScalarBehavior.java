@@ -9,10 +9,15 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
+import org.eclipse.microprofile.graphql.Id;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -24,12 +29,12 @@ class ScalarBehavior {
 
     @GraphQlClientApi
     interface BoolApi {
-        boolean bool();
+        boolean bool(boolean in);
     }
 
     @GraphQlClientApi
     interface BooleanApi {
-        Boolean bool();
+        Boolean bool(Boolean in);
     }
 
     @Nested
@@ -39,9 +44,9 @@ class ScalarBehavior {
             fixture.returnsData("'bool':true");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            boolean bool = api.bool();
+            boolean bool = api.bool(true);
 
-            then(fixture.query()).isEqualTo("query bool { bool }");
+            then(fixture.query()).isEqualTo("query bool($in: Boolean!) { bool(in: $in) }");
             then(bool).isTrue();
         }
 
@@ -50,7 +55,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':null");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::bool, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: null");
         }
@@ -60,7 +65,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':'xxx'");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::bool, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: \"xxx\"");
         }
@@ -70,7 +75,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':123");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::bool, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: 123");
         }
@@ -80,7 +85,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':[123]");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::bool, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: [123]");
         }
@@ -90,7 +95,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':{'foo':'bar'}");
             BoolApi api = fixture.builder().build(BoolApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::bool, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: {\"foo\":\"bar\"}");
         }
@@ -100,21 +105,21 @@ class ScalarBehavior {
             fixture.returnsData("'bool':true");
             BooleanApi api = fixture.builder().build(BooleanApi.class);
 
-            Boolean bool = api.bool();
+            Boolean bool = api.bool(true);
 
-            then(fixture.query()).isEqualTo("query bool { bool }");
+            then(fixture.query()).isEqualTo("query bool($in: Boolean) { bool(in: $in) }");
             then(bool).isTrue();
         }
     }
 
     @GraphQlClientApi
     interface ByteApi {
-        Byte code();
+        Byte code(Byte in);
     }
 
     @GraphQlClientApi
     interface PrimitiveByteApi {
-        byte code();
+        byte code(byte in);
     }
 
     @Nested
@@ -124,9 +129,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             ByteApi api = fixture.builder().build(ByteApi.class);
 
-            Byte code = api.code();
+            Byte code = api.code((byte) 1);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int) { code(in: $in) }");
             then(code).isEqualTo((byte) 5);
         }
 
@@ -135,9 +140,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             PrimitiveByteApi api = fixture.builder().build(PrimitiveByteApi.class);
 
-            byte code = api.code();
+            byte code = api.code((byte) 1);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int!) { code(in: $in) }");
             then(code).isEqualTo((byte) 5);
         }
 
@@ -147,7 +152,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             ByteApi api = fixture.builder().build(ByteApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code((byte) 1), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Byte value for " + ByteApi.class.getName() + "#code: " + tooBig);
         }
@@ -158,7 +163,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             ByteApi api = fixture.builder().build(ByteApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code((byte) 1), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Byte value for " + ByteApi.class.getName() + "#code: " + tooSmall);
         }
@@ -166,12 +171,12 @@ class ScalarBehavior {
 
     @GraphQlClientApi
     interface CharacterApi {
-        Character code();
+        Character code(Character in);
     }
 
     @GraphQlClientApi
     interface PrimitiveCharApi {
-        char code();
+        char code(char in);
     }
 
     @Nested
@@ -181,9 +186,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':'a'");
             CharacterApi api = fixture.builder().build(CharacterApi.class);
 
-            Character c = api.code();
+            Character c = api.code('c');
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: String) { code(in: $in) }");
             then(c).isEqualTo('a');
         }
 
@@ -192,7 +197,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':'ab'");
             CharacterApi api = fixture.builder().build(CharacterApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: \"ab\"");
         }
@@ -202,9 +207,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':97");
             CharacterApi api = fixture.builder().build(CharacterApi.class);
 
-            Character c = api.code();
+            Character c = api.code('c');
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: String) { code(in: $in) }");
             then(c).isEqualTo('a');
         }
 
@@ -214,7 +219,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             CharacterApi api = fixture.builder().build(CharacterApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQlClientException.class);
 
             then(thrown)
                     .hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: " + tooBig);
@@ -225,7 +230,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':-15");
             CharacterApi api = fixture.builder().build(CharacterApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: -15");
         }
@@ -235,9 +240,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':'a'");
             PrimitiveCharApi api = fixture.builder().build(PrimitiveCharApi.class);
 
-            char c = api.code();
+            char c = api.code('c');
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: String!) { code(in: $in) }");
             then(c).isEqualTo('a');
         }
 
@@ -246,7 +251,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':'ab'");
             PrimitiveCharApi api = fixture.builder().build(PrimitiveCharApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid char value for " + PrimitiveCharApi.class.getName() + "#code: \"ab\"");
         }
@@ -254,12 +259,12 @@ class ScalarBehavior {
 
     @GraphQlClientApi
     interface ShortApi {
-        Short code();
+        Short code(Short in);
     }
 
     @GraphQlClientApi
     interface PrimitiveShortApi {
-        short code();
+        short code(short in);
     }
 
     @Nested
@@ -269,9 +274,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             ShortApi api = fixture.builder().build(ShortApi.class);
 
-            Short code = api.code();
+            Short code = api.code((short) 2);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int) { code(in: $in) }");
             then(code).isEqualTo((short) 5);
         }
 
@@ -281,7 +286,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             ShortApi api = fixture.builder().build(ShortApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code((short) 2), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Short value for " + ShortApi.class.getName() + "#code: " + tooSmall);
         }
@@ -292,7 +297,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             ShortApi api = fixture.builder().build(ShortApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code((short) 2), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Short value for " + ShortApi.class.getName() + "#code: " + tooBig);
         }
@@ -302,21 +307,21 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             PrimitiveShortApi api = fixture.builder().build(PrimitiveShortApi.class);
 
-            short code = api.code();
+            short code = api.code((short) 2);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int!) { code(in: $in) }");
             then(code).isEqualTo((short) 5);
         }
     }
 
     @GraphQlClientApi
     interface IntegerApi {
-        Integer code();
+        Integer code(Integer in);
     }
 
     @GraphQlClientApi
     interface IntApi {
-        int code();
+        int code(int in);
     }
 
     @Nested
@@ -326,9 +331,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             IntegerApi api = fixture.builder().build(IntegerApi.class);
 
-            Integer code = api.code();
+            Integer code = api.code(3);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int) { code(in: $in) }");
             then(code).isEqualTo(5);
         }
 
@@ -338,7 +343,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + number);
             IntegerApi api = fixture.builder().build(IntegerApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + number);
         }
@@ -349,7 +354,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             IntegerApi api = fixture.builder().build(IntegerApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + tooSmall);
         }
@@ -360,7 +365,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             IntegerApi api = fixture.builder().build(IntegerApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + tooBig);
         }
@@ -370,21 +375,21 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             IntApi api = fixture.builder().build(IntApi.class);
 
-            int code = api.code();
+            int code = api.code(3);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: Int!) { code(in: $in) }");
             then(code).isEqualTo(5);
         }
     }
 
     @GraphQlClientApi
     interface LongApi {
-        Long code();
+        Long code(Long in);
     }
 
     @GraphQlClientApi
     interface PrimitiveLongApi {
-        long code();
+        long code(long in);
     }
 
     @Nested
@@ -394,9 +399,9 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             LongApi api = fixture.builder().build(LongApi.class);
 
-            Long code = api.code();
+            Long code = api.code(7L);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: BigInteger) { code(in: $in) }");
             then(code).isEqualTo(5L);
         }
 
@@ -406,7 +411,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             LongApi api = fixture.builder().build(LongApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code(7L), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Long value for " + LongApi.class.getName() + "#code: " + tooSmall);
         }
@@ -417,7 +422,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             LongApi api = fixture.builder().build(LongApi.class);
 
-            GraphQlClientException thrown = catchThrowableOfType(api::code, GraphQlClientException.class);
+            GraphQlClientException thrown = catchThrowableOfType(() -> api.code(7L), GraphQlClientException.class);
 
             then(thrown).hasMessage("invalid java.lang.Long value for " + LongApi.class.getName() + "#code: " + tooBig);
         }
@@ -427,21 +432,21 @@ class ScalarBehavior {
             fixture.returnsData("'code':5");
             PrimitiveLongApi api = fixture.builder().build(PrimitiveLongApi.class);
 
-            long code = api.code();
+            long code = api.code(7L);
 
-            then(fixture.query()).isEqualTo("query code { code }");
+            then(fixture.query()).isEqualTo("query code($in: BigInteger!) { code(in: $in) }");
             then(code).isEqualTo(5L);
         }
     }
 
     @GraphQlClientApi
     interface FloatApi {
-        Float number();
+        Float number(Float in);
     }
 
     @GraphQlClientApi
     interface PrimitiveFloatApi {
-        float number();
+        float number(float in);
     }
 
     @Nested
@@ -451,9 +456,9 @@ class ScalarBehavior {
             fixture.returnsData("'number':123.456");
             FloatApi api = fixture.builder().build(FloatApi.class);
 
-            Float number = api.number();
+            Float number = api.number(7.8f);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: Float) { number(in: $in) }");
             then(number).isEqualTo(123.456f);
         }
 
@@ -462,21 +467,21 @@ class ScalarBehavior {
             fixture.returnsData("'number':123.456");
             PrimitiveFloatApi api = fixture.builder().build(PrimitiveFloatApi.class);
 
-            float number = api.number();
+            float number = api.number(7.8f);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: Float!) { number(in: $in) }");
             then(number).isEqualTo(123.456f);
         }
     }
 
     @GraphQlClientApi
     interface DoubleApi {
-        Double number();
+        Double number(Double in);
     }
 
     @GraphQlClientApi
     interface PrimitiveDoubleApi {
-        double number();
+        double number(double in);
     }
 
     @Nested
@@ -486,9 +491,9 @@ class ScalarBehavior {
             fixture.returnsData("'number':123.456");
             DoubleApi api = fixture.builder().build(DoubleApi.class);
 
-            Double number = api.number();
+            Double number = api.number(4.5);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: Float) { number(in: $in) }");
             then(number).isEqualTo(123.456D);
         }
 
@@ -497,16 +502,16 @@ class ScalarBehavior {
             fixture.returnsData("'number':123.456");
             PrimitiveDoubleApi api = fixture.builder().build(PrimitiveDoubleApi.class);
 
-            double number = api.number();
+            double number = api.number(4.5);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: Float!) { number(in: $in) }");
             then(number).isEqualTo(123.456D);
         }
     }
 
     @GraphQlClientApi
     interface BigIntegerApi {
-        BigInteger number();
+        BigInteger number(BigInteger in);
     }
 
     @Nested
@@ -517,9 +522,9 @@ class ScalarBehavior {
             fixture.returnsData("'number':" + reallyLongInteger);
             BigIntegerApi api = fixture.builder().build(BigIntegerApi.class);
 
-            BigInteger number = api.number();
+            BigInteger number = api.number(BigInteger.TEN);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: BigInteger) { number(in: $in) }");
             then(number).isEqualTo(reallyLongInteger);
         }
 
@@ -529,16 +534,16 @@ class ScalarBehavior {
             fixture.returnsData("'number':" + notSoLongInteger);
             BigIntegerApi api = fixture.builder().build(BigIntegerApi.class);
 
-            BigInteger number = api.number();
+            BigInteger number = api.number(BigInteger.TEN);
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: BigInteger) { number(in: $in) }");
             then(number).isEqualTo(notSoLongInteger);
         }
     }
 
     @GraphQlClientApi
     interface BigDecimalApi {
-        BigDecimal number();
+        BigDecimal number(BigDecimal in);
     }
 
     @Nested
@@ -549,9 +554,9 @@ class ScalarBehavior {
             fixture.returnsData("'number':" + reallyLongDecimal);
             BigDecimalApi api = fixture.builder().build(BigDecimalApi.class);
 
-            BigDecimal number = api.number();
+            BigDecimal number = api.number(BigDecimal.valueOf(12.34));
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: BigDecimal) { number(in: $in) }");
             then(number).isEqualTo(reallyLongDecimal);
         }
 
@@ -561,16 +566,29 @@ class ScalarBehavior {
             fixture.returnsData("'number':" + notSoLongDecimal);
             BigDecimalApi api = fixture.builder().build(BigDecimalApi.class);
 
-            BigDecimal number = api.number();
+            BigDecimal number = api.number(BigDecimal.valueOf(12.34));
 
-            then(fixture.query()).isEqualTo("query number { number }");
+            then(fixture.query()).isEqualTo("query number($in: BigDecimal) { number(in: $in) }");
             then(number).isEqualTo(notSoLongDecimal);
         }
     }
 
     @GraphQlClientApi
     interface StringApi {
-        String greeting();
+        String greeting(String in);
+    }
+
+    @GraphQlClientApi
+    interface IdApi {
+        @Id
+        String idea(@Id String in);
+    }
+
+    @GraphQlClientApi
+    interface NonNullIdApi {
+        @NonNull
+        @Id
+        String idea(@NonNull @Id String in);
     }
 
     @GraphQlClientApi
@@ -677,10 +695,32 @@ class ScalarBehavior {
             fixture.returnsData("'greeting':'dummy-greeting'");
             StringApi api = fixture.builder().build(StringApi.class);
 
-            String greeting = api.greeting();
+            String greeting = api.greeting("in");
 
-            then(fixture.query()).isEqualTo("query greeting { greeting }");
+            then(fixture.query()).isEqualTo("query greeting($in: String) { greeting(in: $in) }");
             then(greeting).isEqualTo("dummy-greeting");
+        }
+
+        @Test
+        void shouldCallIdQuery() {
+            fixture.returnsData("'idea':'out'");
+            IdApi api = fixture.builder().build(IdApi.class);
+
+            String out = api.idea("in");
+
+            then(fixture.query()).isEqualTo("query idea($in: ID) { idea(in: $in) }");
+            then(out).isEqualTo("out");
+        }
+
+        @Test
+        void shouldCallNonNullIdQuery() {
+            fixture.returnsData("'idea':'out'");
+            NonNullIdApi api = fixture.builder().build(NonNullIdApi.class);
+
+            String out = api.idea("in");
+
+            then(fixture.query()).isEqualTo("query idea($in: ID!) { idea(in: $in) }");
+            then(out).isEqualTo("out");
         }
 
         @Test
@@ -763,59 +803,77 @@ class ScalarBehavior {
         String getting();
     }
 
-    @Test
-    void shouldCallStringGetterQuery() {
-        fixture.returnsData("'greeting':'foo'");
-        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+    @Nested
+    class GetterBehavior {
+        @Test
+        void shouldCallStringGetterQuery() {
+            fixture.returnsData("'greeting':'foo'");
+            StringGettersApi api = fixture.builder().build(StringGettersApi.class);
 
-        String value = api.getGreeting();
+            String value = api.getGreeting();
 
-        then(fixture.query()).isEqualTo("query greeting { greeting }");
-        then(value).isEqualTo("foo");
+            then(fixture.query()).isEqualTo("query greeting { greeting }");
+            then(value).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldCallJustGetQuery() {
+            fixture.returnsData("'get':'foo'");
+            StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+            String value = api.get();
+
+            then(fixture.query()).isEqualTo("query get { get }");
+            then(value).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldCallOneCharGetterQuery() {
+            fixture.returnsData("'g':'foo'");
+            StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+            String value = api.getG();
+
+            then(fixture.query()).isEqualTo("query g { g }");
+            then(value).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldCallGetAndOneLowerCharQuery() {
+            fixture.returnsData("'gets':'foo'");
+            StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+            String value = api.gets();
+
+            then(fixture.query()).isEqualTo("query gets { gets }");
+            then(value).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldCallGetAndLowerCharsQuery() {
+            fixture.returnsData("'getting':'foo'");
+            StringGettersApi api = fixture.builder().build(StringGettersApi.class);
+
+            String value = api.getting();
+
+            then(fixture.query()).isEqualTo("query getting { getting }");
+            then(value).isEqualTo("foo");
+        }
     }
 
-    @Test
-    void shouldCallJustGetQuery() {
-        fixture.returnsData("'get':'foo'");
-        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
-
-        String value = api.get();
-
-        then(fixture.query()).isEqualTo("query get { get }");
-        then(value).isEqualTo("foo");
+    @GraphQlClientApi
+    interface LocalDateApi {
+        LocalDate foo(LocalDate date);
     }
 
-    @Test
-    void shouldCallOneCharGetterQuery() {
-        fixture.returnsData("'g':'foo'");
-        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
-
-        String value = api.getG();
-
-        then(fixture.query()).isEqualTo("query g { g }");
-        then(value).isEqualTo("foo");
+    @GraphQlClientApi
+    interface LocalTimeApi {
+        LocalTime foo(LocalTime date);
     }
 
-    @Test
-    void shouldCallGetAndOneLowerCharQuery() {
-        fixture.returnsData("'gets':'foo'");
-        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
-
-        String value = api.gets();
-
-        then(fixture.query()).isEqualTo("query gets { gets }");
-        then(value).isEqualTo("foo");
-    }
-
-    @Test
-    void shouldCallGetAndLowerCharsQuery() {
-        fixture.returnsData("'getting':'foo'");
-        StringGettersApi api = fixture.builder().build(StringGettersApi.class);
-
-        String value = api.getting();
-
-        then(fixture.query()).isEqualTo("query getting { getting }");
-        then(value).isEqualTo("foo");
+    @GraphQlClientApi
+    interface OffsetTimeApi {
+        OffsetTime foo(OffsetTime date);
     }
 
     @GraphQlClientApi
@@ -823,18 +881,9 @@ class ScalarBehavior {
         LocalDateTime foo(LocalDateTime date);
     }
 
-    @Test
-    void shouldCallLocalDateTimeQuery() {
-        LocalDateTime in = LocalDateTime.ofEpochSecond(123456789, 987654321, UTC);
-        LocalDateTime out = LocalDateTime.ofEpochSecond(987654321, 123456789, UTC);
-        fixture.returnsData("'foo':'" + out + "'");
-        LocalDateTimeApi api = fixture.builder().build(LocalDateTimeApi.class);
-
-        LocalDateTime value = api.foo(in);
-
-        then(fixture.query()).isEqualTo("query foo($date: LocalDateTime) { foo(date: $date) }");
-        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
-        then(value).isEqualTo(out);
+    @GraphQlClientApi
+    interface OffsetDateTimeApi {
+        OffsetDateTime foo(OffsetDateTime date);
     }
 
     @GraphQlClientApi
@@ -842,37 +891,9 @@ class ScalarBehavior {
         ZonedDateTime foo(ZonedDateTime date);
     }
 
-    @Test
-    void shouldCallZonedDateTimeQuery() {
-        ZonedDateTime in = ZonedDateTime.of(2020, 10, 9, 15, 58, 21, 0, ZoneOffset.ofHours(2));
-        ZonedDateTime out = ZonedDateTime.of(2018, 1, 9, 1, 2, 3, 4, ZoneOffset.ofHours(-2));
-        fixture.returnsData("'foo':'" + out + "'");
-        ZonedDateTimeApi api = fixture.builder().build(ZonedDateTimeApi.class);
-
-        ZonedDateTime value = api.foo(in);
-
-        then(fixture.query()).isEqualTo("query foo($date: ZonedDateTime) { foo(date: $date) }");
-        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
-        then(value).isEqualTo(out);
-    }
-
     @GraphQlClientApi
     interface InstantApi {
         Instant foo(Instant instant);
-    }
-
-    @Test
-    void shouldCallInstantQuery() {
-        Instant in = Instant.ofEpochMilli(123456789);
-        Instant out = Instant.ofEpochMilli(987654321);
-        fixture.returnsData("'foo':'" + out + "'");
-        InstantApi api = fixture.builder().build(InstantApi.class);
-
-        Instant value = api.foo(in);
-
-        then(fixture.query()).isEqualTo("query foo($instant: Instant) { foo(instant: $instant) }");
-        then(fixture.variables()).isEqualTo("{'instant':'" + in + "'}");
-        then(value).isEqualTo(out);
     }
 
     @GraphQlClientApi
@@ -880,19 +901,118 @@ class ScalarBehavior {
         Date foo(Date date);
     }
 
-    @Test
-    void shouldCallDateQuery() {
-        Instant in = Instant.ofEpochMilli(123456789);
-        Instant out = Instant.ofEpochMilli(987654321);
-        fixture.returnsData("'foo':'" + out + "'");
-        DateApi api = fixture.builder().build(DateApi.class);
+    @Nested
+    class DateAndTimeBehavior {
+        @Test
+        void shouldCallLocalDateQuery() {
+            LocalDate in = LocalDate.of(2020, 10, 31);
+            LocalDate out = LocalDate.of(3000, 1, 1);
+            fixture.returnsData("'foo':'" + out + "'");
+            LocalDateApi api = fixture.builder().build(LocalDateApi.class);
 
-        Date value = api.foo(Date.from(in));
+            LocalDate value = api.foo(in);
 
-        then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
-        then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
-        then(value).isEqualTo(Date.from(out));
+            then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallLocalTimeQuery() {
+            LocalTime in = LocalTime.of(12, 34, 56);
+            LocalTime out = LocalTime.of(21, 43, 55);
+            fixture.returnsData("'foo':'" + out + "'");
+            LocalTimeApi api = fixture.builder().build(LocalTimeApi.class);
+
+            LocalTime value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($date: Time) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallOffsetTimeQuery() {
+            OffsetTime in = OffsetTime.of(12, 34, 56, 789, ZoneOffset.ofHours(3));
+            OffsetTime out = OffsetTime.of(21, 43, 55, 987, ZoneOffset.ofHours(5));
+            fixture.returnsData("'foo':'" + out + "'");
+            OffsetTimeApi api = fixture.builder().build(OffsetTimeApi.class);
+
+            OffsetTime value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($date: Time) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallLocalDateTimeQuery() {
+            LocalDateTime in = LocalDateTime.of(2020, 10, 9, 15, 58, 21, 0);
+            LocalDateTime out = LocalDateTime.of(2018, 1, 9, 1, 2, 3, 4);
+            fixture.returnsData("'foo':'" + out + "'");
+            LocalDateTimeApi api = fixture.builder().build(LocalDateTimeApi.class);
+
+            LocalDateTime value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($date: DateTime) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallOffsetDateTimeQuery() {
+            OffsetDateTime in = OffsetDateTime.of(2020, 10, 9, 15, 58, 21, 0, ZoneOffset.ofHours(2));
+            OffsetDateTime out = OffsetDateTime.of(2018, 1, 9, 1, 2, 3, 4, ZoneOffset.ofHours(-2));
+            fixture.returnsData("'foo':'" + out + "'");
+            OffsetDateTimeApi api = fixture.builder().build(OffsetDateTimeApi.class);
+
+            OffsetDateTime value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($date: DateTime) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallZonedDateTimeQuery() {
+            ZonedDateTime in = ZonedDateTime.of(2020, 10, 31, 12, 34, 56, 789, ZoneOffset.ofHours(3));
+            ZonedDateTime out = ZonedDateTime.of(3000, 1, 13, 21, 43, 55, 987, UTC);
+            fixture.returnsData("'foo':'" + out + "'");
+            ZonedDateTimeApi api = fixture.builder().build(ZonedDateTimeApi.class);
+
+            ZonedDateTime value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($date: DateTime) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallInstantQuery() {
+            Instant in = Instant.ofEpochMilli(123456789);
+            Instant out = Instant.ofEpochMilli(987654321);
+            fixture.returnsData("'foo':'" + out + "'");
+            InstantApi api = fixture.builder().build(InstantApi.class);
+
+            Instant value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($instant: Instant) { foo(instant: $instant) }");
+            then(fixture.variables()).isEqualTo("{'instant':'" + in + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallDateQuery() {
+            Instant in = Instant.ofEpochMilli(123456789);
+            Instant out = Instant.ofEpochMilli(987654321);
+            fixture.returnsData("'foo':'" + out + "'");
+            DateApi api = fixture.builder().build(DateApi.class);
+
+            Date value = api.foo(Date.from(in));
+
+            then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(Date.from(out));
+        }
     }
-
-    // there's only special code for Date; java.time works out of the box, so we dont' test them all
 }
