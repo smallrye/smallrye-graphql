@@ -2,6 +2,9 @@ package io.smallrye.graphql.client.typesafe.impl.json;
 
 import static io.smallrye.graphql.client.typesafe.impl.json.GraphQlClientValueException.check;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonReader.readJson;
+import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.toMap;
+
+import java.util.Map;
 
 import javax.json.JsonObject;
 import javax.json.JsonValue;
@@ -18,6 +21,12 @@ class JsonObjectReader extends Reader<JsonObject> {
     @Override
     Object read() {
         check(location, value, !type.isCollection() && !type.isScalar());
+        if (Map.class.equals(type.getRawType()))
+            return toMap(value);
+        return readObject();
+    }
+
+    private Object readObject() {
         Object instance = newInstance();
         type.fields().forEach(field -> {
             Object fieldValue = buildValue(location, value, field);
