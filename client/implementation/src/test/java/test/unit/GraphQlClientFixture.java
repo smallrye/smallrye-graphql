@@ -39,6 +39,10 @@ class GraphQlClientFixture {
         given(mockInvocationBuilder.post(any())).will(i -> response);
     }
 
+    public <T> T build(Class<T> apiClass) {
+        return builder().build(apiClass);
+    }
+
     GraphQlClientBuilder builder() {
         return builderWithoutEndpointConfig().endpoint("urn:dummy-endpoint");
     }
@@ -115,5 +119,9 @@ class GraphQlClientFixture {
         ArgumentCaptor<MediaType> captor = ArgumentCaptor.forClass(MediaType.class);
         BDDMockito.then(mockWebTarget).should().request(captor.capture());
         return captor.getValue();
+    }
+
+    public Client client() {
+        return mockClient;
     }
 }
