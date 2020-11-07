@@ -20,7 +20,7 @@ import io.smallrye.graphql.client.typesafe.api.GraphQlClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 
-public class ErrorBehavior {
+class ErrorBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -43,7 +43,7 @@ public class ErrorBehavior {
                 /**//**/"\"classification\":\"DataFetchingException\"," +
                 /**//**/"\"code\":\"no-greeting\"}" +
                 "}]}}"));
-        StringApi api = fixture.builder().build(StringApi.class);
+        StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
@@ -81,7 +81,7 @@ public class ErrorBehavior {
                 "  ],\n" +
                 "  \"data\": null\n" +
                 "}\n"));
-        StringApi api = fixture.builder().build(StringApi.class);
+        StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
@@ -111,7 +111,7 @@ public class ErrorBehavior {
     @Test
     void shouldFailStringQueryNotFound() {
         fixture.returns(Response.serverError().type(TEXT_PLAIN_TYPE).entity("failed"));
-        StringApi api = fixture.builder().build(StringApi.class);
+        StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
@@ -121,7 +121,7 @@ public class ErrorBehavior {
     @Test
     void shouldFailOnMissingQueryResponse() {
         fixture.returnsData("");
-        StringApi api = fixture.builder().build(StringApi.class);
+        StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
@@ -129,9 +129,9 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldIgnoreEmptyError() {
+    void shouldIgnoreEmptyError() {
         fixture.returns(Response.ok("{\"errors\":[], \"data\":{\"greeting\":\"dummy-greeting\"}}"));
-        StringApi api = fixture.builder().build(StringApi.class);
+        StringApi api = fixture.build(StringApi.class);
 
         String greeting = api.greeting();
 
@@ -156,9 +156,9 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchErrorOrPresent() {
+    void shouldFetchErrorOrPresent() {
         fixture.returns(Response.ok("{\"data\":{\"teams\":[{\"name\":\"Avengers\"}]}}"));
-        SuperHeroApi api = fixture.builder().build(SuperHeroApi.class);
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
 
@@ -171,7 +171,7 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchErrorOrAbsent() {
+    void shouldFetchErrorOrAbsent() {
         fixture.returns(Response.ok("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
@@ -185,7 +185,7 @@ public class ErrorBehavior {
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
                 "}]}}"));
-        SuperHeroApi api = fixture.builder().build(SuperHeroApi.class);
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
 
@@ -202,7 +202,7 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchErrorOrWithTwoErrors() {
+    void shouldFetchErrorOrWithTwoErrors() {
         fixture.returns(Response.ok("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
@@ -224,7 +224,7 @@ public class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"bar\"]," +
                 /**//**/"\"code\":\"dizzy\"}" +
                 "}]}}"));
-        SuperHeroApi api = fixture.builder().build(SuperHeroApi.class);
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
 
@@ -248,7 +248,7 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchErrorOrAbsentWithoutPath() {
+    void shouldFetchErrorOrAbsentWithoutPath() {
         fixture.returns(Response.ok("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
@@ -261,7 +261,7 @@ public class ErrorBehavior {
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
                 "}]}}"));
-        SuperHeroApi api = fixture.builder().build(SuperHeroApi.class);
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQlClientException throwable = catchThrowableOfType(api::teams, GraphQlClientException.class);
 
@@ -296,12 +296,12 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchFullWrapper() {
+    void shouldFetchFullWrapper() {
         fixture.returns(Response.ok("{\"data\":{\"find\":{" +
                 "\"findHeroes\":[{\"name\":\"Spider Man\",\"location\":\"New York\"}]," +
                 "\"findTeams\":[{\"name\":\"Avengers\"}]" +
                 "}}}"));
-        SuperHeroWrappedApi api = fixture.builder().build(SuperHeroWrappedApi.class);
+        SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
 
@@ -327,7 +327,7 @@ public class ErrorBehavior {
     }
 
     @Test
-    public void shouldFetchPartialWrapper() {
+    void shouldFetchPartialWrapper() {
         fixture.returns(Response.ok("{" +
                 "\"data\":{\"find\":{\"findHeroes\":[{\"name\":\"Wolverine\"}],\"findTeams\":null}}," +
                 "\"errors\":[{" +
@@ -336,7 +336,7 @@ public class ErrorBehavior {
                 /**/"\"path\": [\"find\",\"findTeams\"],\n" +
                 /**/"\"extensions\":{\"code\":\"team-search-disabled\"}" +
                 "}]}}"));
-        SuperHeroWrappedApi api = fixture.builder().build(SuperHeroWrappedApi.class);
+        SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
 

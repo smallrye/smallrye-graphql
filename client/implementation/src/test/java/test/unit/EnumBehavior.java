@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-public class EnumBehavior {
+class EnumBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     enum Episode {
@@ -26,9 +26,9 @@ public class EnumBehavior {
     }
 
     @Test
-    public void shouldCallEnumQuery() {
+    void shouldCallEnumQuery() {
         fixture.returnsData("'episode':'JEDI'");
-        EpisodeApi api = fixture.builder().build(EpisodeApi.class);
+        EpisodeApi api = fixture.build(EpisodeApi.class);
 
         Episode episode = api.episode();
 
@@ -42,9 +42,9 @@ public class EnumBehavior {
     }
 
     @Test
-    public void shouldCallEnumListQuery() {
+    void shouldCallEnumListQuery() {
         fixture.returnsData("'episodes':['NEWHOPE','EMPIRE','JEDI']");
-        EpisodesApi api = fixture.builder().build(EpisodesApi.class);
+        EpisodesApi api = fixture.build(EpisodesApi.class);
 
         List<Episode> episode = api.episodes();
 
@@ -58,9 +58,9 @@ public class EnumBehavior {
     }
 
     @Test
-    public void shouldCallEnumFilterQuery() {
+    void shouldCallEnumFilterQuery() {
         fixture.returnsData("'characters':['Luke', 'Darth']");
-        EpisodeFilterApi api = fixture.builder().build(EpisodeFilterApi.class);
+        EpisodeFilterApi api = fixture.build(EpisodeFilterApi.class);
 
         List<String> characters = api.characters(JEDI);
 

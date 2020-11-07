@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-public class AnnotationBehavior {
+class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -20,9 +20,9 @@ public class AnnotationBehavior {
     }
 
     @Test
-    public void shouldCallRenamedStringQuery() {
+    void shouldCallRenamedStringQuery() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        RenamedStringApi api = fixture.builder().build(RenamedStringApi.class);
+        RenamedStringApi api = fixture.build(RenamedStringApi.class);
 
         String greeting = api.foo();
 
@@ -36,9 +36,9 @@ public class AnnotationBehavior {
     }
 
     @Test
-    public void shouldCallParamQuery() {
+    void shouldCallParamQuery() {
         fixture.returnsData("'greeting':'hi, foo'");
-        RenamedParamApi api = fixture.builder().build(RenamedParamApi.class);
+        RenamedParamApi api = fixture.build(RenamedParamApi.class);
 
         String greeting = api.greeting("foo");
 
@@ -60,9 +60,9 @@ public class AnnotationBehavior {
     }
 
     @Test
-    public void shouldCallObjectQuery() {
+    void shouldCallObjectQuery() {
         fixture.returnsData("'greeting':{'foo':'foo','key':5}");
-        ObjectApi api = fixture.builder().build(ObjectApi.class);
+        ObjectApi api = fixture.build(ObjectApi.class);
 
         Greeting greeting = api.greeting();
 
@@ -86,9 +86,9 @@ public class AnnotationBehavior {
     }
 
     @Test
-    public void shouldHandleUnannotatedContainerField() {
+    void shouldHandleUnannotatedContainerField() {
         fixture.returnsData("'things': {'otherThings': [null]}");
-        ThingsApi stuff = fixture.builder().build(ThingsApi.class);
+        ThingsApi stuff = fixture.build(ThingsApi.class);
 
         Thing things = stuff.things();
 

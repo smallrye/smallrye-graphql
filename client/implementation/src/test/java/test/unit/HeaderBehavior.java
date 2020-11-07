@@ -16,7 +16,7 @@ import io.smallrye.graphql.client.typesafe.api.Header;
 import test.unit.HeaderBehavior.EnclosingClass.EnclosingEnclosingPublicMethodHeadersApi;
 
 @SuppressWarnings({ "UnusedReturnValue", "unused" })
-public class HeaderBehavior {
+class HeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -29,9 +29,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddConstantHeaders() {
+    void shouldAddConstantHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        ConstantHeadersApi api = fixture.builder().build(ConstantHeadersApi.class);
+        ConstantHeadersApi api = fixture.build(ConstantHeadersApi.class);
 
         api.greeting();
 
@@ -47,9 +47,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToCollectHeadersWithMethodAndConstantHeaders() {
+    void shouldFailToCollectHeadersWithMethodAndConstantHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        MethodAndConstantHeadersApi api = fixture.builder().build(MethodAndConstantHeadersApi.class);
+        MethodAndConstantHeadersApi api = fixture.build(MethodAndConstantHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -66,9 +66,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToCollectHeadersWithMethodNorConstantHeaders() {
+    void shouldFailToCollectHeadersWithMethodNorConstantHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        MethodNorConstantHeadersApi api = fixture.builder().build(MethodNorConstantHeadersApi.class);
+        MethodNorConstantHeadersApi api = fixture.build(MethodNorConstantHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -108,9 +108,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddMethodHeaders() {
+    void shouldAddMethodHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        MethodHeadersApi api = fixture.builder().build(MethodHeadersApi.class);
+        MethodHeadersApi api = fixture.build(MethodHeadersApi.class);
 
         api.greeting();
 
@@ -120,7 +120,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    public interface DefaultMethodHeaderApi {
+    interface DefaultMethodHeaderApi {
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -130,9 +130,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithDefaultMethod() {
+    void shouldFailToAddMethodHeaderWithDefaultMethod() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        DefaultMethodHeaderApi api = fixture.builder().build(DefaultMethodHeaderApi.class);
+        DefaultMethodHeaderApi api = fixture.build(DefaultMethodHeaderApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -148,9 +148,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithUnknownMethod() {
+    void shouldFailToAddMethodHeaderWithUnknownMethod() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        UnknownMethodHeadersApi api = fixture.builder().build(UnknownMethodHeadersApi.class);
+        UnknownMethodHeadersApi api = fixture.build(UnknownMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -166,9 +166,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithUnknownMethodClass() {
+    void shouldFailToAddMethodHeaderWithUnknownMethodClass() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        UnknownMethodClassHeadersApi api = fixture.builder().build(UnknownMethodClassHeadersApi.class);
+        UnknownMethodClassHeadersApi api = fixture.build(UnknownMethodClassHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -187,14 +187,14 @@ public class HeaderBehavior {
         }
     }
 
-    public static String publicMethod() {
+    static String publicMethod() {
         return "public-method-value";
     }
 
     @Test
-    public void shouldAddQualifiedEnclosingPublicMethodHeader() {
+    void shouldAddQualifiedEnclosingPublicMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        QualifiedEnclosingPublicMethodHeadersApi api = fixture.builder().build(QualifiedEnclosingPublicMethodHeadersApi.class);
+        QualifiedEnclosingPublicMethodHeadersApi api = fixture.build(QualifiedEnclosingPublicMethodHeadersApi.class);
 
         api.greeting();
 
@@ -212,9 +212,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddEnclosingPublicMethodHeader() {
+    void shouldAddEnclosingPublicMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        EnclosingPublicMethodHeadersApi api = fixture.builder().build(EnclosingPublicMethodHeadersApi.class);
+        EnclosingPublicMethodHeadersApi api = fixture.build(EnclosingPublicMethodHeadersApi.class);
 
         api.greeting();
 
@@ -234,9 +234,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddEnclosingEnclosingPublicMethodHeader() {
+    void shouldAddEnclosingEnclosingPublicMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        EnclosingEnclosingPublicMethodHeadersApi api = fixture.builder().build(EnclosingEnclosingPublicMethodHeadersApi.class);
+        EnclosingEnclosingPublicMethodHeadersApi api = fixture.build(EnclosingEnclosingPublicMethodHeadersApi.class);
 
         api.greeting();
 
@@ -254,9 +254,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddPackagePrivateMethodHeader() {
+    void shouldAddPackagePrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        QualifiedPackagePrivateMethodHeadersApi api = fixture.builder().build(QualifiedPackagePrivateMethodHeadersApi.class);
+        QualifiedPackagePrivateMethodHeadersApi api = fixture.build(QualifiedPackagePrivateMethodHeadersApi.class);
 
         api.greeting();
 
@@ -272,9 +272,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddPrivateMethodHeader() {
+    void shouldFailToAddPrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        QualifiedPrivateMethodHeadersApi api = fixture.builder().build(QualifiedPrivateMethodHeadersApi.class);
+        QualifiedPrivateMethodHeadersApi api = fixture.build(QualifiedPrivateMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -299,7 +299,7 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddEnclosingPrivateMethodHeader() {
+    void shouldAddEnclosingPrivateMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         QualifiedEnclosingPrivateMethodHeadersApi api = fixture.builder()
                 .build(QualifiedEnclosingPrivateMethodHeadersApi.class);
@@ -324,7 +324,7 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddEnclosingProtectedMethodHeader() {
+    void shouldAddEnclosingProtectedMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         QualifiedEnclosingProtectedMethodHeadersApi api = fixture.builder()
                 .build(QualifiedEnclosingProtectedMethodHeadersApi.class);
@@ -347,7 +347,7 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddNonStaticEnclosingProtectedMethodHeader() {
+    void shouldFailToAddNonStaticEnclosingProtectedMethodHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         QualifiedNonStaticEnclosingProtectedMethodHeadersApi api = fixture.builder()
                 .build(QualifiedNonStaticEnclosingProtectedMethodHeadersApi.class);
@@ -371,9 +371,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithFailingMethod() {
+    void shouldFailToAddMethodHeaderWithFailingMethod() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        FailingMethodHeadersApi api = fixture.builder().build(FailingMethodHeadersApi.class);
+        FailingMethodHeadersApi api = fixture.build(FailingMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -385,7 +385,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    public interface ErrorFailingMethodHeadersApi {
+    interface ErrorFailingMethodHeadersApi {
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -395,9 +395,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithErrorFailingMethod() {
+    void shouldFailToAddMethodHeaderWithErrorFailingMethod() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        ErrorFailingMethodHeadersApi api = fixture.builder().build(ErrorFailingMethodHeadersApi.class);
+        ErrorFailingMethodHeadersApi api = fixture.build(ErrorFailingMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -405,7 +405,7 @@ public class HeaderBehavior {
     }
 
     @GraphQlClientApi
-    public interface ExceptionFailingMethodHeadersApi {
+    interface ExceptionFailingMethodHeadersApi {
         @Header(name = "H", method = "f")
         String greeting();
 
@@ -415,9 +415,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithExceptionFailingMethod() {
+    void shouldFailToAddMethodHeaderWithExceptionFailingMethod() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        ExceptionFailingMethodHeadersApi api = fixture.builder().build(ExceptionFailingMethodHeadersApi.class);
+        ExceptionFailingMethodHeadersApi api = fixture.build(ExceptionFailingMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -439,9 +439,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldFailToAddMethodHeaderWithMethodWithArgs() {
+    void shouldFailToAddMethodHeaderWithMethodWithArgs() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        ArgMethodHeadersApi api = fixture.builder().build(ArgMethodHeadersApi.class);
+        ArgMethodHeadersApi api = fixture.build(ArgMethodHeadersApi.class);
 
         Throwable thrown = catchThrowable(api::greeting);
 
@@ -456,9 +456,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddParamHeader() {
+    void shouldAddParamHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        HeadersParamApi api = fixture.builder().build(HeadersParamApi.class);
+        HeadersParamApi api = fixture.build(HeadersParamApi.class);
 
         api.greeting("bar");
 
@@ -469,7 +469,7 @@ public class HeaderBehavior {
     @Retention(RUNTIME)
     @Stereotype
     @Header(name = "H", constant = "V")
-    public @interface StereotypedHeader {
+    @interface StereotypedHeader {
     }
 
     @GraphQlClientApi
@@ -479,9 +479,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddStereotypedMethodHeaders() {
+    void shouldAddStereotypedMethodHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        StereotypedMethodHeaderApi api = fixture.builder().build(StereotypedMethodHeaderApi.class);
+        StereotypedMethodHeaderApi api = fixture.build(StereotypedMethodHeaderApi.class);
 
         api.greeting();
 
@@ -495,9 +495,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddStereotypedTypeHeader() {
+    void shouldAddStereotypedTypeHeader() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        StereotypedTypeHeaderApi api = fixture.builder().build(StereotypedTypeHeaderApi.class);
+        StereotypedTypeHeaderApi api = fixture.build(StereotypedTypeHeaderApi.class);
 
         api.greeting();
 
@@ -507,7 +507,7 @@ public class HeaderBehavior {
     @Retention(RUNTIME)
     @Stereotype
     @StereotypedHeader
-    public @interface MetaStereotypedHeader {
+    @interface MetaStereotypedHeader {
     }
 
     @GraphQlClientApi
@@ -517,9 +517,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddMetaStereotypedMethodHeaders() {
+    void shouldAddMetaStereotypedMethodHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        MetaStereotypedMethodHeaderApi api = fixture.builder().build(MetaStereotypedMethodHeaderApi.class);
+        MetaStereotypedMethodHeaderApi api = fixture.build(MetaStereotypedMethodHeaderApi.class);
 
         api.greeting();
 
@@ -548,9 +548,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddExtendedHeaders() {
+    void shouldAddExtendedHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        InheritingHeadersApi api = fixture.builder().build(InheritingHeadersApi.class);
+        InheritingHeadersApi api = fixture.build(InheritingHeadersApi.class);
 
         api.greeting();
 
@@ -568,9 +568,9 @@ public class HeaderBehavior {
     }
 
     @Test
-    public void shouldAddCharsetRequestAndResponseHeaders() {
+    void shouldAddCharsetRequestAndResponseHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
-        SimpleApi api = fixture.builder().build(SimpleApi.class);
+        SimpleApi api = fixture.build(SimpleApi.class);
 
         api.greeting("foo");
 
