@@ -196,12 +196,14 @@ public class ReferenceCreator {
                         }
                     }
                     parametrizedTypeArgumentsReferencesImpl = new HashMap<>();
-
                     int i = 0;
                     for (TypeVariable tp : classInfo.typeParameters()) {
-                        parametrizedTypeArgumentsReferencesImpl.put(
-                                interfaceType.arguments().get(i++).asTypeVariable().identifier(),
-                                parametrizedTypeArgumentsReferences.get(tp.identifier()));
+                        Type type = interfaceType.arguments().get(i++);
+                        if (type.kind() == Type.Kind.TYPE_VARIABLE) {
+                            parametrizedTypeArgumentsReferencesImpl.put(
+                                    type.asTypeVariable().identifier(),
+                                    parametrizedTypeArgumentsReferences.get(tp.identifier()));
+                        }
                     }
 
                 }
