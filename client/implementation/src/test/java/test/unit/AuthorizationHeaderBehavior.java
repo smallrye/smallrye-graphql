@@ -13,11 +13,11 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-public class AuthorizationHeaderBehavior {
+class AuthorizationHeaderBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
-    public interface AuthorizationHeadersApi {
+    interface AuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         @AuthorizationHeader
         String apiGreeting();
@@ -36,10 +36,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddApiPrefixAuthorizationHeader() {
+    void shouldAddApiPrefixAuthorizationHeader() {
         withCredentials(AuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
             fixture.returnsData("'apiGreeting':'dummy-greeting'");
-            AuthorizationHeadersApi api = fixture.builder().build(AuthorizationHeadersApi.class);
+            AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
             api.apiGreeting();
 
@@ -48,10 +48,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddNoPrefixAuthorizationHeader() {
+    void shouldAddNoPrefixAuthorizationHeader() {
         withCredentials("", () -> {
             fixture.returnsData("'plainGreeting':'dummy-greeting'");
-            AuthorizationHeadersApi api = fixture.builder().build(AuthorizationHeadersApi.class);
+            AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
             api.plainGreeting();
 
@@ -60,10 +60,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddPlainPrefixAuthorizationHeader() {
+    void shouldAddPlainPrefixAuthorizationHeader() {
         withCredentials("prefix.", () -> {
             fixture.returnsData("'plainPrefixedGreeting':'dummy-greeting'");
-            AuthorizationHeadersApi api = fixture.builder().build(AuthorizationHeadersApi.class);
+            AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
             api.plainPrefixedGreeting();
 
@@ -72,10 +72,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddPrefixAuthorizationHeader() {
+    void shouldAddPrefixAuthorizationHeader() {
         withCredentials("pre/mp-graphql/", () -> {
             fixture.returnsData("'preGreeting':'dummy-greeting'");
-            AuthorizationHeadersApi api = fixture.builder().build(AuthorizationHeadersApi.class);
+            AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
             api.preGreeting();
 
@@ -85,19 +85,19 @@ public class AuthorizationHeaderBehavior {
 
     @GraphQlClientApi
     @AuthorizationHeader(confPrefix = "*")
-    public interface InheritedAuthorizationHeadersApi extends BaseAuthorizationHeadersApi {
+    interface InheritedAuthorizationHeadersApi extends BaseAuthorizationHeadersApi {
     }
 
-    public interface BaseAuthorizationHeadersApi {
+    interface BaseAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
     }
 
     @Test
-    public void shouldAddInheritedAuthorizationHeader() {
+    void shouldAddInheritedAuthorizationHeader() {
         withCredentials("", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
-            InheritedAuthorizationHeadersApi api = fixture.builder().build(InheritedAuthorizationHeadersApi.class);
+            InheritedAuthorizationHeadersApi api = fixture.build(InheritedAuthorizationHeadersApi.class);
 
             api.greeting();
 
@@ -107,13 +107,13 @@ public class AuthorizationHeaderBehavior {
 
     @GraphQlClientApi(configKey = "foo")
     @AuthorizationHeader
-    public interface ConfigKeyAuthorizationHeadersApi {
+    interface ConfigKeyAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
     }
 
     @Test
-    public void shouldAddInheritedConfigKeyAuthorizationHeader() {
+    void shouldAddInheritedConfigKeyAuthorizationHeader() {
         withCredentials("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             ConfigKeyAuthorizationHeadersApi api = fixture.builder()
@@ -128,21 +128,21 @@ public class AuthorizationHeaderBehavior {
     @Retention(RUNTIME)
     @Stereotype
     @AuthorizationHeader(confPrefix = "*")
-    public @interface Authenticated {
+    @interface Authenticated {
     }
 
     @GraphQlClientApi
     @Authenticated
-    public interface AuthenticatedHeaderApi {
+    interface AuthenticatedHeaderApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
     }
 
     @Test
-    public void shouldAddStereotypedHeader() {
+    void shouldAddStereotypedHeader() {
         withCredentials("", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
-            AuthenticatedHeaderApi api = fixture.builder().build(AuthenticatedHeaderApi.class);
+            AuthenticatedHeaderApi api = fixture.build(AuthenticatedHeaderApi.class);
 
             api.greeting();
 
@@ -163,7 +163,7 @@ public class AuthorizationHeaderBehavior {
 
     @GraphQlClientApi
     @AuthorizationHeader(type = BEARER)
-    public interface TokenAuthorizationHeadersApi {
+    interface TokenAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
 
@@ -173,10 +173,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddTokenAuthorizationHeader() {
+    void shouldAddTokenAuthorizationHeader() {
         withToken(TokenAuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
-            TokenAuthorizationHeadersApi api = fixture.builder().build(TokenAuthorizationHeadersApi.class);
+            TokenAuthorizationHeadersApi api = fixture.build(TokenAuthorizationHeadersApi.class);
 
             api.greeting();
 
@@ -185,10 +185,10 @@ public class AuthorizationHeaderBehavior {
     }
 
     @Test
-    public void shouldAddPlainTokenAuthorizationHeader() {
+    void shouldAddPlainTokenAuthorizationHeader() {
         withToken("", () -> {
             fixture.returnsData("'plainGreeting':'dummy-greeting'");
-            TokenAuthorizationHeadersApi api = fixture.builder().build(TokenAuthorizationHeadersApi.class);
+            TokenAuthorizationHeadersApi api = fixture.build(TokenAuthorizationHeadersApi.class);
 
             api.plainGreeting();
 

@@ -20,7 +20,7 @@ class JsonStringReader extends Reader<JsonString> {
                 throw new GraphQlClientValueException(location, value);
             return value.getChars().charAt(0);
         }
-        if (String.class.equals(type.getRawType()))
+        if (String.class.equals(type.getRawType()) || Object.class.equals(type.getRawType())) // TODO CharSequence
             return value.getString();
         if (type.isEnum())
             return enumValue();

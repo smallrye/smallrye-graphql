@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-public class MutationBehavior {
+class MutationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -22,9 +22,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallStringMutation() {
+    void shouldCallStringMutation() {
         fixture.returnsData("'createSome':'output'");
-        StringMutationApi api = fixture.builder().build(StringMutationApi.class);
+        StringMutationApi api = fixture.build(StringMutationApi.class);
 
         String greeting = api.createSome("input");
 
@@ -34,9 +34,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallNullStringMutation() {
+    void shouldCallNullStringMutation() {
         fixture.returnsData("'createSome':'output'");
-        StringMutationApi api = fixture.builder().build(StringMutationApi.class);
+        StringMutationApi api = fixture.build(StringMutationApi.class);
 
         String greeting = api.createSome(null);
 
@@ -56,10 +56,10 @@ public class MutationBehavior {
         int count;
 
         @SuppressWarnings("unused")
-        public Greeting() {
+        Greeting() {
         }
 
-        public Greeting(String text, int count) {
+        Greeting(String text, int count) {
             this.text = text;
             this.count = count;
         }
@@ -81,9 +81,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallGreetingMutation() {
+    void shouldCallGreetingMutation() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        GreetingMutationApi api = fixture.builder().build(GreetingMutationApi.class);
+        GreetingMutationApi api = fixture.build(GreetingMutationApi.class);
 
         Greeting greeting = api.say(new Greeting("hi", 5));
 
@@ -93,9 +93,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallGreetingMutationWithNullValue() {
+    void shouldCallGreetingMutationWithNullValue() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        GreetingMutationApi api = fixture.builder().build(GreetingMutationApi.class);
+        GreetingMutationApi api = fixture.build(GreetingMutationApi.class);
 
         Greeting greeting = api.say(new Greeting(null, 5));
 
@@ -111,9 +111,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithListWithNullValue() {
+    void shouldCallMutationWithListWithNullValue() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        GreetingListMutationApi api = fixture.builder().build(GreetingListMutationApi.class);
+        GreetingListMutationApi api = fixture.build(GreetingListMutationApi.class);
 
         Greeting greeting = api.say(asList(
                 new Greeting("one", 5),
@@ -166,9 +166,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithNestedValue() {
+    void shouldCallMutationWithNestedValue() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        NestedGreetingMutationApi api = fixture.builder().build(NestedGreetingMutationApi.class);
+        NestedGreetingMutationApi api = fixture.build(NestedGreetingMutationApi.class);
         LocalDateTime now = LocalDateTime.now();
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting("one", 5), now));
@@ -182,9 +182,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithNestedNullValue() {
+    void shouldCallMutationWithNestedNullValue() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        NestedGreetingMutationApi api = fixture.builder().build(NestedGreetingMutationApi.class);
+        NestedGreetingMutationApi api = fixture.build(NestedGreetingMutationApi.class);
 
         Greeting greeting = api.say(new GreetingContainer(new Greeting(null, 5), null));
 
@@ -206,7 +206,7 @@ public class MutationBehavior {
         SomeEnum someEnum;
 
         @SuppressWarnings("unused")
-        public GreetingEnum() {
+        GreetingEnum() {
         }
 
         private GreetingEnum(String text, SomeEnum someEnum) {
@@ -222,9 +222,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithEnum() {
+    void shouldCallMutationWithEnum() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
-        MutationWithEnumApi api = fixture.builder().build(MutationWithEnumApi.class);
+        MutationWithEnumApi api = fixture.build(MutationWithEnumApi.class);
 
         Greeting greeting = api.say(new GreetingEnum("one", SomeEnum.ONE));
 
@@ -273,9 +273,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithPrimitives() {
+    void shouldCallMutationWithPrimitives() {
         fixture.returnsData("'run':'okay'");
-        MutationWithPrimitivesApi api = fixture.builder().build(MutationWithPrimitivesApi.class);
+        MutationWithPrimitivesApi api = fixture.build(MutationWithPrimitivesApi.class);
 
         String result = api.run(new PrimitiveTypes());
 
@@ -325,9 +325,9 @@ public class MutationBehavior {
     }
 
     @Test
-    public void shouldCallMutationWithPrimitiveWrappers() {
+    void shouldCallMutationWithPrimitiveWrappers() {
         fixture.returnsData("'run':'okay'");
-        MutationWithPrimitiveWrappersApi api = fixture.builder().build(MutationWithPrimitiveWrappersApi.class);
+        MutationWithPrimitiveWrappersApi api = fixture.build(MutationWithPrimitiveWrappersApi.class);
 
         String result = api.run(new PrimitiveWrapperTypes());
 

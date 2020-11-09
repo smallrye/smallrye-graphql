@@ -21,8 +21,8 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     private URI endpoint;
 
     @Override
-    public GraphQlClientBuilder endpoint(URI endpoint) {
-        this.endpoint = endpoint;
+    public GraphQlClientBuilder configKey(String configKey) {
+        this.configKey = configKey;
         return this;
     }
 
@@ -32,8 +32,20 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     }
 
     @Override
-    public GraphQlClientBuilder configKey(String configKey) {
-        this.configKey = configKey;
+    public GraphQlClientBuilder endpoint(URI endpoint) {
+        this.endpoint = endpoint;
+        return this;
+    }
+
+    @Override
+    public GraphQlClientBuilder register(Class<?> componentClass) {
+        client.register(componentClass);
+        return this;
+    }
+
+    @Override
+    public GraphQlClientBuilder register(Object component) {
+        client.register(component);
         return this;
     }
 

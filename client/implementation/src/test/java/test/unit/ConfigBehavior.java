@@ -2,16 +2,19 @@ package test.unit;
 
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.util.NoSuchElementException;
+
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 
-public class ConfigBehavior {
-
+class ConfigBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
 
     @GraphQlClientApi
@@ -21,7 +24,7 @@ public class ConfigBehavior {
     }
 
     @Test
-    public void shouldFailToLoadMissingEndpointConfig() {
+    void shouldFailToLoadMissingEndpointConfig() {
         Throwable thrown = catchThrowableOfType(() -> fixture.builderWithoutEndpointConfig().build(Api.class),
                 NoSuchElementException.class);
 
@@ -29,7 +32,7 @@ public class ConfigBehavior {
     }
 
     @Test
-    public void shouldLoadEndpointConfig() {
+    void shouldLoadEndpointConfig() {
         System.setProperty(API_URL_CONFIG_KEY, DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");
@@ -44,7 +47,7 @@ public class ConfigBehavior {
     }
 
     @Test
-    public void shouldLoadEndpointFromKeyConfig() {
+    void shouldLoadEndpointFromKeyConfig() {
         System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");
@@ -67,7 +70,7 @@ public class ConfigBehavior {
     }
 
     @Test
-    public void shouldLoadAnnotatedEndpointConfig() {
+    void shouldLoadAnnotatedEndpointConfig() {
         fixture.returnsData("'foo':true");
         ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
 
@@ -82,18 +85,49 @@ public class ConfigBehavior {
     }
 
     @Test
-    public void shouldLoadAnnotatedKeyConfig() {
+    void shouldLoadAnnotatedKeyConfig() {
         System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
         try {
             fixture.returnsData("'foo':true");
             ConfiguredKeyApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredKeyApi.class);
 
-            boolean foo = api.foo();
+            api.foo();
 
             then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
         } finally {
             System.clearProperty("dummy-config-key/mp-graphql/url");
         }
+    }
+
+    static class DummyClientRequestFilter implements ClientRequestFilter {
+        @Override
+        public void filter(ClientRequestContext requestContext) {
+        }
+    }
+
+    @Test
+    void shouldRegisterClientRequestFilterClass() {
+        fixture.returnsData("'foo':true");
+        Api api = fixture.builder()
+                .register(DummyClientRequestFilter.class)
+                .build(Api.class);
+
+        api.foo();
+
+        verify(fixture.client()).register(DummyClientRequestFilter.class);
+    }
+
+    @Test
+    void shouldRegisterClientRequestFilterInstance() {
+        fixture.returnsData("'foo':true");
+        DummyClientRequestFilter instance = new DummyClientRequestFilter();
+        Api api = fixture.builder()
+                .register(instance)
+                .build(Api.class);
+
+        api.foo();
+
+        verify(fixture.client()).register(instance);
     }
 
     private static final String API_URL_CONFIG_KEY = Api.class.getName() + "/mp-graphql/url";

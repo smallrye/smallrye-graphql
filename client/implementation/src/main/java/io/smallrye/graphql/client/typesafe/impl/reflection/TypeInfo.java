@@ -27,6 +27,7 @@ import java.util.stream.Stream.Builder;
 
 import org.eclipse.microprofile.graphql.NonNull;
 
+import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 
 public class TypeInfo {
@@ -82,7 +83,14 @@ public class TypeInfo {
         // TODO this is not generally correct
         ParameterizedType parameterizedType = (ParameterizedType) container.type;
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-        return (Class<?>) actualTypeArguments[0];
+        Type actualTypeArgument = actualTypeArguments[0];
+        if (actualTypeArgument instanceof Class) {
+            return (Class<?>) actualTypeArgument;
+        } else if (actualTypeArgument instanceof ParameterizedType) {
+            return Object.class;
+        } else {
+            throw new UnsupportedOperationException("can't resolve type variable of a " + actualTypeArgument.getTypeName());
+        }
     }
 
     public String getPackage() {
@@ -123,6 +131,11 @@ public class TypeInfo {
 
     public boolean isOptional() {
         return Optional.class.equals(getRawType());
+    }
+
+    // this will be generalized to isUnionType or so
+    public boolean isErrorOr() {
+        return ErrorOr.class.equals(getRawType());
     }
 
     public boolean isScalar() {
@@ -215,7 +228,7 @@ public class TypeInfo {
     }
 
     public TypeInfo getItemType() {
-        assert isCollection() || isOptional();
+        assert isCollection() || isOptional() || isErrorOr();
         if (itemType == null)
             itemType = new TypeInfo(this, computeItemType(), computeAnnotatedItemType());
         return this.itemType;
