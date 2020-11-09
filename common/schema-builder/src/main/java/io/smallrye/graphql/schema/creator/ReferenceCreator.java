@@ -397,8 +397,8 @@ public class ReferenceCreator {
                 String newClass = reference.getClassName();
                 if (!existingClass.equals(newClass)) {
                     throw new SchemaBuilderException(
-                            "Classes " + existingClass + " and " + newClass + " map to the same GraphQL type '" + key + "', " +
-                                    "consider using the @Name annotation or a different naming strategy to distinguish between them");
+                            "Classes " + existingClass + " and " + newClass + " map to the same GraphQL type '" + key + "', "
+                                    + "consider using the @Name annotation or a different naming strategy to distinguish between them");
                 }
             }
         }

@@ -128,6 +128,12 @@ public class ControllerWithGenerics {
         return null;
     }
 
+    //error #??? reproducer
+    @Query
+    public ClassFromInterfaceWithOneGenericsListParam getClassFromInterfaceWithOneGenericsListParam() {
+        return null;
+    }
+
     @Mutation
     public InterfaceWithOneGenericsParam<String> setClassWithOneGenericsParamInControllerStringReturnInterface(
             ClassWithOneGenericsParam<String> param1) {
