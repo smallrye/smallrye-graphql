@@ -47,7 +47,14 @@ class ErrorBehavior {
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
-        then(thrown).hasMessage("can't apply errors to java.lang.String value for test.unit.ErrorBehavior$StringApi#greeting");
+        then(thrown).hasMessage("errors from service (and we can't apply them to a java.lang.String value for" +
+                " test.unit.ErrorBehavior$StringApi#greeting; see ErrorOr)");
+        then(thrown).hasToString(
+                "GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
+                        + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
+                        "errors:\n" +
+                        "- no-greeting: [greeting] currently can't greet [(1:2@loc)]" +
+                        " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
         then(thrown.getErrors()).hasSize(1);
         GraphQlClientError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't greet");
@@ -85,17 +92,12 @@ class ErrorBehavior {
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
 
-        then(thrown).hasMessage("errors from service:\n" +
-                "- {\"message\":\"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\","
-                +
-                /**/"\"locations\":[{\"line\":1,\"column\":8}]," +
-                /**/"\"extensions\":{" +
-                /**//**/"\"description\":\"Field 'foo' in type 'Query' is undefined\"," +
-                /**//**/"\"validationErrorType\":\"FieldUndefined\"," +
-                /**//**/"\"queryPath\":[\"foo\"]," +
-                /**//**/"\"classification\":\"ValidationError\"}" +
-                "}\n" +
-                "query: query greeting { greeting }");
+        then(thrown).hasMessage("errors from service");
+        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo' [(1:8)]" +
+                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined," +
+                " queryPath=[foo], classification=ValidationError})");
         then(thrown.getErrors()).hasSize(1);
         GraphQlClientError error = thrown.getErrors().get(0);
         then(error.getMessage())
@@ -266,15 +268,12 @@ class ErrorBehavior {
         GraphQlClientException throwable = catchThrowableOfType(api::teams, GraphQlClientException.class);
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(throwable).hasMessage("errors from service:\n" +
-                "- {\"message\":\"currently can't search for teams\"," +
-                "\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
-                "\"extensions\":{\"description\":\"Field 'foo' in type 'Query' is undefined\"," +
-                "\"validationErrorType\":\"FieldUndefined\"," +
-                "\"queryPath\":[\"foo\"]," +
-                "\"classification\":\"ValidationError\"," +
-                "\"code\":\"team-search-disabled\"}}\n" +
-                "query: query teams { teams {name} }");
+        then(throwable).hasMessage("errors from service");
+        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- team-search-disabled: currently can't search for teams [(1:2@loc)]" +
+                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined, queryPath=[foo]," +
+                " classification=ValidationError, code=team-search-disabled})");
         then(throwable.getErrors()).hasSize(1);
         GraphQlClientError error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");

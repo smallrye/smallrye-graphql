@@ -61,9 +61,7 @@ public class ResultBuilder {
         JsonArray unapplied = jsonErrors.stream().filter(error -> !apply(error)).collect(toJsonArray());
         if (unapplied.isEmpty())
             return;
-        throw new GraphQlClientException("errors from service:" +
-                unapplied.stream().map(JsonValue::toString).collect(joining("\n- ", "\n- ", "\n")) +
-                "query: " + queryCache.get(method.getKey()),
+        throw new GraphQlClientException("errors from service",
                 unapplied.stream().map(this::convert).collect(Collectors.toList()));
     }
 
@@ -110,6 +108,11 @@ public class ResultBuilder {
             @Override
             public Map<String, Object> getExtensions() {
                 return toMap(jsonObject.getJsonObject("extensions"));
+            }
+
+            @Override
+            public String toString() {
+                return defaultToString();
             }
         };
     }

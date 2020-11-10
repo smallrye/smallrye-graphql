@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.typesafe.api;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
@@ -21,6 +22,12 @@ public class GraphQlClientException extends RuntimeException {
     public GraphQlClientException(String message, Throwable cause) {
         super(message, cause);
         this.errors = emptyList();
+    }
+
+    @Override
+    public String toString() {
+        return "GraphQlClientException: " + getMessage() + (errors.isEmpty() ? ""
+                : "\nerrors:\n- " + errors.stream().map(GraphQlClientError::toString).collect(joining("\n- "))) + ")";
     }
 
     public List<GraphQlClientError> getErrors() {
