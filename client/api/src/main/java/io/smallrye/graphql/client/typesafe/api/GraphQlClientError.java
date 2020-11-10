@@ -22,4 +22,17 @@ public interface GraphQlClientError {
         Object errorCode = extensions.get("code");
         return (errorCode == null) ? null : errorCode.toString();
     }
+
+    /** we can't declare a default toString in an interface */
+    default String defaultToString() {
+        String errorCode = getErrorCode();
+        List<Object> path = getPath();
+        List<SourceLocation> locations = getLocations();
+        Map<String, Object> extensions = getExtensions();
+        return ((errorCode == null) ? "" : errorCode + ": ")
+                + ((path == null) ? "" : path + " ")
+                + getMessage()
+                + ((locations == null) ? "" : " " + locations)
+                + ((extensions == null || extensions.isEmpty()) ? "" : " " + extensions);
+    }
 }
