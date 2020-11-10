@@ -49,11 +49,12 @@ class ErrorBehavior {
 
         then(thrown).hasMessage("errors from service (and we can't apply them to a java.lang.String value for" +
                 " test.unit.ErrorBehavior$StringApi#greeting; see ErrorOr)");
-        then(thrown).hasToString("GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
-                + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
-                "errors:\n" +
-                "- no-greeting: [greeting] currently can't greet [(1:2@loc)]" +
-                " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
+        then(thrown).hasToString(
+                "GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
+                        + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
+                        "errors:\n" +
+                        "- no-greeting: [greeting] currently can't greet [(1:2@loc)]" +
+                        " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
         then(thrown.getErrors()).hasSize(1);
         GraphQlClientError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't greet");

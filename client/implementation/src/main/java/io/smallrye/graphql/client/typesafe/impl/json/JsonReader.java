@@ -62,7 +62,8 @@ public class JsonReader extends Reader<JsonValue> {
     }
 
     private GraphQlClientException cantApplyErrors(List<GraphQlClientError> errors) {
-        return new GraphQlClientException("errors from service (and we can't apply them to a " + location + "; see ErrorOr)", errors);
+        return new GraphQlClientException("errors from service (and we can't apply them to a " + location + "; see ErrorOr)",
+                errors);
     }
 
     private Reader<?> reader(Location location) {
