@@ -34,7 +34,7 @@ public class SourceLocation {
 
     @Override
     public String toString() {
-        return "SourceLocation(" + line + ":" + column + "@" + sourceName + ")";
+        return "(" + line + ":" + column + ((sourceName == null) ? "" : "@" + sourceName) + ")";
     }
 
     public int getLine() {

@@ -69,7 +69,6 @@ class GraphQlClientErrorImpl implements GraphQlClientError {
 
     @Override
     public String toString() {
-        return "GraphQlClientErrorImpl(message='" + message + "', locations=" + locations + ", path=" + path + ", " +
-                "extensions=" + extensions + ")";
+        return defaultToString();
     }
 }
