@@ -21,7 +21,7 @@ import io.smallrye.graphql.spi.ClassloadingService;
  */
 public class CollectionCreator {
 
-    private static ClassloadingService classloadingService = ClassloadingService.get();
+    private static final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static Collection<?> newCollection(String className) {
         Class<?> type = classloadingService.loadClass(className);

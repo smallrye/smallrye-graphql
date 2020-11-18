@@ -41,6 +41,12 @@ public abstract class ExecutionTestBase {
         Schema schema = SchemaBuilder.build(index);
         BootstrapedResult bootstraped = Bootstrap.bootstrap(schema);
         GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
+
+        SchemaPrinter printer = new SchemaPrinter(getGraphQLConfig());
+        String schemaString = printer.print(graphQLSchema);
+        LOG.info("================== Testing against: ====================");
+        LOG.info(schemaString);
+        LOG.info("========================================================");
         DataLoaderRegistry dataLoaderRegistry = bootstraped.getDataLoaderRegistry();
         this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, dataLoaderRegistry);
     }

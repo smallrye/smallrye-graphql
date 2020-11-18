@@ -5,7 +5,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.TransformInfo;
+import io.smallrye.graphql.schema.model.Transformation;
 
 /**
  * Transforms incoming {@link #in(Object)} and outgoing {@link #out(Object)} objects to correct types and formats.
@@ -51,11 +51,11 @@ public interface Transformer<IN, OUT> {
     }
 
     static Transformer transformer(Field field) {
-        if (field.hasTransformInfo()) {
-            TransformInfo format = field.getTransformInfo();
-            if (format.getType().equals(TransformInfo.Type.NUMBER)) {
+        if (field.hasTransformation()) {
+            Transformation format = field.getTransformation();
+            if (format.getType().equals(Transformation.Type.NUMBER)) {
                 return new FormattedNumberTransformer(field);
-            } else if (format.getType().equals(TransformInfo.Type.DATE)) {
+            } else if (format.getType().equals(Transformation.Type.DATE)) {
                 return dateTransformer(field);
             }
         } else if (Classes.isDateLikeType(field.getReference().getClassName())) {

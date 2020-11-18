@@ -12,15 +12,15 @@ import io.smallrye.graphql.execution.datafetcher.helper.PartialResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.DataFetcherService;
+import io.smallrye.graphql.spi.WrapperHandlerService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
- * An Abstract data fetcher than implements some of the common methods
+ * An Abstract handler that implements some of the common methods
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public abstract class AbstractDataFetcherService implements DataFetcherService {
+public abstract class AbstractWrapperHandlerService implements WrapperHandlerService {
     protected Operation operation;
     protected FieldHelper fieldHelper;
     protected ReflectionHelper reflectionHelper;
@@ -30,7 +30,8 @@ public abstract class AbstractDataFetcherService implements DataFetcherService {
     protected BatchLoaderHelper batchLoaderHelper;
 
     @Override
-    public void init(Operation operation, Config config) {
+    public void initDataFetcher(Operation operation, Config config) {
+        this.operation = operation;
         this.eventEmitter = EventEmitter.getInstance(config);
         this.fieldHelper = new FieldHelper(operation);
         this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
@@ -40,7 +41,7 @@ public abstract class AbstractDataFetcherService implements DataFetcherService {
     }
 
     @Override
-    public <T> T get(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder) throws Exception {
+    public <T> T getData(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder) throws Exception {
         eventEmitter.fireBeforeDataFetch();
 
         try {

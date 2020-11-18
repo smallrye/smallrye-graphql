@@ -47,15 +47,15 @@ public class MetricTest {
     @InSequence(99)
     public void verifyMetricsAreRegisteredEagerly() {
         SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Query"), new Tag("name", "get")));
+                new Tag("type", "QUERY"), new Tag("name", "get"), new Tag("source", "false")));
         Assert.assertNotNull("Metric should be registered eagerly (Query)", metricForHelloQuery);
 
         SimpleTimer metricForMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Mutation"), new Tag("name", "mutate")));
+                new Tag("type", "MUTATION"), new Tag("name", "mutate"), new Tag("source", "false")));
         Assert.assertNotNull("Metric should be registered eagerly (Mutation)", metricForMutation);
 
         SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Source"), new Tag("name", "description")));
+                new Tag("type", "QUERY"), new Tag("name", "description"), new Tag("source", "true")));
         Assert.assertNotNull("Metric should be registered eagerly (Source)", metricForSource);
     }
 
@@ -75,21 +75,21 @@ public class MetricTest {
     @InSequence(101)
     public void verifyMetricsAreUpdated() {
         SimpleTimer metricForGetQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Query"), new Tag("name", "get")));
+                new Tag("type", "QUERY"), new Tag("name", "get"), new Tag("source", "false")));
         Assert.assertEquals("The 'get' query was called three times, this should be reflected in metric value",
                 3, metricForGetQuery.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
                 metricForGetQuery.getElapsedTime().toNanos() > 0);
 
         SimpleTimer metricForMutation = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Mutation"), new Tag("name", "mutate")));
+                new Tag("type", "MUTATION"), new Tag("name", "mutate"), new Tag("source", "false")));
         Assert.assertEquals("The query was called twice, this should be reflected in metric value",
                 2, metricForMutation.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
                 metricForMutation.getElapsedTime().toNanos() > 0);
 
         SimpleTimer metricForSource = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
-                new Tag("type", "Source"), new Tag("name", "description")));
+                new Tag("type", "QUERY"), new Tag("name", "description"), new Tag("source", "true")));
         Assert.assertEquals("The get{description} query was called once, this should be reflected in metric value",
                 1, metricForSource.getCount());
         Assert.assertTrue("Total elapsed time for query should be greater than zero",

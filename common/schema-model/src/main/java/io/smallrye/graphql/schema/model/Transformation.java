@@ -11,17 +11,17 @@ import java.io.Serializable;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class TransformInfo implements Serializable {
+public class Transformation implements Serializable {
 
     private String format;
     private String locale;
     private Type type;
     private boolean jsonB; // If the transformation can happen with JsonB
 
-    public TransformInfo() {
+    public Transformation() {
     }
 
-    public TransformInfo(Type type,
+    public Transformation(Type type,
             String format,
             String locale,
             boolean jsonB) {

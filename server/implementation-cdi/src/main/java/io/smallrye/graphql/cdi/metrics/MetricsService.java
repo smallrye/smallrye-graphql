@@ -75,14 +75,16 @@ public class MetricsService implements EventingService {
     private Tag[] getTags(Context context) {
         return new Tag[] {
                 new Tag("name", context.getFieldName()),
-                new Tag("type", context.getOperationType().toString())
+                new Tag("type", context.getOperationType()),
+                new Tag("source", String.valueOf(context.getSource() != null))
         };
     }
 
     private Tag[] getTags(Operation operation) {
         return new Tag[] {
                 new Tag("name", operation.getName()),
-                new Tag("type", operation.getOperationType().toString())
+                new Tag("type", operation.getOperationType().toString()),
+                new Tag("source", String.valueOf(operation.isSourceField()))
         };
     }
 

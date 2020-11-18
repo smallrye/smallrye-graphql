@@ -1,0 +1,40 @@
+{
+  "data": {
+    "asyncSources": [
+      {
+        "simpleField": "Some String",
+        "asyncStrings": "Some String1",
+        "asyncNonNullString": "asyncNonNullString",
+        "asyncLocalDate": "2006-01-02",
+        "asyncFormattedLocalDate": "01/02/2006",
+        "asyncList": [
+          1,
+          2,
+          3
+        ],
+        "asyncListBatch": [
+            1,
+            2,
+            3
+        ]
+      },
+      {
+        "simpleField": "Some String",
+        "asyncStrings": "Some String2",
+        "asyncNonNullString": "asyncNonNullString",
+        "asyncLocalDate": "2006-01-02",
+        "asyncFormattedLocalDate": "01/02/2006",
+        "asyncList": [
+          1,
+          2,
+          3
+        ],
+        "asyncListBatch": [
+            1,
+            2,
+            3
+        ]
+      }
+    ]
+  }
+}

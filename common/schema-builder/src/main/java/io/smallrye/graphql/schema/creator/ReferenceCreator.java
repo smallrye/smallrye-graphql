@@ -25,7 +25,7 @@ import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
-import io.smallrye.graphql.schema.model.MappingInfo;
+import io.smallrye.graphql.schema.model.Mapping;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
@@ -231,8 +231,8 @@ public class ReferenceCreator {
 
         // Map to Scalar info
         boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotationsForClass);
-        Optional<MappingInfo> mapping = MappingHelper.getMapping(reference, annotationsForClass);
-        reference.setMappingInfo(mapping.orElse(null));
+        Optional<Mapping> mapping = MappingHelper.getMapping(reference, annotationsForClass);
+        reference.setMapping(mapping.orElse(null));
 
         // Now add it to the correct map
         if (shouldCreateType && createType) {

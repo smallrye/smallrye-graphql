@@ -44,14 +44,6 @@ public interface Context {
     public static final String OPERATION_NAME = "operationName";
     public static final String VARIABLES = "variables";
 
-    public enum OperationType {
-        Query,
-        Mutation,
-        Source,
-        SourceList,
-        Subscription
-    }
-
     /**
      * Get the full body of the request.
      * This includes the query, variables and operation name
@@ -136,7 +128,7 @@ public interface Context {
      * @param name the argument name
      * @return true if there
      */
-    public boolean hasArgument(String name);
+    public Boolean hasArgument(String name);
 
     /**
      * Get the argument using a name
@@ -201,9 +193,9 @@ public interface Context {
      * Return the current type (Query, Mutation ext)
      * Current type means the type currently being executed.
      * 
-     * @return enum that indicate the operation type
+     * @return name of the operation type
      */
-    public OperationType getOperationType();
+    public String getOperationType();
 
     /**
      * Return all the operation types requested (unique list)
@@ -213,7 +205,7 @@ public interface Context {
      * 
      * @return
      */
-    public List<OperationType> getRequestedOperationTypes();
+    public List<String> getRequestedOperationTypes();
 
     /**
      * Return the type name of the parent (if any)

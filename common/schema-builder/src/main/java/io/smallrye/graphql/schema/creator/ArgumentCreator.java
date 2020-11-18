@@ -16,7 +16,7 @@ import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.OperationType;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 
 /**
@@ -35,12 +35,12 @@ public class ArgumentCreator {
     /**
      * Create an argument model. Arguments exist on Operations as input parameters
      * 
-     * @param operationType The operation type
+     * @param operation The operation
      * @param methodInfo the operation method
      * @param position the argument position
      * @return an Argument
      */
-    public Optional<Argument> createArgument(OperationType operationType, MethodInfo methodInfo, short position) {
+    public Optional<Argument> createArgument(Operation operation, MethodInfo methodInfo, short position) {
         if (position >= methodInfo.parameters().size()) {
             throw new SchemaBuilderException(
                     "Can not create argument for parameter [" + position + "] "
@@ -64,7 +64,7 @@ public class ArgumentCreator {
                     argumentType);
 
             Reference reference;
-            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
+            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
                 reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
             } else {
                 reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
@@ -82,18 +82,18 @@ public class ArgumentCreator {
                 argument.setNotNull(true);
             }
 
-            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operationType)) {
+            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
                 argument.setSourceArgument(true);
             }
 
-            // Array
-            argument.setArray(ArrayCreator.createArray(argumentType).orElse(null));
+            // Wrapper
+            argument.setWrapper(WrapperCreator.createWrapper(argumentType).orElse(null));
 
             // TransformInfo
-            argument.setTransformInfo(FormatHelper.getFormat(argumentType, annotationsForThisArgument).orElse(null));
+            argument.setTransformation(FormatHelper.getFormat(argumentType, annotationsForThisArgument).orElse(null));
 
             // MappingInfo
-            argument.setMappingInfo(MappingHelper.getMapping(argument, annotationsForThisArgument).orElse(null));
+            argument.setMapping(MappingHelper.getMapping(argument, annotationsForThisArgument).orElse(null));
 
             // Default Value
             argument.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForThisArgument).orElse(null));
@@ -111,8 +111,8 @@ public class ArgumentCreator {
      * @return
      */
     private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
-            OperationType operationType) {
-        return operationType.equals(OperationType.Source) &&
+            Operation operation) {
+        return operation.isSourceField() &&
                 annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 

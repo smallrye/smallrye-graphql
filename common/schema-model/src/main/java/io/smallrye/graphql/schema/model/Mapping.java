@@ -10,15 +10,15 @@ import java.io.Serializable;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class MappingInfo implements Serializable {
+public class Mapping implements Serializable {
 
     private Reference reference;
     private Create create = Create.NONE;
 
-    public MappingInfo() {
+    public Mapping() {
     }
 
-    public MappingInfo(Reference reference) {
+    public Mapping(Reference reference) {
         this.reference = reference;
     }
 

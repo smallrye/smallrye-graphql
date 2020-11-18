@@ -11,7 +11,7 @@ import org.jboss.jandex.Type;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.MappingInfo;
+import io.smallrye.graphql.schema.model.Mapping;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
@@ -36,7 +36,7 @@ public class MappingHelper {
      * @param annotations the annotations
      * @return Potentially a MappingInfo model
      */
-    public static Optional<MappingInfo> getMapping(Field field, Annotations annotations) {
+    public static Optional<Mapping> getMapping(Field field, Annotations annotations) {
         return getMapping(field.getReference(), annotations);
     }
 
@@ -46,12 +46,12 @@ public class MappingHelper {
      * @param annotations the annotations
      * @return Potentially a MappingInfo model
      */
-    public static Optional<MappingInfo> getMapping(Reference r, Annotations annotations) {
+    public static Optional<Mapping> getMapping(Reference r, Annotations annotations) {
         Type type = getMapTo(annotations);
         if (type != null) {
             String scalarName = getScalarName(type);
             Reference reference = Scalars.getScalar(scalarName);
-            MappingInfo mappingInfo = new MappingInfo(reference);
+            Mapping mappingInfo = new Mapping(reference);
             // Check the way to create this.
             String className = r.getClassName();
             if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
@@ -63,18 +63,18 @@ public class MappingHelper {
                     // Check if we can use a constructor
                     MethodInfo constructor = classInfo.method(CONTRUCTOR_METHOD_NAME, parameter);
                     if (constructor != null) {
-                        mappingInfo.setCreate(MappingInfo.Create.CONSTRUCTOR);
+                        mappingInfo.setCreate(Mapping.Create.CONSTRUCTOR);
                     } else {
                         // Check if we can use setValue
                         MethodInfo setValueMethod = classInfo.method("setValue", parameter);
                         if (setValueMethod != null) {
-                            mappingInfo.setCreate(MappingInfo.Create.SET_VALUE);
+                            mappingInfo.setCreate(Mapping.Create.SET_VALUE);
                         } else {
                             // Check if we can use static fromXXXXX
                             String staticFromMethodName = "from" + scalarName;
                             MethodInfo staticFromMethod = classInfo.method(staticFromMethodName, parameter);
                             if (staticFromMethod != null) {
-                                mappingInfo.setCreate(MappingInfo.Create.STATIC_FROM);
+                                mappingInfo.setCreate(Mapping.Create.STATIC_FROM);
                             }
                         }
                     }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
@@ -66,14 +67,12 @@ public abstract class AbstractHelper {
 
         String expectedType = field.getReference().getClassName();
 
-        if (field.hasArray()) {
-            // First handle the array if this is an array
-            if (field.getArray().getType().equals(io.smallrye.graphql.schema.model.Array.Type.ARRAY)) {
-                return recursiveTransformArray(inputValue, field);
-            } else {
-                return recursiveTransformCollection(inputValue, field);
-            }
-        } else if (Classes.isOptional(expectedType)) {
+        // First handle the array if this is an array
+        if (field.hasWrapper() && field.getWrapper().isArray()) {
+            return recursiveTransformArray(inputValue, field);
+        } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
+            return recursiveTransformCollection(inputValue, field);
+        } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
             // Also handle optionals
             return recursiveTransformOptional(inputValue, field);
         } else {
@@ -100,16 +99,11 @@ public abstract class AbstractHelper {
         }
 
         String expectedType = field.getReference().getClassName();
-        if (field.hasArray()) {
-            // First handle the array if this is an array
-            if (field.getArray().getType().equals(io.smallrye.graphql.schema.model.Array.Type.ARRAY)) {
-
-                return recursiveMappingArray(inputValue, field);
-            } else {
-                return recursiveMappingCollection(inputValue, field);
-            }
-        } else if (Classes.isOptional(expectedType)) {
-            // Also handle optionals
+        if (field.hasWrapper() && field.getWrapper().isArray()) {
+            return recursiveMappingArray(inputValue, field);
+        } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
+            return recursiveMappingCollection(inputValue, field);
+        } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
             return recursiveMappingOptional(inputValue, field);
         } else {
             // we need to transform before we make sure the type is correct
@@ -207,7 +201,7 @@ public abstract class AbstractHelper {
     private Object recursiveTransformCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
 
-        String collectionClassName = field.getArray().getClassName();
+        String collectionClassName = field.getWrapper().getWrapperClassName();
 
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
 
@@ -231,7 +225,7 @@ public abstract class AbstractHelper {
      */
     private Object recursiveMappingCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
-        String collectionClassName = field.getArray().getClassName();
+        String collectionClassName = field.getWrapper().getWrapperClassName();
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
 
         for (Object objectInGivenCollection : givenCollection) {
@@ -302,26 +296,23 @@ public abstract class AbstractHelper {
         child.setNotNull(owner.isNotNull());
 
         // transform info
-        child.setTransformInfo(owner.getTransformInfo());
+        child.setTransformation(owner.getTransformation());
         // mapping info
-        child.setMappingInfo(owner.getMappingInfo());
+        child.setMapping(owner.getMapping());
         // default value
         child.setDefaultValue(owner.getDefaultValue());
 
         // array
-        if (owner.hasArray()) {
-            io.smallrye.graphql.schema.model.Array ownerArray = owner.getArray();
+        if (owner.hasWrapper()) {
+            Wrapper ownerWrapper = owner.getWrapper();
 
-            int depth = ownerArray.getDepth() - 1;
+            int depth = ownerWrapper.getDepth() - 1;
             if (depth > 0) {
                 // We still not at the end
-                io.smallrye.graphql.schema.model.Array childArray = new io.smallrye.graphql.schema.model.Array(
-                        ownerArray.getClassName(),
-                        ownerArray.getType(), depth);
-                child.setArray(childArray);
+                Wrapper childWrapper = ownerWrapper.getWrapper();
+                child.setWrapper(childWrapper);
             }
         }
-
         return child;
 
     }

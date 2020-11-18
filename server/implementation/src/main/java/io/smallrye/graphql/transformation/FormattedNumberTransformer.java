@@ -7,7 +7,7 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.TransformInfo;
+import io.smallrye.graphql.schema.model.Transformation;
 
 /**
  * Parses and formats numbers in the needed format.
@@ -20,11 +20,11 @@ public class FormattedNumberTransformer implements Transformer<Number, String> {
 
     protected FormattedNumberTransformer(Field field) {
         this.numberTransformer = new NumberTransformer(field);
-        this.numberFormat = getNumberFormat(field.getTransformInfo());
+        this.numberFormat = getNumberFormat(field.getTransformation());
         numberFormat.setParseBigDecimal(true);
     }
 
-    private DecimalFormat getNumberFormat(TransformInfo formatter) {
+    private DecimalFormat getNumberFormat(Transformation formatter) {
         String format = formatter.getFormat();
         String locale = formatter.getLocale();
 

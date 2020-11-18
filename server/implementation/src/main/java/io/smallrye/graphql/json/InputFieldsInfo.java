@@ -28,13 +28,13 @@ public class InputFieldsInfo {
             Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
                 // See if there is a transformation
-                if (field.hasTransformInfo()
-                        && !field.getTransformInfo().isJsonB()) {
+                if (field.hasTransformation()
+                        && !field.getTransformation().isJsonB()) {
                     fieldsThatNeedsTransformation.put(field.getName(), field);
                 }
 
                 // See if there is a mapping
-                if (field.hasMappingInfo() || field.getReference().hasMappingInfo()) {
+                if (field.hasMapping() || field.getReference().hasMapping()) {
                     fieldsThatNeedsMapping.putIfAbsent(field.getName(), field);
                 }
             }

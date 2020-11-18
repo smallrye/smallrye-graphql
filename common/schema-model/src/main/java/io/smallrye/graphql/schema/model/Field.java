@@ -13,17 +13,49 @@ import java.io.Serializable;
  */
 public class Field implements Serializable {
 
-    private String methodName; // This is the java method name (getter/setter/operation)
-    private String propertyName; // This is the java property name (i.e without get/set/is)
-    private String name;
-    private String description;
-    private Reference reference; // The type of this field.
+    /**
+     * This is the java method name (getter/setter/operation)
+     */
+    private String methodName;
 
-    private boolean notNull = false;
-    private Array array = null; // If this is a collection
-    private TransformInfo transformInfo = null; // If the field should be transformed
-    private MappingInfo mappingInfo = null; // If the field is mapped to another type
+    /**
+     * This is the java property name (i.e without get/set/is)
+     */
+    private String propertyName;
+
+    /**
+     * This is the GraphQL Name in the schema
+     */
+    private String name;
+
+    /**
+     * This is the description in the GraphQL Schema
+     */
+    private String description;
+
+    /**
+     * The type of this field.
+     */
+    private Reference reference;
+
+    /**
+     * If this is wrapped in generics or an array, this contain the info, examples are arrays, collections, async, optional or
+     * just plain generic.
+     */
+    private Wrapper wrapper = null;
+
+    /**
+     * If the field should be transformed
+     */
+    private Transformation transformation = null;
+
+    /**
+     * If the field is mapped to another type
+     */
+    private Mapping mapping = null;
+
     private String defaultValue = null;
+    private boolean notNull = false;
 
     public Field() {
     }
@@ -34,7 +66,6 @@ public class Field implements Serializable {
         this.name = name;
         this.description = description;
         this.reference = reference;
-
     }
 
     public String getMethodName() {
@@ -85,40 +116,40 @@ public class Field implements Serializable {
         this.notNull = notNull;
     }
 
-    public Array getArray() {
-        return array;
+    public Wrapper getWrapper() {
+        return wrapper;
     }
 
-    public void setArray(Array array) {
-        this.array = array;
+    public void setWrapper(Wrapper wrapper) {
+        this.wrapper = wrapper;
     }
 
-    public boolean hasArray() {
-        return this.array != null;
+    public boolean hasWrapper() {
+        return this.wrapper != null;
     }
 
-    public TransformInfo getTransformInfo() {
-        return transformInfo;
+    public Transformation getTransformation() {
+        return transformation;
     }
 
-    public void setTransformInfo(TransformInfo transformInfo) {
-        this.transformInfo = transformInfo;
+    public void setTransformation(Transformation transformation) {
+        this.transformation = transformation;
     }
 
-    public boolean hasTransformInfo() {
-        return this.transformInfo != null;
+    public boolean hasTransformation() {
+        return this.transformation != null;
     }
 
-    public MappingInfo getMappingInfo() {
-        return mappingInfo;
+    public Mapping getMapping() {
+        return mapping;
     }
 
-    public void setMappingInfo(MappingInfo mappingInfo) {
-        this.mappingInfo = mappingInfo;
+    public void setMapping(Mapping mapping) {
+        this.mapping = mapping;
     }
 
-    public boolean hasMappingInfo() {
-        return this.mappingInfo != null;
+    public boolean hasMapping() {
+        return this.mapping != null;
     }
 
     public String getDefaultValue() {

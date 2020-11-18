@@ -1,7 +1,6 @@
 package io.smallrye.graphql.cdi.tracing;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -193,15 +192,11 @@ public class TracingService implements EventingService {
         return EMPTY;
     }
 
-    private String getOperationNameString(List<Context.OperationType> types) {
-        List<String> typeStrings = new ArrayList<>();
-        for (Context.OperationType type : types) {
-            typeStrings.add(type.toString());
-        }
-        return String.join(UNDERSCORE, typeStrings);
+    private String getOperationNameString(List<String> types) {
+        return String.join(UNDERSCORE, types);
     }
 
-    private String getOperationNameString(Context.OperationType... types) {
+    private String getOperationNameString(String... types) {
         return getOperationNameString(Arrays.asList(types));
     }
 

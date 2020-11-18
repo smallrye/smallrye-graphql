@@ -9,7 +9,6 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -19,7 +18,6 @@ import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.GenericsInfo;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -39,11 +37,6 @@ public class OperationCreator {
         this.argumentCreator = argumentCreator;
     }
 
-    public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
-            final io.smallrye.graphql.schema.model.Type type) {
-        return createOperation(methodInfo, operationType, type, false);
-    }
-
     /**
      * This creates a single operation.
      * It translate to one entry under a query / mutation in the schema or
@@ -55,7 +48,7 @@ public class OperationCreator {
      * @return a Operation that defines this GraphQL Operation
      */
     public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
-            final io.smallrye.graphql.schema.model.Type type, boolean batched) {
+            final io.smallrye.graphql.schema.model.Type type) {
 
         if (!Modifier.isPublic(methodInfo.flags())) {
             throw new IllegalArgumentException(
@@ -84,7 +77,7 @@ public class OperationCreator {
                 reference,
                 operationType);
         if (type != null) {
-            operation.setContainingType(new Reference(type));
+            operation.setSourceFieldOn(new Reference(type));
         }
 
         // NotNull
@@ -92,19 +85,14 @@ public class OperationCreator {
             operation.setNotNull(true);
         }
 
-        // Array
-        operation.setArray(ArrayCreator.createArray(fieldType, batched).orElse(null));
-
-        // GenericsInfo
-        if (Classes.isParameterized(fieldType)) {
-            operation.setGenericsInfo(new GenericsInfo(fieldType.name().toString()));
-        }
+        // Wrapper
+        operation.setWrapper(WrapperCreator.createWrapper(fieldType).orElse(null));
 
         // TransformInfo
-        operation.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));
+        operation.setTransformation(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));
 
         // MappingInfo
-        operation.setMappingInfo(MappingHelper.getMapping(operation, annotationsForMethod).orElse(null));
+        operation.setMapping(MappingHelper.getMapping(operation, annotationsForMethod).orElse(null));
 
         // Default Value
         operation.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
@@ -112,7 +100,7 @@ public class OperationCreator {
         // Arguments
         List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
-            Optional<Argument> maybeArgument = argumentCreator.createArgument(operationType, methodInfo, i);
+            Optional<Argument> maybeArgument = argumentCreator.createArgument(operation, methodInfo, i);
             maybeArgument.ifPresent(operation::addArgument);
         }
 
@@ -150,9 +138,9 @@ public class OperationCreator {
     }
 
     private static DotName getOperationAnnotation(OperationType operationType) {
-        if (operationType.equals(OperationType.Query)) {
+        if (operationType.equals(OperationType.QUERY)) {
             return Annotations.QUERY;
-        } else if (operationType.equals(OperationType.Mutation)) {
+        } else if (operationType.equals(OperationType.MUTATION)) {
             return Annotations.MUTATION;
         }
         return null;
@@ -160,9 +148,9 @@ public class OperationCreator {
 
     private static String getDefaultExecutionTypeName(MethodInfo methodInfo, OperationType operationType) {
         String methodName = methodInfo.name();
-        if (operationType.equals(OperationType.Query) || operationType.equals(OperationType.Source)) {
+        if (operationType.equals(OperationType.QUERY)) {
             methodName = MethodHelper.getPropertyName(Direction.OUT, methodName);
-        } else if (operationType.equals(OperationType.Mutation)) {
+        } else if (operationType.equals(OperationType.MUTATION)) {
             methodName = MethodHelper.getPropertyName(Direction.IN, methodName);
         }
         return methodName;
