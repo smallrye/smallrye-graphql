@@ -26,14 +26,14 @@ public class DescriptionHelper {
      * @return the optional description
      */
     public static Optional<String> getDescriptionForField(Annotations annotations, Type type) {
-        if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
+        if (Classes.isDateLikeTypeOrContainedIn(type)) {
             String dateFormat = FormatHelper.getDateFormatString(annotations, type);
             if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {
                 return Optional.of(getGivenDescription(annotations) + " (" + dateFormat + ")");
             } else {
                 return Optional.of(dateFormat);
             }
-        } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
+        } else if (Classes.isNumberLikeTypeOrContainedIn(type)) {
             Optional<String> numberFormat = FormatHelper.getNumberFormatString(annotations);
             if (numberFormat.isPresent()) {
                 if (annotations.containsKeyAndValidValue(Annotations.DESCRIPTION)) {

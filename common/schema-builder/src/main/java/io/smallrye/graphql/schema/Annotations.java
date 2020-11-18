@@ -50,7 +50,7 @@ public class Annotations {
         }
 
         final Type type = methodInfo.returnType();
-        if (Classes.isAsyncType(type)) {
+        if (Classes.isParameterized(type)) {
             Type wrappedType = type.asParameterizedType().arguments().get(0);
             for (final AnnotationInstance annotationInstance : wrappedType.annotations()) {
                 DotName name = annotationInstance.name();
@@ -485,6 +485,6 @@ public class Annotations {
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
-    // TODO: Also supprot OpenAPI Schema ??
+    // TODO: Also support OpenAPI Schema ??
 
 }

@@ -11,9 +11,20 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -29,6 +40,10 @@ import org.jboss.jandex.Type;
 public class Classes {
 
     private Classes() {
+    }
+
+    public static boolean isWrapper(Type type) {
+        return isParameterized(type) || isArray(type);
     }
 
     /**
@@ -81,8 +96,8 @@ public class Classes {
      * @param type the type to check
      * @return true if it is
      */
-    public static boolean isNumberLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type, BYTE, BYTE_PRIMATIVE, SHORT, SHORT_PRIMATIVE, INTEGER, INTEGER_PRIMATIVE,
+    public static boolean isNumberLikeTypeOrContainedIn(Type type) {
+        return isTypeOrContainedIn(type, BYTE, BYTE_PRIMATIVE, SHORT, SHORT_PRIMATIVE, INTEGER, INTEGER_PRIMATIVE,
                 BIG_INTEGER, DOUBLE, DOUBLE_PRIMATIVE, BIG_DECIMAL, LONG, LONG_PRIMATIVE, FLOAT, FLOAT_PRIMATIVE);
     }
 
@@ -92,21 +107,21 @@ public class Classes {
      * @param type the type to check
      * @return true if it is
      */
-    public static boolean isDateLikeTypeOrCollectionThereOf(Type type) {
-        return isTypeOrCollectionThereOf(type, LOCALDATE, LOCALTIME, LOCALDATETIME, ZONEDDATETIME, OFFSETDATETIME, OFFSETTIME,
+    public static boolean isDateLikeTypeOrContainedIn(Type type) {
+        return isTypeOrContainedIn(type, LOCALDATE, LOCALTIME, LOCALDATETIME, ZONEDDATETIME, OFFSETDATETIME, OFFSETTIME,
                 UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME);
     }
 
-    private static boolean isTypeOrCollectionThereOf(Type type, DotName... valid) {
+    private static boolean isTypeOrContainedIn(Type type, DotName... valid) {
         switch (type.kind()) {
             case PARAMETERIZED_TYPE:
-                // Collections
+                // Container
                 Type typeInCollection = type.asParameterizedType().arguments().get(0);
-                return isTypeOrCollectionThereOf(typeInCollection, valid);
+                return isTypeOrContainedIn(typeInCollection, valid);
             case ARRAY:
                 // Array
                 Type typeInArray = type.asArrayType().component();
-                return isTypeOrCollectionThereOf(typeInArray, valid);
+                return isTypeOrContainedIn(typeInArray, valid);
             default:
                 for (DotName dotName : valid) {
                     if (type.name().toString().equals(dotName.toString())) {
@@ -117,7 +132,8 @@ public class Classes {
         }
     }
 
-    public static boolean isAsyncType(Type type) {
+    @Deprecated
+    private static boolean isAsyncType(Type type) {
         return type.name().equals(COMPLETABLE_FUTURE) || type.name().equals(COMPLETION_STAGE);
     }
 
@@ -127,8 +143,19 @@ public class Classes {
      * @param type to check
      * @return if this is a collection or array
      */
+    @Deprecated
     public static boolean isCollectionOrArray(Type type) {
         return type.kind().equals(Type.Kind.ARRAY) || isCollection(type);
+    }
+
+    /**
+     * Return true if this is an array
+     * 
+     * @param type
+     * @return
+     */
+    public static boolean isArray(Type type) {
+        return type.kind().equals(Type.Kind.ARRAY);
     }
 
     /**
@@ -150,15 +177,16 @@ public class Classes {
                     throw new RuntimeException("Info not found in Jandex index nor classpath for class name:" + type.name());
                 }
             }
-            if (clazz.name().equals(COLLECTION)) {
+            if (KNOWN_COLLECTIONS.contains(clazz.name())) {
                 return true;
             }
 
             // we have to go recursively over all super-interfaces as Jandex provides only direct interfaces
             // implemented in the class itself
             for (Type intf : clazz.interfaceTypes()) {
-                if (isCollection(intf))
+                if (isCollection(intf)) {
                     return true;
+                }
             }
         }
         return false;
@@ -171,16 +199,36 @@ public class Classes {
      * @param type to be checked
      * @return true if type is unwrapped by the runtime
      */
+    @Deprecated
     public static boolean isUnwrappedType(Type type) {
         return isParameterized(type) && (isOptional(type) // Optional<>
                 || isAsyncType(type)) // CompletableFuture or CompletionStage
         ;
     }
 
+    @Deprecated
+    public static final DotName COMPLETABLE_FUTURE = DotName.createSimple(CompletableFuture.class.getName());
+    @Deprecated
+    public static final DotName COMPLETION_STAGE = DotName.createSimple(CompletionStage.class.getName());
+
     public static final DotName COLLECTION = DotName.createSimple(Collection.class.getName());
+    public static final DotName LIST = DotName.createSimple(List.class.getName());
+    public static final DotName LINKED_LIST = DotName.createSimple(LinkedList.class.getName());
+    public static final DotName VECTOR = DotName.createSimple(Vector.class.getName());
+    public static final DotName ARRAY_LIST = DotName.createSimple(ArrayList.class.getName());
+    public static final DotName STACK = DotName.createSimple(Stack.class.getName());
+
+    public static final DotName SET = DotName.createSimple(Set.class.getName());
+    public static final DotName HASH_SET = DotName.createSimple(HashSet.class.getName());
+    public static final DotName SORTED_SET = DotName.createSimple(SortedSet.class.getName());
+    public static final DotName TREE_SET = DotName.createSimple(TreeSet.class.getName());
+
+    public static final DotName QUEUE = DotName.createSimple(Queue.class.getName());
+    public static final DotName DEQUE = DotName.createSimple(Deque.class.getName());
+
+    public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());
 
     public static final DotName ENUM = DotName.createSimple(Enum.class.getName());
-    public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());
 
     public static final DotName LOCALDATE = DotName.createSimple(LocalDate.class.getName());
     public static final DotName LOCALDATETIME = DotName.createSimple(LocalDateTime.class.getName());
@@ -217,7 +265,19 @@ public class Classes {
     private static final DotName FLOAT = DotName.createSimple(Float.class.getName());
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
 
-    public static final DotName COMPLETABLE_FUTURE = DotName.createSimple(CompletableFuture.class.getName());
-    public static final DotName COMPLETION_STAGE = DotName.createSimple(CompletionStage.class.getName());
-
+    private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
+    static {
+        KNOWN_COLLECTIONS.add(COLLECTION);
+        KNOWN_COLLECTIONS.add(LIST);
+        KNOWN_COLLECTIONS.add(LINKED_LIST);
+        KNOWN_COLLECTIONS.add(VECTOR);
+        KNOWN_COLLECTIONS.add(ARRAY_LIST);
+        KNOWN_COLLECTIONS.add(STACK);
+        KNOWN_COLLECTIONS.add(SET);
+        KNOWN_COLLECTIONS.add(HASH_SET);
+        KNOWN_COLLECTIONS.add(SORTED_SET);
+        KNOWN_COLLECTIONS.add(TREE_SET);
+        KNOWN_COLLECTIONS.add(QUEUE);
+        KNOWN_COLLECTIONS.add(DEQUE);
+    }
 }

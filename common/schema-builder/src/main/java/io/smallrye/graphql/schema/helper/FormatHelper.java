@@ -8,7 +8,7 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
-import io.smallrye.graphql.schema.model.TransformInfo;
+import io.smallrye.graphql.schema.model.Transformation;
 
 /**
  * Helping with formats of dates and Numbers
@@ -38,10 +38,10 @@ public class FormatHelper {
      * @param annotations the annotations
      * @return Potentially a TransformInfo model
      */
-    public static Optional<TransformInfo> getFormat(Type type, Annotations annotations) {
-        if (Classes.isDateLikeTypeOrCollectionThereOf(type)) {
+    public static Optional<Transformation> getFormat(Type type, Annotations annotations) {
+        if (Classes.isDateLikeTypeOrContainedIn(type)) {
             return getDateFormat(annotations);
-        } else if (Classes.isNumberLikeTypeOrCollectionThereOf(type)) {
+        } else if (Classes.isNumberLikeTypeOrContainedIn(type)) {
             return getNumberFormat(annotations);
         }
         return Optional.empty();
@@ -86,7 +86,7 @@ public class FormatHelper {
         }
     }
 
-    private static Optional<TransformInfo> getNumberFormat(Annotations annotations) {
+    private static Optional<Transformation> getNumberFormat(Annotations annotations) {
         if (annotations != null) {
             Optional<AnnotationInstance> numberFormatAnnotation = getNumberFormatAnnotation(annotations);
             if (numberFormatAnnotation.isPresent()) {
@@ -96,12 +96,12 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    private static Optional<TransformInfo> getNumberFormat(AnnotationInstance annotationInstance) {
+    private static Optional<Transformation> getNumberFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(
-                    TransformInfo.Type.NUMBER,
+            return Optional.of(new Transformation(
+                    Transformation.Type.NUMBER,
                     format,
                     locale,
                     isJsonB(annotationInstance)));
@@ -109,7 +109,7 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    private static Optional<TransformInfo> getDateFormat(Annotations annotations) {
+    private static Optional<Transformation> getDateFormat(Annotations annotations) {
         if (annotations != null) {
             Optional<AnnotationInstance> dateFormatAnnotation = getDateFormatAnnotation(annotations);
             if (dateFormatAnnotation.isPresent()) {
@@ -119,12 +119,12 @@ public class FormatHelper {
         return Optional.empty();
     }
 
-    private static Optional<TransformInfo> getDateFormat(AnnotationInstance annotationInstance) {
+    private static Optional<Transformation> getDateFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
             String locale = getStringValue(annotationInstance, LOCALE);
-            return Optional.of(new TransformInfo(
-                    TransformInfo.Type.DATE,
+            return Optional.of(new Transformation(
+                    Transformation.Type.DATE,
                     format,
                     locale,
                     isJsonB(annotationInstance)));

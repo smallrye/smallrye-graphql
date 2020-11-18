@@ -16,7 +16,7 @@ import io.smallrye.graphql.schema.model.Operation;
 public class BatchLoaderHelper {
 
     public String getName(Operation operation) {
-        return operation.getContainingType().getName() + "_" + operation.getName();
+        return operation.getSourceFieldOn().getName() + "_" + operation.getName();
     }
 
     public Object[] getArguments(List<Object> keys, BatchLoaderEnvironment ble) {

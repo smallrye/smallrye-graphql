@@ -30,7 +30,7 @@ public class OperationCreatorTest {
         MethodInfo method = classByName.method("nonPublicQuery");
 
         try {
-            operationCreator().createOperation(method, OperationType.Query, null);
+            operationCreator().createOperation(method, OperationType.QUERY, null);
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -43,7 +43,7 @@ public class OperationCreatorTest {
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(TestApi.class.getName()));
         MethodInfo method = classByName.method("publicQuery");
 
-        final Operation operation = operationCreator().createOperation(method, OperationType.Query, null);
+        final Operation operation = operationCreator().createOperation(method, OperationType.QUERY, null);
 
         assertEquals("publicQuery", operation.getName());
     }

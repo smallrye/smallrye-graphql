@@ -30,10 +30,6 @@ public class Classes {
     private Classes() {
     }
 
-    public static boolean isOptional(String className) {
-        return className.equals(OPTIONAL);
-    }
-
     public static boolean isUUID(String className) {
         return className.equals(UUID);
     }

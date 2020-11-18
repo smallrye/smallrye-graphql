@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.TransformInfo;
+import io.smallrye.graphql.schema.model.Transformation;
 
 /**
  * Handles date and time-types from {@linkplain java.time}.
@@ -34,7 +34,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
     private final String targetClassName;
 
     public DateTransformer(final Field field, final String targetClassName) {
-        this.dateTimeFormatter = getDateFormat(field.getTransformInfo(), targetClassName);
+        this.dateTimeFormatter = getDateFormat(field.getTransformation(), targetClassName);
         this.targetClassName = targetClassName;
     }
 
@@ -71,7 +71,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         return defaultFormatter;
     }
 
-    private static DateTimeFormatter getDateFormat(TransformInfo formatter, String className) {
+    private static DateTimeFormatter getDateFormat(Transformation formatter, String className) {
         if (formatter != null) {
             String format = formatter.getFormat();
             String locale = formatter.getLocale();

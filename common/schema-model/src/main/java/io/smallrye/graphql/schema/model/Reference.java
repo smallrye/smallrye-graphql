@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Represents a reference to some other type (type/input/enum/interface) This so that, as we are scanning, we can refer
- * to a type that might not exist yet All types extends this.
+ * to a type that might not exist yet. All types extends this.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -15,7 +15,7 @@ public class Reference implements Serializable {
     private String name;
     private ReferenceType type;
     private String graphQlClassName;
-    private MappingInfo mappingInfo = null; // If the type is mapped to another type
+    private Mapping mapping = null; // If the type is mapped to another type
     private Map<String, Reference> parametrizedTypeArguments;
     private boolean addParametrizedTypeNameExtension;
 
@@ -33,13 +33,13 @@ public class Reference implements Serializable {
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName,
             Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension,
-            MappingInfo mappingInfo) {
+            Mapping mapping) {
         this.className = className;
         this.name = name;
         this.type = type;
         this.graphQlClassName = graphQlClassName;
         this.parametrizedTypeArguments = parametrizedTypeArguments;
-        this.mappingInfo = mappingInfo;
+        this.mapping = mapping;
         this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
     }
 
@@ -54,7 +54,7 @@ public class Reference implements Serializable {
 
     public Reference(final Reference reference) {
         this(reference.className, reference.name, reference.type, reference.graphQlClassName,
-                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.mappingInfo);
+                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.mapping);
     }
 
     /**
@@ -113,16 +113,16 @@ public class Reference implements Serializable {
         this.graphQlClassName = graphQlClassName;
     }
 
-    public MappingInfo getMappingInfo() {
-        return mappingInfo;
+    public Mapping getMapping() {
+        return mapping;
     }
 
-    public void setMappingInfo(MappingInfo mappingInfo) {
-        this.mappingInfo = mappingInfo;
+    public void setMapping(Mapping mapping) {
+        this.mapping = mapping;
     }
 
-    public boolean hasMappingInfo() {
-        return this.mappingInfo != null;
+    public boolean hasMapping() {
+        return this.mapping != null;
     }
 
     public Map<String, Reference> getParametrizedTypeArguments() {
@@ -144,7 +144,7 @@ public class Reference implements Serializable {
     @Override
     public String toString() {
         return "Reference [className=" + className + ", name=" + name + ", type=" + type + ", graphQlClassName="
-                + graphQlClassName + ", mappingInfo=" + mappingInfo + ", addParametrizedTypeNameExtension="
+                + graphQlClassName + ", mapping=" + mapping + ", addParametrizedTypeNameExtension="
                 + addParametrizedTypeNameExtension
                 + ", parametrizedTypeArguments=" + parametrizedTypeArguments + "]";
     }

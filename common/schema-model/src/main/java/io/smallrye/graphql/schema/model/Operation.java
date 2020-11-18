@@ -14,15 +14,25 @@ import java.util.List;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Operation extends Field {
-    private String className; // Java class this is on
+    /**
+     * Java class this is on
+     */
+    private String className;
 
+    /**
+     * The arguments (if any)
+     */
     private List<Argument> arguments = new LinkedList<>();
 
+    /**
+     * Operation Type (Query/Mutation)
+     */
     private OperationType operationType;
 
-    private Reference containingType;
-
-    private GenericsInfo genericsInfo;
+    /**
+     * If this is a source fiels, the object it's on
+     */
+    private Reference sourceFieldOn = null;
 
     public Operation() {
     }
@@ -66,19 +76,15 @@ public final class Operation extends Field {
         return operationType;
     }
 
-    public Reference getContainingType() {
-        return containingType;
+    public Reference getSourceFieldOn() {
+        return sourceFieldOn;
     }
 
-    public void setContainingType(final Reference containingType) {
-        this.containingType = containingType;
+    public void setSourceFieldOn(Reference sourceFieldOn) {
+        this.sourceFieldOn = sourceFieldOn;
     }
 
-    public GenericsInfo getGenericsInfo() {
-        return genericsInfo;
-    }
-
-    public void setGenericsInfo(GenericsInfo genericsInfo) {
-        this.genericsInfo = genericsInfo;
+    public boolean isSourceField() {
+        return this.sourceFieldOn != null;
     }
 }

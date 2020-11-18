@@ -101,9 +101,12 @@ public class GenericsTest {
             String on = o.getMethodName();
             if (on.startsWith("getListOf") || on.startsWith("getArrayOf") || on.startsWith("setListOf")
                     || on.startsWith("setArrayOf")) {
-                assertTrue(o.getArray() != null, "GraphQL array have to be returned for operation named " + o.getMethodName());
+                assertTrue(o.getWrapper() != null && o.getWrapper().isCollectionOrArray(),
+                        "GraphQL array have to be returned for operation named " + o.getMethodName() + " - wrapper = "
+                                + o.getWrapper());
             } else {
-                assertTrue(o.getArray() == null, "GraphQL array MUST NOT be returned for operation named " + o.getMethodName());
+                assertTrue(o.getWrapper() == null || !o.getWrapper().isCollectionOrArray(),
+                        "GraphQL array MUST NOT be returned for operation named " + o.getMethodName());
             }
         }
 

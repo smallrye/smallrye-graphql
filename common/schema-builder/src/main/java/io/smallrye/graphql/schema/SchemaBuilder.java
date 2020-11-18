@@ -43,7 +43,7 @@ import io.smallrye.graphql.schema.model.Schema;
  * The creation of these type them self create more references to types (via Reference) that should be created and added to the
  * scheme.
  * 
- * It does above recursively until there is now more things to create.
+ * It does above recursively until there is no more things to create.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -226,14 +226,14 @@ public class SchemaBuilder {
         for (MethodInfo methodInfo : methodInfoList) {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
-                Operation query = operationCreator.createOperation(methodInfo, OperationType.Query, null);
+                Operation query = operationCreator.createOperation(methodInfo, OperationType.QUERY, null);
                 if (group.isPresent()) {
                     schema.addGroupedQuery(group.get(), query);
                 } else {
                     schema.addQuery(query);
                 }
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
-                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.Mutation, null);
+                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.MUTATION, null);
                 if (group.isPresent()) {
                     schema.addGroupedMutation(group.get(), mutation);
                 } else {

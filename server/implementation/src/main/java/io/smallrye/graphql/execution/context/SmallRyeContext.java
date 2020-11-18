@@ -93,11 +93,11 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public boolean hasArgument(String name) {
+    public Boolean hasArgument(String name) {
         if (dfe != null) {
             return dfe.containsArgument(name);
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -105,7 +105,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getArgument(name);
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getArguments();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getExecutionStepInfo().getPath().toString();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -131,7 +131,7 @@ public class SmallRyeContext implements Context {
         } else if (executionInput != null) {
             return executionInput.getExecutionId().toString();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -139,7 +139,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getField().getName();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -147,7 +147,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getSource();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -157,27 +157,27 @@ public class SmallRyeContext implements Context {
             List<SelectedField> fields = selectionSet.getFields();
             return toJsonArrayBuilder(fields, includeSourceFields).build();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
-    public OperationType getOperationType() {
+    public String getOperationType() {
         if (dfe != null) {
-            return getOperationTypeFromDefinition(dfe.getOperationDefinition(), dfe.getSource());
+            return getOperationTypeFromDefinition(dfe.getOperationDefinition());
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
-    public List<OperationType> getRequestedOperationTypes() {
-        List<OperationType> allRequestedTypes = new ArrayList<>();
+    public List<String> getRequestedOperationTypes() {
+        List<String> allRequestedTypes = new ArrayList<>();
 
         if (documentSupplier != null) {
             Document document = documentSupplier.get();
             documentSupplier = () -> document;
             List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
             for (OperationDefinition definition : definitions) {
-                OperationType operationType = getOperationTypeFromDefinition(definition);
+                String operationType = getOperationTypeFromDefinition(definition);
                 if (!allRequestedTypes.contains(operationType)) {
                     allRequestedTypes.add(operationType);
                 }
@@ -205,20 +205,8 @@ public class SmallRyeContext implements Context {
         return Optional.empty();
     }
 
-    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition) {
-        return getOperationTypeFromDefinition(definition, null);
-    }
-
-    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition, T source) {
-        if (definition.getOperation().equals(OperationDefinition.Operation.MUTATION)) {
-            return OperationType.Mutation;
-        } else if (definition.getOperation().equals(OperationDefinition.Operation.SUBSCRIPTION)) {
-            return OperationType.Subscription;
-        } else if (definition.getOperation().equals(OperationDefinition.Operation.QUERY)
-                && source != null) {
-            return OperationType.Source;
-        }
-        return OperationType.Query;
+    private String getOperationTypeFromDefinition(OperationDefinition definition) {
+        return definition.getOperation().toString();
     }
 
     private final Parser parser = new Parser();

@@ -117,19 +117,19 @@ public class TypeCreator implements Creator<Type> {
         SourceOperationHelper sourceOperationHelper = new SourceOperationHelper();
         Map<DotName, List<MethodParameterInfo>> sourceFields = sourceOperationHelper.getSourceAnnotations();
         Map<DotName, List<MethodParameterInfo>> batchedFields = sourceOperationHelper.getSourceListAnnotations();
-        type.setOperations(toOperations(sourceFields, type, classInfo, false));
-        type.setBatchOperations(toOperations(batchedFields, type, classInfo, true));
+        type.setOperations(toOperations(sourceFields, type, classInfo));
+        type.setBatchOperations(toOperations(batchedFields, type, classInfo));
     }
 
     private Map<String, Operation> toOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type,
-            ClassInfo classInfo, boolean batched) {
+            ClassInfo classInfo) {
         // See if there is source operations for this class
         Map<String, Operation> operations = new HashMap<>();
         if (sourceFields.containsKey(classInfo.name())) {
             List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
             for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
                 MethodInfo methodInfo = methodParameterInfo.method();
-                Operation o = operationCreator.createOperation(methodInfo, OperationType.Source, type, batched);
+                Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
                 operations.put(o.getName(), o);
             }
         }

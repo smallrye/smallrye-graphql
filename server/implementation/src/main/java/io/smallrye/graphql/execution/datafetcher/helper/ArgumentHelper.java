@@ -19,7 +19,7 @@ import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.MappingInfo;
+import io.smallrye.graphql.schema.model.Mapping;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -133,7 +133,7 @@ public class ArgumentHelper extends AbstractHelper {
             String expectedType = field.getReference().getClassName();
             Class<?> expectedClass = classloadingService.loadClass(expectedType);
 
-            if (getCreate(field).equals(MappingInfo.Create.CONSTRUCTOR)) {
+            if (getCreate(field).equals(Mapping.Create.CONSTRUCTOR)) {
                 // Try with contructor
                 try {
                     Constructor<?> constructor = expectedClass.getConstructor(argumentValue.getClass());
@@ -142,7 +142,7 @@ public class ArgumentHelper extends AbstractHelper {
                         | IllegalArgumentException | InvocationTargetException ex) {
                     // TODO: Log to debug ?
                 }
-            } else if (getCreate(field).equals(MappingInfo.Create.SET_VALUE)) {
+            } else if (getCreate(field).equals(Mapping.Create.SET_VALUE)) {
                 // Try with setValue
                 try {
                     // TODO: Maybe later allow annotation to indicate what method this should be ?
@@ -155,7 +155,7 @@ public class ArgumentHelper extends AbstractHelper {
                         | IllegalArgumentException | InvocationTargetException ex) {
                     // TODO: Log to debug ?
                 }
-            } else if (getCreate(field).equals(MappingInfo.Create.STATIC_FROM)) {
+            } else if (getCreate(field).equals(Mapping.Create.STATIC_FROM)) {
                 // Try with static from???
                 try {
                     String simpleClassName = argumentValue.getClass().getSimpleName();
@@ -174,18 +174,18 @@ public class ArgumentHelper extends AbstractHelper {
     }
 
     private boolean shouldApplyMapping(Field field) {
-        return field.getReference().hasMappingInfo()
-                && !field.getReference().getMappingInfo().getCreate().equals(MappingInfo.Create.NONE) ||
-                field.hasMappingInfo() && !field.getMappingInfo().getCreate().equals(MappingInfo.Create.NONE);
+        return field.getReference().hasMapping()
+                && !field.getReference().getMapping().getCreate().equals(Mapping.Create.NONE) ||
+                field.hasMapping() && !field.getMapping().getCreate().equals(Mapping.Create.NONE);
     }
 
-    private MappingInfo.Create getCreate(Field field) {
-        if (field.getReference().hasMappingInfo()) {
-            return field.getReference().getMappingInfo().getCreate();
-        } else if (field.hasMappingInfo()) {
-            return field.getMappingInfo().getCreate();
+    private Mapping.Create getCreate(Field field) {
+        if (field.getReference().hasMapping()) {
+            return field.getReference().getMapping().getCreate();
+        } else if (field.hasMapping()) {
+            return field.getMapping().getCreate();
         }
-        return MappingInfo.Create.NONE;
+        return Mapping.Create.NONE;
     }
 
     /**

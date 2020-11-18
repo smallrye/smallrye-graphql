@@ -8,7 +8,7 @@ import org.dataloader.BatchLoaderWithContext;
 
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.DataFetcherService;
+import io.smallrye.graphql.spi.WrapperHandlerService;
 
 /**
  * BatchLoader for List Source
@@ -17,16 +17,18 @@ import io.smallrye.graphql.spi.DataFetcherService;
  */
 public class SourceBatchLoader implements BatchLoaderWithContext<Object, Object> {
 
-    private final DataFetcherService dataFetcherService;
+    private final WrapperHandlerService wrapperHandlerService;
+    private final Operation operation;
 
     public SourceBatchLoader(Operation operation, Config config) {
-        this.dataFetcherService = DataFetcherService.getDataFetcherService(operation);
-        this.dataFetcherService.init(operation, config);
+        this.operation = operation;
+        this.wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(operation);
+        this.wrapperHandlerService.initDataFetcher(operation, config);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletionStage<List<Object>> load(List<Object> keys, BatchLoaderEnvironment ble) {
-        return dataFetcherService.batch(ble, keys);
+        return wrapperHandlerService.getBatchData(ble, keys);
     }
 }

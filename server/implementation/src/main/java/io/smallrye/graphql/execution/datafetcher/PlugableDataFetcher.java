@@ -7,7 +7,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.DataFetcherService;
+import io.smallrye.graphql.spi.WrapperHandlerService;
 
 /**
  * Delegate the actual fetching to a SPI implementation.
@@ -15,13 +15,13 @@ import io.smallrye.graphql.spi.DataFetcherService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class PlugableDataFetcher<T> implements DataFetcher<T> {
-    private final DataFetcherService dataFetcherService;
+    private final WrapperHandlerService dataFetcherService;
     private final Operation operation;
 
     public PlugableDataFetcher(Operation operation, Config config) {
         this.operation = operation;
-        this.dataFetcherService = DataFetcherService.getDataFetcherService(operation);
-        this.dataFetcherService.init(operation, config);
+        this.dataFetcherService = WrapperHandlerService.getWrapperHandlerService(operation);
+        this.dataFetcherService.initDataFetcher(operation, config);
     }
 
     @Override
@@ -31,6 +31,6 @@ public class PlugableDataFetcher<T> implements DataFetcher<T> {
         final GraphQLContext context = dfe.getContext();
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
 
-        return (T) dataFetcherService.get(dfe, resultBuilder);
+        return (T) dataFetcherService.getData(dfe, resultBuilder);
     }
 }

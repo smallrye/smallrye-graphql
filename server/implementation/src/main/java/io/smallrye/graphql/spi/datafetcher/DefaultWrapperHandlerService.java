@@ -8,7 +8,9 @@ import org.dataloader.BatchLoaderEnvironment;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.spi.DataFetcherService;
+import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Wrapper;
+import io.smallrye.graphql.spi.WrapperHandlerService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
@@ -16,11 +18,11 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class DefaultDataFetcherService extends AbstractDataFetcherService {
+public class DefaultWrapperHandlerService extends AbstractWrapperHandlerService {
 
     @Override
-    public DataFetcherService newInstance() {
-        return new DefaultDataFetcherService();
+    public WrapperHandlerService newInstance() {
+        return new DefaultWrapperHandlerService();
     }
 
     @Override
@@ -29,7 +31,7 @@ public class DefaultDataFetcherService extends AbstractDataFetcherService {
     }
 
     @Override
-    public String[] forClasses() {
+    public List<String> forClasses() {
         return null; // This is the default, so all non-specified classes
     }
 
@@ -48,10 +50,27 @@ public class DefaultDataFetcherService extends AbstractDataFetcherService {
     }
 
     @Override
-    public <T> CompletionStage<List<T>> batch(BatchLoaderEnvironment ble, List<Object> keys) {
+    public <T> CompletionStage<List<T>> getBatchData(BatchLoaderEnvironment ble, List<Object> keys) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         return CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments));
+    }
+
+    @Override
+    public Wrapper unwrap(Field field, boolean isBatch) {
+        if (isBatch) {
+            // Batch (by default) is a collection,
+            return field.getWrapper().getWrapper();
+        }
+
+        if (field.hasWrapper()) {
+            if (field.getWrapper().isCollectionOrArray()) {
+                return field.getWrapper();
+            } else {
+                // TODO: Move Generics logic here ?
+            }
+        }
+        return null;
     }
 
 }

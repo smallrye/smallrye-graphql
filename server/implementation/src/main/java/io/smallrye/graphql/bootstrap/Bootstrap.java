@@ -59,7 +59,6 @@ import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.Array;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
@@ -70,7 +69,9 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
+import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.spi.WrapperHandlerService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -398,7 +399,7 @@ public class Bootstrap {
                 .description(operation.getDescription());
 
         // Return field
-        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(operation));
+        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(operation, true));
 
         // Arguments
         if (operation.hasArguments()) {
@@ -423,7 +424,7 @@ public class Bootstrap {
                 .description(operation.getDescription());
 
         // Return field
-        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(operation));
+        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(operation, false));
 
         // Arguments
         if (operation.hasArguments()) {
@@ -455,7 +456,7 @@ public class Bootstrap {
                 .description(field.getDescription());
 
         // Type
-        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(field));
+        fieldBuilder = fieldBuilder.type(createGraphQLOutputType(field, false));
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
@@ -493,15 +494,18 @@ public class Bootstrap {
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
 
+        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
+        Wrapper wrapper = wrapperHandlerService.unwrap(field, false);
+
         // Collection
-        if (field.hasArray()) {
-            Array array = field.getArray();
+        if (wrapper != null && wrapper.isCollectionOrArray()) {
+
             // Mandatory in the collection
-            if (array.isNotEmpty()) {
+            if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            for (int i = 0; i < array.getDepth(); i++) {
+            for (int i = 0; i < wrapper.getDepth(); i++) {
                 graphQLInputType = GraphQLList.list(graphQLInputType);
             }
         }
@@ -514,18 +518,20 @@ public class Bootstrap {
         return graphQLInputType;
     }
 
-    private GraphQLOutputType createGraphQLOutputType(Field field) {
+    private GraphQLOutputType createGraphQLOutputType(Field field, boolean isBatch) {
         GraphQLOutputType graphQLOutputType = referenceGraphQLOutputType(field);
 
+        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
+        Wrapper wrapper = wrapperHandlerService.unwrap(field, isBatch);
+
         // Collection
-        if (field.hasArray()) {
-            Array array = field.getArray();
+        if (wrapper != null && wrapper.isCollectionOrArray()) {
             // Mandatory in the collection
-            if (array.isNotEmpty()) {
+            if (wrapper.isNotEmpty()) {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
-            for (int i = 0; i < array.getDepth(); i++) {
+            for (int i = 0; i < wrapper.getDepth(); i++) {
                 graphQLOutputType = GraphQLList.list(graphQLOutputType);
             }
         }
@@ -571,10 +577,10 @@ public class Bootstrap {
     private Reference getCorrectFieldReference(Field field) {
         // First check if this is mapped to some other type
 
-        if (field.getReference().hasMappingInfo()) { // Global
-            return field.getReference().getMappingInfo().getReference();
-        } else if (field.hasMappingInfo()) { // Per field
-            return field.getMappingInfo().getReference();
+        if (field.getReference().hasMapping()) { // Global
+            return field.getReference().getMapping().getReference();
+        } else if (field.hasMapping()) { // Per field
+            return field.getMapping().getReference();
         } else {
             return field.getReference();
         }
@@ -602,15 +608,17 @@ public class Bootstrap {
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
+        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(argument);
+        Wrapper wrapper = wrapperHandlerService.unwrap(argument, false);
+
         // Collection
-        if (argument.hasArray()) {
-            Array array = argument.getArray();
+        if (wrapper != null && wrapper.isCollectionOrArray()) {
             // Mandatory in the collection
-            if (array.isNotEmpty()) {
+            if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            for (int i = 0; i < array.getDepth(); i++) {
+            for (int i = 0; i < wrapper.getDepth(); i++) {
                 graphQLInputType = GraphQLList.list(graphQLInputType);
             }
         }
@@ -635,10 +643,13 @@ public class Bootstrap {
 
         if (isJsonString(jsonString)) {
             Class<?> type;
-            if (field.hasArray()) {
-                type = classloadingService.loadClass(field.getArray().getClassName());
+            WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
+            Wrapper wrapper = wrapperHandlerService.unwrap(field, false);
+
+            if (wrapper != null && wrapper.isCollectionOrArray()) {
+                type = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
                 if (Collection.class.isAssignableFrom(type)) {
-                    type = CollectionCreator.newCollection(field.getArray().getClassName()).getClass();
+                    type = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName()).getClass();
                 }
             } else {
                 type = classloadingService.loadClass(field.getReference().getClassName());

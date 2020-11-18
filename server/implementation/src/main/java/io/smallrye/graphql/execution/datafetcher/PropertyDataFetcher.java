@@ -2,7 +2,6 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -28,9 +27,7 @@ public class PropertyDataFetcher extends graphql.schema.PropertyDataFetcher {
     @Override
     public Object get(DataFetchingEnvironment dfe) {
 
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext src = graphQLContext.get("context");
-        src.setDataFromFetcher(dfe, field);
+        SmallRyeContext.setDataFromFetcher(dfe, field);
 
         Object resultFromMethodCall = super.get(dfe);
         try {

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.AsyncApi;
 import io.smallrye.graphql.schema.IndexCreator;
-import io.smallrye.graphql.schema.model.TransformInfo;
+import io.smallrye.graphql.schema.model.Transformation;
 
 public class FormatHelperTest {
 
@@ -28,9 +28,9 @@ public class FormatHelperTest {
 
         Annotations annotations = Annotations.getAnnotationsForMethod(nonNullString);
 
-        Optional<TransformInfo> format = FormatHelper.getFormat(type, annotations);
+        Optional<Transformation> format = FormatHelper.getFormat(type, annotations);
 
-        TransformInfo transformInfo = format.get();
+        Transformation transformInfo = format.get();
         assertEquals("yyyy-MM-dd", transformInfo.getFormat());
     }
 
@@ -44,9 +44,9 @@ public class FormatHelperTest {
 
         Annotations annotations = Annotations.getAnnotationsForMethod(nonNullString);
 
-        Optional<TransformInfo> format = FormatHelper.getFormat(type, annotations);
+        Optional<Transformation> format = FormatHelper.getFormat(type, annotations);
 
-        TransformInfo transformInfo = format.get();
+        Transformation transformInfo = format.get();
         assertEquals("yyyy-MM-dd", transformInfo.getFormat());
     }
 }

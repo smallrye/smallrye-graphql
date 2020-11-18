@@ -68,14 +68,14 @@ public class FieldCreator {
                 field.setNotNull(true);
             }
 
-            // Array
-            field.setArray(ArrayCreator.createArray(returnType).orElse(null));
+            // Wrapper
+            field.setWrapper(WrapperCreator.createWrapper(returnType).orElse(null));
 
             // TransformInfo
-            field.setTransformInfo(FormatHelper.getFormat(returnType, annotationsForMethod).orElse(null));
+            field.setTransformation(FormatHelper.getFormat(returnType, annotationsForMethod).orElse(null));
 
             // MappingInfo
-            field.setMappingInfo(MappingHelper.getMapping(field, annotationsForMethod).orElse(null));
+            field.setMapping(MappingHelper.getMapping(field, annotationsForMethod).orElse(null));
 
             // Default Value
             field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
@@ -125,14 +125,14 @@ public class FieldCreator {
                 field.setNotNull(true);
             }
 
-            // Array
-            field.setArray(ArrayCreator.createArray(fieldType, methodType).orElse(null));
+            // Wrapper
+            field.setWrapper(WrapperCreator.createWrapper(fieldType, methodType).orElse(null));
 
             // TransformInfo
-            field.setTransformInfo(FormatHelper.getFormat(methodType, annotationsForPojo).orElse(null));
+            field.setTransformation(FormatHelper.getFormat(methodType, annotationsForPojo).orElse(null));
 
             // MappingInfo
-            field.setMappingInfo(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
+            field.setMapping(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
 
             // Default Value
             field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
@@ -179,14 +179,14 @@ public class FieldCreator {
                     field.setNotNull(true);
                 }
 
-                // Array
-                field.setArray(ArrayCreator.createArray(fieldType, fieldType).orElse(null));
+                // Wrapper
+                field.setWrapper(WrapperCreator.createWrapper(fieldType).orElse(null));
 
                 // TransformInfo
-                field.setTransformInfo(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
+                field.setTransformation(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
 
                 // MappingInfo
-                field.setMappingInfo(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
+                field.setMapping(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
 
                 // Default Value
                 field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
