@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.typesafe.impl;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.isListOf;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.toMap;
 import static java.util.stream.Collectors.joining;
+import static javax.json.JsonValue.ValueType.NULL;
 import static javax.json.stream.JsonCollectors.toJsonArray;
 
 import java.io.StringReader;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonException;
 import javax.json.JsonObject;
 import javax.json.JsonPatch;
 import javax.json.JsonPointer;
@@ -67,15 +69,32 @@ public class ResultBuilder {
 
     private boolean apply(JsonValue error) {
         List<Object> path = getPath(error);
-        if (path == null)
+        if (path == null || data == null)
             return false;
-        JsonPointer pointer = Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
+        JsonPointer pointer = toPointer(path);
         JsonArrayBuilder errors = Json.createArrayBuilder();
-        if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
-            pointer.getValue(data).asJsonArray().forEach(errors::add);
+        try {
+            if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
+                pointer.getValue(data).asJsonArray().forEach(errors::add);
+        } catch (JsonException e) {
+            if (referencesNull(path, data))
+                return false;
+            throw e;
+        }
         errors.add(ERROR_MARK.apply((JsonObject) error));
         this.data = pointer.replace(data, errors.build());
         return true;
+    }
+
+    private boolean referencesNull(List<Object> path, JsonObject data) {
+        for (int i = 1; i < path.size(); i++)
+            if (toPointer(path.subList(0, i)).getValue(data).getValueType() == NULL)
+                return true;
+        return false;
+    }
+
+    private JsonPointer toPointer(List<Object> path) {
+        return Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
     }
 
     private GraphQlClientError convert(JsonValue jsonValue) {
@@ -122,6 +141,5 @@ public class ResultBuilder {
         return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
     }
 
-    private static final JsonPatch ERROR_MARK = Json.createPatchBuilder().add("/__typename", ErrorOr.class.getSimpleName())
-            .build();
+    private static final JsonPatch ERROR_MARK = Json.createPatchBuilder().add("/__typename", ErrorOr.class.getSimpleName()).build();
 }

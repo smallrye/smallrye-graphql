@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
@@ -351,5 +352,74 @@ class ErrorBehavior {
         then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
         then(error.getPath()).containsExactly("find", "findTeams");
         then(error.getErrorCode()).isEqualTo("team-search-disabled");
+    }
+
+    @GraphQlClientApi
+    interface DeepErrorApi {
+        OuterContainer outer();
+    }
+
+    static class OuterContainer {
+        InnerContainer inner;
+    }
+
+    static class InnerContainer {
+        String content;
+    }
+
+    @Test
+    void shouldFailToMapDirectNestedError() {
+        fixture.returns(deeplyNestedError("null"));
+        DeepErrorApi api = fixture.build(DeepErrorApi.class);
+
+        Throwable throwable = catchThrowable(api::outer);
+
+        thenDeeplyNestedErrorException(throwable);
+    }
+
+    @Test
+    void shouldFailToMapOuterNestedError() {
+        fixture.returns(deeplyNestedError("{\"outer\":null}"));
+        DeepErrorApi api = fixture.build(DeepErrorApi.class);
+
+        Throwable throwable = catchThrowable(api::outer);
+
+        thenDeeplyNestedErrorException(throwable);
+    }
+
+    @Test
+    void shouldFailToMapInnerNestedError() {
+        fixture.returns(deeplyNestedError("{\"outer\":{\"inner\":null}}"));
+        DeepErrorApi api = fixture.build(DeepErrorApi.class);
+
+        Throwable throwable = catchThrowable(api::outer);
+
+        thenDeeplyNestedErrorException(throwable);
+    }
+
+    private ResponseBuilder deeplyNestedError(String data) {
+        return Response.ok("{" +
+                "\"data\":" + data + "," +
+                "\"errors\":[{" +
+                /**/"\"message\":\"dummy message\"," +
+                /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
+                /**/"\"path\": [\"outer\",\"inner\",\"content\"],\n" +
+                /**/"\"extensions\":{\"code\":\"dummy-code\"}" +
+                "}]}}");
+    }
+
+    private void thenDeeplyNestedErrorException(Throwable throwable) {
+        then(throwable).isInstanceOf(GraphQlClientException.class)
+                .hasMessage("errors from service")
+                .hasToString("GraphQlClientException: errors from service\n" +
+                        "errors:\n" +
+                        "- dummy-code: [outer, inner, content] dummy message [(1:2@loc)] {code=dummy-code})");
+        List<GraphQlClientError> errors = ((GraphQlClientException) throwable).getErrors();
+        then(errors).hasSize(1);
+        GraphQlClientError error = errors.get(0);
+        then(error.getMessage()).isEqualTo("dummy message");
+        then(error.getPath()).containsExactly("outer", "inner", "content");
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        then(error.getErrorCode()).isEqualTo("dummy-code");
     }
 }
