@@ -25,7 +25,8 @@
         <version.opentracing>0.31.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
-
+        <version.graphql-java>15.0</version.graphql-java>
+        
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
     </properties>
@@ -125,6 +126,12 @@
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${version.jakarta-validation}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${version.graphql-java}</version>
             </dependency>
 
             <!-- Dependencies provided by the project -->
