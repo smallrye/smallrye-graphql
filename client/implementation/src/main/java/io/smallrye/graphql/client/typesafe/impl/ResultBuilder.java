@@ -30,13 +30,11 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
 public class ResultBuilder {
     private final MethodInvocation method;
-    private final Map<String, String> queryCache;
     private final JsonObject response;
     private JsonObject data;
 
-    public ResultBuilder(MethodInvocation method, Map<String, String> queryCache, String responseString) {
+    public ResultBuilder(MethodInvocation method, String responseString) {
         this.method = method;
-        this.queryCache = queryCache;
         this.response = Json.createReader(new StringReader(responseString)).readObject();
     }
 
@@ -141,5 +139,6 @@ public class ResultBuilder {
         return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
     }
 
-    private static final JsonPatch ERROR_MARK = Json.createPatchBuilder().add("/__typename", ErrorOr.class.getSimpleName()).build();
+    private static final JsonPatch ERROR_MARK = Json.createPatchBuilder().add("/__typename", ErrorOr.class.getSimpleName())
+            .build();
 }

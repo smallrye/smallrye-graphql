@@ -2,10 +2,12 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.reflect.Field;
 
+import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.OutputOnly;
 
 public class FieldInfo {
     private final TypeInfo container;
@@ -52,5 +54,13 @@ public class FieldInfo {
 
     public boolean isNonNull() {
         return field.isAnnotationPresent(NonNull.class) || getType().isPrimitive();
+    }
+
+    public boolean isInput() {
+        return !field.isAnnotationPresent(OutputOnly.class) && !field.isAnnotationPresent(Ignore.class);
+    }
+
+    public boolean isOutput() {
+        return !field.isAnnotationPresent(Ignore.class);
     }
 }

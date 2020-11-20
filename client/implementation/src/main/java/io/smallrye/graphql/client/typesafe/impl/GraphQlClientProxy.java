@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
+import static javax.json.JsonValue.ValueType.NULL;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
@@ -54,7 +55,7 @@ class GraphQlClientProxy {
         String response = post(request, headers);
         log.debug("response graphql: {}", response);
 
-        return new ResultBuilder(method, queryCache, response).read();
+        return new ResultBuilder(method, response).read();
     }
 
     private String request(MethodInvocation method) {
@@ -126,8 +127,16 @@ class GraphQlClientProxy {
 
     private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        fields.forEach(field -> builder.add(field.getName(), value(field.get(object))));
+        fields.forEach(field -> addInputValue(object, builder, field));
         return builder.build();
+    }
+
+    private void addInputValue(Object object, JsonObjectBuilder builder, FieldInfo field) {
+        JsonValue value = value(field.get(object));
+        if (field.isInput())
+            builder.add(field.getName(), value);
+        else if (!field.getType().isPrimitive() && value != null && value.getValueType() != NULL)
+            throw new GraphQlClientException(field + " is only allowed on output but it has a non-primitive value set");
     }
 
     private String post(String request, MultivaluedMap<String, Object> headers) {

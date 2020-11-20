@@ -62,11 +62,12 @@ class QueryBuilder {
         if (type.isCollection())
             return fields(type.getItemType());
         return type.fields()
-                .map(this::field)
+                .filter(FieldInfo::isOutput)
+                .map(this::fieldName)
                 .collect(joining(" ", " {", "}"));
     }
 
-    private String field(FieldInfo field) {
+    private String fieldName(FieldInfo field) {
         TypeInfo type = field.getType();
         if (type.isScalar() || type.isCollection() && type.getItemType().isScalar()) {
             return field.getName();

@@ -2,6 +2,7 @@ package test.unit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
@@ -78,14 +79,22 @@ class GraphQlClientFixture {
         return entitySent().getEntity().getString("query").replace('\"', '\'');
     }
 
+    boolean sent() {
+        return entitySent().getEntity() != null;
+    }
+
     private Entity<JsonObject> entitySent() {
         if (entitySent == null) {
             @SuppressWarnings("unchecked")
             ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
-            BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
-            Entity<String> stringEntity = captor.getValue();
-            JsonObject jsonObject = Json.createReader(new StringReader(stringEntity.getEntity())).readObject();
-            entitySent = Entity.entity(jsonObject, stringEntity.getMediaType());
+            BDDMockito.then(mockInvocationBuilder).should(atMost(1)).post(captor.capture());
+            if (captor.getAllValues().isEmpty()) {
+                entitySent = Entity.json(null);
+            } else {
+                Entity<String> stringEntity = captor.getValue();
+                JsonObject jsonObject = Json.createReader(new StringReader(stringEntity.getEntity())).readObject();
+                entitySent = Entity.entity(jsonObject, stringEntity.getMediaType());
+            }
         }
         return entitySent;
     }
