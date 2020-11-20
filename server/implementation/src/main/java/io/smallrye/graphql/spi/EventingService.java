@@ -1,5 +1,6 @@
 package io.smallrye.graphql.spi;
 
+import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.event.InvokeInfo;
@@ -25,6 +26,10 @@ public interface EventingService {
     }
 
     // Execution
+
+    default GraphQL.Builder beforeGraphQLBuild(GraphQL.Builder builder) {
+        return builder;
+    }
 
     default void beforeExecute(Context context) {
     }
