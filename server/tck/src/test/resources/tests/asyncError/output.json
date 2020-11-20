@@ -1,20 +1,35 @@
 {
-  "data": {
-    "asyncSource": {}
-  },
-  "errors": [
-    {
-      "message": "Some Exception",
-      "locations": [
+    "errors": [
         {
-          "line": 3,
-          "column": 5
+            "message": "Some Exception",
+            "locations": [
+                {
+                    "line": 3,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "asyncSource",
+                "asyncWithGraphQLException"
+            ]
+        },
+        {
+            "message": "Some stuff when wrong",
+            "locations": [
+                {
+                    "line": 5,
+                    "column": 3
+                }
+            ],
+            "path": [
+                "exception"
+            ]
         }
-      ],
-      "path": [
-        "asyncSource",
-        "asyncWithGraphQLException"
-      ]
+    ],
+    "data": {
+        "asyncSource": {
+            "asyncWithGraphQLException": null
+        },
+        "exception": null
     }
-  ]
 }

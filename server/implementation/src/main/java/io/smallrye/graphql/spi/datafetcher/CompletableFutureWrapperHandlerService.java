@@ -50,12 +50,12 @@ public class CompletableFutureWrapperHandlerService extends AbstractWrapperHandl
         CompletionStage<Object> futureResultFromMethodCall = reflectionHelper.invoke(transformedArguments);
 
         return (T) futureResultFromMethodCall.handle((result, throwable) -> {
-            if (throwable instanceof CompletionException) {
-                //Exception thrown by underlying method may be wrapped in CompletionException
-                throwable = throwable.getCause();
-            }
 
             if (throwable != null) {
+                if (throwable instanceof CompletionException || shouldUnwrap(throwable)) {
+                    throwable = throwable.getCause();
+                }
+
                 eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                 if (throwable instanceof GraphQLException) {
                     GraphQLException graphQLException = (GraphQLException) throwable;

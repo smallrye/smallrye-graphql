@@ -90,10 +90,16 @@ public class TracingService implements EventingService {
 
     @Override
     public void errorDataFetch(String executionId, Throwable t) {
-
         Span span = spans.get(executionId);
-        logError(span, t);
-
+        if (span == null) {
+            Scope scope = scopes.get(executionId);
+            if (scope != null && scope.span() != null) {
+                span = scope.span();
+            }
+        }
+        if (span != null) {
+            logError(span, t);
+        }
     }
 
     @Override

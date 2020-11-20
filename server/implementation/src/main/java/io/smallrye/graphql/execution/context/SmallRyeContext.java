@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -215,6 +216,7 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private volatile Supplier<Document> documentSupplier;
     private Field field;
+    private volatile Map<String, Object> metaFields = new ConcurrentHashMap<>();
 
     private SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
@@ -292,6 +294,21 @@ public class SmallRyeContext implements Context {
 
     private boolean isFlattenScalar(SelectedField field) {
         return field.getQualifiedName().contains("/");
+    }
+
+    @Override
+    public <T> void setMetaField(String identifier, T t) {
+        this.metaFields.put(QUERY, parser);
+    }
+
+    @Override
+    public <T> T getMetaField(String identifier) {
+        return (T) this.metaFields.get(identifier);
+    }
+
+    @Override
+    public <T> T removeMetaField(String identifier) {
+        return (T) this.metaFields.remove(identifier);
     }
 
     @Override

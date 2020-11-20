@@ -74,6 +74,10 @@ public interface Config {
         return FIELD_VISIBILITY_DEFAULT;
     }
 
+    default Optional<List<String>> getUnwrapExceptions() {
+        return Optional.empty();
+    }
+
     default <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
         return defaultValue;
     }

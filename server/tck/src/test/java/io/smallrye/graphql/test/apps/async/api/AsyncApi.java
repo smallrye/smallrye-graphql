@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -84,5 +85,14 @@ public class AsyncApi {
             fl.add(il);
         }
         return CompletableFuture.completedFuture(fl);
+    }
+
+    @Query
+    public CompletableFuture<AsyncSource> getException() {
+        return CompletableFuture.supplyAsync(() -> {
+            throw new CompletionException(
+                    new GraphQLException("Some stuff when wrong", new Exception(),
+                            GraphQLException.ExceptionType.DataFetchingException));
+        });
     }
 }
