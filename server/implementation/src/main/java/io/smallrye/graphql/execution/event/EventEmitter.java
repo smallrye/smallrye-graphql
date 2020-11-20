@@ -9,6 +9,7 @@ import java.util.ServiceLoader;
 
 import org.jboss.logging.Logger;
 
+import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
@@ -102,6 +103,19 @@ public class EventEmitter {
         for (EventingService extensionService : enabledServices) {
             extensionService.afterDataFetch(context);
         }
+    }
+
+    /**
+     * This gets fired just before we build the GraphQL object
+     * 
+     * @param builder as it stands
+     * @return builder modified by listener
+     */
+    public GraphQL.Builder fireBeforeGraphQLBuild(GraphQL.Builder builder) {
+        for (EventingService extensionService : enabledServices) {
+            builder = extensionService.beforeGraphQLBuild(builder);
+        }
+        return builder;
     }
 
     // Schema bootstrap

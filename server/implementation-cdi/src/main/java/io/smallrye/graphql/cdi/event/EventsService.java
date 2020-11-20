@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 
+import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
@@ -30,6 +31,12 @@ public class EventsService implements EventingService {
     public Operation createOperation(Operation operation) {
         fire(operation);
         return operation;
+    }
+
+    @Override
+    public GraphQL.Builder beforeGraphQLBuild(GraphQL.Builder builder) {
+        fire(builder);
+        return builder;
     }
 
     @Override

@@ -195,13 +195,18 @@ public class ExecutionService {
             ExceptionHandler exceptionHandler = new ExceptionHandler(config);
             if (graphQLSchema != null) {
                 QueryCache queryCache = new QueryCache();
-                this.graphQL = GraphQL
-                        .newGraphQL(graphQLSchema)
-                        .queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler))
-                        .mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler))
-                        .instrumentation(queryCache)
-                        .preparsedDocumentProvider(queryCache)
-                        .build();
+
+                GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
+
+                graphqlBuilder = graphqlBuilder.queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler));
+                graphqlBuilder = graphqlBuilder.mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler));
+                graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
+                graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
+
+                // Allow custom extension
+                graphqlBuilder = eventEmitter.fireBeforeGraphQLBuild(graphqlBuilder);
+
+                this.graphQL = graphqlBuilder.build();
             } else {
                 log.noGraphQLMethodsFound();
             }
