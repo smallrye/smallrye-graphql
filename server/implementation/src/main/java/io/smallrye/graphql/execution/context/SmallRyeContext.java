@@ -43,7 +43,7 @@ import io.smallrye.graphql.schema.model.Type;
 public class SmallRyeContext implements Context {
     private static Schema schema;
 
-    private static final ThreadLocal<SmallRyeContext> current = new ThreadLocal<>();
+    private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {
         SmallRyeContext registry = new SmallRyeContext(jsonInput);
