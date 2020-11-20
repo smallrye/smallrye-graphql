@@ -94,6 +94,10 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = ConfigKey.FIELD_VISIBILITY, defaultValue = Config.FIELD_VISIBILITY_DEFAULT)
     private String fieldVisibility;
 
+    @Inject
+    @ConfigProperty(name = ConfigKey.UNWRAP_EXCEPTIONS, defaultValue = "")
+    private Optional<List<String>> unwrapExceptions;
+
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
         hideList = mergeList(hideList, blackList);
         showList = mergeList(showList, whiteList);
@@ -179,6 +183,11 @@ public class GraphQLConfig implements Config {
         return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
     }
 
+    @Override
+    public Optional<List<String>> getUnwrapExceptions() {
+        return unwrapExceptions;
+    }
+
     public void setHideErrorMessageList(Optional<List<String>> hideList) {
         this.hideList = hideList;
     }
@@ -229,6 +238,10 @@ public class GraphQLConfig implements Config {
 
     public void setFieldVisibility(String fieldVisibility) {
         this.fieldVisibility = fieldVisibility;
+    }
+
+    public void setUnwrapExceptions(Optional<List<String>> unwrapExceptions) {
+        this.unwrapExceptions = unwrapExceptions;
     }
 
     private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {

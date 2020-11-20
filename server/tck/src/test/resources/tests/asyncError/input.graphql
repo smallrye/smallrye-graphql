@@ -2,4 +2,7 @@
   asyncSource{
     asyncWithGraphQLException
   }
+  exception{
+    simpleField
+  }
 }

@@ -38,10 +38,17 @@ public class DefaultWrapperHandlerService extends AbstractWrapperHandlerService 
     @Override
     public <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception {
-        Object resultFromMethodCall = reflectionHelper.invoke(transformedArguments);
-        Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
-        resultBuilder.data(resultFromTransform);
-        return (T) resultBuilder.build();
+        try {
+            Object resultFromMethodCall = reflectionHelper.invoke(transformedArguments);
+            Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
+            resultBuilder.data(resultFromTransform);
+            return (T) resultBuilder.build();
+        } catch (Exception e) {
+            if (shouldUnwrap(e)) {
+                throw getCause(e);
+            }
+            throw e;
+        }
     }
 
     @Override

@@ -1,5 +1,8 @@
 package io.smallrye.graphql.spi.datafetcher;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
@@ -28,6 +31,7 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter;
     protected BatchLoaderHelper batchLoaderHelper;
+    protected List<String> unwrapExceptions = new ArrayList<>();
 
     @Override
     public void initDataFetcher(Operation operation, Config config) {
@@ -38,6 +42,9 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.partialResultHelper = new PartialResultHelper();
         this.batchLoaderHelper = new BatchLoaderHelper();
+        if (config != null && config.getUnwrapExceptions().isPresent()) {
+            this.unwrapExceptions.addAll(config.getUnwrapExceptions().get());
+        }
     }
 
     @Override
@@ -71,4 +78,14 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);
 
+    protected boolean shouldUnwrap(Throwable t) {
+        return unwrapExceptions.contains(t.getClass().getName()) && t.getCause() != null;
+    }
+
+    protected Exception getCause(Exception t) {
+        if (t.getCause() != null && t.getCause().getClass().isAssignableFrom(Exception.class)) {
+            return (Exception) t.getCause();
+        }
+        return t;
+    }
 }

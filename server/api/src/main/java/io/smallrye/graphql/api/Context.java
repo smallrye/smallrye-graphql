@@ -224,6 +224,21 @@ public interface Context {
     public <T> T unwrap(Class<T> wrappedType);
 
     /**
+     * Allow setting meta fields on the context
+     */
+    public <T> void setMetaField(String identifier, T t);
+
+    /**
+     * Allow getting meta fields on the context
+     */
+    public <T> T getMetaField(String identifier);
+
+    /**
+     * Allow removing meta fields on the context
+     */
+    public <T> T removeMetaField(String identifier);
+
+    /**
      * Help to parse the variables
      */
     class VariablesParser {
