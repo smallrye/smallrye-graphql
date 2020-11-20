@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
@@ -47,6 +48,16 @@ public class ProfileGraphQLApi {
     @Query("context")
     public String getPathFromContext() {
         return context.getPath();
+    }
+
+    @Query("contextMethodInjected")
+    public String getQueryFromContext(Context c) {
+        return c.getQuery();
+    }
+
+    @Query("contextMethodInjectedAnotherIndex")
+    public String getArgumentFromContext(@DefaultValue("p1") String p1, Context c, @DefaultValue("p2") String p2) {
+        return c.getArgument(p2);
     }
 
     @Mutation

@@ -12,10 +12,6 @@
     <name>SmallRye: GraphQL Server :: Implementation</name>
     <description>Implementation of the server side of the spec</description>
 
-    <properties>
-        <graphql-java.version>15.0</graphql-java.version>
-    </properties>
-
     <dependencies>
 
         <!-- The API -->
@@ -46,7 +42,6 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>${graphql-java.version}</version>
         </dependency>
 
         <!-- Logging -->

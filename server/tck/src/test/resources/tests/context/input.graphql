@@ -1,1 +1,5 @@
-{context}
+{
+    context
+    contextMethodInjected
+    contextMethodInjectedAnotherIndex
+}

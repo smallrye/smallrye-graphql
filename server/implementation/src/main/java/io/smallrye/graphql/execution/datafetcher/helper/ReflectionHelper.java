@@ -7,11 +7,15 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.schema.model.Field;
@@ -33,6 +37,7 @@ public class ReflectionHelper {
     private final EventEmitter eventEmitter;
     private final Class<?> operationClass;
     private final Method method;
+    private int injectContextAt = -1;
 
     public ReflectionHelper(Operation operation, EventEmitter eventEmitter) {
         this.operation = operation;
@@ -73,6 +78,9 @@ public class ReflectionHelper {
         try {
             Object operationInstance = lookupService.getInstance(operationClass);
             eventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
+            if (this.injectContextAt > -1) {
+                arguments = injectContext(arguments);
+            }
             return (T) this.method.invoke(operationInstance, arguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
@@ -101,6 +109,7 @@ public class ReflectionHelper {
     private Class<?>[] getParameterClasses(Operation operation) {
         if (operation.hasArguments()) {
             List<Class<?>> cl = new LinkedList<>();
+            int cnt = 0;
             for (Field argument : operation.getArguments()) {
                 // If the argument is an array / collection, load that class
                 if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArray()) {
@@ -109,11 +118,20 @@ public class ReflectionHelper {
                 } else {
                     Class<?> clazz = classloadingService.loadClass(argument.getReference().getClassName());
                     cl.add(clazz);
+                    if (argument.getReference().getClassName().equals(Context.class.getName())) {
+                        this.injectContextAt = cnt;
+                    }
                 }
+                cnt++;
             }
             return cl.toArray(new Class[] {});
         }
         return null;
     }
 
+    private Object[] injectContext(Object[] arguments) {
+        ArrayList list = new ArrayList(Arrays.asList(arguments));
+        list.set(injectContextAt, SmallRyeContext.getContext());
+        return list.toArray();
+    }
 }
