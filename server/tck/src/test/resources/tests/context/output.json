@@ -1,5 +1,7 @@
 {
-  "data": {
-    "context": "/context"
-  }
+    "data": {
+        "context": "/context",
+        "contextMethodInjected": "{\n    context\n    contextMethodInjected\n    contextMethodInjectedAnotherIndex\n}\n",
+        "contextMethodInjectedAnotherIndex": "p2"
+    }
 }

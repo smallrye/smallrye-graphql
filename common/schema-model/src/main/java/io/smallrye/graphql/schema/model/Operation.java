@@ -30,7 +30,7 @@ public final class Operation extends Field {
     private OperationType operationType;
 
     /**
-     * If this is a source fiels, the object it's on
+     * If this is a source fields, the object it's on
      */
     private Reference sourceFieldOn = null;
 

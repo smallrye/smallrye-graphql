@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema.creator;
 
 import java.util.Optional;
 
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
@@ -18,6 +19,7 @@ import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Creates a Argument object
@@ -66,8 +68,10 @@ public class ArgumentCreator {
             Reference reference;
             if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
                 reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
-            } else {
+            } else if (!argumentType.name().equals(CONTEXT)) {
                 reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
+            } else {
+                reference = CONTEXT_REF;
             }
 
             Argument argument = new Argument(defaultName,
@@ -116,4 +120,6 @@ public class ArgumentCreator {
                 annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
     }
 
+    private static final DotName CONTEXT = DotName.createSimple("io.smallrye.graphql.api.Context");
+    private static final Reference CONTEXT_REF = new Reference(CONTEXT.toString(), CONTEXT.toString(), ReferenceType.TYPE);
 }

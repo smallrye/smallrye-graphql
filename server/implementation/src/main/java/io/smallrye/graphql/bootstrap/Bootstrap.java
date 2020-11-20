@@ -593,7 +593,7 @@ public class Bootstrap {
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {
         List<GraphQLArgument> graphQLArguments = new ArrayList<>();
         for (Argument argument : arguments) {
-            if (!argument.isSourceArgument()) {
+            if (!argument.isSourceArgument() && !argument.getReference().getClassName().equals(CONTEXT)) {
                 graphQLArguments.add(createGraphQLArgument(argument));
             }
         }
@@ -727,4 +727,6 @@ public class Bootstrap {
 
     private static final Jsonb JSONB = JsonbBuilder.create();
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+
+    private static final String CONTEXT = "io.smallrye.graphql.api.Context";
 }
