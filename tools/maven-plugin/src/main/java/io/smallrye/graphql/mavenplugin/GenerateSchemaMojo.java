@@ -2,11 +2,16 @@ package io.smallrye.graphql.mavenplugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,8 +86,14 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "Default", property = "typeAutoNameStrategy")
     private String typeAutoNameStrategy;
 
-    @Parameter(defaultValue = "${project}")
+    @Parameter(defaultValue = "${project}", required = true)
     private MavenProject mavenProject;
+
+    @Parameter(property = "project.compileClasspathElements", required = true, readonly = true)
+    private List<String> classpath;
+
+    @Parameter(defaultValue = "false", property = "skip")
+    private boolean skip;
 
     /**
      * Compiled classes of the project.
@@ -92,12 +103,17 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        IndexView index = createIndex();
-        String schema = generateSchema(index);
-        if (schema != null) {
-            write(schema);
-        } else {
-            getLog().warn("No Schema generated. Check that your code contains the MicroProfile GraphQL Annotations");
+        if (!skip) {
+            ClassLoader classLoader = getClassLoader();
+            Thread.currentThread().setContextClassLoader(classLoader);
+
+            IndexView index = createIndex();
+            String schema = generateSchema(index);
+            if (schema != null) {
+                write(schema);
+            } else {
+                getLog().warn("No Schema generated. Check that your code contains the MicroProfile GraphQL Annotations");
+            }
         }
     }
 
@@ -169,7 +185,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
         };
 
         Schema internalSchema = SchemaBuilder.build(index);
-        BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema);
+        BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema, config);
         if (bootstraped != null) {
             GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
             return new SchemaPrinter(config).print(graphQLSchema);
@@ -196,4 +212,20 @@ public class GenerateSchemaMojo extends AbstractMojo {
         }
     }
 
+    private ClassLoader getClassLoader() {
+        Set<URL> urls = new HashSet<>();
+
+        for (String element : classpath) {
+            try {
+                urls.add(new File(element).toURI().toURL());
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        return URLClassLoader.newInstance(
+                urls.toArray(new URL[0]),
+                Thread.currentThread().getContextClassLoader());
+
+    }
 }
