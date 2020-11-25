@@ -65,8 +65,6 @@ public abstract class AbstractHelper {
             return null;
         }
 
-        String expectedType = field.getReference().getClassName();
-
         // First handle the array if this is an array
         if (field.hasWrapper() && field.getWrapper().isArray()) {
             return recursiveTransformArray(inputValue, field);
@@ -98,7 +96,6 @@ public abstract class AbstractHelper {
             return null;
         }
 
-        String expectedType = field.getReference().getClassName();
         if (field.hasWrapper() && field.getWrapper().isArray()) {
             return recursiveMappingArray(inputValue, field);
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
@@ -302,12 +299,11 @@ public abstract class AbstractHelper {
         // default value
         child.setDefaultValue(owner.getDefaultValue());
 
-        // array
+        // wrapper
+        Wrapper wrapper = owner.getWrapper();
         if (owner.hasWrapper()) {
             Wrapper ownerWrapper = owner.getWrapper();
-
-            int depth = ownerWrapper.getDepth() - 1;
-            if (depth > 0) {
+            if (ownerWrapper.getWrapper() != null) {
                 // We still not at the end
                 Wrapper childWrapper = ownerWrapper.getWrapper();
                 child.setWrapper(childWrapper);

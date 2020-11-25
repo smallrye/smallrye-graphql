@@ -1,0 +1,14 @@
+{
+  "data": {
+    "classFromInterfaceWithOneGenericsListParam": {
+      "name": "name",
+      "instance": [
+        {
+          "name": "name",
+          "age": 42
+        }
+      ]
+    }
+  }
+}
+

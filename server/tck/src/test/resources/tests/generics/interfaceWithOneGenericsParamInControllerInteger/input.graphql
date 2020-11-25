@@ -1,0 +1,6 @@
+{
+  interfaceWithOneGenericsParamInControllerInteger{
+    name
+    instance
+  }
+}

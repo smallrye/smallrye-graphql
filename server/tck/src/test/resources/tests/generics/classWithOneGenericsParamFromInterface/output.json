@@ -1,0 +1,9 @@
+{
+  "data": {
+    "classWithOneGenericsParamFromInterface": {
+      "name": "name",
+      "instance": 9
+    }
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  classWithGenericListAttributeResolvedFromEnclosingClass {
+    name
+    param1{
+      name
+      param1
+      param2
+    }
+  }
+}
+

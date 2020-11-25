@@ -1,0 +1,9 @@
+mutation ArrayOfClassWithOneGenericsParamInControllerString {
+  arrayOfClassWithOneGenericsParamInControllerString(param1: {
+    	param1: "param1"
+  }){
+    name
+    param1
+  }
+}
+

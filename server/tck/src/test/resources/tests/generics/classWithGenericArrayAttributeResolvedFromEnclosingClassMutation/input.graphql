@@ -1,0 +1,12 @@
+mutation ClassWithGenericArrayAttributeResolvedFromEnclosingClass {
+  classWithGenericArrayAttributeResolvedFromEnclosingClass(param1: {
+    	v: 1
+  }){
+    name
+    param1 {
+      name
+      param1
+      param2
+    }
+  }
+}

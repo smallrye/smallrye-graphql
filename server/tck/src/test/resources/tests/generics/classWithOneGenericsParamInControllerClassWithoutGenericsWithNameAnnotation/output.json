@@ -1,0 +1,11 @@
+{
+  "data": {
+    "classWithOneGenericsParamInControllerClassWithoutGenericsWithNameAnnotation": {
+      "name": "name",
+      "param1": {
+        "name": "name",
+        "age": 42
+      }
+    }
+  }
+}
