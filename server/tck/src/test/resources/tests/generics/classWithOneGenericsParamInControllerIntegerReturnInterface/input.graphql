@@ -1,0 +1,8 @@
+mutation ClassWithOneGenericsParamInControllerIntegerReturnInterface {
+  classWithOneGenericsParamInControllerIntegerReturnInterface(param1: {
+    	param1: 11
+  }){
+    name
+    instance
+  }
+}

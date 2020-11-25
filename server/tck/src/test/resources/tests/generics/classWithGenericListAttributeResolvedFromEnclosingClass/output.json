@@ -1,0 +1,15 @@
+{
+  "data": {
+    "classWithGenericListAttributeResolvedFromEnclosingClass": {
+      "name": "name",
+      "param1": [
+        {
+          "name": "name",
+          "param1": "2020-01-01T00:00:00",
+          "param2": 7
+        }
+      ]
+    }
+  }
+}
+

@@ -1,0 +1,9 @@
+{
+  interfaceWithOneGenericsParamInControllerClassWithoutGenericsWithNameAnnotation{
+    name
+    instance{
+      name
+      age
+    }
+  }
+}

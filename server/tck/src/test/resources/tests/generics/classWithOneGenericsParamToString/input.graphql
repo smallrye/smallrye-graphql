@@ -1,0 +1,8 @@
+{
+  classWithOneGenericsParamToString{
+    name
+    me
+    age
+    param1
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "data": {
+    "arrayOfClassWithTwoGenericsParamsWithNestedOneGenericsParamInControllerString": [
+      {
+        "name": "name",
+        "param1": "Hello",
+        "param2": {
+          "name": "name",
+          "param1": 4
+        }
+      }
+    ]
+  }
+}

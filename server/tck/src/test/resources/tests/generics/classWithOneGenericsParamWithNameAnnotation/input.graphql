@@ -1,0 +1,6 @@
+{
+  classWithOneGenericsParamWithNameAnnotation{
+    name
+    param1
+  }
+}

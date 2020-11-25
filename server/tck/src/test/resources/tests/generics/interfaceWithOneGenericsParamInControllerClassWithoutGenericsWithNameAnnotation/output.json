@@ -1,0 +1,11 @@
+{
+  "data": {
+    "interfaceWithOneGenericsParamInControllerClassWithoutGenericsWithNameAnnotation": {
+      "name": "name",
+      "instance": {
+        "name": "name",
+        "age": 42
+      }
+    }
+  }
+}

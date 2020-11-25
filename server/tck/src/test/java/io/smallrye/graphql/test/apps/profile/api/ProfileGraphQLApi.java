@@ -82,6 +82,32 @@ public class ProfileGraphQLApi {
         return batched;
     }
 
+    @Query
+    public List<List<List<Profile>>> deepList() {
+        List<Profile> dl1 = new ArrayList<>();
+        List<List<Profile>> dl2 = new ArrayList<>();
+        List<List<List<Profile>>> dl3 = new ArrayList<>();
+
+        dl1.add(ProfileDB.getProfile(1));
+        dl2.add(dl1);
+        dl3.add(dl2);
+        return dl3;
+
+    }
+
+    @Query
+    public List<List<List<Foo>>> deepListFoo() {
+        List<Foo> dl1 = new ArrayList<>();
+        List<List<Foo>> dl2 = new ArrayList<>();
+        List<List<List<Foo>>> dl3 = new ArrayList<>();
+
+        dl1.add(new Foo("bar"));
+        dl2.add(dl1);
+        dl3.add(dl2);
+        return dl3;
+
+    }
+
     // This method will be ignored due to below batch
     public Timestamp getTimestamp(@Source Profile profile, int random) {
         return new Timestamp();

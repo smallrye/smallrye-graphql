@@ -1,0 +1,10 @@
+{
+  "data": {
+    "listOfClassWithOneGenericsParamInControllerString": [
+      {
+        "name": "name",
+        "param1": "Hello"
+      }
+    ]
+  }
+}

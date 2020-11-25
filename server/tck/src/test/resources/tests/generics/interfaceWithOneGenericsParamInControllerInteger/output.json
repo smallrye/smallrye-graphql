@@ -1,0 +1,8 @@
+{
+  "data": {
+    "interfaceWithOneGenericsParamInControllerInteger": {
+      "name": "name",
+      "instance": 5
+    }
+  }
+}

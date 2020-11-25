@@ -1,0 +1,10 @@
+{
+  "data": {
+    "listOfClassWithOneGenericsParamFromInterface": [
+      {
+        "name": "name",
+        "instance": 10
+      }
+    ]
+  }
+}

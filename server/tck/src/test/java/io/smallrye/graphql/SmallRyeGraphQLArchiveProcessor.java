@@ -15,6 +15,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
 import io.smallrye.graphql.test.apps.defaultvalue.api.DefaultValueParrotAPI;
 import io.smallrye.graphql.test.apps.error.api.ErrorApi;
+import io.smallrye.graphql.test.apps.generics.api.ControllerWithGenerics;
 import io.smallrye.graphql.test.apps.grouping.api.BookGraphQLApi;
 import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
 import io.smallrye.graphql.test.apps.scalars.api.AdditionalScalarsApi;
@@ -61,6 +62,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             testDeployment.addPackage(ErrorApi.class.getPackage());
             testDeployment.addPackage(BookGraphQLApi.class.getPackage());
             testDeployment.addPackage(DefaultValueParrotAPI.class.getPackage());
+            testDeployment.addPackage(ControllerWithGenerics.class.getPackage());
         }
     }
 }
