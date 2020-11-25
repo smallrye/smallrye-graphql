@@ -14,9 +14,11 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
 
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
+import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Mapping;
@@ -232,8 +234,11 @@ public class ArgumentHelper extends AbstractHelper {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
+        } else if (GraphQLScalarTypes.isGraphQLScalarType(field.getReference().getClassName())) {
+            GraphQLScalarType scalar = GraphQLScalarTypes.getScalarByClassName(field.getReference().getClassName());
+            return scalar.getCoercing().parseLiteral(argumentValue);
         } else {
-            log.dontKnowHoToHandleArgument(field.getMethodName());
+            log.dontKnowHoToHandleArgument(argumentValue.getClass().getName(), field.getMethodName());
             return argumentValue;
         }
     }

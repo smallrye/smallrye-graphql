@@ -47,8 +47,8 @@ public interface SmallRyeGraphQLServerLogging {
     void noArgConstructorMissing(String typeName);
 
     @LogMessage(level = Logger.Level.WARN)
-    @Message(id = 11004, value = "Returning argument as is, because we did not know how to handle it [%s]")
-    void dontKnowHoToHandleArgument(String name);
+    @Message(id = 11004, value = "Returning argument as is, because we did not know how to handle it [%s] on method [%s]")
+    void dontKnowHoToHandleArgument(String className, String methodName);
 
     @LogMessage(level = Logger.Level.INFO)
     @Message(id = 11005, value = "Payload In [%s]")
