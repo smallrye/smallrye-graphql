@@ -90,9 +90,10 @@ public class AsyncApi {
     @Query
     public CompletableFuture<AsyncSource> getException() {
         return CompletableFuture.supplyAsync(() -> {
-            throw new CompletionException(
+            throw new CompletionException(new CompletionException(new CompletionException(
                     new GraphQLException("Some stuff when wrong", new Exception(),
-                            GraphQLException.ExceptionType.DataFetchingException));
+                            GraphQLException.ExceptionType.DataFetchingException))));
         });
     }
+
 }

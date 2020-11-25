@@ -2,6 +2,7 @@ package io.smallrye.graphql.spi.datafetcher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 
 import org.eclipse.microprofile.graphql.GraphQLException;
 
@@ -45,6 +46,7 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
         if (config != null && config.getUnwrapExceptions().isPresent()) {
             this.unwrapExceptions.addAll(config.getUnwrapExceptions().get());
         }
+        this.unwrapExceptions.addAll(DEFAULT_EXCEPTION_UNWRAP);
     }
 
     @Override
@@ -78,8 +80,16 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);
 
-    protected boolean shouldUnwrap(Throwable t) {
+    protected boolean shouldUnwrapThrowable(Throwable t) {
         return unwrapExceptions.contains(t.getClass().getName()) && t.getCause() != null;
+    }
+
+    protected Throwable unwrapThrowable(Throwable t) {
+        if (shouldUnwrapThrowable(t)) {
+            t = t.getCause();
+            return unwrapThrowable(t);
+        }
+        return t;
     }
 
     protected Exception getCause(Exception t) {
@@ -87,5 +97,13 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
             return (Exception) t.getCause();
         }
         return t;
+    }
+
+    private static List<String> DEFAULT_EXCEPTION_UNWRAP = new ArrayList<>();
+
+    static {
+        DEFAULT_EXCEPTION_UNWRAP.add(CompletionException.class.getName());
+        DEFAULT_EXCEPTION_UNWRAP.add("javax.ejb.EJBException");
+        DEFAULT_EXCEPTION_UNWRAP.add("jakarta.ejb.EJBException");
     }
 }
