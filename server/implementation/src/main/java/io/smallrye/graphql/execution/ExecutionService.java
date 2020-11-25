@@ -198,8 +198,7 @@ public class ExecutionService {
 
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
 
-                graphqlBuilder = graphqlBuilder.queryExecutionStrategy(new QueryExecutionStrategy(exceptionHandler));
-                graphqlBuilder = graphqlBuilder.mutationExecutionStrategy(new MutationExecutionStrategy(exceptionHandler));
+                graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(exceptionHandler);
                 graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 

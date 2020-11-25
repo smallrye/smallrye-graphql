@@ -4,8 +4,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import graphql.execution.ExecutionId;
-import graphql.execution.ExecutionPath;
 import graphql.execution.ExecutionStepInfo;
+import graphql.execution.ResultPath;
 import graphql.language.Field;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetchingEnvironment;
@@ -24,7 +24,7 @@ public class MockDataFetchEnvironment {
         OperationDefinition operationDefinition = mock(OperationDefinition.class);
         when(operationDefinition.getName()).thenReturn(operationName);
 
-        ExecutionPath executionPath = mock(ExecutionPath.class);
+        ResultPath executionPath = mock(ResultPath.class);
         when(executionPath.toString()).thenReturn("/" + typeName + "/" + fieldName);
         ExecutionStepInfo executionStepInfo = mock(ExecutionStepInfo.class);
         when(executionStepInfo.getPath()).thenReturn(executionPath);

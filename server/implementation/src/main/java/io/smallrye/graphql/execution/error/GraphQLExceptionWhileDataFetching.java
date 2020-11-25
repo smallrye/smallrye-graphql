@@ -2,7 +2,7 @@ package io.smallrye.graphql.execution.error;
 
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphqlErrorHelper;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 
 /**
@@ -14,12 +14,12 @@ public class GraphQLExceptionWhileDataFetching extends ExceptionWhileDataFetchin
 
     private final String message;
 
-    public GraphQLExceptionWhileDataFetching(ExecutionPath path, Throwable exception, SourceLocation sourceLocation) {
+    public GraphQLExceptionWhileDataFetching(ResultPath path, Throwable exception, SourceLocation sourceLocation) {
         super(path, exception, sourceLocation);
         this.message = super.getException().getMessage();
     }
 
-    public GraphQLExceptionWhileDataFetching(String message, ExecutionPath path, Throwable exception,
+    public GraphQLExceptionWhileDataFetching(String message, ResultPath path, Throwable exception,
             SourceLocation sourceLocation) {
         super(path, exception, sourceLocation);
         this.message = message;
