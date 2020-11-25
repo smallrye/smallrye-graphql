@@ -44,10 +44,7 @@ public class DefaultWrapperHandlerService extends AbstractWrapperHandlerService 
             resultBuilder.data(resultFromTransform);
             return (T) resultBuilder.build();
         } catch (Exception e) {
-            if (shouldUnwrap(e)) {
-                throw getCause(e);
-            }
-            throw e;
+            throw (Exception) unwrapThrowable(e);
         }
     }
 

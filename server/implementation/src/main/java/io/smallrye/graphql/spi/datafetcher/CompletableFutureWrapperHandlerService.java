@@ -3,7 +3,6 @@ package io.smallrye.graphql.spi.datafetcher;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoaderEnvironment;
@@ -52,9 +51,7 @@ public class CompletableFutureWrapperHandlerService extends AbstractWrapperHandl
         return (T) futureResultFromMethodCall.handle((result, throwable) -> {
 
             if (throwable != null) {
-                if (throwable instanceof CompletionException || shouldUnwrap(throwable)) {
-                    throwable = throwable.getCause();
-                }
+                throwable = unwrapThrowable(throwable);
 
                 eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                 if (throwable instanceof GraphQLException) {
