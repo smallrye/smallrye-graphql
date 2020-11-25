@@ -55,6 +55,8 @@ public class ResultBuilder {
     }
 
     private void readErrors() {
+        if (!response.containsKey("errors") || response.isNull("errors"))
+            return;
         JsonArray jsonErrors = response.getJsonArray("errors");
         if (jsonErrors == null)
             return;
