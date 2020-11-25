@@ -1,0 +1,10 @@
+{
+  "data": {
+    "arrayOfClassWithOneGenericsParamInControllerString": [
+      {
+        "name": "name",
+        "param1": "param1"
+      }
+    ]
+  }
+}

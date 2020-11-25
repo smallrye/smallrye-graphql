@@ -1,0 +1,12 @@
+{
+  "data": {
+    "classWithGenericAttributeResolvedFromEnclosingClass": {
+      "name": "name",
+      "param1": {
+        "name": "name",
+        "param1": "Boo",
+        "param2": 6
+      }
+    }
+  }
+}

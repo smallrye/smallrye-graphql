@@ -1,0 +1,6 @@
+{
+  classWithOneGenericsParamInControllerString{
+    name
+    param1
+  }
+}
