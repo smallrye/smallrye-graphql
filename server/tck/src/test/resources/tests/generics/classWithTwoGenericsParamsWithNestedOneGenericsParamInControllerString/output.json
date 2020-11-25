@@ -1,0 +1,12 @@
+{
+  "data": {
+    "classWithTwoGenericsParamsWithNestedOneGenericsParamInControllerString": {
+      "name": "name",
+      "param1": "param1",
+      "param2": {
+        "name": "name",
+        "param1": 3
+      }
+    }
+  }
+}

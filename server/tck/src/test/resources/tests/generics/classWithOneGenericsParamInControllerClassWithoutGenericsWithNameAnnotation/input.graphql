@@ -1,0 +1,9 @@
+{
+  classWithOneGenericsParamInControllerClassWithoutGenericsWithNameAnnotation{
+    name
+    param1 {
+      name
+      age
+    }
+  }
+}

@@ -35,8 +35,7 @@ public class WrapperCreator {
      */
     public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType) {
         if (Classes.isWrapper(methodType)) {
-            int depth = getParameterizedDepth(methodType);
-            Wrapper wrapper = new Wrapper(getWrapperType(methodType), methodType.name().toString(), depth);
+            Wrapper wrapper = new Wrapper(getWrapperType(methodType), methodType.name().toString());
             // NotNull
             if (markParameterizedTypeNonNull(fieldType, methodType)) {
                 wrapper.setNotEmpty(true);
@@ -65,10 +64,6 @@ public class WrapperCreator {
         return null;
     }
 
-    private static int getParameterizedDepth(Type type) {
-        return getParameterizedDepth(type, 0);
-    }
-
     private static Optional<Wrapper> getWrapperOfWrapper(Type type) {
         if (Classes.isArray(type)) {
             Type typeInArray = type.asArrayType().component();
@@ -78,19 +73,6 @@ public class WrapperCreator {
             return createWrapper(typeInCollection);
         }
         return Optional.empty();
-    }
-
-    private static int getParameterizedDepth(Type type, int depth) {
-        if (Classes.isArray(type)) {
-            depth = depth + 1;
-            Type typeInArray = type.asArrayType().component();
-            return getParameterizedDepth(typeInArray, depth);
-        } else if (Classes.isParameterized(type)) {
-            depth = depth + 1;
-            Type typeInCollection = type.asParameterizedType().arguments().get(0);
-            return getParameterizedDepth(typeInCollection, depth);
-        }
-        return depth;
     }
 
     private static boolean markParameterizedTypeNonNull(Type fieldType, Type methodType) {

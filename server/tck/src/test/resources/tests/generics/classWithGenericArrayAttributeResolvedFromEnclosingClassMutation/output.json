@@ -1,0 +1,14 @@
+{
+  "data": {
+    "classWithGenericArrayAttributeResolvedFromEnclosingClass": {
+      "name": "name",
+      "param1": [
+        {
+          "name": "name",
+          "param1": 1,
+          "param2": "2020-01-01T00:00:00"
+        }
+      ]
+    }
+  }
+}

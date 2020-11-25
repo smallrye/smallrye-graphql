@@ -10,7 +10,6 @@ import java.io.Serializable;
 public class Wrapper implements Serializable {
 
     private String wrapperClassName;
-    private int depth; // The depth of this wrapper
     private boolean notEmpty = false; // Mark this to be not empty
     private WrapperType wrapperType = WrapperType.UNKNOWN;
 
@@ -19,16 +18,14 @@ public class Wrapper implements Serializable {
     public Wrapper() {
     }
 
-    public Wrapper(WrapperType wrapperType, String wrapperClassName, int depth) {
+    public Wrapper(WrapperType wrapperType, String wrapperClassName) {
         this.wrapperType = wrapperType;
         this.wrapperClassName = wrapperClassName;
-        this.depth = depth;
     }
 
-    public Wrapper(WrapperType wrapperType, String wrapperClassName, int depth, boolean notEmpty) {
+    public Wrapper(WrapperType wrapperType, String wrapperClassName, boolean notEmpty) {
         this.wrapperType = wrapperType;
         this.wrapperClassName = wrapperClassName;
-        this.depth = depth;
         this.notEmpty = notEmpty;
     }
 
@@ -46,14 +43,6 @@ public class Wrapper implements Serializable {
 
     public void setWrapperClassName(String wrapperClassName) {
         this.wrapperClassName = wrapperClassName;
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-
-    public int getDepth() {
-        return this.depth;
     }
 
     public void setNotEmpty(boolean notEmpty) {
@@ -98,7 +87,7 @@ public class Wrapper implements Serializable {
 
     @Override
     public String toString() {
-        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", depth=" + depth + ", notEmpty=" + notEmpty
+        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", notEmpty=" + notEmpty
                 + ", wrapperType=" + wrapperType + ", wrapper=" + wrapper + '}';
     }
 }

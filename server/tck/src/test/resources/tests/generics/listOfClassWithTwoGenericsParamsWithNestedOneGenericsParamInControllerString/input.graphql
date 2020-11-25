@@ -1,0 +1,11 @@
+{
+  listOfClassWithTwoGenericsParamsWithNestedOneGenericsParamInControllerString {
+    name
+    param1
+    param2{
+      name
+      param1
+    }
+  }
+}
+

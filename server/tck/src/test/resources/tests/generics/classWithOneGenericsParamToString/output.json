@@ -1,0 +1,10 @@
+{
+  "data": {
+    "classWithOneGenericsParamToString": {
+      "name": "name",
+      "me": "me",
+      "age": 99,
+      "param1": "Goodbye"
+    }
+  }
+}

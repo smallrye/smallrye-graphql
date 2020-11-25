@@ -499,15 +499,19 @@ public class Bootstrap {
 
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArray()) {
-
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            for (int i = 0; i < wrapper.getDepth(); i++) {
-                graphQLInputType = GraphQLList.list(graphQLInputType);
-            }
+            do {
+                if (wrapper.isCollectionOrArray()) {
+                    graphQLInputType = GraphQLList.list(graphQLInputType);
+                    wrapper = wrapper.getWrapper();
+                } else {
+                    wrapper = null;
+                }
+            } while (wrapper != null);
         }
 
         // Mandatory
@@ -531,9 +535,14 @@ public class Bootstrap {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
-            for (int i = 0; i < wrapper.getDepth(); i++) {
-                graphQLOutputType = GraphQLList.list(graphQLOutputType);
-            }
+            do {
+                if (wrapper.isCollectionOrArray()) {
+                    graphQLOutputType = GraphQLList.list(graphQLOutputType);
+                    wrapper = wrapper.getWrapper();
+                } else {
+                    wrapper = null;
+                }
+            } while (wrapper != null);
         }
 
         // Mandatory
@@ -618,9 +627,17 @@ public class Bootstrap {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            for (int i = 0; i < wrapper.getDepth(); i++) {
-                graphQLInputType = GraphQLList.list(graphQLInputType);
-            }
+            do {
+                if (wrapper.isCollectionOrArray()) {
+                    graphQLInputType = GraphQLList.list(graphQLInputType);
+                    wrapper = wrapper.getWrapper();
+                } else {
+                    wrapper = null;
+                }
+            } while (wrapper != null);
+            //            for (int i = 0; i < wrapper.getDepth(); i++) {
+            //                graphQLInputType = GraphQLList.list(graphQLInputType);
+            //            }
         }
 
         // Mandatory

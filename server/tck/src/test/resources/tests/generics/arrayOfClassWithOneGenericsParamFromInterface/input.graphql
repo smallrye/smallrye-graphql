@@ -1,0 +1,6 @@
+{
+  arrayOfClassWithOneGenericsParamFromInterface {
+    name
+    instance
+  }
+}

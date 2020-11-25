@@ -1,0 +1,24 @@
+{
+  "data": {
+    "deepList": [
+      [
+        [
+          {
+            "names": [
+              "Phillip"
+            ]
+          }
+        ]
+      ]
+    ],
+    "deepListFoo": [
+      [
+        [
+          {
+            "bar": "bar"
+          }
+        ]
+      ]
+    ]
+  }
+}
