@@ -4,7 +4,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
@@ -27,7 +27,7 @@ public class PartialResultHelper {
                 .build();
 
         SourceLocation sourceLocation = handlerParameters.getSourceLocation();
-        ExecutionPath path = handlerParameters.getPath();
+        ResultPath path = handlerParameters.getPath();
         GraphQLExceptionWhileDataFetching error = new GraphQLExceptionWhileDataFetching(path, graphQLException,
                 sourceLocation);
 

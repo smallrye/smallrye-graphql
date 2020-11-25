@@ -6,7 +6,7 @@ import graphql.ExceptionWhileDataFetching;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherExceptionHandlerResult;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import io.smallrye.graphql.bootstrap.Config;
 
@@ -29,7 +29,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {
         Throwable throwable = handlerParameters.getException();
         SourceLocation sourceLocation = handlerParameters.getSourceLocation();
-        ExecutionPath path = handlerParameters.getPath();
+        ResultPath path = handlerParameters.getPath();
         ExceptionWhileDataFetching error = getExceptionWhileDataFetching(throwable, sourceLocation, path);
 
         if (config.isPrintDataFetcherException()) {
@@ -40,7 +40,7 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     }
 
     private ExceptionWhileDataFetching getExceptionWhileDataFetching(Throwable throwable, SourceLocation sourceLocation,
-            ExecutionPath path) {
+            ResultPath path) {
         if (throwable instanceof RuntimeException) {
             // Check for showlist
             if (exceptionLists.shouldShow(throwable)) {

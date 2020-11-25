@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorException;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
@@ -36,7 +36,7 @@ class ExecutionErrorsServiceTest {
         GraphqlErrorException graphqlErrorException = GraphqlErrorException.newErrorException()
                 .extensions(extensions)
                 .build();
-        ExceptionWhileDataFetching exceptionWhileDataFetching = new ExceptionWhileDataFetching(ExecutionPath.rootPath(),
+        ExceptionWhileDataFetching exceptionWhileDataFetching = new ExceptionWhileDataFetching(ResultPath.rootPath(),
                 graphqlErrorException, new SourceLocation(1, 1));
 
         // When
@@ -89,7 +89,7 @@ class ExecutionErrorsServiceTest {
     }
 
     private JsonArray whenConverting(RuntimeException exception) {
-        ExecutionPath path = ExecutionPath.parse("/foo/bar");
+        ResultPath path = ResultPath.parse("/foo/bar");
         SourceLocation location = new SourceLocation(12, 34);
         GraphQLError graphQLError = new GraphQLExceptionWhileDataFetching(path, exception, location);
         return executionErrorsService.toJsonErrors(singletonList(graphQLError));

@@ -5,7 +5,7 @@ import java.util.List;
 
 import graphql.execution.DataFetcherExceptionHandlerParameters;
 import graphql.execution.DataFetcherResult;
-import graphql.execution.ExecutionPath;
+import graphql.execution.ResultPath;
 import graphql.language.Argument;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
@@ -75,7 +75,7 @@ public class TransformException extends AbstractDataFetcherException {
         return handlerParameters.getSourceLocation();
     }
 
-    private List<String> toPathList(ExecutionPath path) {
+    private List<String> toPathList(ResultPath path) {
         List<String> l = new ArrayList<>();
         for (Object o : path.toList()) {
             l.add(o.toString());
