@@ -1,0 +1,3 @@
+query foo($i: Int) {
+  foo(i: $i)
+}

@@ -37,6 +37,14 @@ public class GraphQLScalarTypes {
         return SCALARS_BY_NAME.get(name);
     }
 
+    public static GraphQLScalarType getScalarByClassName(String className) {
+        return SCALAR_MAP.get(className);
+    }
+
+    public static boolean isGraphQLScalarType(String className) {
+        return SCALAR_MAP.containsKey(className);
+    }
+
     // Scalar map we can just create now.
     private static final Map<String, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
 

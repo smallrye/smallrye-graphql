@@ -84,10 +84,18 @@ public class NumberCoercing implements Coercing {
                 throw msg.coercingParseLiteralException(name, value.toString());
             }
             return converter.fromBigInteger(value);
-
         } else if (input instanceof FloatValue) {
             BigDecimal value = ((FloatValue) input).getValue();
             return converter.fromBigDecimal(value);
+        } else if (input instanceof BigDecimal) {
+            BigDecimal value = (BigDecimal) input;
+            return converter.fromBigDecimal(value);
+        } else if (input instanceof BigInteger) {
+            BigInteger value = (BigInteger) input;
+            if (!converter.isInRange(value)) {
+                throw msg.coercingParseLiteralException(name, value.toString());
+            }
+            return converter.fromBigInteger(value);
         }
         throw msg.coercingParseLiteralException(input.getClass().getSimpleName());
     }
