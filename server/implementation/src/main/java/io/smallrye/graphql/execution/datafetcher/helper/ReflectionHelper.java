@@ -111,8 +111,8 @@ public class ReflectionHelper {
             List<Class<?>> cl = new LinkedList<>();
             int cnt = 0;
             for (Field argument : operation.getArguments()) {
-                // If the argument is an array / collection, load that class
-                if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArray()) {
+                // If the argument is wrapped, load the wrapper
+                if (argument.hasWrapper()) {
                     Class<?> clazz = classloadingService.loadClass(argument.getWrapper().getWrapperClassName());
                     cl.add(clazz);
                 } else {

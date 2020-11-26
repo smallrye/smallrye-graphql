@@ -1,0 +1,9 @@
+{
+  classWithOptionalField{
+    maybe
+    maybeOneDay
+    id
+    mapped
+    amount
+  }
+}

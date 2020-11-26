@@ -1,0 +1,11 @@
+{
+  "data": {
+    "classWithEmptyField": {
+      "maybe": null,
+      "maybeOneDay": null,
+      "id": null,
+      "mapped": null,
+      "amount": null
+    }
+  }
+}
