@@ -1,0 +1,4 @@
+{
+  empty:optionalDateParam
+  present:optionalDateParam(echo:"01 Jan 2021")
+}

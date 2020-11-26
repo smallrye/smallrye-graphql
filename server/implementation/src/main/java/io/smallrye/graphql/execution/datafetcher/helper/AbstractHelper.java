@@ -245,12 +245,13 @@ public abstract class AbstractHelper {
      */
     private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
-        Collection givenCollection = getGivenCollection(argumentValue);
-        if (givenCollection.isEmpty()) {
+        if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
             return Optional.empty();
         } else {
-            Object o = givenCollection.iterator().next();
-            return Optional.of(recursiveTransform(o, field));
+            Optional optional = (Optional) argumentValue;
+            Object o = optional.get();
+            Field f = getFieldInField(field);
+            return Optional.of(recursiveTransform(o, f));
         }
 
     }
@@ -264,12 +265,13 @@ public abstract class AbstractHelper {
      */
     private Optional<Object> recursiveMappingOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
-        Collection givenCollection = getGivenCollection(argumentValue);
-        if (givenCollection.isEmpty()) {
+        if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
             return Optional.empty();
         } else {
-            Object o = givenCollection.iterator().next();
-            return Optional.of(recursiveMapping(o, field));
+            Optional optional = (Optional) argumentValue;
+            Object o = optional.get();
+            Field f = getFieldInField(field);
+            return Optional.of(recursiveMapping(o, f));
         }
 
     }

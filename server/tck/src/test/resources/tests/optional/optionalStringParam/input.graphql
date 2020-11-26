@@ -1,0 +1,4 @@
+{
+  empty:optionalStringParam
+  present:optionalStringParam(echo:"boo")
+}

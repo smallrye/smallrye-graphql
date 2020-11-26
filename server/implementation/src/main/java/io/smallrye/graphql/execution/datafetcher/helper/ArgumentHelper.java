@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
@@ -99,7 +100,15 @@ public class ArgumentHelper extends AbstractHelper {
 
         // return null if the value is null
         if (argumentValueFromGraphQLJava == null) {
+            if (argument.hasWrapper() && argument.getWrapper().isOptional()) {
+                return Optional.empty();
+            }
             return null;
+        }
+
+        // wrap in optional if the argument is optional
+        if (argument.hasWrapper() && argument.getWrapper().isOptional()) {
+            argumentValueFromGraphQLJava = Optional.of(argumentValueFromGraphQLJava);
         }
 
         return super.recursiveTransform(argumentValueFromGraphQLJava, argument);
