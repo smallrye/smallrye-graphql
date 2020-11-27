@@ -126,7 +126,12 @@ public class TypeInfo {
     }
 
     private boolean isGraphQlField(Field field) {
-        return !isStatic(field.getModifiers()) && !isTransient(field.getModifiers());
+        return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers());
+    }
+
+    /** Modifier.isSynthetic is package private */
+    private static boolean isSynthetic(int mod) {
+        return (mod & 0x00001000) != 0;
     }
 
     public boolean isOptional() {
@@ -146,6 +151,7 @@ public class TypeInfo {
                 || CharSequence.class.isAssignableFrom(getRawType())
                 || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
                 || java.util.Date.class.equals(getRawType())
+                || java.util.UUID.class.equals(getRawType())
                 || scalarConstructor().isPresent();
     }
 

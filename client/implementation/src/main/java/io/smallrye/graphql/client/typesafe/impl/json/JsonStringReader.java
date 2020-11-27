@@ -27,6 +27,8 @@ class JsonStringReader extends Reader<JsonString> {
 
         if (java.util.Date.class.equals(this.type.getRawType()))
             return java.util.Date.from(Instant.parse(value.getString()));
+        if (java.util.UUID.class.equals(this.type.getRawType()))
+            return java.util.UUID.fromString(value.getString());
 
         ConstructionInfo constructor = type.scalarConstructor()
                 .orElseThrow(() -> new GraphQlClientValueException(location, value));
