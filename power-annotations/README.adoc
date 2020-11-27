@@ -1,6 +1,12 @@
 = Power-Annotations
 
-Power-Annotations is actually independent of GraphQL. It's a generic mechanism for meta annotations. It consists of annotations you can put on your code and (for now only) implementation using a maven plugin to build a Jandex index file.
+Power-Annotations is actually independent of GraphQL. It's a generic mechanism for meta annotations. It consists of annotations you can put on your code (these are meant to become a separate standard) and the following implementations:
+
+1. A maven plugin to build a Jandex index file (and resolve all power annotations). This replaces the `jandex-maven-plugin`. It currently has fewer options, but as we only want to build what people actually need, give us a call if you need more!
+
+2. A classpath scanner to build a Jandex index at runtime (and resolve all power annotations).
+
+There's also a TCK to test, if an implementation adheres to the standard defined by the annotations. It uses an Utils API, so the TCK can also verify implementations not using Jandex. This Annotation Utils API may be convenient for your usage as well, as, e.g., it also resolves repeated annotations.
 
 == Annotations
 
@@ -39,7 +45,7 @@ This is exactly what https://jakarta.ee/specifications/cdi/2.0/cdi-spec-2.0.html
 
 === Mixins
 
-Say you have a class you want to add annotations to, but you can't; e.g., because it's a class from some library or even from the JDK. You can create your own class (or interface) and annotate it as `@MixinFor` the target class. The annotations you put on your mixin class will work as if they were on the target class (if your framework supports Power Annotations).
+Say you have a class you want to add annotations to, but you can't; e.g., because it's a class from some library or even from the JDK. You can create your own class (or interface or even annotation) and annotate it as `@MixinFor` the target class. The annotations you put on your mixin class will work as if they were on the target class (if your framework supports Power Annotations).
 
 This also works for annotations: say we're developing an application packed with annotations from JPA, which doesn't support mixins (yet). The application also uses a library that supports mixins but doesn't know about JPA, e.g. a future MP GraphQL. We want all JPA `@Id` annotations to be recognized as synonyms for GraphQL `@Id` annotations. We could create a simple mixin for the JPA annotation:
 

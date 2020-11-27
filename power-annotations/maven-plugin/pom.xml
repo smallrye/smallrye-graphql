@@ -10,6 +10,8 @@
 
     <artifactId>power-jandex-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
+    <name>Power Annotations Jandex Maven Plugin</name>
+    <description>Replaces the `jandex-maven-plugin` to generate a Jandex index file, but with the Power Annotations resolved.</description>
 
     <prerequisites>
         <maven>3.5</maven>
@@ -45,7 +47,7 @@
 
         <dependency>
             <groupId>io.smallrye</groupId>
-            <artifactId>power-annotations-common</artifactId>
+            <artifactId>power-annotations-jandex-common</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

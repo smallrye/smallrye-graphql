@@ -85,13 +85,13 @@ public class Jandex {
     }
 
     public void copyClassAnnotation(AnnotationInstance original, DotName className) {
-        ClassInfo classInfo = classes.get(className);
+        ClassInfo classInfo = getClassInfo(className);
         AnnotationInstance copy = copyAnnotationInstance(original, classInfo);
         add(copy, annotations(classInfo));
     }
 
     public void copyFieldAnnotation(AnnotationInstance original, DotName className, String fieldName) {
-        ClassInfo classInfo = classes.get(className);
+        ClassInfo classInfo = getClassInfo(className);
         FieldInfo field = classInfo.field(fieldName);
         AnnotationInstance annotationInstance = copyAnnotationInstance(original, field);
         JandexBackdoor.add(annotationInstance, field);
@@ -99,11 +99,18 @@ public class Jandex {
     }
 
     public void copyMethodAnnotation(AnnotationInstance original, DotName className, String methodName, Type... parameters) {
-        ClassInfo classInfo = classes.get(className);
+        ClassInfo classInfo = getClassInfo(className);
         MethodInfo method = classInfo.method(methodName, parameters);
         AnnotationInstance annotationInstance = copyAnnotationInstance(original, method);
         JandexBackdoor.add(annotationInstance, method);
         add(annotationInstance, annotations(classInfo));
+    }
+
+    private ClassInfo getClassInfo(DotName className) {
+        ClassInfo classInfo = classes.get(className);
+        if (classInfo == null)
+            throw new RuntimeException("class not in index: " + className);
+        return classInfo;
     }
 
     private AnnotationInstance copyAnnotationInstance(AnnotationInstance original, AnnotationTarget annotationTarget) {
