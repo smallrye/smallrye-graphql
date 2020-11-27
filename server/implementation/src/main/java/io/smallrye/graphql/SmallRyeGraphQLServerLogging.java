@@ -88,4 +88,10 @@ public interface SmallRyeGraphQLServerLogging {
     @Message(id = 14000, value = "Unable to transform data")
     void transformError(@Cause Throwable t);
 
+    /* 15000-15999: context propagation related logs */
+
+    @LogMessage(level = Logger.Level.DEBUG)
+    @Message(id = 15000, value = "Using %s service for context propagation")
+    void usingContextPropagationService(String name);
+
 }
