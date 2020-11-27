@@ -63,6 +63,7 @@ public class ParameterInfo {
             case "String":
             case "char":
             case "Character":
+            case "UUID":
                 return "String";
             case "boolean":
             case "Boolean":

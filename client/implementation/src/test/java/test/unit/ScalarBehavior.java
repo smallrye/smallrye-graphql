@@ -15,6 +15,7 @@ import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -581,14 +582,26 @@ class ScalarBehavior {
     @GraphQlClientApi
     interface IdApi {
         @Id
-        String idea(@Id String in);
+        String idea(
+                @Id String stringId,
+                @Id long primitiveLongId,
+                @Id int primitiveIntId,
+                @Id Long longId,
+                @Id Integer intId,
+                @Id UUID uuidId);
     }
 
     @GraphQlClientApi
     interface NonNullIdApi {
         @NonNull
         @Id
-        String idea(@NonNull @Id String in);
+        String idea(
+                @NonNull @Id String stringId,
+                @NonNull @Id long primitiveLongId,
+                @NonNull @Id int primitiveIntId,
+                @NonNull @Id Long longId,
+                @NonNull @Id Integer intId,
+                @NonNull @Id UUID uuidId);
     }
 
     @GraphQlClientApi
@@ -706,9 +719,22 @@ class ScalarBehavior {
             fixture.returnsData("'idea':'out'");
             IdApi api = fixture.builder().build(IdApi.class);
 
-            String out = api.idea("in");
+            String out = api.idea("stringId", 1L, 2, 3L, 4, UUID.randomUUID());
 
-            then(fixture.query()).isEqualTo("query idea($in: ID) { idea(in: $in) }");
+            then(fixture.query()).isEqualTo("query idea(" +
+                    "$stringId: ID, " +
+                    "$primitiveLongId: ID!, " +
+                    "$primitiveIntId: ID!, " +
+                    "$longId: ID, " +
+                    "$intId: ID, " +
+                    "$uuidId: ID) " +
+                    "{ idea(" +
+                    "stringId: $stringId, " +
+                    "primitiveLongId: $primitiveLongId, " +
+                    "primitiveIntId: $primitiveIntId, " +
+                    "longId: $longId, " +
+                    "intId: $intId, " +
+                    "uuidId: $uuidId) }");
             then(out).isEqualTo("out");
         }
 
@@ -717,9 +743,22 @@ class ScalarBehavior {
             fixture.returnsData("'idea':'out'");
             NonNullIdApi api = fixture.builder().build(NonNullIdApi.class);
 
-            String out = api.idea("in");
+            String out = api.idea("stringId", 1L, 2, 3L, 4, UUID.randomUUID());
 
-            then(fixture.query()).isEqualTo("query idea($in: ID!) { idea(in: $in) }");
+            then(fixture.query()).isEqualTo("query idea(" +
+                    "$stringId: ID!, " +
+                    "$primitiveLongId: ID!, " +
+                    "$primitiveIntId: ID!, " +
+                    "$longId: ID!, " +
+                    "$intId: ID!, " +
+                    "$uuidId: ID!) " +
+                    "{ idea(" +
+                    "stringId: $stringId, " +
+                    "primitiveLongId: $primitiveLongId, " +
+                    "primitiveIntId: $primitiveIntId, " +
+                    "longId: $longId, " +
+                    "intId: $intId, " +
+                    "uuidId: $uuidId) }");
             then(out).isEqualTo("out");
         }
 
@@ -1013,6 +1052,55 @@ class ScalarBehavior {
             then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
             then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
             then(value).isEqualTo(Date.from(out));
+        }
+    }
+
+    @GraphQlClientApi
+    interface UuidApi {
+        UUID foo(UUID uuid, @Id UUID id);
+    }
+
+    @GraphQlClientApi
+    interface NestedUuidIdApi {
+        NestedUuidId foo(NestedUuidId uuid);
+    }
+
+    static class NestedUuidId {
+        @Id
+        UUID id;
+    }
+
+    @Nested
+    class UuidBehavior {
+        @Test
+        void shouldCallUuidQuery() {
+            UUID in1 = UUID.randomUUID();
+            UUID in2 = UUID.randomUUID();
+            UUID out = UUID.randomUUID();
+            fixture.returnsData("'foo':'" + out + "'");
+            UuidApi api = fixture.build(UuidApi.class);
+
+            UUID value = api.foo(in1, in2);
+
+            then(fixture.query()).isEqualTo("query foo($uuid: String, $id: ID) { foo(uuid: $uuid, id: $id) }");
+            then(fixture.variables()).isEqualTo("{'uuid':'" + in1 + "','id':'" + in2 + "'}");
+            then(value).isEqualTo(out);
+        }
+
+        @Test
+        void shouldCallNestedUuidIdQuery() {
+            NestedUuidId in = new NestedUuidId();
+            in.id = UUID.randomUUID();
+            NestedUuidId out = new NestedUuidId();
+            out.id = UUID.randomUUID();
+            fixture.returnsData("'foo':{'id':'" + out.id + "'}");
+            NestedUuidIdApi api = fixture.build(NestedUuidIdApi.class);
+
+            NestedUuidId value = api.foo(in);
+
+            then(fixture.query()).isEqualTo("query foo($uuid: NestedUuidIdInput) { foo(uuid: $uuid) {id} }");
+            then(fixture.variables()).isEqualTo("{'uuid':{'id':'" + in.id + "'}}");
+            then(value.id).isEqualTo(out.id);
         }
     }
 }
