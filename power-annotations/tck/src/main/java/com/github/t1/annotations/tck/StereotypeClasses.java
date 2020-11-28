@@ -7,16 +7,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import com.github.t1.annotations.Stereotype;
+import com.github.t1.annotations.tck.MixinClasses.AnotherAnnotation;
 
 public class StereotypeClasses {
     @Retention(RUNTIME)
-    @Target(ANNOTATION_TYPE) // i.e. not on TYPE
+    @Target(ANNOTATION_TYPE)
+    // i.e. not on TYPE
     public @interface SomeMetaAnnotation {
     }
 
     @Stereotype
     @Retention(RUNTIME)
-    @SomeAnnotation("some-stereotype")
+    @AnotherAnnotation
+    @SomeAnnotation("from-stereotype")
     @RepeatableAnnotation(1)
     @RepeatableAnnotation(2)
     @SomeMetaAnnotation
@@ -25,10 +28,42 @@ public class StereotypeClasses {
 
     @Stereotype
     @Retention(RUNTIME)
-    @SomeAnnotation("another-stereotype")
-    @RepeatableAnnotation(3)
-    @RepeatableAnnotation(4)
+    @SomeAnnotation("from-another-stereotype")
     public @interface AnotherStereotype {
+    }
+
+    @Stereotype
+    @Retention(RUNTIME)
+    @RepeatableAnnotation(1)
+    public @interface StereotypeWithOne {
+    }
+
+    @Stereotype
+    @Retention(RUNTIME)
+    @RepeatableAnnotation(1)
+    @RepeatableAnnotation(2)
+    public @interface StereotypeWithTwo {
+    }
+
+    @Stereotype
+    @Retention(RUNTIME)
+    @RepeatableAnnotation(1)
+    @RepeatableAnnotation(2)
+    @RepeatableAnnotation(3)
+    public @interface StereotypeWithThree {
+    }
+
+    @Stereotype
+    @Retention(RUNTIME)
+    @RepeatableAnnotation(11)
+    public @interface AnotherStereotypeWithOne {
+    }
+
+    @Stereotype
+    @Retention(RUNTIME)
+    @RepeatableAnnotation(11)
+    @RepeatableAnnotation(12)
+    public @interface AnotherStereotypeWithTwo {
     }
 
     @Stereotype
@@ -77,9 +112,59 @@ public class StereotypeClasses {
     public static class DoubleStereotypedClass {
     }
 
+    @StereotypeWithOne
+    @AnotherStereotypeWithOne
+    public static class MergeRepeatableAnnotationFromOneAndOne {
+    }
+
+    @StereotypeWithOne
+    @AnotherStereotypeWithTwo
+    public static class MergeRepeatableAnnotationFromOneAndTwo {
+    }
+
+    @StereotypeWithTwo
+    @AnotherStereotypeWithOne
+    public static class MergeRepeatableAnnotationFromTwoAndOne {
+    }
+
+    @StereotypeWithTwo
+    @AnotherStereotypeWithTwo
+    public static class MergeRepeatableAnnotationFromTwoAndTwo {
+    }
+
+    @StereotypeWithOne
+    @RepeatableAnnotation(2)
+    public static class MergeOneRepeatableAnnotationIntoOne {
+    }
+
+    @StereotypeWithOne
+    @RepeatableAnnotation(21)
+    @RepeatableAnnotation(22)
+    public static class MergeOneRepeatableAnnotationIntoTwo {
+    }
+
+    @StereotypeWithTwo
+    @RepeatableAnnotation(21)
+    public static class MergeTwoRepeatableAnnotationIntoOne {
+    }
+
+    @StereotypeWithTwo
+    @RepeatableAnnotation(21)
+    @RepeatableAnnotation(22)
+    public static class MergeTwoRepeatableAnnotationIntoTwo {
+    }
+
+    @StereotypeWithThree
+    @RepeatableAnnotation(21)
+    @RepeatableAnnotation(22)
+    @RepeatableAnnotation(23)
+    public static class MergeThreeRepeatableAnnotationIntoThree {
+    }
+
     @SuppressWarnings("unused")
     public static class ClassWithStereotypedField {
         @SomeStereotype
+        @SomeAnnotation("on-field")
         @RepeatableAnnotation(7)
         String foo;
         boolean bar;
@@ -88,6 +173,7 @@ public class StereotypeClasses {
     @SuppressWarnings("unused")
     public static class ClassWithStereotypedMethod {
         @SomeStereotype
+        @SomeAnnotation("on-method")
         @RepeatableAnnotation(7)
         String foo() {
             return "foo";

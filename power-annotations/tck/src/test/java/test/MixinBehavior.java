@@ -61,7 +61,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetRepeatedClassAnnotation() {
             Throwable throwable = catchThrowable(() -> annotations.get(RepeatableAnnotation.class));
 
@@ -81,7 +80,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldGetAllRepeatableClassAnnotations() {
             Stream<RepeatableAnnotation> list = annotations.all(RepeatableAnnotation.class);
 
@@ -101,7 +99,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldGetAllNonRepeatableMixedInAnnotations() {
             Stream<SomeAnnotation> someAnnotation = annotationsFromAnnotationTargetedByMixin.all(SomeAnnotation.class);
 
@@ -110,7 +107,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldGetAllRepeatableMixedInAnnotations() {
             Stream<RepeatableAnnotation> repeatableAnnotations = annotationsFromAnnotationTargetedByMixin
                     .all(RepeatableAnnotation.class);
@@ -158,11 +154,10 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("one");
+            then(someAnnotation.get().value()).isEqualTo("three"); // or two?
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetDuplicateRepeatableClassAnnotationFromMultipleMixins() {
             Annotations annotations = Annotations.on(TargetClassWithTwoRepeatableMixins.class);
 
@@ -208,7 +203,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetRepeatableFieldAnnotation() {
             Throwable throwable = catchThrowable(() -> annotations.get(RepeatableAnnotation.class));
 
@@ -228,7 +222,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldGetAllRepeatableFieldAnnotations() {
             Stream<RepeatableAnnotation> list = annotations.all(RepeatableAnnotation.class);
 
@@ -244,7 +237,7 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("one");
+            then(someAnnotation.get().value()).isEqualTo("four");
         }
 
         @Test
@@ -254,11 +247,10 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("one");
+            then(someAnnotation.get().value()).isEqualTo("five"); // or six?
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetDuplicateRepeatableFieldAnnotationFromMultipleMixins() {
             Annotations annotations = Annotations.onField(TargetFieldClassWithTwoRepeatableMixins.class, "foo");
 
@@ -306,7 +298,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetRepeatableMethodAnnotation() {
             Throwable throwable = catchThrowable(() -> annotations.get(RepeatableAnnotation.class));
 
@@ -326,7 +317,6 @@ public class MixinBehavior {
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldGetAllRepeatableMethodAnnotations() {
             Stream<RepeatableAnnotation> list = annotations.all(RepeatableAnnotation.class);
 
@@ -342,7 +332,7 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("one");
+            then(someAnnotation.get().value()).isEqualTo("seven");
         }
 
         @Test
@@ -352,11 +342,10 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("one");
+            then(someAnnotation.get().value()).isEqualTo("eight"); // or nine?
         }
 
         @Test
-        @RepeatableAnnotationsTestSuite
         void shouldFailToGetDuplicateRepeatableMethodAnnotationFromMultipleMixins() {
             Annotations annotations = Annotations.onMethod(TargetMethodClassWithTwoRepeatableMixins.class, "foo");
 

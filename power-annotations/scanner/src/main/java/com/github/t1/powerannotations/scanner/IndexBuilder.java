@@ -1,33 +1,19 @@
 package com.github.t1.powerannotations.scanner;
 
-import static java.util.logging.Level.FINE;
-import static java.util.stream.Collectors.joining;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
-import org.jboss.jandex.IndexView;
 
 public class IndexBuilder {
-    public static IndexView loadOrScan() {
-        IndexView jandex = load().orElseGet(Scanner::scan);
-        if (LOG.isLoggable(LEVEL)) {
-            LOG.log(LEVEL, "------------------------------------------------------------");
-            jandex.getKnownClasses()
-                    .forEach(classInfo -> LOG.log(LEVEL, classInfo.name() + " :: " + classInfo.classAnnotations().stream()
-                            .filter(instance -> !instance.name().toString().equals("kotlin.Metadata")) // contains binary
-                            .map(Object::toString).collect(joining(", "))));
-            LOG.log(LEVEL, "------------------------------------------------------------");
-        }
-        return jandex;
+    public static Index loadOrScan() {
+        return load().orElseGet(Scanner::scan);
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    private static Optional<IndexView> load() {
+    private static Optional<Index> load() {
         try (InputStream inputStream = getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
             return Optional.ofNullable(inputStream).map(IndexBuilder::load);
         } catch (RuntimeException | IOException e) {
@@ -35,7 +21,7 @@ public class IndexBuilder {
         }
     }
 
-    private static IndexView load(InputStream inputStream) {
+    private static Index load(InputStream inputStream) {
         try {
             return new IndexReader(inputStream).read();
         } catch (RuntimeException | IOException e) {
@@ -47,7 +33,4 @@ public class IndexBuilder {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         return (classLoader == null) ? ClassLoader.getSystemClassLoader() : classLoader;
     }
-
-    private static final Logger LOG = Logger.getLogger(IndexBuilder.class.getName());
-    private static final Level LEVEL = FINE;
 }

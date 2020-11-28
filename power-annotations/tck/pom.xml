@@ -8,7 +8,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-power-annotations-parent</artifactId>
-        <version>1.0.18-SNAPSHOT</version>
+        <version>1.0.19-SNAPSHOT</version>
     </parent>
 
     <artifactId>power-annotations-tck</artifactId>
@@ -54,11 +54,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <groups>!RepeatableAnnotationsTestSuite &amp; !InheritedAnnotationsTestSuite &amp; !TypeToMemberAnnotationsTestSuite</groups>
+                    <groups>!InheritedAnnotationsTestSuite &amp; !TypeToMemberAnnotationsTestSuite</groups>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
     <profiles>
         <profile>
             <id>utils-jandex</id>

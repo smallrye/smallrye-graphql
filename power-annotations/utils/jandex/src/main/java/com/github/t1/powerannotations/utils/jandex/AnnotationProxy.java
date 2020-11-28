@@ -1,5 +1,7 @@
 package com.github.t1.powerannotations.utils.jandex;
 
+import static com.github.t1.powerannotations.utils.jandex.JandexAnnotationsLoader.jandex;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -7,6 +9,8 @@ import java.lang.reflect.Proxy;
 import java.util.function.Function;
 
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassType;
 
 /**
  * {@link #build() Builds} a {@link Proxy dynamic proxy} that delegates to three
@@ -17,7 +21,7 @@ class AnnotationProxy {
         return new AnnotationProxy(
                 annotationInstance.name().toString(),
                 annotationInstance.toString(false),
-                name -> annotationInstance.value(name).value())
+                name -> annotationInstance.valueWithDefault(jandex, name).value())
                         .build();
     }
 
@@ -72,24 +76,39 @@ class AnnotationProxy {
         return toType(value, method.getReturnType());
     }
 
-    private Object toType(Object value, Class<?> returnType) {
-        // TODO implement
-        // if (returnType.isAnnotation())
-        //     return proxy(AnnotationInstance.from(value));
-        // if (returnType.isEnum())
-        //     return enumValue(returnType, (String) value);
-        // if (returnType.equals(Class.class))
-        //     return toClass(value);
+    private static Object toType(Object value, Class<?> returnType) {
+        if (returnType.isAnnotation())
+            return proxy((AnnotationInstance) value);
+        if (returnType.isEnum())
+            return enumValue(returnType, (String) value);
+        if (returnType.equals(Class.class))
+            return toClass(value);
         if (returnType.isArray())
             return toArray(returnType.getComponentType(), (Object[]) value);
         return value;
     }
 
-    private Object toArray(Class<?> componentType, Object[] values) {
+    private static <T extends Enum<T>> Enum<T> enumValue(Class<?> type, String value) {
+        @SuppressWarnings("unchecked")
+        Class<T> enumType = (Class<T>) type;
+        return Enum.valueOf(enumType, value);
+    }
+
+    private static Class<?> toClass(Object value) {
+        String className = ((ClassType) value).name().toString();
+
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try {
+            return Class.forName(className, true, loader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("class not found '" + className + "'", e);
+        }
+    }
+
+    private static Object toArray(Class<?> componentType, Object[] values) {
         Object array = Array.newInstance(componentType, values.length);
-        // TODO implement
-        // for (int i = 0; i < values.length; i++)
-        //     Array.set(array, i, toType(AnnotationValue.of(values[i]), componentType));
+        for (int i = 0; i < values.length; i++)
+            Array.set(array, i, toType(((AnnotationValue) values[i]).value(), componentType));
         return array;
     }
 }

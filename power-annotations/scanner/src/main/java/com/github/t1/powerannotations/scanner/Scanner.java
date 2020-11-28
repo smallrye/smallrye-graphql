@@ -17,13 +17,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
+
+import com.github.t1.powerannotations.common.PowerAnnotations;
 
 public class Scanner {
 
-    public static IndexView scan() {
-        return new Scanner().scanClassPath();
+    public static Index scan() {
+        Index index = new Scanner().scanClassPath();
+        new PowerAnnotations(index, System.out::println).resolveAnnotations();
+        return index;
     }
 
     private final Indexer indexer = new Indexer();
@@ -31,7 +34,7 @@ public class Scanner {
     private int archivesIndexed;
     private int classesIndexed;
 
-    private IndexView scanClassPath() {
+    private Index scanClassPath() {
         long t = System.currentTimeMillis();
         urls()
                 .distinct()

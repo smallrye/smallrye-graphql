@@ -68,12 +68,12 @@ public class MixinClasses {
         }
 
         @MixinFor(TargetClassWithTwoNonRepeatableMixins.class)
-        @SomeAnnotation("one")
+        @SomeAnnotation("two")
         static class MixinForTargetClassWithTwoNonRepeatableMixins1 {
         }
 
         @MixinFor(TargetClassWithTwoNonRepeatableMixins.class)
-        @SomeAnnotation("one")
+        @SomeAnnotation("three")
         static class MixinForTargetClassWithTwoNonRepeatableMixins2 {
         }
 
@@ -119,7 +119,7 @@ public class MixinClasses {
 
         @MixinFor(TargetFieldClassWithTwoMixins.class)
         static class MixinForTargetFieldClassWithTwoMixins1 {
-            @SomeAnnotation("one")
+            @SomeAnnotation("four")
             @SuppressWarnings("unused")
             String foo;
         }
@@ -138,14 +138,14 @@ public class MixinClasses {
 
         @MixinFor(TargetFieldClassWithTwoNonRepeatableMixins.class)
         static class MixinForTargetFieldClassWithTwoNonRepeatableMixins1 {
-            @SomeAnnotation("one")
+            @SomeAnnotation("five")
             @SuppressWarnings("unused")
             String foo;
         }
 
         @MixinFor(TargetFieldClassWithTwoNonRepeatableMixins.class)
         static class MixinForTargetFieldClassWithTwoNonRepeatableMixins2 {
-            @SomeAnnotation("one")
+            @SomeAnnotation("six")
             @SuppressWarnings("unused")
             String foo;
         }
@@ -206,7 +206,7 @@ public class MixinClasses {
 
         @MixinFor(TargetMethodClassWithTwoMixins.class)
         static class MixinForTargetMethodClassWithTwoMixins1 {
-            @SomeAnnotation("one")
+            @SomeAnnotation("seven")
             @SuppressWarnings("unused")
             String foo() {
                 return "foo";
@@ -230,21 +230,17 @@ public class MixinClasses {
         }
 
         @MixinFor(TargetMethodClassWithTwoNonRepeatableMixins.class)
-        static class MixinForTargetMethodClassWithTwoNonRepeatableMixins1 {
-            @SomeAnnotation("one")
+        interface MixinForTargetMethodClassWithTwoNonRepeatableMixins1 {
+            @SomeAnnotation("eight")
             @SuppressWarnings("unused")
-            String foo() {
-                return "foo";
-            }
+            String foo();
         }
 
         @MixinFor(TargetMethodClassWithTwoNonRepeatableMixins.class)
-        static class MixinTargetMethodClassWithTwoNonRepeatableMixins2 {
-            @SomeAnnotation("one")
+        interface MixinTargetMethodClassWithTwoNonRepeatableMixins2 {
+            @SomeAnnotation("nine")
             @SuppressWarnings("unused")
-            String foo() {
-                return "foo";
-            }
+            String foo();
         }
 
         public static class TargetMethodClassWithTwoRepeatableMixins {
