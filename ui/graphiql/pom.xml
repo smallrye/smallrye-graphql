@@ -15,8 +15,8 @@
     
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
-        <react.version>16.13.1</react.version>
-        <graphiql.version>0.17.5</graphiql.version>
+        <react.version>16.14.0</react.version>
+        <graphiql.version>1.1.0</graphiql.version>
     </properties>
     
     <build>            
@@ -60,7 +60,7 @@
                                 <url>https://unpkg.com/react@${react.version}/umd/react.production.min.js</url>
                                 <unpack>false</unpack>
                                 <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>edf56a42bca6b565bf7dfcbd8ffc221a</md5>
+                                <md5>63d498e143f421cc44dfb64f22fef270</md5>
                             </configuration>
                         </execution>
                         <execution>
@@ -73,7 +73,7 @@
                                 <url>https://unpkg.com/react-dom@${react.version}/umd/react-dom.production.min.js</url>
                                 <unpack>false</unpack>
                                 <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>dcf51763fb4a654e15a4e6e7754ca5d2</md5>
+                                <md5>c5abc87541fe6bb0f43f22af475a8b20</md5>
                             </configuration>
                         </execution>
                         <execution>
@@ -86,7 +86,7 @@
                                 <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.js</url>
                                 <unpack>false</unpack>
                                 <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>e870833e4950a9691d60b55b753b2266</md5>
+                                <md5>1bf1745878191d43a88571bc40b8afa5</md5>
                             </configuration>
                         </execution>
                         <execution>
@@ -99,11 +99,9 @@
                                 <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.css</url>
                                 <unpack>false</unpack>
                                 <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>a8f9f6b61b9c0f3694290cf3af318973</md5>
+                                <md5>41c1617ba5cf7606900eb99c1e9e52ad</md5>
                             </configuration>
                         </execution>
-                        
-                        
                 </executions>
             </plugin>
         </plugins>
