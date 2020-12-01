@@ -1,7 +1,6 @@
 package io.smallrye.graphql.spi.datafetcher;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoaderEnvironment;
@@ -10,6 +9,7 @@ import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Wrapper;
+import io.smallrye.graphql.spi.ContextPropagationService;
 import io.smallrye.graphql.spi.WrapperHandlerService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
@@ -57,7 +57,9 @@ public class DefaultWrapperHandlerService extends AbstractWrapperHandlerService 
     public <T> CompletionStage<List<T>> getBatchData(BatchLoaderEnvironment ble, List<Object> keys) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments));
+        ContextPropagationService contextPropagationService = ContextPropagationService.get();
+        return contextPropagationService.withContextCapture(
+                () -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments));
     }
 
     @Override
