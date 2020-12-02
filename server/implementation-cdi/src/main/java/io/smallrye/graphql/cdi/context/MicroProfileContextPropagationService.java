@@ -16,9 +16,7 @@ public class MicroProfileContextPropagationService implements ContextPropagation
     private final ThreadContext ctx;
 
     public MicroProfileContextPropagationService() {
-        ctx = ThreadContext.builder()
-                .propagated(ThreadContext.CDI, ThreadContext.SECURITY)
-                .build();
+        ctx = ThreadContext.builder().build();
     }
 
     @Override
