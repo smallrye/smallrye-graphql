@@ -21,9 +21,9 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * @param <K>
  * @param <T>
  */
-public class CompletableFutureDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
+public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public CompletableFutureDataFetcher(Operation operation, Config config) {
+    public CompletionStageDataFetcher(Operation operation, Config config) {
         super(operation, config);
     }
 

@@ -6,7 +6,7 @@ import java.util.concurrent.CompletionStage;
 import org.dataloader.BatchLoaderWithContext;
 
 import graphql.schema.DataFetcher;
-import io.smallrye.graphql.execution.datafetcher.CompletableFutureDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.CompletionStageDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.DefaultDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.UniDataFetcher;
 import io.smallrye.graphql.schema.model.Field;
@@ -52,8 +52,8 @@ public class DataFetcherFactory {
 
     // TODO: Have some way to load custom ?    
     private <V> V get(Operation operation) {
-        if (isJDKFuture(operation)) {
-            return (V) new CompletableFutureDataFetcher(operation, config);
+        if (isCompletionStage(operation)) {
+            return (V) new CompletionStageDataFetcher(operation, config);
         } else if (isMutinyUni(operation)) {
             return (V) new UniDataFetcher(operation, config);
         }
@@ -61,10 +61,10 @@ public class DataFetcherFactory {
     }
 
     private boolean isAsync(Field field) {
-        return isJDKFuture(field) || isMutinyUni(field);
+        return isCompletionStage(field) || isMutinyUni(field);
     }
 
-    private boolean isJDKFuture(Field field) {
+    private boolean isCompletionStage(Field field) {
         if (field.hasWrapper()) {
             String wrapperClassName = field.getWrapper().getWrapperClassName();
             return wrapperClassName.equals(CompletableFuture.class.getName())
