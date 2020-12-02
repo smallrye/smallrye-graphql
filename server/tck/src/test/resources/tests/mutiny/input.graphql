@@ -1,0 +1,11 @@
+{
+    mutinyBook(name:"Lord of the Flies"){
+        title
+        published
+        buyLink
+        authors {
+            name
+            bornName
+        }
+    }
+}

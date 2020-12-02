@@ -19,7 +19,7 @@ public class BatchLoaderHelper {
         return operation.getSourceFieldOn().getName() + "_" + operation.getName();
     }
 
-    public Object[] getArguments(List<Object> keys, BatchLoaderEnvironment ble) {
+    public <K> Object[] getArguments(List<K> keys, BatchLoaderEnvironment ble) {
 
         List<Object> arguments = new ArrayList<>();
         arguments.add(keys);

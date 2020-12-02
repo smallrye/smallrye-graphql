@@ -298,7 +298,7 @@ public class SmallRyeContext implements Context {
 
     @Override
     public <T> void setMetaField(String identifier, T t) {
-        this.metaFields.put(QUERY, parser);
+        this.metaFields.put(identifier, t);
     }
 
     @Override

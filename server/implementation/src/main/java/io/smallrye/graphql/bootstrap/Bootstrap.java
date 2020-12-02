@@ -45,11 +45,9 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.batchloader.SourceBatchLoader;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
-import io.smallrye.graphql.execution.datafetcher.PlugableDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
@@ -71,7 +69,6 @@ import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
-import io.smallrye.graphql.spi.WrapperHandlerService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -84,7 +81,7 @@ public class Bootstrap {
     private final Schema schema;
     private final Config config;
     private final EventEmitter eventEmitter;
-
+    private final DataFetcherFactory dataFetcherFactory;
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
@@ -116,6 +113,7 @@ public class Bootstrap {
     private Bootstrap(Schema schema, Config config) {
         this.schema = schema;
         this.config = config;
+        this.dataFetcherFactory = new DataFetcherFactory(config);
         this.eventEmitter = EventEmitter.getInstance(config);
         SmallRyeContext.setSchema(schema);
     }
@@ -210,6 +208,7 @@ public class Bootstrap {
 
             // DataFetcher (Just a dummy)
             DataFetcher datafetcher = new DataFetcher() {
+                @Override
                 public Object get(DataFetchingEnvironment dfe) throws Exception {
                     return namedType.getName();
                 }
@@ -233,7 +232,6 @@ public class Bootstrap {
 
         // Operations
         for (Operation operation : operations) {
-            String name = operation.getName();
             operation = eventEmitter.fireCreateOperation(operation);
 
             GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(namedTypeName,
@@ -406,7 +404,7 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        registerBatchLoader(operation, config);
+        registerBatchLoader(operation);
 
         DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
@@ -434,7 +432,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = new PlugableDataFetcher(operation, config);
+        DataFetcher<?> datafetcher = dataFetcherFactory.getDataFetcher(operation);
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
                 datafetcher);
@@ -494,8 +492,7 @@ public class Bootstrap {
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
 
-        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
-        Wrapper wrapper = wrapperHandlerService.unwrap(field, false);
+        Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArray()) {
@@ -525,8 +522,7 @@ public class Bootstrap {
     private GraphQLOutputType createGraphQLOutputType(Field field, boolean isBatch) {
         GraphQLOutputType graphQLOutputType = referenceGraphQLOutputType(field);
 
-        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
-        Wrapper wrapper = wrapperHandlerService.unwrap(field, isBatch);
+        Wrapper wrapper = dataFetcherFactory.unwrap(field, isBatch);
 
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArray()) {
@@ -617,8 +613,7 @@ public class Bootstrap {
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
-        WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(argument);
-        Wrapper wrapper = wrapperHandlerService.unwrap(argument, false);
+        Wrapper wrapper = dataFetcherFactory.unwrap(argument, false);
 
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArray()) {
@@ -660,8 +655,7 @@ public class Bootstrap {
 
         if (isJsonString(jsonString)) {
             Class<?> type;
-            WrapperHandlerService wrapperHandlerService = WrapperHandlerService.getWrapperHandlerService(field);
-            Wrapper wrapper = wrapperHandlerService.unwrap(field, false);
+            Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
             if (wrapper != null && wrapper.isCollectionOrArray()) {
                 type = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
@@ -725,8 +719,8 @@ public class Bootstrap {
         return DEFAULT_FIELD_VISIBILITY;
     }
 
-    public void registerBatchLoader(Operation operation, Config config) {
-        BatchLoaderWithContext<Object, Object> batchLoader = new SourceBatchLoader(operation, config);
+    public <K, T> void registerBatchLoader(Operation operation) {
+        BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
         this.dataLoaderRegistry.register(batchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
     }
 
