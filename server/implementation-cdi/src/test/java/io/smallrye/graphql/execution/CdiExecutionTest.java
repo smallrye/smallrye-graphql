@@ -33,6 +33,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.cdi.CdiLookupService;
 import io.smallrye.graphql.cdi.event.EventsService;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
@@ -50,7 +51,7 @@ public class CdiExecutionTest {
 
     @WeldSetup
     public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi,
-            EventsService.class);
+            EventsService.class, CdiLookupService.class);
 
     @BeforeEach
     public void init() {

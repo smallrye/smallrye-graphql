@@ -65,7 +65,7 @@ public class ReflectionHelper {
                             try {
                                 return invoke(arguments);
                             } finally {
-                                Thread.currentThread().setContextClassLoader(classLoader);
+                                Thread.currentThread().setContextClassLoader(originalTccl);
                             }
                         }
                     });

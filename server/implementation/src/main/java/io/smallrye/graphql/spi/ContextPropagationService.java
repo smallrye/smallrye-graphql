@@ -1,11 +1,11 @@
 package io.smallrye.graphql.spi;
 
 import java.util.ServiceLoader;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
 import io.smallrye.graphql.SmallRyeGraphQLServerLogging;
-import io.smallrye.graphql.spi.datafetcher.NoopContextPropagationService;
 
 public interface ContextPropagationService {
 
@@ -28,6 +28,13 @@ public interface ContextPropagationService {
 
     static ContextPropagationService get() {
         return service;
+    }
+
+    static class NoopContextPropagationService implements ContextPropagationService {
+        @Override
+        public <X> CompletionStage<X> withContextCapture(Supplier<X> action) {
+            return CompletableFuture.supplyAsync(action);
+        }
     }
 
 }

@@ -1,14 +1,18 @@
-package io.smallrye.graphql.spi.datafetcher;
+package io.smallrye.graphql.execution.datafetcher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 
+import org.dataloader.BatchLoaderWithContext;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
+import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
+import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -16,15 +20,17 @@ import io.smallrye.graphql.execution.datafetcher.helper.PartialResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.WrapperHandlerService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
- * An Abstract handler that implements some of the common methods
+ * The abstract data fetcher
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * @param <K>
+ * @param <T>
  */
-public abstract class AbstractWrapperHandlerService implements WrapperHandlerService {
+public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, BatchLoaderWithContext<K, T> {
+
     protected Operation operation;
     protected FieldHelper fieldHelper;
     protected ReflectionHelper reflectionHelper;
@@ -34,8 +40,7 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
     protected BatchLoaderHelper batchLoaderHelper;
     protected List<String> unwrapExceptions = new ArrayList<>();
 
-    @Override
-    public void initDataFetcher(Operation operation, Config config) {
+    public AbstractDataFetcher(Operation operation, Config config) {
         this.operation = operation;
         this.eventEmitter = EventEmitter.getInstance(config);
         this.fieldHelper = new FieldHelper(operation);
@@ -50,7 +55,12 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
     }
 
     @Override
-    public <T> T getData(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder) throws Exception {
+    public T get(final DataFetchingEnvironment dfe) throws Exception {
+        SmallRyeContext.setDataFromFetcher(dfe, operation);
+
+        final GraphQLContext context = dfe.getContext();
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+
         eventEmitter.fireBeforeDataFetch();
 
         try {
@@ -80,10 +90,6 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);
 
-    protected boolean shouldUnwrapThrowable(Throwable t) {
-        return unwrapExceptions.contains(t.getClass().getName()) && t.getCause() != null;
-    }
-
     protected Throwable unwrapThrowable(Throwable t) {
         if (shouldUnwrapThrowable(t)) {
             t = t.getCause();
@@ -92,14 +98,11 @@ public abstract class AbstractWrapperHandlerService implements WrapperHandlerSer
         return t;
     }
 
-    protected Exception getCause(Exception t) {
-        if (t.getCause() != null && t.getCause().getClass().isAssignableFrom(Exception.class)) {
-            return (Exception) t.getCause();
-        }
-        return t;
+    private boolean shouldUnwrapThrowable(Throwable t) {
+        return unwrapExceptions.contains(t.getClass().getName()) && t.getCause() != null;
     }
 
-    private static List<String> DEFAULT_EXCEPTION_UNWRAP = new ArrayList<>();
+    private static final List<String> DEFAULT_EXCEPTION_UNWRAP = new ArrayList<>();
 
     static {
         DEFAULT_EXCEPTION_UNWRAP.add(CompletionException.class.getName());
