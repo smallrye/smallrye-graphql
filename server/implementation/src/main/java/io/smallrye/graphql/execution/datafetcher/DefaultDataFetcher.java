@@ -51,6 +51,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         ThreadContext threadContext = ThreadContext.builder().build();
         return threadContext
                 .withContextCapture(
-                        CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments)));
+                        CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments),
+                                threadContext.currentContextExecutor()));
     }
 }
