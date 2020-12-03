@@ -1,15 +1,14 @@
 {
   "data": {
-    "asyncSource": {
-      "simpleField": "Some String",
-      "asyncString": "asyncString",
-      "asyncNonNullString": "asyncNonNullString",
-      "asyncLocalDate": "2006-01-02",
-      "asyncFormattedLocalDate": "01/02/2006",
-      "asyncList": [
-        1,
-        2,
-        3
+    "mutinyBook": {
+      "title": "Lord of the Flies",
+      "published": "1954-09-17",
+      "buyLink": "https://www.amazon.com/s?k=Lord+of+the+Flies&i=stripbooks-intl-ship",
+      "authors": [
+        {
+          "name": "William Golding",
+          "bornName": "William Gerald Golding"
+        }
       ]
     }
   }

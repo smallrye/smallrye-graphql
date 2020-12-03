@@ -24,7 +24,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-schema-model</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- What we use from MicroProfile -->
@@ -38,6 +37,12 @@
             <artifactId>jakarta.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.context-propagation</groupId>
+            <artifactId>microprofile-context-propagation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
         <!-- GraphQL Java -->
         <dependency>
             <groupId>com.graphql-java</groupId>
@@ -48,8 +53,10 @@
         <dependency>
             <groupId>io.smallrye.reactive</groupId>
             <artifactId>mutiny</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
-
+        
         <!-- Logging -->
         <dependency>
             <groupId>org.jboss.logging</groupId>
@@ -61,10 +68,12 @@
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging-annotations</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging-processor</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Testing -->
@@ -106,7 +115,21 @@
             <artifactId>smallrye-graphql-schema-builder</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-context-propagation</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-context-propagation-cdi</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.config</groupId>
+            <artifactId>smallrye-config</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,7 +1,6 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoaderEnvironment;
@@ -70,7 +69,8 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return (CompletableFuture<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments);
+        return ((Uni<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments))
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .subscribe().asCompletionStage();
     }
-
 }

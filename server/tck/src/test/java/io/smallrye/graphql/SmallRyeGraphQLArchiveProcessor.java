@@ -13,6 +13,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
+import io.smallrye.graphql.test.apps.context.api.ContextApi;
 import io.smallrye.graphql.test.apps.defaultvalue.api.DefaultValueParrotAPI;
 import io.smallrye.graphql.test.apps.error.api.ErrorApi;
 import io.smallrye.graphql.test.apps.generics.api.ControllerWithGenerics;
@@ -44,7 +45,9 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
 
             final File[] dependencies = Maven.resolver()
                     .loadPomFromFile("pom.xml")
-                    .resolve("io.smallrye:smallrye-graphql-servlet")
+                    .resolve("io.smallrye:smallrye-graphql-servlet",
+                            "io.smallrye.reactive:mutiny",
+                            "io.smallrye:smallrye-context-propagation")
                     .withTransitivity()
                     .asFile();
 
@@ -69,6 +72,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             testDeployment.addPackage(VariablesTestingApi.class.getPackage());
             testDeployment.addPackage(OptionalTestingApi.class.getPackage());
             testDeployment.addPackage(MutinyApi.class.getPackage());
+            testDeployment.addPackage(ContextApi.class.getPackage());
         }
     }
 }
