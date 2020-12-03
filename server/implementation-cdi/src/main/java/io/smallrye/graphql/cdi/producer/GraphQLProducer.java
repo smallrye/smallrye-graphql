@@ -1,7 +1,7 @@
 package io.smallrye.graphql.cdi.producer;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
@@ -55,7 +55,7 @@ public class GraphQLProducer {
     }
 
     @Produces
-    @RequestScoped
+    @Dependent
     public Context getContext() {
         return SmallRyeContext.getContext();
     }
