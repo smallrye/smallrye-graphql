@@ -9,5 +9,6 @@
   contextMethodInjectedFromSource{
     operationType
     path
+    # asyncOperationType
   }
 }
