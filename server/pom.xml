@@ -27,7 +27,6 @@
         <module>tck</module>
         <module>runner</module>
         <module>integration-tests</module>
-        <module>load-tests</module>
     </modules>
     
 </project>

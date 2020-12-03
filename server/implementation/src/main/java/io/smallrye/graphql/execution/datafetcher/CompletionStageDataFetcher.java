@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoaderEnvironment;
+import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
@@ -30,7 +31,10 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
     @Override
     protected <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception {
-        CompletionStage<Object> futureResultFromMethodCall = reflectionHelper.invoke(transformedArguments);
+
+        ThreadContext threadContext = ThreadContext.builder().build();
+        CompletionStage<Object> futureResultFromMethodCall = threadContext
+                .withContextCapture(reflectionHelper.invoke(transformedArguments));
 
         return (T) futureResultFromMethodCall.handle((result, throwable) -> {
 
@@ -67,6 +71,8 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return (CompletableFuture<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments);
+        ThreadContext threadContext = ThreadContext.builder().build();
+        return threadContext
+                .withContextCapture((CompletableFuture<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments));
     }
 }

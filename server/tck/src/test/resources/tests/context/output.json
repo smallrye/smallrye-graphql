@@ -1,7 +1,15 @@
 {
     "data": {
         "context": "/context",
-        "contextMethodInjected": "{\n    context\n    contextMethodInjected\n    contextMethodInjectedAnotherIndex\n}\n",
-        "contextMethodInjectedAnotherIndex": "p2"
+        "contextMethodInjected": "{\n  context\n  contextMethodInjected\n  contextMethodInjectedAnotherIndex\n  contextFromAnotherService\n  contextFromSource {\n    path\n  }\n  contextMethodInjectedFromSource{\n    operationType\n    path\n  }\n}\n",
+        "contextMethodInjectedAnotherIndex": "p2",
+        "contextFromAnotherService": "QUERY",
+        "contextFromSource": {
+            "path": "/contextFromSource/path"
+        },
+        "contextMethodInjectedFromSource": {
+            "operationType": "QUERY",
+            "path": "/contextMethodInjectedFromSource/path"
+        }
     }
 }

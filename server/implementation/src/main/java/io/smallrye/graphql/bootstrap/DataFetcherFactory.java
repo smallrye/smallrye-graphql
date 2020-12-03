@@ -12,7 +12,6 @@ import io.smallrye.graphql.execution.datafetcher.UniDataFetcher;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Wrapper;
-import io.smallrye.mutiny.Uni;
 
 /**
  * Create the datafetchers for a certain operation
@@ -76,7 +75,7 @@ public class DataFetcherFactory {
     private boolean isMutinyUni(Field field) {
         if (field.hasWrapper()) {
             String wrapperClassName = field.getWrapper().getWrapperClassName();
-            return wrapperClassName.equals(Uni.class.getName());
+            return wrapperClassName.equals("io.smallrye.mutiny.Uni");
         }
         return false;
     }

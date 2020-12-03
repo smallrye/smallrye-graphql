@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 @GraphQLApi
 public class MutinyApi {
@@ -42,6 +44,11 @@ public class MutinyApi {
     private static Map<String, MutinyBook> BOOKS = new HashMap<>();
     private static Map<String, MutinyAuthor> AUTHORS = new HashMap<>();
     static {
+
+        // We need this until Wildfly supports Mutiny
+        ThreadContext threadContext = ThreadContext.builder().build();
+        Infrastructure.setDefaultExecutor(threadContext.currentContextExecutor());
+
         MutinyBook book1 = new MutinyBook("0-571-05686-5", "Lord of the Flies", LocalDate.of(1954, Month.SEPTEMBER, 17),
                 "William Golding");
         BOOKS.put(book1.title, book1);

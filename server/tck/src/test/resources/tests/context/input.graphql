@@ -1,5 +1,13 @@
 {
-    context
-    contextMethodInjected
-    contextMethodInjectedAnotherIndex
+  context
+  contextMethodInjected
+  contextMethodInjectedAnotherIndex
+  contextFromAnotherService
+  contextFromSource {
+    path
+  }
+  contextMethodInjectedFromSource{
+    operationType
+    path
+  }
 }

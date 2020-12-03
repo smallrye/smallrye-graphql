@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,10 @@ public class CompletableFutureTest extends ExecutionTestBase {
     public void testBasicQuery() {
         JsonObject data = executeAndGetData(TEST_QUERY);
 
-        JsonObject book = data.getJsonObject("book");
+        JsonValue jsonValue = data.get("book");
+        assertNotNull(jsonValue);
+
+        JsonObject book = jsonValue.asJsonObject();
 
         assertNotNull(book);
 
