@@ -2,9 +2,11 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import org.dataloader.DataLoader;
 
+import graphql.GraphQLContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
@@ -33,12 +35,24 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-        SmallRyeContext.setDataFromFetcher(dfe, operation);
-        eventEmitter.fireBeforeDataFetch();
+        GraphQLContext graphQLContext = dfe.getContext();
+        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, operation);
+        eventEmitter.fireBeforeDataFetch(context);
         Object[] transformedArguments = argumentHelper.getArguments(dfe, true);
         Object source = dfe.getSource();
+
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
-        return (T) dataLoader.load(source, transformedArguments);
+        // FIXME: this is potentially brittle because it assumes that the batch loader will execute and
+        //  consume the context before we call this again for a different operation, but I don't know
+        //  how else to pass this context to the matching BatchLoaderEnvironment instance
+        SmallRyeBatchLoaderContextProvider.getForDataLoader(dataLoader).set(context);
+
+        try {
+            SmallRyeContext.setContext(context);
+            return (T) dataLoader.load(source, transformedArguments);
+        } finally {
+            SmallRyeContext.remove();
+        }
     }
 
 }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -19,7 +18,6 @@ import javax.json.JsonObjectBuilder;
 import graphql.ExecutionInput;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
-import graphql.parser.InvalidSyntaxException;
 import graphql.parser.Parser;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
@@ -54,23 +52,21 @@ public class SmallRyeContext implements Context {
         SmallRyeContext.schema = schema;
     }
 
-    public static Context getContext() {
+    public static SmallRyeContext getContext() {
         return current.get();
     }
 
-    public static void setDataFromExecution(ExecutionInput executionInput) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.setExecutionInput(executionInput);
-        }
+    public static void setContext(SmallRyeContext context) {
+        current.set(context);
     }
 
-    public static void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.dfe = dfe;
-            context.field = field;
-        }
+    public SmallRyeContext withDataFromExecution(ExecutionInput executionInput) {
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, this.field);
+    }
+
+    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
+        SmallRyeContext newCtx = new SmallRyeContext(this.jsonObject, dfe, this.executionInput, field);
+        return newCtx;
     }
 
     public static void remove() {
@@ -210,25 +206,32 @@ public class SmallRyeContext implements Context {
         return definition.getOperation().toString();
     }
 
-    private final Parser parser = new Parser();
+    private final Parser parser;
     private final JsonObject jsonObject;
-    private DataFetchingEnvironment dfe;
-    private ExecutionInput executionInput;
-    private volatile Supplier<Document> documentSupplier;
-    private Field field;
-    private volatile Map<String, Object> metaFields = new ConcurrentHashMap<>();
+    private final DataFetchingEnvironment dfe;
+    private final ExecutionInput executionInput;
+    private Supplier<Document> documentSupplier;
+    private final Field field;
 
-    private SmallRyeContext(final JsonObject jsonObject) {
+    public SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
+        this.dfe = null;
+        this.executionInput = null;
+        this.documentSupplier = null;
+        this.field = null;
+        this.parser = new Parser();
     }
 
-    private void setExecutionInput(ExecutionInput executionInput) {
+    public SmallRyeContext(JsonObject jsonObject,
+            DataFetchingEnvironment dfe,
+            ExecutionInput executionInput,
+            Field field) {
+        this.jsonObject = jsonObject;
+        this.dfe = dfe;
+        this.field = field;
         this.executionInput = executionInput;
-        try {
-            this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery());
-        } catch (InvalidSyntaxException e) {
-            // TODO: LOG ??
-        }
+        this.parser = new Parser();
+        this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery());
     }
 
     private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {
@@ -294,21 +297,6 @@ public class SmallRyeContext implements Context {
 
     private boolean isFlattenScalar(SelectedField field) {
         return field.getQualifiedName().contains("/");
-    }
-
-    @Override
-    public <T> void setMetaField(String identifier, T t) {
-        this.metaFields.put(identifier, t);
-    }
-
-    @Override
-    public <T> T getMetaField(String identifier) {
-        return (T) this.metaFields.get(identifier);
-    }
-
-    @Override
-    public <T> T removeMetaField(String identifier) {
-        return (T) this.metaFields.remove(identifier);
     }
 
     @Override

@@ -56,12 +56,14 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-        SmallRyeContext.setDataFromFetcher(dfe, operation);
+        // update the context
+        GraphQLContext graphQLContext = dfe.getContext();
+        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, operation);
+        graphQLContext.put("context", context);
 
-        final GraphQLContext context = dfe.getContext();
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(context);
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(graphQLContext);
 
-        eventEmitter.fireBeforeDataFetch();
+        eventEmitter.fireBeforeDataFetch(context);
 
         try {
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
@@ -79,7 +81,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw ex;
         } finally {
-            eventEmitter.fireAfterDataFetch();
+            eventEmitter.fireAfterDataFetch(context);
         }
 
         return invokeFailure(resultBuilder);

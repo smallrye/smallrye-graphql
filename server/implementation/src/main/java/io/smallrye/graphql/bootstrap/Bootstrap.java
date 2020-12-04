@@ -22,6 +22,7 @@ import javax.json.bind.JsonbBuilder;
 
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 
 import graphql.schema.DataFetcher;
@@ -45,6 +46,7 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
+import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
@@ -721,7 +723,12 @@ public class Bootstrap {
 
     public <K, T> void registerBatchLoader(Operation operation) {
         BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
-        this.dataLoaderRegistry.register(batchLoaderHelper.getName(operation), DataLoader.newDataLoader(batchLoader));
+        SmallRyeBatchLoaderContextProvider ctxProvider = new SmallRyeBatchLoaderContextProvider();
+        DataLoaderOptions options = DataLoaderOptions.newOptions()
+                .setBatchLoaderContextProvider(ctxProvider);
+        DataLoader<K, T> dataLoader = DataLoader.newDataLoader(batchLoader, options);
+        ctxProvider.setDataLoader(dataLoader);
+        this.dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
     }
 
     public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
