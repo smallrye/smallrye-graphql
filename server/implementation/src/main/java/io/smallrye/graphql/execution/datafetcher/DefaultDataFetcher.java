@@ -61,7 +61,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             return threadContext
                     .withContextCapture(
                             CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments),
-                                    threadContext.currentContextExecutor())); // Infrastructure.getDefaultExecutor ????
+                                    threadContext.currentContextExecutor()));
         } finally {
             SmallRyeContext.remove();
         }

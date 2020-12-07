@@ -9,7 +9,8 @@
     },
     "contextMethodInjectedFromSource": {
       "operationType": "QUERY",
-      "path": "/contextMethodInjectedFromSource/path"
+      "path": "/contextMethodInjectedFromSource/path",
+      "asyncOperationType": "QUERY"
     }
   }
 }

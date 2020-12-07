@@ -5,6 +5,7 @@ import java.util.concurrent.CompletionStage;
 
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -60,6 +61,9 @@ public class ContextApi {
     }
 
     public CompletionStage<String> asyncOperationType(@Source Pojo pojo) {
-        return CompletableFuture.supplyAsync(() -> contextService.getOperationType());
+        ThreadContext threadContext = ThreadContext.builder().build();
+        return threadContext.withContextCapture(
+                CompletableFuture.supplyAsync(() -> contextService.getOperationType(),
+                        threadContext.currentContextExecutor()));
     }
 }
