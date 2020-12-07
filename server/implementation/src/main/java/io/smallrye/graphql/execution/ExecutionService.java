@@ -78,14 +78,12 @@ public class ExecutionService {
     }
 
     public JsonObject execute(JsonObject jsonInput) {
-        SmallRyeContext.register(jsonInput);
+        SmallRyeContext context = new SmallRyeContext(jsonInput);
 
         // ExecutionId
         ExecutionId finalExecutionId = ExecutionId.from(executionIdPrefix + executionId.getAndIncrement());
 
         try {
-            Context context = SmallRyeContext.getContext();
-
             String query = context.getQuery();
 
             if (config.logPayload()) {
@@ -114,14 +112,17 @@ public class ExecutionService {
                 }
 
                 ExecutionInput executionInput = executionBuilder.build();
-                // Update context
-                SmallRyeContext.setDataFromExecution(executionInput);
+
+                // Update context with execution data
+                context = context.withDataFromExecution(executionInput);
+                ((GraphQLContext) executionInput.getContext()).put("context", context);
+
                 // Notify before
-                eventEmitter.fireBeforeExecute();
+                eventEmitter.fireBeforeExecute(context);
                 // Execute
                 ExecutionResult executionResult = g.execute(executionInput);
                 // Notify after
-                eventEmitter.fireAfterExecute();
+                eventEmitter.fireAfterExecute(context);
 
                 JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
 
@@ -143,9 +144,7 @@ public class ExecutionService {
             }
         } catch (Throwable t) {
             eventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
-            throw t;
-        } finally {
-            SmallRyeContext.remove();
+            throw t; // TODO: can I remove that?
         }
     }
 

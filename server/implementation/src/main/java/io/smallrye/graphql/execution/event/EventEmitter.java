@@ -13,7 +13,6 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 
@@ -58,8 +57,7 @@ public class EventEmitter {
 
     // Execution 
 
-    public void fireBeforeExecute() {
-        Context context = SmallRyeContext.getContext();
+    public void fireBeforeExecute(Context context) {
         for (EventingService extensionService : enabledServices) {
             extensionService.beforeExecute(context);
         }
@@ -71,16 +69,14 @@ public class EventEmitter {
         }
     }
 
-    public void fireAfterExecute() {
-        Context context = SmallRyeContext.getContext();
+    public void fireAfterExecute(Context context) {
         for (EventingService extensionService : enabledServices) {
             extensionService.afterExecute(context);
         }
     }
 
     // Execution - DataFetching
-    public void fireBeforeDataFetch() {
-        Context context = SmallRyeContext.getContext();
+    public void fireBeforeDataFetch(Context context) {
         for (EventingService extensionService : enabledServices) {
             extensionService.beforeDataFetch(context);
         }
@@ -98,8 +94,7 @@ public class EventEmitter {
         }
     }
 
-    public void fireAfterDataFetch() {
-        Context context = SmallRyeContext.getContext();
+    public void fireAfterDataFetch(Context context) {
         for (EventingService extensionService : enabledServices) {
             extensionService.afterDataFetch(context);
         }
