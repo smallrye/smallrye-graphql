@@ -6,10 +6,12 @@ import java.util.concurrent.CompletionStage;
 import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
+import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.mutiny.Uni;
@@ -31,32 +33,39 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     @Override
     protected <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception {
-        Uni<?> uni = reflectionHelper.invoke(transformedArguments);
+        SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
+        try {
+            SmallRyeContext.setContext(context);
+            Uni<?> uni = reflectionHelper.invoke(transformedArguments);
+            return (T) uni
+                    .onItemOrFailure().transform((result, throwable) -> {
 
-        return (T) uni
-                .onItemOrFailure().transform((result, throwable) -> {
-
-                    if (throwable != null) {
-                        throwable = unwrapThrowable(throwable);
-                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
-                        if (throwable instanceof GraphQLException) {
-                            GraphQLException graphQLException = (GraphQLException) throwable;
-                            partialResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
-                        } else if (throwable instanceof Exception) {
-                            throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
-                        } else if (throwable instanceof Error) {
-                            throw ((Error) throwable);
+                        if (throwable != null) {
+                            throwable = unwrapThrowable(throwable);
+                            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                            if (throwable instanceof GraphQLException) {
+                                GraphQLException graphQLException = (GraphQLException) throwable;
+                                partialResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
+                            } else if (throwable instanceof Exception) {
+                                throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
+                            } else if (throwable instanceof Error) {
+                                throw ((Error) throwable);
+                            }
+                        } else {
+                            try {
+                                resultBuilder.data(fieldHelper.transformResponse(result));
+                            } catch (AbstractDataFetcherException te) {
+                                te.appendDataFetcherResult(resultBuilder, dfe);
+                            }
                         }
-                    } else {
-                        try {
-                            resultBuilder.data(fieldHelper.transformResponse(result));
-                        } catch (AbstractDataFetcherException te) {
-                            te.appendDataFetcherResult(resultBuilder, dfe);
-                        }
-                    }
 
-                    return resultBuilder.build();
-                }).runSubscriptionOn(Infrastructure.getDefaultExecutor()).subscribe().asCompletionStage();
+                        return resultBuilder.build();
+                    }).runSubscriptionOn(Infrastructure.getDefaultExecutor()).subscribe().asCompletionStage();
+        } catch (Exception e) {
+            throw (Exception) unwrapThrowable(e);
+        } finally {
+            SmallRyeContext.remove();
+        }
     }
 
     @Override
