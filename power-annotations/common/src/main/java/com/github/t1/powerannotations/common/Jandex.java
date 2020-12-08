@@ -193,7 +193,7 @@ public class Jandex {
     private static <K, V> List<V> get(Map<K, List<V>> map, K name) {
         // we can't use `map.computeIfAbsent()`, because Maven plugins can't run with lambdas and fail with IndexOutOfBounds
         if (!map.containsKey(name))
-                map.put(name, new ArrayList<>());
+            map.put(name, new ArrayList<>());
         return map.get(name);
     }
 
