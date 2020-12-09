@@ -1,0 +1,10 @@
+{
+  "data": {
+    "jsonpObject": "{\"foo\":\"bar\"}",
+    "jsonpArray": "[\"foo\",\"bar\"]",
+    "jsonpField": {
+      "name": "foobar",
+      "value": "{\"foo\":\"bar\"}"
+    }
+  }
+}
