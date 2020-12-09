@@ -28,7 +28,9 @@ class ConfigBehavior {
         Throwable thrown = catchThrowableOfType(() -> fixture.builderWithoutEndpointConfig().build(Api.class),
                 NoSuchElementException.class);
 
-        then(thrown).hasMessage("SRCFG00014: Property " + API_URL_CONFIG_KEY + " not found");
+        then(thrown)
+                .hasMessageContaining("SRCFG00014: Property " + API_URL_CONFIG_KEY)
+                .hasMessageContaining("not found");
     }
 
     @Test
