@@ -3,6 +3,7 @@ package io.smallrye.graphql.cdi.validation;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import javax.enterprise.inject.spi.CDI;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
@@ -25,7 +26,7 @@ public class ValidationService implements EventingService {
         Object[] arguments = invokeInfo.getOperationTransformedArguments();
 
         if (VALIDATOR_FACTORY == null) {
-            VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+            VALIDATOR_FACTORY = getValidatorFactory();
         }
         Set<ConstraintViolation<Object>> violations = VALIDATOR_FACTORY.getValidator()
                 .forExecutables().validateParameters(declaringObject, method, arguments);
@@ -38,5 +39,14 @@ public class ValidationService implements EventingService {
     @Override
     public String getConfigKey() {
         return ConfigKey.ENABLE_VALIDATION;
+    }
+
+    private ValidatorFactory getValidatorFactory() {
+        try {
+            ValidatorFactory validatorFactory = CDI.current().select(ValidatorFactory.class).get();
+            return validatorFactory;
+        } catch (Throwable t) {
+            return Validation.buildDefaultValidatorFactory();
+        }
     }
 }
