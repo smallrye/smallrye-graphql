@@ -18,6 +18,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,34 @@ public class MetricTest {
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "metrics-test.war")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+                // TEMPORARY HACK
+                // as we're testing against WildFly which contains MP Metrics 2.x,
+                // but this SmallRye GraphQL version compiles against MP Metrics 3.0,
+                // we need to exclude the metric subsystem from WildFly and supply our own metrics
+                // for this test to work.
+                // This hack will be removed once we move the testing to WildFly 23, which should support
+                // MicroProfile 4.0.
+                .addAsLibraries(Maven.resolver()
+                        .loadPomFromFile("pom.xml")
+                        .resolve("io.smallrye:smallrye-metrics",
+                                "org.eclipse.microprofile.metrics:microprofile-metrics-api")
+                        .withoutTransitivity()
+                        .asFile())
+                .addAsManifestResource(new StringAsset("<jboss-deployment-structure>\n" +
+                        "\n" +
+                        "    <deployment>\n" +
+                        "\n" +
+                        "        <exclude-subsystems>\n" +
+                        "            <subsystem name=\"microprofile-metrics-smallrye\" />\n" +
+                        "        </exclude-subsystems>\n" +
+                        "\n" +
+                        "        <exclusions>\n" +
+                        "            <module name=\"io.smallrye.metrics\" />\n" +
+                        "        </exclusions>   \n" +
+                        "\n" +
+                        "    </deployment>\n" +
+                        "</jboss-deployment-structure>\n"), "jboss-deployment-structure.xml")
+                // END OF TEMPORARY HACK
                 .addAsResource(new StringAsset("smallrye.graphql.metrics.enabled=true"),
                         "META-INF/microprofile-config.properties")
                 .addClasses(DummyGraphQLApi.class, Foo.class);
@@ -95,4 +124,5 @@ public class MetricTest {
         Assert.assertTrue("Total elapsed time for query should be greater than zero",
                 metricForSource.getElapsedTime().toNanos() > 0);
     }
+
 }

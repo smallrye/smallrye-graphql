@@ -16,12 +16,12 @@
     <url>http://smallrye.io</url>
 
     <properties>
-        <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
+        <version.eclipse.microprofile.config>2.0</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.0.3</version.eclipse.microprofile.graphql>
-        <version.eclipse.microprofile.metrics>2.3.2</version.eclipse.microprofile.metrics>
+        <version.eclipse.microprofile.metrics>3.0</version.eclipse.microprofile.metrics>
         <version.eclipse.microprofile.context-propagation>1.1</version.eclipse.microprofile.context-propagation>
-        <version.smallrye-config>1.10.0</version.smallrye-config>
-        <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
+        <version.smallrye-config>2.0.0-RC3</version.smallrye-config>
+        <version.smallrye.metrics>3.0.0-RC2</version.smallrye.metrics>
         <version.smallrye-common>1.5.0</version.smallrye-common>
         <version.smallrye-mutiny>0.11.0</version.smallrye-mutiny>
         <version.smallrye-context-propagation>1.0.20</version.smallrye-context-propagation>
@@ -98,6 +98,11 @@
                 <groupId>org.eclipse.microprofile.metrics</groupId>
                 <artifactId>microprofile-metrics-api</artifactId>
                 <version>${version.eclipse.microprofile.metrics}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>smallrye-metrics</artifactId>
+                <version>${version.smallrye.metrics}</version>
             </dependency>
 
             <dependency>
