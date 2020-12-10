@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,16 +46,9 @@ public class Scanner {
     }
 
     private Stream<URL> urls() {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        if (classLoader instanceof URLClassLoader) {
-            return Stream.of(((URLClassLoader) classLoader).getURLs());
-        } else {
-            return classPath().map(Scanner::toUrl);
-        }
-    }
-
-    private Stream<String> classPath() {
-        return Stream.of(System.getProperty("java.class.path").split(System.getProperty("path.separator")));
+        return Stream.of(System.getProperty("java.class.path")
+                .split(System.getProperty("path.separator")))
+                .map(Scanner::toUrl);
     }
 
     private static URL toUrl(String url) {

@@ -2,10 +2,9 @@ package com.github.t1.powerannotations.common;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -15,6 +14,8 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 
 class StereotypeResolver implements Runnable {
+    private static final Map<DotName, Integer> STEREOTYPE_NESTING_LEVELS = new TreeMap<>();
+
     private final Jandex jandex;
     private final Logger log;
 
@@ -85,18 +86,25 @@ class StereotypeResolver implements Runnable {
     }
 
     private int stereotypeLevel(ClassInfo stereotypeType) {
+        // we can't use streams, because Maven plugins can't run with lambdas and fail with IndexOutOfBounds
         int max = 0;
-        Set<ClassInfo> uniqueValues = new HashSet<>();
         for (AnnotationInstance annotationInstance : stereotypeType.classAnnotations()) {
-            ClassInfo type = jandex.getClassInfo(annotationInstance.name());
-            if (uniqueValues.add(type)) {
-                int stereotypeLevel = stereotypeLevel(type);
-                if (stereotypeLevel > max) {
-                    max = stereotypeLevel;
-                }
+            int annotationLevel = stereotypeLevel(annotationInstance);
+            if (annotationLevel > max) {
+                max = annotationLevel;
             }
         }
         return max + 1;
+    }
+
+    private int stereotypeLevel(AnnotationInstance annotationInstance) {
+        if (STEREOTYPE_NESTING_LEVELS.containsKey(annotationInstance.name()))
+            return STEREOTYPE_NESTING_LEVELS.get(annotationInstance.name());
+        STEREOTYPE_NESTING_LEVELS.put(annotationInstance.name(), 0); // prevent recursion
+        ClassInfo type = jandex.getClassInfo(annotationInstance.name());
+        int annotationLevel = stereotypeLevel(type);
+        STEREOTYPE_NESTING_LEVELS.put(annotationInstance.name(), annotationLevel);
+        return annotationLevel;
     }
 
     private void resolveClassStereotype(AnnotationTarget annotationTarget, AnnotationInstance annotationInstance) {
