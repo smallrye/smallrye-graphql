@@ -3,7 +3,6 @@ package io.smallrye.graphql.cdi.validation;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
@@ -11,12 +10,18 @@ import javax.validation.ValidatorFactory;
 import io.smallrye.graphql.cdi.config.ConfigKey;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.spi.EventingService;
+import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Validate input before execution
  */
 public class ValidationService implements EventingService {
     private static ValidatorFactory VALIDATOR_FACTORY = null;
+    private final LookupService lookupService;
+
+    public ValidationService() {
+        this.lookupService = LookupService.get();
+    }
 
     @Override
     public void beforeInvoke(InvokeInfo invokeInfo) throws Exception {
@@ -43,9 +48,9 @@ public class ValidationService implements EventingService {
 
     private ValidatorFactory getValidatorFactory() {
         try {
-            ValidatorFactory validatorFactory = CDI.current().select(ValidatorFactory.class).get();
+            ValidatorFactory validatorFactory = (ValidatorFactory) lookupService.getInstance(ValidatorFactory.class);
             return validatorFactory;
-        } catch (Throwable t) {
+        } catch (Exception t) {
             return Validation.buildDefaultValidatorFactory();
         }
     }
