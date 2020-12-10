@@ -377,4 +377,6 @@ public class StereotypeBehavior {
                     "@" + SomeAnnotation.class.getName() + "(value = \"on-method\")");
         }
     }
+
+    // TODO parameter stereotypes
 }

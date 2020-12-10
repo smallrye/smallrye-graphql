@@ -154,7 +154,7 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("three"); // or two?
+            then(someAnnotation.get().value()).isIn("two", "three");
         }
 
         @Test
@@ -247,7 +247,7 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("five"); // or six?
+            then(someAnnotation.get().value()).isIn("five", "six");
         }
 
         @Test
@@ -342,7 +342,7 @@ public class MixinBehavior {
             Optional<SomeAnnotation> someAnnotation = annotations.get(SomeAnnotation.class);
 
             assert someAnnotation.isPresent();
-            then(someAnnotation.get().value()).isEqualTo("eight"); // or nine?
+            then(someAnnotation.get().value()).isIn("eight", "nine");
         }
 
         @Test
@@ -355,6 +355,7 @@ public class MixinBehavior {
         }
 
         // TODO constructor mixins
+        // TODO parameter mixins
         // TODO test unknown method mixin (name or args)
     }
 }
