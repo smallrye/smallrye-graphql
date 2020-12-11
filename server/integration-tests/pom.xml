@@ -42,6 +42,11 @@
             <artifactId>microprofile-metrics-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-metrics</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Bean Validation -->
         <dependency>
             <groupId>jakarta.validation</groupId>
