@@ -23,7 +23,7 @@
         <version.smallrye-config>2.0.0-RC3</version.smallrye-config>
         <version.smallrye.metrics>3.0.0-RC2</version.smallrye.metrics>
         <version.smallrye-common>1.5.0</version.smallrye-common>
-        <version.smallrye-mutiny>0.11.0</version.smallrye-mutiny>
+        <version.smallrye-mutiny>0.12.5</version.smallrye-mutiny>
         <version.smallrye-context-propagation>1.0.20</version.smallrye-context-propagation>
         <version.opentracing>0.31.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
