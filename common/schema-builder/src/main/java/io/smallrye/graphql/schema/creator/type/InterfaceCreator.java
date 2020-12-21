@@ -1,6 +1,5 @@
 package io.smallrye.graphql.schema.creator.type;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.jandex.ClassInfo;
@@ -68,20 +67,24 @@ public class InterfaceCreator implements Creator<InterfaceType> {
     }
 
     private void addFields(InterfaceType interfaceType, ClassInfo classInfo, Reference reference) {
-        // Fields
-        List<MethodInfo> allMethods = new ArrayList<>();
 
-        // Find all methods up the tree
-        for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
-            if (!c.toString().startsWith(JAVA_DOT)) { // Not java interfaces (like Serializable)
-                allMethods.addAll(c.methods());
-            }
-        }
-
-        for (MethodInfo methodInfo : allMethods) {
+        // Add all fields from interface itself
+        for (MethodInfo methodInfo : classInfo.methods()) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo.name())) {
                 fieldCreator.createFieldForInterface(methodInfo, reference)
                         .ifPresent(interfaceType::addField);
+            }
+        }
+
+        // Also add all fields from all parent interfaces as GraphQL schema requires it
+        List<DotName> interfaceNames = classInfo.interfaceNames();
+        for (DotName interfaceName : interfaceNames) {
+            // Ignore java interfaces (like Serializable)
+            if (canAddInterfaceIntoScheme(interfaceName.toString())) {
+                ClassInfo c = ScanningContext.getIndex().getClassByName(interfaceName);
+                if (c != null) {
+                    addFields(interfaceType, c, reference);
+                }
             }
         }
     }
@@ -90,15 +93,27 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         List<DotName> interfaceNames = classInfo.interfaceNames();
         for (DotName interfaceName : interfaceNames) {
             // Ignore java interfaces (like Serializable)
-            if (!interfaceName.toString().startsWith(JAVA_DOT)) {
+            if (canAddInterfaceIntoScheme(interfaceName.toString())) {
                 ClassInfo c = ScanningContext.getIndex().getClassByName(interfaceName);
                 if (c != null) {
-                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, classInfo);
+                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, c);
                     interfaceType.addInterface(interfaceRef);
+                    // add all parent interfaces recursively as GraphQL schema requires it
+                    addInterfaces(interfaceType, c);
                 }
             }
         }
     }
 
     private static final String JAVA_DOT = "java.";
+
+    /**
+     * Check if interface can be added into GraphQL schema, eg. ignore java interfaces (like Serializable)
+     * 
+     * @param interfaceFullName full name of the interface, including package name
+     * @return true if interface can be added
+     */
+    public static boolean canAddInterfaceIntoScheme(String interfaceFullName) {
+        return interfaceFullName != null && !interfaceFullName.startsWith(JAVA_DOT);
+    }
 }
