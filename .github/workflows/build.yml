@@ -40,6 +40,7 @@ jobs:
         run: mvn -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml
 
   wildfly-tests:
+    if: false # TODO: re-enable after the feature pack's master upgrades to WildFly aligned with MicroProfile 4.0
     runs-on: ubuntu-latest
     strategy:
       matrix:
