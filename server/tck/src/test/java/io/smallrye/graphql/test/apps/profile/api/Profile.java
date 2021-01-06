@@ -12,7 +12,7 @@ import org.eclipse.microprofile.graphql.Description;
 import io.smallrye.graphql.api.Scalar;
 import io.smallrye.graphql.api.ToScalar;
 
-public class Profile {
+public class Profile implements IUser {
     public static String uuid = UUID.randomUUID().toString();
     @Description("Testing map scalar to scalar")
     @ToScalar(Scalar.Int.class)

@@ -87,7 +87,7 @@ public class TypeCreator implements Creator<Type> {
 
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
-            if (!c.toString().startsWith(JAVA_DOT)) { // Not java objects
+            if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
                 allMethods.addAll(c.methods());
                 if (c.fields() != null && !c.fields().isEmpty()) {
                     for (final FieldInfo fieldInfo : c.fields()) {
@@ -140,7 +140,7 @@ public class TypeCreator implements Creator<Type> {
         List<org.jboss.jandex.Type> interfaceNames = classInfo.interfaceTypes();
         for (org.jboss.jandex.Type interfaceType : interfaceNames) {
             // Ignore java interfaces (like Serializable)
-            if (!interfaceType.name().toString().startsWith(JAVA_DOT)) {
+            if (InterfaceCreator.canAddInterfaceIntoScheme(interfaceType.name().toString())) {
                 ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceType.name());
                 if (interfaceInfo != null) {
 
@@ -153,11 +153,11 @@ public class TypeCreator implements Creator<Type> {
                     Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, reference,
                             parametrizedTypeArgumentsReferences, true);
                     type.addInterface(interfaceRef);
+                    // add all parent interfaces recursively as GraphQL schema requires it 
+                    addInterfaces(type, interfaceInfo, reference);
                 }
             }
         }
     }
-
-    private static final String JAVA_DOT = "java.";
 
 }
