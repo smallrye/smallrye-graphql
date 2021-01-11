@@ -1,11 +1,11 @@
 package io.smallrye.graphql.client.typesafe.impl.cdi;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,19 +31,21 @@ public abstract class AbstractBean<T> implements Bean<T> {
 
     @Override
     public Set<InjectionPoint> getInjectionPoints() {
-        return Collections.emptySet();
+        return emptySet();
     }
 
     @Override
     public String getName() {
-        return type.getName();
+        return null;
     }
 
     @Override
     public Set<Annotation> getQualifiers() {
-        return new HashSet<>(asList(new AnnotationLiteral<Default>() {
-        }, new AnnotationLiteral<Any>() {
-        }));
+        return new HashSet<>(asList(
+                new AnnotationLiteral<Default>() {
+                },
+                new AnnotationLiteral<Any>() {
+                }));
     }
 
     @Override
@@ -53,7 +55,7 @@ public abstract class AbstractBean<T> implements Bean<T> {
 
     @Override
     public Set<Class<? extends Annotation>> getStereotypes() {
-        return Collections.emptySet();
+        return emptySet();
     }
 
     @Override
@@ -78,6 +80,6 @@ public abstract class AbstractBean<T> implements Bean<T> {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + ": " + getName() + " with " + getQualifiers();
+        return this.getClass().getSimpleName() + ": " + type.getName() + " with " + getQualifiers();
     }
 }

@@ -54,7 +54,7 @@ class GraphQlClientProxy {
         String response = post(request, headers);
         log.debug("response graphql: {}", response);
 
-        return new ResultBuilder(method, queryCache, response).read();
+        return new ResultBuilder(method, response).read();
     }
 
     private String request(MethodInvocation method) {

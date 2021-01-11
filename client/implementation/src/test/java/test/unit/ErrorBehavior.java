@@ -204,6 +204,40 @@ class ErrorBehavior {
     }
 
     @Test
+    void shouldFetchErrorOnNullData() {
+        fixture.returns(Response.ok("{" +
+                "\"data\":null," +
+                "\"errors\":[{" +
+                /**/"\"message\":\"currently can't search for teams\"," +
+                /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
+                /**/"\"path\": [\"teams\"],\n" +
+                /**/"\"extensions\":{" +
+                /**//**/"\"description\":\"Field 'foo' in type 'Query' is undefined\"," +
+                /**//**/"\"validationErrorType\":\"FieldUndefined\"," +
+                /**//**/"\"queryPath\":[\"foo\"]," +
+                /**//**/"\"classification\":\"ValidationError\"," +
+                /**//**/"\"code\":\"team-search-disabled\"}" +
+                "}]}}"));
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
+
+        GraphQlClientException throwable = catchThrowableOfType(api::teams, GraphQlClientException.class);
+
+        then(fixture.query()).isEqualTo("query teams { teams {name} }");
+        then(throwable).hasMessage("errors from service");
+        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- team-search-disabled: [teams] currently can't search for teams [(1:2@loc)]" +
+                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined, queryPath=[foo]," +
+                " classification=ValidationError, code=team-search-disabled})");
+        then(throwable.getErrors()).hasSize(1);
+        GraphQlClientError error = throwable.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("currently can't search for teams");
+        then(error.getPath()).containsExactly("teams");
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        then(error.getErrorCode()).isEqualTo("team-search-disabled");
+    }
+
+    @Test
     void shouldFetchErrorOrWithTwoErrors() {
         fixture.returns(Response.ok("{" +
                 "\"data\":{\"teams\":null}," +
