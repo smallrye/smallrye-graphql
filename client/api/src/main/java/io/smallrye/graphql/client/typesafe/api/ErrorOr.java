@@ -9,7 +9,9 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
- * Like an {@link java.util.Optional}, but if a value is not present, there is a {@link GraphQlClientError} instead.
+ * Like an {@link java.util.Optional}, but if a value is not present, there is a List of {@link GraphQlClientError}s instead.
+ * There can be the paradox situation that there is a <code>value</code> <em>as well as</em> errors,
+ * but this is what a GraphQL service could theoretically return!
  */
 public final class ErrorOr<T> {
     private final T value;
@@ -53,7 +55,7 @@ public final class ErrorOr<T> {
     }
 
     public boolean isError() {
-        return !isPresent();
+        return errors != null && !errors.isEmpty();
     }
 
     public T get() {
