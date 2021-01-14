@@ -62,7 +62,7 @@ public class ExecutionService {
 
     private final EventEmitter eventEmitter;
 
-    private GraphQL graphQL;
+    private GraphQL.Builder graphqlBuilder;
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
         this(config, graphQLSchema, null);
@@ -75,6 +75,18 @@ public class ExecutionService {
         this.eventEmitter = EventEmitter.getInstance(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
+
+        // Create GraphQL Builder
+        if (graphQLSchema != null) {
+            QueryCache queryCache = new QueryCache();
+            graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
+            graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(new ExceptionHandler(config));
+            graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
+            graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
+            graphqlBuilder = eventEmitter.fireBeforeGraphQLBuild(graphqlBuilder); // Allow custom extension
+        } else {
+            log.noGraphQLMethodsFound();
+        }
     }
 
     public JsonObject execute(JsonObject jsonInput) {
@@ -138,14 +150,12 @@ public class ExecutionService {
                 }
 
                 return jsonResponse;
-            } else {
-                log.noGraphQLMethodsFound();
-                return null;
             }
         } catch (Throwable t) {
             eventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
             throw t; // TODO: can I remove that?
         }
+        return null;
     }
 
     private GraphQLContext toGraphQLContext(Context context) {
@@ -190,27 +200,12 @@ public class ExecutionService {
     }
 
     private GraphQL getGraphQL() {
-        if (this.graphQL == null) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(config);
-            if (graphQLSchema != null) {
-                QueryCache queryCache = new QueryCache();
-
-                GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
-
-                graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(exceptionHandler);
-                graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
-                graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
-
-                // Allow custom extension
-                graphqlBuilder = eventEmitter.fireBeforeGraphQLBuild(graphqlBuilder);
-
-                this.graphQL = graphqlBuilder.build();
-            } else {
-                log.noGraphQLMethodsFound();
-            }
+        if (graphQLSchema != null) {
+            return graphqlBuilder.build();
+        } else {
+            log.noGraphQLMethodsFound();
+            return null;
         }
-        return this.graphQL;
-
     }
 
     private static final String DATA = "data";
