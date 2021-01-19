@@ -1,14 +1,13 @@
 package io.smallrye.graphql;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.Node;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
@@ -27,7 +26,7 @@ import io.smallrye.graphql.test.apps.variables.api.VariablesTestingApi;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProcessor {
@@ -42,39 +41,53 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     + "\n ================================================================================"
                     + "\n");
 
-            WebArchive testDeployment = (WebArchive) applicationArchive;
+            WebArchive war = (WebArchive) applicationArchive;
 
-            final File[] dependencies = Maven.resolver()
-                    .loadPomFromFile("pom.xml")
-                    .resolve("io.smallrye:smallrye-graphql-servlet",
-                            "io.smallrye.reactive:mutiny",
-                            "io.smallrye:smallrye-context-propagation")
-                    .withTransitivity()
+            // Exclude the TCK beans in the deployed app. The TCK jar also has a beans.xml which causes duplicated beans
+            war.addAsWebInfResource(new StringAsset(
+                    "<beans bean-discovery-mode=\"all\">\n" +
+                            "    <scan>\n" +
+                            "        <exclude name=\"org.eclipse.microprofile.graphql.tck.**\"/>\n" +
+                            "    </scan>\n" +
+                            "</beans>"),
+                    "beans.xml");
+
+            // The Jetty classloader only reads resources from classes
+            Node config = war.get("/META-INF/microprofile-config.properties");
+            if (config != null) {
+                war.addAsWebInfResource(config.getAsset(), "classes/META-INF/microprofile-config.properties");
+            }
+
+            // Add OpenTracing Producer
+            war.addClass(TracerProducer.class);
+
+            // Add GraphQL
+            String[] deps = {
+                    "io.smallrye:smallrye-graphql-servlet",
+            };
+            File[] dependencies = Maven.configureResolver()
+                    .workOffline()
+                    .loadPomFromFile(new File("pom.xml"))
+                    .resolve(deps)
+                    .withoutTransitivity()
                     .asFile();
-
-            // Make sure it's unique
-            Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));
-            testDeployment.addAsLibraries(dependenciesSet.toArray(new File[] {}));
-
-            // MicroProfile properties
-            testDeployment.addAsResource(
-                    SmallRyeGraphQLArchiveProcessor.class.getClassLoader()
-                            .getResource("META-INF/microprofile-config.properties"),
-                    "META-INF/microprofile-config.properties");
+            war.addAsLibraries(dependencies);
 
             // Add our own test app
-            testDeployment.addPackage(ProfileGraphQLApi.class.getPackage());
-            testDeployment.addPackage(AdditionalScalarsApi.class.getPackage());
-            testDeployment.addPackage(AsyncApi.class.getPackage());
-            testDeployment.addPackage(ErrorApi.class.getPackage());
-            testDeployment.addPackage(BookGraphQLApi.class.getPackage());
-            testDeployment.addPackage(DefaultValueParrotAPI.class.getPackage());
-            testDeployment.addPackage(ControllerWithGenerics.class.getPackage());
-            testDeployment.addPackage(VariablesTestingApi.class.getPackage());
-            testDeployment.addPackage(OptionalTestingApi.class.getPackage());
-            testDeployment.addPackage(MutinyApi.class.getPackage());
-            testDeployment.addPackage(ContextApi.class.getPackage());
-            testDeployment.addPackage(JsonPApi.class.getPackage());
+            war.addPackage(ProfileGraphQLApi.class.getPackage());
+            war.addPackage(AdditionalScalarsApi.class.getPackage());
+            war.addPackage(AsyncApi.class.getPackage());
+            war.addPackage(ErrorApi.class.getPackage());
+            war.addPackage(BookGraphQLApi.class.getPackage());
+            war.addPackage(DefaultValueParrotAPI.class.getPackage());
+            war.addPackage(ControllerWithGenerics.class.getPackage());
+            war.addPackage(VariablesTestingApi.class.getPackage());
+            war.addPackage(OptionalTestingApi.class.getPackage());
+            war.addPackage(MutinyApi.class.getPackage());
+            war.addPackage(ContextApi.class.getPackage());
+            war.addPackage(JsonPApi.class.getPackage());
+
+            System.out.println(war.toString(true));
         }
     }
 }
