@@ -18,7 +18,6 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLType;
-import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.smallrye.graphql.api.Context;
@@ -35,7 +34,6 @@ public class TracingService implements EventingService {
 
     private final String SPAN_CLASS = "io.opentracing.Span";
     private final Map<String, Span> spans = Collections.synchronizedMap(new IdentityHashMap<>());
-    private final Map<String, Scope> scopes = Collections.synchronizedMap(new IdentityHashMap<>());
 
     private Tracer tracer;
 
@@ -44,24 +42,15 @@ public class TracingService implements EventingService {
         ExecutionInput executionInput = context.unwrap(ExecutionInput.class);
         String operationName = getOperationName(executionInput);
 
-        Scope scope = getTracer().buildSpan(operationName)
+        Span span = getTracer().buildSpan(operationName)
                 .asChildOf(getTracer().activeSpan())
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getRequestedOperationTypes()))
                 .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
-                .startActive(true);
+                .start();
+        tracer.activateSpan(span);
 
-        scopes.put(context.getExecutionId(), scope);
-
-        ((GraphQLContext) executionInput.getContext()).put(SPAN_CLASS, scope.span()); // TODO: Do we need this ?
-    }
-
-    @Override
-    public void afterExecute(Context context) {
-        Scope scope = scopes.remove(context.getExecutionId());
-        if (scope != null) {
-            scope.close();
-        }
+        ((GraphQLContext) executionInput.getContext()).put(SPAN_CLASS, span); // TODO: Do we need this ?
     }
 
     @Override
@@ -70,7 +59,7 @@ public class TracingService implements EventingService {
 
         Span parentSpan = getParentSpan(getTracer(), env);
 
-        Scope scope = getTracer().buildSpan(getOperationName(env))
+        Span span = getTracer().buildSpan(getOperationName(env))
                 .asChildOf(parentSpan)
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
@@ -78,9 +67,8 @@ public class TracingService implements EventingService {
                 .withTag("graphql.parent", context.getParentTypeName().orElse(EMPTY))
                 .withTag("graphql.field", context.getFieldName())
                 .withTag("graphql.path", context.getPath())
-                .startActive(false);
-
-        final Span span = scope.span();
+                .start();
+        tracer.activateSpan(span);
 
         GraphQLContext graphQLContext = env.getContext();
         graphQLContext.put(SPAN_CLASS, span);
@@ -91,12 +79,6 @@ public class TracingService implements EventingService {
     @Override
     public void errorDataFetch(String executionId, Throwable t) {
         Span span = spans.get(executionId);
-        if (span == null) {
-            Scope scope = scopes.get(executionId);
-            if (scope != null && scope.span() != null) {
-                span = scope.span();
-            }
-        }
         if (span != null) {
             logError(span, t);
         }
@@ -104,13 +86,12 @@ public class TracingService implements EventingService {
 
     @Override
     public void errorExecute(String executionId, Throwable t) {
-        Scope scope = scopes.remove(executionId);
-        if (scope != null) {
+        Span span = spans.remove(executionId);
+        if (span != null) {
             Map<String, Object> error = new HashMap<>();
             error.put("event.object", t);
             error.put("event", "error");
-            scope.span().log(error);
-            scope.close();
+            span.log(error);
         }
     }
 
@@ -118,17 +99,6 @@ public class TracingService implements EventingService {
     public void afterDataFetch(Context context) {
         Span span = spans.remove(context.getExecutionId());
         span.finish();
-
-        /**
-         * TODO
-         *
-         * @implNote The current scope must be closed in the thread in which it
-         *           was opened, after work in the current thread has ended. So you can't
-         *           use {@code before} because it is executed before the work in the
-         *           current thread is finished, but you can't use {@code after} either
-         *           because it can run in another thread.
-         */
-        getTracer().scopeManager().active().close();
     }
 
     @Override
