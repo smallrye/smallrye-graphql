@@ -35,7 +35,7 @@
         <version.jetty>9.4.35.v20201120</version.jetty>
         <version.smallrye-opentracing>2.0.0</version.smallrye-opentracing>
         <version.hibernate-validator>6.2.0.Final</version.hibernate-validator>
-        <version.glasfish-el>3.0.3</version.glasfish-el>
+        <version.glasfish-el>4.0.1</version.glasfish-el>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
