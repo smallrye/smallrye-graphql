@@ -1,8 +1,10 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -197,6 +199,18 @@ public final class Schema implements Serializable {
 
     public boolean hasErrors() {
         return !this.errors.isEmpty();
+    }
+
+    public List<Operation> getBatchOperations() {
+        List<Operation> batchOperations = new ArrayList<>();
+        if (hasTypes()) {
+            for (Type type : this.types.values()) {
+                if (type.hasBatchOperations()) {
+                    batchOperations.addAll(type.getBatchOperations().values());
+                }
+            }
+        }
+        return batchOperations;
     }
 
     private void addToOperationMap(Map<Group, Set<Operation>> map, Group group, Operation query) {

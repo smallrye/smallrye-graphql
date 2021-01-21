@@ -20,11 +20,6 @@ import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderOptions;
-import org.dataloader.DataLoaderRegistry;
-
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
@@ -46,12 +41,10 @@ import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
-import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -90,25 +83,22 @@ public class Bootstrap {
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
     private GraphQLSchema graphQLSchema;
-    private final DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
     private final GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
 
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
-    private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
-
-    public static BootstrapedResult bootstrap(Schema schema) {
+    public static GraphQLSchema bootstrap(Schema schema) {
         return bootstrap(schema, null);
     }
 
-    public static BootstrapedResult bootstrap(Schema schema, Config config) {
+    public static GraphQLSchema bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasOperations())) {
             Bootstrap bootstrap = new Bootstrap(schema, config);
             bootstrap.generateGraphQLSchema();
-            return new BootstrapedResult(bootstrap.graphQLSchema, bootstrap.dataLoaderRegistry);
+            return bootstrap.graphQLSchema;
         } else {
             log.emptyOrNullSchema();
-            return new BootstrapedResult();
+            return null;
         }
     }
 
@@ -406,8 +396,6 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        registerBatchLoader(operation);
-
         DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
@@ -632,9 +620,6 @@ public class Bootstrap {
                     wrapper = null;
                 }
             } while (wrapper != null);
-            //            for (int i = 0; i < wrapper.getDepth(); i++) {
-            //                graphQLInputType = GraphQLList.list(graphQLInputType);
-            //            }
         }
 
         // Mandatory
@@ -719,20 +704,6 @@ public class Bootstrap {
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
-    }
-
-    public <K, T> void registerBatchLoader(Operation operation) {
-        BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
-        SmallRyeBatchLoaderContextProvider ctxProvider = new SmallRyeBatchLoaderContextProvider();
-        DataLoaderOptions options = DataLoaderOptions.newOptions()
-                .setBatchLoaderContextProvider(ctxProvider);
-        DataLoader<K, T> dataLoader = DataLoader.newDataLoader(batchLoader, options);
-        ctxProvider.setDataLoader(dataLoader);
-        this.dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
-    }
-
-    public void registerDataLoader(String name, DataLoader<?, ?> dataLoader) {
-        this.dataLoaderRegistry.register(name, dataLoader);
     }
 
     private static final String QUERY = "Query";

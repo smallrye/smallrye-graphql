@@ -19,6 +19,9 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 
 import graphql.ExecutionInput;
@@ -31,10 +34,14 @@ import graphql.execution.ExecutionId;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.bootstrap.DataFetcherFactory;
+import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 import io.smallrye.graphql.execution.event.EventEmitter;
+import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Executing the GraphQL request
@@ -58,20 +65,19 @@ public class ExecutionService {
 
     private final GraphQLSchema graphQLSchema;
 
-    private final DataLoaderRegistry dataLoaderRegistry;
+    private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
+    private final DataFetcherFactory dataFetcherFactory;
+    private final List<Operation> batchOperations;
 
     private final EventEmitter eventEmitter;
 
     private GraphQL graphQL;
 
-    public ExecutionService(Config config, GraphQLSchema graphQLSchema) {
-        this(config, graphQLSchema, null);
-    }
-
-    public ExecutionService(Config config, GraphQLSchema graphQLSchema, DataLoaderRegistry dataLoaderRegistry) {
+    public ExecutionService(Config config, GraphQLSchema graphQLSchema, List<Operation> batchOperations) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
-        this.dataLoaderRegistry = dataLoaderRegistry;
+        this.dataFetcherFactory = new DataFetcherFactory(config);
+        this.batchOperations = batchOperations;
         this.eventEmitter = EventEmitter.getInstance(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
@@ -107,7 +113,9 @@ public class ExecutionService {
                 executionBuilder.context(toGraphQLContext(context));
 
                 // DataLoaders
-                if (dataLoaderRegistry != null) {
+
+                if (batchOperations != null && !batchOperations.isEmpty()) {
+                    DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
                     executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
                 }
 
@@ -146,6 +154,20 @@ public class ExecutionService {
             eventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
             throw t; // TODO: can I remove that?
         }
+    }
+
+    private <K, T> DataLoaderRegistry getDataLoaderRegistry(List<Operation> operations) {
+        DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
+        for (Operation operation : operations) {
+            BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
+            SmallRyeBatchLoaderContextProvider ctxProvider = new SmallRyeBatchLoaderContextProvider();
+            DataLoaderOptions options = DataLoaderOptions.newOptions()
+                    .setBatchLoaderContextProvider(ctxProvider);
+            DataLoader<K, T> dataLoader = DataLoader.newDataLoader(batchLoader, options);
+            ctxProvider.setDataLoader(dataLoader);
+            dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
+        }
+        return dataLoaderRegistry;
     }
 
     private GraphQLContext toGraphQLContext(Context context) {
