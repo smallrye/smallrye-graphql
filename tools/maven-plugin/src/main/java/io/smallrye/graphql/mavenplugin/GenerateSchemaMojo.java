@@ -32,7 +32,6 @@ import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.BootstrapedResult;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
@@ -185,9 +184,8 @@ public class GenerateSchemaMojo extends AbstractMojo {
         };
 
         Schema internalSchema = SchemaBuilder.build(index);
-        BootstrapedResult bootstraped = Bootstrap.bootstrap(internalSchema, config);
-        if (bootstraped != null) {
-            GraphQLSchema graphQLSchema = bootstraped.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, config);
+        if (graphQLSchema != null) {
             return new SchemaPrinter(config).print(graphQLSchema);
         }
         return null;
