@@ -75,11 +75,12 @@ class QueryBuilder {
         StringBuilder expression = new StringBuilder(field.getName());
         if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
             String path = nestedExpressionPrefix() + field.getName();
-            expression.append(method.valueParameters()
-                    .filter(ParameterInfo::isNestedParameter)
-                    .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path))
-                    .map(this::bind)
-                    .collect(joining(", ", "(", ")")));
+            if (method.valueParameters().anyMatch(ParameterInfo::isNestedParameter))
+                expression.append(method.valueParameters()
+                        .filter(ParameterInfo::isNestedParameter)
+                        .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path))
+                        .map(this::bind)
+                        .collect(joining(", ", "(", ")")));
             expressionStack.push(path);
             expression.append(fields(type));
             expressionStack.pop();
