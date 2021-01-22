@@ -15,7 +15,9 @@ class NestedParameterBehavior {
     static class SuperHero {
         String name;
 
-        String getName() { return name; }
+        String getName() {
+            return name;
+        }
     }
 
     static class Team {
@@ -49,9 +51,10 @@ class NestedParameterBehavior {
 
     @GraphQlClientApi
     interface UniverseApi {
-        Universe universeWithTeam(@NestedParameter("teams") String teamName,
-                                  @NestedParameter("teams.members") Integer offset,
-                                  @NestedParameter("teams.members") Integer limit);
+        Universe universeWithTeam(
+                @NestedParameter("teams") String teamName,
+                @NestedParameter("teams.members") Integer offset,
+                @NestedParameter("teams.members") Integer limit);
     }
 
     @Test
@@ -62,8 +65,9 @@ class NestedParameterBehavior {
 
         Universe universe = api.universeWithTeam("endgame", 32, 3);
 
-        then(fixture.query()).isEqualTo("query universeWithTeam($teamName: String, $offset: Int, $limit: Int) { universeWithTeam() " +
-                "{name teams(teamName: $teamName) {headQuarter members(offset: $offset, limit: $limit) {name}}} }");
+        then(fixture.query())
+                .isEqualTo("query universeWithTeam($teamName: String, $offset: Int, $limit: Int) { universeWithTeam() " +
+                        "{name teams(teamName: $teamName) {headQuarter members(offset: $offset, limit: $limit) {name}}} }");
         then(fixture.variables()).isEqualTo("{'teamName':'endgame','offset':32,'limit':3}");
         then(universe.name).isEqualTo("Marvel");
         Team team = universe.teams.get(0);
