@@ -9,6 +9,7 @@ import org.eclipse.microprofile.graphql.Name;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
+import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
 public class ParameterInfo {
     private final MethodInvocation method;
@@ -112,10 +113,22 @@ public class ParameterInfo {
     }
 
     public boolean isHeaderParameter() {
-        return parameter.getAnnotationsByType((Class<? extends Annotation>) Header.class).length > 0;
+        return parameter.getAnnotationsByType(Header.class).length > 0;
     }
 
     public boolean isValueParameter() {
         return !isHeaderParameter();
+    }
+
+    public boolean isNotNestedValueParameter() {
+        return !isNestedParameter();
+    }
+
+    public boolean isNestedParameter() {
+        return parameter.getAnnotationsByType(NestedParameter.class).length > 0;
+    }
+
+    public String getNestedParameterName() {
+        return parameter.getAnnotation(NestedParameter.class).value();
     }
 }

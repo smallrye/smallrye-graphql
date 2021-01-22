@@ -13,6 +13,7 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 class QueryBuilder {
     private final MethodInvocation method;
     private final Stack<String> typeStack = new Stack<>();
+    private final Stack<String> expressionStack = new Stack<>();
 
     public QueryBuilder(MethodInvocation method) {
         this.method = method;
@@ -27,7 +28,10 @@ class QueryBuilder {
         request.append(" { ");
         request.append(method.getName());
         if (method.hasValueParameters())
-            request.append(method.valueParameters().map(this::bind).collect(joining(", ", "(", ")")));
+            request.append(method.valueParameters()
+                    .filter(ParameterInfo::isNotNestedValueParameter)
+                    .map(this::bind)
+                    .collect(joining(", ", "(", ")")));
         request.append(fields(method.getReturnType()));
         request.append(" }");
         return request.toString();
@@ -68,10 +72,23 @@ class QueryBuilder {
 
     private String field(FieldInfo field) {
         TypeInfo type = field.getType();
-        if (type.isScalar() || type.isCollection() && type.getItemType().isScalar()) {
-            return field.getName();
-        } else {
-            return field.getName() + fields(type);
+        StringBuilder expression = new StringBuilder(field.getName());
+        if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
+            String path = nestedExpressionPrefix() + field.getName();
+            if (method.valueParameters().anyMatch(ParameterInfo::isNestedParameter))
+                expression.append(method.valueParameters()
+                        .filter(ParameterInfo::isNestedParameter)
+                        .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path))
+                        .map(this::bind)
+                        .collect(joining(", ", "(", ")")));
+            expressionStack.push(path);
+            expression.append(fields(type));
+            expressionStack.pop();
         }
+        return expression.toString();
+    }
+
+    private String nestedExpressionPrefix() {
+        return expressionStack.isEmpty() ? "" : expressionStack.peek() + ".";
     }
 }
