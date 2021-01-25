@@ -1,8 +1,12 @@
 package com.github.t1.annotations.tck;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import com.github.t1.annotations.MixinFor;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.SomeAnnotationWithoutValue;
@@ -91,7 +95,7 @@ public class MixinClasses {
         }
     }
 
-    public static class FieldAnnotationMixinClasses {
+    public static class AnnotatedFieldMixinClasses {
         public static class SomeClassWithFieldWithVariousAnnotations {
             @SuppressWarnings("unused")
             @SomeAnnotationWithoutValue
@@ -170,7 +174,7 @@ public class MixinClasses {
         }
     }
 
-    public static class MethodAnnotationMixinClasses {
+    public static class AnnotatedMethodMixinClasses {
         public static class SomeClassWithMethodWithVariousAnnotations {
             @SuppressWarnings("unused")
             @SomeAnnotationWithoutValue
@@ -266,6 +270,35 @@ public class MixinClasses {
             String foo() {
                 return "foo";
             }
+        }
+    }
+
+    public static class AnnotationMixinClasses {
+        public static class ClassWithAnnotationsExtendedByMixIn {
+            @DirectAnnotation
+            @SuppressWarnings("unused")
+            Long field;
+
+            @DirectAnnotation
+            @SuppressWarnings("unused")
+            Long method() {
+                return null;
+            }
+        }
+
+        @Target({ METHOD, FIELD })
+        @Retention(RUNTIME)
+        public @interface DirectAnnotation {
+        }
+
+        @Retention(RUNTIME)
+        @Target({ ElementType.PARAMETER, FIELD, METHOD, ElementType.ANNOTATION_TYPE, ElementType.TYPE })
+        public @interface MixedInAnnotation {
+        }
+
+        @MixinFor(DirectAnnotation.class)
+        @MixedInAnnotation
+        public interface DirectAnnotationMixin {
         }
     }
 }

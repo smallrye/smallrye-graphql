@@ -12,15 +12,18 @@ import org.junit.jupiter.api.Test;
 
 import com.github.t1.annotations.AmbiguousAnnotationResolutionException;
 import com.github.t1.annotations.Annotations;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.SomeClassWithFieldWithVariousAnnotations;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.TargetFieldClassWithTwoMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.TargetFieldClassWithTwoNonRepeatableMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.TargetFieldClassWithTwoRepeatableMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.SomeClassWithMethodWithVariousAnnotations;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoNonRepeatableMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoRepeatableMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.ClassWithAnnotationsExtendedByMixIn;
+import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.DirectAnnotation;
+import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.MixedInAnnotation;
 import com.github.t1.annotations.tck.MixinClasses.AnotherAnnotation;
-import com.github.t1.annotations.tck.MixinClasses.FieldAnnotationMixinClasses.SomeClassWithFieldWithVariousAnnotations;
-import com.github.t1.annotations.tck.MixinClasses.FieldAnnotationMixinClasses.TargetFieldClassWithTwoMixins;
-import com.github.t1.annotations.tck.MixinClasses.FieldAnnotationMixinClasses.TargetFieldClassWithTwoNonRepeatableMixins;
-import com.github.t1.annotations.tck.MixinClasses.FieldAnnotationMixinClasses.TargetFieldClassWithTwoRepeatableMixins;
-import com.github.t1.annotations.tck.MixinClasses.MethodAnnotationMixinClasses.SomeClassWithMethodWithVariousAnnotations;
-import com.github.t1.annotations.tck.MixinClasses.MethodAnnotationMixinClasses.TargetMethodClassWithTwoMixins;
-import com.github.t1.annotations.tck.MixinClasses.MethodAnnotationMixinClasses.TargetMethodClassWithTwoNonRepeatableMixins;
-import com.github.t1.annotations.tck.MixinClasses.MethodAnnotationMixinClasses.TargetMethodClassWithTwoRepeatableMixins;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.OriginalAnnotatedTarget;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.SomeAnnotationTargetedByMixin;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.SomeAnnotationWithoutValue;
@@ -259,6 +262,14 @@ public class MixinBehavior {
             then(throwable).isInstanceOf(AmbiguousAnnotationResolutionException.class);
         }
 
+        @Test
+        void shouldMixIntoAnnotationUsedOnField() {
+            Annotations annotations = Annotations.onField(ClassWithAnnotationsExtendedByMixIn.class, "field");
+
+            then(annotations.get(DirectAnnotation.class)).isPresent();
+            then(annotations.get(MixedInAnnotation.class)).isPresent();
+        }
+
         // TODO test unknown field mixin
     }
 
@@ -352,6 +363,14 @@ public class MixinBehavior {
             Throwable throwable = catchThrowable(() -> annotations.get(RepeatableAnnotation.class));
 
             then(throwable).isInstanceOf(AmbiguousAnnotationResolutionException.class);
+        }
+
+        @Test
+        void shouldMixIntoAnnotationUsedOnMethod() {
+            Annotations annotations = Annotations.onMethod(ClassWithAnnotationsExtendedByMixIn.class, "method");
+
+            then(annotations.get(DirectAnnotation.class)).isPresent();
+            then(annotations.get(MixedInAnnotation.class)).isPresent();
         }
 
         // TODO constructor mixins

@@ -27,20 +27,20 @@ class MixinResolver implements Runnable {
             ClassInfo mixinTarget = jandex.getClassInfo(mixin.value().asClass().name());
             ClassInfo mixinClass = mixin.target().asClass();
             log.info("mix " + mixinClass + " into " + mixinTarget);
-            if (Jandex.isAnnotationType(mixinTarget)) {
+            if (Jandex.isAnnotationType(mixinTarget))
                 resolveAnnotationMixin(mixinTarget, mixinClass);
-            } else
+            else
                 resolveMixinAnnotations(mixinTarget, mixinClass);
         }
     }
 
     private void resolveAnnotationMixin(ClassInfo mixinTarget, ClassInfo mixinClass) {
         for (AnnotationInstance annotationInstance : new ArrayList<>(jandex.getAnnotationInstances(mixinTarget.name()))) {
-            resolveMixinAnnotations(annotationInstance.target().asClass(), mixinClass);
+            resolveMixinAnnotations(annotationInstance.target(), mixinClass);
         }
     }
 
-    private void resolveMixinAnnotations(ClassInfo mixinTarget, ClassInfo mixinClass) {
+    private void resolveMixinAnnotations(AnnotationTarget mixinTarget, ClassInfo mixinClass) {
         Map<DotName, List<AnnotationInstance>> annotations = mixinClass.annotations();
         for (DotName annotationName : annotations.keySet()) {
             if (MIXIN_FOR.equals(annotationName))
@@ -50,13 +50,31 @@ class MixinResolver implements Runnable {
                 log.info("- " + annotationInstance + " -> " + annotation.kind().name().toLowerCase() + " " + annotation);
                 switch (annotation.kind()) {
                     case CLASS:
-                        resolveClassMixin(mixinTarget, annotationInstance);
-                        continue;
+                        switch (mixinTarget.kind()) {
+                            case CLASS:
+                                resolveClassMixin(annotationInstance, mixinTarget.asClass());
+                                continue;
+                            case FIELD:
+                                resolveFieldMixin(annotationInstance, mixinTarget.asField());
+                                continue;
+                            case METHOD:
+                                try {
+                                    MethodInfo targetMethod = getTargetMethod(mixinTarget.asMethod().declaringClass(),
+                                            mixinTarget.asMethod());
+                                    resolveMethodMixin(annotationInstance, targetMethod);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                continue;
+                            default:
+                                throw new RuntimeException(
+                                        "can't resolve an annotation mixin for the " + mixinTarget.kind() + ": " + mixinTarget);
+                        }
                     case FIELD:
-                        resolveFieldMixin(annotationInstance, mixinTarget.field(annotation.asField().name()));
+                        resolveFieldMixin(annotationInstance, mixinTarget.asClass().field(annotation.asField().name()));
                         continue;
                     case METHOD:
-                        resolveMethodMixin(mixinTarget, annotationInstance, annotation);
+                        resolveMethodMixin(annotationInstance, getTargetMethod(mixinTarget.asClass(), annotation.asMethod()));
                         continue;
                 }
                 throw new UnsupportedOperationException("don't know how to resolve a " + annotation.kind() + " mixin: "
@@ -65,20 +83,18 @@ class MixinResolver implements Runnable {
         }
     }
 
-    private void resolveClassMixin(ClassInfo mixinTarget, AnnotationInstance annotationInstance) {
+    private MethodInfo getTargetMethod(ClassInfo classInfo, MethodInfo method) {
+        return classInfo.method(method.name(), method.parameters().toArray(new Type[0]));
+    }
+
+    private void resolveClassMixin(AnnotationInstance annotationInstance, ClassInfo mixinTarget) {
         AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, mixinTarget);
         jandex.addOrReplace(mixinTarget, copy);
     }
 
     private void resolveFieldMixin(AnnotationInstance annotationInstance, FieldInfo targetField) {
-        AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetField.declaringClass());
+        AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetField);
         jandex.addOrReplace(targetField, copy);
-    }
-
-    private void resolveMethodMixin(ClassInfo mixinTarget, AnnotationInstance annotationInstance, AnnotationTarget annotation) {
-        MethodInfo method = annotation.asMethod();
-        MethodInfo targetMethod = mixinTarget.method(method.name(), method.parameters().toArray(new Type[0]));
-        resolveMethodMixin(annotationInstance, targetMethod);
     }
 
     private void resolveMethodMixin(AnnotationInstance annotationInstance, MethodInfo targetMethod) {
