@@ -12,9 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.t1.annotations.AmbiguousAnnotationResolutionException;
 import com.github.t1.annotations.Annotations;
-import com.github.t1.annotations.tck.MixinClasses.AnotherAnnotation;
-import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.ClassWithAnnotationsExtendedByMixIn;
-import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.DirectAnnotation;
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.SomeClassWithFieldWithVariousAnnotations;
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.TargetFieldClassWithTwoMixins;
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedFieldMixinClasses.TargetFieldClassWithTwoNonRepeatableMixins;
@@ -23,7 +20,10 @@ import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.So
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoMixins;
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoNonRepeatableMixins;
 import com.github.t1.annotations.tck.MixinClasses.AnnotatedMethodMixinClasses.TargetMethodClassWithTwoRepeatableMixins;
+import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.ClassWithAnnotationsExtendedByMixIn;
+import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.DirectAnnotation;
 import com.github.t1.annotations.tck.MixinClasses.AnnotationMixinClasses.MixedInAnnotation;
+import com.github.t1.annotations.tck.MixinClasses.AnotherAnnotation;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.OriginalAnnotatedTarget;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.SomeAnnotationTargetedByMixin;
 import com.github.t1.annotations.tck.MixinClasses.TypeAnnotationMixinClasses.SomeAnnotationWithoutValue;
