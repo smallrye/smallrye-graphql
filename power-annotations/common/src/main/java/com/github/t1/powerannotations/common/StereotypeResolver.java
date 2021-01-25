@@ -45,13 +45,13 @@ class StereotypeResolver implements Runnable {
                             log.info(" - " + annotationInstance);
                             switch (annotationTarget.kind()) {
                                 case CLASS:
-                                    resolveClassStereotype(annotationTarget, annotationInstance);
+                                    resolveClassStereotype(annotationInstance, annotationTarget.asClass());
                                     continue;
                                 case FIELD:
-                                    resolveFieldStereotype(annotationTarget, annotationInstance);
+                                    resolveFieldStereotype(annotationInstance, annotationTarget.asField());
                                     continue;
                                 case METHOD:
-                                    resolveMethodStereotype(annotationTarget, annotationInstance);
+                                    resolveMethodStereotype(annotationInstance, annotationTarget.asMethod());
                                     continue;
                             }
                             throw new UnsupportedOperationException("don't know how to resolve a " + annotationTarget.kind()
@@ -107,21 +107,17 @@ class StereotypeResolver implements Runnable {
         return annotationLevel;
     }
 
-    private void resolveClassStereotype(AnnotationTarget annotationTarget, AnnotationInstance annotationInstance) {
-        ClassInfo targetClass = jandex.getClassInfo(annotationTarget.asClass().name());
+    private void resolveClassStereotype(AnnotationInstance annotationInstance, ClassInfo targetClass) {
         AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetClass);
         jandex.addOrSkip(targetClass, copy);
     }
 
-    private void resolveFieldStereotype(AnnotationTarget annotationTarget, AnnotationInstance annotationInstance) {
-        ClassInfo targetClass = jandex.getClassInfo(annotationTarget.asField().declaringClass().name());
-        FieldInfo targetField = targetClass.field(annotationTarget.asField().name());
-        AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetField.declaringClass());
+    private void resolveFieldStereotype(AnnotationInstance annotationInstance, FieldInfo targetField) {
+        AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetField);
         jandex.addOrSkip(targetField, copy);
     }
 
-    private void resolveMethodStereotype(AnnotationTarget annotationTarget, AnnotationInstance annotationInstance) {
-        MethodInfo targetMethod = annotationTarget.asMethod();
+    private void resolveMethodStereotype(AnnotationInstance annotationInstance, MethodInfo targetMethod) {
         AnnotationInstance copy = jandex.copyAnnotationInstance(annotationInstance, targetMethod);
         jandex.addOrSkip(targetMethod, copy);
     }

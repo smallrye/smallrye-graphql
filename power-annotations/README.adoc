@@ -12,7 +12,7 @@ There's also a TCK to test, if an implementation adheres to the standard defined
 
 === Stereotypes
 
-The simplest use-case for Stereotypes is renaming annotations, e.g. `@Property` instead of `@JsonbProperty` (assuming your JBON-B implementation supported Power Annotations).
+The simplest use-case for Stereotypes is renaming annotations, e.g. `@Property` instead of `@JsonbProperty` (assuming your JSON-B implementation supported Power Annotations).
 
 [source,java]
 ----
@@ -33,7 +33,7 @@ This is exactly what https://jakarta.ee/specifications/cdi/2.0/cdi-spec-2.0.html
 //
 //This is a very common pattern: annotations on a class are considered as a fallback for member annotations (i.e. on fields or methods), if
 //
-//* the member is not annotated with the same type or the annotation is repeatable, and
+//* the member is not annotated with the same type, or the annotation is repeatable, and
 //* the annotation is annotated to be an _explicitly_ allowed `@Target` for `FIELD`/`METHOD`.
 
 
@@ -47,7 +47,7 @@ This is exactly what https://jakarta.ee/specifications/cdi/2.0/cdi-spec-2.0.html
 
 Say you have a class you want to add annotations to, but you can't; e.g., because it's a class from some library or even from the JDK. You can create your own class (or interface or even annotation) and annotate it as `@MixinFor` the target class. The annotations you put on your mixin class will work as if they were on the target class (if your framework supports Power Annotations).
 
-This also works for annotations: say we're developing an application packed with annotations from JPA, which doesn't support mixins (yet). The application also uses a library that supports mixins but doesn't know about JPA, e.g. a future MP GraphQL. We want all JPA `@Id` annotations to be recognized as synonyms for GraphQL `@Id` annotations. We could create a simple mixin for the JPA annotation:
+This also works for annotations: say we're developing an application packed with annotations from JPA, which doesn't support mixins (yet). The application also uses a library that supports mixins but doesn't know about JPA, e.g. libraries like SmallRye GraphQL that use Jandex, and you build the index with the `power-jandex-maven-plugin`. We want all JPA `@Id` annotations to be recognized as synonyms for GraphQL `@Id` annotations. We could create a simple mixin for the JPA annotation:
 
 [source,java]
 ----
@@ -56,6 +56,6 @@ This also works for annotations: say we're developing an application packed with
 public class PersistenceIdMixin {}
 ----
 
-Voila! MP GraphQL would work as if all JPA `@Id` annotations were it's own.
+Voilà! MP GraphQL work as if all JPA `@Id` annotations were its own.
 
 NOTE: Mixins are a very powerful kind of magic: use them with caution and only when strictly necessary. Otherwise, the readers of your code will have a hard time to find out why something behaves as if an annotation was there, but it's clearly not. If you can, use Stereotypes instead.

@@ -199,7 +199,9 @@ public class Jandex {
 
     private static int indexOfType(List<AnnotationInstance> instances, AnnotationInstance annotation) {
         for (int i = 0; i < instances.size(); i++)
-            if (instances.get(i).name().equals(annotation.name()))
+            if (instances.get(i).name().equals(annotation.name())
+                    // AnnotationInstance subclasses don't override equals/hashCode
+                    && instances.get(i).target().toString().equals(annotation.target().toString()))
                 return i;
         return -1;
     }
