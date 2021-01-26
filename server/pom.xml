@@ -16,7 +16,7 @@
     
     <properties>
         <!-- We use WF to run the TCK and do IT and run the runner project -->
-        <version.wildfly>21.0.1.Final</version.wildfly>
+        <version.wildfly>22.0.0.Final</version.wildfly>
     </properties>
     
     <modules>
