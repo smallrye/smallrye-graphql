@@ -27,9 +27,8 @@ class QueryBuilder {
             request.append(method.valueParameters().map(this::declare).collect(joining(", ", "(", ")")));
         request.append(" { ");
         request.append(method.getName());
-        if (method.hasValueParameters())
-            request.append(method.valueParameters()
-                    .filter(ParameterInfo::isNotNestedValueParameter)
+        if (method.hasRootParameters())
+            request.append(method.rootParameters()
                     .map(this::bind)
                     .collect(joining(", ", "(", ")")));
         request.append(fields(method.getReturnType()));
@@ -75,9 +74,8 @@ class QueryBuilder {
         StringBuilder expression = new StringBuilder(field.getName());
         if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
             String path = nestedExpressionPrefix() + field.getName();
-            if (method.valueParameters().anyMatch(ParameterInfo::isNestedParameter))
-                expression.append(method.valueParameters()
-                        .filter(ParameterInfo::isNestedParameter)
+            if (method.hasNestedParameters())
+                expression.append(method.nestedParameters()
                         .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path))
                         .map(this::bind)
                         .collect(joining(", ", "(", ")")));
