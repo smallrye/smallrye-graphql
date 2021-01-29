@@ -12,6 +12,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
+import io.smallrye.graphql.test.apps.batch.api.BatchApi;
 import io.smallrye.graphql.test.apps.context.api.ContextApi;
 import io.smallrye.graphql.test.apps.defaultvalue.api.DefaultValueParrotAPI;
 import io.smallrye.graphql.test.apps.error.api.ErrorApi;
@@ -86,6 +87,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(MutinyApi.class.getPackage());
             war.addPackage(ContextApi.class.getPackage());
             war.addPackage(JsonPApi.class.getPackage());
+            war.addPackage(BatchApi.class.getPackage());
 
             System.out.println(war.toString(true));
         }
