@@ -84,15 +84,31 @@ public class MethodInvocation {
     }
 
     public boolean hasValueParameters() {
-        return valueParameters().count() > 0;
+        return valueParameters().findAny().isPresent();
+    }
+
+    public boolean hasRootParameters() {
+        return rootParameters().findAny().isPresent();
+    }
+
+    public boolean hasNestedParameters() {
+        return nestedParameters().findAny().isPresent();
+    }
+
+    public Stream<ParameterInfo> headerParameters() {
+        return parameters().filter(ParameterInfo::isHeaderParameter);
     }
 
     public Stream<ParameterInfo> valueParameters() {
         return parameters().filter(ParameterInfo::isValueParameter);
     }
 
-    public Stream<ParameterInfo> headerParameters() {
-        return parameters().filter(ParameterInfo::isHeaderParameter);
+    public Stream<ParameterInfo> rootParameters() {
+        return parameters().filter(ParameterInfo::isRootParameter);
+    }
+
+    public Stream<ParameterInfo> nestedParameters() {
+        return parameters().filter(ParameterInfo::isNestedParameter);
     }
 
     private Stream<ParameterInfo> parameters() {
