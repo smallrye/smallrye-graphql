@@ -23,7 +23,7 @@ public class BatchApi {
         return l;
     }
 
-    // Nornal Source
+    // Normal Source
     public String greeting(@Source BatchPojo batchPojo) {
         return "hello";
     }
