@@ -117,11 +117,11 @@ public class ParameterInfo {
     }
 
     public boolean isValueParameter() {
-        return !isHeaderParameter();
+        return isRootParameter() || isNestedParameter();
     }
 
-    public boolean isNotNestedValueParameter() {
-        return !isNestedParameter();
+    public boolean isRootParameter() {
+        return !isHeaderParameter() && !isNestedParameter();
     }
 
     public boolean isNestedParameter() {
