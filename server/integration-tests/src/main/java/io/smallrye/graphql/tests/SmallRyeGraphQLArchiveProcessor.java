@@ -27,7 +27,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             final File[] dependencies = Maven.resolver()
                     .loadPomFromFile("pom.xml")
                     .resolve("io.smallrye:smallrye-graphql-servlet")
-                    .withTransitivity()
+                    .withoutTransitivity()
                     .asFile();
             // Make sure it's unique
             Set<File> dependenciesSet = new LinkedHashSet<>(Arrays.asList(dependencies));

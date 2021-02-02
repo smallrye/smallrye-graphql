@@ -1,0 +1,336 @@
+{
+  "errors": [
+    {
+      "message": "Some business exception",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        0,
+        "business"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        0,
+        "runtime"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Some business exception",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        1,
+        "business"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        1,
+        "runtime"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Some business exception",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        2,
+        "business"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        2,
+        "runtime"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Some business exception",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        3,
+        "business"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        3,
+        "runtime"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Some businesses exception",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        0,
+        "businesses"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Some businesses exception",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        1,
+        "businesses"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Some businesses exception",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        2,
+        "businesses"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Some businesses exception",
+      "locations": [
+        {
+          "line": 5,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        3,
+        "businesses"
+      ],
+      "extensions": {
+        "exception": "io.smallrye.graphql.test.apps.batch.api.BusinessException",
+        "classification": "DataFetchingException",
+        "code": "business"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        0,
+        "runtimes"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        1,
+        "runtimes"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        2,
+        "runtimes"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    },
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 6,
+          "column": 5
+        }
+      ],
+      "path": [
+        "batchPojos",
+        3,
+        "runtimes"
+      ],
+      "extensions": {
+        "exception": "java.lang.RuntimeException",
+        "classification": "DataFetchingException",
+        "code": "runtime"
+      }
+    }
+  ],
+  "data": {
+    "batchPojos": [
+      {
+        "business": null,
+        "runtime": null,
+        "businesses": null,
+        "runtimes": null
+      },
+      {
+        "business": null,
+        "runtime": null,
+        "businesses": null,
+        "runtimes": null
+      },
+      {
+        "business": null,
+        "runtime": null,
+        "businesses": null,
+        "runtimes": null
+      },
+      {
+        "business": null,
+        "runtime": null,
+        "businesses": null,
+        "runtimes": null
+      }
+    ]
+  }
+}
