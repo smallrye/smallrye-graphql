@@ -28,7 +28,7 @@
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
-        <version.graphql-java>16.1</version.graphql-java>
+        <version.graphql-java>16.2</version.graphql-java>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR3</version.arquillian.jetty>
