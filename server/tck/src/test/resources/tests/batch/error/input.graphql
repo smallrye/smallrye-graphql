@@ -1,0 +1,8 @@
+{
+  batchPojos{
+    business
+    runtime
+    businesses
+    runtimes
+  }
+}

@@ -44,8 +44,6 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
             return (T) futureResultFromMethodCall.handle((result, throwable) -> {
 
                 if (throwable != null) {
-                    throwable = unwrapThrowable(throwable);
-
                     eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                     if (throwable instanceof GraphQLException) {
                         GraphQLException graphQLException = (GraphQLException) throwable;

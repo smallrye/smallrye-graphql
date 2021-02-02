@@ -1,9 +1,5 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletionException;
-
 import org.dataloader.BatchLoaderWithContext;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
@@ -38,7 +34,6 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter;
     protected BatchLoaderHelper batchLoaderHelper;
-    protected List<String> unwrapExceptions = new ArrayList<>();
 
     public AbstractDataFetcher(Operation operation, Config config) {
         this.operation = operation;
@@ -48,10 +43,6 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
         this.partialResultHelper = new PartialResultHelper();
         this.batchLoaderHelper = new BatchLoaderHelper();
-        if (config != null && config.getUnwrapExceptions().isPresent()) {
-            this.unwrapExceptions.addAll(config.getUnwrapExceptions().get());
-        }
-        this.unwrapExceptions.addAll(DEFAULT_EXCEPTION_UNWRAP);
     }
 
     @Override
@@ -92,23 +83,4 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);
 
-    protected Throwable unwrapThrowable(Throwable t) {
-        if (shouldUnwrapThrowable(t)) {
-            t = t.getCause();
-            return unwrapThrowable(t);
-        }
-        return t;
-    }
-
-    private boolean shouldUnwrapThrowable(Throwable t) {
-        return unwrapExceptions.contains(t.getClass().getName()) && t.getCause() != null;
-    }
-
-    private static final List<String> DEFAULT_EXCEPTION_UNWRAP = new ArrayList<>();
-
-    static {
-        DEFAULT_EXCEPTION_UNWRAP.add(CompletionException.class.getName());
-        DEFAULT_EXCEPTION_UNWRAP.add("javax.ejb.EJBException");
-        DEFAULT_EXCEPTION_UNWRAP.add("jakarta.ejb.EJBException");
-    }
 }

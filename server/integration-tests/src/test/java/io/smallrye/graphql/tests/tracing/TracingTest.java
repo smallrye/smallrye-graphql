@@ -27,7 +27,7 @@ public class TracingTest {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource(new StringAsset("smallrye.graphql.tracing.enabled=true"),
                         "META-INF/microprofile-config.properties")
-                .addClasses(DummyGraphQLApi.class, Foo.class);
+                .addClasses(TracerProducer.class, DummyGraphQLApi.class, Foo.class);
     }
 
     @ArquillianResource

@@ -41,7 +41,6 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
                     .onItemOrFailure().transform((result, throwable) -> {
 
                         if (throwable != null) {
-                            throwable = unwrapThrowable(throwable);
                             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                             if (throwable instanceof GraphQLException) {
                                 GraphQLException graphQLException = (GraphQLException) throwable;
@@ -61,8 +60,6 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
                         return resultBuilder.build();
                     }).runSubscriptionOn(Infrastructure.getDefaultExecutor()).subscribe().asCompletionStage();
-        } catch (Exception e) {
-            throw (Exception) unwrapThrowable(e);
         } finally {
             SmallRyeContext.remove();
         }

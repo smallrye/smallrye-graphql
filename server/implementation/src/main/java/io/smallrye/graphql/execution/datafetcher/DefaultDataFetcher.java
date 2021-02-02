@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -37,8 +39,6 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
             resultBuilder.data(resultFromTransform);
             return (T) resultBuilder.build();
-        } catch (Exception e) {
-            throw (Exception) unwrapThrowable(e);
         } finally {
             SmallRyeContext.remove();
         }
@@ -58,10 +58,23 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         ThreadContext threadContext = ThreadContext.builder().build();
         try {
             SmallRyeContext.setContext(context);
+
+            CompletableFuture<List<T>> reflectionSupplier = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return (List<T>) reflectionHelper.invokePrivileged(tccl, arguments);
+                } catch (Exception e) {
+                    if (e instanceof RuntimeException && e.getCause() != null && !(e.getCause() instanceof RuntimeException)) {
+                        throw msg.dataFetcherException(operation, e.getCause());
+                    } else if (e instanceof RuntimeException) {
+                        throw (RuntimeException) e;
+                    } else {
+                        throw msg.dataFetcherException(operation, e);
+                    }
+                }
+            }, threadContext.currentContextExecutor());
+
             return threadContext
-                    .withContextCapture(
-                            CompletableFuture.supplyAsync(() -> (List<T>) reflectionHelper.invokePrivileged(tccl, arguments),
-                                    threadContext.currentContextExecutor()));
+                    .withContextCapture(reflectionSupplier);
         } finally {
             SmallRyeContext.remove();
         }
