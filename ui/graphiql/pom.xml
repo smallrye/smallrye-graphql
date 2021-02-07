@@ -15,9 +15,31 @@
     
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
-        <react.version>16.14.0</react.version>
-        <graphiql.version>1.1.0</graphiql.version>
+        <react.version>17.0.1</react.version>
+        <graphiql.version>1.3.2</graphiql.version>
     </properties>
+    
+    <dependencies>
+        <!-- Here so that dependabot will tell us about an update -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>graphiql</artifactId>
+            <version>${graphiql.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>react</artifactId>
+            <version>${react.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>react-dom</artifactId>
+            <version>${react.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
     
     <build>            
         <!-- Copy all web content files META-INF folder, and push it though a filter to replace maven properties -->
@@ -46,62 +68,57 @@
         <plugins>
             <!-- So we don't have to keep a version of these javascript libs in our repo -->
             <plugin>
-                <groupId>com.googlecode.maven-download-plugin</groupId>
-                <artifactId>download-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
                 <executions>
-                        <execution>
-                            <id>install-react</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>wget</goal>
-                            </goals>
-                            <configuration>
-                                <url>https://unpkg.com/react@${react.version}/umd/react.production.min.js</url>
-                                <unpack>false</unpack>
-                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>63d498e143f421cc44dfb64f22fef270</md5>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>install-react-dom</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>wget</goal>
-                            </goals>
-                            <configuration>
-                                <url>https://unpkg.com/react-dom@${react.version}/umd/react-dom.production.min.js</url>
-                                <unpack>false</unpack>
-                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>c5abc87541fe6bb0f43f22af475a8b20</md5>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>install-graphiql-js</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>wget</goal>
-                            </goals>
-                            <configuration>
-                                <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.js</url>
-                                <unpack>false</unpack>
-                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>1bf1745878191d43a88571bc40b8afa5</md5>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>install-graphiql-css</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>wget</goal>
-                            </goals>
-                            <configuration>
-                                <url>https://unpkg.com/graphiql@${graphiql.version}/graphiql.min.css</url>
-                                <unpack>false</unpack>
-                                <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</outputDirectory>
-                                <md5>41c1617ba5cf7606900eb99c1e9e52ad</md5>
-                            </configuration>
-                        </execution>
+                    <execution>
+                        <id>install-graphiql</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.webjars.npm</groupId>
+                                    <artifactId>graphiql</artifactId>
+                                    <version>${graphiql.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
+                                    <includes>**/graphiql.min.js, **/graphiql.min.css</includes>
+                                    <fileMappers>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                    </fileMappers>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.webjars.npm</groupId>
+                                    <artifactId>react</artifactId>
+                                    <version>${react.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
+                                    <includes>**/react.production.min.js</includes>
+                                    <fileMappers>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                    </fileMappers>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.webjars.npm</groupId>
+                                    <artifactId>react-dom</artifactId>
+                                    <version>${react.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
+                                    <includes>**/react-dom.production.min.js</includes>
+                                    <fileMappers>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                    </fileMappers>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
