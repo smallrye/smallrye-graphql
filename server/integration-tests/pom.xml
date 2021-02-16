@@ -43,6 +43,19 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Dynamic client -->
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-graphql-client-implementation-vertx</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- The API is copied into SmallRye for now -->
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.microprofile.graphql</groupId>-->
+<!--            <artifactId>microprofile-graphql-client-api</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
         <!-- Container -->
         <dependency>
             <groupId>org.jboss.arquillian.container</groupId>
