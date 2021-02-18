@@ -49,6 +49,7 @@ import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
+import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
@@ -652,7 +653,16 @@ public class Bootstrap {
             } else {
                 type = classloadingService.loadClass(field.getReference().getClassName());
             }
-            return JSONB.fromJson(jsonString, type);
+            Jsonb jsonB = JsonBCreator.getJsonB(type.getName());
+
+            Reference reference = getCorrectFieldReference(field);
+            ReferenceType referenceType = reference.getType();
+
+            if (referenceType.equals(referenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) { // Complex type
+                return jsonB.fromJson(jsonString, Map.class);
+            } else { // Basic Type
+                return jsonB.fromJson(jsonString, type);
+            }
         }
 
         if (Classes.isNumberLikeType(field.getReference().getGraphQlClassName())) {
