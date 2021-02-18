@@ -17,7 +17,6 @@ import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import javax.json.JsonValue;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
@@ -689,19 +688,6 @@ public class Bootstrap {
             }
         }
         return false;
-    }
-
-    private JsonValue getJsonValue(String string) {
-        if (string != null && !string.isEmpty() && (string.contains("{") || string.contains("["))) {
-            try (StringReader stringReader = new StringReader(string);
-                    JsonReader jsonReader = jsonReaderFactory.createReader(stringReader)) {
-
-                return jsonReader.readValue();
-            } catch (Exception ex) {
-                // Not a valid json
-            }
-        }
-        return null;
     }
 
     /**
