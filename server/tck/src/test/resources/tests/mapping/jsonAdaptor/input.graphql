@@ -1,0 +1,7 @@
+mutation c {
+  createData(data: {name: "Hello", currency: "EUR", email:"piet@pompies.co.za"}) {
+    currency
+    name
+    email
+  }
+}

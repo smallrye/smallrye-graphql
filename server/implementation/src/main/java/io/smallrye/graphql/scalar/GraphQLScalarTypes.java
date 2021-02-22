@@ -68,9 +68,9 @@ public class GraphQLScalarTypes {
         SCALAR_MAP.put(URL.class.getName(), Scalars.GraphQLString);
         SCALAR_MAP.put(URI.class.getName(), Scalars.GraphQLString);
 
-        mapType(new IntegerScalar()); // Integer, int, Short, short, Byte, byte
-        mapType(new FloatScalar()); // Float, float, Double, double
-        mapType(new BigIntegerScalar()); // BigInteger, Long, long
+        mapType(new IntegerScalar()); // AtomicInteger, OptionalInt, Integer, int, Short, short, Byte, byte
+        mapType(new FloatScalar()); // OptionalDouble, Float, float, Double, double
+        mapType(new BigIntegerScalar()); // AtomicLong, OptionalLong, BigInteger, Long, long
         mapType(new BigDecimalScalar()); // BigDecimal
         mapType(new DateScalar()); // LocalDate, java.sql.Date
         mapType(new TimeScalar()); // LocalTime, java.sql.Time, OffsetTime

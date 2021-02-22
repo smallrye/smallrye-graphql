@@ -60,4 +60,8 @@ public @interface ToScalar {
      * @return the scalar to use.
      */
     Class<? extends Scalar> value();
+
+    String deserializeMethod() default ""; // Can be auto discovered for certain cases
+
+    // TODO: Also add serilize that currently defaults to toString?
 }
