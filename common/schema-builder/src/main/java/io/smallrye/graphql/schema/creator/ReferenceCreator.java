@@ -296,7 +296,7 @@ public class ReferenceCreator {
                 return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
                         parametrizedTypeArgumentsReferences, false);
             } else {
-                return getNonIndexedReference(direction, fieldType, annotations);
+                return getNonIndexedReference(direction, fieldType);
             }
         } else if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Type.Kind.PARAMETERIZED_TYPE handles generics PoJos here, collections and unwrapped types are catched
@@ -314,7 +314,7 @@ public class ReferenceCreator {
                 return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
                         parametrizedTypeArgumentsReferences, true);
             } else {
-                return getNonIndexedReference(direction, fieldType, annotations);
+                return getNonIndexedReference(direction, fieldType);
             }
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
             if (parentObjectReference == null || parentObjectReference.getParametrizedTypeArguments() == null) {
@@ -438,10 +438,10 @@ public class ReferenceCreator {
         }
     }
 
-    private Reference getNonIndexedReference(Direction direction, Type fieldType, Annotations annotations) {
+    private Reference getNonIndexedReference(Direction direction, Type fieldType) {
 
         LOG.warn("Class [" + fieldType.name()
-                + "] in not indexed in Jandex. Can not scan Object Type, might not be mapped correctly");
+                + "] is not indexed in Jandex. Can not scan Object Type, might not be mapped correctly");
 
         Reference r = new Reference();
         r.setClassName(fieldType.name().toString());
