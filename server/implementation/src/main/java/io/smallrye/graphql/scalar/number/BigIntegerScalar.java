@@ -2,6 +2,8 @@ package io.smallrye.graphql.scalar.number;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicLong;
 
 import graphql.Scalars;
 
@@ -28,6 +30,6 @@ public class BigIntegerScalar extends AbstractNumberScalar {
                     }
 
                 },
-                BigInteger.class, Long.class, long.class);
+                AtomicLong.class, OptionalLong.class, BigInteger.class, Long.class, long.class);
     }
 }

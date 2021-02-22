@@ -19,6 +19,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
@@ -63,7 +66,10 @@ public class Classes {
      * @return true if it is
      */
     public static boolean isOptional(Type type) {
-        return isParameterized(type) && type.name().equals(OPTIONAL);
+        return isParameterized(type) && type.name().equals(OPTIONAL) // Normal Optional
+                || type.name().equals(LONG_OPTIONAL)
+                || type.name().equals(DOUBLE_OPTIONAL)
+                || type.name().equals(INTEGER_OPTIONAL);
     }
 
     /**
@@ -98,7 +104,8 @@ public class Classes {
      */
     public static boolean isNumberLikeTypeOrContainedIn(Type type) {
         return isTypeOrContainedIn(type, BYTE, BYTE_PRIMATIVE, SHORT, SHORT_PRIMATIVE, INTEGER, INTEGER_PRIMATIVE,
-                BIG_INTEGER, DOUBLE, DOUBLE_PRIMATIVE, BIG_DECIMAL, LONG, LONG_PRIMATIVE, FLOAT, FLOAT_PRIMATIVE);
+                BIG_INTEGER, DOUBLE, DOUBLE_PRIMATIVE, BIG_DECIMAL, LONG, LONG_PRIMATIVE, FLOAT, FLOAT_PRIMATIVE,
+                INTEGER_OPTIONAL, DOUBLE_OPTIONAL, LONG_OPTIONAL);
     }
 
     /**
@@ -256,14 +263,17 @@ public class Classes {
 
     private static final DotName INTEGER = DotName.createSimple(Integer.class.getName());
     private static final DotName INTEGER_PRIMATIVE = DotName.createSimple(int.class.getName());
+    private static final DotName INTEGER_OPTIONAL = DotName.createSimple(OptionalInt.class.getName());
     private static final DotName BIG_INTEGER = DotName.createSimple(BigInteger.class.getName());
 
     private static final DotName DOUBLE = DotName.createSimple(Double.class.getName());
     private static final DotName DOUBLE_PRIMATIVE = DotName.createSimple(double.class.getName());
+    private static final DotName DOUBLE_OPTIONAL = DotName.createSimple(OptionalDouble.class.getName());
     private static final DotName BIG_DECIMAL = DotName.createSimple(BigDecimal.class.getName());
 
     private static final DotName LONG = DotName.createSimple(Long.class.getName());
     private static final DotName LONG_PRIMATIVE = DotName.createSimple(long.class.getName());
+    private static final DotName LONG_OPTIONAL = DotName.createSimple(OptionalLong.class.getName());
 
     private static final DotName FLOAT = DotName.createSimple(Float.class.getName());
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());

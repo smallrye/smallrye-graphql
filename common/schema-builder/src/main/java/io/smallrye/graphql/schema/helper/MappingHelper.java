@@ -33,6 +33,7 @@ public class MappingHelper {
     /**
      * Get the mapping for a certain field.
      * 
+     * @param field
      * @param annotations the annotations
      * @return Potentially a MappingInfo model
      */
@@ -43,6 +44,7 @@ public class MappingHelper {
     /**
      * Get the mapping for a certain reference.
      * 
+     * @param r
      * @param annotations the annotations
      * @return Potentially a MappingInfo model
      */
@@ -52,35 +54,55 @@ public class MappingHelper {
             String scalarName = getScalarName(type);
             Reference reference = Scalars.getScalar(scalarName);
             Mapping mappingInfo = new Mapping(reference);
-            // Check the way to create this.
-            String className = r.getClassName();
-            if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
-                ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(className));
-                if (classInfo != null) {
-                    // Get Parameter type
-                    Type parameter = Type.create(DotName.createSimple(reference.getClassName()), Type.Kind.CLASS);
+            // Check the way to create this (deserializeMethod)
+            // First check if the user supplied a way
+            String deserializeMethod = getDeserializeMethod(annotations);
+            if (deserializeMethod != null) {
+                mappingInfo.setDeserializeMethod(deserializeMethod);
+            } else {
+                // Auto detect this.
+                String className = r.getClassName();
+                if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
+                    ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(className));
+                    if (classInfo != null) {
+                        // Get Parameter type
+                        Type parameter = Type.create(DotName.createSimple(reference.getClassName()), Type.Kind.CLASS);
 
-                    // Check if we can use a constructor
-                    MethodInfo constructor = classInfo.method(CONTRUCTOR_METHOD_NAME, parameter);
-                    if (constructor != null) {
-                        mappingInfo.setCreate(Mapping.Create.CONSTRUCTOR);
-                    } else {
-                        // Check if we can use setValue
-                        MethodInfo setValueMethod = classInfo.method("setValue", parameter);
-                        if (setValueMethod != null) {
-                            mappingInfo.setCreate(Mapping.Create.SET_VALUE);
+                        // Check if we can use a constructor
+                        MethodInfo constructor = classInfo.method(CONTRUCTOR_METHOD_NAME, parameter);
+                        if (constructor != null) {
+                            mappingInfo.setDeserializeMethod(CONTRUCTOR_METHOD_NAME); // Create new instance with a contructor
                         } else {
-                            // Check if we can use static fromXXXXX
-                            String staticFromMethodName = "from" + scalarName;
-                            MethodInfo staticFromMethod = classInfo.method(staticFromMethodName, parameter);
-                            if (staticFromMethod != null) {
-                                mappingInfo.setCreate(Mapping.Create.STATIC_FROM);
+                            // Check if we can use setValue
+                            MethodInfo setValueMethod = classInfo.method(SET_VALUE_METHOD_NAME, parameter);
+                            if (setValueMethod != null) {
+                                mappingInfo.setDeserializeMethod(SET_VALUE_METHOD_NAME);
+                            } else {
+                                // Check if we can use static fromXXXXX
+                                String staticFromMethodName = FROM + scalarName;
+                                MethodInfo staticFromMethod = classInfo.method(staticFromMethodName, parameter);
+                                if (staticFromMethod != null) {
+                                    mappingInfo.setDeserializeMethod(staticFromMethodName);
+                                } else {
+                                    // Check if we can use static getInstance
+                                    MethodInfo staticGetInstance = classInfo.method(GET_INSTANCE_METHOD_NAME, parameter);
+                                    if (staticGetInstance != null) {
+                                        mappingInfo.setDeserializeMethod(GET_INSTANCE_METHOD_NAME);
+                                    }
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
             }
+
+            // Get serializeMethod (default to toString)
+            String serializeMethod = getSerializeMethod(annotations);
+            if (serializeMethod != null) {
+                mappingInfo.setSerializeMethod(serializeMethod);
+            }
+
             return Optional.of(mappingInfo);
         } else {
             // TODO: Support other than Scalar mapping 
@@ -111,5 +133,31 @@ public class MappingHelper {
         return null;
     }
 
+    private static String getSerializeMethod(Annotations annotations) {
+        return getAnnotationParameterAsString(annotations, SERIALIZE_METHOD);
+    }
+
+    private static String getDeserializeMethod(Annotations annotations) {
+        return getAnnotationParameterAsString(annotations, DESERIALIZE_METHOD);
+    }
+
+    private static String getAnnotationParameterAsString(Annotations annotations, String param) {
+        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
+            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR, param);
+            if (annotationValue != null) {
+                String value = annotationValue.asString();
+                if (value != null && !value.isEmpty()) {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+
     private static final String CONTRUCTOR_METHOD_NAME = "<init>";
+    private static final String SET_VALUE_METHOD_NAME = "setValue";
+    private static final String GET_INSTANCE_METHOD_NAME = "getInstance";
+    private static final String FROM = "from";
+    private static final String SERIALIZE_METHOD = "serializeMethod";
+    private static final String DESERIALIZE_METHOD = "deserializeMethod";
 }

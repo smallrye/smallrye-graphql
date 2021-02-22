@@ -6,6 +6,7 @@ import static io.smallrye.graphql.transformation.Transformer.shouldTransform;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,6 @@ import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Mapping;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -52,13 +52,12 @@ public class ArgumentHelper extends AbstractHelper {
 
     /**
      * This gets a list of arguments that we need to all the method.
-     *
-     * We need to make sure the arguments is in the correct class type and,
-     * if needed, transformed
+     * We need to make sure the arguments is in the correct class type and, if needed, transformed
      *
      * @param dfe the Data Fetching Environment from graphql-java
      *
      * @return a (ordered) List of all argument values
+     * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
     public Object[] getArguments(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
         return getArguments(dfe, false);
@@ -141,42 +140,31 @@ public class ArgumentHelper extends AbstractHelper {
     @Override
     Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
         if (shouldApplyMapping(field)) {
-            String expectedType = field.getReference().getClassName();
-            Class<?> expectedClass = classloadingService.loadClass(expectedType);
+            String methodName = getCreateMethodName(field);
+            if (methodName != null && !methodName.isEmpty()) {
+                Class<?> mappingClass = classloadingService.loadClass(field.getReference().getClassName());
+                try {
+                    if (methodName.equals(CONTRUCTOR_METHOD_NAME)) {
+                        // Try with contructor
+                        Constructor<?> constructor = mappingClass.getConstructor(argumentValue.getClass());
+                        return constructor.newInstance(argumentValue);
 
-            if (getCreate(field).equals(Mapping.Create.CONSTRUCTOR)) {
-                // Try with contructor
-                try {
-                    Constructor<?> constructor = expectedClass.getConstructor(argumentValue.getClass());
-                    return constructor.newInstance(argumentValue);
+                    } else {
+                        // Try with method
+                        Method method = mappingClass.getMethod(methodName, argumentValue.getClass());
+                        if (Modifier.isStatic(method.getModifiers())) {
+                            Object instance = method.invoke(null, argumentValue);
+                            return instance;
+                        } else { // We need an instance, so assuming a public no-arg contructor
+                            Constructor<?> constructor = mappingClass.getConstructor();
+                            Object instance = constructor.newInstance();
+                            method.invoke(instance, argumentValue);
+                            return instance;
+                        }
+                    }
                 } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                         | IllegalArgumentException | InvocationTargetException ex) {
-                    // TODO: Log to debug ?
-                }
-            } else if (getCreate(field).equals(Mapping.Create.SET_VALUE)) {
-                // Try with setValue
-                try {
-                    // TODO: Maybe later allow annotation to indicate what method this should be ?
-                    Method setValueMethod = expectedClass.getMethod("setValue", argumentValue.getClass());
-                    Constructor<?> constructor = expectedClass.getConstructor();
-                    Object instance = constructor.newInstance();
-                    setValueMethod.invoke(instance, argumentValue);
-                    return instance;
-                } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
-                        | IllegalArgumentException | InvocationTargetException ex) {
-                    // TODO: Log to debug ?
-                }
-            } else if (getCreate(field).equals(Mapping.Create.STATIC_FROM)) {
-                // Try with static from???
-                try {
-                    String simpleClassName = argumentValue.getClass().getSimpleName();
-                    String staticMethodName = "from" + simpleClassName;
-                    Method staticFromMethod = expectedClass.getMethod(staticMethodName, argumentValue.getClass());
-                    Object instance = staticFromMethod.invoke(null, argumentValue);
-                    return instance;
-                } catch (NoSuchMethodException | SecurityException | IllegalAccessException
-                        | IllegalArgumentException | InvocationTargetException ex) {
-                    // TODO: Log to debug ?
+                    ex.printStackTrace();
                 }
             }
         }
@@ -186,17 +174,19 @@ public class ArgumentHelper extends AbstractHelper {
 
     private boolean shouldApplyMapping(Field field) {
         return field.getReference().hasMapping()
-                && !field.getReference().getMapping().getCreate().equals(Mapping.Create.NONE) ||
-                field.hasMapping() && !field.getMapping().getCreate().equals(Mapping.Create.NONE);
+                && field.getReference().getMapping().getDeserializeMethod() != null
+                ||
+                field.hasMapping()
+                        && field.getMapping().getDeserializeMethod() != null;
     }
 
-    private Mapping.Create getCreate(Field field) {
+    private String getCreateMethodName(Field field) {
         if (field.getReference().hasMapping()) {
-            return field.getReference().getMapping().getCreate();
+            return field.getReference().getMapping().getDeserializeMethod();
         } else if (field.hasMapping()) {
-            return field.getMapping().getCreate();
+            return field.getMapping().getDeserializeMethod();
         }
-        return Mapping.Create.NONE;
+        return null;
     }
 
     /**
@@ -206,6 +196,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @param fieldValue the input from graphql-java, potentially transformed
      * @param field the field as created while scanning
      * @return the value to use in the method call
+     * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
     @Override
     protected Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException {
@@ -319,4 +310,6 @@ public class ArgumentHelper extends AbstractHelper {
             throw new TransformException(jbe, field, jsonString);
         }
     }
+
+    private static final String CONTRUCTOR_METHOD_NAME = "<init>";
 }

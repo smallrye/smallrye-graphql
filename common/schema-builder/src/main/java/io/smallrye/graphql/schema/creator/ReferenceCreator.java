@@ -296,9 +296,7 @@ public class ReferenceCreator {
                 return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
                         parametrizedTypeArgumentsReferences, false);
             } else {
-                LOG.warn("Class [" + fieldType.name()
-                        + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
-                return Scalars.getScalar(String.class.getName()); // default
+                return getNonIndexedReference(direction, fieldType, annotations);
             }
         } else if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             // Type.Kind.PARAMETERIZED_TYPE handles generics PoJos here, collections and unwrapped types are catched
@@ -316,9 +314,7 @@ public class ReferenceCreator {
                 return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
                         parametrizedTypeArgumentsReferences, true);
             } else {
-                LOG.warn("Class [" + fieldType.name()
-                        + "] in not indexed in Jandex. Can not scan Object Type, defaulting to String Scalar");
-                return Scalars.getScalar(String.class.getName()); // default
+                return getNonIndexedReference(direction, fieldType, annotations);
             }
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
             if (parentObjectReference == null || parentObjectReference.getParametrizedTypeArguments() == null) {
@@ -440,5 +436,27 @@ public class ReferenceCreator {
         } else {
             return ReferenceType.TYPE;
         }
+    }
+
+    private Reference getNonIndexedReference(Direction direction, Type fieldType, Annotations annotations) {
+
+        LOG.warn("Class [" + fieldType.name()
+                + "] in not indexed in Jandex. Can not scan Object Type, might not be mapped correctly");
+
+        Reference r = new Reference();
+        r.setClassName(fieldType.name().toString());
+        r.setGraphQlClassName(fieldType.name().toString());
+        r.setName(fieldType.name().local());
+
+        boolean isNumber = Classes.isNumberLikeTypeOrContainedIn(fieldType);
+        boolean isDate = Classes.isDateLikeTypeOrContainedIn(fieldType);
+        if (isNumber || isDate) {
+            r.setType(ReferenceType.SCALAR);
+        } else if (direction.equals(Direction.IN)) {
+            r.setType(ReferenceType.INPUT);
+        } else {
+            r.setType(ReferenceType.TYPE);
+        }
+        return r;
     }
 }

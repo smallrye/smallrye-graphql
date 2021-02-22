@@ -2,6 +2,7 @@ package io.smallrye.graphql.scalar.number;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.OptionalDouble;
 
 import graphql.Scalars;
 
@@ -28,6 +29,6 @@ public class FloatScalar extends AbstractNumberScalar {
                     }
 
                 },
-                Float.class, float.class, Double.class, double.class);
+                OptionalDouble.class, Float.class, float.class, Double.class, double.class);
     }
 }
