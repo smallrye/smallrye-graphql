@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-ui-parent</artifactId>
-        <version>1.0.22-SNAPSHOT</version>
+        <version>1.0.22</version>
     </parent>
     
     <artifactId>smallrye-graphql-ui-graphiql</artifactId>
@@ -89,7 +89,7 @@
                                     <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
                                     <includes>**/graphiql.min.js, **/graphiql.min.css</includes>
                                     <fileMappers>
-                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
                                     </fileMappers>
                                 </artifactItem>
                                 <artifactItem>
@@ -101,7 +101,7 @@
                                     <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
                                     <includes>**/react.production.min.js</includes>
                                     <fileMappers>
-                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
                                     </fileMappers>
                                 </artifactItem>
                                 <artifactItem>
@@ -113,7 +113,7 @@
                                     <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
                                     <includes>**/react-dom.production.min.js</includes>
                                     <fileMappers>
-                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
                                     </fileMappers>
                                 </artifactItem>
                             </artifactItems>
