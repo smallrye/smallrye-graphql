@@ -5,7 +5,7 @@
       "maybeOneDay": "25 Dec 2020",
       "id": 13,
       "mapped": "I am a mapped object",
-      "amount": "1.23"
+      "amount": 1.23
     }
   }
 }

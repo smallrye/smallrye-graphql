@@ -13,7 +13,8 @@ import java.io.Serializable;
 public class Mapping implements Serializable {
 
     private Reference reference;
-    private Create create = Create.NONE;
+    private String deserializeMethod = null; // default null (pass through)
+    private String serializeMethod = "toString"; // default try and use toString
 
     public Mapping() {
     }
@@ -30,21 +31,19 @@ public class Mapping implements Serializable {
         this.reference = reference;
     }
 
-    public Create getCreate() {
-        return create;
+    public String getDeserializeMethod() {
+        return deserializeMethod;
     }
 
-    public void setCreate(Create create) {
-        this.create = create;
+    public void setDeserializeMethod(String deserializeMethod) {
+        this.deserializeMethod = deserializeMethod;
     }
 
-    /**
-     * Indicate how an instance of the mapped object can be created
-     */
-    public enum Create {
-        CONSTRUCTOR,
-        SET_VALUE,
-        STATIC_FROM,
-        NONE
+    public String getSerializeMethod() {
+        return serializeMethod;
+    }
+
+    public void setSerializeMethod(String serializeMethod) {
+        this.serializeMethod = serializeMethod;
     }
 }
