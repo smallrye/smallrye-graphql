@@ -196,6 +196,16 @@ public class Annotations {
     }
 
     /**
+     * Get a specific annotation
+     * 
+     * @param annotation the annotation you want
+     * @return the annotation value or null
+     */
+    public AnnotationValue getAnnotationValue(DotName annotation, String name) {
+        return this.annotationsMap.get(annotation).value(name);
+    }
+
+    /**
      * Check if there is an annotation and it has a valid value
      * 
      * @param annotation the annotation we are checking

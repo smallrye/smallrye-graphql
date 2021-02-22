@@ -17,7 +17,13 @@ import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Here we keep all the scalars we know about
@@ -74,10 +80,13 @@ public class Scalars {
         populateScalar(UUID.class.getName(), STRING, String.class.getName());
         populateScalar(URL.class.getName(), STRING, String.class.getName());
         populateScalar(URI.class.getName(), STRING, String.class.getName());
+        populateScalar("javax.json.JsonObject", STRING, String.class.getName());
+        populateScalar("javax.json.JsonArray", STRING, String.class.getName());
 
         // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);
         populateScalar(boolean.class.getName(), BOOLEAN);
+        populateScalar(AtomicBoolean.class.getName(), BOOLEAN);
 
         // Integer
         populateScalar(Integer.class.getName(), INTEGER, Integer.class.getName());
@@ -86,12 +95,15 @@ public class Scalars {
         populateScalar(short.class.getName(), INTEGER, Integer.class.getName());
         populateScalar(Byte.class.getName(), INTEGER, Integer.class.getName());
         populateScalar(byte.class.getName(), INTEGER, Integer.class.getName());
+        populateScalar(OptionalInt.class.getName(), INTEGER, Integer.class.getName());
+        populateScalar(AtomicInteger.class.getName(), INTEGER, Integer.class.getName());
 
         // Float
         populateScalar(Float.class.getName(), FLOAT, Float.class.getName());
         populateScalar(float.class.getName(), FLOAT, Float.class.getName());
         populateScalar(Double.class.getName(), FLOAT, Float.class.getName());
         populateScalar(double.class.getName(), FLOAT, Float.class.getName());
+        populateScalar(OptionalDouble.class.getName(), FLOAT, Float.class.getName());
 
         // BigInteger
         populateScalar(BigInteger.class.getName(), BIGINTEGER, BigInteger.class.getName());
@@ -100,6 +112,8 @@ public class Scalars {
 
         // BigDecimal
         populateScalar(BigDecimal.class.getName(), BIGDECIMAL, BigDecimal.class.getName());
+        populateScalar(OptionalLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
+        populateScalar(AtomicLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
 
         // Date
         populateScalar(LocalDate.class.getName(), DATE, String.class.getName());
