@@ -19,10 +19,10 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 /**
  * Handle Async calls with Uni
- * 
- * @author Phillip Kruger (phillip.kruger@redhat.com)
+ *
  * @param <K>
  * @param <T>
+ * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
@@ -31,24 +31,30 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     }
 
     @Override
-    protected <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
-            Object[] transformedArguments) throws AbstractDataFetcherException, Exception {
+    @SuppressWarnings("unchecked")
+    protected <O> O invokeAndTransform(
+            DataFetchingEnvironment dfe,
+            DataFetcherResult.Builder<Object> resultBuilder,
+            Object[] transformedArguments
+    ) throws Exception {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
             Uni<?> uni = reflectionHelper.invoke(transformedArguments);
-            return (T) uni
-                    .onItemOrFailure().transform((result, throwable) -> {
-
+            return (O) uni
+                    .onItemOrFailure()
+                    .transformToUni((result, throwable, emitter) -> {
                         if (throwable != null) {
                             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                             if (throwable instanceof GraphQLException) {
                                 GraphQLException graphQLException = (GraphQLException) throwable;
                                 partialResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
                             } else if (throwable instanceof Exception) {
-                                throw SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable);
+                                emitter.fail(SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable));
+                                return;
                             } else if (throwable instanceof Error) {
-                                throw ((Error) throwable);
+                                emitter.fail(throwable);
+                                return;
                             }
                         } else {
                             try {
@@ -58,20 +64,28 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
                             }
                         }
 
-                        return resultBuilder.build();
-                    }).runSubscriptionOn(Infrastructure.getDefaultExecutor()).subscribe().asCompletionStage();
+                        emitter.complete(resultBuilder.build());
+                    })
+                    .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                    .subscribe()
+                    .asCompletionStage();
         } finally {
             SmallRyeContext.remove();
         }
     }
 
     @Override
-    protected <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder) {
-        return (T) Uni.createFrom().item(() -> resultBuilder.build()).runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                .subscribe().asCompletionStage();
+    @SuppressWarnings("unchecked")
+    protected <O> O invokeFailure(DataFetcherResult.Builder<Object> resultBuilder) {
+        return (O) Uni.createFrom()
+                .item(resultBuilder::build)
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .subscribe()
+                .asCompletionStage();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();

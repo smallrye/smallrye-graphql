@@ -5,12 +5,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonValue;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
+import javax.json.*;
 import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
@@ -52,6 +47,24 @@ public abstract class ExecutionTestBase {
     }
 
     protected JsonObject executeAndGetData(String graphQL) {
+        JsonObject result = executeAndGetResult(graphQL);
+        JsonValue value = result.get(DATA);
+        if (value != null) {
+            return result.getJsonObject(DATA);
+        }
+        return null;
+    }
+
+    protected JsonArray executeAndGetErrors(String graphQL) {
+        JsonObject result = executeAndGetResult(graphQL);
+        JsonValue value = result.get(ERRORS);
+        if (value != null) {
+            return result.getJsonArray(ERRORS);
+        }
+        return null;
+    }
+
+    protected JsonObject executeAndGetResult(String graphQL) {
 
         JsonObject input = toJsonObject(graphQL);
         String prettyInput = getPrettyJson(input);
@@ -61,11 +74,7 @@ public abstract class ExecutionTestBase {
         String prettyData = getPrettyJson(result);
         LOG.info(prettyData);
 
-        JsonValue value = result.get(DATA);
-        if (value != null) {
-            return result.getJsonObject(DATA);
-        }
-        return null;
+        return result;
     }
 
     private JsonObject toJsonObject(String graphQL) {
@@ -100,6 +109,7 @@ public abstract class ExecutionTestBase {
     }
 
     private static final String DATA = "data";
+    private static final String ERRORS = "errors";
 
     private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
 
