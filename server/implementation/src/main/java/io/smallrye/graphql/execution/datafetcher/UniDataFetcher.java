@@ -35,8 +35,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     protected <O> O invokeAndTransform(
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
-            Object[] transformedArguments
-    ) throws Exception {
+            Object[] transformedArguments) throws Exception {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
