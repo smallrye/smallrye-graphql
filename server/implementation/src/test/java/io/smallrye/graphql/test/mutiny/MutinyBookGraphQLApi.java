@@ -1,14 +1,15 @@
 package io.smallrye.graphql.test.mutiny;
 
-import io.smallrye.mutiny.Uni;
-import org.eclipse.microprofile.graphql.Description;
-import org.eclipse.microprofile.graphql.GraphQLApi;
-import org.eclipse.microprofile.graphql.Query;
-
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Query;
+
+import io.smallrye.mutiny.Uni;
 
 @GraphQLApi
 @Description("Allow all mutini book releated APIs")

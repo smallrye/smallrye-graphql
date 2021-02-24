@@ -1,13 +1,13 @@
 package io.smallrye.graphql.execution;
 
-import org.jboss.jandex.IndexView;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.jboss.jandex.IndexView;
+import org.junit.jupiter.api.Test;
 
 public class MutinyTest extends ExecutionTestBase {
 
