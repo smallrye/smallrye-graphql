@@ -65,16 +65,24 @@ public class TypeNameHelper {
         if (annotations.containsKeyAndValidValue(typeName)) {
             AnnotationValue annotationValue = annotations.getAnnotationValue(typeName);
             sb.append(annotationValue.asString().trim());
+            if (parametrizedTypeNameExtension != null) {
+                sb.append(parametrizedTypeNameExtension);
+            }
         } else if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
             sb.append(annotations.getAnnotationValue(Annotations.NAME).asString().trim());
+            if (parametrizedTypeNameExtension != null) {
+                sb.append(parametrizedTypeNameExtension);
+            }
         } else {
             sb.append(applyNamingStrategy(classInfo, autoNameStrategy));
+            if (parametrizedTypeNameExtension != null) {
+                sb.append(parametrizedTypeNameExtension);
+            }
+            if (postFix != null) {
+                sb.append(postFix);
+            }
         }
 
-        if (parametrizedTypeNameExtension != null)
-            sb.append(parametrizedTypeNameExtension);
-        if (postFix != null)
-            sb.append(postFix);
         return sb.toString();
     }
 
