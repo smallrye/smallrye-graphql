@@ -44,8 +44,12 @@ public class ParameterInfo {
     }
 
     private String graphQlInputTypeName(TypeInfo type) {
-        if (type.isAnnotated(Input.class))
-            return type.getAnnotation(Input.class).value();
+        if (type.isAnnotated(Input.class)) {
+            String value = type.getAnnotation(Input.class).value();
+            if (!value.isEmpty()) {
+                return value;
+            }
+        }
         if (type.isAnnotated(Name.class))
             return type.getAnnotation(Name.class).value();
         switch (type.getSimpleName()) {

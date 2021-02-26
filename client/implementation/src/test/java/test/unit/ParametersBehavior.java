@@ -203,6 +203,39 @@ class ParametersBehavior {
     }
 
     @GraphQlClientApi
+    interface EmptyInputObjectParamApi {
+        EmptyInputGreeting say(EmptyInputGreeting greet);
+    }
+
+    @Input
+    private static class EmptyInputGreeting {
+        String text;
+        int count;
+
+        @SuppressWarnings("unused")
+        EmptyInputGreeting() {
+        }
+
+        EmptyInputGreeting(String text, int count) {
+            this.text = text;
+            this.count = count;
+        }
+    }
+
+    @Test
+    void shouldCallEmptyInputObjectParamQuery() {
+        fixture.returnsData("'say':{'text':'ho','count':3}");
+        EmptyInputObjectParamApi api = fixture.build(EmptyInputObjectParamApi.class);
+
+        EmptyInputGreeting greeting = api.say(new EmptyInputGreeting("hi", 5));
+
+        then(fixture.query()).isEqualTo("query say($greet: EmptyInputGreetingInput) { say(greet: $greet) {text count} }");
+        then(fixture.variables()).isEqualTo("{'greet':{'text':'hi','count':5}}");
+        then(greeting.text).isEqualTo("ho");
+        then(greeting.count).isEqualTo(3);
+    }
+
+    @GraphQlClientApi
     interface NamedTypeObjectParamApi {
         NamedTypeGreeting say(NamedTypeGreeting greet);
     }
