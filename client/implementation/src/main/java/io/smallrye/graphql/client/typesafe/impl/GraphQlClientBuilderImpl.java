@@ -59,7 +59,8 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
 
-    private Object invoke(Class<?> apiClass, GraphQlClientProxy graphQlClient, java.lang.reflect.Method method, Object... args) {
+    private Object invoke(Class<?> apiClass, GraphQlClientProxy graphQlClient, java.lang.reflect.Method method,
+            Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             client.close();
