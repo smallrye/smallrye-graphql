@@ -3,6 +3,7 @@ package test.unit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.StringReader;
 import java.net.URI;
@@ -123,5 +124,9 @@ class GraphQlClientFixture {
 
     public Client client() {
         return mockClient;
+    }
+
+    public void verifyClosed() {
+        verify(mockClient).close();
     }
 }

@@ -17,7 +17,7 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
 public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     private String configKey = null;
-    private Client client = DEFAULT_CLIENT;
+    private Client client = ClientBuilder.newClient();
     private URI endpoint;
 
     @Override
@@ -56,7 +56,16 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
         WebTarget webTarget = client.target(resolveEndpoint(apiClass));
         GraphQlClientProxy graphQlClient = new GraphQlClientProxy(webTarget);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> graphQlClient.invoke(apiClass, MethodInvocation.of(method, args))));
+                (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
+    }
+
+    private Object invoke(Class<?> apiClass, GraphQlClientProxy graphQlClient, java.lang.reflect.Method method, Object... args) {
+        MethodInvocation methodInvocation = MethodInvocation.of(method, args);
+        if (methodInvocation.isDeclaredInCloseable()) {
+            client.close();
+            return null; // void
+        }
+        return graphQlClient.invoke(apiClass, methodInvocation);
     }
 
     private ClassLoader getClassLoader(Class<?> apiClass) {
@@ -83,6 +92,4 @@ public class GraphQlClientBuilderImpl implements GraphQlClientBuilder {
     private String configKey(Class<?> apiClass) {
         return (configKey == null) ? apiClass.getName() : configKey;
     }
-
-    private static final Client DEFAULT_CLIENT = ClientBuilder.newClient();
 }

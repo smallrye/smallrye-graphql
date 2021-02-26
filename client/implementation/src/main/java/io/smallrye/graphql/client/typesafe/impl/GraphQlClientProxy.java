@@ -48,6 +48,9 @@ class GraphQlClientProxy {
     }
 
     Object invoke(Class<?> api, MethodInvocation method) {
+        if (method.isDeclaredInObject())
+            return method.invoke(this);
+
         MultivaluedMap<String, Object> headers = new HeaderBuilder(api, method).build();
         String request = request(method);
 

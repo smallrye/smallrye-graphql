@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
@@ -149,7 +150,7 @@ public class MethodInvocation {
                 .flatMap(a -> resolveAnnotations(a, type));
     }
 
-    public Object invoke(Object instance, Object... args) {
+    public Object invoke(Object instance) {
         try {
             if (System.getSecurityManager() == null) {
                 method.setAccessible(true);
@@ -159,7 +160,7 @@ public class MethodInvocation {
                     return null;
                 });
             }
-            return method.invoke(instance, args);
+            return method.invoke(instance, parameterValues);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException)
                 throw (RuntimeException) e.getCause();
@@ -199,5 +200,13 @@ public class MethodInvocation {
         return this.isPublic()
                 || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
                 || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
+    }
+
+    public boolean isDeclaredInObject() {
+        return method.getDeclaringClass().equals(Object.class);
+    }
+
+    public boolean isDeclaredInCloseable() {
+        return method.getDeclaringClass().equals(Closeable.class);
     }
 }
