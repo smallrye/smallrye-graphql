@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -75,6 +76,22 @@ class NestedBehavior {
 
         then(thrown).hasMessage("invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName()
                 + "#greetings: {\"foo\":\"bar\"}");
+    }
+
+    @GraphQlClientApi
+    interface StringCollectionApi {
+        Collection<String> greetings();
+    }
+
+    @Test
+    void shouldCallStringCollectionQuery() {
+        fixture.returnsData("'greetings':['a','b']");
+        StringCollectionApi api = fixture.build(StringCollectionApi.class);
+
+        Collection<String> greetings = api.greetings();
+
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
+        then(greetings).containsExactly("a", "b");
     }
 
     @GraphQlClientApi

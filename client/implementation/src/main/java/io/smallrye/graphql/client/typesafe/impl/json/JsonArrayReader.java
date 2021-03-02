@@ -49,7 +49,7 @@ class JsonArrayReader extends Reader<JsonArray> {
         }
         if (Set.class.isAssignableFrom(getCollectionType()))
             return toSet();
-        assert List.class.isAssignableFrom(getCollectionType());
+        assert getCollectionType().isAssignableFrom(List.class) : "collection type " + getCollectionType().getName() + " not supported";
         return toList();
     }
 
