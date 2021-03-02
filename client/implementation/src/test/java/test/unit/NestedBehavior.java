@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -89,6 +90,22 @@ class NestedBehavior {
         StringCollectionApi api = fixture.build(StringCollectionApi.class);
 
         Collection<String> greetings = api.greetings();
+
+        then(fixture.query()).isEqualTo("query greetings { greetings }");
+        then(greetings).containsExactly("a", "b");
+    }
+
+    @GraphQlClientApi
+    interface StringArrayListApi {
+        ArrayList<String> greetings();
+    }
+
+    @Test
+    void shouldCallStringArrayListQuery() {
+        fixture.returnsData("'greetings':['a','b']");
+        StringArrayListApi api = fixture.build(StringArrayListApi.class);
+
+        ArrayList<String> greetings = api.greetings();
 
         then(fixture.query()).isEqualTo("query greetings { greetings }");
         then(greetings).containsExactly("a", "b");

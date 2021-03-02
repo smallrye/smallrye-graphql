@@ -6,6 +6,7 @@ import static io.smallrye.graphql.client.typesafe.impl.json.JsonReader.readJson;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
@@ -42,14 +43,16 @@ class JsonArrayReader extends Reader<JsonArray> {
     }
 
     private Collector<Object, ?, ?> collector() {
-        if (getCollectionType().isArray()) {
+        Class<?> collectionType = getCollectionType();
+        if (collectionType.isArray()) {
             @SuppressWarnings("unchecked")
             Class<Object> rawItemType = (Class<Object>) getItemType().getRawType();
             return toArray(rawItemType);
         }
-        if (Set.class.isAssignableFrom(getCollectionType()))
+        if (Set.class.isAssignableFrom(collectionType))
             return toSet();
-        assert getCollectionType().isAssignableFrom(List.class) : "collection type " + getCollectionType().getName() + " not supported";
+        assert List.class.isAssignableFrom(collectionType) || collectionType.equals(Collection.class)
+                : "collection type " + collectionType.getName() + " not supported";
         return toList();
     }
 
