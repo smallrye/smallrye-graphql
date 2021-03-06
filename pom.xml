@@ -17,7 +17,7 @@
 
     <properties>
         <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
-        <version.eclipse.microprofile.graphql>1.0.3</version.eclipse.microprofile.graphql>
+        <version.eclipse.microprofile.graphql>1.0.4-RC1</version.eclipse.microprofile.graphql>
         <version.eclipse.microprofile.metrics>2.3.2</version.eclipse.microprofile.metrics>
         <version.eclipse.microprofile.context-propagation>1.1</version.eclipse.microprofile.context-propagation>
         <version.smallrye-config>1.10.0</version.smallrye-config>
