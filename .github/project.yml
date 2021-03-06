@@ -1,4 +1,4 @@
 name: SmallRye GraphQL
 release:
-  current-version: 1.0.22
+  current-version: 1.0.23-RC1
   next-version: 1.0.23-SNAPSHOT
