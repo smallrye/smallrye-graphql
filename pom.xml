@@ -17,7 +17,7 @@
 
     <properties>
         <version.eclipse.microprofile.config>1.4</version.eclipse.microprofile.config>
-        <version.eclipse.microprofile.graphql>1.0.4</version.eclipse.microprofile.graphql>
+        <version.eclipse.microprofile.graphql>1.1</version.eclipse.microprofile.graphql>
         <version.eclipse.microprofile.metrics>2.3.2</version.eclipse.microprofile.metrics>
         <version.eclipse.microprofile.context-propagation>1.1</version.eclipse.microprofile.context-propagation>
         <version.smallrye-config>1.10.0</version.smallrye-config>
@@ -43,8 +43,8 @@
 
     <repositories>
         <repository>
-            <id>microprofile-graphql104-staging</id>
-            <url>https://oss.sonatype.org/content/repositories/orgeclipsemicroprofile-1438</url>
+            <id>microprofile-graphql11-staging</id>
+            <url>https://oss.sonatype.org/content/repositories/orgeclipsemicroprofile-1444</url>
         </repository>
     </repositories>
 
