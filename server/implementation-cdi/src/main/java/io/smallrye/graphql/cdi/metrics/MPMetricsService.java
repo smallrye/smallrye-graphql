@@ -20,12 +20,12 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 
 /**
- * Listening for event and create metrics from it
+ * Listening for event and create metrics from it. Uses MP Metrics 3.x API.
  * 
  * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class MetricsService implements EventingService {
+public class MPMetricsService implements EventingService {
 
     private MetricRegistry metricRegistry;
     private final Map<Context, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
