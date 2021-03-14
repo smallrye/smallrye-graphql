@@ -40,6 +40,8 @@ public class JsonUtils {
     }
 
     public static Map<String, Object> toMap(JsonObject jsonObject) {
+        if (jsonObject == null)
+            return null;
         Map<String, Object> map = new LinkedHashMap<>();
         for (Entry<String, JsonValue> entry : jsonObject.entrySet())
             map.put(entry.getKey(), toValue(entry.getValue()));
