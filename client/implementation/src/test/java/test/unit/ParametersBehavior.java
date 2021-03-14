@@ -57,24 +57,6 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
-    interface RenamedParamApi {
-        String greeting(@Name("who") String foo);
-    }
-
-    @Test
-    void shouldCallRenamedParamQuery() {
-        fixture.returnsData("'greeting':'hi, foo'");
-        RenamedParamApi api = fixture.build(RenamedParamApi.class);
-
-        String greeting = api.greeting("foo");
-
-        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
-        then(fixture.variables()).isEqualTo("{'who':'foo'}");
-        then(fixture.operationName()).isEqualTo("greeting");
-        then(greeting).isEqualTo("hi, foo");
-    }
-
     @Test
     void shouldEscapeParamScalarQuery() {
         fixture.returnsData("'greeting':'hi, foo'");

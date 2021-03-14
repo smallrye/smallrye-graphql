@@ -16,12 +16,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.Stereotype;
+import javax.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.impl.CollectionUtils;
 
 public class MethodInvocation {
     public static MethodInvocation of(Method method, Object... args) {
@@ -48,7 +49,7 @@ public class MethodInvocation {
     }
 
     public boolean isQuery() {
-        return !ifAnnotated(Mutation.class).isPresent();
+        return !method.isAnnotationPresent(Mutation.class);
     }
 
     public String getName() {
@@ -58,15 +59,23 @@ public class MethodInvocation {
     }
 
     private Optional<String> queryName() {
-        return ifAnnotated(Query.class)
-                .map(Query::value)
-                .filter(CollectionUtils::nonEmpty);
+        Query query = method.getAnnotation(Query.class);
+        if (query != null && !query.value().isEmpty())
+            return Optional.of(query.value());
+        Name name = method.getAnnotation(Name.class);
+        if (name != null)
+            return Optional.of(name.value());
+        JsonbProperty jsonbProperty = method.getAnnotation(JsonbProperty.class);
+        if (jsonbProperty != null && !jsonbProperty.value().isEmpty())
+            return Optional.of(jsonbProperty.value());
+        return Optional.empty();
     }
 
     private Optional<String> mutationName() {
-        return ifAnnotated(Mutation.class)
-                .map(Mutation::value)
-                .filter(CollectionUtils::nonEmpty);
+        Mutation mutation = method.getAnnotation(Mutation.class);
+        if (mutation != null && !mutation.value().isEmpty())
+            return Optional.of(mutation.value());
+        return Optional.empty();
     }
 
     private String methodName() {
@@ -74,10 +83,6 @@ public class MethodInvocation {
         if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
             return Character.toLowerCase(name.charAt(3)) + name.substring(4);
         return name;
-    }
-
-    private <T extends Annotation> Optional<T> ifAnnotated(Class<T> type) {
-        return Optional.ofNullable(method.getAnnotation(type));
     }
 
     public TypeInfo getReturnType() {

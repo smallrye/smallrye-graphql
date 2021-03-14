@@ -244,7 +244,6 @@ class ErrorBehavior {
 
     @GraphQlClientApi
     interface SuperHeroApi {
-        @Name("findTeams")
         ErrorOr<List<Team>> teams();
     }
 

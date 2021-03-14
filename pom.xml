@@ -28,6 +28,7 @@
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
+        <version.jsonb>1.0.2</version.jsonb>
         <version.graphql-java>16.2</version.graphql-java>
         <verison.io.micrometer>1.6.4</verison.io.micrometer>
 
@@ -177,7 +178,12 @@
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${version.jakarta-validation}</version>
-                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.json.bind</groupId>
+                <artifactId>jakarta.json.bind-api</artifactId>
+                <version>${version.jsonb}</version>
             </dependency>
 
             <dependency>
@@ -309,6 +315,7 @@
                     <pushChanges>false</pushChanges>
                     <localCheckout>true</localCheckout>
                     <remoteTagging>false</remoteTagging>
+                    <!--suppress MavenModelInspection -->
                     <arguments>-DskipTests ${release.arguments}</arguments>
                 </configuration>
             </plugin>
