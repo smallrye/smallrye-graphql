@@ -68,8 +68,7 @@ class ErrorBehavior {
         fixture.returns(Response.ok("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
-                "      \"message\": \"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\",\n"
-                +
+                "      \"message\": \"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\",\n" +
                 "      \"locations\": [\n" +
                 "        {\n" +
                 "          \"line\": 1,\n" +
@@ -108,6 +107,97 @@ class ErrorBehavior {
         then(error.getExtensions().get("validationErrorType")).isEqualTo("FieldUndefined");
         then(error.getExtensions().get("queryPath")).isEqualTo(singletonList("foo"));
         then(error.getExtensions().get("classification")).isEqualTo("ValidationError");
+    }
+
+    @Test
+    void shouldFailOnErrorWithoutExtensions() {
+        fixture.returns(Response.ok("{\n" +
+                "  \"errors\": [\n" +
+                "    {\n" +
+                "      \"message\": \"something went wrong\",\n" +
+                "      \"locations\": [\n" +
+                "        {\n" +
+                "          \"line\": 1,\n" +
+                "          \"column\": 8\n" +
+                "        }\n" +
+                "      ]" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"data\": null\n" +
+                "}\n"));
+        StringApi api = fixture.build(StringApi.class);
+
+        GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
+
+        then(thrown).hasMessage("errors from service");
+        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- something went wrong [(1:8)])");
+        then(thrown.getErrors()).hasSize(1);
+        GraphQlClientError error = thrown.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("something went wrong");
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 8, null));
+        then(error.getErrorCode()).isNull();
+        then(error.getExtensions()).isNull();
+    }
+
+    @Test
+    void shouldFailOnErrorWithoutLocations() {
+        fixture.returns(Response.ok("{\n" +
+                "  \"errors\": [\n" +
+                "    {\n" +
+                "      \"message\": \"something went wrong\",\n" +
+                "      \"extensions\": {\n" +
+                "        \"classification\": \"SomeClassification\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"data\": null\n" +
+                "}\n"));
+        StringApi api = fixture.build(StringApi.class);
+
+        GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
+
+        then(thrown).hasMessage("errors from service");
+        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- something went wrong {classification=SomeClassification})");
+        then(thrown.getErrors()).hasSize(1);
+        GraphQlClientError error = thrown.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("something went wrong");
+        then(error.getLocations()).isNull();
+        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
+    }
+
+    @Test
+    void shouldFailOnErrorWithEmptyLocations() {
+        fixture.returns(Response.ok("{\n" +
+                "  \"errors\": [\n" +
+                "    {\n" +
+                "      \"message\": \"something went wrong\",\n" +
+                "      \"locations\": []," +
+                "      \"extensions\": {\n" +
+                "        \"classification\": \"SomeClassification\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"data\": null\n" +
+                "}\n"));
+        StringApi api = fixture.build(StringApi.class);
+
+        GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
+
+        then(thrown).hasMessage("errors from service");
+        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- something went wrong [] {classification=SomeClassification})");
+        then(thrown.getErrors()).hasSize(1);
+        GraphQlClientError error = thrown.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("something went wrong");
+        then(error.getLocations()).isEmpty();
+        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
     }
 
     @Test
