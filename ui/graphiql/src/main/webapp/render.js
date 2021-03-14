@@ -1,8 +1,17 @@
-const api = '/graphql';
 const ui = '/graphql-ui';
 const defaultQuery = "";
 const headerEditorEnabled = true;
 const shouldPersistHeaders = false;
+
+let path = new URL(window.location.href).pathname
+if (path.endsWith("/")) {
+    path = path.substr(0, path.length - 1);
+}
+if (path.endsWith(ui)) {
+    path = path.substr(0, path.length - ui.length);
+}
+
+const api = path + '/graphql';
 
 // Parse the search string to get url parameters.
 var search = window.location.search;
