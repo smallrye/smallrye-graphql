@@ -68,7 +68,8 @@ class ErrorBehavior {
         fixture.returns(Response.ok("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
-                "      \"message\": \"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\",\n" +
+                "      \"message\": \"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\",\n"
+                +
                 "      \"locations\": [\n" +
                 "        {\n" +
                 "          \"line\": 1,\n" +
