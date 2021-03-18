@@ -16,7 +16,7 @@ public class AdditionalDateScalars {
     private final Instant now;
 
     public AdditionalDateScalars() {
-        this.now = LocalDateTime.parse("2006-01-02T15:04:05.876").atZone(ZoneId.of("Africa/Johannesburg")).toInstant();
+        this.now = LocalDateTime.parse("2006-01-02T15:04:05.876").atZone(ZoneId.systemDefault()).toInstant();
         this.date = Date.from(now);
         this.sqlDate = new java.sql.Date(date.getTime());
         this.sqlTimestamp = new Timestamp(date.getTime());

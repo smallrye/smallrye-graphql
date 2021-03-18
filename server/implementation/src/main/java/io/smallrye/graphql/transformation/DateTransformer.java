@@ -9,7 +9,6 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -100,7 +99,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         defaultFormatter.put(OffsetDateTime.class.getName(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         defaultFormatter.put(ZonedDateTime.class.getName(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
         defaultFormatter.put(Instant.class.getName(),
-                DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.from(ZoneOffset.UTC)));
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault()));
         return defaultFormatter;
     }
 }
