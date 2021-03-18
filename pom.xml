@@ -22,7 +22,7 @@
         <version.eclipse.microprofile.context-propagation>1.1</version.eclipse.microprofile.context-propagation>
         <version.smallrye-config>1.10.0</version.smallrye-config>
         <version.smallrye.metrics>2.4.1</version.smallrye.metrics>
-        <version.smallrye-common>1.5.0</version.smallrye-common>
+        <version.smallrye-common>1.6.0</version.smallrye-common>
         <version.smallrye-mutiny>0.13.0</version.smallrye-mutiny>
         <version.smallrye-context-propagation>1.1.0</version.smallrye-context-propagation>
         <version.opentracing>0.31.0</version.opentracing>
