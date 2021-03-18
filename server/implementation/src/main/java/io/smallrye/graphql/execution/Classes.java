@@ -5,6 +5,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -94,6 +95,7 @@ public class Classes {
     public static final String ZONEDDATETIME = ZonedDateTime.class.getName();
     public static final String OFFSETDATETIME = OffsetDateTime.class.getName();
     public static final String OFFSETTIME = OffsetTime.class.getName();
+    public static final String INSTANT = Instant.class.getName();
 
     public static final String UTIL_DATE = Date.class.getName();
     public static final String SQL_DATE = java.sql.Date.class.getName();
@@ -166,6 +168,7 @@ public class Classes {
         DATES.add(LOCALDATE);
         DATES.add(LOCALTIME);
         DATES.add(LOCALDATETIME);
+        DATES.add(INSTANT);
         DATES.add(ZONEDDATETIME);
         DATES.add(OFFSETDATETIME);
         DATES.add(OFFSETTIME);

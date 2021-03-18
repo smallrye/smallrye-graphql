@@ -8,6 +8,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -130,10 +131,11 @@ public class Scalars {
         populateScalar(Timestamp.class.getName(), DATETIME, String.class.getName());
         populateScalar(ZonedDateTime.class.getName(), DATETIME, String.class.getName());
         populateScalar(OffsetDateTime.class.getName(), DATETIME, String.class.getName());
+        populateScalar(Instant.class.getName(), DATETIME, String.class.getName());
 
         // Duration
         populateScalar(Duration.class.getName(), DURATION, String.class.getName());
-        // Duration
+        // Period
         populateScalar(Period.class.getName(), PERIOD, String.class.getName());
     }
 

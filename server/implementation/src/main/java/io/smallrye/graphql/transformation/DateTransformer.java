@@ -2,11 +2,13 @@ package io.smallrye.graphql.transformation;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -67,6 +69,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         defaultFormatter.put(OffsetTime.class.getName(), OffsetTime::from);
         defaultFormatter.put(OffsetDateTime.class.getName(), OffsetDateTime::from);
         defaultFormatter.put(ZonedDateTime.class.getName(), ZonedDateTime::from);
+        defaultFormatter.put(Instant.class.getName(), Instant::from);
 
         return defaultFormatter;
     }
@@ -95,6 +98,8 @@ public class DateTransformer implements Transformer<Temporal, String> {
         defaultFormatter.put(OffsetTime.class.getName(), DateTimeFormatter.ISO_OFFSET_TIME);
         defaultFormatter.put(OffsetDateTime.class.getName(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         defaultFormatter.put(ZonedDateTime.class.getName(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        defaultFormatter.put(Instant.class.getName(),
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault()));
 
         return defaultFormatter;
     }

@@ -4,6 +4,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -118,7 +119,7 @@ public class Classes {
      */
     public static boolean isDateLikeTypeOrContainedIn(Type type) {
         return isTypeOrContainedIn(type, LOCALDATE, LOCALTIME, LOCALDATETIME, ZONEDDATETIME, OFFSETDATETIME, OFFSETTIME,
-                UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME);
+                UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME, INSTANT);
     }
 
     private static boolean isTypeOrContainedIn(Type type, DotName... valid) {
@@ -248,6 +249,7 @@ public class Classes {
     public static final DotName ZONEDDATETIME = DotName.createSimple(ZonedDateTime.class.getName());
     public static final DotName OFFSETDATETIME = DotName.createSimple(OffsetDateTime.class.getName());
     public static final DotName OFFSETTIME = DotName.createSimple(OffsetTime.class.getName());
+    public static final DotName INSTANT = DotName.createSimple(Instant.class.getName());
 
     public static final DotName PERIOD = DotName.createSimple(Period.class.getName());
     public static final DotName DURATION = DotName.createSimple(Duration.class.getName());
