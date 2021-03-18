@@ -29,6 +29,7 @@
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.graphql-java>16.2</version.graphql-java>
+        <verison.io.micrometer>1.6.4</verison.io.micrometer>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR3</version.arquillian.jetty>
@@ -110,6 +111,11 @@
                 <groupId>io.smallrye</groupId>
                 <artifactId>smallrye-metrics</artifactId>
                 <version>${version.smallrye.metrics}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${verison.io.micrometer}</version>
             </dependency>
 
             <dependency>
