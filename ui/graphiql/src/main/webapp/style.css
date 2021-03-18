@@ -13,3 +13,6 @@ body {
 .graphiql-container .execute-button{
     box-shadow:unset;
 }
+.history-contents>li:hover{
+    background-color: #00aada !important;
+}

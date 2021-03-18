@@ -13,6 +13,10 @@ public class AdditionalDateScalarsApi {
         return new AdditionalDateScalars();
     }
 
+    public java.time.Instant instantInput(@Source AdditionalDateScalars additionalDateScalars, java.time.Instant instant) {
+        return instant;
+    }
+
     public java.util.Date dateInput(@Source AdditionalDateScalars additionalDateScalars, java.util.Date date) {
         return date;
     }
@@ -28,6 +32,11 @@ public class AdditionalDateScalarsApi {
 
     public java.sql.Time sqlTimeInput(@Source AdditionalDateScalars additionalDateScalars, java.sql.Time time) {
         return time;
+    }
+
+    public java.time.Instant instantDefault(@Source AdditionalDateScalars additionalDateScalars,
+            @DefaultValue("2006-01-02T15:04:05.876") java.time.Instant instant) {
+        return instant;
     }
 
     public java.util.Date dateDefault(@Source AdditionalDateScalars additionalDateScalars,
