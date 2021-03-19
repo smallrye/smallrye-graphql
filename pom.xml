@@ -177,6 +177,7 @@
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${version.jakarta-validation}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
