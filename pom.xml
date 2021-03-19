@@ -309,6 +309,7 @@
                     <pushChanges>false</pushChanges>
                     <localCheckout>true</localCheckout>
                     <remoteTagging>false</remoteTagging>
+                    <!--suppress MavenModelInspection -->
                     <arguments>-DskipTests ${release.arguments}</arguments>
                 </configuration>
             </plugin>

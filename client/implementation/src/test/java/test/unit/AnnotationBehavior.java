@@ -48,6 +48,24 @@ class AnnotationBehavior {
     }
 
     @GraphQlClientApi
+    interface RenamedMethodApi {
+        @Name("greeting")
+        String someOtherMethodName();
+    }
+
+    @Test
+    void shouldCallRenamedQuery() {
+        fixture.returnsData("'greeting':'hi, foo'");
+        RenamedMethodApi api = fixture.build(RenamedMethodApi.class);
+
+        String greeting = api.someOtherMethodName();
+
+        then(fixture.query()).isEqualTo("query greeting { greeting }");
+        then(fixture.variables()).isEqualTo("{}");
+        then(greeting).isEqualTo("hi, foo");
+    }
+
+    @GraphQlClientApi
     interface ObjectApi {
         Greeting greeting();
     }
