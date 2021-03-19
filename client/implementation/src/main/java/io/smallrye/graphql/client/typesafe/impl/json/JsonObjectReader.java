@@ -44,8 +44,9 @@ class JsonObjectReader extends Reader<JsonObject> {
     }
 
     private Object buildValue(Location location, JsonObject value, FieldInfo field) {
-        Location fieldLocation = new Location(field.getType(), location.getDescription() + "." + field.getName());
-        JsonValue jsonFieldValue = value.get(field.getName());
+        String fieldName = field.getAlias().orElseGet(field::getName);
+        Location fieldLocation = new Location(field.getType(), location.getDescription() + "." + fieldName);
+        JsonValue jsonFieldValue = value.get(fieldName);
         if (jsonFieldValue == null) {
             if (field.isNonNull())
                 throw new GraphQlClientException("missing " + fieldLocation);

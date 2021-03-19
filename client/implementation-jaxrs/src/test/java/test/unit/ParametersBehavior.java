@@ -29,7 +29,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallStringParamQuery() {
+    void shouldQueryWithStringParam() {
         fixture.returnsData("'greeting':'hi, foo'");
         StringParamApi api = fixture.build(StringParamApi.class);
 
@@ -47,7 +47,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNonNullStringParamQuery() {
+    void shouldQueryWithNonNullStringParam() {
         fixture.returnsData("'greeting':'hi, foo'");
         NonNullStringParamApi api = fixture.build(NonNullStringParamApi.class);
 
@@ -77,7 +77,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallTwoParamsQuery() {
+    void shouldQueryWithTwoParams() {
         fixture.returnsData("'greeting':'hi, foo 3'");
         ParamsApi api = fixture.build(ParamsApi.class);
 
@@ -108,7 +108,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallObjectParamQuery() {
+    void shouldQueryWithObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         ObjectParamApi api = fixture.build(ObjectParamApi.class);
 
@@ -141,7 +141,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallRenamedObjectParamQuery() {
+    void shouldQueryWithRenamedObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         RenamedObjectParamApi api = fixture.build(RenamedObjectParamApi.class);
 
@@ -174,7 +174,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNamedInputObjectParamQuery() {
+    void shouldQueryWithNamedInputObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         NamedInputObjectParamApi api = fixture.build(NamedInputObjectParamApi.class);
 
@@ -207,7 +207,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallEmptyInputObjectParamQuery() {
+    void shouldQueryWithEmptyInputObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         EmptyInputObjectParamApi api = fixture.build(EmptyInputObjectParamApi.class);
 
@@ -240,7 +240,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNamedTypeObjectParamQuery() {
+    void shouldQueryWithNamedTypeObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         NamedTypeObjectParamApi api = fixture.build(NamedTypeObjectParamApi.class);
 
@@ -274,7 +274,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallTypeAndInputObjectParamQuery() {
+    void shouldQueryWithTypeAndInputObjectParam() {
         fixture.returnsData("'say':{'text':'ho','count':3}");
         TypeAndInputObjectParamApi api = fixture.build(TypeAndInputObjectParamApi.class);
 
@@ -292,7 +292,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallArrayParamQuery() {
+    void shouldQueryWithArrayParam() {
         fixture.returnsData("'greetings':true");
         ArrayParamApi api = fixture.build(ArrayParamApi.class);
 
@@ -309,7 +309,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallListParamQuery() {
+    void shouldQueryWithListParam() {
         fixture.returnsData("'greetings':true");
         ListParamApi api = fixture.build(ListParamApi.class);
 
@@ -326,7 +326,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNonNullListParamQuery() {
+    void shouldQueryWithNonNullListParam() {
         fixture.returnsData("'greetings':true");
         NonNullListParamApi api = fixture.build(NonNullListParamApi.class);
 
@@ -343,7 +343,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallListOfNonNullParamQuery() {
+    void shouldQueryWithListOfNonNullParam() {
         fixture.returnsData("'greetings':true");
         ListOfNonNullParamApi api = fixture.build(ListOfNonNullParamApi.class);
 
@@ -360,7 +360,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallSetParamQuery() {
+    void shouldQueryWithSetParam() {
         fixture.returnsData("'greetings':true");
         SetParamApi api = fixture.build(SetParamApi.class);
 
@@ -377,7 +377,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallQueueParamQuery() {
+    void shouldQueryWithQueueParam() {
         fixture.returnsData("'greetings':true");
         QueueParamApi api = fixture.build(QueueParamApi.class);
 
@@ -394,7 +394,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallCollectionParamQuery() {
+    void shouldQueryWithCollectionParam() {
         fixture.returnsData("'greetings':true");
         CollectionParamApi api = fixture.build(CollectionParamApi.class);
 
@@ -411,7 +411,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallObjectListParamQuery() {
+    void shouldQueryWithObjectListParam() {
         fixture.returnsData("'greetings':true");
         ObjectListParamApi api = fixture.build(ObjectListParamApi.class);
 
@@ -438,7 +438,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallListObjectParamQuery() {
+    void shouldQueryWithListObjectParam() {
         fixture.returnsData("'foo':true");
         ListObjectParamApi api = fixture.build(ListObjectParamApi.class);
 
@@ -455,7 +455,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallBooleanQuery() {
+    void shouldQueryWithBoolean() {
         fixture.returnsData("'greeting':'hi, foo'");
         BooleanApi api = fixture.build(BooleanApi.class);
 
@@ -473,7 +473,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallPrimitiveBooleanQuery() {
+    void shouldQueryWithPrimitiveBoolean() {
         fixture.returnsData("'greeting':'hi, foo'");
         PrimitiveBooleanApi api = fixture.build(PrimitiveBooleanApi.class);
 
@@ -491,7 +491,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNonNullBooleanQuery() {
+    void shouldQueryWithNonNullBoolean() {
         fixture.returnsData("'greeting':'hi, foo'");
         NonNullBooleanApi api = fixture.build(NonNullBooleanApi.class);
 
@@ -509,7 +509,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallIntegerQuery() {
+    void shouldQueryWithInteger() {
         fixture.returnsData("'greeting':'hi, foo'");
         IntegerApi api = fixture.build(IntegerApi.class);
 
@@ -527,7 +527,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallPrimitiveIntegerQuery() {
+    void shouldQueryWithPrimitiveInteger() {
         fixture.returnsData("'greeting':'hi, foo'");
         PrimitiveIntegerApi api = fixture.build(PrimitiveIntegerApi.class);
 
@@ -545,7 +545,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNonNullIntegerQuery() {
+    void shouldQueryWithNonNullInteger() {
         fixture.returnsData("'greeting':'hi, foo'");
         NonNullIntegerApi api = fixture.build(NonNullIntegerApi.class);
 
@@ -563,7 +563,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallLongQuery() {
+    void shouldQueryWithLong() {
         fixture.returnsData("'greeting':'hi, foo'");
         LongApi api = fixture.build(LongApi.class);
 
@@ -581,7 +581,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallPrimitiveLongQuery() {
+    void shouldQueryWithPrimitiveLong() {
         fixture.returnsData("'greeting':'hi, foo'");
         PrimitiveLongApi api = fixture.build(PrimitiveLongApi.class);
 
@@ -599,7 +599,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldCallNonNullLongQuery() {
+    void shouldQueryWithNonNullLong() {
         fixture.returnsData("'greeting':'hi, foo'");
         NonNullLongApi api = fixture.build(NonNullLongApi.class);
 
@@ -631,7 +631,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldHandleMultipleQuery() {
+    void shouldQueryWithMultiple() {
         fixture.returnsData("'foo': {'name': 'foo'}, 'bar': {'name': 'bar'}");
         FooAndBarApi stuff = fixture.build(FooAndBarApi.class);
 
