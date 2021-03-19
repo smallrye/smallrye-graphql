@@ -55,9 +55,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Json api (Context proxy) -->
         <dependency>
             <groupId>jakarta.json</groupId>
             <artifactId>jakarta.json-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Testing -->
