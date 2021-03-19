@@ -11,18 +11,15 @@ import java.lang.annotation.Target;
  * e.g. when you request a team but need to limit the number of members returned:
  *
  * <pre>
- * <code>
  * &#64;GraphQlClientApi
  * interface TeamsApi {
  *     Team team(String teamName, @NestedParameter("members") int limit);
  * }
- * </code>
  * </pre>
  *
  * Generates a request:
  *
  * <pre>
- * <code>
  * query team($teamName: String, $limit: Int!) {
  *   team(teamName: $teamName) {
  *     headQuarter
@@ -31,7 +28,6 @@ import java.lang.annotation.Target;
  *     }
  *   }
  * }
- * </code>
  * </pre>
  *
  * To nest a parameter deeper in the request, provide the path of the fields delimited with a period,

@@ -39,15 +39,17 @@ public class ResultBuilder {
     public Object read() {
         data = readData();
         readErrors();
-        return (data == null) ? null
-                : JsonReader.readJson(method.toString(), method.getReturnType(), data.get(method.getName()));
+        if (data == null)
+            return null;
+        JsonValue value = method.isSingle() ? data.get(method.getName()) : data;
+        return JsonReader.readJson(method.toString(), method.getReturnType(), value);
     }
 
     private JsonObject readData() {
         if (!response.containsKey("data") || response.isNull("data"))
             return null;
         JsonObject data = response.getJsonObject("data");
-        if (!data.containsKey(method.getName()))
+        if (method.isSingle() && !data.containsKey(method.getName()))
             throw new GraphQlClientException("no data for '" + method.getName() + "':\n  " + data);
         return data;
     }

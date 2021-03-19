@@ -15,34 +15,28 @@ import java.lang.annotation.Target;
  * If you have a class that you don't control, e.g.:
  * 
  * <pre>
- * <code>
  *     public class ImportedClass {
  *         ...
  *     }
- * </code>
  * </pre>
  *
  * And you need it to be annotated as <code>@SomeAnnotation</code>. Then you can write a mixin (the name is arbitrary):
  * 
  * <pre>
- * <code>
  *     &#64;MixinFor(ImportedClass.class)
  *     &#64;SomeAnnotation
  *     public class ImportedClassMixin {
  *         ...
  *     }
- * </code>
  * </pre>
  *
  * After the Power Annotations have been resolved, the target class looks as if it had another annotation:
  *
  * <pre>
- * <code>
  *     &#64;SomeAnnotation
  *     public class ImportedClass {
  *         ...
  *     }
- * </code>
  * </pre>
  */
 @Retention(RUNTIME)

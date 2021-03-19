@@ -22,6 +22,7 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.Multi;
 
 public class MethodInvocation {
     public static MethodInvocation of(Method method, Object... args) {
@@ -93,8 +94,8 @@ public class MethodInvocation {
         return rootParameters().findAny().isPresent();
     }
 
-    public boolean hasNestedParameters() {
-        return nestedParameters().findAny().isPresent();
+    public boolean hasNestedParameters(String path) {
+        return nestedParameters(path).findAny().isPresent();
     }
 
     public Stream<ParameterInfo> headerParameters() {
@@ -109,8 +110,9 @@ public class MethodInvocation {
         return parameters().filter(ParameterInfo::isRootParameter);
     }
 
-    public Stream<ParameterInfo> nestedParameters() {
-        return parameters().filter(ParameterInfo::isNestedParameter);
+    public Stream<ParameterInfo> nestedParameters(String path) {
+        return parameters().filter(ParameterInfo::isNestedParameter)
+                .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path));
     }
 
     private Stream<ParameterInfo> parameters() {
@@ -201,6 +203,10 @@ public class MethodInvocation {
         return this.isPublic()
                 || this.isPackagePrivate() && this.type.getPackage().equals(caller.getPackage())
                 || (this.isPrivate() || this.isProtected()) && caller.isNestedIn(this.getDeclaringType());
+    }
+
+    public boolean isSingle() {
+        return !method.isAnnotationPresent(Multi.class);
     }
 
     public boolean isDeclaredInObject() {
