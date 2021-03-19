@@ -3,8 +3,6 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
-import javax.json.bind.annotation.JsonbProperty;
-
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
@@ -106,12 +104,9 @@ public class ParameterInfo {
     public String getName() {
         if (parameter.isAnnotationPresent(Name.class))
             return parameter.getAnnotation(Name.class).value();
-        JsonbProperty jsonbProperty = parameter.getAnnotation(JsonbProperty.class);
-        if (jsonbProperty != null && !jsonbProperty.value().isEmpty())
-            return jsonbProperty.value();
         if (!parameter.isNamePresent())
             throw new GraphQlClientException("Missing name information for " + this + ".\n" +
-                    "You can either annotate all parameters with @Name or @JsonbProperty, " +
+                    "You can either annotate all parameters with @Name, " +
                     "or compile your source code with the -parameters options, " +
                     "so the parameter names are compiled into the class file and available at runtime.");
         return parameter.getName();

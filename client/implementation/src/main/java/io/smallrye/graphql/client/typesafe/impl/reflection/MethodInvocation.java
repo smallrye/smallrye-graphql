@@ -16,7 +16,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.Stereotype;
-import javax.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
@@ -65,9 +64,6 @@ public class MethodInvocation {
         Name name = method.getAnnotation(Name.class);
         if (name != null)
             return Optional.of(name.value());
-        JsonbProperty jsonbProperty = method.getAnnotation(JsonbProperty.class);
-        if (jsonbProperty != null && !jsonbProperty.value().isEmpty())
-            return Optional.of(jsonbProperty.value());
         return Optional.empty();
     }
 

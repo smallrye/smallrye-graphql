@@ -4,8 +4,6 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 
-import javax.json.bind.annotation.JsonbProperty;
-
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
@@ -50,23 +48,6 @@ class AnnotationBehavior {
     }
 
     @GraphQlClientApi
-    interface JsonbRenamedParamApi {
-        String greeting(@JsonbProperty("who") String foo);
-    }
-
-    @Test
-    void shouldCallJsonbParamQuery() {
-        fixture.returnsData("'greeting':'hi, foo'");
-        JsonbRenamedParamApi api = fixture.build(JsonbRenamedParamApi.class);
-
-        String greeting = api.greeting("foo");
-
-        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
-        then(fixture.variables()).isEqualTo("{'who':'foo'}");
-        then(greeting).isEqualTo("hi, foo");
-    }
-
-    @GraphQlClientApi
     interface RenamedMethodApi {
         @Name("greeting")
         String someOtherMethodName();
@@ -76,24 +57,6 @@ class AnnotationBehavior {
     void shouldCallRenamedQuery() {
         fixture.returnsData("'greeting':'hi, foo'");
         RenamedMethodApi api = fixture.build(RenamedMethodApi.class);
-
-        String greeting = api.someOtherMethodName();
-
-        then(fixture.query()).isEqualTo("query greeting { greeting }");
-        then(fixture.variables()).isEqualTo("{}");
-        then(greeting).isEqualTo("hi, foo");
-    }
-
-    @GraphQlClientApi
-    interface RenamedJsonbMethodApi {
-        @JsonbProperty("greeting")
-        String someOtherMethodName();
-    }
-
-    @Test
-    void shouldCallJsonbRenamedQuery() {
-        fixture.returnsData("'greeting':'hi, foo'");
-        RenamedJsonbMethodApi api = fixture.build(RenamedJsonbMethodApi.class);
 
         String greeting = api.someOtherMethodName();
 

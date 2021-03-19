@@ -44,11 +44,6 @@
             <groupId>org.eclipse.microprofile.graphql</groupId>
             <artifactId>microprofile-graphql-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>jakarta.json.bind</groupId>
-            <artifactId>jakarta.json.bind-api</artifactId>
-            <optional>true</optional>
-        </dependency>
 
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
