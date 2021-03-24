@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.mpapi.core;
+package io.smallrye.graphql.client.core;
 
 public enum OperationType {
     QUERY,

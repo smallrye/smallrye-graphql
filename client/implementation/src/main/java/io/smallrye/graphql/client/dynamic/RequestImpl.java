@@ -8,7 +8,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
-import io.smallrye.graphql.client.mpapi.Request;
+import io.smallrye.graphql.client.Request;
 
 public class RequestImpl implements Request {
 

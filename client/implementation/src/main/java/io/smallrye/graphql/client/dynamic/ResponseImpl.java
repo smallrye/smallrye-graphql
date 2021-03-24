@@ -8,8 +8,8 @@ import javax.json.JsonObject;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import io.smallrye.graphql.client.mpapi.Error;
-import io.smallrye.graphql.client.mpapi.Response;
+import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.Response;
 
 public class ResponseImpl implements Response {
 

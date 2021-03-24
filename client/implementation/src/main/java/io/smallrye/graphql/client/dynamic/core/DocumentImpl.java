@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.Operation;
+import io.smallrye.graphql.client.core.Operation;
 
 public class DocumentImpl extends AbstractDocument {
 

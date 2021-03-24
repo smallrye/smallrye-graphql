@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.mpapi.core.utils;
+package io.smallrye.graphql.client.core.utils;
 
 import java.util.ServiceLoader;
 

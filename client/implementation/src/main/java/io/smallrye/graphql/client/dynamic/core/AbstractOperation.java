@@ -2,10 +2,10 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.mpapi.core.Field;
-import io.smallrye.graphql.client.mpapi.core.Operation;
-import io.smallrye.graphql.client.mpapi.core.OperationType;
-import io.smallrye.graphql.client.mpapi.core.Variable;
+import io.smallrye.graphql.client.core.Field;
+import io.smallrye.graphql.client.core.Operation;
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.core.Variable;
 
 public abstract class AbstractOperation implements Operation {
     private OperationType type;

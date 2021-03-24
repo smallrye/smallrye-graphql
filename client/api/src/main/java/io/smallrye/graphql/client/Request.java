@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.mpapi;
+package io.smallrye.graphql.client;
 
 import java.util.Map;
 

@@ -2,9 +2,9 @@ package io.smallrye.graphql.client.dynamic.api;
 
 import java.util.concurrent.ExecutionException;
 
-import io.smallrye.graphql.client.mpapi.Request;
-import io.smallrye.graphql.client.mpapi.Response;
-import io.smallrye.graphql.client.mpapi.core.Document;
+import io.smallrye.graphql.client.Request;
+import io.smallrye.graphql.client.Response;
+import io.smallrye.graphql.client.core.Document;
 import io.smallrye.mutiny.Uni;
 
 public interface DynamicGraphQLClient extends AutoCloseable {

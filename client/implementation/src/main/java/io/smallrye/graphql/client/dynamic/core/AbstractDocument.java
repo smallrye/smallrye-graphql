@@ -2,8 +2,8 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.mpapi.core.Document;
-import io.smallrye.graphql.client.mpapi.core.Operation;
+import io.smallrye.graphql.client.core.Document;
+import io.smallrye.graphql.client.core.Operation;
 
 public abstract class AbstractDocument implements Document {
     private List<Operation> operations;

@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.exceptions.BuildException;
+import io.smallrye.graphql.client.core.exceptions.BuildException;
 
 public class OperationImpl extends AbstractOperation {
     // TODO: Use simple StringJoiner

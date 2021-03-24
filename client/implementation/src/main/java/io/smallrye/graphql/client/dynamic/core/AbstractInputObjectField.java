@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.InputObjectField;
+import io.smallrye.graphql.client.core.InputObjectField;
 
 public abstract class AbstractInputObjectField implements InputObjectField {
     private String name;

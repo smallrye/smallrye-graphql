@@ -3,10 +3,10 @@ package io.smallrye.graphql.client.dynamic.core.utils;
 import java.lang.reflect.Array;
 import java.time.LocalDate;
 
+import io.smallrye.graphql.client.core.exceptions.BuildException;
 import io.smallrye.graphql.client.dynamic.core.EnumImpl;
 import io.smallrye.graphql.client.dynamic.core.InputObjectImpl;
 import io.smallrye.graphql.client.dynamic.core.VariableImpl;
-import io.smallrye.graphql.client.mpapi.core.exceptions.BuildException;
 
 public class ValueFormatter {
 

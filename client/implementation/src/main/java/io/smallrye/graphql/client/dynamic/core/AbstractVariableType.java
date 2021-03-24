@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.VariableType;
+import io.smallrye.graphql.client.core.VariableType;
 
 public abstract class AbstractVariableType implements VariableType {
     private String name;

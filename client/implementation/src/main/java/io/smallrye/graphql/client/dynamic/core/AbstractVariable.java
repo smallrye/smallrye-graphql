@@ -2,8 +2,8 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.Optional;
 
-import io.smallrye.graphql.client.mpapi.core.Variable;
-import io.smallrye.graphql.client.mpapi.core.VariableType;
+import io.smallrye.graphql.client.core.Variable;
+import io.smallrye.graphql.client.core.VariableType;
 
 public abstract class AbstractVariable implements Variable {
     private String name;

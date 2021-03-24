@@ -2,8 +2,8 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.mpapi.core.Argument;
-import io.smallrye.graphql.client.mpapi.core.Field;
+import io.smallrye.graphql.client.core.Argument;
+import io.smallrye.graphql.client.core.Field;
 
 public abstract class AbstractField implements Field {
     private String name;

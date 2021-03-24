@@ -2,8 +2,8 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.mpapi.core.InputObject;
-import io.smallrye.graphql.client.mpapi.core.InputObjectField;
+import io.smallrye.graphql.client.core.InputObject;
+import io.smallrye.graphql.client.core.InputObjectField;
 
 public abstract class AbstractInputObject implements InputObject {
     private List<InputObjectField> inputObjectFields;

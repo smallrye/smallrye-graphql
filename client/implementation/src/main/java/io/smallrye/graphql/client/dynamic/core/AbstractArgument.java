@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.Argument;
+import io.smallrye.graphql.client.core.Argument;
 
 public abstract class AbstractArgument implements Argument {
     private String name;

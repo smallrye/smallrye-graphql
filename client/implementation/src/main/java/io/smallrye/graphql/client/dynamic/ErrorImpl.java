@@ -3,7 +3,7 @@ package io.smallrye.graphql.client.dynamic;
 import java.util.List;
 import java.util.Map;
 
-import io.smallrye.graphql.client.mpapi.Error;
+import io.smallrye.graphql.client.Error;
 
 public class ErrorImpl implements Error {
     private String message;

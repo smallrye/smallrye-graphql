@@ -1,6 +1,6 @@
-package io.smallrye.graphql.client.mpapi.core;
+package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.mpapi.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
 import static java.util.Arrays.asList;
 
 import java.util.List;

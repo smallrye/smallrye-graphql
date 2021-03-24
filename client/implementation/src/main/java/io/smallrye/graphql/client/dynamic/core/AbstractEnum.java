@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.mpapi.core.Enum;
+import io.smallrye.graphql.client.core.Enum;
 
 public abstract class AbstractEnum implements Enum {
 

@@ -1,10 +1,10 @@
 package io.smallrye.graphql.tests.client.dynamic;
 
-import static io.smallrye.graphql.client.mpapi.core.Argument.arg;
-import static io.smallrye.graphql.client.mpapi.core.Argument.args;
-import static io.smallrye.graphql.client.mpapi.core.Document.document;
-import static io.smallrye.graphql.client.mpapi.core.Field.field;
-import static io.smallrye.graphql.client.mpapi.core.Operation.operation;
+import static io.smallrye.graphql.client.core.Argument.arg;
+import static io.smallrye.graphql.client.core.Argument.args;
+import static io.smallrye.graphql.client.core.Document.document;
+import static io.smallrye.graphql.client.core.Field.field;
+import static io.smallrye.graphql.client.core.Operation.operation;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URL;
@@ -25,10 +25,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.smallrye.graphql.client.Response;
+import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
-import io.smallrye.graphql.client.mpapi.Response;
-import io.smallrye.graphql.client.mpapi.core.Document;
 
 @RunWith(Arquillian.class)
 @RunAsClient
