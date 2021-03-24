@@ -26,7 +26,7 @@
         <version.smallrye-mutiny>0.13.0</version.smallrye-mutiny>
         <version.smallrye-context-propagation>1.1.0</version.smallrye-context-propagation>
         <version.opentracing>0.33.0</version.opentracing>
-        <version.yasson>1.0.8</version.yasson>
+        <version.yasson>2.0.2</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.graphql-java>16.2</version.graphql-java>
         <verison.io.micrometer>1.6.5</verison.io.micrometer>
