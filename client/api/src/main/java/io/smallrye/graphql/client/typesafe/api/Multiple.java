@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * <pre>
  * &#64;GraphQlClientApi
  * interface FooAndBarApi {
- *     &#64;Multi
+ *     &#64;Multiple
  *     FooAndBar fooAndBar(&#64;NestedParameter("bar") String id);
  * }
  *
@@ -41,5 +41,5 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface Multi {
+public @interface Multiple {
 }

@@ -17,7 +17,7 @@ import org.eclipse.microprofile.graphql.Type;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import io.smallrye.graphql.client.typesafe.api.Multi;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
 class ParametersBehavior {
@@ -613,7 +613,7 @@ class ParametersBehavior {
 
     @GraphQlClientApi
     interface FooAndBarApi {
-        @Multi
+        @Multiple
         FooAndBar fooAndBar(@NestedParameter("bar") @NonNull @Name("id") String barId);
     }
 
@@ -631,7 +631,7 @@ class ParametersBehavior {
     }
 
     @Test
-    void shouldHandleMultiQuery() {
+    void shouldHandleMultipleQuery() {
         fixture.returnsData("'foo': {'name': 'foo'}, 'bar': {'name': 'bar'}");
         FooAndBarApi stuff = fixture.build(FooAndBarApi.class);
 

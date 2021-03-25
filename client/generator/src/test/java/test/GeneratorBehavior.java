@@ -138,7 +138,7 @@ public class GeneratorBehavior {
     }
 
     @Test
-    public void shouldFailToGenerateApiWithMultiQuery() {
+    public void shouldFailToGenerateApiWithMultipleQuery() {
         Generator generator = givenGeneratorFor("{heroes { name } heroesIn(location: String) { realName }}");
 
         GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,

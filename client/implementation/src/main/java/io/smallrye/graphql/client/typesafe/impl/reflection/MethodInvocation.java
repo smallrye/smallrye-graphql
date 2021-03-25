@@ -22,7 +22,7 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
-import io.smallrye.graphql.client.typesafe.api.Multi;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation {
     public static MethodInvocation of(Method method, Object... args) {
@@ -206,7 +206,7 @@ public class MethodInvocation {
     }
 
     public boolean isSingle() {
-        return !method.isAnnotationPresent(Multi.class);
+        return !method.isAnnotationPresent(Multiple.class);
     }
 
     public boolean isDeclaredInObject() {
