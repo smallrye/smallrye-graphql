@@ -1,0 +1,7 @@
+query ($varBool: Boolean!, $varDouble: Float!, $varString: String!) {
+    withArgWithSubField(aString: $varString, aDouble: $varDouble, aBool: $varBool) {
+        bool
+        double
+        string
+    }
+}

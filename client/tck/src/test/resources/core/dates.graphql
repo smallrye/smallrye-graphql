@@ -1,0 +1,19 @@
+mutation scalarHolderMutation {
+    scalarHolder (scalarHolder: {
+        dateObject: "2019-10-23"
+        anotherDateObject: "2019-10-23"
+        timeObject: "11:46:34.263"
+        anotherTimeObject: "11:46:34.263"
+        dateTimeObject: "2019-10-23T11:46:34.263"
+        anotherDateTimeObject: "2019-10-23T11:46:34.263"
+    }) {
+        dateObject
+        anotherDateObject
+
+        timeObject
+        anotherTimeObject
+
+        dateTimeObject
+        anotherDateTimeObject
+    }
+}

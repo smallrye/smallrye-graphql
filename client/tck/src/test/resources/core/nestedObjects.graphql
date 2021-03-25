@@ -1,0 +1,231 @@
+mutation nestedObjects {
+    nestedObjectHolder(nestedObjectHolder:{
+        level: 0,
+        name: "level 0",
+        levelLineage: [],
+        nestedObjectLineage: []
+        nestedObject: {
+            level: 1,
+            name: "level 1",
+            levelLineage: [0],
+            nestedObjectLineage: [{
+                level: 0,
+                name: "level 0",
+                levelLineage: [],
+                nestedObjectLineage: []
+            }]
+            nestedObject: {
+                level: 2,
+                name: "level 2",
+                levelLineage: [0, 1]
+                nestedObjectLineage: [{
+                    level: 0,
+                    name: "level 0",
+                    levelLineage: [],
+                    nestedObjectLineage: []
+                },{
+                    level: 1,
+                    name: "level 1",
+                    levelLineage: [0],
+                    nestedObjectLineage: [{
+                        level: 0,
+                        name: "level 0",
+                        levelLineage: [],
+                        nestedObjectLineage: []
+                    }]
+                }]
+                nestedObject: {
+                    level: 3,
+                    name: "level 3",
+                    levelLineage: [0, 1, 2]
+                    nestedObjectLineage: [{
+                        level: 0,
+                        name: "level 0",
+                        levelLineage: [],
+                        nestedObjectLineage: []
+                    }, {
+                        level: 1,
+                        name: "level 1",
+                        levelLineage: [0],
+                        nestedObjectLineage: [{
+                            level: 0,
+                            name: "level 0",
+                            levelLineage: [],
+                            nestedObjectLineage: []
+                        }]
+                    }, {
+                        level: 2,
+                        name: "level 2",
+                        levelLineage: [0, 1]
+                        nestedObjectLineage: [{
+                            level: 0,
+                            name: "level 0",
+                            levelLineage: [],
+                            nestedObjectLineage: []
+                        },{
+                            level: 1,
+                            name: "level 1",
+                            levelLineage: [0],
+                            nestedObjectLineage: [{
+                                level: 0,
+                                name: "level 0",
+                                levelLineage: [],
+                                nestedObjectLineage: []
+                            }]
+                        }]
+                    }]
+                    nestedObject: null
+                }
+            }
+        }
+    }) {
+        level
+        name
+        levelLineage
+        nestedObjectLineage {
+            level
+            name
+            levelLineage
+            nestedObjectLineage {
+                level
+                name
+                levelLineage
+                nestedObjectLineage {
+                    level
+                    name
+                    levelLineage
+                    nestedObjectLineage {
+                        level
+                        name
+                        levelLineage
+                    }
+                }
+            }
+        }
+        nestedObject {
+            level
+            name
+            levelLineage
+            nestedObjectLineage {
+                level
+                name
+                levelLineage
+                nestedObjectLineage {
+                    level
+                    name
+                    levelLineage
+                    nestedObjectLineage {
+                        level
+                        name
+                        levelLineage
+                        nestedObjectLineage {
+                            level
+                            name
+                            levelLineage
+                        }
+                    }
+                }
+            }
+            nestedObject {
+                level
+                name
+                levelLineage
+                nestedObjectLineage {
+                    level
+                    name
+                    levelLineage
+                    nestedObjectLineage {
+                        level
+                        name
+                        levelLineage
+                        nestedObjectLineage {
+                            level
+                            name
+                            levelLineage
+                            nestedObjectLineage {
+                                level
+                                name
+                                levelLineage
+                            }
+                        }
+                    }
+                }
+                nestedObject {
+                    level
+                    name
+                    levelLineage
+                    nestedObjectLineage {
+                        level
+                        name
+                        levelLineage
+                        nestedObjectLineage {
+                            level
+                            name
+                            levelLineage
+                            nestedObjectLineage {
+                                level
+                                name
+                                levelLineage
+                                nestedObjectLineage {
+                                    level
+                                    name
+                                    levelLineage
+                                }
+                            }
+                        }
+                    }
+                    nestedObject {
+                        level
+                        name
+                        levelLineage
+                        nestedObjectLineage {
+                            level
+                            name
+                            levelLineage
+                            nestedObjectLineage {
+                                level
+                                name
+                                levelLineage
+                                nestedObjectLineage {
+                                    level
+                                    name
+                                    levelLineage
+                                    nestedObjectLineage {
+                                        level
+                                        name
+                                        levelLineage
+                                    }
+                                }
+                            }
+                        }
+                        nestedObject {
+                            level
+                            name
+                            levelLineage
+                            nestedObjectLineage {
+                                level
+                                name
+                                levelLineage
+                                nestedObjectLineage {
+                                    level
+                                    name
+                                    levelLineage
+                                    nestedObjectLineage {
+                                        level
+                                        name
+                                        levelLineage
+                                        nestedObjectLineage {
+                                            level
+                                            name
+                                            levelLineage
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

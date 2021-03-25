@@ -1,0 +1,27 @@
+mutation (
+    $varInt_1: [Int],
+    $varInt_1_2: [[Int]],
+    $varInt_1_2_3: [[[Int]]],
+    $varInt_1_bang: [Int]!,
+    $varInt_bang_1: [Int!],
+    $varInt_1_bang_2_3_bang: [[[Int]!]]!,
+    $varInt_bang_1_bang_2_bang_3_bang: [[[Int!]!]!]!
+) {
+    nestedArraysHolder(nestedArraysHolder:{
+        int_1: $varInt_1
+        int_1_2: $varInt_1_2
+        int_1_2_3: $varInt_1_2_3
+        int_1_bang: $varInt_1_bang
+        int_bang_1: $varInt_bang_1
+        int_1_bang_2_3_bang: $varInt_1_bang_2_3_bang
+        int_bang_1_bang_2_bang_3_bang: $varInt_bang_1_bang_2_bang_3_bang
+    }) {
+        int_1
+        int_1_2
+        int_1_2_3
+        int_1_bang
+        int_1_bang_2_3_bang
+        int_bang_1
+        int_bang_1_bang_2_bang_3_bang
+    }
+}

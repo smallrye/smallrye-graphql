@@ -1,0 +1,61 @@
+query arrayHolderQuery {
+    arrayHolder(arrayHolder:{
+        boolPrimitiveArray: [true, false, true],
+        boolObjectArray: [true, false, true],
+
+        bytePrimitiveArray: [0, 2, 3],
+        byteObjectArray: [0, 2, 3],
+
+        shortPrimitiveArray: [78, 789, 645],
+        shortObjectArray: [78, 789, 645],
+
+        intPrimitiveArray: [78, 65, 12354],
+        intObjectArray: [78, 65, 12354],
+
+        longPrimitiveArray: [789, 947894, 1874448],
+        longObjectArray: [789, 947894, 1874448],
+
+        floatPrimitiveArray: [1567.654, 8765.0, 1.23789456E8],
+        floatObjectArray: [1567.654, 8765.0, 1.23789456E8],
+
+        doublePrimitiveArray: [789.3242, 1815.0, 9.8765421654897E7],
+        doubleObjectArray:  [789.3242, 1815.0, 9.8765421654897E7],
+
+        bigIntegerArray: [0, 1, 10]
+        bigDecimalArray: [0, 1, 10]
+
+        charPrimitiveArray: ["f", "o", "o"],
+        charObjectArray: ["f", "o", "o"],
+
+        stringArray: ["foo", "bar", "baz"],
+    }) {
+        boolPrimitiveArray
+        boolObjectArray
+
+        bytePrimitiveArray
+        byteObjectArray
+
+        shortPrimitiveArray
+        shortObjectArray
+
+        intPrimitiveArray
+        intObjectArray
+
+        longPrimitiveArray
+        longObjectArray
+
+        floatPrimitiveArray
+        floatObjectArray
+
+        doublePrimitiveArray
+        doubleObjectArray
+
+        bigIntegerArray
+        bigDecimalArray
+
+        charPrimitiveArray
+        charObjectArray
+
+        stringArray
+    }
+}
