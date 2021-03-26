@@ -17,6 +17,8 @@ import org.eclipse.microprofile.graphql.Type;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
+import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
 class ParametersBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -607,5 +609,36 @@ class ParametersBehavior {
         then(fixture.variables()).isEqualTo("{'who':123}");
         then(fixture.operationName()).isEqualTo("greeting");
         then(greeting).isEqualTo("hi, foo");
+    }
+
+    @GraphQlClientApi
+    interface FooAndBarApi {
+        @Multiple
+        FooAndBar fooAndBar(@NestedParameter("bar") @NonNull @Name("id") String barId);
+    }
+
+    static class FooAndBar {
+        Foo foo;
+        Bar bar;
+    }
+
+    static class Foo {
+        String name;
+    }
+
+    static class Bar {
+        String name;
+    }
+
+    @Test
+    void shouldHandleMultipleQuery() {
+        fixture.returnsData("'foo': {'name': 'foo'}, 'bar': {'name': 'bar'}");
+        FooAndBarApi stuff = fixture.build(FooAndBarApi.class);
+
+        FooAndBar fooAndBar = stuff.fooAndBar("bar-id");
+
+        then(fixture.query()).isEqualTo("query fooAndBar($id: String!) {foo {name} bar(id: $id) {name}}");
+        then(fooAndBar.foo.name).isEqualTo("foo");
+        then(fooAndBar.bar.name).isEqualTo("bar");
     }
 }
