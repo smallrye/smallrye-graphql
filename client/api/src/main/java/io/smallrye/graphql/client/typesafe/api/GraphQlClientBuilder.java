@@ -40,15 +40,4 @@ public interface GraphQlClientBuilder {
 
     <T> T build(Class<T> apiClass);
 
-    /**
-     * Register the component with the underlying transport client, e.g. the JAX-RS client.
-     * This may make your application non-portable!
-     */
-    GraphQlClientBuilder register(Object component);
-
-    /**
-     * Register the componentClass with the underlying transport client, e.g. the JAX-RS client.
-     * This may make your application non-portable!
-     */
-    GraphQlClientBuilder register(Class<?> componentClass);
 }
