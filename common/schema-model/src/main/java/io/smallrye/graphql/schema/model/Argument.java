@@ -4,9 +4,9 @@ package io.smallrye.graphql.schema.model;
  * Represent an argument that is used on operations.
  * It's just a field with extra information to hold the
  * Java method argument Name
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-The-__Field-Type">Field</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Argument extends Field {
@@ -17,9 +17,8 @@ public final class Argument extends Field {
     public Argument() {
     }
 
-    public Argument(String methodArgumentName, String methodName, String propertyName, String name, String description,
-            Reference reference) {
-        super(methodName, propertyName, name, description, reference);
+    public Argument(String methodArgumentName, String methodName, String propertyName, String name, Reference reference) {
+        super(methodName, propertyName, name, reference);
         this.methodArgumentName = methodArgumentName;
     }
 

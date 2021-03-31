@@ -60,11 +60,10 @@ public class Field implements Serializable {
     public Field() {
     }
 
-    public Field(String methodName, String propertyName, String name, String description, Reference reference) {
+    public Field(String methodName, String propertyName, String name, Reference reference) {
         this.methodName = methodName;
         this.propertyName = propertyName;
         this.name = name;
-        this.description = description;
         this.reference = reference;
     }
 

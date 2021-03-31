@@ -12,5 +12,5 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public interface Creator<T> {
 
-    public T create(ClassInfo classInfo, Reference reference);
+    T create(ClassInfo classInfo, Reference reference);
 }

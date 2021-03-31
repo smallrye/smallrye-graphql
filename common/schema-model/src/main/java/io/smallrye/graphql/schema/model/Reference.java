@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,22 +19,23 @@ public class Reference implements Serializable {
     private Mapping mapping = null; // If the type is mapped to another type
     private Map<String, Reference> parametrizedTypeArguments;
     private boolean addParametrizedTypeNameExtension;
+    private List<DirectiveInstance> directiveInstances;
 
     public Reference() {
     }
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName,
             Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension) {
-        this(className, name, type, graphQlClassName, parametrizedTypeArguments, addParametrizedTypeNameExtension, null);
+        this(className, name, type, graphQlClassName, parametrizedTypeArguments, addParametrizedTypeNameExtension, null, null);
     }
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName) {
-        this(className, name, type, graphQlClassName, null, false, null);
+        this(className, name, type, graphQlClassName, null, false, null, null);
     }
 
     public Reference(String className, String name, ReferenceType type, String graphQlClassName,
             Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension,
-            Mapping mapping) {
+            Mapping mapping, List<DirectiveInstance> directiveInstances) {
         this.className = className;
         this.name = name;
         this.type = type;
@@ -41,20 +43,22 @@ public class Reference implements Serializable {
         this.parametrizedTypeArguments = parametrizedTypeArguments;
         this.mapping = mapping;
         this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
+        this.directiveInstances = directiveInstances;
     }
 
     public Reference(String className, String name, ReferenceType type) {
-        this(className, name, type, className, null, false, null);
+        this(className, name, type, className, null, false, null, null);
     }
 
     public Reference(String className, String name, ReferenceType type, Map<String, Reference> parametrizedTypeArguments,
             boolean addParametrizedTypeNameExtension) {
-        this(className, name, type, className, parametrizedTypeArguments, addParametrizedTypeNameExtension, null);
+        this(className, name, type, className, parametrizedTypeArguments, addParametrizedTypeNameExtension, null, null);
     }
 
     public Reference(final Reference reference) {
         this(reference.className, reference.name, reference.type, reference.graphQlClassName,
-                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.mapping);
+                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.mapping,
+                reference.directiveInstances);
     }
 
     /**
@@ -85,8 +89,6 @@ public class Reference implements Serializable {
 
     /**
      * This represent the GraphQL Type
-     *
-     * @return
      */
     public ReferenceType getType() {
         return type;
@@ -141,12 +143,28 @@ public class Reference implements Serializable {
         this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
     }
 
+    public List<DirectiveInstance> getDirectiveInstances() {
+        return directiveInstances;
+    }
+
+    public boolean hasDirectiveInstances() {
+        return directiveInstances != null && !directiveInstances.isEmpty();
+    }
+
+    public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
+        this.directiveInstances = directiveInstances;
+    }
+
+    public void addDirectiveInstance(DirectiveInstance directiveInstance) {
+        this.directiveInstances.add(directiveInstance);
+    }
+
     @Override
     public String toString() {
         return "Reference [className=" + className + ", name=" + name + ", type=" + type + ", graphQlClassName="
                 + graphQlClassName + ", mapping=" + mapping + ", addParametrizedTypeNameExtension="
                 + addParametrizedTypeNameExtension
-                + ", parametrizedTypeArguments=" + parametrizedTypeArguments + "]";
+                + ", parametrizedTypeArguments=" + parametrizedTypeArguments
+                + ", directiveInstances=" + directiveInstances + "]";
     }
-
 }

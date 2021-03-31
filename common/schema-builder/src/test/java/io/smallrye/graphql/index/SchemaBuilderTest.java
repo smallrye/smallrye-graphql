@@ -1,5 +1,9 @@
 package io.smallrye.graphql.index;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,7 +12,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -17,30 +26,36 @@ import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 
+import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.index.app.SomeDirective;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
+import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Test the model creation
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilderTest {
     private static final Logger LOG = Logger.getLogger(SchemaBuilderTest.class.getName());
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
 
     @Test
     public void testSchemaModelCreation() {
 
         IndexView index = getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
-        LOG.info(toString(schema));
+        LOG.info(JSONB.toJson(schema));
         assertNotNull(schema);
     }
 
@@ -73,7 +88,7 @@ public class SchemaBuilderTest {
         assertNotNull(heroSchema);
         assertNotNull(movieSchema);
 
-        String basicSchemaString = toString(basicSchema);
+        String basicSchemaString = JSONB.toJson(basicSchema);
         LOG.info(basicSchemaString);
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
@@ -82,7 +97,7 @@ public class SchemaBuilderTest {
         assertFalse(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
         assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
 
-        String heroSchemaString = toString(heroSchema);
+        String heroSchemaString = JSONB.toJson(heroSchema);
         LOG.info(heroSchemaString);
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
@@ -91,7 +106,7 @@ public class SchemaBuilderTest {
         assertFalse(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
         assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
 
-        String movieSchemaString = toString(movieSchema);
+        String movieSchemaString = JSONB.toJson(movieSchema);
         LOG.info(movieSchemaString);
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
@@ -117,13 +132,42 @@ public class SchemaBuilderTest {
         }
     }
 
-    public static String toString(Schema schema) {
+    @Test
+    public void testSchemaWithDirective() throws IOException {
+        Indexer indexer = new Indexer();
+        Path apiDir = Paths.get(System.getProperty("user.dir"), "../../server/api/target/classes/io/smallrye/graphql/api")
+                .normalize();
+        indexer.index(Files.newInputStream(apiDir.resolve("Directive.class")));
+        indexer.index(Files.newInputStream(apiDir.resolve("DirectiveLocation.class")));
+        indexer.index(getResourceAsStream("io/smallrye/graphql/index/app/SomeDirective.class"));
+        indexer.index(getResourceAsStream("io/smallrye/graphql/index/app/Movie.class"));
+        indexer.index(getResourceAsStream("io/smallrye/graphql/index/app/MovieTriviaController.class"));
+        Index index = indexer.complete();
 
-        JsonbConfig config = new JsonbConfig()
-                .withFormatting(true);
+        Schema schema = SchemaBuilder.build(index);
+        LOG.info(JSONB.toJson(schema));
 
-        Jsonb jsonb = JsonbBuilder.create(config);
-        return jsonb.toJson(schema);
+        // check directive types
+        assertTrue(schema.hasDirectiveTypes());
+        DirectiveType someDirective = schema.getDirectiveTypes().stream()
+                .filter(d -> d.getName().equals("someDirective"))
+                .findFirst().orElseThrow(NoSuchElementException::new);
+        LOG.info(JSONB.toJson(someDirective));
+        assertNotNull(someDirective);
+        assertEquals("someDirective", someDirective.getName());
+        assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
+        assertEquals(singleton("value"), someDirective.getArgumentNames());
+        assertEquals(new HashSet<>(asList("INTERFACE", "OBJECT")), someDirective.getLocations());
+
+        // check directive instances
+        Type movie = schema.getTypes().get("Movie");
+        List<DirectiveInstance> movieDirectives = movie.getDirectiveInstances();
+        assertNotNull(movieDirectives);
+        assertEquals(1, movieDirectives.size());
+        DirectiveInstance directiveInstance = movieDirectives.get(0);
+        assertNotNull(directiveInstance);
+        assertEquals(someDirective, directiveInstance.getType());
+        assertArrayEquals(new String[] { "foo", "bar" }, (Object[]) directiveInstance.getValue("value"));
     }
 
     static IndexView getTCKIndex() {

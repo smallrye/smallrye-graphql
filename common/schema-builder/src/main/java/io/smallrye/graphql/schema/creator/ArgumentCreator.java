@@ -8,14 +8,9 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.helper.DefaultValueHelper;
-import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
-import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
-import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
@@ -23,7 +18,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Creates a Argument object
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ArgumentCreator {
@@ -36,7 +31,7 @@ public class ArgumentCreator {
 
     /**
      * Create an argument model. Arguments exist on Operations as input parameters
-     * 
+     *
      * @param operation The operation
      * @param methodInfo the operation method
      * @param position the argument position
@@ -52,67 +47,44 @@ public class ArgumentCreator {
 
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
 
-        if (!IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
-            // Argument Type
-            Type argumentType = methodInfo.parameters().get(position);
-
-            // Name
-            String defaultName = methodInfo.parameterName(position);
-            String name = annotationsForThisArgument.getOneOfTheseAnnotationsValue(Annotations.NAME)
-                    .orElse(defaultName);
-
-            // Description    
-            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForThisArgument,
-                    argumentType);
-
-            Reference reference;
-            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
-                reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
-            } else if (!argumentType.name().equals(CONTEXT)) {
-                reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
-            } else {
-                reference = CONTEXT_REF;
-            }
-
-            Argument argument = new Argument(defaultName,
-                    methodInfo.name(),
-                    MethodHelper.getPropertyName(Direction.IN, methodInfo.name()),
-                    name,
-                    maybeDescription.orElse(null),
-                    reference);
-
-            // NotNull
-            if (NonNullHelper.markAsNonNull(argumentType, annotationsForThisArgument)) {
-                argument.setNotNull(true);
-            }
-
-            if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
-                argument.setSourceArgument(true);
-            }
-
-            // Wrapper
-            argument.setWrapper(WrapperCreator.createWrapper(argumentType).orElse(null));
-
-            // TransformInfo
-            argument.setTransformation(FormatHelper.getFormat(argumentType, annotationsForThisArgument).orElse(null));
-
-            // MappingInfo
-            argument.setMapping(MappingHelper.getMapping(argument, annotationsForThisArgument).orElse(null));
-
-            // Default Value
-            argument.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForThisArgument).orElse(null));
-
-            return Optional.of(argument);
+        if (IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
+            return Optional.empty();
         }
-        return Optional.empty();
+
+        // Argument Type
+        Type argumentType = methodInfo.parameters().get(position);
+
+        // Name
+        String defaultName = methodInfo.parameterName(position);
+        String name = annotationsForThisArgument.getOneOfTheseAnnotationsValue(Annotations.NAME)
+                .orElse(defaultName);
+
+        Reference reference;
+        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
+            reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
+        } else if (!argumentType.name().equals(CONTEXT)) {
+            reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
+        } else {
+            reference = CONTEXT_REF;
+        }
+
+        Argument argument = new Argument(defaultName,
+                methodInfo.name(),
+                MethodHelper.getPropertyName(Direction.IN, methodInfo.name()),
+                name,
+                reference);
+
+        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
+            argument.setSourceArgument(true);
+        }
+
+        FieldCreator.configure(argument, argumentType, annotationsForThisArgument);
+
+        return Optional.of(argument);
     }
 
     /**
      * Source operation on types should remove the Source argument
-     *
-     * @param annotationsForArgument
-     * @param operationType
-     * @return
      */
     private static boolean isSourceAnnotationOnSourceOperation(Annotations annotationsForArgument,
             Operation operation) {

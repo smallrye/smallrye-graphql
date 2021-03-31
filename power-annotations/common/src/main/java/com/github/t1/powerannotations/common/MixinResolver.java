@@ -1,5 +1,7 @@
 package com.github.t1.powerannotations.common;
 
+import static com.github.t1.powerannotations.common.PowerAnnotations.log;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +16,9 @@ import org.jboss.jandex.Type;
 
 class MixinResolver implements Runnable {
     private final Jandex jandex;
-    private final Logger log;
 
-    MixinResolver(Jandex jandex, Logger log) {
+    MixinResolver(Jandex jandex) {
         this.jandex = jandex;
-        this.log = log;
     }
 
     @Override
