@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-client-parent</artifactId>
-        <version>1.1.3-SNAPSHOT</version>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
     
     <artifactId>smallrye-graphql-client-api</artifactId>
@@ -13,15 +13,27 @@
     <description>SmallRye specific Client API, extending the MicroProfile client api, allowing us to play with the api first before we move it to the spec</description>
     
     <dependencies>
-        <!-- The API -->
-<!--        <dependency>
-            <groupId>org.eclipse.microprofile.graphql</groupId>
-            <artifactId>microprofile-graphql-client-api</artifactId>
-        </dependency>-->
+        <!-- The API - for now, copied to SmallRye -->
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.microprofile.graphql</groupId>-->
+<!--            <artifactId>microprofile-graphql-client-api</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
             <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>mutiny</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

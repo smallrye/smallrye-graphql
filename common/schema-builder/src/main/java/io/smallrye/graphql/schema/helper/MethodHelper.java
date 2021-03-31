@@ -1,5 +1,8 @@
 package io.smallrye.graphql.schema.helper;
 
+import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.Type;
+
 /**
  * Helping with method operations.
  * 
@@ -30,18 +33,70 @@ public class MethodHelper {
 
     /**
      * See if this is a getter or setter for a field property (depending on the direction)
-     * 
+     *
      * @param direction The direction
      * @param methodName the methodName
      * @return true if it is
+     * @deprecated Use {@link #isPropertyMethod(Direction, MethodInfo)} instead
      */
+    @Deprecated
     public static boolean isPropertyMethod(Direction direction, String methodName) {
         if (direction.equals(Direction.IN)) {
-            return isSetter(methodName);
+            return isSetterName(methodName);
         } else if (direction.equals(Direction.OUT)) {
-            return isGetter(methodName);
+            return isGetterName(methodName);
         }
         return false;
+    }
+
+    /**
+     * See if this is a getter or setter for a field property (depending on the direction)
+     *
+     * @param direction The direction
+     * @param method the method
+     * @return true if it is
+     */
+    public static boolean isPropertyMethod(Direction direction, MethodInfo method) {
+        if (direction.equals(Direction.IN)) {
+            return isSetter(method);
+        } else if (direction.equals(Direction.OUT)) {
+            return isGetter(method);
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a method is a setter, thus:
+     * <ul>
+     * <li>has no return type</li>
+     * <li>has exactly one parameter</li>
+     * <li>is appropriately named</li>
+     * </ul>
+     *
+     * @param method the method
+     * @return true if it is
+     */
+    private static boolean isSetter(MethodInfo method) {
+        return method.returnType().kind() == Type.Kind.VOID
+                && method.parameters().size() == 1
+                && isSetterName(method.name());
+    }
+
+    /**
+     * Checks whether a method is a getter, thus:
+     * <ul>
+     * <li>has an return type</li>
+     * <li>has no parameter</li>
+     * <li>is appropriately named</li>
+     * </ul>
+     *
+     * @param method the method
+     * @return true if it is
+     */
+    private static boolean isGetter(MethodInfo method) {
+        return method.returnType().kind() != Type.Kind.VOID
+                && method.parameters().isEmpty()
+                && isGetterName(method.name());
     }
 
     private static String toNameFromSetter(String methodName) {
@@ -60,12 +115,12 @@ public class MethodHelper {
         return methodName;
     }
 
-    private static boolean isGetter(String methodName) {
+    private static boolean isGetterName(String methodName) {
         return (methodName.length() > 3 && methodName.startsWith(GET) && hasCapitalAt(methodName, 3))
                 || (methodName.length() > 2 && methodName.startsWith(IS) && hasCapitalAt(methodName, 2));
     }
 
-    private static boolean isSetter(String methodName) {
+    private static boolean isSetterName(String methodName) {
         return methodName.length() > 3 && methodName.startsWith(SET) && hasCapitalAt(methodName, 3);
     }
 

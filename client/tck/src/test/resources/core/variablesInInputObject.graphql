@@ -1,0 +1,15 @@
+query ($varBool: Boolean! $varInt: Int! $varFloat: Float! $varString: String! $varID: ID) {
+    basicScalarHolder(basicScalarHolder:{
+        bool: $varBool
+        int: $varInt
+        float: $varFloat
+        string: $varString
+        iD: $varID
+    }) {
+        bool
+        int
+        float
+        string
+        iD
+    }
+}
