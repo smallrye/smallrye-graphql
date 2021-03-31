@@ -1,0 +1,8 @@
+# Test existence of fields with certain modifiers
+1| type FieldExistencePojo          |   publicField: String                 |   public field should exist on output types
+2| type FieldExistencePojo          |   publicFinalField: String            |   public final field should exist on output types
+3| type FieldExistencePojo          |   !PUBLIC_STATIC_FINAL_FIELD: String  |   static field should not exist on output types
+
+4| input FieldExistencePojoInput    |   publicField: String                 |   public field should exist on input types
+5| input FieldExistencePojoInput    |   !publicFinalField: String           |   public final field should not exist on input types
+6| input FieldExistencePojoInput    |   !PUBLIC_STATIC_FINAL_FIELD: String  |   static field should not exist on input types
