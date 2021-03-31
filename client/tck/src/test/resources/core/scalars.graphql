@@ -1,0 +1,61 @@
+mutation scalarHolderMutation {
+    scalarHolder (scalarHolder: {
+        booleanPrimitive: false
+        booleanObject: true
+
+        bytePrimitive: -128
+        byteObject: 127
+
+        shortPrimitive: -32768
+        shortObject: 32767
+
+        intPrimitive: -2147483647
+        intObject: 2147483647
+
+        longPrimitive: -9223372036854775808
+        longObject: 9223372036854775807
+
+        floatPrimitive: 1.4E-45
+        floatObject: 3.4028235E38
+
+        doublePrimitive: 4.9E-324
+        doubleObject: 1.7976931348623157E308
+
+        bigInteger: 10
+        bigDecimal: 10
+
+        charPrimitive: "a"
+        charObject: "Z"
+
+        stringObject: "Hello World !"
+    }) {
+        booleanPrimitive
+        booleanObject
+
+        bytePrimitive
+        byteObject
+
+        shortPrimitive
+        shortObject
+
+        intPrimitive
+        intObject
+
+        longPrimitive
+        longObject
+
+        floatPrimitive
+        floatObject
+
+        doublePrimitive
+        doubleObject
+
+        bigInteger
+        bigDecimal
+
+        charPrimitive
+        charObject
+
+        stringObject
+    }
+}

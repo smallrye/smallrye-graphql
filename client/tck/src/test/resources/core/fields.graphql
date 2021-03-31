@@ -1,0 +1,14 @@
+query {
+    noArgNoSubField
+    noArgWithSubField {
+        bool
+        string
+        double
+    }
+    withArgNoSubField(anInt: 42)
+    withArgWithSubField(aString: "world", aDouble: 78.12, aBool: false) {
+        bool
+        string
+        double
+    }
+}

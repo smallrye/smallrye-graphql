@@ -10,7 +10,7 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
-class QueryBuilder {
+public class QueryBuilder {
     private final MethodInvocation method;
     private final Stack<String> typeStack = new Stack<>();
     private final Stack<String> expressionStack = new Stack<>();
@@ -19,7 +19,7 @@ class QueryBuilder {
         this.method = method;
     }
 
-    String build() {
+    public String build() {
         StringBuilder request = new StringBuilder();
         request.append(method.isQuery() ? "query " : "mutation ");
         request.append(method.getName());
