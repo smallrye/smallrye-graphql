@@ -43,7 +43,7 @@ public class FieldCreator {
     public Optional<Field> createFieldForInterface(MethodInfo methodInfo, Reference parentObjectReference) {
         Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(methodInfo);
 
-        if (!IgnoreHelper.shouldIgnore(annotationsForMethod)) {
+        if (isGraphQlField(Direction.OUT, null, methodInfo)) {
             Type returnType = methodInfo.returnType();
 
             // Name
@@ -98,7 +98,7 @@ public class FieldCreator {
             Reference parentObjectReference) {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
-        if (!IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
+        if (isGraphQlField(direction, fieldInfo, methodInfo)) {
             Type methodType = getMethodType(methodInfo, direction);
 
             // Name
@@ -151,51 +151,113 @@ public class FieldCreator {
      * @return a Field model object
      */
     public Optional<Field> createFieldForPojo(Direction direction, FieldInfo fieldInfo, Reference parentObjectReference) {
-        if (Modifier.isPublic(fieldInfo.flags())) {
+        if (isGraphQlField(direction, fieldInfo, null)) {
             Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo);
 
-            if (!IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
+            // Name
+            String name = getFieldName(direction, annotationsForPojo, fieldInfo.name());
 
-                // Name
-                String name = getFieldName(direction, annotationsForPojo, fieldInfo.name());
+            // Field Type
+            Type fieldType = fieldInfo.type();
 
-                // Field Type
-                Type fieldType = fieldInfo.type();
+            // Description
+            Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForPojo, fieldType);
 
-                // Description
-                Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForPojo, fieldType);
+            Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
+                    annotationsForPojo, parentObjectReference);
 
-                Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
-                        annotationsForPojo, parentObjectReference);
+            Field field = new Field(fieldInfo.name(),
+                    MethodHelper.getPropertyName(direction, fieldInfo.name()),
+                    name,
+                    maybeDescription.orElse(null),
+                    reference);
 
-                Field field = new Field(fieldInfo.name(),
-                        MethodHelper.getPropertyName(direction, fieldInfo.name()),
-                        name,
-                        maybeDescription.orElse(null),
-                        reference);
-
-                // NotNull
-                if (NonNullHelper.markAsNonNull(fieldType, annotationsForPojo)) {
-                    field.setNotNull(true);
-                }
-
-                // Wrapper
-                field.setWrapper(WrapperCreator.createWrapper(fieldType).orElse(null));
-
-                // TransformInfo
-                field.setTransformation(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
-
-                // MappingInfo
-                field.setMapping(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
-
-                // Default Value
-                field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
-
-                return Optional.of(field);
+            // NotNull
+            if (NonNullHelper.markAsNonNull(fieldType, annotationsForPojo)) {
+                field.setNotNull(true);
             }
-            return Optional.empty();
+
+            // Wrapper
+            field.setWrapper(WrapperCreator.createWrapper(fieldType).orElse(null));
+
+            // TransformInfo
+            field.setTransformation(FormatHelper.getFormat(fieldType, annotationsForPojo).orElse(null));
+
+            // MappingInfo
+            field.setMapping(MappingHelper.getMapping(field, annotationsForPojo).orElse(null));
+
+            // Default Value
+            field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForPojo).orElse(null));
+
+            return Optional.of(field);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Checks if method and/or field are useable as a GraphQL-Field.
+     *
+     * @param direction the direction, IN if the field should be used on an input type, OUT otherwise
+     * @param fieldInfo the field. If null, methodInfo must be provided
+     * @param methodInfo the method. If null, fieldInfo must be provided
+     * @return if it is an GraphQL field
+     */
+    protected static boolean isGraphQlField(Direction direction, FieldInfo fieldInfo, MethodInfo methodInfo) {
+        boolean methodAccessible = isPossibleField(methodInfo);
+        boolean fieldAccessible = isPossibleField(direction, fieldInfo);
+
+        if (!methodAccessible && !fieldAccessible) {
+            return false;
+        }
+
+        Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
+        if (IgnoreHelper.shouldIgnore(annotationsForPojo, fieldInfo)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if the method is a possible GraphQl field (by method access).
+     * This means that the method:
+     * <ul>
+     * </ul>
+     * <li>exists</li>
+     * <li>is public</li>
+     * <li>and is not static</li>
+     * </ul>
+     * 
+     * @param methodInfo the method
+     * @return if the method is a possible GraphQl field
+     */
+    private static boolean isPossibleField(MethodInfo methodInfo) {
+        return methodInfo != null
+                && Modifier.isPublic(methodInfo.flags())
+                && !Modifier.isStatic(methodInfo.flags());
+    }
+
+    /**
+     * Checks if the field is a possible GraphQl field (by field access).
+     *
+     * This means that the field:
+     * <ul>
+     * </ul>
+     * <li>exists</li>
+     * <li>is public</li>
+     * <li>is not static</li>
+     * <li>and is not final, if it's an input field</li>
+     * </ul>
+     * 
+     * @param direction the direction
+     * @param fieldInfo the method
+     * @return if the field is a possible GraphQl field
+     */
+    private static boolean isPossibleField(Direction direction, FieldInfo fieldInfo) {
+        return fieldInfo != null
+                && !(direction == Direction.IN && Modifier.isFinal(fieldInfo.flags()))
+                && Modifier.isPublic(fieldInfo.flags())
+                && !Modifier.isStatic(fieldInfo.flags());
     }
 
     private static void validateFieldType(Direction direction, MethodInfo methodInfo) {
