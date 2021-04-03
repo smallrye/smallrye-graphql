@@ -3,6 +3,8 @@ package io.smallrye.graphql.schema.helper;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
+import io.smallrye.graphql.schema.Annotations;
+
 /**
  * Helping with method operations.
  * 
@@ -60,7 +62,7 @@ public class MethodHelper {
         if (direction.equals(Direction.IN)) {
             return isSetter(method);
         } else if (direction.equals(Direction.OUT)) {
-            return isGetter(method);
+            return isPropertyAccessor(method);
         }
         return false;
     }
@@ -87,16 +89,22 @@ public class MethodHelper {
      * <ul>
      * <li>has an return type</li>
      * <li>has no parameter</li>
-     * <li>is appropriately named</li>
+     * <li>and:
+     * <ul>
+     * <li>is appropriately named (get/is)</li>
+     * <li>or is annotated with @Query</li>
+     * </ul>
+     * </li>
      * </ul>
      *
      * @param method the method
      * @return true if it is
      */
-    private static boolean isGetter(MethodInfo method) {
+    private static boolean isPropertyAccessor(MethodInfo method) {
         return method.returnType().kind() != Type.Kind.VOID
                 && method.parameters().isEmpty()
-                && isGetterName(method.name());
+                && (method.hasAnnotation(Annotations.QUERY)
+                        || isGetterName(method.name()));
     }
 
     private static String toNameFromSetter(String methodName) {
