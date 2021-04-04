@@ -1,5 +1,6 @@
 package io.smallrye.graphql.bootstrap;
 
+import static graphql.schema.GraphQLList.list;
 import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 import static graphql.schema.visibility.NoIntrospectionGraphqlFieldVisibility.NO_INTROSPECTION_FIELD_VISIBILITY;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
@@ -10,28 +11,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.json.Json;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
 
+import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
@@ -53,6 +55,9 @@ import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.DirectiveArgument;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
+import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
@@ -69,7 +74,7 @@ import io.smallrye.graphql.spi.ClassloadingService;
 /**
  * Bootstrap MicroProfile GraphQL
  * This create a graphql-java model from the smallrye model
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Bootstrap {
@@ -78,6 +83,7 @@ public class Bootstrap {
     private final Config config;
     private final EventEmitter eventEmitter;
     private final DataFetcherFactory dataFetcherFactory;
+    private final Set<GraphQLDirective> directiveTypes = new LinkedHashSet<>();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
@@ -114,6 +120,7 @@ public class Bootstrap {
     private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
+        createGraphQLDirectiveTypes();
         createGraphQLEnumTypes();
         createGraphQLInterfaceTypes();
         createGraphQLObjectTypes();
@@ -122,6 +129,7 @@ public class Bootstrap {
         addQueries(schemaBuilder);
         addMutations(schemaBuilder);
 
+        schemaBuilder.additionalDirectives(directiveTypes);
         schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(interfaceMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
@@ -137,6 +145,37 @@ public class Bootstrap {
         schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
         this.graphQLSchema = schemaBuilder.build();
+    }
+
+    private void createGraphQLDirectiveTypes() {
+        if (schema.hasDirectiveTypes()) {
+            for (DirectiveType directiveType : schema.getDirectiveTypes()) {
+                createGraphQLDirectiveType(directiveType);
+            }
+        }
+    }
+
+    private void createGraphQLDirectiveType(DirectiveType directiveType) {
+        GraphQLDirective.Builder directiveBuilder = GraphQLDirective.newDirective()
+                .name(directiveType.getName())
+                .description(directiveType.getDescription());
+        for (String location : directiveType.getLocations()) {
+            directiveBuilder.validLocation(DirectiveLocation.valueOf(location));
+        }
+        for (String argumentName : directiveType.getArgumentNames()) {
+            GraphQLInputType argumentType = argumentType(directiveType.getArgumentType(argumentName));
+            directiveBuilder = directiveBuilder
+                    .argument(GraphQLArgument.newArgument().type(argumentType).name(argumentName).build());
+        }
+        directiveTypes.add(directiveBuilder.build());
+    }
+
+    private GraphQLInputType argumentType(DirectiveArgument argumentType) {
+        GraphQLInputType inputType = getGraphQLInputType(argumentType.getReference());
+        if (argumentType.hasWrapper() && argumentType.getWrapper().isCollectionOrArray()) {
+            inputType = list(inputType);
+        }
+        return inputType;
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
@@ -199,19 +238,13 @@ public class Bootstrap {
 
             graphQLFieldDefinitionBuilder.type(namedType);
 
-            // DataFetcher (Just a dummy)
-            DataFetcher datafetcher = new DataFetcher() {
-                @Override
-                public Object get(DataFetchingEnvironment dfe) throws Exception {
-                    return namedType.getName();
-                }
-            };
+            DataFetcher<?> dummyDataFetcher = dfe -> namedType.getName();
 
             GraphQLFieldDefinition namedField = graphQLFieldDefinitionBuilder.build();
 
             this.codeRegistryBuilder.dataFetcherIfAbsent(
                     FieldCoordinates.coordinates(rootName, namedField.getName()),
-                    datafetcher);
+                    dummyDataFetcher);
 
             rootBuilder.field(namedField);
         }
@@ -232,10 +265,7 @@ public class Bootstrap {
             objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
         }
 
-        GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
-
-        return graphQLObjectType;
-
+        return objectTypeBuilder.build();
     }
 
     // Create all enums and map them
@@ -331,6 +361,12 @@ public class Bootstrap {
                 .name(type.getName())
                 .description(type.getDescription());
 
+        if (type.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : type.getDirectiveInstances()) {
+                objectTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
+
         // Fields
         if (type.hasFields()) {
             objectTypeBuilder = objectTypeBuilder
@@ -380,6 +416,19 @@ public class Bootstrap {
 
         // Register this output for interface type resolving
         InterfaceOutputRegistry.register(type, graphQLObjectType);
+    }
+
+    private GraphQLDirective createGraphQLDirectiveFrom(DirectiveInstance directiveInstance) {
+        DirectiveType directiveType = directiveInstance.getType();
+        GraphQLDirective.Builder directive = GraphQLDirective.newDirective();
+        directive.name(directiveType.getName());
+        for (Entry<String, Object> entry : directiveInstance.getValues().entrySet()) {
+            String argumentName = entry.getKey();
+            DirectiveArgument argumentType = directiveType.getArgumentType(argumentName);
+            directive.argument(GraphQLArgument.newArgument().type(argumentType(argumentType)).name(argumentName)
+                    .value(entry.getValue()).build());
+        }
+        return directive.build();
     }
 
     private GraphQLFieldDefinition createGraphQLFieldDefinitionFromBatchOperation(String operationTypeName,
@@ -494,7 +543,7 @@ public class Bootstrap {
             // Collection depth
             do {
                 if (wrapper.isCollectionOrArray()) {
-                    graphQLInputType = GraphQLList.list(graphQLInputType);
+                    graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
                     wrapper = null;
@@ -524,7 +573,7 @@ public class Bootstrap {
             // Collection depth
             do {
                 if (wrapper.isCollectionOrArray()) {
-                    graphQLOutputType = GraphQLList.list(graphQLOutputType);
+                    graphQLOutputType = list(graphQLOutputType);
                     wrapper = wrapper.getWrapper();
                 } else {
                     wrapper = null;
@@ -557,6 +606,10 @@ public class Bootstrap {
 
     private GraphQLInputType referenceGraphQLInputType(Field field) {
         Reference reference = getCorrectFieldReference(field);
+        return getGraphQLInputType(reference);
+    }
+
+    private GraphQLInputType getGraphQLInputType(Reference reference) {
         ReferenceType type = reference.getType();
         String className = reference.getClassName();
         String name = reference.getName();
@@ -615,7 +668,7 @@ public class Bootstrap {
             // Collection depth
             do {
                 if (wrapper.isCollectionOrArray()) {
-                    graphQLInputType = GraphQLList.list(graphQLInputType);
+                    graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
                     wrapper = null;
@@ -658,7 +711,7 @@ public class Bootstrap {
             Reference reference = getCorrectFieldReference(field);
             ReferenceType referenceType = reference.getType();
 
-            if (referenceType.equals(referenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) { // Complex type
+            if (referenceType.equals(ReferenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) { // Complex type
                 return jsonB.fromJson(jsonString, Map.class);
             } else { // Basic Type
                 return jsonB.fromJson(jsonString, type);
@@ -692,9 +745,9 @@ public class Bootstrap {
 
     /**
      * This can hide certain fields in the schema (for security purposes)
-     * 
+     *
      * @return The visibility
-     * @see www.graphql-java.com/documentation/v15/fieldvisibility/
+     * @see <a href="www.graphql-java.com/documentation/v15/fieldvisibility/">GraphQL Java Field Visibility</a>
      */
     private GraphqlFieldVisibility getGraphqlFieldVisibility() {
         if (config != null) {
@@ -724,7 +777,6 @@ public class Bootstrap {
 
     private static final String COMMA = ",";
 
-    private static final Jsonb JSONB = JsonbBuilder.create();
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";

@@ -1,5 +1,6 @@
 package com.github.t1.powerannotations.common;
 
+import static com.github.t1.powerannotations.common.PowerAnnotations.log;
 import static java.lang.reflect.Modifier.PUBLIC;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
@@ -53,6 +54,7 @@ public class Jandex {
 
     @SuppressWarnings("deprecation")
     private static org.jboss.jandex.ClassInfo mock(DotName name) {
+        log.info("create mock for " + name);
         return org.jboss.jandex.ClassInfo.create(
                 name, null, (short) PUBLIC, new DotName[0], emptyMap(), true);
     }

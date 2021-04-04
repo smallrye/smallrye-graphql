@@ -10,13 +10,8 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.helper.DefaultValueHelper;
-import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
-import io.smallrye.graphql.schema.helper.FormatHelper;
-import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -24,7 +19,7 @@ import io.smallrye.graphql.schema.model.Reference;
 
 /**
  * Creates a Operation object
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class OperationCreator {
@@ -41,7 +36,7 @@ public class OperationCreator {
      * This creates a single operation.
      * It translate to one entry under a query / mutation in the schema or
      * one method in the Java class annotated with Query or Mutation
-     * 
+     *
      * @param methodInfo the java method
      * @param operationType the type of operation (Query / Mutation)
      * @param type
@@ -62,9 +57,6 @@ public class OperationCreator {
         // Name
         String name = getOperationName(methodInfo, operationType, annotationsForMethod);
 
-        // Description
-        Optional<String> maybeDescription = DescriptionHelper.getDescriptionForField(annotationsForMethod, fieldType);
-
         // Field Type
         validateFieldType(methodInfo, operationType);
         Reference reference = referenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
@@ -73,29 +65,11 @@ public class OperationCreator {
                 methodInfo.name(),
                 MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
                 name,
-                maybeDescription.orElse(null),
                 reference,
                 operationType);
         if (type != null) {
             operation.setSourceFieldOn(new Reference(type));
         }
-
-        // NotNull
-        if (NonNullHelper.markAsNonNull(fieldType, annotationsForMethod)) {
-            operation.setNotNull(true);
-        }
-
-        // Wrapper
-        operation.setWrapper(WrapperCreator.createWrapper(fieldType).orElse(null));
-
-        // TransformInfo
-        operation.setTransformation(FormatHelper.getFormat(fieldType, annotationsForMethod).orElse(null));
-
-        // MappingInfo
-        operation.setMapping(MappingHelper.getMapping(operation, annotationsForMethod).orElse(null));
-
-        // Default Value
-        operation.setDefaultValue(DefaultValueHelper.getDefaultValue(annotationsForMethod).orElse(null));
 
         // Arguments
         List<Type> parameters = methodInfo.parameters();
@@ -103,6 +77,8 @@ public class OperationCreator {
             Optional<Argument> maybeArgument = argumentCreator.createArgument(operation, methodInfo, i);
             maybeArgument.ifPresent(operation::addArgument);
         }
+
+        FieldCreator.configure(operation, fieldType, annotationsForMethod);
 
         return operation;
     }
@@ -119,7 +95,7 @@ public class OperationCreator {
     /**
      * Get the name from annotation(s) or default.
      * This is for operations (query, mutation and source)
-     * 
+     *
      * @param methodInfo the java method
      * @param operationType the type (query, mutation)
      * @param annotations the annotations on this method

@@ -6,6 +6,7 @@ import java.util.Set;
 import io.smallrye.graphql.api.Scalar;
 import io.smallrye.graphql.api.ToScalar;
 
+@SomeDirective({ "foo", "bar" })
 public class Movie {
 
     @ToScalar(Scalar.Int.class)

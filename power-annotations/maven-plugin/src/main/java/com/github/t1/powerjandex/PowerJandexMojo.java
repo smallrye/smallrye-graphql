@@ -35,22 +35,7 @@ public class PowerJandexMojo extends AbstractMojo {
     @SuppressWarnings("CdiInjectionPointsInspection")
     MavenProject project;
 
-    private final MojoLogger logger = new MojoLogger();
-
-    @Override
-    public void execute() {
-        Index index = scanIndex(baseDir());
-
-        new PowerAnnotations(index, logger).resolveAnnotations();
-
-        new JandexPrinter(index, logger).run();
-
-        write(index);
-    }
-
-    private Path baseDir() {
-        return project.getBasedir().toPath().resolve("target/classes");
-    }
+    private final MojoLogger log = new MojoLogger();
 
     private class MojoLogger implements Logger {
         @Override
@@ -59,29 +44,62 @@ public class PowerJandexMojo extends AbstractMojo {
         }
     }
 
-    private static Index scanIndex(Path path) {
-        final Indexer indexer = new Indexer();
-        try {
-            walkFileTree(path, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toString().endsWith(".class")) {
-                        try (InputStream inputStream = newInputStream(file)) {
-                            indexer.index(inputStream);
-                        }
-                    }
-                    return CONTINUE;
-                }
-            });
+    @Override
+    public void execute() {
+        PowerAnnotations.log = log;
+
+        Index index = new Scanner().createIndex();
+
+        new PowerAnnotations(index).resolveAnnotations();
+
+        new JandexPrinter(index).run();
+
+        write(index);
+    }
+
+    private Path baseDir() {
+        return project.getBasedir().toPath().resolve("target/classes");
+    }
+
+    private class Scanner {
+        private final Indexer indexer = new Indexer();
+
+        public Index createIndex() {
+            scanDirectory(baseDir());
             return indexer.complete();
-        } catch (IOException e) {
-            throw new RuntimeException("failed to index", e);
+        }
+
+        public void scanDirectory(Path path) {
+            try {
+                walkFileTree(path, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                        if (isClassFile(file))
+                            scanClassFile(file);
+                        return CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("failed to index " + path, e);
+            }
+        }
+
+        private boolean isClassFile(Path file) {
+            return file.toString().endsWith(".class");
+        }
+
+        private void scanClassFile(Path path) {
+            try (InputStream inputStream = newInputStream(path)) {
+                indexer.index(inputStream);
+            } catch (IOException e) {
+                throw new RuntimeException("failed to index " + path, e);
+            }
         }
     }
 
     private void write(Index index) {
         Path filePath = baseDir().resolve("META-INF/jandex.idx");
-        logger.info("write index to " + filePath);
+        log.info("write index to " + filePath);
         try {
             createDirectories(filePath.getParent());
             try (OutputStream outputStream = newOutputStream(filePath)) {

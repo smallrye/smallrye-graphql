@@ -6,11 +6,11 @@ import java.util.List;
 /**
  * Represent an operation on a Query or Mutation,
  * or an operation on a Type in the case of a Source annotation.
- * 
+ * <p>
  * a Operation if a special kind on field that allows arguments.
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-The-__Field-Type">Field</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Operation extends Field {
@@ -37,9 +37,9 @@ public final class Operation extends Field {
     public Operation() {
     }
 
-    public Operation(String className, String methodName, String propertyName, String name, String description,
-            Reference reference, final OperationType operationType) {
-        super(methodName, propertyName, name, description, reference);
+    public Operation(String className, String methodName, String propertyName, String name, Reference reference,
+            final OperationType operationType) {
+        super(methodName, propertyName, name, reference);
         this.className = className;
         this.operationType = operationType;
     }

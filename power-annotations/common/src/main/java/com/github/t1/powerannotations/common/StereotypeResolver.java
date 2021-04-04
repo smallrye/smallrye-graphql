@@ -1,5 +1,7 @@
 package com.github.t1.powerannotations.common;
 
+import static com.github.t1.powerannotations.common.PowerAnnotations.log;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,11 +19,9 @@ class StereotypeResolver implements Runnable {
     private static final Map<DotName, Integer> STEREOTYPE_NESTING_LEVELS = new TreeMap<>();
 
     private final Jandex jandex;
-    private final Logger log;
 
-    StereotypeResolver(Jandex jandex, Logger log) {
+    StereotypeResolver(Jandex jandex) {
         this.jandex = jandex;
-        this.log = log;
     }
 
     @Override

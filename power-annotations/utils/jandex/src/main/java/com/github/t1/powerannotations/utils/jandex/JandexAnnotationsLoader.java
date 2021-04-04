@@ -2,7 +2,6 @@ package com.github.t1.powerannotations.utils.jandex;
 
 import static com.github.t1.powerannotations.common.CommonUtils.signature;
 import static com.github.t1.powerannotations.common.CommonUtils.toDotName;
-import static com.github.t1.powerannotations.utils.jandex.UtilsUtils.toArray;
 import static org.jboss.jandex.AnnotationTarget.Kind.METHOD;
 
 import java.lang.annotation.Annotation;
@@ -97,10 +96,10 @@ public class JandexAnnotationsLoader extends AnnotationsLoader {
     public Annotations onMethod(Class<?> type, String methodName, Class<?>... argTypes) {
         ClassInfo classInfo = getClassInfo(type);
         Type[] jandexArgTypes = Stream.of(argTypes).map(Class::getName).map(JandexAnnotationsLoader::createClassType)
-                .collect(toArray(Type.class));
+                .toArray(Type[]::new);
         MethodInfo methodInfo = classInfo.method(methodName, jandexArgTypes);
         if (methodInfo == null) {
-            String[] argTypeNames = Stream.of(argTypes).map(Class::getName).collect(toArray(String.class));
+            String[] argTypeNames = Stream.of(argTypes).map(Class::getName).toArray(String[]::new);
             throw new RuntimeException("no method " + signature(methodName, argTypeNames) + " in class " + classInfo.name());
         }
 
