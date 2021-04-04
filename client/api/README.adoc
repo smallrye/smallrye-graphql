@@ -1,8 +1,9 @@
 = SmallRye GraphQL Client
+:toc2:
 
-A Java code-first type-safe GraphQL Client API suggestion for [Microprofile GraphQL](https://github.com/eclipse/microprofile-graphql/issues/185).
+A Java code-first type-safe GraphQL Client API suggestion for https://github.com/eclipse/microprofile-graphql/issues/185[Microprofile GraphQL Issue #185].
 
-Basic Usage:
+== Basic Usage
 
 [source,java]
 ----
@@ -32,13 +33,11 @@ The example above uses CDI, e.g. when you are in a MicroProfile or Jakarta EE en
 SuperHeroesApi api = GraphQlClientBuilder.newBuilder().build(SuperHeroesApi.class);
 ----
 
-The basic idea of the Java code-first approach is that you start by writing the DTOs and query/mutation methods as you need them in your client. This ensures that you don't request fields that you don't need; the thinking is inspired by https://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts] and may evolve more into that direction. If the server uses different names, use annotations to do a mapping:
+The basic idea of the Java code-first approach is that you start by writing the DTOs and query/mutation methods as you need them in your client. This ensures that you don't request fields that you don't need; the thinking is inspired by https://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts]. If the server uses names different from yours, you can simply use annotations to do a mapping:
 
-== Changing Names
+== Name Mapping / Aliases
 
-If the server defines a different field or parameter name, annotate it with `@Name`.
-
-If the server defines a different query name, annotate the method as, e.g., `@Query("findHeroesCurrentlyLocatedIn")`.
+If the server defines a different field or parameter name, annotate it with `@Name`. If the server defines a different query name, annotate the method as, e.g., `@Query("findHeroesCurrentlyLocatedIn")`.
 
 By renaming methods, you can also define several variations of the same request but using different return types or parameters. E.g.:
 
@@ -54,7 +53,9 @@ public interface SuperHeroesApi {
 
 <1> The `SuperHero` class has no team affiliations (for this example).
 
-<2> The `SuperHeroWithTeams` class has a `private List<Team> teamAffiliations` field. The `Team` class doesn't contain the members to break recursion.
+<2> The `SuperHeroWithTeams` class has a `List<Team> teamAffiliations` field. The actual query name is still `findHeroByName`. The `Team` class doesn't contain the members to break recursion.
+
+If you rename a field or method, the real field or method name will be used as an alias, so you can select the same data twice (see `<<Multiple>>` and `<<NestedParameter>>` below).
 
 == Configuration
 
@@ -76,7 +77,7 @@ SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
     .build(SuperHeroesApi.class);
 ----
 
-Commonly you'll need different endpoints, e.g. when you need one endpoint for your production system, but a different endpoint for your test system. Simply use https://download.eclipse.org/microprofile/microprofile-config-1.4/microprofile-config-spec.html[MicroProfile Config] to set the endpoint; similar to the https://download.eclipse.org/microprofile/microprofile-rest-client-1.4.1/microprofile-rest-client-1.4.1.html[MicroProfile Rest Client], the key for the endpoint is the fully qualified name of the api interface plus `/mp-graphql/url`, e.g.:
+Commonly you'll need different endpoints, e.g. when you need one endpoint for your production system, but a different endpoint for your test system. Simply use https://download.eclipse.org/microprofile/microprofile-config-1.4/microprofile-config-spec.html[MicroProfile Config] to set the endpoint; similar to the https://download.eclipse.org/microprofile/microprofile-rest-client-1.4.1/microprofile-rest-client-1.4.1.html[MicroProfile Rest Client], the key for the endpoint is the fully qualified name of the api interface, plus `/mp-graphql/url`, e.g.:
 
 [source,properties]
 ----
@@ -85,7 +86,7 @@ org.superheroes.SuperHeroesApi/mp-graphql/url=https://superheroes.org/graphql
 
 If you want to use a different key, set the base config key on the annotation `@GraphQlClientApi(configKey = "superheroes")`; then use this key for the endpoint `superheroes/mp-graphql/url`.
 
-When using the builder, you can override the config key there as well: `GraphQlClientBuilder.newBuilder().configKey("superheroes")`.
+When using the builder, you can override the config key as well: `GraphQlClientBuilder.newBuilder().configKey("superheroes")`.
 
 == Headers
 
@@ -100,7 +101,7 @@ interface SuperHeroesApi {
 }
 ----
 
-The `name` is always fixed, but the value can also be the name of a method for dynamic values, e.g.:
+The `name` has to be fixed, but the value can be specified with a `constant` or the name of a `method` for dynamic values, e.g.:
 
 [source,java]
 ----
@@ -119,7 +120,7 @@ interface SuperHeroesApi {
 
 The method must be `static` and accessible by the interface, i.e. in the interface itself or in one of the classes it's nested in; if it's in a different class, prefix it with the fully qualified class name and a dot `"."`, e.g. `@Header(name = "S.H.I.E.L.D.-Clearance", method = "org.superheroes.SecurityTools.establishShieldClearance")`.
 
-In rare cases, you may want to pass the value of a header as a parameter:
+A third option is to pass the value of a header as an API method parameter:
 
 [source,java]
 ----
@@ -129,21 +130,124 @@ interface SuperHeroesApi {
 }
 ----
 
-A `@Header` parameter is not part of the GraphQL request.
+The `@Header` parameter will not part of the GraphQL query.
 
-`@Header` annotations can be defined via `@Stereotype`s.
+`@Header` annotations can also be defined via `@Stereotype`.
 
 
 == AuthorizationHeaders
 
 To add an `Authorization` header, instead of using the generic `@Header` annotation, you can also use the special `@AuthorizationHeader` annotation. It produces a `BASIC` `Authorization` header by default or a `BEARER` token. You can configure the credentials in MP Config with a prefix plus `/mp-graphql/` and either `username` and `password` for `BASIC` or `bearer` for `BEARER`. The config key defaults to the fully qualified name of the `GraphQlClientApi` interface or its `configKey`.
 
-You can use a custom prefix by setting the `confPrefix`. The infix `/mp-graphql/` is still applied, unless you end the `confPrefix` with `*`, e.g. `@AuthorizationHeader(confPrefix = "org.superheroes.security.basic.*` will use
+You can use a custom prefix by setting the `confPrefix`. The infix `/mp-graphql/` is still applied, unless you end the `confPrefix` with `\*`, e.g. `@AuthorizationHeader(confPrefix = "org.superheroes.security.basic.*` will use
 `org.superheroes.security.basic.username`, while `*` will use plain `username`.
 
-`@AuthorizationHeader` annotations can be defined via `@Stereotype`s.
+`@AuthorizationHeader` annotations can be defined via `@Stereotype`.
 
 
 == Logging
 
-The Client implementation logs all GraphQL requests and responses at level `INFO` with the interface API as the logger name. It also logs the keys of all headers added at level `DEBUG`; the values may be security sensitive.
+The Client implementation logs all GraphQL requests and responses at level `INFO` with the interface API as the logger name. It also logs the keys of all headers added at level `DEBUG`; not the values, as they may be security sensitive.
+
+== Errors
+
+If the service returns one or more errors, the client normally throws a `GraphQlClientException` containing the details in a list of `GraphQlClientError`.
+
+If the error is specific to a `location`, you can use an `ErrorOr` wrapper on the target field; the client the maps the error to that wrapper instead of throwing an exception. I.e. your `SuperHero` class could look like this:
+
+[source,java]
+-----------------------------------------------------------
+class SuperHero {
+    String name;
+    ErrorOr<Location> location;
+}
+-----------------------------------------------------------
+
+If the service returns a response like this:
+
+[source,json]
+-----------------------------------------------------------
+{
+  "data": {
+    "superHero": {
+      "name": "Wolverine",
+      "location": null
+    }
+  },
+  "errors": [{
+    "message":"location unknown",
+    "path": ["superHero","location"],
+    "extensions":{"code":"location-unknown"}
+  }]
+}
+-----------------------------------------------------------
+
+Then the `SuperHero#location` wrapper field will not contain a `value` but only the error above. See the `ErrorOr` class for details.
+
+== NestedParameter
+
+Some APIs require parameters beyond the root level, e.g. for filtering or paginating nested lists. Say you have a schema like this:
+
+[source,graphql]
+-----------------------------------------------------------
+type Query {
+    team(name: String!): Team!
+}
+
+type Team {
+    members(first: Int!): [SuperHero!]!
+}
+-----------------------------------------------------------
+
+To pass the parameter to the nested field/method, annotate it as `@NestedParameter`, e.g.:
+
+[source,java]
+-----------------------------------------------------------
+@GraphQlClientApi
+interface TeamsApi {
+    Team team(String name, @NestedParameter("members") int first);
+}
+-----------------------------------------------------------
+
+The value of the `@NestedParameter` annotation is the dot-delimited path to the nested field/method that the value should be added to.
+
+== Multiple
+
+Say you need the result from several root queries, e.g. all `superHeroes` and all `superVillains`. Java only supports a single return value, so you'll need a wrapper class:
+
+[source,java]
+-----------------------------------------------------------
+@GraphQlClientApi
+interface SuperHeroesApi {
+    @Multiple
+    HeroesAndVillains heroesAndVillains();
+}
+
+class HeroesAndVillains {
+    List<SuperHero> superHeroes;
+    List<SuperVillain> superVillains;
+}
+-----------------------------------------------------------
+
+The `@Multiple` annotation 'inlines' the wrapper class, i.e. the actual query is:
+
+[source,graphql]
+-----------------------------------------------------------
+query heroesAndVillains { superHeroes {...} superVillains {...}}
+-----------------------------------------------------------
+
+The actual response below will be mapped to an instance of the `HeroesAndVillains` wrapper class:
+
+[source,json]
+-----------------------------------------------------------
+{
+  "data": {
+    "superHeroes": [ ... ],
+    "superVillains": [ ... ]
+  }
+}
+-----------------------------------------------------------
+
+If the nested queries require parameters, use `@<<NestedParameter>>` annotations.
+
+If you need the same request several times (e.g. with different query parameters), use `@Name` annotations, so the actual field names are used as <<Name Mapping / Aliases,alias>>.
