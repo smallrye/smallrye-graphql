@@ -1,7 +1,8 @@
 package io.smallrye.graphql.schema;
 
+import static java.util.Collections.emptyMap;
+
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,9 @@ import io.smallrye.graphql.schema.helper.Direction;
 
 /**
  * All the annotations we care about for a certain context
- * 
+ * <p>
  * There are multiple static methods to create the annotations for the correct context
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Annotations {
@@ -34,7 +35,7 @@ public class Annotations {
     /**
      * Get used when creating operations.
      * Operation only have methods (no properties)
-     * 
+     *
      * @param methodInfo the java method
      * @return Annotations for this method and its return-type
      */
@@ -64,7 +65,7 @@ public class Annotations {
     /**
      * Get used when creating fields on interfaces.
      * Interfaces only has methods, no properties
-     * 
+     *
      * @param methodInfo the java method
      * @return Annotations for this method
      */
@@ -75,7 +76,7 @@ public class Annotations {
     /**
      * Get used when creating fields on inputs and types.
      * This is used for public fields
-     * 
+     *
      * @param direction the direction
      * @param fieldInfo the java property
      * @return annotations for this field
@@ -87,7 +88,7 @@ public class Annotations {
     /**
      * Get used when creating fields on inputs and types.
      * Both has properties and methods and this needs to combined the two
-     * 
+     *
      * @param direction the direction
      * @param fieldInfo the java property
      * @param methodInfo the java method
@@ -103,9 +104,9 @@ public class Annotations {
 
     /**
      * Get used when we create types and references to them
-     * 
+     * <p>
      * Class level annotation for type creation.
-     * 
+     *
      * @param classInfo the java class
      * @return annotation for this class
      */
@@ -123,9 +124,9 @@ public class Annotations {
 
     /**
      * Get used when creating arrays.
-     * 
+     * <p>
      * This will contains the annotation on the collection field and method
-     * 
+     *
      * @param typeInCollection the field java type
      * @param methodTypeInCollection the method java type
      * @return the annotation for this array
@@ -138,9 +139,10 @@ public class Annotations {
     }
 
     // 
+
     /**
      * Used when we are creating operation and arguments for these operations
-     * 
+     *
      * @param methodInfo the java method
      * @param pos the argument position
      * @return annotation for this argument
@@ -153,9 +155,7 @@ public class Annotations {
 
         final org.jboss.jandex.Type parameterType = methodInfo.parameters().get(pos);
 
-        Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
-
-        annotationMap.putAll(getAnnotations(parameterType));
+        Map<DotName, AnnotationInstance> annotationMap = getAnnotations(parameterType);
 
         for (AnnotationInstance anno : methodInfo.annotations()) {
             if (anno.target().kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
@@ -174,7 +174,7 @@ public class Annotations {
 
     /**
      * Create the annotations, mapped by name
-     * 
+     *
      * @param annotations the annotation
      */
     private Annotations(Map<DotName, AnnotationInstance> annotations) {
@@ -187,7 +187,7 @@ public class Annotations {
 
     /**
      * Get a specific annotation
-     * 
+     *
      * @param annotation the annotation you want
      * @return the annotation value or null
      */
@@ -197,7 +197,7 @@ public class Annotations {
 
     /**
      * Get a specific annotation
-     * 
+     *
      * @param annotation the annotation you want
      * @return the annotation value or null
      */
@@ -207,7 +207,7 @@ public class Annotations {
 
     /**
      * Check if there is an annotation and it has a valid value
-     * 
+     *
      * @param annotation the annotation we are checking
      * @return true if valid value
      */
@@ -217,7 +217,7 @@ public class Annotations {
 
     /**
      * Check if one of these annotations is present
-     * 
+     *
      * @param annotations the annotations to check
      * @return true if it does
      */
@@ -232,7 +232,7 @@ public class Annotations {
 
     /**
      * Get on of these annotations
-     * 
+     *
      * @param annotations the annotations to check (in order)
      * @return the annotation potentially or empty if not found
      */
@@ -248,7 +248,7 @@ public class Annotations {
     /**
      * This go through a list of annotations and find the first one that has a valid value.
      * If it could not find one, it return empty
-     * 
+     *
      * @param annotations the annotations in order
      * @return the valid annotation value or default value
      */
@@ -264,7 +264,7 @@ public class Annotations {
     /**
      * This go through a list of method annotations and find the first one that has a valid value.
      * If it could not find one, it return the default value.
-     * 
+     *
      * @param annotations the annotations in order
      * @return the valid annotation value or empty
      */
@@ -280,7 +280,7 @@ public class Annotations {
     /**
      * This go through a list of method parameter annotations and find the first one that has a valid value.
      * If it could not find one, it return the default value.
-     * 
+     *
      * @param annotations the annotations in order
      * @return the valid annotation value or empty
      */
@@ -299,23 +299,11 @@ public class Annotations {
     }
 
     private boolean hasValidMethodAnnotation(DotName annotation) {
-        if (containsKeyAndValidValue(annotation)) {
-            AnnotationInstance annotationInstance = getAnnotation(annotation);
-            if (isMethodAnnotation(annotationInstance)) {
-                return true;
-            }
-        }
-        return false;
+        return containsKeyAndValidValue(annotation) && isMethodAnnotation(getAnnotation(annotation));
     }
 
     private boolean hasValidMethodParameterAnnotation(DotName annotation) {
-        if (containsKeyAndValidValue(annotation)) {
-            AnnotationInstance annotationInstance = getAnnotation(annotation);
-            if (isMethodParameterAnnotation(annotationInstance)) {
-                return true;
-            }
-        }
-        return false;
+        return containsKeyAndValidValue(annotation) && isMethodParameterAnnotation(getAnnotation(annotation));
     }
 
     private AnnotationInstance getAnnotation(DotName key) {
@@ -339,7 +327,7 @@ public class Annotations {
     }
 
     private Optional<String> getStringValue(AnnotationValue annotationValue) {
-        String value = null;
+        String value;
         if (annotationValue != null) {
             value = annotationValue.asString();
             if (value != null && !value.isEmpty()) {
@@ -367,7 +355,7 @@ public class Annotations {
         }
         if (methodInfo != null) {
             List<org.jboss.jandex.Type> parameters = methodInfo.parameters();
-            if (parameters != null && !parameters.isEmpty()) {
+            if (!parameters.isEmpty()) {
                 org.jboss.jandex.Type param = parameters.get(ZERO);
                 annotationsForField.putAll(getTypeUseAnnotations(param));
             }
@@ -395,7 +383,7 @@ public class Annotations {
                     Annotations.DATE_FORMAT,
                     Annotations.NUMBER_FORMAT);
         }
-        return Collections.EMPTY_MAP;
+        return emptyMap();
     }
 
     private static Map<DotName, AnnotationInstance> getAnnotations(org.jboss.jandex.Type type) {
@@ -465,6 +453,7 @@ public class Annotations {
     // SmallRye GraphQL Annotations (Experimental)
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
+    public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");

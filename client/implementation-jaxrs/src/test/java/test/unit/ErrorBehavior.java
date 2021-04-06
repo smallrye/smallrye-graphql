@@ -422,14 +422,14 @@ class ErrorBehavior {
     @Test
     void shouldFetchFullWrapper() {
         fixture.returns(Response.ok("{\"data\":{\"find\":{" +
-                "\"findHeroes\":[{\"name\":\"Spider Man\",\"location\":\"New York\"}]," +
-                "\"findTeams\":[{\"name\":\"Avengers\"}]" +
+                "\"superHeroes\":[{\"name\":\"Spider Man\",\"location\":\"New York\"}]," +
+                "\"teams\":[{\"name\":\"Avengers\"}]" +
                 "}}}"));
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
 
-        then(fixture.query()).isEqualTo("query find { find {findHeroes {name location} findTeams {name}} }");
+        then(fixture.query()).isEqualTo("query find { find {superHeroes:findHeroes {name location} teams:findTeams {name}} }");
         {
             then(response.superHeroes).hasSize(1);
             ErrorOr<SuperHero> superHero = response.superHeroes.get(0);
@@ -453,18 +453,18 @@ class ErrorBehavior {
     @Test
     void shouldFetchPartialWrapper() {
         fixture.returns(Response.ok("{" +
-                "\"data\":{\"find\":{\"findHeroes\":[{\"name\":\"Wolverine\"}],\"findTeams\":null}}," +
+                "\"data\":{\"find\":{\"superHeroes\":[{\"name\":\"Wolverine\"}],\"teams\":null}}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
                 /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
-                /**/"\"path\": [\"find\",\"findTeams\"],\n" +
+                /**/"\"path\": [\"find\",\"teams\"],\n" +
                 /**/"\"extensions\":{\"code\":\"team-search-disabled\"}" +
                 "}]}}"));
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
 
-        then(fixture.query()).isEqualTo("query find { find {findHeroes {name location} findTeams {name}} }");
+        then(fixture.query()).isEqualTo("query find { find {superHeroes:findHeroes {name location} teams:findTeams {name}} }");
         then(response.superHeroes).hasSize(1);
         then(response.superHeroes.get(0).get().name).isEqualTo("Wolverine");
         then(response.teams.isError()).isTrue();
@@ -474,7 +474,7 @@ class ErrorBehavior {
         GraphQlClientError error = response.teams.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error.getPath()).containsExactly("find", "findTeams");
+        then(error.getPath()).containsExactly("find", "teams");
         then(error.getErrorCode()).isEqualTo("team-search-disabled");
     }
 }

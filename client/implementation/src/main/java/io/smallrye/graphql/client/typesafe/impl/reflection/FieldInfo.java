@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -29,6 +30,13 @@ public class FieldInfo {
         if (field.isAnnotationPresent(Name.class))
             return field.getAnnotation(Name.class).value();
         return field.getName();
+    }
+
+    /** If the field is renamed with a {@link Name} annotation, the real field name is used as an alias. */
+    public Optional<String> getAlias() {
+        if (field.isAnnotationPresent(Name.class))
+            return Optional.of(field.getName());
+        return Optional.empty();
     }
 
     public Object get(Object instance) {

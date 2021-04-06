@@ -9,6 +9,8 @@ import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
+import test.unit.ParametersBehavior.Foo;
 
 class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -20,7 +22,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallRenamedStringQuery() {
+    void shouldQueryRenamedString() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         RenamedStringApi api = fixture.build(RenamedStringApi.class);
 
@@ -36,7 +38,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallParamQuery() {
+    void shouldQueryNamedParam() {
         fixture.returnsData("'greeting':'hi, foo'");
         RenamedParamApi api = fixture.build(RenamedParamApi.class);
 
@@ -54,7 +56,7 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallRenamedQuery() {
+    void shouldQueryRenamedMethod() {
         fixture.returnsData("'greeting':'hi, foo'");
         RenamedMethodApi api = fixture.build(RenamedMethodApi.class);
 
@@ -78,15 +80,40 @@ class AnnotationBehavior {
     }
 
     @Test
-    void shouldCallObjectQuery() {
-        fixture.returnsData("'greeting':{'foo':'foo','key':5}");
+    void shouldQueryObjectWithRenamedFields() {
+        fixture.returnsData("'greeting':{'text':'foo','code':5}");
         ObjectApi api = fixture.build(ObjectApi.class);
 
         Greeting greeting = api.greeting();
 
-        then(fixture.query()).isEqualTo("query greeting { greeting {foo key} }");
+        then(fixture.query()).isEqualTo("query greeting { greeting {text:foo code:key} }");
         then(greeting.text).isEqualTo("foo");
         then(greeting.code).isEqualTo(5);
+    }
+
+    @GraphQlClientApi
+    interface MultiAliasApi {
+        @Multiple
+        FooAndFoo fooAndFoo();
+    }
+
+    static class FooAndFoo {
+        @Name("foo")
+        Foo one;
+        @Name("foo")
+        Foo two;
+    }
+
+    @Test
+    void shouldQueryWithMultiAlias() {
+        fixture.returnsData("'one': {'name': 'foo'}, 'two': {'name': 'bar'}");
+        MultiAliasApi stuff = fixture.build(MultiAliasApi.class);
+
+        FooAndFoo fooAndFoo = stuff.fooAndFoo();
+
+        then(fixture.query()).isEqualTo("query fooAndFoo {one:foo {name} two:foo {name}}");
+        then(fooAndFoo.one.name).isEqualTo("foo");
+        then(fooAndFoo.two.name).isEqualTo("bar");
     }
 
     private static class Thing {

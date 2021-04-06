@@ -14,7 +14,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * Help with the fields when fetching data.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractHelper {
@@ -26,7 +26,7 @@ public abstract class AbstractHelper {
 
     /**
      * This gets called after the value has been recursively transformed.
-     * 
+     *
      * @param fieldValue the transformed value
      * @param field the field as created when scanning
      * @return the return value
@@ -35,7 +35,7 @@ public abstract class AbstractHelper {
 
     /**
      * This do the transform of a 'leaf' value
-     * 
+     *
      * @param argumentValue the value
      * @param field the field as scanned
      * @return transformed value
@@ -44,7 +44,7 @@ public abstract class AbstractHelper {
 
     /**
      * This does the mapping of a 'leaf' value
-     * 
+     *
      * @param argumentValue the value
      * @param field the field as scanned
      * @return mapped value
@@ -53,7 +53,7 @@ public abstract class AbstractHelper {
 
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
-     * 
+     *
      * @param inputValue the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and transformed
@@ -84,7 +84,7 @@ public abstract class AbstractHelper {
 
     /**
      * Here we actually do the mapping. This method get called recursively in the case of arrays
-     * 
+     *
      * @param inputValue the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and mapped
@@ -116,7 +116,7 @@ public abstract class AbstractHelper {
      * This allows arrays of arrays and transformation inside arrays
      * Even without transformation, we need to go from arrayList to Array,
      * or arraylist of arraylist to array of array
-     * 
+     *
      * @param array the array or list as from graphql-java,
      * @param field the field as created while scanning
      * @return an array with the transformed values in.
@@ -149,7 +149,7 @@ public abstract class AbstractHelper {
     /**
      * This just creates a new array and add values to it by calling the recursiveMapping method.
      * This allows arrays of arrays and mapping inside arrays
-     * 
+     *
      * @param array the array or list as from graphql-java,
      * @param field the field as created while scanning
      * @return an array with the mapped values in.
@@ -190,7 +190,7 @@ public abstract class AbstractHelper {
      * This allows collections of collections and transformation inside collections
      * Even without transformation, we need to go from arrayList to the correct collection type,
      * or arraylist of arraylist to collection of collection
-     * 
+     *
      * @param argumentValue the list as from graphql-java (always an arraylist)
      * @param field the field as created while scanning
      * @return a collection with the transformed values in.
@@ -215,7 +215,7 @@ public abstract class AbstractHelper {
     /**
      * This just creates a new correct type collection and add values to it by calling the recursiveMapping method.
      * This allows collections of collections and mapping inside collections
-     * 
+     *
      * @param argumentValue the list as from graphql-java (always an arraylist)
      * @param field the field as created while scanning
      * @return a collection with the mapped values in.
@@ -238,7 +238,7 @@ public abstract class AbstractHelper {
     /**
      * This is not yet specified by MicroProfile GraphQL, but we support it by also allowing transformation the optional
      * element.
-     * 
+     *
      * @param argumentValue the value as from graphql-java
      * @param field the graphql-field
      * @return a optional with the transformed value in.
@@ -258,7 +258,7 @@ public abstract class AbstractHelper {
 
     /**
      * Add support for mapping an optional element.
-     * 
+     *
      * @param argumentValue the value as from graphql-java
      * @param field the graphql-field
      * @return a optional with the mapped value in.
@@ -279,9 +279,9 @@ public abstract class AbstractHelper {
     /**
      * Here we create an field from a field, but reducing the collection depth.
      * This will happen until we get to the field in the collection.
-     * 
+     * <p>
      * This 'clone' an array, but update the array information
-     * 
+     *
      * @param owner the owner field
      * @return the new field
      */
@@ -289,11 +289,11 @@ public abstract class AbstractHelper {
         Field child = new Field(owner.getMethodName(),
                 owner.getPropertyName(),
                 owner.getName(),
-                owner.getDescription(),
                 owner.getReference());
         // not null
         child.setNotNull(owner.isNotNull());
-
+        // description
+        child.setDescription(owner.getDescription());
         // transform info
         child.setTransformation(owner.getTransformation());
         // mapping info

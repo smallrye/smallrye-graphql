@@ -34,14 +34,14 @@ public class NonNullHelper {
      * 
      * @param type the type
      * @param annotations the applicable annotations
-     * @param ignorePrimativeCheck ignore the primitive rule
+     * @param ignorePrimitiveCheck ignore the primitive rule
      * @return true if we should
      */
-    public static boolean markAsNonNull(Type type, Annotations annotations, boolean ignorePrimativeCheck) {
+    public static boolean markAsNonNull(Type type, Annotations annotations, boolean ignorePrimitiveCheck) {
         // check if the @NonNull annotation is present
         boolean hasNonNull = hasNonNull(annotations);
         // true if this is a primitive
-        if (!ignorePrimativeCheck && type.kind().equals(Type.Kind.PRIMITIVE)) {
+        if (!ignorePrimitiveCheck && type.kind().equals(Type.Kind.PRIMITIVE)) {
             hasNonNull = true; // By implication
         }
 

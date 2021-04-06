@@ -1,10 +1,14 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -23,6 +27,8 @@ import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
+import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -31,11 +37,11 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * This creates a type object.
- * 
+ * <p>
  * The type object has fields that might reference other types that should still be created. It might also implement
  * some interfaces that should be created. It might also have some operations that reference other types that should
  * still be created.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TypeCreator implements Creator<Type> {
@@ -45,6 +51,7 @@ public class TypeCreator implements Creator<Type> {
     private final FieldCreator fieldCreator;
     private final OperationCreator operationCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
+    private Map<DotName, DirectiveType> directiveTypes;
 
     public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator,
             TypeAutoNameStrategy autoNameStrategy) {
@@ -52,6 +59,15 @@ public class TypeCreator implements Creator<Type> {
         this.fieldCreator = fieldCreator;
         this.operationCreator = operationCreator;
         this.autoNameStrategy = autoNameStrategy;
+    }
+
+    public void setDirectiveTypes(List<DirectiveType> directiveTypes) {
+        // not with streams/collector, so duplicate keys are allowed
+        Map<DotName, DirectiveType> map = new HashMap<>();
+        for (DirectiveType directiveType : directiveTypes) {
+            map.put(DotName.createSimple(directiveType.getClassName()), directiveType);
+        }
+        this.directiveTypes = map;
     }
 
     @Override
@@ -77,6 +93,9 @@ public class TypeCreator implements Creator<Type> {
         // Interfaces
         addInterfaces(type, classInfo, reference);
 
+        // Directives
+        addDirectives(type, classInfo);
+
         return type;
     }
 
@@ -89,10 +108,8 @@ public class TypeCreator implements Creator<Type> {
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
                 allMethods.addAll(c.methods());
-                if (c.fields() != null && !c.fields().isEmpty()) {
-                    for (final FieldInfo fieldInfo : c.fields()) {
-                        allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
-                    }
+                for (FieldInfo fieldInfo : c.fields()) {
+                    allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
             }
         }
@@ -160,4 +177,37 @@ public class TypeCreator implements Creator<Type> {
         }
     }
 
+    private void addDirectives(Type type, ClassInfo classInfo) {
+        for (DotName directiveTypeName : directiveTypes.keySet()) {
+            AnnotationInstance annotationInstance = classInfo.classAnnotation(directiveTypeName);
+            if (annotationInstance == null) {
+                continue;
+            }
+            if (type.getDirectiveInstances() == null) {
+                type.setDirectiveInstances(new ArrayList<>());
+            }
+            type.addDirectiveInstance(toDirectiveInstance(annotationInstance));
+        }
+    }
+
+    private DirectiveInstance toDirectiveInstance(AnnotationInstance annotationInstance) {
+        DirectiveInstance directiveInstance = new DirectiveInstance();
+        directiveInstance.setType(directiveTypes.get(annotationInstance.name()));
+        for (AnnotationValue annotationValue : annotationInstance.values()) {
+            directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
+        }
+        return directiveInstance;
+    }
+
+    private Object valueObject(AnnotationValue annotationValue) {
+        if (annotationValue.kind() == ARRAY) {
+            AnnotationValue[] values = (AnnotationValue[]) annotationValue.value();
+            Object[] objects = new Object[values.length];
+            for (int i = 0; i < values.length; i++) {
+                objects[i] = valueObject(values[i]);
+            }
+            return objects;
+        }
+        return annotationValue.value();
+    }
 }

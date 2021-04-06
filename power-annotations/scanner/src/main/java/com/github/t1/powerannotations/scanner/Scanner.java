@@ -1,5 +1,6 @@
 package com.github.t1.powerannotations.scanner;
 
+import static com.github.t1.powerannotations.common.PowerAnnotations.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -18,29 +18,21 @@ import java.util.zip.ZipInputStream;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 
-import com.github.t1.powerannotations.common.PowerAnnotations;
-
 public class Scanner {
-
-    public static Index scan() {
-        Index index = new Scanner().scanClassPath();
-        new PowerAnnotations(index, System.out::println).resolveAnnotations();
-        return index;
-    }
 
     private final Indexer indexer = new Indexer();
     private final IndexerConfig config = new IndexerConfig();
     private int archivesIndexed;
     private int classesIndexed;
 
-    private Index scanClassPath() {
+    public Index scanClassPath() {
         long t = System.currentTimeMillis();
         urls()
                 .distinct()
                 .filter(this::include)
                 .forEach(this::index);
         Index index = indexer.complete();
-        LOG.info("scanned " + archivesIndexed + " archives with " + classesIndexed + " classes " +
+        log.info("scanned " + archivesIndexed + " archives with " + classesIndexed + " classes " +
                 "in " + (System.currentTimeMillis() - t) + "ms");
         return index;
     }
@@ -72,7 +64,7 @@ public class Scanner {
                 indexArchive(url.openStream());
             else
                 indexFolder(url);
-            LOG.info("indexed " + (classesIndexed - classesIndexedBefore) + " classes in " + url
+            log.info("indexed " + (classesIndexed - classesIndexedBefore) + " classes in " + url
                     + " in " + (System.currentTimeMillis() - t0) + " ms");
         } catch (IOException e) {
             throw new RuntimeException("can't index " + url, e);
@@ -123,6 +115,4 @@ public class Scanner {
             throw new RuntimeException("can't index path " + path, e);
         }
     }
-
-    private static final Logger LOG = Logger.getLogger(Scanner.class.getName());
 }

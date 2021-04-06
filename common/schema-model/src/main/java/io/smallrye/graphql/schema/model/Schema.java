@@ -10,10 +10,10 @@ import java.util.Set;
 
 /**
  * Represents a GraphQL Schema.
- * 
+ * <p>
  * This is the end result we are after and the object that will be passed to the
  * implementation to create the actual endpoints and schema.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
@@ -23,12 +23,13 @@ public final class Schema implements Serializable {
     private Map<Group, Set<Operation>> groupedQueries = new HashMap<>();
     private Map<Group, Set<Operation>> groupedMutations = new HashMap<>();
 
+    private List<DirectiveType> directiveTypes = new ArrayList<>();
     private Map<String, InputType> inputs = new HashMap<>();
-    private Map<String, Type> types = new HashMap();
-    private Map<String, InterfaceType> interfaces = new HashMap();
-    private Map<String, EnumType> enums = new HashMap();
+    private Map<String, Type> types = new HashMap<>();
+    private Map<String, InterfaceType> interfaces = new HashMap<>();
+    private Map<String, EnumType> enums = new HashMap<>();
 
-    private Map<String, ErrorInfo> errors = new HashMap();
+    private Map<String, ErrorInfo> errors = new HashMap<>();
 
     public Schema() {
     }
@@ -223,5 +224,21 @@ public final class Schema implements Serializable {
         }
         set.add(query);
         map.put(group, set);
+    }
+
+    public List<DirectiveType> getDirectiveTypes() {
+        return directiveTypes;
+    }
+
+    public void setDirectiveTypes(List<DirectiveType> directiveTypes) {
+        this.directiveTypes = directiveTypes;
+    }
+
+    public void addDirectiveType(DirectiveType directiveType) {
+        directiveTypes.add(directiveType);
+    }
+
+    public boolean hasDirectiveTypes() {
+        return !directiveTypes.isEmpty();
     }
 }

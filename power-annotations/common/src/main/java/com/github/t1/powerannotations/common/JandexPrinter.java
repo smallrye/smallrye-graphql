@@ -1,5 +1,7 @@
 package com.github.t1.powerannotations.common;
 
+import static com.github.t1.powerannotations.common.PowerAnnotations.log;
+
 import java.util.function.Consumer;
 
 import org.jboss.jandex.ClassInfo;
@@ -10,33 +12,31 @@ import org.jboss.jandex.MethodInfo;
 public class JandexPrinter {
 
     private final IndexView index;
-    private final Logger logger;
 
-    public JandexPrinter(IndexView index, Logger logger) {
+    public JandexPrinter(IndexView index) {
         this.index = index;
-        this.logger = logger;
     }
 
     public void run() {
-        logger.info("------------------------------------------------------------");
+        log.info("------------------------------------------------------------");
         ((Index) index).printAnnotations();
-        logger.info("------------------------------------------------------------");
+        log.info("------------------------------------------------------------");
         ((Index) index).printSubclasses();
-        logger.info("------------------------------------------------------------");
+        log.info("------------------------------------------------------------");
         index.getKnownClasses().forEach(new Consumer<ClassInfo>() {
             @Override
             public void accept(ClassInfo classInfo) {
                 if (!classInfo.name().toString().startsWith("test."))
                     return;
-                logger.info(classInfo.name() + ":");
+                log.info(classInfo.name() + ":");
                 classInfo.methods().forEach(new Consumer<MethodInfo>() {
                     @Override
                     public void accept(MethodInfo method) {
-                        logger.info("    " + method.name() + " [" + method.defaultValue() + "]");
+                        log.info("    " + method.name() + " [" + method.defaultValue() + "]");
                     }
                 });
             }
         });
-        logger.info("------------------------------------------------------------");
+        log.info("------------------------------------------------------------");
     }
 }

@@ -34,10 +34,11 @@ public class QueryBuilder {
                         .map(this::bind)
                         .collect(joining(", ", "(", ")")));
         }
+
         request.append(fields(method.getReturnType()));
-        if (method.isSingle()) {
+
+        if (method.isSingle())
             request.append(" }");
-        }
 
         return request.toString();
     }
@@ -77,7 +78,9 @@ public class QueryBuilder {
 
     private String field(FieldInfo field) {
         TypeInfo type = field.getType();
-        StringBuilder expression = new StringBuilder(field.getName());
+        StringBuilder expression = new StringBuilder();
+        field.getAlias().ifPresent(alias -> expression.append(alias).append(":"));
+        expression.append(field.getName());
         if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
             String path = nestedExpressionPrefix() + field.getName();
             if (method.hasNestedParameters(path))

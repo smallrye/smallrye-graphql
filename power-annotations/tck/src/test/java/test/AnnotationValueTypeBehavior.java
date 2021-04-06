@@ -7,7 +7,6 @@ import static org.assertj.core.api.BDDAssertions.then;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.github.t1.annotations.Annotations;
@@ -38,7 +37,6 @@ import com.github.t1.annotations.tck.AnnotationValueTypeClasses.AnnotatedWithStr
 import com.github.t1.annotations.tck.AnnotationValueTypeClasses.DifferentValueTypesAnnotation;
 import com.github.t1.annotations.tck.SomeAnnotation;
 
-@Nested
 class AnnotationValueTypeBehavior {
 
     @Test
