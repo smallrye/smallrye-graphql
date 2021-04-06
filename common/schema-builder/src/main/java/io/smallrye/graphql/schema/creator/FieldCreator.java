@@ -150,7 +150,9 @@ public class FieldCreator {
             Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
                     annotationsForPojo, parentObjectReference);
 
-            Field field = new Field(fieldInfo.name(), MethodHelper.getPropertyName(direction, fieldInfo.name()), name,
+            Field field = new Field(null,
+                    fieldInfo.name(),
+                    name,
                     reference);
 
             configure(field, fieldType, annotationsForPojo);

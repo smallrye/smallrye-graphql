@@ -44,9 +44,7 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
-import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
-import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
-import io.smallrye.graphql.execution.datafetcher.PropertyDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.*;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -305,7 +303,7 @@ public class Bootstrap {
         // Fields 
         if (interfaceType.hasFields()) {
             interfaceTypeBuilder = interfaceTypeBuilder
-                    .fields(createGraphQLFieldDefinitionsFromFields(interfaceType.getName(),
+                    .fields(createGraphQLFieldDefinitionsFromFields(interfaceType,
                             interfaceType.getFields().values()));
         }
 
@@ -370,7 +368,7 @@ public class Bootstrap {
         // Fields
         if (type.hasFields()) {
             objectTypeBuilder = objectTypeBuilder
-                    .fields(createGraphQLFieldDefinitionsFromFields(type.getName(), type.getFields().values()));
+                    .fields(createGraphQLFieldDefinitionsFromFields(type, type.getFields().values()));
         }
 
         // Operations
@@ -480,15 +478,15 @@ public class Bootstrap {
         return graphQLFieldDefinition;
     }
 
-    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(String ownerName, Collection<Field> fields) {
+    private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(Reference owner, Collection<Field> fields) {
         List<GraphQLFieldDefinition> graphQLFieldDefinitions = new ArrayList<>();
         for (Field field : fields) {
-            graphQLFieldDefinitions.add(createGraphQLFieldDefinitionFromField(ownerName, field));
+            graphQLFieldDefinitions.add(createGraphQLFieldDefinitionFromField(owner, field));
         }
         return graphQLFieldDefinitions;
     }
 
-    private GraphQLFieldDefinition createGraphQLFieldDefinitionFromField(String ownerName, Field field) {
+    private GraphQLFieldDefinition createGraphQLFieldDefinitionFromField(Reference owner, Field field) {
         GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
                 .name(field.getName())
                 .description(field.getDescription());
@@ -499,8 +497,8 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        PropertyDataFetcher datafetcher = new PropertyDataFetcher(field);
-        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(ownerName, graphQLFieldDefinition.getName()),
+        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, owner);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(owner.getName(), graphQLFieldDefinition.getName()),
                 datafetcher);
 
         return graphQLFieldDefinition;
