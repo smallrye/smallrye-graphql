@@ -1,7 +1,6 @@
 package io.smallrye.graphql.execution.context;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.dataloader.BatchLoaderContextProvider;
@@ -10,7 +9,14 @@ import org.dataloader.DataLoader;
 // hacky way to pass the SmallRyeContext from data from data fetchers to BatchLoaderEnvironment
 public class SmallRyeBatchLoaderContextProvider implements BatchLoaderContextProvider {
 
-    static final Map<DataLoader, SmallRyeBatchLoaderContextProvider> INSTANCES = new ConcurrentHashMap<>();
+    /**
+     * Stores the respective SmallRyeBatchLoaderContextProvider for each DataLoader.
+     * <p>
+     * WeakHashMap is used to enable garbage collection from both once the request is complete and the DataLoader is no longer
+     * in use.
+     */
+    static final Map<DataLoader, SmallRyeBatchLoaderContextProvider> INSTANCES = Collections
+            .synchronizedMap(new WeakHashMap<>());
 
     public void setDataLoader(DataLoader dataLoader) {
         INSTANCES.put(dataLoader, this);
