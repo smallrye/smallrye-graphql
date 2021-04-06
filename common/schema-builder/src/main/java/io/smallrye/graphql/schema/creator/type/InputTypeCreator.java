@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.FieldInfo;
@@ -19,6 +20,7 @@ import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -44,11 +46,10 @@ public class InputTypeCreator implements Creator<InputType> {
 
     @Override
     public InputType create(ClassInfo classInfo, Reference reference) {
-        if (!classInfo.hasNoArgsConstructor() ||
-                !Modifier.isPublic(classInfo.method("<init>").flags())) {
+        if (!hasUseableConstructor(classInfo)) {
             throw new IllegalArgumentException(
                     "Class " + classInfo.name().toString()
-                            + " is used as input, but does not have a public default constructor");
+                            + " is used as input, but does neither have a public default constructor nor a JsonbCreator method");
         }
 
         LOG.debug("Creating Input from " + classInfo.name().toString());
@@ -69,21 +70,68 @@ public class InputTypeCreator implements Creator<InputType> {
         return inputType;
     }
 
+    public boolean hasUseableConstructor(ClassInfo classInfo) {
+        MethodInfo constructor = findCreator(classInfo);
+        return constructor != null;
+    }
+
+    /**
+     * Returns a constructor or factory method to create instances of this class.
+     *
+     * Could either be the default constructor or any constructor or static method annotated with {@code @JsonbCreator}
+     * 
+     * @param classInfo the class whose creator is to be found
+     * @return the creator, null, if no public constructor or factory method is found
+     */
+    public MethodInfo findCreator(ClassInfo classInfo) {
+        for (final MethodInfo constructor : classInfo.constructors()) {
+            if (!Modifier.isPublic(constructor.flags()))
+                continue;
+            if (constructor.parameters().isEmpty()) {
+                return constructor;
+            }
+            if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)) {
+                return constructor;
+            }
+        }
+
+        for (final MethodInfo factoryMethod : classInfo.methods()) {
+            if (!Modifier.isStatic(factoryMethod.flags()))
+                continue;
+            if (!Modifier.isPublic(factoryMethod.flags()))
+                continue;
+
+            if (factoryMethod.hasAnnotation(Annotations.JSONB_CREATOR)) {
+                return factoryMethod;
+            }
+        }
+
+        return null;
+    }
+
     private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
+        MethodInfo creator = findCreator(classInfo);
 
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (!c.toString().startsWith(JAVA_DOT)) { // Not java objects
                 allMethods.addAll(c.methods());
-                if (c.fields() != null && !c.fields().isEmpty()) {
-                    for (final FieldInfo fieldInfo : c.fields()) {
-                        allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
-                    }
+                for (final FieldInfo fieldInfo : c.fields()) {
+                    allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
             }
+        }
+
+        //Parameters of JsonbCreator
+        for (short i = 0; i < creator.parameters().size(); i++) {
+            String fieldName = creator.parameterName(i);
+            FieldInfo fieldInfo = allFields.remove(fieldName);
+            final Optional<Field> maybeField = fieldCreator.createFieldForParameter(creator, i, fieldInfo, reference);
+            maybeField.ifPresent(inputType::addField);
+            maybeField.ifPresent(inputType::addCreatorParameter);
         }
 
         for (MethodInfo methodInfo : allMethods) {
