@@ -30,8 +30,8 @@ class ConfigBehavior {
                 NoSuchElementException.class);
 
         then(thrown)
-                .hasMessageContaining("SRCFG00014: Property " + API_URL_CONFIG_KEY)
-                .hasMessageContaining("not found");
+                .hasMessageContaining("SRCFG00014")
+                .hasMessageContaining(API_URL_CONFIG_KEY);
     }
 
     @Test
