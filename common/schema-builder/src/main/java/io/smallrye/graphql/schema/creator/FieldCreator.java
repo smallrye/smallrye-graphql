@@ -129,6 +129,31 @@ public class FieldCreator {
         return Optional.empty();
     }
 
+    public Optional<Field> createFieldForParameter(MethodInfo method, short position, FieldInfo fieldInfo,
+            Reference parentObjectReference) {
+        Annotations annotationsForPojo = Annotations.getAnnotationsForInputCreator(method, position, fieldInfo);
+
+        // Name
+        String name = getFieldName(Direction.IN, annotationsForPojo, method.parameterName(position));
+
+        // Field Type
+        Type fieldType = getFieldType(fieldInfo, method.parameters().get(position));
+
+        Reference reference = referenceCreator.createReferenceForPojoField(Direction.IN, fieldType,
+                method.parameters().get(position), annotationsForPojo, parentObjectReference);
+
+        String fieldName = fieldInfo != null ? fieldInfo.name() : null;
+        Field field = new Field(null, fieldName, name, reference);
+
+        // Wrapper
+        field.setWrapper(WrapperCreator.createWrapper(fieldType, method.parameters().get(position)).orElse(null));
+
+        configure2(field, method.parameters().get(position), annotationsForPojo);
+
+        return Optional.of(field);
+
+    }
+
     /**
      * Creates a field from a public field.
      * Used by Type and Input

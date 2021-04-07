@@ -1,0 +1,22 @@
+{
+    withJsonbCreator(input: {field: "ABC"}) {
+        field
+    }
+    creatorWithTransformation(input: {field: "123 "}) {
+        field
+    }
+    creatorWithFieldDefault(input: {}) {
+        field
+    }
+    creatorWithParameterDefault(input: {}) {
+        field
+    }
+    creatorWithMultipleParameters(input: {string: "ABC", integer: 123, localDate:"2021-01-01"}) {
+        string
+        integer
+        localDate
+    }
+    withStaticFactory(input: {field: "ABC"}) {
+        field
+    }
+}

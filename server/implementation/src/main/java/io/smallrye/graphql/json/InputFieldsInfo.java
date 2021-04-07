@@ -1,7 +1,10 @@
 package io.smallrye.graphql.json;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.smallrye.graphql.schema.model.Field;
@@ -16,12 +19,19 @@ public class InputFieldsInfo {
 
     private static final Map<String, Map<String, Field>> inputFieldTransformationMap = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldMappingMap = new HashMap<>();
+    private static final Map<String, List<String>> creatorParameters = new HashMap<>();
 
     private InputFieldsInfo() {
     }
 
     protected static void register(InputType inputType) {
         if (inputType.hasFields()) {
+            final ArrayList<String> creatorParameters = new ArrayList<>();
+            for (final Field creatorParameter : inputType.getCreatorParameters()) {
+                creatorParameters.add(creatorParameter.getName());
+            }
+            InputFieldsInfo.creatorParameters.put(inputType.getClassName(), creatorParameters);
+
             Map<String, Field> fieldsThatNeedsTransformation = new HashMap<>();
             Map<String, Field> fieldsThatNeedsMapping = new HashMap<>();
 
@@ -70,4 +80,12 @@ public class InputFieldsInfo {
         }
         return null;
     }
+
+    public static List<String> getCreatorParameters(String className) {
+        if (creatorParameters.containsKey(className)) {
+            return creatorParameters.get(className);
+        }
+        return Collections.emptyList();
+    }
+
 }

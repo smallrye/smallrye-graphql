@@ -19,7 +19,9 @@ import io.smallrye.graphql.schema.model.InputType;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class JsonBCreator {
-    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true)); //default
+    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
+            .withFormatting(true)
+            .withNullValues(true)); //null values are required by @JsonbCreator
 
     private static final Map<String, Jsonb> jsonMap = new HashMap<>();
 

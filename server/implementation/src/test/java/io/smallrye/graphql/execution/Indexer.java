@@ -25,6 +25,10 @@ public class Indexer {
         return indexer.complete();
     }
 
+    public static IndexView getTestIndex(Class<?> clazz) {
+        return getTestIndex(clazz.getPackage().getName().replace('.', '/'));
+    }
+
     private static void indexDirectory(org.jboss.jandex.Indexer indexer, String baseDir) {
         InputStream directoryStream = getResourceAsStream(baseDir);
         BufferedReader reader = new BufferedReader(new InputStreamReader(directoryStream));
