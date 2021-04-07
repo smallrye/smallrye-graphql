@@ -1,7 +1,6 @@
 package io.smallrye.graphql.schema.model;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represent a GraphQL Input Type.
@@ -20,6 +19,11 @@ public final class InputType extends Reference {
     private String description;
 
     private Map<String, Field> fields = new LinkedHashMap<>();
+
+    /**
+     * All fields which are required by the creator method (e.g. {@code @JsonbCreator}).
+     */
+    private List<Field> creatorParameters = new ArrayList<>();
 
     public InputType() {
     }
@@ -55,5 +59,17 @@ public final class InputType extends Reference {
 
     public boolean hasField(String fieldName) {
         return this.fields.containsKey(fieldName);
+    }
+
+    public List<Field> getCreatorParameters() {
+        return creatorParameters;
+    }
+
+    public void setCreatorParameters(List<Field> creatorParameters) {
+        this.creatorParameters = creatorParameters;
+    }
+
+    public void addCreatorParameter(Field creatorParameter) {
+        this.creatorParameters.add(creatorParameter);
     }
 }

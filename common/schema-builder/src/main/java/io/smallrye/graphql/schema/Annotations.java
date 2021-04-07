@@ -102,6 +102,16 @@ public class Annotations {
         }
     }
 
+    public static Annotations getAnnotationsForInputCreator(MethodInfo method, short position, FieldInfo fieldInfo) {
+        Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, null);
+
+        if (fieldInfo != null) {
+            annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
+        }
+        annotationsForField.putAll(getAnnotationsForArgument(method, position).annotationsMap);
+        return new Annotations(annotationsForField);
+    }
+
     /**
      * Get used when we create types and references to them
      * <p>
@@ -478,6 +488,7 @@ public class Annotations {
     public static final DotName JSONB_NUMBER_FORMAT = DotName.createSimple("javax.json.bind.annotation.JsonbNumberFormat");
     public static final DotName JSONB_PROPERTY = DotName.createSimple("javax.json.bind.annotation.JsonbProperty");
     public static final DotName JSONB_TRANSIENT = DotName.createSimple("javax.json.bind.annotation.JsonbTransient");
+    public static final DotName JSONB_CREATOR = DotName.createSimple("javax.json.bind.annotation.JsonbCreator");
 
     // Bean Validation Annotations (SmallRye extra, not part of the spec)
     public static final DotName BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");
