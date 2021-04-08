@@ -69,4 +69,7 @@ public interface SmallRyeGraphQLServerMessages {
 
     @Message(id = 19, value = "Unsupported wrapped type. SmallRye only support DataFetchingEnvironment and not %s")
     IllegalArgumentException unsupportedWrappedClass(String className);
+
+    @Message(id = 20, value = "Can not inject an instance of class [%s]. Please make sure it is a CDI bean, also possibly the beans.xml file is needed")
+    RuntimeException canNotInjectClass(String className, @Cause Exception cause);
 }

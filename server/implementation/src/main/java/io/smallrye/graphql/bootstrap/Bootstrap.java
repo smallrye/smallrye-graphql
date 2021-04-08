@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.json.Json;
 import javax.json.JsonReader;
@@ -42,9 +43,12 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
-import io.smallrye.graphql.execution.datafetcher.*;
+import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
+import io.smallrye.graphql.execution.datafetcher.FieldDataFetcher;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -68,6 +72,7 @@ import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
+import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -113,6 +118,35 @@ public class Bootstrap {
         this.dataFetcherFactory = new DataFetcherFactory(config);
         this.eventEmitter = EventEmitter.getInstance(config);
         SmallRyeContext.setSchema(schema);
+        if (!Boolean.getBoolean("test.skip.injection.validation")) {
+            verifyInjectionIsAvailable();
+        }
+    }
+
+    /**
+     * The owning class of each operation needs to be an injectable bean. If the LookupService can't
+     * obtain an instance, probably it's either not a CDI bean, or beans.xml is missing.
+     * This method verifies that all classes with operations can be injected through the LookupService.
+     */
+    private void verifyInjectionIsAvailable() {
+        LookupService lookupService = LookupService.get();
+        ClassloadingService classloadingService = ClassloadingService.get();
+        // This crazy stream operation basically collects all class names where we need to verify that
+        // it belongs to an injectable bean
+        Stream.of(
+                schema.getQueries().stream().map(Operation::getClassName),
+                schema.getMutations().stream().map(Operation::getClassName),
+                schema.getGroupedQueries().values().stream().flatMap(Collection::stream).map(Operation::getClassName),
+                schema.getGroupedMutations().values().stream().flatMap(Collection::stream).map(Operation::getClassName))
+                .flatMap(stream -> stream)
+                .distinct().forEach(beanClassName -> {
+                    // verify that the bean is injectable
+                    try {
+                        lookupService.getClass(classloadingService.loadClass(beanClassName));
+                    } catch (Exception e) {
+                        throw SmallRyeGraphQLServerMessages.msg.canNotInjectClass(beanClassName, e);
+                    }
+                });
     }
 
     private void generateGraphQLSchema() {

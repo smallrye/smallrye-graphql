@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,9 +31,17 @@ public class SchemaTest {
 
     @BeforeEach
     public void init() {
+        // in a unit test we don't have injection available, this is a hack needed to tell the Bootstrap class
+        // that it should not verify injection availability
+        System.setProperty("test.skip.injection.validation", "true");
         IndexView index = Indexer.getTCKIndex();
         this.schema = SchemaBuilder.build(index);
         assertNotNull(schema);
+    }
+
+    @AfterEach
+    public void skipInjectionValidationCleanup() {
+        System.clearProperty("test.skip.injection.validation");
     }
 
     @Test
