@@ -1,10 +1,13 @@
 package test.unit;
 
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
 
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.net.URI;
 
 import javax.json.Json;
@@ -17,16 +20,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
-import io.smallrye.graphql.client.typesafe.jaxrs.JaxRsTypesafeGraphQLClientBuilder;
 
+/**
+ * Builds {@link GraphQlClientBuilder} instances with mocked backend and helps testing that.
+ * Only this class relies on the JAX-RS implementation, but the tests are independent of that detail.
+ */
 class GraphQlClientFixture {
     private final Client mockClient = Mockito.mock(Client.class);
     private final WebTarget mockWebTarget = Mockito.mock(WebTarget.class);
@@ -35,10 +38,10 @@ class GraphQlClientFixture {
     private Entity<JsonObject> entitySent;
 
     GraphQlClientFixture() {
-        BDDMockito.given(mockClient.target(ArgumentMatchers.any(URI.class))).willReturn(mockWebTarget);
-        BDDMockito.given(mockWebTarget.request(ArgumentMatchers.any(MediaType.class))).willReturn(mockInvocationBuilder);
-        BDDMockito.given(mockInvocationBuilder.headers(ArgumentMatchers.any())).willReturn(mockInvocationBuilder);
-        BDDMockito.given(mockInvocationBuilder.post(ArgumentMatchers.any())).will(i -> response);
+        given(mockClient.target(any(URI.class))).willReturn(mockWebTarget);
+        given(mockWebTarget.request(any(MediaType.class))).willReturn(mockInvocationBuilder);
+        given(mockInvocationBuilder.headers(any())).willReturn(mockInvocationBuilder);
+        given(mockInvocationBuilder.post(any())).will(i -> response);
     }
 
     public <T> T build(Class<T> apiClass) {
@@ -50,17 +53,26 @@ class GraphQlClientFixture {
     }
 
     GraphQlClientBuilder builderWithoutEndpointConfig() {
-        JaxRsTypesafeGraphQLClientBuilder impl = (JaxRsTypesafeGraphQLClientBuilder) GraphQlClientBuilder.newBuilder();
-        impl.client(mockClient);
-        return impl;
+        GraphQlClientBuilder builder = GraphQlClientBuilder.newBuilder();
+        try {
+            Method method = builder.getClass().getMethod("client", Client.class);
+            method.invoke(builder, mockClient);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("can't set client on builder", e);
+        }
+        return builder;
     }
 
     void returnsData(String data) {
-        returns(Response.ok("{\"data\":{" + data.replace('\'', '\"') + "}}"));
+        returns("{\"data\":{" + data.replace('\'', '\"') + "}}");
     }
 
-    void returns(ResponseBuilder response) {
-        this.response = response.build();
+    void returns(String response) {
+        this.response = Response.ok(response).build();
+    }
+
+    public void returnsServerError() {
+        this.response = Response.serverError().type(TEXT_PLAIN_TYPE).entity("failed").build();
     }
 
     String variables() {
@@ -84,7 +96,7 @@ class GraphQlClientFixture {
         if (entitySent == null) {
             @SuppressWarnings("unchecked")
             ArgumentCaptor<Entity<String>> captor = ArgumentCaptor.forClass(Entity.class);
-            BDDMockito.then(mockInvocationBuilder).should().post(captor.capture());
+            then(mockInvocationBuilder).should().post(captor.capture());
             Entity<String> stringEntity = captor.getValue();
             JsonObject jsonObject = Json.createReader(new StringReader(stringEntity.getEntity())).readObject();
             entitySent = Entity.entity(jsonObject, stringEntity.getMediaType());
@@ -98,11 +110,11 @@ class GraphQlClientFixture {
 
     URI endpointUsed() {
         ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
-        BDDMockito.then(mockClient).should().target(captor.capture());
+        then(mockClient).should().target(captor.capture());
         return captor.getValue();
     }
 
-    MultivaluedMap<String, Object> sentHeaders() {
+    private MultivaluedMap<String, Object> sentHeaders() {
         MultivaluedMap<String, Object> map = captureExplicitHeaders();
         map.putSingle("Accept", captureAcceptHeader());
         map.putSingle("Content-Type", entitySent().getMediaType());
@@ -112,19 +124,15 @@ class GraphQlClientFixture {
     private MultivaluedMap<String, Object> captureExplicitHeaders() {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<MultivaluedMap<String, Object>> captor = ArgumentCaptor.forClass(MultivaluedMap.class);
-        BDDMockito.then(mockInvocationBuilder).should().headers(captor.capture());
+        then(mockInvocationBuilder).should().headers(captor.capture());
         MultivaluedMap<String, Object> map = captor.getValue();
         return (map == null) ? new MultivaluedHashMap<>() : map;
     }
 
     private MediaType captureAcceptHeader() {
         ArgumentCaptor<MediaType> captor = ArgumentCaptor.forClass(MediaType.class);
-        BDDMockito.then(mockWebTarget).should().request(captor.capture());
+        then(mockWebTarget).should().request(captor.capture());
         return captor.getValue();
-    }
-
-    public Client client() {
-        return mockClient;
     }
 
     public void verifyClosed() {

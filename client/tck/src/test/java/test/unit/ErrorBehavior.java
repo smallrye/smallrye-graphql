@@ -1,15 +1,12 @@
 package test.unit;
 
 import static java.util.Collections.singletonList;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import javax.ws.rs.core.Response;
 
 import org.assertj.core.api.BDDAssertions;
 import org.eclipse.microprofile.graphql.Name;
@@ -32,7 +29,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailOnQueryError() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":{\"greeting\":null}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't greet\"," +
@@ -43,7 +40,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"greeting\"]," +
                 /**//**/"\"classification\":\"DataFetchingException\"," +
                 /**//**/"\"code\":\"no-greeting\"}" +
-                "}]}}"));
+                "}]}}");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -66,7 +63,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailOnValidationError() {
-        fixture.returns(Response.ok("{\n" +
+        fixture.returns("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
                 "      \"message\": \"Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'\",\n"
@@ -88,7 +85,7 @@ class ErrorBehavior {
                 "    }\n" +
                 "  ],\n" +
                 "  \"data\": null\n" +
-                "}\n"));
+                "}\n");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -113,7 +110,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailOnErrorWithoutExtensions() {
-        fixture.returns(Response.ok("{\n" +
+        fixture.returns("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
                 "      \"message\": \"something went wrong\",\n" +
@@ -126,7 +123,7 @@ class ErrorBehavior {
                 "    }\n" +
                 "  ],\n" +
                 "  \"data\": null\n" +
-                "}\n"));
+                "}\n");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -145,7 +142,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailOnErrorWithoutLocations() {
-        fixture.returns(Response.ok("{\n" +
+        fixture.returns("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
                 "      \"message\": \"something went wrong\",\n" +
@@ -155,7 +152,7 @@ class ErrorBehavior {
                 "    }\n" +
                 "  ],\n" +
                 "  \"data\": null\n" +
-                "}\n"));
+                "}\n");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -174,7 +171,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailOnErrorWithEmptyLocations() {
-        fixture.returns(Response.ok("{\n" +
+        fixture.returns("{\n" +
                 "  \"errors\": [\n" +
                 "    {\n" +
                 "      \"message\": \"something went wrong\",\n" +
@@ -185,7 +182,7 @@ class ErrorBehavior {
                 "    }\n" +
                 "  ],\n" +
                 "  \"data\": null\n" +
-                "}\n"));
+                "}\n");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -204,7 +201,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFailStringQueryNotFound() {
-        fixture.returns(Response.serverError().type(TEXT_PLAIN_TYPE).entity("failed"));
+        fixture.returnsServerError();
         StringApi api = fixture.build(StringApi.class);
 
         GraphQlClientException thrown = catchThrowableOfType(api::greeting, GraphQlClientException.class);
@@ -224,7 +221,7 @@ class ErrorBehavior {
 
     @Test
     void shouldIgnoreEmptyError() {
-        fixture.returns(Response.ok("{\"errors\":[], \"data\":{\"greeting\":\"dummy-greeting\"}}"));
+        fixture.returns("{\"errors\":[], \"data\":{\"greeting\":\"dummy-greeting\"}}");
         StringApi api = fixture.build(StringApi.class);
 
         String greeting = api.greeting();
@@ -250,7 +247,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchErrorOrPresent() {
-        fixture.returns(Response.ok("{\"data\":{\"teams\":[{\"name\":\"Avengers\"}]}}"));
+        fixture.returns("{\"data\":{\"teams\":[{\"name\":\"Avengers\"}]}}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
@@ -265,7 +262,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchErrorOrAbsent() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
@@ -277,7 +274,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}"));
+                "}]}}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
@@ -296,7 +293,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchErrorOnNullData() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":null," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
@@ -308,7 +305,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}"));
+                "}]}}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQlClientException throwable = catchThrowableOfType(api::teams, GraphQlClientException.class);
@@ -330,7 +327,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchErrorOrWithTwoErrors() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
@@ -350,7 +347,7 @@ class ErrorBehavior {
                 /**//**/"\"description\":\"not feeling so well\"," +
                 /**//**/"\"queryPath\":[\"bar\"]," +
                 /**//**/"\"code\":\"dizzy\"}" +
-                "}]}}"));
+                "}]}}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
@@ -376,7 +373,7 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchErrorOrAbsentWithoutPath() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":{\"teams\":null}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
@@ -387,7 +384,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}"));
+                "}]}}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQlClientException throwable = catchThrowableOfType(api::teams, GraphQlClientException.class);
@@ -421,10 +418,10 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchFullWrapper() {
-        fixture.returns(Response.ok("{\"data\":{\"find\":{" +
+        fixture.returns("{\"data\":{\"find\":{" +
                 "\"superHeroes\":[{\"name\":\"Spider Man\",\"location\":\"New York\"}]," +
                 "\"teams\":[{\"name\":\"Avengers\"}]" +
-                "}}}"));
+                "}}}");
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
@@ -452,14 +449,14 @@ class ErrorBehavior {
 
     @Test
     void shouldFetchPartialWrapper() {
-        fixture.returns(Response.ok("{" +
+        fixture.returns("{" +
                 "\"data\":{\"find\":{\"superHeroes\":[{\"name\":\"Wolverine\"}],\"teams\":null}}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't search for teams\"," +
                 /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
                 /**/"\"path\": [\"find\",\"teams\"],\n" +
                 /**/"\"extensions\":{\"code\":\"team-search-disabled\"}" +
-                "}]}}"));
+                "}]}}");
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
