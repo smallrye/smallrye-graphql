@@ -3,12 +3,12 @@ package test.unit;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.BDDAssertions.*;
 import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.assertj.core.api.BDDAssertions;
 import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
@@ -227,7 +227,7 @@ class ErrorBehavior {
         String greeting = api.greeting();
 
         then(fixture.query()).isEqualTo("query greeting { greeting }");
-        BDDAssertions.then(greeting).isEqualTo("dummy-greeting");
+        then(greeting).isEqualTo("dummy-greeting");
     }
 
     static class SuperHero {
