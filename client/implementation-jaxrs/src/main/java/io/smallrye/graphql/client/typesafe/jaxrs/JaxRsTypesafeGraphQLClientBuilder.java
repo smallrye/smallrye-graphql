@@ -17,7 +17,7 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
 public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
     private String configKey = null;
-    private Client client = ClientBuilder.newClient();
+    private Client client;
     private URI endpoint;
 
     @Override
@@ -31,6 +31,12 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
         return this;
     }
 
+    private Client client() {
+        if (client == null)
+            client = ClientBuilder.newClient();
+        return client;
+    }
+
     @Override
     public GraphQlClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;
@@ -38,12 +44,12 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
     }
 
     public GraphQlClientBuilder register(Class<?> componentClass) {
-        client.register(componentClass);
+        client().register(componentClass);
         return this;
     }
 
     public GraphQlClientBuilder register(Object component) {
-        client.register(component);
+        client().register(component);
         return this;
     }
 
@@ -51,7 +57,7 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
     public <T> T build(Class<T> apiClass) {
         readConfig(apiClass.getAnnotation(GraphQlClientApi.class));
 
-        WebTarget webTarget = client.target(resolveEndpoint(apiClass));
+        WebTarget webTarget = client().target(resolveEndpoint(apiClass));
         JaxRsTypesafeGraphQLClientProxy graphQlClient = new JaxRsTypesafeGraphQLClientProxy(webTarget);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
@@ -61,7 +67,7 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
             Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
-            client.close();
+            client().close();
             return null; // void
         }
         return graphQlClient.invoke(apiClass, methodInvocation);
