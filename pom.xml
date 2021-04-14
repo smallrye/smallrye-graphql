@@ -30,7 +30,7 @@
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.graphql-java>16.2</version.graphql-java>
-        <verison.io.micrometer>1.6.5</verison.io.micrometer>
+        <verison.io.micrometer>1.6.6</verison.io.micrometer>
         <version.vertx>4.0.3</version.vertx>
 
         <!-- Test -->
