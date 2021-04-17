@@ -19,7 +19,7 @@ public class FieldInfo {
 
     @Override
     public String toString() {
-        return "field '" + field.getName() + "' in " + container;
+        return "field '" + getRawName() + "' in " + container;
     }
 
     public TypeInfo getType() {
@@ -29,13 +29,17 @@ public class FieldInfo {
     public String getName() {
         if (field.isAnnotationPresent(Name.class))
             return field.getAnnotation(Name.class).value();
+        return getRawName();
+    }
+
+    public String getRawName() {
         return field.getName();
     }
 
     /** If the field is renamed with a {@link Name} annotation, the real field name is used as an alias. */
     public Optional<String> getAlias() {
         if (field.isAnnotationPresent(Name.class))
-            return Optional.of(field.getName());
+            return Optional.of(getRawName());
         return Optional.empty();
     }
 

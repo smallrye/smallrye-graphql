@@ -109,6 +109,10 @@ public class ParameterInfo {
                     "You can either annotate all parameters with @Name, " +
                     "or compile your source code with the -parameters options, " +
                     "so the parameter names are compiled into the class file and available at runtime.");
+        return getRawName();
+    }
+
+    public String getRawName() {
         return parameter.getName();
     }
 
@@ -117,7 +121,7 @@ public class ParameterInfo {
     }
 
     public boolean isHeaderParameter() {
-        return parameter.getAnnotationsByType(Header.class).length > 0;
+        return parameter.isAnnotationPresent(Header.class);
     }
 
     public boolean isValueParameter() {
@@ -129,7 +133,7 @@ public class ParameterInfo {
     }
 
     public boolean isNestedParameter() {
-        return parameter.getAnnotationsByType(NestedParameter.class).length > 0;
+        return parameter.isAnnotationPresent(NestedParameter.class);
     }
 
     public String getNestedParameterName() {

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
-import test.unit.ParametersBehavior.Foo;
 
 class AnnotationBehavior {
     private final GraphQlClientFixture fixture = new GraphQlClientFixture();
@@ -44,8 +43,8 @@ class AnnotationBehavior {
 
         String greeting = api.greeting("foo");
 
-        then(fixture.query()).isEqualTo("query greeting($who: String) { greeting(who: $who) }");
-        then(fixture.variables()).isEqualTo("{'who':'foo'}");
+        then(fixture.query()).isEqualTo("query greeting($foo: String) { greeting(who: $foo) }");
+        then(fixture.variables()).isEqualTo("{'foo':'foo'}");
         then(greeting).isEqualTo("hi, foo");
     }
 
@@ -92,28 +91,62 @@ class AnnotationBehavior {
     }
 
     @GraphQlClientApi
-    interface MultiAliasApi {
-        @Multiple
-        FooAndFoo fooAndFoo();
+    interface HeroesAPI {
+        HeroAndVillain heroAndVillain();
+
+        HeroPair randomHeroPair();
     }
 
-    static class FooAndFoo {
-        @Name("foo")
-        Foo one;
-        @Name("foo")
-        Foo two;
+    static class Hero {
+        String name;
+        boolean good;
+    }
+
+    static class Villain {
+        String name;
+    }
+
+    @Multiple
+    static class HeroAndVillain {
+        Hero hero;
+        Villain villain;
+    }
+
+    @Multiple
+    static class HeroPair {
+        @Name("hero")
+        Hero left;
+        @Name("hero")
+        Hero right;
     }
 
     @Test
-    void shouldQueryWithMultiAlias() {
-        fixture.returnsData("'one': {'name': 'foo'}, 'two': {'name': 'bar'}");
-        MultiAliasApi stuff = fixture.build(MultiAliasApi.class);
+    void shouldCallMultipleWithoutParamsDifferentType() {
+        fixture.returnsData("'hero':{'name':'Spider-Man','good':true},'villain':{'name':'Venom'}");
+        HeroesAPI api = fixture.build(HeroesAPI.class);
 
-        FooAndFoo fooAndFoo = stuff.fooAndFoo();
+        HeroAndVillain heroAndVillain = api.heroAndVillain();
 
-        then(fixture.query()).isEqualTo("query fooAndFoo {one:foo {name} two:foo {name}}");
-        then(fooAndFoo.one.name).isEqualTo("foo");
-        then(fooAndFoo.two.name).isEqualTo("bar");
+        then(fixture.query()).isEqualTo("query heroAndVillain {hero {name good} villain {name}}");
+        then(fixture.variables()).isEqualTo("{}");
+        then(heroAndVillain.hero.name).isEqualTo("Spider-Man");
+        then(heroAndVillain.hero.good).isTrue();
+        then(heroAndVillain.villain.name).isEqualTo("Venom");
+    }
+
+    @Test
+    void shouldCallMultipleWithoutParamsSameType() {
+        fixture.returnsData("'left':{'name':'Spider-Man','good':true},'right':{'name':'Venom','good':false}");
+        HeroesAPI api = fixture.build(HeroesAPI.class);
+
+        HeroPair pair = api.randomHeroPair();
+
+        then(fixture.query()).isEqualTo("query randomHeroPair {left:hero {name good} right:hero {name good}}");
+        then(fixture.variables()).isEqualTo("{}");
+        then(pair.left.name).isEqualTo("Spider-Man");
+        then(pair.left.good).isTrue();
+        then(pair.right.name).isEqualTo("Venom");
+        then(pair.right.good).isFalse();
     }
 
     private static class Thing {

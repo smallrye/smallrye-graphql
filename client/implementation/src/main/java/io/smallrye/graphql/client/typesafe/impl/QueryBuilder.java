@@ -44,11 +44,11 @@ public class QueryBuilder {
     }
 
     private String declare(ParameterInfo parameter) {
-        return "$" + parameter.getName() + ": " + parameter.graphQlInputTypeName();
+        return "$" + parameter.getRawName() + ": " + parameter.graphQlInputTypeName();
     }
 
     private String bind(ParameterInfo parameter) {
-        return parameter.getName() + ": $" + parameter.getName();
+        return parameter.getName() + ": $" + parameter.getRawName();
     }
 
     private String fields(TypeInfo type) {
@@ -82,7 +82,7 @@ public class QueryBuilder {
         field.getAlias().ifPresent(alias -> expression.append(alias).append(":"));
         expression.append(field.getName());
         if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
-            String path = nestedExpressionPrefix() + field.getName();
+            String path = nestedExpressionPrefix() + field.getRawName();
             if (method.hasNestedParameters(path))
                 expression.append(method.nestedParameters(path)
                         .map(this::bind)

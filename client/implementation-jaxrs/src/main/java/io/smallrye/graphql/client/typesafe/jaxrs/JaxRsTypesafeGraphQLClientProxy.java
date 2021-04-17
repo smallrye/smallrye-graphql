@@ -76,7 +76,7 @@ class JaxRsTypesafeGraphQLClientProxy {
 
     private JsonObjectBuilder variables(MethodInvocation method) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        method.valueParameters().forEach(parameter -> builder.add(parameter.getName(), value(parameter.getValue())));
+        method.valueParameters().forEach(parameter -> builder.add(parameter.getRawName(), value(parameter.getValue())));
         return builder;
     }
 

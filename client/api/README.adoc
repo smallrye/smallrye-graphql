@@ -219,10 +219,10 @@ Say you need the result from several root queries, e.g. all `superHeroes` and al
 -----------------------------------------------------------
 @GraphQlClientApi
 interface SuperHeroesApi {
-    @Multiple
     HeroesAndVillains heroesAndVillains();
 }
 
+@Multiple
 class HeroesAndVillains {
     List<SuperHero> superHeroes;
     List<SuperVillain> superVillains;
@@ -248,6 +248,6 @@ The actual response below will be mapped to an instance of the `HeroesAndVillain
 }
 -----------------------------------------------------------
 
-If the nested queries require parameters, use `@<<NestedParameter>>` annotations.
+If the nested queries require parameters, use `@<<NestedParameter>>` annotations to put them on the field (remember: GraphQL fields can have parameters).
 
 If you need the same request several times (e.g. with different query parameters), use `@Name` annotations, so the actual field names are used as <<Name Mapping / Aliases,alias>>.
