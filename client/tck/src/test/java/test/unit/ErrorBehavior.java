@@ -419,7 +419,7 @@ class ErrorBehavior {
     @Test
     void shouldFetchFullWrapper() {
         fixture.returns("{\"data\":{\"find\":{" +
-                "\"superHeroes\":[{\"name\":\"Spider Man\",\"location\":\"New York\"}]," +
+                "\"superHeroes\":[{\"name\":\"Spider-Man\",\"location\":\"New York\"}]," +
                 "\"teams\":[{\"name\":\"Avengers\"}]" +
                 "}}}");
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
@@ -432,7 +432,7 @@ class ErrorBehavior {
             ErrorOr<SuperHero> superHero = response.superHeroes.get(0);
             then(superHero.isPresent()).isTrue();
             then(superHero.isError()).isFalse();
-            then(superHero.get().name).isEqualTo("Spider Man");
+            then(superHero.get().name).isEqualTo("Spider-Man");
             then(superHero.get().location.isPresent()).isTrue();
             then(superHero.get().location.isError()).isFalse();
             then(superHero.get().location.get()).isEqualTo("New York");

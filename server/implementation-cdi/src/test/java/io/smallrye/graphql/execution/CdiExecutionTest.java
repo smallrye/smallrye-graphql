@@ -296,7 +296,7 @@ public class CdiExecutionTest {
         JsonArray errors = executeAndGetError(MUTATION_INVALID_NUMBER_SCALAR);
 
         assertEquals(1, errors.size(),
-                "Wrong size for errors while updateItemPowerLevel with wrong numner");
+                "Wrong size for errors while updateItemPowerLevel with wrong number");
 
         JsonObject error = errors.getJsonObject(0);
 
@@ -382,7 +382,7 @@ public class CdiExecutionTest {
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
 
-    // This test a cenario where the inputfield and typefield is named different
+    // This test a scenario where the inputfield and typefield is named different
     private static final String MUTATION_NAME_DIFF_ON_INPUT_AND_TYPE = "mutation inputFieldWithAnotherName {\n" +
             "   createNewHero (hero: {\n" +
             "    realName: \"Steven Rogers\"\n" +
@@ -604,11 +604,11 @@ public class CdiExecutionTest {
             "}";
 
     // Create the CDI Beans in the TCK Tests app
-    private static final Class heroFinder;
-    private static final Class heroDatabase;
-    private static final Class sidekickDatabase;
-    private static final Class heroLocator;
-    private static final Class scalarTestApi;
+    private static final Class<?> heroFinder;
+    private static final Class<?> heroDatabase;
+    private static final Class<?> sidekickDatabase;
+    private static final Class<?> heroLocator;
+    private static final Class<?> scalarTestApi;
 
     private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
 

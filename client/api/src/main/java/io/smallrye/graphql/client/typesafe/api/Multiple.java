@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.typesafe.api;
 
-import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
@@ -16,10 +16,10 @@ import java.lang.annotation.Target;
  * <pre>
  * &#64;GraphQlClientApi
  * interface FooAndBarApi {
- *     &#64;Multiple
  *     FooAndBar fooAndBar(&#64;NestedParameter("bar") String id);
  * }
  *
+ * &#64;Multiple
  * static class FooAndBar {
  *     Foo foo;
  *     Bar bar;
@@ -40,6 +40,6 @@ import java.lang.annotation.Target;
  * </pre>
  */
 @Retention(RUNTIME)
-@Target(METHOD)
+@Target(TYPE)
 public @interface Multiple {
 }

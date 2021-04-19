@@ -1,14 +1,16 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -32,6 +34,7 @@ public class MethodInvocation {
     private final TypeInfo type;
     private final Method method;
     private final Object[] parameterValues;
+    private List<ParameterInfo> parameters;
 
     private MethodInvocation(TypeInfo type, Method method, Object[] parameterValues) {
         this.type = type;
@@ -116,11 +119,13 @@ public class MethodInvocation {
     }
 
     private Stream<ParameterInfo> parameters() {
-        Parameter[] parameters = method.getParameters();
-        return IntStream.range(0, parameters.length)
-                .mapToObj(i -> new ParameterInfo(this,
-                        parameters[i],
-                        parameterValues[i]));
+        if (this.parameters == null)
+            this.parameters = IntStream.range(0, method.getParameterCount())
+                    .mapToObj(i -> new ParameterInfo(this,
+                            method.getParameters()[i],
+                            parameterValues[i]))
+                    .collect(toList());
+        return parameters.stream();
     }
 
     public TypeInfo getDeclaringType() {
@@ -206,7 +211,7 @@ public class MethodInvocation {
     }
 
     public boolean isSingle() {
-        return !method.isAnnotationPresent(Multiple.class);
+        return !method.getReturnType().isAnnotationPresent(Multiple.class);
     }
 
     public boolean isDeclaredInObject() {

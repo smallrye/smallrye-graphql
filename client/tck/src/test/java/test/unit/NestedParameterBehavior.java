@@ -4,9 +4,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 
+import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
 class NestedParameterBehavior {
@@ -32,7 +34,7 @@ class NestedParameterBehavior {
 
     @Test
     void shouldCallNestedParameterQuery() {
-        fixture.returnsData("'team':{'members':[{'name':'Spiderman'},{'name':'Black Panther'},{'name':'Groot'}]}");
+        fixture.returnsData("'team':{'members':[{'name':'Spider-Man'},{'name':'Black Panther'},{'name':'Groot'}]}");
         TeamsApi api = fixture.build(TeamsApi.class);
 
         Team team = api.team("endgame", 3);
@@ -41,7 +43,7 @@ class NestedParameterBehavior {
                 "{headQuarter members(limit: $limit) {name}} }");
         then(fixture.variables()).isEqualTo("{'teamName':'endgame','limit':3}");
         then(team.headQuarter).isNull();
-        then(team.members.stream().map(SuperHero::getName)).containsExactly("Spiderman", "Black Panther", "Groot");
+        then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
     }
 
     static class Universe {
@@ -60,7 +62,7 @@ class NestedParameterBehavior {
     @Test
     void shouldCallDeeplyNestedParameterQuery() {
         fixture.returnsData("'universeWithTeam':{'name':'Marvel','teams':[{'members':" +
-                "[{'name':'Spiderman'},{'name':'Black Panther'},{'name':'Groot'}]}]}");
+                "[{'name':'Spider-Man'},{'name':'Black Panther'},{'name':'Groot'}]}]}");
         UniverseApi api = fixture.build(UniverseApi.class);
 
         Universe universe = api.universeWithTeam("endgame", 32, 3);
@@ -72,6 +74,42 @@ class NestedParameterBehavior {
         then(universe.name).isEqualTo("Marvel");
         Team team = universe.teams.get(0);
         then(team.headQuarter).isNull();
-        then(team.members.stream().map(SuperHero::getName)).containsExactly("Spiderman", "Black Panther", "Groot");
+        then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
+    }
+
+    @GraphQlClientApi
+    interface HeroesAPI {
+        HeroPair heroPairByNames(
+                @NestedParameter("left") @Name("name") String leftName,
+                @NestedParameter("right") @Name("name") String rightName);
+    }
+
+    static class Hero {
+        String name;
+        boolean good;
+    }
+
+    @Multiple
+    static class HeroPair {
+        @Name("hero")
+        Hero left;
+        @Name("hero")
+        Hero right;
+    }
+
+    @Test
+    void shouldCallMultipleWithParams() {
+        fixture.returnsData("'left':{'name':'Spider-Man','good':true},'right':{'name':'Venom','good':false}");
+        HeroesAPI api = fixture.build(HeroesAPI.class);
+
+        HeroPair pair = api.heroPairByNames("Spider-Man", "Venom");
+
+        then(fixture.query()).isEqualTo("query heroPairByNames($leftName: String, $rightName: String) {" +
+                "left:hero(name: $leftName) {name good} right:hero(name: $rightName) {name good}}");
+        then(fixture.variables()).isEqualTo("{'leftName':'Spider-Man','rightName':'Venom'}");
+        then(pair.left.name).isEqualTo("Spider-Man");
+        then(pair.left.good).isTrue();
+        then(pair.right.name).isEqualTo("Venom");
+        then(pair.right.good).isFalse();
     }
 }
