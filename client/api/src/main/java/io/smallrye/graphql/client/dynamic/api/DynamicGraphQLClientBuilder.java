@@ -8,6 +8,8 @@ public interface DynamicGraphQLClientBuilder {
 
     DynamicGraphQLClientBuilder url(String url);
 
+    DynamicGraphQLClientBuilder header(String key, String value);
+
     DynamicGraphQLClient build();
 
     static DynamicGraphQLClientBuilder newBuilder() {
