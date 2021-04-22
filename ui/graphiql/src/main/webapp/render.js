@@ -4,6 +4,8 @@ const defaultQuery = "";
 const headerEditorEnabled = true;
 const shouldPersistHeaders = false;
 
+var webSocket;
+
 // Parse the search string to get url parameters.
 var search = window.location.search;
 var parameters = {};
@@ -101,28 +103,59 @@ function graphQLFetcher(graphQLParams) {
             ...JSON.parse(parameters.headers)
         };
     }
+    
+    var query = graphQLParams.query;
+    
+    if(query.startsWith("subscription ")){
+        var new_uri = getWsUrl();
 
-    return fetch(api, {
-        method: 'post',
-        headers: mergedHeaders,
-        body: JSON.stringify(graphQLParams),
-    })
-            .then(function (response) {
-                return response.text();
-            })
-            .then(function (responseBody) {
-                try {
-                    return JSON.parse(responseBody);
-                } catch (error) {
-                    return responseBody;
+        return new rxjs.Observable((observer) => {
+            webSocket = new WebSocket(new_uri);
+            webSocket.onopen = function() {
+                webSocket.send(JSON.stringify(graphQLParams));
+            };
+            webSocket.onmessage = function (event) {
+                observer.next(JSON.parse(event.data));
+            };
+            webSocket.onerror = function(err) {
+                observer.error(JSON.stringify(err, null, 4));
+            };
+            return {
+                unsubscribe() {
+                    webSocket.close();
                 }
-            });
+            };
+            
+          });
+    }else{
+        return fetch(api, {
+            method: 'post',
+            headers: mergedHeaders,
+            body: JSON.stringify(graphQLParams),
+        }).then(function (response) {
+            return response.text();
+        }).then(function (responseBody) {
+            try {
+                return JSON.parse(responseBody);
+            } catch (error) {
+                return responseBody;
+            }
+        });
+    }
 }
 
-// Render <GraphiQL /> into the body.
-// See the README in the top level of this module to learn more about
-// how you can customize GraphiQL by providing different values or
-// additional child elements.
+function getWsUrl(){
+    var new_uri;
+    if (window.location.protocol === "https:") {
+        new_uri = "wss:";
+    } else {
+        new_uri = "ws:";
+    }
+    new_uri += "//" + window.location.host + api;
+    
+    return new_uri;
+}
+
 ReactDOM.render(
         React.createElement(GraphiQL, {
             fetcher: graphQLFetcher,
