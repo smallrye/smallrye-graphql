@@ -8,12 +8,12 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class ConfigBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface Api {
         @SuppressWarnings("UnusedReturnValue")
         boolean foo();
@@ -61,7 +61,7 @@ class ConfigBehavior {
         }
     }
 
-    @GraphQlClientApi(endpoint = DUMMY_ENDPOINT)
+    @GraphQLClientApi(endpoint = DUMMY_ENDPOINT)
     interface ConfiguredEndpointApi {
         @SuppressWarnings("UnusedReturnValue")
         boolean foo();
@@ -77,7 +77,7 @@ class ConfigBehavior {
         then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
     }
 
-    @GraphQlClientApi(configKey = "dummy-config-key")
+    @GraphQLClientApi(configKey = "dummy-config-key")
     interface ConfiguredKeyApi {
         boolean foo();
     }

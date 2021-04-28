@@ -3,7 +3,7 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 import java.util.Objects;
 import java.util.Optional;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 public class MethodResolver {
     private final TypeInfo callerType;
@@ -25,10 +25,10 @@ public class MethodResolver {
         }
 
         MethodInvocation method = resolveEnclosing(ownerType, expression)
-                .orElseThrow(() -> new GraphQlClientException("no no-arg method '" + expression + "' found in " + ownerType));
+                .orElseThrow(() -> new GraphQLClientException("no no-arg method '" + expression + "' found in " + ownerType));
 
         if (!method.isAccessibleFrom(callerType))
-            throw new GraphQlClientException(callerType.getTypeName() + " can't access " + method);
+            throw new GraphQLClientException(callerType.getTypeName() + " can't access " + method);
 
         return method;
     }
@@ -45,7 +45,7 @@ public class MethodResolver {
         try {
             return TypeInfo.of(Class.forName(className, true, loader));
         } catch (ClassNotFoundException e) {
-            throw new GraphQlClientException("class not found for expression '" + expression + "'", e);
+            throw new GraphQLClientException("class not found for expression '" + expression + "'", e);
         }
     }
 }

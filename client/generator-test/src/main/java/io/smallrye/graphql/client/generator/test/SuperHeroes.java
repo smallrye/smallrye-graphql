@@ -1,10 +1,10 @@
 package io.smallrye.graphql.client.generator.test;
 
-import io.smallrye.graphql.client.generator.GraphQlSchema;
-import io.smallrye.graphql.client.generator.GraphqlQuery;
+import io.smallrye.graphql.client.generator.GraphQLQuery;
+import io.smallrye.graphql.client.generator.GraphQLSchema;
 
-@GraphQlSchema("resource:schema.graphql")
-@GraphqlQuery("{ teams { name } }")
-@GraphqlQuery("query heroesLocatedIn($location: String) { heroesIn(location: $location) { name realName superPowers } }")
+@GraphQLSchema("resource:schema.graphql")
+@GraphQLQuery("{ teams { name } }")
+@GraphQLQuery("query heroesLocatedIn($location: String) { heroesIn(location: $location) { name realName superPowers } }")
 public class SuperHeroes {
 }

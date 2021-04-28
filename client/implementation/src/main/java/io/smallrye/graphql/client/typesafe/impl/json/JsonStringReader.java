@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import javax.json.JsonString;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ConstructionInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
@@ -17,7 +17,7 @@ class JsonStringReader extends Reader<JsonString> {
     Object read() {
         if (char.class.equals(type.getRawType()) || Character.class.equals(type.getRawType())) {
             if (value.getChars().length() != 1)
-                throw new GraphQlClientValueException(location, value);
+                throw new GraphQLClientValueException(location, value);
             return value.getChars().charAt(0);
         }
         if (String.class.equals(type.getRawType()) || Object.class.equals(type.getRawType())) // TODO CharSequence
@@ -31,11 +31,11 @@ class JsonStringReader extends Reader<JsonString> {
             return java.util.UUID.fromString(value.getString());
 
         ConstructionInfo constructor = type.scalarConstructor()
-                .orElseThrow(() -> new GraphQlClientValueException(location, value));
+                .orElseThrow(() -> new GraphQLClientValueException(location, value));
         try {
             return constructor.execute(value.getString());
         } catch (Exception e) {
-            throw new GraphQlClientException("can't create scalar " + location, e);
+            throw new GraphQLClientException("can't create scalar " + location, e);
         }
     }
 

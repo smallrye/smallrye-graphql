@@ -61,7 +61,7 @@ public class Generator {
         try {
             return new SchemaParser().parse(schemaString);
         } catch (Exception e) {
-            throw new GraphQlGeneratorException("can't parse schema: " + schemaString, e);
+            throw new GraphQLGeneratorException("can't parse schema: " + schemaString, e);
         }
     }
 
@@ -75,7 +75,7 @@ public class Generator {
         try {
             return Parser.parse(query);
         } catch (Exception e) {
-            throw new GraphQlGeneratorException("can't parse query: " + query, e);
+            throw new GraphQLGeneratorException("can't parse query: " + query, e);
         }
     }
 
@@ -152,7 +152,7 @@ public class Generator {
                     "}\n";
             String previousSource = sourceFiles.put(pkg + "." + getTypeName(), source);
             if (previousSource != null && !previousSource.equals(source))
-                throw new GraphQlGeneratorException("already generated " + getTypeName());
+                throw new GraphQLGeneratorException("already generated " + getTypeName());
             other.forEach(it -> it.addTo(sourceFiles));
         }
 
@@ -183,12 +183,12 @@ public class Generator {
         private void generateQueryMethod(Document query) {
             List<OperationDefinition> definitions = query.getDefinitionsOfType(OperationDefinition.class);
             if (definitions.size() != 1)
-                throw new GraphQlGeneratorException("expected exactly one definition but found "
+                throw new GraphQLGeneratorException("expected exactly one definition but found "
                         + definitions.stream().map(this::operationInfo).collect(listString()));
             OperationDefinition operation = definitions.get(0);
             List<Field> fields = operation.getSelectionSet().getSelectionsOfType(Field.class);
             if (fields.size() != 1)
-                throw new GraphQlGeneratorException("expected exactly one field but got "
+                throw new GraphQLGeneratorException("expected exactly one field but got "
                         + fields.stream().map(Field::getName).collect(listString()));
             Field field = fields.get(0);
             body.append(new MethodGenerator(operation, field));
@@ -219,11 +219,11 @@ public class Generator {
 
             private JavaType returnType() {
                 ObjectTypeDefinition query = (ObjectTypeDefinition) schema.getType("Query")
-                        .orElseThrow(() -> new GraphQlGeneratorException("'Query' type not found in schema"));
+                        .orElseThrow(() -> new GraphQLGeneratorException("'Query' type not found in schema"));
                 FieldDefinition fieldDefinition = query.getFieldDefinitions().stream()
                         .filter(f -> f.getName().equals(method.getName()))
                         .findAny()
-                        .orElseThrow(() -> new GraphQlGeneratorException("field (method) '" + method.getName()
+                        .orElseThrow(() -> new GraphQLGeneratorException("field (method) '" + method.getName()
                                 + "' not found in "
                                 + query.getFieldDefinitions().stream().map(FieldDefinition::getName).collect(listString())));
                 List<String> selections = operation.getSelectionSet().getSelectionsOfType(Field.class).stream()
@@ -279,7 +279,7 @@ public class Generator {
                     Value<?> value = argument.getValue();
                     if (value instanceof VariableReference)
                         return resolve(((VariableReference) value).getName());
-                    throw new GraphQlGeneratorException(
+                    throw new GraphQLGeneratorException(
                             "unsupported type " + value + " for argument '" + argument.getName() + "'");
                 }
 
@@ -288,7 +288,7 @@ public class Generator {
                             .filter(var -> var.getName().equals(name))
                             .findAny()
                             .map(VariableDefinition::getType)
-                            .orElseThrow(() -> new GraphQlGeneratorException("no definition found for parameter '" + name
+                            .orElseThrow(() -> new GraphQLGeneratorException("no definition found for parameter '" + name
                                     + "' in "
                                     + variableDefinitions.stream().map(VariableDefinition::getName).collect(listString())));
                 }
@@ -314,7 +314,7 @@ public class Generator {
         @Override
         protected String generateBody() {
             ObjectTypeDefinition typeDefinition = (ObjectTypeDefinition) schema.getType(typeName)
-                    .orElseThrow(() -> new GraphQlGeneratorException("type '" + typeName + "' not found in schema"));
+                    .orElseThrow(() -> new GraphQLGeneratorException("type '" + typeName + "' not found in schema"));
             return typeDefinition.getFieldDefinitions().stream()
                     .filter(field -> fieldNames.contains(field.getName()))
                     .map(this::toJava)

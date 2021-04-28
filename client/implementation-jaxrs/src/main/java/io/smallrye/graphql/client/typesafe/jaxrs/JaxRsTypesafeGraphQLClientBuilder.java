@@ -11,22 +11,22 @@ import javax.ws.rs.client.WebTarget;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
-public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
+public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
     private String configKey = null;
     private Client client;
     private URI endpoint;
 
     @Override
-    public GraphQlClientBuilder configKey(String configKey) {
+    public TypesafeGraphQLClientBuilder configKey(String configKey) {
         this.configKey = configKey;
         return this;
     }
 
-    public GraphQlClientBuilder client(Client client) {
+    public TypesafeGraphQLClientBuilder client(Client client) {
         this.client = client;
         return this;
     }
@@ -38,24 +38,24 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
     }
 
     @Override
-    public GraphQlClientBuilder endpoint(URI endpoint) {
+    public TypesafeGraphQLClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;
         return this;
     }
 
-    public GraphQlClientBuilder register(Class<?> componentClass) {
+    public TypesafeGraphQLClientBuilder register(Class<?> componentClass) {
         client().register(componentClass);
         return this;
     }
 
-    public GraphQlClientBuilder register(Object component) {
+    public TypesafeGraphQLClientBuilder register(Object component) {
         client().register(component);
         return this;
     }
 
     @Override
     public <T> T build(Class<T> apiClass) {
-        readConfig(apiClass.getAnnotation(GraphQlClientApi.class));
+        readConfig(apiClass.getAnnotation(GraphQLClientApi.class));
 
         WebTarget webTarget = client().target(resolveEndpoint(apiClass));
         JaxRsTypesafeGraphQLClientProxy graphQlClient = new JaxRsTypesafeGraphQLClientProxy(webTarget);
@@ -79,7 +79,7 @@ public class JaxRsTypesafeGraphQLClientBuilder implements GraphQlClientBuilder {
         return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) apiClass::getClassLoader);
     }
 
-    private void readConfig(GraphQlClientApi annotation) {
+    private void readConfig(GraphQLClientApi annotation) {
         if (annotation == null)
             return;
         if (this.endpoint == null && !annotation.endpoint().isEmpty())
