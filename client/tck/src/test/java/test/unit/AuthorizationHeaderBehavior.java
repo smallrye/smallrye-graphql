@@ -11,12 +11,12 @@ import javax.enterprise.inject.Stereotype;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class AuthorizationHeaderBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface AuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
         @AuthorizationHeader
@@ -83,7 +83,7 @@ class AuthorizationHeaderBehavior {
         });
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     @AuthorizationHeader(confPrefix = "*")
     interface InheritedAuthorizationHeadersApi extends BaseAuthorizationHeadersApi {
     }
@@ -105,7 +105,7 @@ class AuthorizationHeaderBehavior {
         });
     }
 
-    @GraphQlClientApi(configKey = "foo")
+    @GraphQLClientApi(configKey = "foo")
     @AuthorizationHeader
     interface ConfigKeyAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")
@@ -131,7 +131,7 @@ class AuthorizationHeaderBehavior {
     @interface Authenticated {
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     @Authenticated
     interface AuthenticatedHeaderApi {
         @SuppressWarnings("UnusedReturnValue")
@@ -161,7 +161,7 @@ class AuthorizationHeaderBehavior {
         }
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     @AuthorizationHeader(type = BEARER)
     interface TokenAuthorizationHeadersApi {
         @SuppressWarnings("UnusedReturnValue")

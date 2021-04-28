@@ -7,12 +7,12 @@ import java.util.List;
 import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
 class NestedParameterBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
     static class SuperHero {
         String name;
@@ -27,7 +27,7 @@ class NestedParameterBehavior {
         List<SuperHero> members;
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface TeamsApi {
         Team team(String teamName, @NestedParameter("members") int limit);
     }
@@ -51,7 +51,7 @@ class NestedParameterBehavior {
         List<Team> teams;
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface UniverseApi {
         Universe universeWithTeam(
                 @NestedParameter("teams") String teamName,
@@ -77,7 +77,7 @@ class NestedParameterBehavior {
         then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface HeroesAPI {
         HeroPair heroPairByNames(
                 @NestedParameter("left") @Name("name") String leftName,

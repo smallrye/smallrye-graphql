@@ -13,8 +13,8 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientError;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class JsonReader extends Reader<JsonValue> {
@@ -47,9 +47,9 @@ public class JsonReader extends Reader<JsonValue> {
         return ErrorOr.of(readJson(location, type.getItemType(), value));
     }
 
-    private List<GraphQlClientError> readGraphQlClientErrors() {
+    private List<GraphQLClientError> readGraphQlClientErrors() {
         return value.asJsonArray().stream()
-                .map(item -> (GraphQlClientError) readJson(location, TypeInfo.of(GraphQlClientErrorImpl.class), item))
+                .map(item -> (GraphQLClientError) readJson(location, TypeInfo.of(GraphQLClientErrorImpl.class), item))
                 .collect(toList());
     }
 
@@ -58,11 +58,11 @@ public class JsonReader extends Reader<JsonValue> {
     }
 
     private boolean isGraphQlErrorsType() {
-        return GraphQlClientError.class.isAssignableFrom(type.getRawType());
+        return GraphQLClientError.class.isAssignableFrom(type.getRawType());
     }
 
-    private GraphQlClientException cantApplyErrors(List<GraphQlClientError> errors) {
-        return new GraphQlClientException("errors from service (and we can't apply them to a " + location + "; see ErrorOr)",
+    private GraphQLClientException cantApplyErrors(List<GraphQLClientError> errors) {
+        return new GraphQLClientException("errors from service (and we can't apply them to a " + location + "; see ErrorOr)",
                 errors);
     }
 
@@ -82,6 +82,6 @@ public class JsonReader extends Reader<JsonValue> {
             case NULL:
                 return new JsonNullReader(type, location, value);
         }
-        throw new GraphQlClientException("unreachable code");
+        throw new GraphQLClientException("unreachable code");
     }
 }

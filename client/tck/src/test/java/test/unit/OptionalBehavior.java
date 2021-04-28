@@ -8,12 +8,12 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class OptionalBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface OptionalStringApi {
         Optional<String> greeting();
     }
@@ -40,7 +40,7 @@ class OptionalBehavior {
         then(greeting).contains("hi");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface OptionalGreetingApi {
         Optional<Greeting> greeting();
     }
@@ -96,7 +96,7 @@ class OptionalBehavior {
         then(greeting).isEmpty();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface OptionalGreetingListApi {
         Optional<List<Greeting>> greeting();
     }
@@ -125,7 +125,7 @@ class OptionalBehavior {
         then(greeting.get()).isEmpty();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ListOfOptionalGreetingApi {
         List<Optional<Greeting>> greetings();
     }
@@ -154,7 +154,7 @@ class OptionalBehavior {
         then(greetings).isEmpty();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface OptionalOptionalStringApi {
         Optional<Optional<String>> greeting();
     }

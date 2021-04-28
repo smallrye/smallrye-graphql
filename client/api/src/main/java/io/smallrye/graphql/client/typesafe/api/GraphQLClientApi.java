@@ -8,13 +8,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotate your GraphQL Client <code>interface</code> as {@link GraphQlClientApi},
+ * Annotate your GraphQL Client <code>interface</code> as {@link GraphQLClientApi},
  * so CDI can build and inject it for you.
  * <p>
  * Example:
  * 
  * <pre>
- * &#64;GraphQlClientApi
+ * &#64;GraphQLClientApi
  * public interface SuperHeroesApi {
  *     List&lt;Hero&gt; allHeroes();
  * }
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RUNTIME)
 @Target(TYPE)
-public @interface GraphQlClientApi {
+public @interface GraphQLClientApi {
     /**
      * The URL where the GraphQL service is listening
      */

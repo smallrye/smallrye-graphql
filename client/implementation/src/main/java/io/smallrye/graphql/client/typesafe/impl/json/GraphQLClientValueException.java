@@ -1,18 +1,18 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
-class GraphQlClientValueException extends GraphQlClientException {
+class GraphQLClientValueException extends GraphQLClientException {
     static void check(Location location, Object value, boolean expression) {
         if (!expression)
-            throw new GraphQlClientValueException(location, value);
+            throw new GraphQLClientValueException(location, value);
     }
 
-    GraphQlClientValueException(Location location, Object value) {
+    GraphQLClientValueException(Location location, Object value) {
         super(message(location, value));
     }
 
-    GraphQlClientValueException(Location location, Object value, Throwable cause) {
+    GraphQLClientValueException(Location location, Object value, Throwable cause) {
         super(message(location, value), cause);
     }
 

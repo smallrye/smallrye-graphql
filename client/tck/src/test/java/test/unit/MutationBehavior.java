@@ -10,12 +10,12 @@ import java.util.Objects;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class MutationBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface StringMutationApi {
         @Mutation
         String createSome(String thing);
@@ -45,7 +45,7 @@ class MutationBehavior {
         then(greeting).isEqualTo("output");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface GreetingMutationApi {
         @Mutation
         Greeting say(Greeting greet);
@@ -104,7 +104,7 @@ class MutationBehavior {
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface GreetingListMutationApi {
         @Mutation
         Greeting say(List<Greeting> greets);
@@ -159,7 +159,7 @@ class MutationBehavior {
         }
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NestedGreetingMutationApi {
         @Mutation
         Greeting say(GreetingContainer greeting);
@@ -215,7 +215,7 @@ class MutationBehavior {
         }
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface MutationWithEnumApi {
         @Mutation
         Greeting say(GreetingEnum greeting);
@@ -266,7 +266,7 @@ class MutationBehavior {
         }
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface MutationWithPrimitivesApi {
         @Mutation
         String run(PrimitiveTypes primitives);
@@ -318,7 +318,7 @@ class MutationBehavior {
         }
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface MutationWithPrimitiveWrappersApi {
         @Mutation
         String run(PrimitiveWrapperTypes primitives);

@@ -23,7 +23,7 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation {
@@ -174,7 +174,7 @@ public class MethodInvocation {
                 throw (RuntimeException) e.getCause();
             if (e.getCause() instanceof Error)
                 throw (Error) e.getCause();
-            throw new GraphQlClientException("can't invoke " + this, e);
+            throw new GraphQLClientException("can't invoke " + this, e);
         } catch (IllegalAccessException e) {
             throw new AssertionError("expected to be unreachable", e);
         }

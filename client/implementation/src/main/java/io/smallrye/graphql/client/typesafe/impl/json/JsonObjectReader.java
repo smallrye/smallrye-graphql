@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQlClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonReader.readJson;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.toMap;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
@@ -39,7 +39,7 @@ class JsonObjectReader extends Reader<JsonObject> {
         try {
             return type.newInstance();
         } catch (Exception e) {
-            throw new GraphQlClientException("can't create " + location, e);
+            throw new GraphQLClientException("can't create " + location, e);
         }
     }
 
@@ -49,7 +49,7 @@ class JsonObjectReader extends Reader<JsonObject> {
         JsonValue jsonFieldValue = value.get(fieldName);
         if (jsonFieldValue == null) {
             if (field.isNonNull())
-                throw new GraphQlClientException("missing " + fieldLocation);
+                throw new GraphQLClientException("missing " + fieldLocation);
             return null;
         }
         return readJson(fieldLocation, field.getType(), jsonFieldValue);

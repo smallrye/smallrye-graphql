@@ -8,11 +8,11 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 
 class InvocationBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
     private String foo(String echo) {
         return "foo " + echo;
@@ -25,7 +25,7 @@ class InvocationBehavior {
         then(mi.invoke(this)).isEqualTo("foo bar");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface CloseableApi extends Closeable {
         @SuppressWarnings("unused")
         String foo();

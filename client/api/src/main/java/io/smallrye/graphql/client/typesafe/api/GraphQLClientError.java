@@ -3,7 +3,7 @@ package io.smallrye.graphql.client.typesafe.api;
 import java.util.List;
 import java.util.Map;
 
-public interface GraphQlClientError {
+public interface GraphQLClientError {
     String getMessage();
 
     List<SourceLocation> getLocations();

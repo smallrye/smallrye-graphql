@@ -26,7 +26,7 @@ public @interface AuthorizationHeader {
      * <code>org.superheroes.security.basic.username</code>, while <code>*</code> will use plain
      * <code>username</code>.
      * <p>
-     * Defaults to the fully qualified name of the API interface or its {@link GraphQlClientApi#configKey()}.
+     * Defaults to the fully qualified name of the API interface or its {@link GraphQLClientApi#configKey()}.
      */
     String confPrefix() default "";
 

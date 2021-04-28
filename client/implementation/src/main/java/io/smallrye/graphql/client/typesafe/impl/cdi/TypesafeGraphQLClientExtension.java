@@ -12,14 +12,14 @@ import javax.enterprise.inject.spi.WithAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
-public class GraphQlClientExtension implements Extension {
-    private static final Logger log = LoggerFactory.getLogger(GraphQlClientExtension.class);
+public class TypesafeGraphQLClientExtension implements Extension {
+    private static final Logger log = LoggerFactory.getLogger(TypesafeGraphQLClientExtension.class);
 
     private final List<Class<?>> apis = new ArrayList<>();
 
-    public void registerGraphQlClientApis(@Observes @WithAnnotations(GraphQlClientApi.class) ProcessAnnotatedType<?> type) {
+    public void registerGraphQLClientApis(@Observes @WithAnnotations(GraphQLClientApi.class) ProcessAnnotatedType<?> type) {
         Class<?> javaClass = type.getAnnotatedType().getJavaClass();
         if (javaClass.isInterface()) {
             log.info("register {}", javaClass.getName());
@@ -32,7 +32,7 @@ public class GraphQlClientExtension implements Extension {
 
     public void createProxies(@Observes AfterBeanDiscovery afterBeanDiscovery) {
         for (Class<?> api : apis) {
-            afterBeanDiscovery.addBean(new GraphQlClientBean<>(api));
+            afterBeanDiscovery.addBean(new TypesafeGraphQLClientBean<>(api));
         }
     }
 }

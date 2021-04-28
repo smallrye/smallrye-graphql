@@ -19,8 +19,8 @@ import javax.json.JsonPointer;
 import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientError;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonUtils;
@@ -50,7 +50,7 @@ public class ResultBuilder {
             return null;
         JsonObject data = response.getJsonObject("data");
         if (method.isSingle() && !data.containsKey(method.getName()))
-            throw new GraphQlClientException("no data for '" + method.getName() + "':\n  " + data);
+            throw new GraphQLClientException("no data for '" + method.getName() + "':\n  " + data);
         return data;
     }
 
@@ -63,7 +63,7 @@ public class ResultBuilder {
         JsonArray unapplied = jsonErrors.stream().filter(error -> !apply(error)).collect(toJsonArray());
         if (unapplied.isEmpty())
             return;
-        throw new GraphQlClientException("errors from service",
+        throw new GraphQLClientException("errors from service",
                 unapplied.stream().map(this::convert).collect(Collectors.toList()));
     }
 
@@ -80,9 +80,9 @@ public class ResultBuilder {
         return true;
     }
 
-    private GraphQlClientError convert(JsonValue jsonValue) {
+    private GraphQLClientError convert(JsonValue jsonValue) {
         JsonObject jsonObject = jsonValue.asJsonObject();
-        return new GraphQlClientError() {
+        return new GraphQLClientError() {
             @Override
             public String getMessage() {
                 return jsonObject.getString("message");

@@ -2,7 +2,7 @@ package io.smallrye.graphql.client.generator;
 
 import java.lang.annotation.Repeatable;
 
-@Repeatable(GraphqlQueries.class)
-public @interface GraphqlQuery {
+@Repeatable(GraphQLQueries.class)
+public @interface GraphQLQuery {
     String value();
 }
