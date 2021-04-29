@@ -70,20 +70,20 @@ public class NamedDynamicClients {
     }
 
     private String getConfigurationValue(String clientName, String configKey) {
-        return config.getValue("smallrye.graphql.client." + clientName + "/" + configKey, String.class);
+        return config.getValue(clientName + "/mp-graphql/" + configKey, String.class);
     }
 
     /**
      * For example, if there's a named client 'client1' with this:
-     * smallrye.graphql.client.client1/header/Foo=Bar
-     * smallrye.graphql.client.client1/header/A=B
+     * client1/mp-graphql/header/Foo=Bar
+     * client1/mp-graphql/header/A=B
      *
      * then getConfigurationValueMap(client1, header) will return a map containing Foo=Bar and A=B
      */
     private Map<String, String> getConfigurationValueMap(String clientName, String configKey) {
         Map<String, String> map = new HashMap<>();
         for (String propertyName : config.getPropertyNames()) {
-            String prefix = "smallrye.graphql.client." + clientName + "/" + configKey + "/";
+            String prefix = clientName + "/mp-graphql/" + configKey + "/";
             if (!propertyName.startsWith(prefix)) {
                 continue;
             }
