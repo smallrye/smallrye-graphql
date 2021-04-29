@@ -43,8 +43,8 @@ public class DynamicClientInjectionTest {
                         "</Configure>"), "jetty-web.xml")
                 // configuration of the named client
                 .addAsResource(new StringAsset(
-                        "smallrye.graphql.client.dummy/url=http://localhost:9090/client-injection-test/graphql\n" +
-                                "smallrye.graphql.client.dummy/header/My-Custom-Header=Header-Value"),
+                        "dummy/mp-graphql/url=http://localhost:9090/client-injection-test/graphql\n" +
+                                "dummy/mp-graphql/header/My-Custom-Header=Header-Value"),
                         "META-INF/microprofile-config.properties")
                 .addClasses(DynamicClientApi.class, Dummy.class);
     }
