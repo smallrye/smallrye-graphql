@@ -37,7 +37,7 @@
         <version.arquillian.jetty>1.0.0.CR3</version.arquillian.jetty>
         <version.jetty>9.4.35.v20201120</version.jetty>
         <version.smallrye-opentracing>2.0.0</version.smallrye-opentracing>
-        <version.hibernate-validator>6.2.0.Final</version.hibernate-validator>
+        <version.hibernate-validator>7.0.0.Final</version.hibernate-validator>
         <version.glasfish-el>3.0.3</version.glasfish-el>
         <version.mockito>3.9.0</version.mockito>
 
