@@ -1,4 +1,4 @@
-= SmallRye GraphQL Client
+= SmallRye GraphQL Typesafe Client
 :toc2:
 
 A Java code-first type-safe GraphQL Client API suggestion for https://github.com/eclipse/microprofile-graphql/issues/185[Microprofile GraphQL Issue #185].
