@@ -54,8 +54,10 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
 
     @Override
     public T get(DataFetchingEnvironment dfe) throws Exception {
-        GraphQLContext graphQLContext = dfe.getContext();
-        graphQLContext.put("context", ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, field));
+        if (dfe.getContext() != null) {
+            GraphQLContext graphQLContext = dfe.getContext();
+            graphQLContext.put("context", ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, field));
+        }
 
         if (this.methodHandle == null) {
             // lazy initialize method handle, does not have to be threadsafe

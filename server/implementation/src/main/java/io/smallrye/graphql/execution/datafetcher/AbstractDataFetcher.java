@@ -49,8 +49,11 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     public T get(final DataFetchingEnvironment dfe) throws Exception {
         // update the context
         GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, operation);
-        graphQLContext.put("context", context);
+        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
+        if (context != null) {
+            context = context.withDataFromFetcher(dfe, operation);
+            graphQLContext.put("context", context);
+        }
 
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(graphQLContext);
 

@@ -39,8 +39,8 @@ public class GraphQLProducer {
 
     public GraphQLSchema initialize() {
         this.graphQLSchema = Bootstrap.bootstrap(schema, graphQLConfig);
-
-        this.executionService = new ExecutionService(graphQLConfig, graphQLSchema, this.schema.getBatchOperations());
+        this.executionService = new ExecutionService(graphQLConfig, graphQLSchema, this.schema.getBatchOperations(),
+                schema.hasSubscriptions());
         this.schemaPrinter = new SchemaPrinter(graphQLConfig);
         return this.graphQLSchema;
     }

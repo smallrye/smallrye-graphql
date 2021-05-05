@@ -8,6 +8,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -160,6 +161,7 @@ public class Bootstrap {
 
         addQueries(schemaBuilder);
         addMutations(schemaBuilder);
+        addSubscriptions(schemaBuilder);
 
         schemaBuilder.additionalDirectives(directiveTypes);
         schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
@@ -241,6 +243,24 @@ public class Bootstrap {
         GraphQLObjectType mutation = mutationBuilder.build();
         if (mutation.getFieldDefinitions() != null && !mutation.getFieldDefinitions().isEmpty()) {
             schemaBuilder.mutation(mutation);
+        }
+    }
+
+    private void addSubscriptions(GraphQLSchema.Builder schemaBuilder) {
+        GraphQLObjectType.Builder subscriptionBuilder = GraphQLObjectType.newObject()
+                .name(SUBSCRIPTION)
+                .description(SUBSCRIPTION_DESCRIPTION);
+
+        if (schema.hasSubscriptions()) {
+            addRootObject(subscriptionBuilder, schema.getSubscriptions(), SUBSCRIPTION);
+        }
+        if (schema.hasGroupedSubscriptions()) {
+            addGroupedRootObject(subscriptionBuilder, schema.getGroupedSubscriptions(), SUBSCRIPTION);
+        }
+
+        GraphQLObjectType subscription = subscriptionBuilder.build();
+        if (subscription.getFieldDefinitions() != null && !subscription.getFieldDefinitions().isEmpty()) {
+            schemaBuilder.subscription(subscription);
         }
     }
 
@@ -674,7 +694,7 @@ public class Bootstrap {
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {
         List<GraphQLArgument> graphQLArguments = new ArrayList<>();
         for (Argument argument : arguments) {
-            if (!argument.isSourceArgument() && !argument.getReference().getClassName().equals(CONTEXT)) {
+            if (!argument.isSourceArgument() && !IGNORABLE_ARGUMENTS.contains(argument.getReference().getClassName())) {
                 graphQLArguments.add(createGraphQLArgument(argument));
             }
         }
@@ -807,9 +827,15 @@ public class Bootstrap {
     private static final String MUTATION = "Mutation";
     private static final String MUTATION_DESCRIPTION = "Mutation root";
 
+    private static final String SUBSCRIPTION = "Subscription";
+    private static final String SUBSCRIPTION_DESCRIPTION = "Subscription root";
+
     private static final String COMMA = ",";
 
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";
+    private static final String OBSERVES = "javax.enterprise.event.Observes";
+
+    private static final List<String> IGNORABLE_ARGUMENTS = Arrays.asList(CONTEXT, OBSERVES);
 }

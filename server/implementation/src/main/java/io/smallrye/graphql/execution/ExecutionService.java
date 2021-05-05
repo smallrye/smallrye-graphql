@@ -2,22 +2,11 @@ package io.smallrye.graphql.execution;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.io.StringReader;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonReaderFactory;
-import javax.json.JsonValue;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
 
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
@@ -29,8 +18,8 @@ import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLContext;
-import graphql.GraphQLError;
 import graphql.execution.ExecutionId;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
@@ -39,7 +28,6 @@ import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
-import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 
@@ -50,16 +38,8 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public class ExecutionService {
 
-    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
-    private static final Jsonb jsonB = JsonbBuilder.create(new JsonbConfig()
-            .withNullValues(Boolean.TRUE)
-            .withFormatting(Boolean.TRUE));
-
     private final String executionIdPrefix;
     private final AtomicLong executionId = new AtomicLong();
-
-    private final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
     private final Config config;
 
@@ -73,7 +53,10 @@ public class ExecutionService {
 
     private GraphQL graphQL;
 
-    public ExecutionService(Config config, GraphQLSchema graphQLSchema, List<Operation> batchOperations) {
+    private final boolean hasSubscription;
+
+    public ExecutionService(Config config, GraphQLSchema graphQLSchema, List<Operation> batchOperations,
+            boolean hasSubscription) {
         this.config = config;
         this.graphQLSchema = graphQLSchema;
         this.dataFetcherFactory = new DataFetcherFactory(config);
@@ -81,9 +64,10 @@ public class ExecutionService {
         this.eventEmitter = EventEmitter.getInstance(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
+        this.hasSubscription = hasSubscription;
     }
 
-    public JsonObject execute(JsonObject jsonInput) {
+    public ExecutionResponse execute(JsonObject jsonInput) {
         SmallRyeContext context = new SmallRyeContext(jsonInput);
 
         // ExecutionId
@@ -131,20 +115,12 @@ public class ExecutionService {
                 // Notify after
                 eventEmitter.fireAfterExecute(context);
 
-                JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
-
-                // Errors
-                returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
-                // Data
-                returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
-
-                JsonObject jsonResponse = returnObjectBuilder.build();
-
+                ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
                 if (config.logPayload()) {
-                    log.payloadOut(jsonResponse.toString());
+                    log.payloadOut(executionResponse.toString());
                 }
 
-                return jsonResponse;
+                return executionResponse;
             } else {
                 log.noGraphQLMethodsFound();
                 return null;
@@ -175,41 +151,6 @@ public class ExecutionService {
         return builder.build();
     }
 
-    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
-        Object pojoData = executionResult.getData();
-        return addDataToResponse(returnObjectBuilder, pojoData);
-    }
-
-    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, Object pojoData) {
-        if (pojoData != null) {
-            JsonValue data = toJsonValue(pojoData);
-            return returnObjectBuilder.add(DATA, data);
-        } else {
-            return returnObjectBuilder.addNull(DATA);
-        }
-    }
-
-    private JsonObjectBuilder addErrorsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
-        List<GraphQLError> errors = executionResult.getErrors();
-        if (errors != null) {
-            JsonArray jsonArray = errorsService.toJsonErrors(errors);
-            if (!jsonArray.isEmpty()) {
-                returnObjectBuilder = returnObjectBuilder.add(ERRORS, jsonArray);
-            }
-            return returnObjectBuilder;
-        } else {
-            return returnObjectBuilder;
-        }
-
-    }
-
-    private JsonValue toJsonValue(Object pojo) {
-        String json = jsonB.toJson(pojo);
-        try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
-            return reader.readValue();
-        }
-    }
-
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(config);
@@ -222,6 +163,10 @@ public class ExecutionService {
                 graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 
+                if (hasSubscription) {
+                    graphqlBuilder = graphqlBuilder.subscriptionExecutionStrategy(new SubscriptionExecutionStrategy());
+                }
+
                 // Allow custom extension
                 graphqlBuilder = eventEmitter.fireBeforeGraphQLBuild(graphqlBuilder);
 
@@ -233,7 +178,4 @@ public class ExecutionService {
         return this.graphQL;
 
     }
-
-    private static final String DATA = "data";
-    private static final String ERRORS = "errors";
 }

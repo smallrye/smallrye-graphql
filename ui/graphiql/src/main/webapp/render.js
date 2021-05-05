@@ -112,6 +112,7 @@ function graphQLFetcher(graphQLParams) {
         return new rxjs.Observable((observer) => {
             webSocket = new WebSocket(new_uri);
             webSocket.onopen = function() {
+                observer.next("Connection established.... waiting for data");
                 webSocket.send(JSON.stringify(graphQLParams));
             };
             webSocket.onmessage = function (event) {
@@ -125,7 +126,6 @@ function graphQLFetcher(graphQLParams) {
                     webSocket.close();
                 }
             };
-            
           });
     }else{
         return fetch(api, {

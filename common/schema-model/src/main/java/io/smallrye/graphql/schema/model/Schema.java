@@ -19,9 +19,11 @@ import java.util.Set;
 public final class Schema implements Serializable {
     private Set<Operation> queries = new HashSet<>();
     private Set<Operation> mutations = new HashSet<>();
+    private Set<Operation> subscriptions = new HashSet<>();
 
     private Map<Group, Set<Operation>> groupedQueries = new HashMap<>();
     private Map<Group, Set<Operation>> groupedMutations = new HashMap<>();
+    private Map<Group, Set<Operation>> groupedSubscriptions = new HashMap<>();
 
     private List<DirectiveType> directiveTypes = new ArrayList<>();
     private Map<String, InputType> inputs = new HashMap<>();
@@ -70,6 +72,22 @@ public final class Schema implements Serializable {
         return !this.mutations.isEmpty();
     }
 
+    public Set<Operation> getSubscriptions() {
+        return subscriptions;
+    }
+
+    public void setSubscriptions(Set<Operation> subscriptions) {
+        this.subscriptions = subscriptions;
+    }
+
+    public void addSubscription(Operation subscription) {
+        this.subscriptions.add(subscription);
+    }
+
+    public boolean hasSubscriptions() {
+        return !this.subscriptions.isEmpty();
+    }
+
     public Map<Group, Set<Operation>> getGroupedQueries() {
         return groupedQueries;
     }
@@ -100,6 +118,22 @@ public final class Schema implements Serializable {
 
     public boolean hasGroupedMutations() {
         return !this.groupedMutations.isEmpty();
+    }
+
+    public Map<Group, Set<Operation>> getGroupedSubscriptions() {
+        return groupedSubscriptions;
+    }
+
+    public void setGroupedSubscriptions(Map<Group, Set<Operation>> groupedSubscriptions) {
+        this.groupedSubscriptions = groupedSubscriptions;
+    }
+
+    public void addGroupedSubscription(Group group, Operation subscription) {
+        addToOperationMap(this.groupedSubscriptions, group, subscription);
+    }
+
+    public boolean hasGroupedSubscriptions() {
+        return !this.groupedSubscriptions.isEmpty();
     }
 
     public Map<String, InputType> getInputs() {
