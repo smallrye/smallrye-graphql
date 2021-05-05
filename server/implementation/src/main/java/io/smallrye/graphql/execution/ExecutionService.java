@@ -4,6 +4,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -137,6 +138,8 @@ public class ExecutionService {
                 returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
                 // Data
                 returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
+                // Extensions
+                returnObjectBuilder = addExtensionsToResponse(returnObjectBuilder, executionResult);
 
                 JsonObject jsonResponse = returnObjectBuilder.build();
 
@@ -203,6 +206,27 @@ public class ExecutionService {
 
     }
 
+    private JsonObjectBuilder addExtensionsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
+        final Map<Object, Object> extensions = executionResult.getExtensions();
+        if (extensions != null) {
+            JsonObject extensionsObject = buildExtensions(extensions);
+            returnObjectBuilder = returnObjectBuilder.add(EXTENSIONS, extensionsObject);
+        }
+        return returnObjectBuilder;
+    }
+
+    private JsonObject buildExtensions(final Map<Object, Object> extensions) {
+        JsonObjectBuilder extensionsBuilder = jsonObjectFactory.createObjectBuilder();
+        for (final Map.Entry<Object, Object> entry : extensions.entrySet()) {
+            if (entry.getKey() instanceof String) {
+                String key = ((String) entry.getKey());
+                final JsonValue value = toJsonValue(entry.getValue());
+                extensionsBuilder.add(key, value);
+            }
+        }
+        return extensionsBuilder.build();
+    }
+
     private JsonValue toJsonValue(Object pojo) {
         String json = jsonB.toJson(pojo);
         try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
@@ -236,4 +260,5 @@ public class ExecutionService {
 
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
+    private static final String EXTENSIONS = "extensions";
 }
