@@ -8,13 +8,13 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 class AnnotationBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface RenamedStringApi {
         @Query("greeting")
         String foo();
@@ -31,7 +31,7 @@ class AnnotationBehavior {
         then(greeting).isEqualTo("dummy-greeting");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface RenamedParamApi {
         String greeting(@Name("who") String foo);
     }
@@ -48,7 +48,7 @@ class AnnotationBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface RenamedMethodApi {
         @Name("greeting")
         String someOtherMethodName();
@@ -66,7 +66,7 @@ class AnnotationBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ObjectApi {
         Greeting greeting();
     }
@@ -90,7 +90,7 @@ class AnnotationBehavior {
         then(greeting.code).isEqualTo(5);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface HeroesAPI {
         HeroAndVillain heroAndVillain();
 
@@ -158,7 +158,7 @@ class AnnotationBehavior {
         String someValue;
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ThingsApi {
         Thing things();
     }

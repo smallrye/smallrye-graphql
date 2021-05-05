@@ -27,8 +27,8 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 
 @SupportedAnnotationTypes({
-        "io.smallrye.graphql.client.generator.GraphqlQuery",
-        "io.smallrye.graphql.client.generator.GraphqlQueries" })
+        "io.smallrye.graphql.client.generator.GraphQLQuery",
+        "io.smallrye.graphql.client.generator.GraphQLQueries" })
 public class AnnotationProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -39,8 +39,8 @@ public class AnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // getElementsAnnotatedWithAny is Java 9+
         Set<Element> all = new LinkedHashSet<>();
-        all.addAll(roundEnv.getElementsAnnotatedWith(GraphqlQuery.class));
-        all.addAll(roundEnv.getElementsAnnotatedWith(GraphqlQueries.class));
+        all.addAll(roundEnv.getElementsAnnotatedWith(GraphQLQuery.class));
+        all.addAll(roundEnv.getElementsAnnotatedWith(GraphQLQueries.class));
         all.forEach(this::processAnnotatedType);
         return true;
     }
@@ -60,8 +60,8 @@ public class AnnotationProcessor extends AbstractProcessor {
         String schema = readSchema(type);
         if (schema == null)
             return;
-        List<String> queries = Stream.of(type.getAnnotationsByType(GraphqlQuery.class))
-                .map(GraphqlQuery::value)
+        List<String> queries = Stream.of(type.getAnnotationsByType(GraphQLQuery.class))
+                .map(GraphQLQuery::value)
                 .collect(toList());
 
         Generator generator = new Generator(pkg, apiTypeName, schema, queries);
@@ -84,7 +84,7 @@ public class AnnotationProcessor extends AbstractProcessor {
     }
 
     private String readSchema(TypeElement type) {
-        GraphQlSchema annotation = type.getAnnotation(GraphQlSchema.class);
+        GraphQLSchema annotation = type.getAnnotation(GraphQLSchema.class);
         if (annotation == null) {
             processingEnv.getMessager().printMessage(ERROR, "missing GraphQlSchema annotation", type);
             return null;

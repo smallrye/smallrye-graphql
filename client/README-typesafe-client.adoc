@@ -1,4 +1,4 @@
-= SmallRye GraphQL Client
+= SmallRye GraphQL Typesafe Client
 :toc2:
 
 A Java code-first type-safe GraphQL Client API suggestion for https://github.com/eclipse/microprofile-graphql/issues/185[Microprofile GraphQL Issue #185].
@@ -7,7 +7,7 @@ A Java code-first type-safe GraphQL Client API suggestion for https://github.com
 
 [source,java]
 ----
-@GraphQlClientApi
+@GraphQLClientApi
 interface SuperHeroesApi {
     List<SuperHero> allHeroesIn(String location); // <1>
 }
@@ -30,7 +30,7 @@ The example above uses CDI, e.g. when you are in a MicroProfile or Jakarta EE en
 
 [source,java]
 ----
-SuperHeroesApi api = GraphQlClientBuilder.newBuilder().build(SuperHeroesApi.class);
+SuperHeroesApi api = TypesafeGraphQLClientBuilder.newBuilder().build(SuperHeroesApi.class);
 ----
 
 The basic idea of the Java code-first approach is that you start by writing the DTOs and query/mutation methods as you need them in your client. This ensures that you don't request fields that you don't need; the thinking is inspired by https://martinfowler.com/articles/consumerDrivenContracts.html[Consumer Driven Contracts]. If the server uses names different from yours, you can simply use annotations to do a mapping:
@@ -63,7 +63,7 @@ If the endpoint is always the same, e.g. a public API of a cloud service, you ca
 
 [source,java]
 ----
-@GraphQlClientApi(endpoint = "https://superheroes.org/graphql")
+@GraphQLClientApi(endpoint = "https://superheroes.org/graphql")
 interface SuperHeroesApi {
 }
 ----
@@ -72,7 +72,7 @@ When instantiating the API with the builder, you can set (or overwrite) the endp
 
 [source,java]
 ----
-SuperHeroesApi api = GraphQlClientBuilder.newBuilder()
+SuperHeroesApi api = TypesafeGraphQLClientBuilder.newBuilder()
     .endpoint("https://superheroes.org/graphql")
     .build(SuperHeroesApi.class);
 ----
@@ -84,9 +84,9 @@ Commonly you'll need different endpoints, e.g. when you need one endpoint for yo
 org.superheroes.SuperHeroesApi/mp-graphql/url=https://superheroes.org/graphql
 ----
 
-If you want to use a different key, set the base config key on the annotation `@GraphQlClientApi(configKey = "superheroes")`; then use this key for the endpoint `superheroes/mp-graphql/url`.
+If you want to use a different key, set the base config key on the annotation `@GraphQLClientApi(configKey = "superheroes")`; then use this key for the endpoint `superheroes/mp-graphql/url`.
 
-When using the builder, you can override the config key as well: `GraphQlClientBuilder.newBuilder().configKey("superheroes")`.
+When using the builder, you can override the config key as well: `TypesafeGraphQLClientBuilder.newBuilder().configKey("superheroes")`.
 
 == Headers
 
@@ -94,7 +94,7 @@ To add a custom header to the http requests sent out by the GraphQL Client, anno
 
 [source,java]
 ----
-@GraphQlClientApi
+@GraphQLClientApi
 interface SuperHeroesApi {
     @Header(name = "S.H.I.E.L.D.-Clearance", constant = "TOP-SECRET")
     List<SuperHero> allHeroesIn(String location);
@@ -105,7 +105,7 @@ The `name` has to be fixed, but the value can be specified with a `constant` or 
 
 [source,java]
 ----
-@GraphQlClientApi
+@GraphQLClientApi
 interface SuperHeroesApi {
     @Header(name = "S.H.I.E.L.D.-Clearance", method = "establishShieldClearance")
     List<SuperHero> allHeroesIn(String location);
@@ -124,7 +124,7 @@ A third option is to pass the value of a header as an API method parameter:
 
 [source,java]
 ----
-@GraphQlClientApi
+@GraphQLClientApi
 interface SuperHeroesApi {
     List<SuperHero> allHeroesIn(String location, @Header(name = "S.H.I.E.L.D.-Clearance") Clearance clearance);
 }
@@ -137,7 +137,7 @@ The `@Header` parameter will not part of the GraphQL query.
 
 == AuthorizationHeaders
 
-To add an `Authorization` header, instead of using the generic `@Header` annotation, you can also use the special `@AuthorizationHeader` annotation. It produces a `BASIC` `Authorization` header by default or a `BEARER` token. You can configure the credentials in MP Config with a prefix plus `/mp-graphql/` and either `username` and `password` for `BASIC` or `bearer` for `BEARER`. The config key defaults to the fully qualified name of the `GraphQlClientApi` interface or its `configKey`.
+To add an `Authorization` header, instead of using the generic `@Header` annotation, you can also use the special `@AuthorizationHeader` annotation. It produces a `BASIC` `Authorization` header by default or a `BEARER` token. You can configure the credentials in MP Config with a prefix plus `/mp-graphql/` and either `username` and `password` for `BASIC` or `bearer` for `BEARER`. The config key defaults to the fully qualified name of the `GraphQLClientApi` interface or its `configKey`.
 
 You can use a custom prefix by setting the `confPrefix`. The infix `/mp-graphql/` is still applied, unless you end the `confPrefix` with `\*`, e.g. `@AuthorizationHeader(confPrefix = "org.superheroes.security.basic.*` will use
 `org.superheroes.security.basic.username`, while `*` will use plain `username`.
@@ -151,7 +151,7 @@ The Client implementation logs all GraphQL requests and responses at level `INFO
 
 == Errors
 
-If the service returns one or more errors, the client normally throws a `GraphQlClientException` containing the details in a list of `GraphQlClientError`.
+If the service returns one or more errors, the client normally throws a `GraphQLClientException` containing the details in a list of `GraphQLClientError`.
 
 If the error is specific to a `location`, you can use an `ErrorOr` wrapper on the target field; the client the maps the error to that wrapper instead of throwing an exception. I.e. your `SuperHero` class could look like this:
 
@@ -203,7 +203,7 @@ To pass the parameter to the nested field/method, annotate it as `@NestedParamet
 
 [source,java]
 -----------------------------------------------------------
-@GraphQlClientApi
+@GraphQLClientApi
 interface TeamsApi {
     Team team(String name, @NestedParameter("members") int first);
 }
@@ -217,7 +217,7 @@ Say you need the result from several root queries, e.g. all `superHeroes` and al
 
 [source,java]
 -----------------------------------------------------------
-@GraphQlClientApi
+@GraphQLClientApi
 interface SuperHeroesApi {
     HeroesAndVillains heroesAndVillains();
 }

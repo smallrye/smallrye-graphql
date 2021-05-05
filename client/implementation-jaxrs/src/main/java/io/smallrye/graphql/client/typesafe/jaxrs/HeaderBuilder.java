@@ -12,8 +12,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
@@ -46,11 +46,11 @@ public class HeaderBuilder {
     private Object resolveValue(Header header) {
         if (!header.method().isEmpty()) {
             if (!header.constant().isEmpty())
-                throw new GraphQlClientException("Header with 'method' AND 'constant' not allowed: " + header);
+                throw new GraphQLClientException("Header with 'method' AND 'constant' not allowed: " + header);
             return resolveMethodValue(header.method());
         }
         if (header.constant().isEmpty())
-            throw new GraphQlClientException("Header must have either 'method' XOR 'constant': " + header);
+            throw new GraphQLClientException("Header must have either 'method' XOR 'constant': " + header);
         return header.constant();
     }
 
@@ -58,14 +58,14 @@ public class HeaderBuilder {
         TypeInfo declaringType = method.getDeclaringType();
         MethodInvocation method = new MethodResolver(declaringType, methodName).resolve();
         if (!method.isStatic())
-            throw new GraphQlClientException("referenced header method '" + methodName + "'" +
+            throw new GraphQLClientException("referenced header method '" + methodName + "'" +
                     " in " + declaringType.getTypeName() + " is not static");
         try {
             return method.invoke(null).toString();
         } catch (RuntimeException e) {
-            if (e instanceof GraphQlClientException)
+            if (e instanceof GraphQLClientException)
                 throw e;
-            throw new GraphQlClientException("can't resolve header method expression '" + methodName + "'" +
+            throw new GraphQLClientException("can't resolve header method expression '" + methodName + "'" +
                     " in " + declaringType.getTypeName(), e);
         }
     }
@@ -81,7 +81,7 @@ public class HeaderBuilder {
     }
 
     private static String configKey(Class<?> api) {
-        GraphQlClientApi annotation = api.getAnnotation(GraphQlClientApi.class);
+        GraphQLClientApi annotation = api.getAnnotation(GraphQLClientApi.class);
         if (annotation == null || annotation.configKey().isEmpty())
             return api.getName();
         return annotation.configKey();

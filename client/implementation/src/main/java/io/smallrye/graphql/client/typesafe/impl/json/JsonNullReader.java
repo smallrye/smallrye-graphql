@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQlClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
 
 import javax.json.JsonValue;
 

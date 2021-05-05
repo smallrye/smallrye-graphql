@@ -1,5 +1,5 @@
 package io.smallrye.graphql.client.generator;
 
-public @interface GraphQlSchema {
+public @interface GraphQLSchema {
     String value();
 }

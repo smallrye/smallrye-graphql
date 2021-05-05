@@ -24,20 +24,20 @@ import javax.ws.rs.core.Response;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientBuilder;
+import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 
 /**
- * Builds {@link GraphQlClientBuilder} instances with mocked backend and helps testing that.
+ * Builds {@link TypesafeGraphQLClientBuilder} instances with mocked backend and helps testing that.
  * Only this class relies on the JAX-RS implementation, but the tests are independent of that detail.
  */
-class GraphQlClientFixture {
+class GraphQLClientFixture {
     private final Client mockClient = Mockito.mock(Client.class);
     private final WebTarget mockWebTarget = Mockito.mock(WebTarget.class);
     private final Invocation.Builder mockInvocationBuilder = Mockito.mock(Invocation.Builder.class);
     private Response response;
     private Entity<JsonObject> entitySent;
 
-    GraphQlClientFixture() {
+    GraphQLClientFixture() {
         given(mockClient.target(any(URI.class))).willReturn(mockWebTarget);
         given(mockWebTarget.request(any(MediaType.class))).willReturn(mockInvocationBuilder);
         given(mockInvocationBuilder.headers(any())).willReturn(mockInvocationBuilder);
@@ -48,12 +48,12 @@ class GraphQlClientFixture {
         return builder().build(apiClass);
     }
 
-    GraphQlClientBuilder builder() {
+    TypesafeGraphQLClientBuilder builder() {
         return builderWithoutEndpointConfig().endpoint("urn:dummy-endpoint");
     }
 
-    GraphQlClientBuilder builderWithoutEndpointConfig() {
-        GraphQlClientBuilder builder = GraphQlClientBuilder.newBuilder();
+    TypesafeGraphQLClientBuilder builderWithoutEndpointConfig() {
+        TypesafeGraphQLClientBuilder builder = TypesafeGraphQLClientBuilder.newBuilder();
         try {
             Method method = builder.getClass().getMethod("client", Client.class);
             method.invoke(builder, mockClient);

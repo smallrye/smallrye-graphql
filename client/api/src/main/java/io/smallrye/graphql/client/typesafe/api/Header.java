@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 /**
  * Adds a custom header to the http requests sent out by the GraphQL Client.
- * Annotate your method or the {@link GraphQlClientApi API} interface.
+ * Annotate your method or the {@link GraphQLClientApi API} interface.
  * <p>
  * The `name` is always fixed, but the value can be either a `constant`
  * or the name of a `method` for dynamic values. It can't be both or neither.

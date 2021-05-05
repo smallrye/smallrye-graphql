@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQlClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -19,7 +19,7 @@ class JsonNumberReader extends Reader<JsonNumber> {
         try {
             return read(location, value, type.getRawType());
         } catch (ArithmeticException e) {
-            throw new GraphQlClientValueException(location, value, e);
+            throw new GraphQLClientValueException(location, value, e);
         }
     }
 
@@ -43,7 +43,7 @@ class JsonNumberReader extends Reader<JsonNumber> {
         if (BigDecimal.class.equals(rawType))
             return value.bigDecimalValue();
 
-        throw new GraphQlClientValueException(location, value);
+        throw new GraphQLClientValueException(location, value);
     }
 
     private int readIntBetween(Location location, JsonNumber value, int minValue, int maxValue) {

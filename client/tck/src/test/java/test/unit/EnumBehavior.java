@@ -9,10 +9,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class EnumBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
     enum Episode {
         NEWHOPE,
@@ -20,7 +20,7 @@ class EnumBehavior {
         JEDI
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface EpisodeApi {
         Episode episode();
     }
@@ -36,7 +36,7 @@ class EnumBehavior {
         then(episode).isEqualTo(JEDI);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface EpisodesApi {
         List<Episode> episodes();
     }
@@ -52,7 +52,7 @@ class EnumBehavior {
         then(episode).containsExactly(NEWHOPE, EMPIRE, JEDI);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface EpisodeFilterApi {
         List<String> characters(Episode episode);
     }

@@ -7,7 +7,7 @@ import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
@@ -105,7 +105,7 @@ public class ParameterInfo {
         if (parameter.isAnnotationPresent(Name.class))
             return parameter.getAnnotation(Name.class).value();
         if (!parameter.isNamePresent())
-            throw new GraphQlClientException("Missing name information for " + this + ".\n" +
+            throw new GraphQLClientException("Missing name information for " + this + ".\n" +
                     "You can either annotate all parameters with @Name, " +
                     "or compile your source code with the -parameters options, " +
                     "so the parameter names are compiled into the class file and available at runtime.");

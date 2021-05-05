@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientError;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 
-class GraphQlClientErrorImpl implements GraphQlClientError {
+class GraphQLClientErrorImpl implements GraphQLClientError {
     private String message;
     private List<SourceLocation> locations;
     private List<Object> path;
@@ -55,7 +55,7 @@ class GraphQlClientErrorImpl implements GraphQlClientError {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        GraphQlClientErrorImpl that = (GraphQlClientErrorImpl) o;
+        GraphQLClientErrorImpl that = (GraphQLClientErrorImpl) o;
         return Objects.equals(message, that.message) &&
                 Objects.equals(locations, that.locations) &&
                 Objects.equals(path, that.path) &&

@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response.StatusType;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.QueryBuilder;
 import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
@@ -142,7 +142,7 @@ class JaxRsTypesafeGraphQLClientProxy {
                 .post(entity(request, APPLICATION_JSON_UTF8));
         StatusType status = response.getStatusInfo();
         if (status.getFamily() != SUCCESSFUL)
-            throw new GraphQlClientException("expected successful status code but got " +
+            throw new GraphQLClientException("expected successful status code but got " +
                     status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
                     response.readEntity(String.class));
         return response.readEntity(String.class);

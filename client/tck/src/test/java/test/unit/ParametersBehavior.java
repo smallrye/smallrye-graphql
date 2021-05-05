@@ -16,12 +16,12 @@ import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Type;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQlClientApi;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class ParametersBehavior {
-    private final GraphQlClientFixture fixture = new GraphQlClientFixture();
+    private final GraphQLClientFixture fixture = new GraphQLClientFixture();
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface StringParamApi {
         String greeting(String who);
     }
@@ -39,7 +39,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NonNullStringParamApi {
         String greeting(@NonNull String who);
     }
@@ -69,7 +69,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ParamsApi {
         String greeting(String who, int count);
     }
@@ -86,7 +86,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo 3");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ObjectParamApi {
         Greeting say(Greeting greet);
     }
@@ -118,7 +118,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface RenamedObjectParamApi {
         RenamedGreeting say(RenamedGreeting greet);
     }
@@ -151,7 +151,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NamedInputObjectParamApi {
         NamedInputGreeting say(NamedInputGreeting greet);
     }
@@ -184,7 +184,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface EmptyInputObjectParamApi {
         EmptyInputGreeting say(EmptyInputGreeting greet);
     }
@@ -217,7 +217,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NamedTypeObjectParamApi {
         NamedTypeGreeting say(NamedTypeGreeting greet);
     }
@@ -250,7 +250,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface TypeAndInputObjectParamApi {
         TypeAndInputGreeting say(TypeAndInputGreeting greet);
     }
@@ -284,7 +284,7 @@ class ParametersBehavior {
         then(greeting.count).isEqualTo(3);
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ArrayParamApi {
         boolean greetings(String[] greets);
     }
@@ -301,7 +301,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ListParamApi {
         boolean greetings(List<String> greets);
     }
@@ -318,7 +318,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NonNullListParamApi {
         boolean greetings(@NonNull List<String> greets);
     }
@@ -335,7 +335,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ListOfNonNullParamApi {
         boolean greetings(List<@NonNull String> greets);
     }
@@ -352,7 +352,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface SetParamApi {
         boolean greetings(Set<String> greets);
     }
@@ -369,7 +369,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface QueueParamApi {
         boolean greetings(Queue<String> greets);
     }
@@ -386,7 +386,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface CollectionParamApi {
         boolean greetings(Collection<String> greets);
     }
@@ -403,7 +403,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ObjectListParamApi {
         boolean greetings(List<Greeting> greets);
     }
@@ -420,7 +420,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface ListObjectParamApi {
         boolean foo(ListObject bar);
     }
@@ -447,7 +447,7 @@ class ParametersBehavior {
         then(success).isTrue();
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface BooleanApi {
         String greeting(Boolean who);
     }
@@ -465,7 +465,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface PrimitiveBooleanApi {
         String greeting(boolean who);
     }
@@ -483,7 +483,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NonNullBooleanApi {
         String greeting(@NonNull Boolean who);
     }
@@ -501,7 +501,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface IntegerApi {
         String greeting(Integer who);
     }
@@ -519,7 +519,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface PrimitiveIntegerApi {
         String greeting(int who);
     }
@@ -537,7 +537,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NonNullIntegerApi {
         String greeting(@NonNull Integer who);
     }
@@ -555,7 +555,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface LongApi {
         String greeting(Long who);
     }
@@ -573,7 +573,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface PrimitiveLongApi {
         String greeting(long who);
     }
@@ -591,7 +591,7 @@ class ParametersBehavior {
         then(greeting).isEqualTo("hi, foo");
     }
 
-    @GraphQlClientApi
+    @GraphQLClientApi
     interface NonNullLongApi {
         String greeting(@NonNull Long who);
     }

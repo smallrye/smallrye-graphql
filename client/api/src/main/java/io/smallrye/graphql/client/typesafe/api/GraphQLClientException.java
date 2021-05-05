@@ -6,20 +6,20 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
-public class GraphQlClientException extends RuntimeException {
-    private final List<GraphQlClientError> errors;
+public class GraphQLClientException extends RuntimeException {
+    private final List<GraphQLClientError> errors;
 
-    public GraphQlClientException(String message) {
+    public GraphQLClientException(String message) {
         super(message);
         this.errors = emptyList();
     }
 
-    public GraphQlClientException(String message, List<GraphQlClientError> errors) {
+    public GraphQLClientException(String message, List<GraphQLClientError> errors) {
         super(message);
         this.errors = requireNonNull(errors);
     }
 
-    public GraphQlClientException(String message, Throwable cause) {
+    public GraphQLClientException(String message, Throwable cause) {
         super(message, cause);
         this.errors = emptyList();
     }
@@ -27,10 +27,10 @@ public class GraphQlClientException extends RuntimeException {
     @Override
     public String toString() {
         return "GraphQlClientException: " + getMessage() + (errors.isEmpty() ? ""
-                : "\nerrors:\n- " + errors.stream().map(GraphQlClientError::toString).collect(joining("\n- "))) + ")";
+                : "\nerrors:\n- " + errors.stream().map(GraphQLClientError::toString).collect(joining("\n- "))) + ")";
     }
 
-    public List<GraphQlClientError> getErrors() {
+    public List<GraphQLClientError> getErrors() {
         return errors;
     }
 }

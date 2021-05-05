@@ -22,7 +22,7 @@ import graphql.ErrorType;
 import graphql.GraphQLError;
 import graphql.schema.idl.errors.SchemaProblem;
 import io.smallrye.graphql.client.generator.Generator;
-import io.smallrye.graphql.client.generator.GraphQlGeneratorException;
+import io.smallrye.graphql.client.generator.GraphQLGeneratorException;
 
 public class GeneratorBehavior {
     private static final String HEROES = "{heroes { name realName }}";
@@ -77,8 +77,8 @@ public class GeneratorBehavior {
         schema = "foo";
         Generator generator = givenGeneratorFor(HEROES);
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("can't parse schema: foo")
                 .hasCauseInstanceOf(SchemaProblem.class);
@@ -92,8 +92,8 @@ public class GeneratorBehavior {
         schema = "type SuperHero { name: String }";
         Generator generator = givenGeneratorFor(HEROES);
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("'Query' type not found in schema");
     }
@@ -102,8 +102,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithUnknownQuery() {
         Generator generator = givenGeneratorFor("{unknown { name }}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessageStartingWith("field (method) 'unknown' not found in [");
     }
@@ -112,8 +112,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithInvalidQuery() {
         Generator generator = givenGeneratorFor("invalid {heroes}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("can't parse query: invalid {heroes}");
     }
@@ -131,8 +131,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithMultipleDefinitionInQuery() {
         Generator generator = givenGeneratorFor("query foo {heroes {name}} mutation bar {name}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("expected exactly one definition but found [query foo, mutation bar]");
     }
@@ -141,8 +141,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithMultipleQuery() {
         Generator generator = givenGeneratorFor("{heroes { name } heroesIn(location: String) { realName }}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("expected exactly one field but got [heroes, heroesIn]");
     }
@@ -162,8 +162,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithMultipleQueriesSelectingDifferentFields() {
         Generator generator = givenGeneratorFor("{heroes { name }}", HEROES_IN_LOCATION);
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("already generated SuperHero");
     }
@@ -280,8 +280,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithUndefinedParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThan($foo: Int) {teamsLargerThan(size: $bar)}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("no definition found for parameter 'bar' in [foo]");
     }
@@ -290,8 +290,8 @@ public class GeneratorBehavior {
     public void shouldFailToGenerateApiWithConstantParameter() {
         Generator generator = givenGeneratorFor("query teamsLargerThanThree{teamsLargerThan(size: 3) {name}}");
 
-        GraphQlGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
-                GraphQlGeneratorException.class);
+        GraphQLGeneratorException thrown = catchThrowableOfType(generator::generateSourceFiles,
+                GraphQLGeneratorException.class);
 
         then(thrown).hasMessage("unsupported type IntValue{value=3} for argument 'size'");
         // will be:
@@ -333,7 +333,7 @@ public class GeneratorBehavior {
                 "}\n");
     }
 
-    private GraphQlErrorAssert thenErrorCauseOf(GraphQlGeneratorException thrown) {
+    private GraphQlErrorAssert thenErrorCauseOf(GraphQLGeneratorException thrown) {
         List<GraphQLError> errors = ((SchemaProblem) thrown.getCause()).getErrors();
         then(errors).hasSize(1);
         GraphQLError error = errors.get(0);
