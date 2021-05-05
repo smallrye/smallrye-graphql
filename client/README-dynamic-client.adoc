@@ -35,7 +35,7 @@ Such service can be queried this way:
 ----
 Document document = document(      // <1>
     operation(field("allHeroesIn",
-        args(arg("location", Outer Space")),
+        args(arg("location", "Outer Space")),
         field("name"),
         field("superPowers"))));
 Response response = client.executeSync(document);  // <2>
@@ -84,6 +84,6 @@ DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
 These properties apply when you're using CDI to inject named client instances (the first example
 in the previous section).
 
-- `CLIENT_NAME/mp-graphql/url` - defines the URL where the client should donnect
+- `CLIENT_NAME/mp-graphql/url` - defines the URL where the client should connect
 - `CLIENT_NAME/mp-graphql/header/KEY` - this property declares that the client will add a HTTP header
 named `KEY` to all requests (with a value being the value of this property)
