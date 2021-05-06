@@ -463,6 +463,7 @@ public class Annotations {
     // SmallRye GraphQL Annotations (Experimental)
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
+    public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
 
     // MicroProfile GraphQL Annotations

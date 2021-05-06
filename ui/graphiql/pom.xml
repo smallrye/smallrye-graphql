@@ -16,7 +16,8 @@
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
         <react.version>17.0.2</react.version>
-        <graphiql.version>1.4.0</graphiql.version>
+        <graphiql.version>1.4.1</graphiql.version>
+        <rxjs.version>6.6.7</rxjs.version>
     </properties>
     
     <dependencies>
@@ -25,6 +26,12 @@
             <groupId>org.webjars.npm</groupId>
             <artifactId>graphiql</artifactId>
             <version>${graphiql.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>rxjs</artifactId>
+            <version>${rxjs.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -87,7 +94,19 @@
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
-                                    <includes>**/graphiql.min.js, **/graphiql.min.css</includes>
+                                    <includes>**/graphiql.min.js, **/graphiql.min.js.map, **/graphiql.min.css, **/graphiql.min.css.map</includes>
+                                    <fileMappers>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
+                                    </fileMappers>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.webjars.npm</groupId>
+                                    <artifactId>rxjs</artifactId>
+                                    <version>${rxjs.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
+                                    <includes>**/rxjs.umd.min.js, **/rxjs.umd.min.js.map</includes>
                                     <fileMappers>
                                         <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
                                     </fileMappers>

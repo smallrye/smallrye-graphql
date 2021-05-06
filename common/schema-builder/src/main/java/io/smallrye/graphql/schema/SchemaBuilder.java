@@ -254,6 +254,13 @@ public class SchemaBuilder {
                 } else {
                     schema.addMutation(mutation);
                 }
+            } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
+                Operation subscription = operationCreator.createOperation(methodInfo, OperationType.SUBSCRIPTION, null);
+                if (group.isPresent()) {
+                    schema.addGroupedSubscription(group.get(), subscription);
+                } else {
+                    schema.addSubscription(subscription);
+                }
             }
         }
     }

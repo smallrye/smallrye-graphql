@@ -118,13 +118,15 @@ public class OperationCreator {
             return Annotations.QUERY;
         } else if (operationType.equals(OperationType.MUTATION)) {
             return Annotations.MUTATION;
+        } else if (operationType.equals(OperationType.SUBSCRIPTION)) {
+            return Annotations.SUBCRIPTION;
         }
         return null;
     }
 
     private static String getDefaultExecutionTypeName(MethodInfo methodInfo, OperationType operationType) {
         String methodName = methodInfo.name();
-        if (operationType.equals(OperationType.QUERY)) {
+        if (operationType.equals(OperationType.QUERY) || operationType.equals(OperationType.SUBSCRIPTION)) {
             methodName = MethodHelper.getPropertyName(Direction.OUT, methodName);
         } else if (operationType.equals(OperationType.MUTATION)) {
             methodName = MethodHelper.getPropertyName(Direction.IN, methodName);

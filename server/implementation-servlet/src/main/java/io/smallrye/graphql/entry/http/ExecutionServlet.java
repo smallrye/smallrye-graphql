@@ -1,4 +1,4 @@
-package io.smallrye.graphql.servlet;
+package io.smallrye.graphql.entry.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import io.smallrye.graphql.cdi.config.GraphQLConfig;
+import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 
 /**
@@ -90,13 +91,14 @@ public class ExecutionServlet extends HttpServlet {
     }
 
     private void handleInput(JsonObject jsonInput, HttpServletResponse response) throws IOException {
-        JsonObject outputJson = executionService.execute(jsonInput);
-        if (outputJson != null) {
+        ExecutionResponse executionResponse = executionService.execute(jsonInput);
+
+        if (executionResponse != null) {
             ServletOutputStream out = response.getOutputStream();
             response.setContentType(APPLICATION_JSON_UTF8);
 
             try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
-                jsonWriter.writeObject(outputJson);
+                jsonWriter.writeObject(executionResponse.getExecutionResultAsJsonObject());
                 out.flush();
             }
         }

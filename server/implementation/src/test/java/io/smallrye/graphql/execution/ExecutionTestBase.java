@@ -45,7 +45,7 @@ public abstract class ExecutionTestBase {
         LOG.info("================== Testing against: ====================");
         LOG.info(schemaString);
         LOG.info("========================================================");
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations());
+        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations(), true);
     }
 
     protected IndexView getIndex() {
@@ -75,12 +75,12 @@ public abstract class ExecutionTestBase {
         JsonObject input = toJsonObject(graphQL);
         String prettyInput = getPrettyJson(input);
         LOG.info(prettyInput);
-        JsonObject result = executionService.execute(input);
+        ExecutionResponse result = executionService.execute(input);
 
-        String prettyData = getPrettyJson(result);
+        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
         LOG.info(prettyData);
 
-        return result;
+        return result.getExecutionResultAsJsonObject();
     }
 
     private JsonObject toJsonObject(String graphQL) {

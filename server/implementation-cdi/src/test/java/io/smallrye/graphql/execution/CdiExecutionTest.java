@@ -56,7 +56,8 @@ public class CdiExecutionTest {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations());
+        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations(),
+                schema.hasSubscriptions());
     }
 
     @Test
@@ -333,21 +334,21 @@ public class CdiExecutionTest {
     }
 
     private JsonObject executeAndGetData(String graphQL) {
-        JsonObject result = executionService.execute(toJsonObject(graphQL));
+        ExecutionResponse result = executionService.execute(toJsonObject(graphQL));
 
-        String prettyData = getPrettyJson(result);
+        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
         LOG.info(prettyData);
 
-        return result.getJsonObject(DATA);
+        return result.getExecutionResultAsJsonObject().getJsonObject(DATA);
     }
 
     private JsonArray executeAndGetError(String graphQL) {
-        JsonObject result = executionService.execute(toJsonObject(graphQL));
+        ExecutionResponse result = executionService.execute(toJsonObject(graphQL));
 
-        String prettyData = getPrettyJson(result);
+        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
         LOG.info(prettyData);
 
-        return result.getJsonArray(ERRORS);
+        return result.getExecutionResultAsJsonObject().getJsonArray(ERRORS);
     }
 
     private JsonObject toJsonObject(String graphQL) {

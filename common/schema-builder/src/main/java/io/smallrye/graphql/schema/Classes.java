@@ -144,7 +144,11 @@ public class Classes {
 
     @Deprecated
     private static boolean isAsyncType(Type type) {
-        return type.name().equals(COMPLETABLE_FUTURE) || type.name().equals(COMPLETION_STAGE) || type.name().equals(UNI);
+        return type.name().equals(COMPLETABLE_FUTURE)
+                || type.name().equals(COMPLETION_STAGE)
+                || type.name().equals(UNI)
+                || type.name().equals(MULTI)
+                || type.name().equals(PUBLISHER);
     }
 
     /**
@@ -218,11 +222,15 @@ public class Classes {
 
     // TODO: This needs to be remove once Generics handling has moved to runtime.
     @Deprecated
-    public static final DotName COMPLETABLE_FUTURE = DotName.createSimple(CompletableFuture.class.getName());
+    private static final DotName COMPLETABLE_FUTURE = DotName.createSimple(CompletableFuture.class.getName());
     @Deprecated
-    public static final DotName COMPLETION_STAGE = DotName.createSimple(CompletionStage.class.getName());
+    private static final DotName COMPLETION_STAGE = DotName.createSimple(CompletionStage.class.getName());
     @Deprecated
-    public static final DotName UNI = DotName.createSimple("io.smallrye.mutiny.Uni");
+    private static final DotName UNI = DotName.createSimple("io.smallrye.mutiny.Uni");
+    @Deprecated
+    private static final DotName MULTI = DotName.createSimple("io.smallrye.mutiny.Multi");
+    @Deprecated
+    private static final DotName PUBLISHER = DotName.createSimple("org.reactivestreams.Publisher");
 
     public static final DotName COLLECTION = DotName.createSimple(Collection.class.getName());
     public static final DotName LIST = DotName.createSimple(List.class.getName());

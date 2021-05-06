@@ -1,4 +1,4 @@
-package io.smallrye.graphql.servlet;
+package io.smallrye.graphql.entry.http;
 
 import java.io.Reader;
 import java.net.URL;

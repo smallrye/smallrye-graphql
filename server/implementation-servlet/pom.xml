@@ -13,6 +13,7 @@
 
     <properties>
         <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
+        <jakarta.websocket.version>1.1.2</jakarta.websocket.version>
     </properties>
 
     <dependencies>
@@ -61,6 +62,13 @@
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>${jakarta.servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- WebSocket -->
+        <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
+            <version>${jakarta.websocket.version}</version>
             <scope>provided</scope>
         </dependency>
         

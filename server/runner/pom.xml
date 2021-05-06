@@ -24,10 +24,14 @@
     </properties>
 
     <dependencies>
-        <!-- The implementation (We just use Servlet for now)-->
+        <!-- The implementation (We just use CDI and Common for now, Servlet are being unpacked)-->
         <dependency>
             <groupId>io.smallrye</groupId>
-            <artifactId>smallrye-graphql-servlet</artifactId>
+            <artifactId>smallrye-graphql-cdi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-schema-builder</artifactId>
         </dependency>
         <dependency>
             <groupId>io.smallrye.reactive</groupId>
@@ -45,7 +49,11 @@
             <groupId>io.smallrye.config</groupId>
             <artifactId>smallrye-config</artifactId>
         </dependency>
-        
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.2.21</version>
+        </dependency>
         <!-- The UI -->
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -78,6 +86,14 @@
                         </goals>
                         <configuration>
                             <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.smallrye</groupId>
+                                    <artifactId>smallrye-graphql-servlet</artifactId>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    <excludes>**/tests/,**/dynamic/,**/*Test.class,**/beans.xml</excludes>
+                                </artifactItem>
                                 <artifactItem>
                                     <groupId>org.eclipse.microprofile.graphql</groupId>
                                     <artifactId>microprofile-graphql-tck</artifactId>
