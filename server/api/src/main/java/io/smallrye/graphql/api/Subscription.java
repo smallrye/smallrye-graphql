@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies that the annotated method provides the implementation (ie. the
- * resolver) for a GraphQL ubscription. <br>
+ * resolver) for a GraphQL subscription. <br>
  * <br>
  * For example, a user might annotate a method as such:
  * 

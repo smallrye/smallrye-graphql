@@ -49,9 +49,7 @@ public class StockTickerPublisher {
     private Runnable newStockTick(ObservableEmitter<Stock> emitter) {
         return () -> {
             List<Stock> stockPriceUpdates = getUpdates(rollDice(0, 5));
-            if (stockPriceUpdates != null) {
-                emitStocks(emitter, stockPriceUpdates);
-            }
+            emitStocks(emitter, stockPriceUpdates);
         };
     }
 

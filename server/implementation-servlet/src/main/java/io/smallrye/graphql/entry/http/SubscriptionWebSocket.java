@@ -60,8 +60,7 @@ public class SubscriptionWebSocket {
 
     @OnMessage
     public void handleMessage(Session session, String message) {
-        try (StringReader inputReader = new StringReader(message);
-                JsonReader jsonReader = jsonReaderFactory.createReader(inputReader)) {
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
             JsonObject jsonInput = jsonReader.readObject();
 
             ExecutionResponse executionResponse = executionService.execute(jsonInput);
@@ -85,8 +84,8 @@ public class SubscriptionWebSocket {
                             if (session.isOpen()) {
                                 session.getBasicRemote().sendText(JSONB.toJson(response));
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
                         }
                         request(1, session);
 
@@ -97,7 +96,7 @@ public class SubscriptionWebSocket {
                         try {
                             session.getBasicRemote().sendText(t.getMessage());
                         } catch (IOException ex) {
-                            ex.printStackTrace();
+                            throw new RuntimeException(ex);
                         }
                     }
 
@@ -106,7 +105,7 @@ public class SubscriptionWebSocket {
                         try {
                             session.close();
                         } catch (IOException ex) {
-                            ex.printStackTrace();
+                            throw new RuntimeException(ex);
                         }
                     }
                 });
