@@ -3,9 +3,11 @@ package io.smallrye.graphql.execution.context;
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -151,7 +153,8 @@ public class SmallRyeContext implements Context {
     public JsonArray getSelectedFields(boolean includeSourceFields) {
         if (dfe != null) {
             DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
-            List<SelectedField> fields = selectionSet.getFields();
+            //Related to #713 - java-graphql #2275 repectively
+            Set<SelectedField> fields = new LinkedHashSet(selectionSet.getFields());
             return toJsonArrayBuilder(fields, includeSourceFields).build();
         }
         return null;
@@ -234,7 +237,7 @@ public class SmallRyeContext implements Context {
         this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery());
     }
 
-    private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {
+    private JsonArrayBuilder toJsonArrayBuilder(Set<SelectedField> fields, boolean includeSourceFields) {
         JsonArrayBuilder builder = jsonbuilder.createArrayBuilder();
 
         for (SelectedField field : fields) {
@@ -254,8 +257,10 @@ public class SmallRyeContext implements Context {
 
     private JsonObjectBuilder toJsonObjectBuilder(SelectedField selectedField, boolean includeSourceFields) {
         JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
+        //Related to #713 - java-graphql #2275 repectively
+        Set<SelectedField> fields = new LinkedHashSet(selectedField.getSelectionSet().getFields());
         builder = builder.add(selectedField.getName(),
-                toJsonArrayBuilder(selectedField.getSelectionSet().getFields(), includeSourceFields));
+                toJsonArrayBuilder(fields, includeSourceFields));
         return builder;
     }
 
