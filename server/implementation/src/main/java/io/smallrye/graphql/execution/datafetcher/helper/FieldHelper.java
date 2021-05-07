@@ -30,8 +30,12 @@ public class FieldHelper extends AbstractHelper {
 
     public Object transformResponse(Object argumentValue)
             throws AbstractDataFetcherException {
-        argumentValue = super.recursiveTransform(argumentValue, field);
-        return argumentValue;
+        if (!shouldTransform(field)) {
+            return argumentValue;
+        } else {
+            argumentValue = super.recursiveTransform(argumentValue, field);
+            return argumentValue;
+        }
     }
 
     /**

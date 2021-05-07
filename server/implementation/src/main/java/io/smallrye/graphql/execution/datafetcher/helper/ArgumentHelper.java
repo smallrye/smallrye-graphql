@@ -285,7 +285,7 @@ public class ArgumentHelper extends AbstractHelper {
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldTransform = m.get(fieldName);
                     Field fieldThatShouldTransform = entry.getValue();
-                    valueThatShouldTransform = recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform);
+                    valueThatShouldTransform = super.recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform);
                     m.put(fieldName, valueThatShouldTransform);
                 }
             }
