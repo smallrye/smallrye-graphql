@@ -3,14 +3,18 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
+import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the fields when fetching data.
@@ -20,6 +24,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 public abstract class AbstractHelper {
 
     protected final ClassloadingService classloadingService = ClassloadingService.get();
+    private final Map<String, Transformer> transformerMap = new HashMap<>();
 
     protected AbstractHelper() {
     }
@@ -183,6 +188,27 @@ public abstract class AbstractHelper {
         String classNameInCollection = field.getReference().getClassName();
         Class classInCollection = classloadingService.loadClass(classNameInCollection);
         return classInCollection;
+    }
+
+    protected Transformer getTransformer(Field field) {
+        if (transformerMap.containsKey(field.getName())) {
+            return transformerMap.get(field.getName());
+        }
+        Transformer transformer = Transformer.transformer(field);
+        transformerMap.put(field.getName(), transformer);
+        return transformer;
+    }
+
+    /**
+     * Checks, if this field is a scalar and the object has the wrong type.
+     * Transformation is only possible for scalars and only needed if types don't match.
+     *
+     * @param field the field
+     * @return if transformation is needed
+     */
+    protected boolean shouldTransform(Field field) {
+        return field.getReference().getType() == ReferenceType.SCALAR
+                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName());
     }
 
     /**
