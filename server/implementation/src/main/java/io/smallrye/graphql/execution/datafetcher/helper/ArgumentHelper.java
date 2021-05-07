@@ -1,7 +1,6 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
-import static io.smallrye.graphql.transformation.Transformer.shouldTransform;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -126,7 +125,7 @@ public class ArgumentHelper extends AbstractHelper {
         if (!shouldTransform(field)) {
             return argumentValue;
         } else {
-            return Transformer.in(field, argumentValue);
+            return transformInput(field, argumentValue);
         }
     }
 
@@ -170,6 +169,24 @@ public class ArgumentHelper extends AbstractHelper {
         }
         // Fall back to the original value
         return argumentValue;
+    }
+
+    private Object transformInput(Field field, Object object) throws AbstractDataFetcherException {
+        if (object == null) {
+            return null;
+        }
+        if (!shouldTransform(field)) {
+            return object;
+        }
+        try {
+            Transformer transformer = super.getTransformer(field);
+            if (transformer == null) {
+                return object;
+            }
+            return transformer.in(object);
+        } catch (Exception e) {
+            throw new TransformException(e, field, object);
+        }
     }
 
     private boolean shouldApplyMapping(Field field) {

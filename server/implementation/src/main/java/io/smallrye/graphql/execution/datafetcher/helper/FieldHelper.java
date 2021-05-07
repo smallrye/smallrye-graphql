@@ -1,9 +1,10 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
-import static io.smallrye.graphql.transformation.Transformer.shouldTransform;
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
+import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 
 /**
@@ -45,7 +46,7 @@ public class FieldHelper extends AbstractHelper {
         if (!shouldTransform(field)) {
             return argumentValue;
         } else {
-            return Transformer.out(field, argumentValue);
+            return transformOutput(field, argumentValue);
         }
     }
 
@@ -70,4 +71,25 @@ public class FieldHelper extends AbstractHelper {
     protected Class<?> getArrayType(final Field field) {
         return classloadingService.loadClass(field.getReference().getGraphQlClassName());
     }
+
+    private Object transformOutput(Field field, Object object) throws AbstractDataFetcherException {
+        if (object == null) {
+            return null;
+        }
+        if (!shouldTransform(field)) {
+            return object;
+        }
+
+        try {
+            Transformer transformer = super.getTransformer(field);
+            if (transformer == null) {
+                return object;
+            }
+            return transformer.out(object);
+        } catch (Exception e) {
+            log.transformError(e);
+            throw new TransformException(e, field, object);
+        }
+    }
+
 }
