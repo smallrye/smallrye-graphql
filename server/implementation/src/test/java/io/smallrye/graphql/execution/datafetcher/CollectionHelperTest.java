@@ -44,7 +44,7 @@ public class CollectionHelperTest {
     })
 
     public void newCollection(Class<? extends Collection<?>> clazz) {
-        test(CollectionCreator.newCollection(clazz.getName()), clazz);
+        test(CollectionCreator.newCollection(clazz.getName(), 0), clazz);
     }
 
     static class CustomSet implements Set<Object> {

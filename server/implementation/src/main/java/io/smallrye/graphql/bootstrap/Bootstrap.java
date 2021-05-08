@@ -753,7 +753,7 @@ public class Bootstrap {
             if (wrapper != null && wrapper.isCollectionOrArray()) {
                 type = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
                 if (Collection.class.isAssignableFrom(type)) {
-                    type = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName()).getClass();
+                    type = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName(), 0).getClass();
                 }
             } else {
                 type = classloadingService.loadClass(field.getReference().getClassName());

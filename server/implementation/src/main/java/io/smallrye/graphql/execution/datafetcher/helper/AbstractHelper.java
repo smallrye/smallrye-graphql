@@ -226,7 +226,7 @@ public abstract class AbstractHelper {
 
         String collectionClassName = field.getWrapper().getWrapperClassName();
 
-        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
+        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
 
         for (Object objectInGivenCollection : givenCollection) {
             Field fieldInCollection = getFieldInField(field);
@@ -249,7 +249,7 @@ public abstract class AbstractHelper {
     private Object recursiveMappingCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
         String collectionClassName = field.getWrapper().getWrapperClassName();
-        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName);
+        Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
 
         for (Object objectInGivenCollection : givenCollection) {
             Field fieldInCollection = getFieldInField(field);
