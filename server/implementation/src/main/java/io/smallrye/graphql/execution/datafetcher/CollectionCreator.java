@@ -32,23 +32,23 @@ public class CollectionCreator {
      * @return the collection
      */
     private static Collection<?> newCollection(Class<?> type) {
-        try {
-            return (Collection<?>) type.getDeclaredConstructor().newInstance();
-        } catch (Exception ex) {
-            log.noArgConstructorMissing(type == null ? "null" : type.getName());
+        if (type.isAssignableFrom(ArrayList.class)) {
+            return new ArrayList<>();
         }
-
         if (type.isAssignableFrom(HashSet.class)) {
             return new HashSet<>();
         }
-        if (type.isAssignableFrom(ArrayList.class)) {
-            return new ArrayList<>();
+        if (type.isAssignableFrom(ArrayDeque.class)) {
+            return new ArrayDeque<>();
         }
         if (type.isAssignableFrom(TreeSet.class)) {
             return new TreeSet<>();
         }
-        if (type.isAssignableFrom(ArrayDeque.class)) {
-            return new ArrayDeque<>();
+
+        try {
+            return (Collection<?>) type.getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            log.noArgConstructorMissing(type.getName());
         }
 
         throw new IllegalArgumentException("Could not create collection if type " + type.getName());
