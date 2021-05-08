@@ -3,18 +3,7 @@ package io.smallrye.graphql.execution.datafetcher;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -40,6 +29,8 @@ public class CollectionHelperTest {
             TreeSet.class,
             ConcurrentSkipListSet.class,
             CustomSet.class,
+            NavigableSet.class,
+            SortedSet.class,
 
             List.class,
             ArrayList.class,
@@ -48,6 +39,8 @@ public class CollectionHelperTest {
             Vector.class,
             CopyOnWriteArrayList.class,
             CustomList.class,
+            Queue.class,
+            Deque.class,
     })
 
     public void newCollection(Class<? extends Collection<?>> clazz) {
