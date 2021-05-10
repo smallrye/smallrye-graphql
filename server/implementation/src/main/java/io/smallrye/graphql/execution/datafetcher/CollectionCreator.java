@@ -2,11 +2,7 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import io.smallrye.graphql.spi.ClassloadingService;
 
@@ -23,27 +19,38 @@ public class CollectionCreator {
 
     private static final ClassloadingService classloadingService = ClassloadingService.get();
 
-    public static Collection<?> newCollection(String className) {
+    public static Collection<?> newCollection(String className, int initialSize) {
         Class<?> type = classloadingService.loadClass(className);
-        return newCollection(type);
+        return newCollection(type, initialSize);
     }
 
     /**
      * Creates an empty instance of a non-interface type of collection, or a suitable subclass of
      * the interfaces {@link List}, {@link Collection}, or {@link Set}.
-     * 
+     *
      * @param type the collection class
      * @return the collection
      */
-    private static Collection<?> newCollection(Class<?> type) {
+    private static Collection<?> newCollection(Class<?> type, int initialSize) {
+        if (type.isAssignableFrom(ArrayList.class)) {
+            return new ArrayList<>(initialSize);
+        }
+        if (type.isAssignableFrom(HashSet.class)) {
+            return new HashSet<>((int) (initialSize / 0.75 + 1));
+        }
+        if (type.isAssignableFrom(ArrayDeque.class)) {
+            return new ArrayDeque<>(initialSize);
+        }
+        if (type.isAssignableFrom(TreeSet.class)) {
+            return new TreeSet<>();
+        }
+
         try {
             return (Collection<?>) type.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
-            log.noArgConstructorMissing(type == null ? "null" : type.getName());
+            log.noArgConstructorMissing(type.getName());
         }
-        if (Set.class.isAssignableFrom(type)) {
-            return new HashSet<>();
-        }
-        return new ArrayList<>();
+
+        throw new IllegalArgumentException("Could not create collection if type " + type.getName());
     }
 }
