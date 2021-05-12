@@ -22,22 +22,27 @@ import io.smallrye.graphql.client.dynamic.ResponseImpl;
 import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientLogging;
 import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebsocketVersion;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private final WebClient webClient;
+    private final HttpClient httpClient;
     private final String url;
     private final MultiMap headers;
 
-    VertxDynamicGraphQLClient(WebClientOptions options, Vertx vertx, String url, MultiMap headers) {
-        this.webClient = WebClient.create(vertx, options);
+    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers) {
+        this.httpClient = vertx.createHttpClient();
+        this.webClient = WebClient.wrap(httpClient);
         this.headers = headers;
         this.url = url;
     }
@@ -73,13 +78,39 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 .map(response -> readFrom(response.body()));
     }
 
+    public Multi<Response> subscription(Document document) {
+        return subscription(buildRequest(document));
+    }
+
+    public Multi<Response> subscription(Request request) {
+        String WSURL = url.replaceFirst("http", "ws");
+        return Multi.createFrom()
+                .emitter(e -> {
+                    httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
+                        if (result.succeeded()) {
+                            WebSocket socket = result.result();
+                            socket.writeTextMessage(request.toJson());
+                            socket.handler(message -> {
+                                e.emit(readFrom(message));
+                            });
+                            socket.closeHandler((v) -> {
+                                e.complete();
+                            });
+                            e.onTermination(socket::close);
+                        } else {
+                            e.fail(result.cause());
+                        }
+                    });
+                });
+    }
+
     public Request buildRequest(Document document) {
         return new RequestImpl(document.build());
     }
 
     @Override
     public void close() {
-        webClient.close();
+        httpClient.close();
     }
 
     private ResponseImpl readFrom(Buffer input) {

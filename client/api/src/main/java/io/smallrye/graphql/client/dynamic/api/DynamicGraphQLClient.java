@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
 public interface DynamicGraphQLClient extends AutoCloseable {
@@ -16,5 +17,9 @@ public interface DynamicGraphQLClient extends AutoCloseable {
     Uni<Response> executeAsync(Document document);
 
     Uni<Response> executeAsync(Request request);
+
+    Multi<Response> subscription(Document document);
+
+    Multi<Response> subscription(Request request);
 
 }
