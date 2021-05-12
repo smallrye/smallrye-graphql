@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -37,7 +38,7 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Implements the Context from MicroProfile API.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContext implements Context {
@@ -82,11 +83,13 @@ public class SmallRyeContext implements Context {
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
-        // We only support DataFetchingEnvironment and ExecutionInput at this point
+        // We only support DataFetchingEnvironment, ExecutionInput and Document at this point
         if (wrappedType.equals(DataFetchingEnvironment.class)) {
             return (T) this.dfe;
         } else if (wrappedType.equals(ExecutionInput.class)) {
             return (T) this.executionInput;
+        } else if (wrappedType.equals(Document.class)) {
+            return documentSupplier != null ? (T) documentSupplier.get() : null;
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
@@ -154,7 +157,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
             //Related to #713 - java-graphql #2275 repectively
-            Set<SelectedField> fields = new LinkedHashSet(selectionSet.getFields());
+            Set<SelectedField> fields = new LinkedHashSet<>(selectionSet.getFields());
             return toJsonArrayBuilder(fields, includeSourceFields).build();
         }
         return null;
@@ -174,7 +177,6 @@ public class SmallRyeContext implements Context {
 
         if (documentSupplier != null) {
             Document document = documentSupplier.get();
-            documentSupplier = () -> document;
             List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
             for (OperationDefinition definition : definitions) {
                 String operationType = getOperationTypeFromDefinition(definition);
@@ -209,11 +211,10 @@ public class SmallRyeContext implements Context {
         return definition.getOperation().toString();
     }
 
-    private final Parser parser;
     private final JsonObject jsonObject;
     private final DataFetchingEnvironment dfe;
     private final ExecutionInput executionInput;
-    private Supplier<Document> documentSupplier;
+    private final Supplier<Document> documentSupplier;
     private final Field field;
 
     public SmallRyeContext(final JsonObject jsonObject) {
@@ -222,7 +223,6 @@ public class SmallRyeContext implements Context {
         this.executionInput = null;
         this.documentSupplier = null;
         this.field = null;
-        this.parser = new Parser();
     }
 
     public SmallRyeContext(JsonObject jsonObject,
@@ -233,8 +233,7 @@ public class SmallRyeContext implements Context {
         this.dfe = dfe;
         this.field = field;
         this.executionInput = executionInput;
-        this.parser = new Parser();
-        this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery());
+        this.documentSupplier = new DocumentSupplier(executionInput);
     }
 
     private JsonArrayBuilder toJsonArrayBuilder(Set<SelectedField> fields, boolean includeSourceFields) {
@@ -258,7 +257,7 @@ public class SmallRyeContext implements Context {
     private JsonObjectBuilder toJsonObjectBuilder(SelectedField selectedField, boolean includeSourceFields) {
         JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
         //Related to #713 - java-graphql #2275 repectively
-        Set<SelectedField> fields = new LinkedHashSet(selectedField.getSelectionSet().getFields());
+        Set<SelectedField> fields = new LinkedHashSet<>(selectedField.getSelectionSet().getFields());
         builder = builder.add(selectedField.getName(),
                 toJsonArrayBuilder(fields, includeSourceFields));
         return builder;
@@ -324,4 +323,21 @@ public class SmallRyeContext implements Context {
     }
 
     private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+
+    private static class DocumentSupplier implements Supplier<Document> {
+
+        private final Map<String, Document> document = new ConcurrentHashMap<>();
+        private final ExecutionInput executionInput;
+        private final Parser parser = new Parser();
+
+
+        public DocumentSupplier(ExecutionInput executionInput) {
+            this.executionInput = executionInput;
+        }
+
+        @Override
+        public Document get() {
+            return document.computeIfAbsent("document", o -> parser.parseDocument(executionInput.getQuery()));
+        }
+    }
 }

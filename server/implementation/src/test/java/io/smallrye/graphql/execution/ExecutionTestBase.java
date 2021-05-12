@@ -28,7 +28,7 @@ import io.smallrye.graphql.schema.model.Schema;
 
 /**
  * Base class for execution tests
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class ExecutionTestBase {
@@ -97,6 +97,14 @@ public abstract class ExecutionTestBase {
             @Override
             public boolean isPrintDataFetcherException() {
                 return true;
+            }
+
+            @Override
+            public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
+                if(key.equals(TestEventingService.KEY)) {
+                    return (T) new Boolean(true);
+                }
+                return Config.super.getConfigValue(key, type, defaultValue);
             }
 
             @Override

@@ -6,11 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.json.JsonObject;
 
+import graphql.language.Document;
 import org.junit.jupiter.api.Test;
 
 /**
  * Test the context
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ContextTest extends ExecutionTestBase {
@@ -29,6 +30,18 @@ public class ContextTest extends ExecutionTestBase {
         assertEquals("/testContext", testObject.getString("path"));
 
         assertFalse(testObject.isNull("query"), "query should not be null");
+    }
+
+
+    @Test
+    public void testUnwrapDocument() {
+        TestEventingService.reset();
+
+        JsonObject data = executeAndGetData(TEST_QUERY);
+        Document document = TestEventingService.beforeExecuteContext.unwrap(Document.class);
+        assertNotNull(document, "unwrapped document was null");
+
+        TestEventingService.reset();
     }
 
     private static final String TEST_QUERY = "{\n" +
