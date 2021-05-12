@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -362,6 +364,11 @@ public class CdiExecutionTest {
             @Override
             public boolean isPrintDataFetcherException() {
                 return true;
+            }
+
+            @Override
+            public Optional<List<String>> getErrorExtensionFields() {
+                return Optional.of(Config.ERROR_EXTENSION_ALL_KNOWN);
             }
         };
     }

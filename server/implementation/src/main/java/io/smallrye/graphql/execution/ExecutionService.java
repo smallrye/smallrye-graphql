@@ -115,7 +115,7 @@ public class ExecutionService {
                 // Notify after
                 eventEmitter.fireAfterExecute(context);
 
-                ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+                ExecutionResponse executionResponse = new ExecutionResponse(executionResult, config);
                 if (config.logPayload()) {
                     log.payloadOut(executionResponse.toString());
                 }

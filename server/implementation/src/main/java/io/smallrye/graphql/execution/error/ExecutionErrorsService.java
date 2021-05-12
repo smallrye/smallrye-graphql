@@ -22,6 +22,7 @@ import javax.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
+import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.model.ErrorInfo;
 
 /**
@@ -36,6 +37,12 @@ public class ExecutionErrorsService {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
+
+    private final Config config;
+
+    public ExecutionErrorsService(Config config) {
+        this.config = config;
+    }
 
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
@@ -68,29 +75,34 @@ public class ExecutionErrorsService {
     }
 
     private Optional<JsonObject> getValidationExtensions(ValidationError error) {
-        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
 
-        addKeyValue(objectBuilder, DESCRIPTION, error.getDescription());
-        addKeyValue(objectBuilder, VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
-        objectBuilder.add(QUERYPATH, toJsonArray(error.getQueryPath()));
-        addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
-        Map<String, Object> extensions = error.getExtensions();
-        populateCustomExtensions(objectBuilder, extensions);
-        return Optional.of(objectBuilder.build());
+        if (config.getErrorExtensionFields().isPresent()) {
+            JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_DESCRIPTION, error.getDescription());
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_VALIDATION_ERROR_TYPE, error.getValidationErrorType().toString());
+            objectBuilder.add(Config.ERROR_EXTENSION_QUERY_PATH, toJsonArray(error.getQueryPath()));
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_CLASSIFICATION, error.getErrorType().toString());
+            Map<String, Object> extensions = error.getExtensions();
+            populateCustomExtensions(objectBuilder, extensions);
+            return Optional.of(objectBuilder.build());
+        }
+        return Optional.empty();
     }
 
     private Optional<JsonObject> getDataFetchingExtensions(ExceptionWhileDataFetching error) {
-        Throwable exception = error.getException();
+        if (config.getErrorExtensionFields().isPresent()) {
+            Throwable exception = error.getException();
 
-        JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
+            JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_EXCEPTION, exception.getClass().getName());
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_CLASSIFICATION, error.getErrorType().toString());
+            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_CODE, toErrorCode(exception));
+            Map<String, Object> extensions = error.getExtensions();
+            populateCustomExtensions(objectBuilder, extensions);
 
-        addKeyValue(objectBuilder, EXCEPTION, exception.getClass().getName());
-        addKeyValue(objectBuilder, CLASSIFICATION, error.getErrorType().toString());
-        addKeyValue(objectBuilder, CODE, toErrorCode(exception));
-        Map<String, Object> extensions = error.getExtensions();
-        populateCustomExtensions(objectBuilder, extensions);
-
-        return Optional.of(objectBuilder.build());
+            return Optional.of(objectBuilder.build());
+        }
+        return Optional.empty();
     }
 
     private String toErrorCode(Throwable exception) {
@@ -110,7 +122,11 @@ public class ExecutionErrorsService {
     private void populateCustomExtensions(JsonObjectBuilder objectBuilder, Map<String, Object> extensions) {
         if (extensions != null) {
             for (Map.Entry<String, Object> entry : extensions.entrySet()) {
-                addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
+                if (!config.getErrorExtensionFields().isPresent()
+                        || (config.getErrorExtensionFields().isPresent()
+                                && config.getErrorExtensionFields().get().contains(entry.getKey()))) {
+                    addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
+                }
             }
         }
     }
@@ -127,17 +143,19 @@ public class ExecutionErrorsService {
     }
 
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, String value) {
-        if (value != null) {
-            objectBuilder.add(key, value);
+
+        if (config.getErrorExtensionFields().isPresent()) {
+            List<String> fieldsThatShouldBeIncluded = config.getErrorExtensionFields().get();
+            if (fieldsThatShouldBeIncluded.contains(key)) {
+                objectBuilder.add(key, value);
+            }
+        } else {
+            if (value != null) {
+                objectBuilder.add(key, value);
+            }
         }
     }
 
-    private static final String EXCEPTION = "exception";
-    private static final String DESCRIPTION = "description";
-    private static final String VALIDATION_ERROR_TYPE = "validationErrorType";
-    private static final String QUERYPATH = "queryPath";
-    private static final String CLASSIFICATION = "classification";
     private static final String EXTENSIONS = "extensions";
-    private static final String CODE = "code";
 
 }
