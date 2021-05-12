@@ -4,7 +4,9 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -18,6 +20,7 @@ import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
+import io.smallrye.graphql.bootstrap.Config;
 
 /**
  * Test for {@link ExecutionErrorsService}
@@ -26,7 +29,7 @@ import graphql.validation.ValidationErrorType;
  */
 class ExecutionErrorsServiceTest {
 
-    private final ExecutionErrorsService executionErrorsService = new ExecutionErrorsService();
+    private final ExecutionErrorsService executionErrorsService = new ExecutionErrorsService(getGraphQLConfig());
 
     @Test
     void testToJsonErrors_WhenExceptionWhileDataFetchingErrorCaught_ShouldReturnJsonBodyWithCustomExtensions() {
@@ -93,5 +96,19 @@ class ExecutionErrorsServiceTest {
         SourceLocation location = new SourceLocation(12, 34);
         GraphQLError graphQLError = new GraphQLExceptionWhileDataFetching(path, exception, location);
         return executionErrorsService.toJsonErrors(singletonList(graphQLError));
+    }
+
+    private Config getGraphQLConfig() {
+        return new Config() {
+            @Override
+            public boolean isPrintDataFetcherException() {
+                return true;
+            }
+
+            @Override
+            public Optional<List<String>> getErrorExtensionFields() {
+                return Optional.of(Config.ERROR_EXTENSION_ALL_KNOWN);
+            }
+        };
     }
 }

@@ -98,6 +98,10 @@ public class GraphQLConfig implements Config {
     @ConfigProperty(name = ConfigKey.UNWRAP_EXCEPTIONS, defaultValue = "")
     private Optional<List<String>> unwrapExceptions;
 
+    @Inject
+    @ConfigProperty(name = ConfigKey.ERROR_EXTENSION_FIELDS, defaultValue = "")
+    private Optional<List<String>> errorExtensionFields;
+
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
         hideList = mergeList(hideList, blackList);
         showList = mergeList(showList, whiteList);
@@ -188,6 +192,11 @@ public class GraphQLConfig implements Config {
         return unwrapExceptions;
     }
 
+    @Override
+    public Optional<List<String>> getErrorExtensionFields() {
+        return errorExtensionFields;
+    }
+
     public void setHideErrorMessageList(Optional<List<String>> hideList) {
         this.hideList = hideList;
     }
@@ -242,6 +251,10 @@ public class GraphQLConfig implements Config {
 
     public void setUnwrapExceptions(Optional<List<String>> unwrapExceptions) {
         this.unwrapExceptions = unwrapExceptions;
+    }
+
+    public void setErrorExtensionFields(Optional<List<String>> errorExtensionFields) {
+        this.errorExtensionFields = errorExtensionFields;
     }
 
     private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {
