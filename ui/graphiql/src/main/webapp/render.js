@@ -4,7 +4,17 @@ const defaultQuery = "";
 const headerEditorEnabled = true;
 const shouldPersistHeaders = false;
 
-var webSocket;
+var webSocket = null;
+var observable = null;
+
+window.onbeforeunload = function (event) {
+    if(webSocket !==null){
+        webSocket.close();
+        webSocket = null;
+        observable = null;
+    }
+};
+
 
 // Parse the search string to get url parameters.
 var search = window.location.search;
@@ -108,8 +118,7 @@ function graphQLFetcher(graphQLParams) {
     
     if(query.startsWith("subscription ")){
         var new_uri = getWsUrl();
-
-        return new rxjs.Observable((observer) => {
+        observable = new rxjs.Observable((observer) => {
             webSocket = new WebSocket(new_uri);
             webSocket.onopen = function() {
                 observer.next("Connection established.... waiting for data");
@@ -121,12 +130,19 @@ function graphQLFetcher(graphQLParams) {
             webSocket.onerror = function(err) {
                 observer.error(JSON.stringify(err, null, 4));
             };
+            webSocket.onclose = function(event){
+                observer.complete();
+                observable = null;
+            };
             return {
                 unsubscribe() {
                     webSocket.close();
+                    webSocket = null;
+                    observable = null;
                 }
             };
           });
+          return observable;
     }else{
         return fetch(api, {
             method: 'post',
