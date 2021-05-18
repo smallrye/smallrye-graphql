@@ -330,7 +330,6 @@ public class SmallRyeContext implements Context {
         private final ExecutionInput executionInput;
         private final Parser parser = new Parser();
 
-
         public DocumentSupplier(ExecutionInput executionInput) {
             this.executionInput = executionInput;
         }

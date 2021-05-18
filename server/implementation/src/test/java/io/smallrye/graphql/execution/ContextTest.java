@@ -32,7 +32,6 @@ public class ContextTest extends ExecutionTestBase {
         assertFalse(testObject.isNull("query"), "query should not be null");
     }
 
-
     @Test
     public void testUnwrapDocument() {
         TestEventingService.reset();

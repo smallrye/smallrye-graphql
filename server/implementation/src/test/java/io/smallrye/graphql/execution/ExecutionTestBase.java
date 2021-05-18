@@ -101,7 +101,7 @@ public abstract class ExecutionTestBase {
 
             @Override
             public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
-                if(key.equals(TestEventingService.KEY)) {
+                if (key.equals(TestEventingService.KEY)) {
                     return (T) new Boolean(true);
                 }
                 return Config.super.getConfigValue(key, type, defaultValue);
