@@ -47,7 +47,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
                             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                             if (throwable instanceof GraphQLException) {
                                 GraphQLException graphQLException = (GraphQLException) throwable;
-                                partialResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
+                                errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
                             } else if (throwable instanceof Exception) {
                                 emitter.fail(SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable));
                                 return;

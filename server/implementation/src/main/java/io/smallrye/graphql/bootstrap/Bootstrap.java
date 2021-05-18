@@ -99,7 +99,8 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        return bootstrap(schema, null);
+        return bootstrap(schema, new Config() {
+        });
     }
 
     public static GraphQLSchema bootstrap(Schema schema, Config config) {
