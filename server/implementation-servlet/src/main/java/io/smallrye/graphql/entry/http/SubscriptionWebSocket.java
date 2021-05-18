@@ -80,9 +80,9 @@ public class SubscriptionWebSocket {
                     public void onNext(ExecutionResult er) {
 
                         try {
-                            Object response = er.getData();
                             if (session.isOpen()) {
-                                session.getBasicRemote().sendText(JSONB.toJson(response));
+                                ExecutionResponse executionResponse = new ExecutionResponse(er, config);
+                                session.getBasicRemote().sendText(executionResponse.getExecutionResultAsString());
                             }
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
