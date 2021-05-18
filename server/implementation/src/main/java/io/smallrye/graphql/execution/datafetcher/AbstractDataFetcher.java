@@ -11,8 +11,8 @@ import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.ErrorResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.PartialResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
@@ -30,7 +30,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     protected Operation operation;
     protected FieldHelper fieldHelper;
     protected ReflectionHelper reflectionHelper;
-    protected PartialResultHelper partialResultHelper;
+    protected ErrorResultHelper errorResultHelper;
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter;
     protected BatchLoaderHelper batchLoaderHelper;
@@ -41,23 +41,15 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         this.fieldHelper = new FieldHelper(operation);
         this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
-        this.partialResultHelper = new PartialResultHelper();
+        this.errorResultHelper = new ErrorResultHelper(config);
         this.batchLoaderHelper = new BatchLoaderHelper();
     }
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
         // update the context
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
-        if (context != null) {
-            context = context.withDataFromFetcher(dfe, operation);
-            graphQLContext.put("context", context);
-        }
-
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(graphQLContext);
-
-        eventEmitter.fireBeforeDataFetch(context);
+        SmallRyeContext context = getSmallRyeContext(dfe);
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(dfe.getContext());
 
         try {
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
@@ -68,7 +60,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
-            partialResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
+            errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
             //m.invoke failed
@@ -79,6 +71,33 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         }
 
         return invokeFailure(resultBuilder);
+    }
+
+    protected DataFetcherResult.Builder<Object> getDataFetcherResultBuilder(final DataFetchingEnvironment dfe) {
+        // update the context
+        GraphQLContext graphQLContext = dfe.getContext();
+        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
+        if (context != null) {
+            context = context.withDataFromFetcher(dfe, operation);
+            graphQLContext.put("context", context);
+        }
+
+        eventEmitter.fireBeforeDataFetch(context);
+        return DataFetcherResult.newResult().localContext(graphQLContext);
+    }
+
+    protected SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
+        // update the context
+        GraphQLContext graphQLContext = dfe.getContext();
+        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
+        if (context != null) {
+            context = context.withDataFromFetcher(dfe, operation);
+            graphQLContext.put("context", context);
+        }
+
+        eventEmitter.fireBeforeDataFetch(context);
+
+        return context;
     }
 
     protected abstract <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
