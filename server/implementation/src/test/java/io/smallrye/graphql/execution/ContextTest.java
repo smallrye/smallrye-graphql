@@ -6,8 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.json.JsonObject;
 
-import graphql.language.Document;
 import org.junit.jupiter.api.Test;
+
+import graphql.language.Document;
 
 /**
  * Test the context
