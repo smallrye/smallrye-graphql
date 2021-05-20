@@ -179,4 +179,10 @@ public class ControllerWithGenerics {
             ClassWithOneGenericsParam<Integer> param1) {
         return new ClassWithOneGenericsParamFromInterface(param1.getParam1());
     }
+
+    @Mutation
+    public ClassWithOneGenericsParam<LocalDate> setClassWithOneGenericsParamInControllerLocalDate(
+            ClassWithOneGenericsParam<LocalDate> param1) {
+        return new ClassWithOneGenericsParam<>(param1.getParam1());
+    }
 }

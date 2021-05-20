@@ -1,0 +1,7 @@
+{
+  "data": {
+    "classWithOneGenericsParamInControllerLocalDate": {
+      "param1": "2021-01-01"
+    }
+  }
+}
