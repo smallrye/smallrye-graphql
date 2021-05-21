@@ -6,6 +6,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,7 @@ import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -325,12 +330,58 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the correct object
      */
     private Object correctComplexObjectFromJsonString(String jsonString, Field field) throws AbstractDataFetcherException {
-        Class ownerClass = classloadingService.loadClass(field.getReference().getClassName());
+        Type type = getType(field.getReference());
+
         try {
             Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
-            return jsonb.fromJson(jsonString, ownerClass);
+            return jsonb.fromJson(jsonString, type);
         } catch (JsonbException jbe) {
             throw new TransformException(jbe, field, jsonString);
+        }
+    }
+
+    /**
+     * Build the (possible generic) type for this reference.
+     * 
+     * @param reference the reference
+     * @return the type
+     */
+    private Type getType(Reference reference) {
+        Class<?> ownerClass = classloadingService.loadClass(reference.getClassName());
+        if (reference.getParametrizedTypeArguments() == null
+                || reference.getParametrizedTypeArguments().isEmpty()) {
+            return ownerClass;
+        }
+
+        List<Type> typeParameters = new ArrayList<>();
+        for (final TypeVariable<?> typeParameter : ownerClass.getTypeParameters()) {
+            final Reference typeRef = reference.getParametrizedTypeArguments().get(typeParameter.getName());
+            typeParameters.add(getType(typeRef));
+        }
+        final Type[] types = typeParameters.toArray(new Type[0]);
+
+        return new ParameterizedTypeImpl(ownerClass, types);
+    }
+
+    private static class ParameterizedTypeImpl implements ParameterizedType {
+        private final Type ownerClass;
+        private final Type[] types;
+
+        public ParameterizedTypeImpl(final Type ownerClass, final Type[] types) {
+            this.ownerClass = ownerClass;
+            this.types = types;
+        }
+
+        public Type getRawType() {
+            return ownerClass;
+        }
+
+        public Type getOwnerType() {
+            return null;
+        }
+
+        public Type[] getActualTypeArguments() {
+            return types;
         }
     }
 

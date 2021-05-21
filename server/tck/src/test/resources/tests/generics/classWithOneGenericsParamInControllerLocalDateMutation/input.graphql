@@ -1,0 +1,7 @@
+mutation ClassWithOneGenericsParamInControllerString {
+  classWithOneGenericsParamInControllerLocalDate(param1: {
+    param1: "2021-01-01"
+  }){
+    param1
+  }
+}
