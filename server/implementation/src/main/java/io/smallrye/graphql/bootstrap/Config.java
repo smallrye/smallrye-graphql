@@ -35,6 +35,10 @@ public interface Config {
         return false;
     }
 
+    default boolean isAllowPostWithQueryParameters() {
+        return false;
+    }
+
     default boolean isIncludeScalarsInSchema() {
         return false;
     }

@@ -9,6 +9,7 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
 
     public static final String PRINT_DATAFETCHER_EXCEPTION = "smallrye.graphql.printDataFetcherException";
     public static final String ALLOW_GET = "smallrye.graphql.allowGet";
+    public static final String ALLOW_POST_WITH_QUERY_PARAMETERS = "smallrye.graphql.allowPostWithQueryParameters";
     public static final String ENABLE_METRICS = "smallrye.graphql.metrics.enabled";
     public static final String ENABLE_TRACING = "smallrye.graphql.tracing.enabled";
     public static final String ENABLE_VALIDATION = "smallrye.graphql.validation.enabled";
