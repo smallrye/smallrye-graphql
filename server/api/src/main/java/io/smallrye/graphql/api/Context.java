@@ -59,7 +59,7 @@ public interface Context {
      * @return raw string query
      */
     default String getQuery() {
-        return getRequest().getString(QUERY);
+        return getRequest().getString(QUERY, null);
     }
 
     /**

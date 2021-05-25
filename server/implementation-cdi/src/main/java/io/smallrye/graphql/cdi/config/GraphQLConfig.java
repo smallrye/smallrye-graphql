@@ -55,6 +55,10 @@ public class GraphQLConfig implements Config {
     private boolean allowGet;
 
     @Inject
+    @ConfigProperty(name = ConfigKey.ALLOW_POST_WITH_QUERY_PARAMETERS, defaultValue = "false")
+    private boolean allowPostWithQueryParameters;
+
+    @Inject
     @ConfigProperty(name = ConfigKey.ENABLE_METRICS, defaultValue = "false")
     private boolean metricsEnabled;
 
@@ -130,6 +134,11 @@ public class GraphQLConfig implements Config {
     @Override
     public boolean isAllowGet() {
         return allowGet;
+    }
+
+    @Override
+    public boolean isAllowPostWithQueryParameters() {
+        return allowPostWithQueryParameters;
     }
 
     @Override
@@ -215,6 +224,10 @@ public class GraphQLConfig implements Config {
 
     public void setAllowGet(boolean allowGet) {
         this.allowGet = allowGet;
+    }
+
+    public void setAllowPostWithQueryParameters(boolean allowPostWithQueryParameters) {
+        this.allowPostWithQueryParameters = allowPostWithQueryParameters;
     }
 
     public void setMetricsEnabled(boolean metricsEnabled) {

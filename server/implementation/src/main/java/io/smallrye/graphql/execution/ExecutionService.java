@@ -76,6 +76,9 @@ public class ExecutionService {
         try {
             String query = context.getQuery();
 
+            if (query == null || query.isEmpty()) {
+                throw new RuntimeException("Query can not be null");
+            }
             if (config.logPayload()) {
                 log.payloadIn(query);
             }
