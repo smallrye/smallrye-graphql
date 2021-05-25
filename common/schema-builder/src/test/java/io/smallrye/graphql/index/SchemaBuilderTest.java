@@ -38,6 +38,7 @@ import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 
@@ -133,7 +134,7 @@ public class SchemaBuilderTest {
     }
 
     @Test
-    public void testSchemaWithDirective() throws IOException {
+    public void testSchemaWithDirectives() throws IOException {
         Indexer indexer = new Indexer();
         Path apiDir = Paths.get(System.getProperty("user.dir"), "../../server/api/target/classes/io/smallrye/graphql/api")
                 .normalize();
@@ -157,17 +158,37 @@ public class SchemaBuilderTest {
         assertEquals("someDirective", someDirective.getName());
         assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
         assertEquals(singleton("value"), someDirective.getArgumentNames());
-        assertEquals(new HashSet<>(asList("INTERFACE", "OBJECT")), someDirective.getLocations());
+        assertEquals(new HashSet<>(asList("INTERFACE", "FIELD", "OBJECT")), someDirective.getLocations());
 
-        // check directive instances
+        // check directive instances on type
         Type movie = schema.getTypes().get("Movie");
         List<DirectiveInstance> movieDirectives = movie.getDirectiveInstances();
         assertNotNull(movieDirectives);
         assertEquals(1, movieDirectives.size());
-        DirectiveInstance directiveInstance = movieDirectives.get(0);
-        assertNotNull(directiveInstance);
-        assertEquals(someDirective, directiveInstance.getType());
-        assertArrayEquals(new String[] { "foo", "bar" }, (Object[]) directiveInstance.getValue("value"));
+        DirectiveInstance typeDirectiveInstance = movieDirectives.get(0);
+        assertNotNull(typeDirectiveInstance);
+        assertEquals(someDirective, typeDirectiveInstance.getType());
+        assertArrayEquals(new String[] { "foo", "bar" }, (Object[]) typeDirectiveInstance.getValue("value"));
+
+        // check directive instances on field
+        Field releaseDate = movie.getFields().get("releaseDate");
+        List<DirectiveInstance> releaseDateDirectiveInstances = releaseDate.getDirectiveInstances();
+        assertNotNull(releaseDateDirectiveInstances);
+        assertEquals(1, releaseDateDirectiveInstances.size());
+        DirectiveInstance releaseDateDirectiveInstance = releaseDateDirectiveInstances.get(0);
+        assertNotNull(releaseDateDirectiveInstance);
+        assertEquals(someDirective, releaseDateDirectiveInstance.getType());
+        assertArrayEquals(new String[] { "field" }, (Object[]) releaseDateDirectiveInstance.getValue("value"));
+
+        // check directive instances on getter
+        Field title = movie.getFields().get("title");
+        List<DirectiveInstance> titleDirectiveInstances = title.getDirectiveInstances();
+        assertNotNull(titleDirectiveInstances);
+        assertEquals(1, titleDirectiveInstances.size());
+        DirectiveInstance titleDirectiveInstance = titleDirectiveInstances.get(0);
+        assertNotNull(titleDirectiveInstance);
+        assertEquals(someDirective, titleDirectiveInstance.getType());
+        assertArrayEquals(new String[] { "getter" }, (Object[]) titleDirectiveInstance.getValue("value"));
     }
 
     static IndexView getTCKIndex() {

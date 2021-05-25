@@ -1,14 +1,10 @@
 package io.smallrye.graphql.schema.creator.type;
 
-import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -23,12 +19,11 @@ import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
-import io.smallrye.graphql.schema.model.DirectiveInstance;
-import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -51,7 +46,7 @@ public class TypeCreator implements Creator<Type> {
     private final FieldCreator fieldCreator;
     private final OperationCreator operationCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
-    private Map<DotName, DirectiveType> directiveTypes;
+    private Directives directives;
 
     public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator,
             TypeAutoNameStrategy autoNameStrategy) {
@@ -61,13 +56,8 @@ public class TypeCreator implements Creator<Type> {
         this.autoNameStrategy = autoNameStrategy;
     }
 
-    public void setDirectiveTypes(List<DirectiveType> directiveTypes) {
-        // not with streams/collector, so duplicate keys are allowed
-        Map<DotName, DirectiveType> map = new HashMap<>();
-        for (DirectiveType directiveType : directiveTypes) {
-            map.put(DotName.createSimple(directiveType.getClassName()), directiveType);
-        }
-        this.directiveTypes = map;
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
     }
 
     @Override
@@ -178,36 +168,6 @@ public class TypeCreator implements Creator<Type> {
     }
 
     private void addDirectives(Type type, ClassInfo classInfo) {
-        for (DotName directiveTypeName : directiveTypes.keySet()) {
-            AnnotationInstance annotationInstance = classInfo.classAnnotation(directiveTypeName);
-            if (annotationInstance == null) {
-                continue;
-            }
-            if (type.getDirectiveInstances() == null) {
-                type.setDirectiveInstances(new ArrayList<>());
-            }
-            type.addDirectiveInstance(toDirectiveInstance(annotationInstance));
-        }
-    }
-
-    private DirectiveInstance toDirectiveInstance(AnnotationInstance annotationInstance) {
-        DirectiveInstance directiveInstance = new DirectiveInstance();
-        directiveInstance.setType(directiveTypes.get(annotationInstance.name()));
-        for (AnnotationValue annotationValue : annotationInstance.values()) {
-            directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
-        }
-        return directiveInstance;
-    }
-
-    private Object valueObject(AnnotationValue annotationValue) {
-        if (annotationValue.kind() == ARRAY) {
-            AnnotationValue[] values = (AnnotationValue[]) annotationValue.value();
-            Object[] objects = new Object[values.length];
-            for (int i = 0; i < values.length; i++) {
-                objects[i] = valueObject(values[i]);
-            }
-            return objects;
-        }
-        return annotationValue.value();
+        type.setDirectiveInstances(directives.buildDirectiveInstances(classInfo::classAnnotation));
     }
 }

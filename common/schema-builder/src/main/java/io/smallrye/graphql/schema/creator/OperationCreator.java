@@ -26,10 +26,13 @@ public class OperationCreator {
 
     private final ReferenceCreator referenceCreator;
     private final ArgumentCreator argumentCreator;
+    private final FieldCreator fieldCreator;
 
-    public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator) {
+    public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator,
+            FieldCreator fieldCreator) {
         this.referenceCreator = referenceCreator;
         this.argumentCreator = argumentCreator;
+        this.fieldCreator = fieldCreator;
     }
 
     /**
@@ -78,7 +81,7 @@ public class OperationCreator {
             maybeArgument.ifPresent(operation::addArgument);
         }
 
-        FieldCreator.configure(operation, fieldType, annotationsForMethod);
+        fieldCreator.configure(operation, fieldType, annotationsForMethod);
 
         return operation;
     }

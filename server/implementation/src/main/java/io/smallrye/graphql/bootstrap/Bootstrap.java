@@ -414,6 +414,7 @@ public class Bootstrap {
                 .name(type.getName())
                 .description(type.getDescription());
 
+        // Directives
         if (type.hasDirectiveInstances()) {
             for (DirectiveInstance directiveInstance : type.getDirectiveInstances()) {
                 objectTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
@@ -548,6 +549,13 @@ public class Bootstrap {
 
         // Type
         fieldBuilder = fieldBuilder.type(createGraphQLOutputType(field, false));
+
+        // Directives
+        if (field.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
+                fieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 

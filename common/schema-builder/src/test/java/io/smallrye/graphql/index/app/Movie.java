@@ -12,6 +12,7 @@ public class Movie {
     @ToScalar(Scalar.Int.class)
     Long idLongThatShouldChangeToInt;
     String title;
+    @SomeDirective("field")
     Date releaseDate;
     Person director;
     Set<Person> topBilledCast;
@@ -24,6 +25,7 @@ public class Movie {
         this.idLongThatShouldChangeToInt = idLongThatShouldChangeToInt;
     }
 
+    @SomeDirective("getter")
     public String getTitle() {
         return title;
     }

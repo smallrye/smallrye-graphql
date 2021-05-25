@@ -24,9 +24,11 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 public class ArgumentCreator {
 
     private final ReferenceCreator referenceCreator;
+    private final FieldCreator fieldCreator;
 
-    public ArgumentCreator(ReferenceCreator referenceCreator) {
+    public ArgumentCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator) {
         this.referenceCreator = referenceCreator;
+        this.fieldCreator = fieldCreator;
     }
 
     /**
@@ -78,7 +80,7 @@ public class ArgumentCreator {
             argument.setSourceArgument(true);
         }
 
-        FieldCreator.configure(argument, argumentType, annotationsForThisArgument);
+        fieldCreator.configure(argument, argumentType, annotationsForThisArgument);
 
         return Optional.of(argument);
     }

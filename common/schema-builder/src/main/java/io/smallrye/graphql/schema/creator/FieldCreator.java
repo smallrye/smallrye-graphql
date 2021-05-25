@@ -12,6 +12,7 @@ import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MappingHelper;
@@ -28,9 +29,14 @@ import io.smallrye.graphql.schema.model.Reference;
 public class FieldCreator {
 
     private final ReferenceCreator referenceCreator;
+    private Directives directives;
 
     public FieldCreator(ReferenceCreator referenceCreator) {
         this.referenceCreator = referenceCreator;
+    }
+
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
     }
 
     /**
@@ -64,14 +70,14 @@ public class FieldCreator {
         return Optional.of(field);
     }
 
-    public static void configure(Field field, Type type, Annotations annotations) {
+    public void configure(Field field, Type type, Annotations annotations) {
         // Wrapper
         field.setWrapper(WrapperCreator.createWrapper(type).orElse(null));
 
         configure2(field, type, annotations);
     }
 
-    private static void configure2(Field field, Type type, Annotations annotations) {
+    private void configure2(Field field, Type type, Annotations annotations) {
         // Description
         DescriptionHelper.getDescriptionForField(annotations, type).ifPresent(field::setDescription);
 
@@ -88,6 +94,12 @@ public class FieldCreator {
 
         // Default Value
         field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotations).orElse(null));
+
+        // Directives
+        if (directives != null) { // this happens while scanning for the directive types
+            field.setDirectiveInstances(
+                    directives.buildDirectiveInstances(name -> annotations.getOneOfTheseAnnotations(name).orElse(null)));
+        }
     }
 
     /**

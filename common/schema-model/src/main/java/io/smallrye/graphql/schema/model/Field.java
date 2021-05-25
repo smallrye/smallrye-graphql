@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Represent a property on a complex type (Type/Input/Interface)
@@ -56,6 +57,8 @@ public class Field implements Serializable {
 
     private String defaultValue = null;
     private boolean notNull = false;
+
+    private List<DirectiveInstance> directiveInstances;
 
     public Field() {
     }
@@ -163,4 +166,15 @@ public class Field implements Serializable {
         return this.defaultValue != null;
     }
 
+    public boolean hasDirectiveInstances() {
+        return directiveInstances != null && !directiveInstances.isEmpty();
+    }
+
+    public List<DirectiveInstance> getDirectiveInstances() {
+        return directiveInstances;
+    }
+
+    public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
+        this.directiveInstances = directiveInstances;
+    }
 }
