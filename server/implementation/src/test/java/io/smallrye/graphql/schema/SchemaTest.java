@@ -3,6 +3,7 @@ package io.smallrye.graphql.schema;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Directive;
@@ -48,19 +50,24 @@ class SchemaTest {
     }
 
     @Test
-    void testSchemaWithDirective() {
+    void testSchemaWithDirectives() {
         Schema schema = SchemaBuilder
-                .build(scan(Directive.class, IntArrayTestDirective.class, TestTypeWithDirectives.class,
-                        DirectivesTestApi.class));
+                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
+                        TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
         assertNotNull(graphQLSchema);
 
-        GraphQLDirective directiveType = graphQLSchema.getDirective("intArrayTestDirective");
-        assertEquals("intArrayTestDirective", directiveType.getName());
-        assertEquals("test-description", directiveType.getDescription());
-        assertEquals(1, directiveType.getArguments().size());
-        assertEquals("[Int]", directiveType.getArgument("value").getType().toString());
+        GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");
+        assertEquals("intArrayTestDirective", typeDirective.getName());
+        assertEquals("test-description", typeDirective.getDescription());
+        assertEquals(1, typeDirective.getArguments().size());
+        assertEquals("[Int]", typeDirective.getArgument("value").getType().toString());
+
+        GraphQLDirective fieldDirective = graphQLSchema.getDirective("fieldDirective");
+        assertEquals("fieldDirective", fieldDirective.getName());
+        assertNull(fieldDirective.getDescription());
+        assertEquals(0, fieldDirective.getArguments().size());
 
         GraphQLObjectType testTypeWithDirectives = graphQLSchema.getObjectType("TestTypeWithDirectives");
         GraphQLDirective intArrayTestDirective = testTypeWithDirectives.getDirective("intArrayTestDirective");
@@ -68,6 +75,10 @@ class SchemaTest {
         GraphQLArgument argument = intArrayTestDirective.getArgument("value");
         assertEquals("value", argument.getName());
         assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getValue());
+
+        GraphQLFieldDefinition valueField = testTypeWithDirectives.getFieldDefinition("value");
+        GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
+        assertNotNull(fieldDirectiveInstance);
 
         String schemaString = new SchemaPrinter(PRINTER_CONFIG).print(graphQLSchema);
         LOG.info(schemaString);
@@ -80,7 +91,7 @@ class SchemaTest {
                 "}\n" +
                 "\n" +
                 "type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {\n" +
-                "  value: String\n" +
+                "  value: String @fieldDirective\n" +
                 "}\n"));
     }
 

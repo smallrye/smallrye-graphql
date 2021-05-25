@@ -28,6 +28,7 @@ import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.ErrorInfo;
@@ -56,6 +57,7 @@ public class SchemaBuilder {
 
     private final InputTypeCreator inputTypeCreator;
     private final TypeCreator typeCreator;
+    private final FieldCreator fieldCreator;
     private final InterfaceCreator interfaceCreator;
     private final EnumCreator enumCreator;
     private final ReferenceCreator referenceCreator;
@@ -87,14 +89,14 @@ public class SchemaBuilder {
     private SchemaBuilder(TypeAutoNameStrategy autoNameStrategy) {
         enumCreator = new EnumCreator(autoNameStrategy);
         referenceCreator = new ReferenceCreator(autoNameStrategy);
-        FieldCreator fieldCreator = new FieldCreator(referenceCreator);
-        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
+        fieldCreator = new FieldCreator(referenceCreator);
+        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator, fieldCreator);
 
         inputTypeCreator = new InputTypeCreator(fieldCreator, autoNameStrategy);
-        operationCreator = new OperationCreator(referenceCreator, argumentCreator);
+        operationCreator = new OperationCreator(referenceCreator, argumentCreator, fieldCreator);
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator, autoNameStrategy);
         interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy);
-        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy);
+        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy, fieldCreator);
     }
 
     private Schema generateSchema() {
@@ -106,7 +108,7 @@ public class SchemaBuilder {
         final Schema schema = new Schema();
 
         addDirectiveTypes(schema);
-        typeCreator.setDirectiveTypes(schema.getDirectiveTypes());
+        setupDirectives(new Directives(schema.getDirectiveTypes()));
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
@@ -135,6 +137,11 @@ public class SchemaBuilder {
             ClassInfo classInfo = annotationInstance.target().asClass();
             schema.addDirectiveType(directiveTypeCreator.create(classInfo));
         }
+    }
+
+    private void setupDirectives(Directives directives) {
+        typeCreator.setDirectives(directives);
+        fieldCreator.setDirectives(directives);
     }
 
     private void addTypesToSchema(Schema schema) {
@@ -193,10 +200,10 @@ public class SchemaBuilder {
                     if (value != null && value.asString() != null && !value.asString().isEmpty()) {
                         schema.addError(new ErrorInfo(exceptionClass.name().toString(), value.asString()));
                     } else {
-                        LOG.warn("Ignoring @ErrorCode on " + annotationTarget.toString() + " - Annotation value is not set");
+                        LOG.warn("Ignoring @ErrorCode on " + annotationTarget + " - Annotation value is not set");
                     }
                 } else {
-                    LOG.warn("Ignoring @ErrorCode on " + annotationTarget.toString() + " - Wrong target, only apply to CLASS ["
+                    LOG.warn("Ignoring @ErrorCode on " + annotationTarget + " - Wrong target, only apply to CLASS ["
                             + annotationTarget.kind().toString() + "]");
                 }
             }

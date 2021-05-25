@@ -25,10 +25,13 @@ public class DirectiveTypeCreator {
 
     private final ReferenceCreator referenceCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
+    private final FieldCreator fieldCreator;
 
-    public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy) {
+    public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy,
+                                FieldCreator fieldCreator) {
         this.referenceCreator = referenceCreator;
         this.autoNameStrategy = autoNameStrategy;
+        this.fieldCreator = fieldCreator;
     }
 
     public DirectiveType create(ClassInfo classInfo) {
@@ -47,7 +50,7 @@ public class DirectiveTypeCreator {
             argument.setReference(referenceCreator.createReferenceForOperationArgument(method.returnType(), null));
             argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
-            FieldCreator.configure(argument, method.returnType(), annotationsForMethod);
+            fieldCreator.configure(argument, method.returnType(), annotationsForMethod);
             directiveType.addArgumentType(argument);
         }
 

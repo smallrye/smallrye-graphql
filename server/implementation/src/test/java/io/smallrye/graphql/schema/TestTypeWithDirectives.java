@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 @IntArrayTestDirective({ 1, 2, 3 })
 public class TestTypeWithDirectives {
+    @FieldDirective
     private String value;
 
     public String getValue() {

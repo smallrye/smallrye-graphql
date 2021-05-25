@@ -18,8 +18,9 @@ public class OperationCreatorTest {
 
     private OperationCreator operationCreator() {
         ReferenceCreator referenceCreator = new ReferenceCreator(TypeAutoNameStrategy.Default);
-        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
-        return new OperationCreator(referenceCreator, argumentCreator);
+        FieldCreator fieldCreator = new FieldCreator(referenceCreator);
+        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator, fieldCreator);
+        return new OperationCreator(referenceCreator, argumentCreator, fieldCreator);
     }
 
     @Test
