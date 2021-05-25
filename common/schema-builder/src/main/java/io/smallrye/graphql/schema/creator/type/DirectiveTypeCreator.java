@@ -28,7 +28,7 @@ public class DirectiveTypeCreator {
     private final FieldCreator fieldCreator;
 
     public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy,
-                                FieldCreator fieldCreator) {
+            FieldCreator fieldCreator) {
         this.referenceCreator = referenceCreator;
         this.autoNameStrategy = autoNameStrategy;
         this.fieldCreator = fieldCreator;

@@ -29,7 +29,7 @@ public class OperationCreator {
     private final FieldCreator fieldCreator;
 
     public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator,
-                            FieldCreator fieldCreator) {
+            FieldCreator fieldCreator) {
         this.referenceCreator = referenceCreator;
         this.argumentCreator = argumentCreator;
         this.fieldCreator = fieldCreator;

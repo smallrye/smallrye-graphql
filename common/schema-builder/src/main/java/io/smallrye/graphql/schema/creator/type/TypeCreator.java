@@ -49,7 +49,7 @@ public class TypeCreator implements Creator<Type> {
     private Directives directives;
 
     public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator,
-                       TypeAutoNameStrategy autoNameStrategy) {
+            TypeAutoNameStrategy autoNameStrategy) {
         this.referenceCreator = referenceCreator;
         this.fieldCreator = fieldCreator;
         this.operationCreator = operationCreator;
