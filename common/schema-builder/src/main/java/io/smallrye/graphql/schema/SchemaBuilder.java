@@ -141,6 +141,7 @@ public class SchemaBuilder {
 
     private void setupDirectives(Directives directives) {
         typeCreator.setDirectives(directives);
+        interfaceCreator.setDirectives(directives);
         fieldCreator.setDirectives(directives);
     }
 

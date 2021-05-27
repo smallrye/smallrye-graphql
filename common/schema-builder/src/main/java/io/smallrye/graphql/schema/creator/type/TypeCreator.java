@@ -6,26 +6,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.jandex.MethodParameterInfo;
-import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
-import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
-import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
-import io.smallrye.graphql.schema.helper.TypeNameHelper;
-import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Type;
@@ -39,57 +29,17 @@ import io.smallrye.graphql.schema.model.Type;
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class TypeCreator implements Creator<Type> {
-    private static final Logger LOG = Logger.getLogger(TypeCreator.class.getName());
+public class TypeCreator extends AbstractCreator {
 
-    private final ReferenceCreator referenceCreator;
     private final FieldCreator fieldCreator;
-    private final OperationCreator operationCreator;
-    private final TypeAutoNameStrategy autoNameStrategy;
-    private Directives directives;
 
     public TypeCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator,
             TypeAutoNameStrategy autoNameStrategy) {
-        this.referenceCreator = referenceCreator;
+        super(operationCreator, referenceCreator, autoNameStrategy);
         this.fieldCreator = fieldCreator;
-        this.operationCreator = operationCreator;
-        this.autoNameStrategy = autoNameStrategy;
     }
 
-    public void setDirectives(Directives directives) {
-        this.directives = directives;
-    }
-
-    @Override
-    public Type create(ClassInfo classInfo, Reference reference) {
-        LOG.debug("Creating Type from " + classInfo.name().toString() + " for reference " + reference.getName());
-
-        Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
-
-        // Name
-        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.TYPE, classInfo, annotations, autoNameStrategy);
-
-        // Description
-        String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
-
-        Type type = new Type(classInfo.name().toString(), name, description);
-
-        // Fields
-        addFields(type, classInfo, reference);
-
-        // Interfaces
-        addInterfaces(type, classInfo, reference);
-
-        // Operations
-        addOperations(type, classInfo);
-
-        // Directives
-        addDirectives(type, classInfo);
-
-        return type;
-    }
-
-    private void addFields(Type type, ClassInfo classInfo, Reference reference) {
+    protected void addFields(Type type, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
@@ -120,65 +70,9 @@ public class TypeCreator implements Creator<Type> {
         }
     }
 
-    private void addOperations(Type type, ClassInfo classInfo) {
-        SourceOperationHelper sourceOperationHelper = new SourceOperationHelper();
-        Map<DotName, List<MethodParameterInfo>> sourceFields = sourceOperationHelper.getSourceAnnotations();
-        Map<DotName, List<MethodParameterInfo>> batchedFields = sourceOperationHelper.getSourceListAnnotations();
-        type.setOperations(toOperations(sourceFields, type, classInfo));
-        type.setBatchOperations(toOperations(batchedFields, type, classInfo));
+    @Override
+    protected ReferenceType referenceType() {
+        return ReferenceType.TYPE;
     }
 
-    private Map<String, Operation> toOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type,
-            ClassInfo classInfo) {
-        // See if there is source operations for this class
-        Map<String, Operation> operations = new HashMap<>();
-        if (sourceFields.containsKey(classInfo.name())) {
-            List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
-            for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
-                MethodInfo methodInfo = methodParameterInfo.method();
-                Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
-                operations.put(o.getName(), o);
-            }
-        }
-        for (Reference anInterface : type.getInterfaces()) {
-            final String className = anInterface.getClassName();
-            if (sourceFields.containsKey(DotName.createSimple(className))) {
-                List<MethodParameterInfo> methodParameterInfos = sourceFields.get(DotName.createSimple(className));
-                for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
-                    MethodInfo methodInfo = methodParameterInfo.method();
-                    Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
-                    operations.put(o.getName(), o);
-                }
-            }
-        }
-        return operations;
-    }
-
-    private void addInterfaces(Type type, ClassInfo classInfo, Reference reference) {
-        List<org.jboss.jandex.Type> interfaceNames = classInfo.interfaceTypes();
-        for (org.jboss.jandex.Type interfaceType : interfaceNames) {
-            // Ignore java interfaces (like Serializable)
-            if (InterfaceCreator.canAddInterfaceIntoScheme(interfaceType.name().toString())) {
-                ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceType.name());
-                if (interfaceInfo != null) {
-
-                    Map<String, Reference> parametrizedTypeArgumentsReferences = null;
-
-                    if (interfaceType.kind().equals(org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE))
-                        parametrizedTypeArgumentsReferences = referenceCreator.collectParametrizedTypes(interfaceInfo,
-                                interfaceType.asParameterizedType().arguments(), Direction.OUT, reference);
-
-                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, reference,
-                            parametrizedTypeArgumentsReferences, true);
-                    type.addInterface(interfaceRef);
-                    // add all parent interfaces recursively as GraphQL schema requires it 
-                    addInterfaces(type, interfaceInfo, reference);
-                }
-            }
-        }
-    }
-
-    private void addDirectives(Type type, ClassInfo classInfo) {
-        type.setDirectiveInstances(directives.buildDirectiveInstances(classInfo::classAnnotation));
-    }
 }
