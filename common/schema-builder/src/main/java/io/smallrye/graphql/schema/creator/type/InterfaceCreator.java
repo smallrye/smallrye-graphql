@@ -1,24 +1,32 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
+import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
-import io.smallrye.graphql.schema.model.InterfaceType;
+import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * This creates an interface object.
@@ -28,22 +36,24 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class InterfaceCreator implements Creator<InterfaceType> {
+public class InterfaceCreator implements Creator<Type> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     private final ReferenceCreator referenceCreator;
     private final FieldCreator fieldCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
+    private final OperationCreator operationCreator;
 
     public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator,
-            TypeAutoNameStrategy autoNameStrategy) {
+            TypeAutoNameStrategy autoNameStrategy, OperationCreator operationCreator) {
         this.referenceCreator = referenceCreator;
         this.fieldCreator = fieldCreator;
         this.autoNameStrategy = autoNameStrategy;
+        this.operationCreator = operationCreator;
     }
 
     @Override
-    public InterfaceType create(ClassInfo classInfo, Reference reference) {
+    public Type create(ClassInfo classInfo, Reference reference) {
         LOG.debug("Creating Interface from " + classInfo.name().toString());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
@@ -55,7 +65,8 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
 
-        InterfaceType interfaceType = new InterfaceType(classInfo.name().toString(), name, description);
+        Type interfaceType = new Type(classInfo.name().toString(), name, description);
+        interfaceType.setIsInterface(true);
 
         // Fields
         addFields(interfaceType, classInfo, reference);
@@ -63,10 +74,13 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         // Interfaces
         addInterfaces(interfaceType, classInfo);
 
+        // Operations
+        addOperations(interfaceType, classInfo);
+
         return interfaceType;
     }
 
-    private void addFields(InterfaceType interfaceType, ClassInfo classInfo, Reference reference) {
+    private void addFields(Type interfaceType, ClassInfo classInfo, Reference reference) {
 
         // Add all fields from interface itself
         for (MethodInfo methodInfo : classInfo.methods()) {
@@ -89,7 +103,7 @@ public class InterfaceCreator implements Creator<InterfaceType> {
         }
     }
 
-    private void addInterfaces(InterfaceType interfaceType, ClassInfo classInfo) {
+    private void addInterfaces(Type interfaceType, ClassInfo classInfo) {
         List<DotName> interfaceNames = classInfo.interfaceNames();
         for (DotName interfaceName : interfaceNames) {
             // Ignore java interfaces (like Serializable)
@@ -116,4 +130,39 @@ public class InterfaceCreator implements Creator<InterfaceType> {
     public static boolean canAddInterfaceIntoScheme(String interfaceFullName) {
         return interfaceFullName != null && !interfaceFullName.startsWith(JAVA_DOT);
     }
+
+    private void addOperations(Type type, ClassInfo classInfo) {
+        SourceOperationHelper sourceOperationHelper = new SourceOperationHelper();
+        Map<DotName, List<MethodParameterInfo>> sourceFields = sourceOperationHelper.getSourceAnnotations();
+        Map<DotName, List<MethodParameterInfo>> batchedFields = sourceOperationHelper.getSourceListAnnotations();
+        type.setOperations(toOperations(sourceFields, type, classInfo));
+        type.setBatchOperations(toOperations(batchedFields, type, classInfo));
+    }
+
+    private Map<String, Operation> toOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type,
+            ClassInfo classInfo) {
+        // See if there is source operations for this class
+        Map<String, Operation> operations = new HashMap<>();
+        if (sourceFields.containsKey(classInfo.name())) {
+            List<MethodParameterInfo> methodParameterInfos = sourceFields.get(classInfo.name());
+            for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                MethodInfo methodInfo = methodParameterInfo.method();
+                Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
+                operations.put(o.getName(), o);
+            }
+        }
+        for (Reference anInterface : type.getInterfaces()) {
+            final String className = anInterface.getClassName();
+            if (sourceFields.containsKey(DotName.createSimple(className))) {
+                List<MethodParameterInfo> methodParameterInfos = sourceFields.get(DotName.createSimple(className));
+                for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                    MethodInfo methodInfo = methodParameterInfo.method();
+                    Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
+                    operations.put(o.getName(), o);
+                }
+            }
+        }
+        return operations;
+    }
+
 }

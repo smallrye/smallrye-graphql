@@ -95,7 +95,7 @@ public class SchemaBuilder {
         inputTypeCreator = new InputTypeCreator(fieldCreator, autoNameStrategy);
         operationCreator = new OperationCreator(referenceCreator, argumentCreator, fieldCreator);
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator, autoNameStrategy);
-        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy);
+        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy, operationCreator);
         directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy, fieldCreator);
     }
 

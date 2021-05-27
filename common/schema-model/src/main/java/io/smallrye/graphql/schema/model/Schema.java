@@ -28,7 +28,7 @@ public final class Schema implements Serializable {
     private List<DirectiveType> directiveTypes = new ArrayList<>();
     private Map<String, InputType> inputs = new HashMap<>();
     private Map<String, Type> types = new HashMap<>();
-    private Map<String, InterfaceType> interfaces = new HashMap<>();
+    private Map<String, Type> interfaces = new HashMap<>();
     private Map<String, EnumType> enums = new HashMap<>();
 
     private Map<String, ErrorInfo> errors = new HashMap<>();
@@ -176,15 +176,15 @@ public final class Schema implements Serializable {
         return !this.types.isEmpty();
     }
 
-    public Map<String, InterfaceType> getInterfaces() {
+    public Map<String, Type> getInterfaces() {
         return interfaces;
     }
 
-    public void setInterfaces(Map<String, InterfaceType> interfaces) {
+    public void setInterfaces(Map<String, Type> interfaces) {
         this.interfaces = interfaces;
     }
 
-    public void addInterface(InterfaceType interfaceType) {
+    public void addInterface(Type interfaceType) {
         this.interfaces.put(interfaceType.getName(), interfaceType);
     }
 

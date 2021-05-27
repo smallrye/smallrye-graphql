@@ -77,11 +77,11 @@ public class TypeCreator implements Creator<Type> {
         // Fields
         addFields(type, classInfo, reference);
 
-        // Operations
-        addOperations(type, classInfo);
-
         // Interfaces
         addInterfaces(type, classInfo, reference);
+
+        // Operations
+        addOperations(type, classInfo);
 
         // Directives
         addDirectives(type, classInfo);
@@ -138,6 +138,17 @@ public class TypeCreator implements Creator<Type> {
                 MethodInfo methodInfo = methodParameterInfo.method();
                 Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
                 operations.put(o.getName(), o);
+            }
+        }
+        for (Reference anInterface : type.getInterfaces()) {
+            final String className = anInterface.getClassName();
+            if (sourceFields.containsKey(DotName.createSimple(className))) {
+                List<MethodParameterInfo> methodParameterInfos = sourceFields.get(DotName.createSimple(className));
+                for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                    MethodInfo methodInfo = methodParameterInfo.method();
+                    Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
+                    operations.put(o.getName(), o);
+                }
             }
         }
         return operations;

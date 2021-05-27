@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import graphql.schema.GraphQLObjectType;
-import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Type;
 
@@ -35,7 +34,7 @@ public class InterfaceOutputRegistry {
         }
     }
 
-    public static GraphQLObjectType getGraphQLObjectType(InterfaceType interfaceType, String concreateName) {
+    public static GraphQLObjectType getGraphQLObjectType(Type interfaceType, String concreateName) {
         String itype = interfaceType.getName();
         if (interfaceMap.containsKey(itype)) {
             Map<String, GraphQLObjectType> concreateMap = interfaceMap.get(itype);

@@ -1,6 +1,6 @@
 package io.smallrye.graphql.test.apps.batch.api;
 
-public class BatchPojo {
+public class BatchPojo implements BatchInterface {
 
     public int id;
 

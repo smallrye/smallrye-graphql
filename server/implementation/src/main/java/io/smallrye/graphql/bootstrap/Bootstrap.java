@@ -65,7 +65,6 @@ import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.InputType;
-import io.smallrye.graphql.schema.model.InterfaceType;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -344,13 +343,13 @@ public class Bootstrap {
 
     private void createGraphQLInterfaceTypes() {
         if (schema.hasInterfaces()) {
-            for (InterfaceType interfaceType : schema.getInterfaces().values()) {
+            for (Type interfaceType : schema.getInterfaces().values()) {
                 createGraphQLInterfaceType(interfaceType);
             }
         }
     }
 
-    private void createGraphQLInterfaceType(InterfaceType interfaceType) {
+    private void createGraphQLInterfaceType(Type interfaceType) {
         GraphQLInterfaceType.Builder interfaceTypeBuilder = GraphQLInterfaceType.newInterface()
                 .name(interfaceType.getName())
                 .description(interfaceType.getDescription());
@@ -367,6 +366,35 @@ public class Bootstrap {
             Set<Reference> interfaces = interfaceType.getInterfaces();
             for (Reference i : interfaces) {
                 interfaceTypeBuilder = interfaceTypeBuilder.withInterface(GraphQLTypeReference.typeRef(i.getName()));
+            }
+        }
+
+        // Operations
+        if (interfaceType.hasOperations()) {
+            for (Operation operation : interfaceType.getOperations().values()) {
+                String name = operation.getName();
+                if (!interfaceType.hasBatchOperation(name)) {
+                    operation = eventEmitter.fireCreateOperation(operation);
+
+                    GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(
+                            interfaceType.getName(),
+                            operation);
+                    interfaceTypeBuilder = interfaceTypeBuilder.field(graphQLFieldDefinition);
+                } else {
+                    log.duplicateOperation(operation.getName());
+                }
+            }
+        }
+
+        // Batch Operations
+        if (interfaceType.hasBatchOperations()) {
+            for (Operation operation : interfaceType.getBatchOperations().values()) {
+                operation = eventEmitter.fireCreateOperation(operation);
+
+                GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromBatchOperation(
+                        interfaceType.getName(),
+                        operation);
+                interfaceTypeBuilder = interfaceTypeBuilder.field(graphQLFieldDefinition);
             }
         }
 

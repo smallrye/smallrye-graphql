@@ -5,7 +5,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 import graphql.TypeResolutionEnvironment;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.TypeResolver;
-import io.smallrye.graphql.schema.model.InterfaceType;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Resolve an interface.
@@ -14,9 +14,9 @@ import io.smallrye.graphql.schema.model.InterfaceType;
  */
 public class InterfaceResolver implements TypeResolver {
 
-    private final InterfaceType interfaceType;
+    private final Type interfaceType;
 
-    public InterfaceResolver(InterfaceType interfaceType) {
+    public InterfaceResolver(Type interfaceType) {
         this.interfaceType = interfaceType;
     }
 

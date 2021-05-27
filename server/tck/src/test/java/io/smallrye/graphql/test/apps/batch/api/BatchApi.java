@@ -37,6 +37,20 @@ public class BatchApi {
         return uuids;
     }
 
+    // Normal Source on interface
+    public String interfaceGreeting(@Source BatchInterface batchPojo) {
+        return "interface-hello";
+    }
+
+    // Normal Batch Source on interface
+    public List<String> interfaceId(@Source List<BatchInterface> batchPojos) {
+        List<String> uuids = new ArrayList<>();
+        for (BatchInterface batchPojo : batchPojos) {
+            uuids.add(("interfaceId-" + ((BatchPojo) batchPojo).id));
+        }
+        return uuids;
+    }
+
     // Runtime Exception Source
     public String runtime(@Source BatchPojo batchPojo) {
         throw new RuntimeException("Some runtime exception");
