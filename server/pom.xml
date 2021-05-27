@@ -27,6 +27,7 @@
         <module>tck</module>
         <module>runner</module>
         <module>integration-tests</module>
+        <module>federation</module>
     </modules>
     
 </project>
