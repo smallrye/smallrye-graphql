@@ -54,6 +54,7 @@ public class ExecutionService {
     private GraphQL graphQL;
 
     private final boolean hasSubscription;
+    private final QueryCache queryCache;
 
     public ExecutionService(Config config, GraphQLSchema graphQLSchema, List<Operation> batchOperations,
             boolean hasSubscription) {
@@ -65,6 +66,7 @@ public class ExecutionService {
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
         this.hasSubscription = hasSubscription;
+        this.queryCache = new QueryCache();
     }
 
     public ExecutionResponse execute(JsonObject jsonInput) {
@@ -108,7 +110,7 @@ public class ExecutionService {
                 ExecutionInput executionInput = executionBuilder.build();
 
                 // Update context with execution data
-                context = context.withDataFromExecution(executionInput);
+                context = context.withDataFromExecution(executionInput, queryCache);
                 ((GraphQLContext) executionInput.getContext()).put("context", context);
 
                 // Notify before
@@ -158,8 +160,6 @@ public class ExecutionService {
         if (this.graphQL == null) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(config);
             if (graphQLSchema != null) {
-                QueryCache queryCache = new QueryCache();
-
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
 
                 graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(exceptionHandler);

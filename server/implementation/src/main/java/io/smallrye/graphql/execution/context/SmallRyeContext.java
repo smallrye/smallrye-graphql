@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -19,9 +18,11 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import graphql.ExecutionInput;
+import graphql.ParseAndValidate;
+import graphql.ParseAndValidateResult;
+import graphql.execution.preparsed.PreparsedDocumentEntry;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
-import graphql.parser.Parser;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.GraphQLList;
@@ -31,6 +32,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.schema.SelectedField;
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -64,12 +66,15 @@ public class SmallRyeContext implements Context {
     }
 
     public SmallRyeContext withDataFromExecution(ExecutionInput executionInput) {
-        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, this.field);
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, this.queryCache, this.field);
+    }
+
+    public SmallRyeContext withDataFromExecution(ExecutionInput executionInput, QueryCache queryCache) {
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, queryCache, this.field);
     }
 
     public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        SmallRyeContext newCtx = new SmallRyeContext(this.jsonObject, dfe, this.executionInput, field);
-        return newCtx;
+        return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field);
     }
 
     public static void remove() {
@@ -216,11 +221,13 @@ public class SmallRyeContext implements Context {
     private final ExecutionInput executionInput;
     private final Supplier<Document> documentSupplier;
     private final Field field;
+    private final QueryCache queryCache;
 
     public SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
         this.dfe = null;
         this.executionInput = null;
+        this.queryCache = null;
         this.documentSupplier = null;
         this.field = null;
     }
@@ -228,12 +235,14 @@ public class SmallRyeContext implements Context {
     public SmallRyeContext(JsonObject jsonObject,
             DataFetchingEnvironment dfe,
             ExecutionInput executionInput,
+            QueryCache queryCache,
             Field field) {
         this.jsonObject = jsonObject;
         this.dfe = dfe;
         this.field = field;
         this.executionInput = executionInput;
-        this.documentSupplier = new DocumentSupplier(executionInput);
+        this.queryCache = queryCache;
+        this.documentSupplier = new DocumentSupplier(executionInput, queryCache);
     }
 
     private JsonArrayBuilder toJsonArrayBuilder(Set<SelectedField> fields, boolean includeSourceFields) {
@@ -326,17 +335,23 @@ public class SmallRyeContext implements Context {
 
     private static class DocumentSupplier implements Supplier<Document> {
 
-        private final Map<String, Document> document = new ConcurrentHashMap<>();
         private final ExecutionInput executionInput;
-        private final Parser parser = new Parser();
+        private final QueryCache queryCache;
 
-        public DocumentSupplier(ExecutionInput executionInput) {
+        public DocumentSupplier(ExecutionInput executionInput,
+                QueryCache queryCache) {
             this.executionInput = executionInput;
+            this.queryCache = queryCache;
         }
 
         @Override
         public Document get() {
-            return document.computeIfAbsent("document", o -> parser.parseDocument(executionInput.getQuery()));
+            PreparsedDocumentEntry documentEntry = queryCache.getDocument(executionInput, ei -> {
+                ParseAndValidateResult parse = ParseAndValidate.parse(ei);
+                return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
+                        : new PreparsedDocumentEntry(parse.getDocument());
+            });
+            return documentEntry.hasErrors() ? null : documentEntry.getDocument();
         }
     }
 }
