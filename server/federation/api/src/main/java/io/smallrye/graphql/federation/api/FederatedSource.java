@@ -1,12 +1,12 @@
 package io.smallrye.graphql.federation.api;
 
-import io.smallrye.common.annotation.Experimental;
-
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import io.smallrye.common.annotation.Experimental;
 
 /**
  * A federated resolver method is the federated equivalent to a 'local' resolver method (with a parameter annotated as

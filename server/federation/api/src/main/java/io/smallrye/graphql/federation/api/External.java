@@ -5,9 +5,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
-import io.smallrye.common.annotation.Experimental;
 import org.eclipse.microprofile.graphql.Description;
 
+import io.smallrye.common.annotation.Experimental;
 import io.smallrye.graphql.api.Directive;
 
 /** <b><code>directive @external on FIELD_DEFINITION</code></b> */

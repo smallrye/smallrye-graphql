@@ -6,10 +6,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
-import io.smallrye.common.annotation.Experimental;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.NonNull;
 
+import io.smallrye.common.annotation.Experimental;
 import io.smallrye.graphql.api.Directive;
 
 /** <b><code>directive @key(fields: _FieldSet!) on OBJECT | INTERFACE</code></b> */
