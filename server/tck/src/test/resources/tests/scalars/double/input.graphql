@@ -1,0 +1,34 @@
+# test to ensure double values aren't rounded, see #727
+mutation scalarHolderMutation {
+  scalarHolder (scalarHolder:{
+
+    doublePrimitive: 49.9902794
+    doubleObject: 49.9902794
+
+    #required by this mutation, but irrelevant for this test
+    intPrimitive:1
+    intObject:2
+    shortPrimitive:3
+    shortObject:4
+    bytePrimitive:5
+    byteObject:6
+    booleanPrimitive:true
+    booleanObject:false
+    intPrimitiveId:7
+    integerObjectId:8
+    floatPrimitive:9
+    floatObject:10
+    charPrimitive:"h"
+    charObject:"e"
+    charArray:["h","e","l","l","o"]
+    longPrimitive:11
+    longObject:12
+    longPrimitiveId:13
+    longObjectId:14
+    formattedLongPrimitive:"15"
+    formattedLongObject:"16"
+  }) {
+    doublePrimitive
+    doubleObject
+  }
+}
