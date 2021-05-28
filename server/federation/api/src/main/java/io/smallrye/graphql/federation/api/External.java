@@ -5,6 +5,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
+import io.smallrye.common.annotation.Experimental;
 import org.eclipse.microprofile.graphql.Description;
 
 import io.smallrye.graphql.api.Directive;
@@ -14,5 +15,6 @@ import io.smallrye.graphql.api.Directive;
 @Description("The @external directive is used to mark a field as owned by another service. " +
         "This allows service A to use fields from service B while also knowing at runtime the types of that field.")
 @Retention(RUNTIME)
+@Experimental("SmallRye GraphQL Federation is still subject to change.")
 public @interface External {
 }

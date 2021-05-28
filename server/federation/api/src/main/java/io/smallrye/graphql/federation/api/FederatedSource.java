@@ -1,5 +1,7 @@
 package io.smallrye.graphql.federation.api;
 
+import io.smallrye.common.annotation.Experimental;
+
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -15,5 +17,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(PARAMETER)
+@Experimental("SmallRye GraphQL Federation is still subject to change.")
 public @interface FederatedSource {
 }

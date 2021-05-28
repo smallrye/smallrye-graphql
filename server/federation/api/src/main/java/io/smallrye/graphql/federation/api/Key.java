@@ -6,6 +6,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
+import io.smallrye.common.annotation.Experimental;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -16,6 +17,7 @@ import io.smallrye.graphql.api.Directive;
 @Description("The @key directive is used to indicate a combination of fields that can be used to uniquely identify " +
         "and fetch an object or interface.")
 @Retention(RUNTIME)
+@Experimental("SmallRye GraphQL Federation is still subject to change.")
 public @interface Key {
     @NonNull
     String[] fields();
