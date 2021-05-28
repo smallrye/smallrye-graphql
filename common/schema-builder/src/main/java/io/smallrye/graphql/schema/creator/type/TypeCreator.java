@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -13,6 +14,7 @@ import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
@@ -112,8 +114,15 @@ public class TypeCreator implements Creator<Type> {
             }
         }
 
-        // See what fields are left (this is fields without methods)
-        if (!allFields.isEmpty()) {
+        if (Objects.equals(classInfo.superName(), Classes.RECORD)) {
+            // Each record component has an accessor method
+            // We check these after getters, so that getters are preferred, e.g. if they have been inherited by an interface
+            for (FieldInfo fieldInfo : allFields.values()) {
+                MethodInfo methodInfo = classInfo.method(fieldInfo.name());
+                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference).ifPresent(type::addField);
+            }
+        } else {
+            // See what fields are left (this is fields without methods)
             for (FieldInfo fieldInfo : allFields.values()) {
                 fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, reference).ifPresent(type::addField);
             }
