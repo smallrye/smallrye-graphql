@@ -1,0 +1,7 @@
+{
+  batchPojos {
+    id
+    interfaceGreeting
+    interfaceId
+  }
+}

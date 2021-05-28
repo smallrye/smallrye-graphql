@@ -26,6 +26,8 @@ public final class Type extends Reference {
 
     private String description;
 
+    private boolean isInterface;
+
     private Map<String, Field> fields = new LinkedHashMap<>();
     private Map<String, Operation> operations = new LinkedHashMap<>();
     private Map<String, Operation> batchOperations = new LinkedHashMap<>();
@@ -122,5 +124,13 @@ public final class Type extends Reference {
 
     public boolean hasInterfaces() {
         return !this.interfaces.isEmpty();
+    }
+
+    public boolean isInterface() {
+        return isInterface;
+    }
+
+    public void setIsInterface(boolean isInterface) {
+        isInterface = isInterface;
     }
 }

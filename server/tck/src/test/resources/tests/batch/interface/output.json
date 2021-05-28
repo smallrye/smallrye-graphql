@@ -1,0 +1,26 @@
+{
+  "data": {
+    "batchPojos": [
+      {
+        "id": 1,
+        "interfaceGreeting": "interface-hello",
+        "interfaceId": "interfaceId-1"
+      },
+      {
+        "id": 2,
+        "interfaceGreeting": "interface-hello",
+        "interfaceId": "interfaceId-2"
+      },
+      {
+        "id": 3,
+        "interfaceGreeting": "interface-hello",
+        "interfaceId": "interfaceId-3"
+      },
+      {
+        "id": 4,
+        "interfaceGreeting": "interface-hello",
+        "interfaceId": "interfaceId-4"
+      }
+    ]
+  }
+}
