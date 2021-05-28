@@ -20,12 +20,12 @@ public class FloatScalar extends AbstractNumberScalar {
                 new Converter() {
                     @Override
                     public Object fromBigDecimal(BigDecimal bigDecimal) {
-                        return bigDecimal.floatValue();
+                        return bigDecimal.doubleValue();
                     }
 
                     @Override
                     public Object fromBigInteger(BigInteger bigInteger) {
-                        return bigInteger.floatValue();
+                        return bigInteger.doubleValue();
                     }
 
                 },
