@@ -10,7 +10,6 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 
-import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
