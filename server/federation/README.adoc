@@ -1,5 +1,8 @@
 = GraphQL Federation
 
+[NOTE]
+The current status is experimental!
+
 Extension library to add support for https://www.apollographql.com/docs/federation/federation-spec/[GraphQL Federation].
 
 The `api` module defines the directives `@Key`, etc. The `runtime` module hooks into the SmallRye GraphQL events to dynamically enhance the GraphQL schema with the Federation extras (`_Entity`, `_Service`, etc.).
