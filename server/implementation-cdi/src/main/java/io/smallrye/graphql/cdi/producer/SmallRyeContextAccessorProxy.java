@@ -10,6 +10,7 @@ import javax.json.JsonObject;
 
 import graphql.ExecutionInput;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Field;
 
@@ -33,6 +34,11 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     @Override
     public SmallRyeContext withDataFromExecution(ExecutionInput executionInput) {
         return SmallRyeContext.getContext().withDataFromExecution(executionInput);
+    }
+
+    @Override
+    public SmallRyeContext withDataFromExecution(ExecutionInput executionInput, QueryCache queryCache) {
+        return SmallRyeContext.getContext().withDataFromExecution(executionInput, queryCache);
     }
 
     @Override
