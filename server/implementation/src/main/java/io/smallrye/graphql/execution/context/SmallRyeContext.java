@@ -346,12 +346,17 @@ public class SmallRyeContext implements Context {
 
         @Override
         public Document get() {
-            PreparsedDocumentEntry documentEntry = queryCache.getDocument(executionInput, ei -> {
-                ParseAndValidateResult parse = ParseAndValidate.parse(ei);
-                return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
-                        : new PreparsedDocumentEntry(parse.getDocument());
-            });
-            return documentEntry.hasErrors() ? null : documentEntry.getDocument();
+            if (queryCache == null) {
+                ParseAndValidateResult parse = ParseAndValidate.parse(executionInput);
+                return parse.isFailure() ? null : parse.getDocument();
+            } else {
+                PreparsedDocumentEntry documentEntry = queryCache.getDocument(executionInput, ei -> {
+                    ParseAndValidateResult parse = ParseAndValidate.parse(ei);
+                    return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
+                            : new PreparsedDocumentEntry(parse.getDocument());
+                });
+                return documentEntry.hasErrors() ? null : documentEntry.getDocument();
+            }
         }
     }
 }
