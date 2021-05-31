@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Like an {@link java.util.Optional}, but if a value is not present, there is a List of {@link GraphQLClientError}s instead.
@@ -18,11 +22,15 @@ public final class ErrorOr<T> {
     private final List<GraphQLClientError> errors;
 
     public static <T> ErrorOr<T> of(T value) {
-        return new ErrorOr<>(requireNonNull(value), null);
+        return new ErrorOr<>(requireNonNull(value, "value must not be null"), null);
     }
 
     public static <T> ErrorOr<T> ofErrors(List<GraphQLClientError> errors) {
-        return new ErrorOr<>(null, unmodifiableList(new ArrayList<>(requireNonNull(errors))));
+        if (errors == null)
+            throw new NullPointerException("errors must not be null");
+        if (errors.isEmpty())
+            throw new IllegalArgumentException("errors must not be empty");
+        return new ErrorOr<>(null, unmodifiableList(new ArrayList<>(errors)));
     }
 
     private ErrorOr(T value, List<GraphQLClientError> errors) {
@@ -54,12 +62,12 @@ public final class ErrorOr<T> {
         return value != null;
     }
 
-    public boolean isError() {
-        return errors != null && !errors.isEmpty();
+    public boolean hasErrors() {
+        return !isPresent();
     }
 
     public T get() {
-        if (isError())
+        if (hasErrors())
             throw new NoSuchElementException("No value present, but " + errors);
         return value;
     }
@@ -70,15 +78,42 @@ public final class ErrorOr<T> {
         return errors;
     }
 
-    // TODO public void ifPresent(Consumer<? super T> action)
-    // TODO public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction)
-    // TODO public Optional<T> filter(Predicate<? super T> predicate)
-    // TODO public <U> Optional<U> map(Function<? super T, ? extends U> mapper)
-    // TODO public <U> Optional<U> flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)
-    // TODO public Optional<T> or(Supplier<? extends Optional<? extends T>> supplier)
-    // TODO public Stream<T> stream()
-    // TODO public T orElse(T other)
-    // TODO public T orElseGet(Supplier<? extends T> supplier)
-    // TODO public T orElseThrow()
-    // TODO public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X
+    public void ifPresent(Consumer<? super T> action) {
+        Objects.requireNonNull(action, "ifPresent action must not be null");
+        if (isPresent())
+            action.accept(value);
+    }
+
+    public void handle(Consumer<? super T> dataAction, Consumer<List<GraphQLClientError>> errorsAction) {
+        Objects.requireNonNull(dataAction, "handle dataAction must not be null");
+        Objects.requireNonNull(errorsAction, "handle errorsAction must not be null");
+        if (isPresent())
+            dataAction.accept(value);
+        else
+            errorsAction.accept(errors);
+    }
+
+    public <U> ErrorOr<U> map(Function<? super T, ? extends U> mapper) {
+        Objects.requireNonNull(mapper, "map function must not be null");
+        if (isPresent())
+            return ErrorOr.of(mapper.apply(value));
+        //noinspection unchecked
+        return (ErrorOr<U>) this;
+    }
+
+    public <U> ErrorOr<U> flatMap(Function<? super T, ErrorOr<U>> mapper) {
+        Objects.requireNonNull(mapper, "flatMap function must not be null");
+        if (isPresent())
+            return mapper.apply(value);
+        //noinspection unchecked
+        return (ErrorOr<U>) this;
+    }
+
+    public Optional<T> optional() {
+        return isPresent() ? Optional.of(value) : Optional.empty();
+    }
+
+    public Stream<T> stream() {
+        return isPresent() ? Stream.of(value) : Stream.empty();
+    }
 }

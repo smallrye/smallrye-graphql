@@ -253,7 +253,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(response.isPresent()).isTrue();
-        then(response.isError()).isFalse();
+        then(response.hasErrors()).isFalse();
         then(catchThrowable(response::getErrors)).isInstanceOf(NoSuchElementException.class);
         then(response.get()).hasSize(1);
         then(response.get().get(0).name).isEqualTo("Avengers");
@@ -279,9 +279,6 @@ class ErrorBehavior {
         ErrorOr<List<Team>> response = api.teams();
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(response.isError()).isTrue();
-        then(response.isPresent()).isFalse();
-        then(catchThrowable(response::get)).isInstanceOf(NoSuchElementException.class);
         then(response.getErrors()).hasSize(1);
         GraphQLClientError error = response.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
@@ -352,10 +349,6 @@ class ErrorBehavior {
         ErrorOr<List<Team>> response = api.teams();
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(response.isError()).isTrue();
-        then(response.isPresent()).isFalse();
-        then(catchThrowable(response::get)).isInstanceOf(NoSuchElementException.class);
-
         then(response.getErrors()).hasSize(2);
         GraphQLClientError error1 = response.getErrors().get(0);
         then(error1.getMessage()).isEqualTo("currently can't search for teams");
@@ -430,15 +423,15 @@ class ErrorBehavior {
             then(response.superHeroes).hasSize(1);
             ErrorOr<SuperHero> superHero = response.superHeroes.get(0);
             then(superHero.isPresent()).isTrue();
-            then(superHero.isError()).isFalse();
+            then(superHero.hasErrors()).isFalse();
             then(superHero.get().name).isEqualTo("Spider-Man");
             then(superHero.get().location.isPresent()).isTrue();
-            then(superHero.get().location.isError()).isFalse();
+            then(superHero.get().location.hasErrors()).isFalse();
             then(superHero.get().location.get()).isEqualTo("New York");
         }
         {
             then(response.teams.isPresent()).isTrue();
-            then(response.teams.isError()).isFalse();
+            then(response.teams.hasErrors()).isFalse();
             then(catchThrowable(() -> response.teams.getErrors())).isInstanceOf(NoSuchElementException.class);
             List<Team> teams = response.teams.get();
             then(teams).hasSize(1);
@@ -463,7 +456,7 @@ class ErrorBehavior {
         then(fixture.query()).isEqualTo("query find { find {superHeroes:findHeroes {name location} teams:findTeams {name}} }");
         then(response.superHeroes).hasSize(1);
         then(response.superHeroes.get(0).get().name).isEqualTo("Wolverine");
-        then(response.teams.isError()).isTrue();
+        then(response.teams.hasErrors()).isTrue();
         then(response.teams.isPresent()).isFalse();
         then(catchThrowable(() -> response.teams.get())).isInstanceOf(NoSuchElementException.class);
         then(response.teams.getErrors()).hasSize(1);
