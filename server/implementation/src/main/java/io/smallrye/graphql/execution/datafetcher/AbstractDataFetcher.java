@@ -20,7 +20,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 /**
  * The abstract data fetcher
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @param <K>
  * @param <T>
@@ -71,19 +71,6 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         }
 
         return invokeFailure(resultBuilder);
-    }
-
-    protected DataFetcherResult.Builder<Object> getDataFetcherResultBuilder(final DataFetchingEnvironment dfe) {
-        // update the context
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
-        if (context != null) {
-            context = context.withDataFromFetcher(dfe, operation);
-            graphQLContext.put("context", context);
-        }
-
-        eventEmitter.fireBeforeDataFetch(context);
-        return DataFetcherResult.newResult().localContext(graphQLContext);
     }
 
     protected SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
