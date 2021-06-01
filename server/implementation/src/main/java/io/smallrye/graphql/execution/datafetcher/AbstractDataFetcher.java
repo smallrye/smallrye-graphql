@@ -62,8 +62,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         } catch (GraphQLException graphQLException) {
             errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
-        } catch (SecurityException | IllegalAccessException | IllegalArgumentException ex) {
-            //m.invoke failed
+        } catch (Throwable ex) {
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw ex;
         } finally {
@@ -76,7 +75,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     protected SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
         // update the context
         GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext context = ((SmallRyeContext) graphQLContext.get("context"));
+        SmallRyeContext context = graphQLContext.get("context");
         if (context != null) {
             context = context.withDataFromFetcher(dfe, operation);
             graphQLContext.put("context", context);
