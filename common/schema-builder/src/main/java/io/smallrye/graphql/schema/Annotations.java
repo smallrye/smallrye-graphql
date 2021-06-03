@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -424,9 +426,13 @@ public class Annotations {
     private static Map<DotName, AnnotationInstance> getAnnotationsForField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
         if (fieldInfo != null)
-            annotationMap.putAll(listToMap(fieldInfo.annotations()));
+            annotationMap.putAll(listToMap(fieldInfo.annotations().stream()
+                    .filter(ai -> ai.target().kind() == Kind.FIELD)
+                    .collect(Collectors.toList())));
         if (methodInfo != null)
-            annotationMap.putAll(listToMap(methodInfo.annotations()));
+            annotationMap.putAll(listToMap(methodInfo.annotations().stream()
+                    .filter(ai -> ai.target().kind() == Kind.METHOD || ai.target().kind() == Kind.METHOD_PARAMETER)
+                    .collect(Collectors.toList())));
         return annotationMap;
     }
 
