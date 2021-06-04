@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.client.NamedClient;
+import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClient;
@@ -50,7 +50,7 @@ public class DynamicClientInjectionTest {
     }
 
     @Inject
-    @NamedClient("dummy")
+    @GraphQLClient("dummy")
     private DynamicGraphQLClient client;
 
     @Test
