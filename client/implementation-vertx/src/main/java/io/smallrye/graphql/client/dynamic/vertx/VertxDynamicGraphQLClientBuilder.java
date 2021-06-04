@@ -5,7 +5,6 @@ import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import io.vertx.ext.web.client.WebClientOptions;
 
 /**
  * Implementation of dynamic client builder that creates GraphQL clients using Vert.x under the hood.
@@ -39,12 +38,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     @Override
     public DynamicGraphQLClient build() {
-        WebClientOptions options = new WebClientOptions();
         if (url == null) {
             throw new IllegalArgumentException("URL is required");
         }
         Vertx toUseVertx = vertx != null ? vertx : Vertx.vertx();
-        return new VertxDynamicGraphQLClient(options, toUseVertx, url, headersMap);
+        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap);
     }
 
 }

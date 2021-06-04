@@ -15,6 +15,9 @@ public class OperationImpl extends AbstractOperation {
             case MUTATION:
                 builder.append("mutation");
                 break;
+            case SUBSCRIPTION:
+                builder.append("subscription");
+                break;
             default:
                 throw new BuildException("Operation type must be one of QUERY, MUTATION or SUBSCRIPTION");
         }
