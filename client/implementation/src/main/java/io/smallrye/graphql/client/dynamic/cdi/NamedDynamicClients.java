@@ -15,7 +15,7 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
-import io.smallrye.graphql.client.NamedClient;
+import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
@@ -41,7 +41,7 @@ public class NamedDynamicClients {
     @Default
     @Dependent
     DynamicGraphQLClient getClient(InjectionPoint ip) {
-        NamedClient annotation = ip.getAnnotated().getAnnotation(NamedClient.class);
+        GraphQLClient annotation = ip.getAnnotated().getAnnotation(GraphQLClient.class);
         String clientName = annotation != null ? annotation.value() : DEFAULT_CLIENT_NAME;
         return createdClients.computeIfAbsent(clientName, name -> {
             DynamicGraphQLClientBuilder builder = DynamicGraphQLClientBuilder.newBuilder();
