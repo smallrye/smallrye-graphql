@@ -1,10 +1,15 @@
 package io.smallrye.graphql.tests.client.dynamic;
 
+import org.eclipse.microprofile.graphql.Name;
+
 public class Dummy {
 
     private String string;
 
     private Integer integer;
+
+    @Name("specialName")
+    private String renamedField;
 
     public String getString() {
         return string;
@@ -22,4 +27,11 @@ public class Dummy {
         this.integer = integer;
     }
 
+    public String getRenamedField() {
+        return renamedField;
+    }
+
+    public void setRenamedField(String renamedField) {
+        this.renamedField = renamedField;
+    }
 }

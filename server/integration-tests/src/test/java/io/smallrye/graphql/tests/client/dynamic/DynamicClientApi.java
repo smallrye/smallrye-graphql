@@ -1,5 +1,8 @@
 package io.smallrye.graphql.tests.client.dynamic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -31,6 +34,28 @@ public class DynamicClientApi {
         Dummy ret = new Dummy();
         ret.setInteger(number);
         return ret;
+    }
+
+    @Query
+    public Dummy withRenamedField() {
+        Dummy ret = new Dummy();
+        ret.setRenamedField("foo");
+        ret.setString("string");
+        ret.setInteger(30);
+        return ret;
+    }
+
+    @Query
+    public List<Dummy> listWithRenamedField() {
+        Dummy dummy1 = new Dummy();
+        dummy1.setRenamedField("foo");
+        Dummy dummy2 = new Dummy();
+        dummy2.setRenamedField("foo2");
+
+        ArrayList<Dummy> list = new ArrayList<>();
+        list.add(dummy1);
+        list.add(dummy2);
+        return list;
     }
 
 }

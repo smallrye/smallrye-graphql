@@ -5,17 +5,16 @@ import java.util.List;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
 
 import io.smallrye.graphql.client.Error;
 import io.smallrye.graphql.client.Response;
+import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
+import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class ResponseImpl implements Response {
 
     private final JsonObject data;
     private final List<Error> errors;
-    private Jsonb jsonb;
 
     public ResponseImpl(JsonObject data, List<Error> errors) {
         this.data = data;
@@ -24,7 +23,7 @@ public class ResponseImpl implements Response {
 
     public <T> T getObject(Class<T> dataType, String rootField) {
         JsonObject jsonObject = data.getJsonObject(rootField);
-        return getJsonb().fromJson(jsonObject.toString(), dataType);
+        return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), jsonObject);
     }
 
     public <T> List<T> getList(Class<T> dataType, String rootField) {
@@ -38,10 +37,8 @@ public class ResponseImpl implements Response {
         }
 
         JsonArray jsonArray = (JsonArray) item;
-
-        jsonArray.forEach(o -> {
-            result.add(getJsonb().fromJson(o.toString(), dataType));
-        });
+        TypeInfo type = TypeInfo.of(dataType);
+        jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o)));
 
         return result;
     }
@@ -63,13 +60,7 @@ public class ResponseImpl implements Response {
     }
 
     public String toString() {
-        return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + ", jsonb=" + jsonb + '}';
+        return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + '}';
     }
 
-    private Jsonb getJsonb() {
-        if (jsonb == null) {
-            jsonb = JsonbBuilder.create();
-        }
-        return jsonb;
-    }
 }

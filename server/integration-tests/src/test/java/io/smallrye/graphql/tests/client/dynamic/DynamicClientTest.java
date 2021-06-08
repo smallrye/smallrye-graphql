@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.json.JsonObject;
@@ -60,11 +61,10 @@ public class DynamicClientTest {
 
     @Test
     public void testOneQueryInOneOperationSync() throws ExecutionException, InterruptedException {
-        Document document = document(
-                operation("SimpleQuery",
-                        field("simple",
-                                field("string"),
-                                field("integer"))));
+        Document document = document(operation(
+                field("simple",
+                        field("string"),
+                        field("integer"))));
         JsonObject data = client.executeSync(document).getData();
         assertEquals("asdf", data.getJsonObject("simple").getString("string"));
         assertEquals(30, data.getJsonObject("simple").getInt("integer"));
@@ -72,14 +72,13 @@ public class DynamicClientTest {
 
     @Test
     public void testTwoQueriesInOneOperationSync() throws ExecutionException, InterruptedException {
-        Document document = document(
-                operation("SimpleQuery",
-                        field("simple",
-                                field("string"),
-                                field("integer")),
-                        field("simple2",
-                                field("string"),
-                                field("integer"))));
+        Document document = document(operation(
+                field("simple",
+                        field("string"),
+                        field("integer")),
+                field("simple2",
+                        field("string"),
+                        field("integer"))));
         JsonObject data = client.executeSync(document).getData();
         assertEquals("asdf", data.getJsonObject("simple").getString("string"));
         assertEquals(30, data.getJsonObject("simple").getInt("integer"));
@@ -89,11 +88,10 @@ public class DynamicClientTest {
 
     @Test
     public void testSimpleQueryAsync() {
-        Document document = document(
-                operation("Simple",
-                        field("simple",
-                                field("string"),
-                                field("integer"))));
+        Document document = document(operation(
+                field("simple",
+                        field("string"),
+                        field("integer"))));
         JsonObject data = client.executeAsync(document)
                 .await().atMost(Duration.ofSeconds(30)).getData();
         assertEquals("asdf", data.getJsonObject("simple").getString("string"));
@@ -102,14 +100,39 @@ public class DynamicClientTest {
 
     @Test
     public void testSimpleQueryWithArgument() throws ExecutionException, InterruptedException {
-        Document document = document(
-                operation("MyAwesomeQuery",
-                        field("queryWithArgument",
-                                args(arg("number", 12)),
-                                field("integer"))));
+        Document document = document(operation(
+                field("queryWithArgument",
+                        args(arg("number", 12)),
+                        field("integer"))));
         Response response = client.executeSync(document);
         JsonObject data = response.getData();
         assertEquals(12, data.getJsonObject("queryWithArgument").getInt("integer"));
+    }
+
+    /**
+     * Parsing the response into a model class that contains a renamed field (using @Name)
+     */
+    @Test
+    public void testRenamedField() throws ExecutionException, InterruptedException {
+        Document document = document(operation(
+                field("withRenamedField",
+                        field("renamedField:specialName"),
+                        field("string"))));
+        Response response = client.executeSync(document);
+        Dummy ret = response.getObject(Dummy.class, "withRenamedField");
+        assertEquals("foo", ret.getRenamedField());
+    }
+
+    @Test
+    public void testListWithRenamedField() throws ExecutionException, InterruptedException {
+        Document document = document(operation(
+                field("listWithRenamedField",
+                        field("renamedField:specialName"),
+                        field("string"))));
+        Response response = client.executeSync(document);
+        List<Dummy> ret = response.getList(Dummy.class, "listWithRenamedField");
+        assertEquals("foo", ret.get(0).getRenamedField());
+        assertEquals("foo2", ret.get(1).getRenamedField());
     }
 
 }
