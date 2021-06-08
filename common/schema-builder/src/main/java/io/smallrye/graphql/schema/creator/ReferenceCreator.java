@@ -440,8 +440,21 @@ public class ReferenceCreator {
 
     private Reference getNonIndexedReference(Direction direction, Type fieldType) {
 
+        // If this is an unknown Wrapper (like map) throw an exception
+        if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+
+            if (direction.equals(Direction.IN)) {
+                throw new IllegalArgumentException(
+                        "Invalid parameter type [" + fieldType.name().toString() + "]");
+            } else {
+                throw new IllegalArgumentException(
+                        "Invalid return type [" + fieldType.name().toString() + "]");
+            }
+        }
+
         LOG.warn("Class [" + fieldType.name()
-                + "] is not indexed in Jandex. Can not scan Object Type, might not be mapped correctly");
+                + "] is not indexed in Jandex. Can not scan Object Type, might not be mapped correctly. Kind = ["
+                + fieldType.kind() + "]");
 
         Reference r = new Reference();
         r.setClassName(fieldType.name().toString());
