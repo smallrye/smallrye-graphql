@@ -71,6 +71,33 @@ public class DynamicClientTest {
     }
 
     @Test
+    public void testStringQuery() throws ExecutionException, InterruptedException {
+        JsonObject data = client.executeSync("query {simple{string integer}}").getData();
+        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
+        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryWithName() throws ExecutionException, InterruptedException {
+        JsonObject data = client.executeSync("query MyAwesomeQuery {simple{string integer}}").getData();
+        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
+        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryUnspecified() throws ExecutionException, InterruptedException {
+        JsonObject data = client.executeSync("{simple{string integer}}").getData();
+        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
+        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryWithArguments() throws ExecutionException, InterruptedException {
+        JsonObject data = client.executeSync("query {queryWithArgument(number: 20){integer}}").getData();
+        assertEquals(20, data.getJsonObject("queryWithArgument").getInt("integer"));
+    }
+
+    @Test
     public void testTwoQueriesInOneOperationSync() throws ExecutionException, InterruptedException {
         Document document = document(operation(
                 field("simple",

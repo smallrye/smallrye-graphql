@@ -14,12 +14,18 @@ public interface DynamicGraphQLClient extends AutoCloseable {
 
     Response executeSync(Request request) throws ExecutionException, InterruptedException;
 
+    Response executeSync(String request) throws ExecutionException, InterruptedException;
+
     Uni<Response> executeAsync(Document document);
 
     Uni<Response> executeAsync(Request request);
 
+    Uni<Response> executeAsync(String request);
+
     Multi<Response> subscription(Document document);
 
     Multi<Response> subscription(Request request);
+
+    Multi<Response> subscription(String request);
 
 }
