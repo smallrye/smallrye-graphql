@@ -14,6 +14,7 @@ public class RequestImpl implements Request {
 
     private final String document;
     private Map<String, Object> variables;
+    private String operationName;
 
     public RequestImpl(String document) {
         this.document = document;
@@ -25,7 +26,9 @@ public class RequestImpl implements Request {
         if (!variables.isEmpty()) {
             queryBuilder.add("variables", _formatJsonVariables());
         }
-
+        if (operationName != null && !operationName.isEmpty()) {
+            queryBuilder.add("operationName", operationName);
+        }
         return queryBuilder.build().toString();
     }
 
@@ -63,6 +66,14 @@ public class RequestImpl implements Request {
     public Request setVariable(String key, Object value) {
         variables.put(key, value);
         return this;
+    }
+
+    public String getOperationName() {
+        return operationName;
+    }
+
+    public void setOperationName(String operationName) {
+        this.operationName = operationName;
     }
 
     public Request resetVariables() {

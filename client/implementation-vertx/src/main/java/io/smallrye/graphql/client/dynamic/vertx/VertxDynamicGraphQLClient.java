@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.dynamic.vertx;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.json.Json;
@@ -49,7 +50,24 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Response executeSync(Document document) throws ExecutionException, InterruptedException {
-        return executeSync(buildRequest(document));
+        return executeSync(buildRequest(document, null, null));
+    }
+
+    @Override
+    public Response executeSync(Document document, Map<String, Object> variables)
+            throws ExecutionException, InterruptedException {
+        return executeSync(buildRequest(document, variables, null));
+    }
+
+    @Override
+    public Response executeSync(Document document, String operationName) throws ExecutionException, InterruptedException {
+        return executeSync(buildRequest(document, null, operationName));
+    }
+
+    @Override
+    public Response executeSync(Document document, Map<String, Object> variables, String operationName)
+            throws ExecutionException, InterruptedException {
+        return executeSync(buildRequest(document, variables, operationName));
     }
 
     @Override
@@ -58,8 +76,24 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     }
 
     @Override
-    public Response executeSync(String request) throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(wrapIntoJson(request)));
+    public Response executeSync(String query) throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(buildRequest(query, null, null).toJson()));
+    }
+
+    @Override
+    public Response executeSync(String query, Map<String, Object> variables) throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(buildRequest(query, variables, null).toJson()));
+    }
+
+    @Override
+    public Response executeSync(String query, String operationName) throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(buildRequest(query, null, operationName).toJson()));
+    }
+
+    @Override
+    public Response executeSync(String query, Map<String, Object> variables, String operationName)
+            throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(buildRequest(query, variables, operationName).toJson()));
     }
 
     private Response executeSync(Buffer buffer) throws ExecutionException, InterruptedException {
@@ -74,7 +108,22 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Uni<Response> executeAsync(Document document) {
-        return executeAsync(buildRequest(document));
+        return executeAsync(buildRequest(document, null, null));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(Document document, Map<String, Object> variables) {
+        return executeAsync(buildRequest(document, variables, null));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(Document document, String operationName) {
+        return executeAsync(buildRequest(document, null, operationName));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(Document document, Map<String, Object> variables, String operationName) {
+        return executeAsync(buildRequest(document, variables, operationName));
     }
 
     @Override
@@ -83,8 +132,23 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     }
 
     @Override
-    public Uni<Response> executeAsync(String request) {
-        return executeAsync(Buffer.buffer(wrapIntoJson(request)));
+    public Uni<Response> executeAsync(String query) {
+        return executeAsync(Buffer.buffer(buildRequest(query, null, null).toJson()));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(String query, Map<String, Object> variables) {
+        return executeAsync(Buffer.buffer(buildRequest(query, variables, null).toJson()));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(String query, String operationName) {
+        return executeAsync(Buffer.buffer(buildRequest(query, null, operationName).toJson()));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(String query, Map<String, Object> variables, String operationName) {
+        return executeAsync(Buffer.buffer(buildRequest(query, variables, operationName).toJson()));
     }
 
     private Uni<Response> executeAsync(Buffer buffer) {
@@ -98,7 +162,22 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Multi<Response> subscription(Document document) {
-        return subscription0(buildRequest(document).toJson());
+        return subscription0(buildRequest(document, null, null).toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(Document document, Map<String, Object> variables) {
+        return subscription0(buildRequest(document, variables, null).toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(Document document, String operationName) {
+        return subscription0(buildRequest(document, null, operationName).toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(Document document, Map<String, Object> variables, String operationName) {
+        return subscription0(buildRequest(document, variables, operationName).toJson());
     }
 
     @Override
@@ -107,18 +186,33 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     }
 
     @Override
-    public Multi<Response> subscription(String request) {
-        return subscription0(wrapIntoJson(request));
+    public Multi<Response> subscription(String query) {
+        return subscription0(buildRequest(query, null, null).toJson());
     }
 
-    private Multi<Response> subscription0(String request) {
+    @Override
+    public Multi<Response> subscription(String query, Map<String, Object> variables) {
+        return subscription0(buildRequest(query, variables, null).toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(String query, String operationName) {
+        return subscription0(buildRequest(query, null, operationName).toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(String query, Map<String, Object> variables, String operationName) {
+        return subscription0(buildRequest(query, variables, operationName).toJson());
+    }
+
+    private Multi<Response> subscription0(String requestJson) {
         String WSURL = url.replaceFirst("http", "ws");
         return Multi.createFrom()
                 .emitter(e -> {
                     httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
                         if (result.succeeded()) {
                             WebSocket socket = result.result();
-                            socket.writeTextMessage(request);
+                            socket.writeTextMessage(requestJson);
                             socket.handler(message -> {
                                 e.emit(readFrom(message));
                             });
@@ -133,12 +227,19 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 });
     }
 
-    public Request buildRequest(Document document) {
-        return new RequestImpl(document.build());
+    private Request buildRequest(Document document, Map<String, Object> variables, String operationName) {
+        return buildRequest(document.build(), variables, operationName);
     }
 
-    private String wrapIntoJson(String input) {
-        return new RequestImpl(input).toJson();
+    private Request buildRequest(String query, Map<String, Object> variables, String operationName) {
+        RequestImpl request = new RequestImpl(query);
+        if (variables != null) {
+            request.setVariables(variables);
+        }
+        if (operationName != null && !operationName.isEmpty()) {
+            request.setOperationName(operationName);
+        }
+        return request;
     }
 
     @Override
