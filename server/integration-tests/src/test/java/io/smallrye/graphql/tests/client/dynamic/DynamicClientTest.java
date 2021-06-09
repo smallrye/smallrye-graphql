@@ -5,11 +5,16 @@ import static io.smallrye.graphql.client.core.Argument.args;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
+import static io.smallrye.graphql.client.core.Variable.var;
+import static io.smallrye.graphql.client.core.Variable.vars;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.json.JsonObject;
@@ -28,6 +33,8 @@ import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
+import io.smallrye.graphql.client.core.ScalarType;
+import io.smallrye.graphql.client.core.Variable;
 import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
 
@@ -71,10 +78,43 @@ public class DynamicClientTest {
     }
 
     @Test
+    public void testQueryWithVars() throws ExecutionException, InterruptedException {
+        Variable var = var("x", ScalarType.GQL_INT);
+        Document document = document(operation(
+                vars(var),
+                field("queryWithArgument", // query name
+                        args(arg("number", var)), // the query has a 'number' parameter
+                        field("integer")))); // field we want to retrieve
+        Map<String, Object> variableValues = Collections.singletonMap("x", 12345);
+        JsonObject data = client.executeSync(document, variableValues).getData();
+        assertEquals(12345, data.getJsonObject("queryWithArgument").getInt("integer"));
+    }
+
+    @Test
     public void testStringQuery() throws ExecutionException, InterruptedException {
         JsonObject data = client.executeSync("query {simple{string integer}}").getData();
         assertEquals("asdf", data.getJsonObject("simple").getString("string"));
         assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryWithVars() throws ExecutionException, InterruptedException {
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("x", 67);
+        JsonObject data = client
+                .executeSync("query($x:Int) {queryWithArgument(number: $x){integer}}", vars)
+                .getData();
+        assertEquals(67, data.getJsonObject("queryWithArgument").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryWithMultipleOperations() throws ExecutionException, InterruptedException {
+        String query = "query a {simple{integer}} " +
+                "query b {simple2{integer}}";
+        JsonObject data = client.executeSync(query, "a").getData();
+        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        data = client.executeSync(query, "b").getData();
+        assertEquals(31, data.getJsonObject("simple2").getInt("integer"));
     }
 
     @Test
