@@ -54,9 +54,18 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Response executeSync(Request request) throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(request.toJson()));
+    }
+
+    @Override
+    public Response executeSync(String request) throws ExecutionException, InterruptedException {
+        return executeSync(Buffer.buffer(wrapIntoJson(request)));
+    }
+
+    private Response executeSync(Buffer buffer) throws ExecutionException, InterruptedException {
         HttpResponse<Buffer> result = webClient.postAbs(url)
                 .putHeaders(headers)
-                .sendBuffer(Buffer.buffer(request.toJson()))
+                .sendBuffer(buffer)
                 .toCompletionStage()
                 .toCompletableFuture()
                 .get();
@@ -70,26 +79,46 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Uni<Response> executeAsync(Request request) {
+        return executeAsync(Buffer.buffer(request.toJson()));
+    }
+
+    @Override
+    public Uni<Response> executeAsync(String request) {
+        return executeAsync(Buffer.buffer(wrapIntoJson(request)));
+    }
+
+    private Uni<Response> executeAsync(Buffer buffer) {
         return Uni.createFrom().completionStage(
                 webClient.postAbs(url)
                         .putHeaders(headers)
-                        .sendBuffer(Buffer.buffer(request.toJson()))
+                        .sendBuffer(buffer)
                         .toCompletionStage())
                 .map(response -> readFrom(response.body()));
     }
 
+    @Override
     public Multi<Response> subscription(Document document) {
-        return subscription(buildRequest(document));
+        return subscription0(buildRequest(document).toJson());
     }
 
+    @Override
     public Multi<Response> subscription(Request request) {
+        return subscription0(request.toJson());
+    }
+
+    @Override
+    public Multi<Response> subscription(String request) {
+        return subscription0(wrapIntoJson(request));
+    }
+
+    private Multi<Response> subscription0(String request) {
         String WSURL = url.replaceFirst("http", "ws");
         return Multi.createFrom()
                 .emitter(e -> {
                     httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
                         if (result.succeeded()) {
                             WebSocket socket = result.result();
-                            socket.writeTextMessage(request.toJson());
+                            socket.writeTextMessage(request);
                             socket.handler(message -> {
                                 e.emit(readFrom(message));
                             });
@@ -106,6 +135,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     public Request buildRequest(Document document) {
         return new RequestImpl(document.build());
+    }
+
+    private String wrapIntoJson(String input) {
+        return new RequestImpl(input).toJson();
     }
 
     @Override
