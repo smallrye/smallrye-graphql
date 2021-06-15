@@ -204,11 +204,13 @@ public class Federation {
     }
 
     private void addQueries() {
-        // _entities(representations: [_Any!]!): [_Entity]!
-        this._entities = newFieldDefinition().name("_entities")
-                .argument(newArgument().name("representations").type(nonNull(list(nonNull(_Any)))))
-                .type(nonNull(list(_Entity))).build();
-        query.field(_entities);
+        if (_Entity != null) {
+            // _entities(representations: [_Any!]!): [_Entity]!
+            this._entities = newFieldDefinition().name("_entities")
+                    .argument(newArgument().name("representations").type(nonNull(list(nonNull(_Any)))))
+                    .type(nonNull(list(_Entity))).build();
+            query.field(_entities);
+        }
 
         // _service: _Service!
         this._Service_sdl = newFieldDefinition().name("sdl").type(nonNull(GraphQLString))
