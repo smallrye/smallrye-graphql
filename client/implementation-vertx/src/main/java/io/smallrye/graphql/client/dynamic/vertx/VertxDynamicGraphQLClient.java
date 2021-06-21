@@ -33,6 +33,7 @@ import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebsocketVersion;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
@@ -41,8 +42,12 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final String url;
     private final MultiMap headers;
 
-    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers) {
-        this.httpClient = vertx.createHttpClient();
+    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options) {
+        if (options != null) {
+            this.httpClient = vertx.createHttpClient(options);
+        } else {
+            this.httpClient = vertx.createHttpClient();
+        }
         this.webClient = WebClient.wrap(httpClient);
         this.headers = headers;
         this.url = url;
