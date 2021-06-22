@@ -5,6 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Base64;
+import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -22,10 +23,12 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 public class HeaderBuilder {
     private final Class<?> api;
     private final MethodInvocation method;
+    private final Map<String, String> additionalHeaders;
 
-    public HeaderBuilder(Class<?> api, MethodInvocation method) {
+    public HeaderBuilder(Class<?> api, MethodInvocation method, Map<String, String> additionalHeaders) {
         this.api = api;
         this.method = method;
+        this.additionalHeaders = additionalHeaders;
     }
 
     public MultivaluedMap<String, Object> build() {
@@ -40,6 +43,9 @@ public class HeaderBuilder {
                 .findFirst()
                 .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
                 .ifPresent(auth -> headers.add("Authorization", auth));
+        if (additionalHeaders != null) {
+            additionalHeaders.forEach(headers::putSingle);
+        }
         return headers;
     }
 

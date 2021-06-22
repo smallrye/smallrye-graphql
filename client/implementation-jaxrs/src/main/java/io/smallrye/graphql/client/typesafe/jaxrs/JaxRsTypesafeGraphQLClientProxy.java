@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.Response.StatusType;
 
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.client.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.QueryBuilder;
 import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
@@ -44,16 +46,27 @@ class JaxRsTypesafeGraphQLClientProxy {
 
     private final Map<String, String> queryCache = new HashMap<>();
     private final WebTarget target;
+    private final GraphQLClientConfiguration configuration;
 
     JaxRsTypesafeGraphQLClientProxy(WebTarget target) {
         this.target = target;
+        this.configuration = null;
+    }
+
+    JaxRsTypesafeGraphQLClientProxy(WebTarget target,
+            GraphQLClientConfiguration configuration) {
+        this.target = target;
+        this.configuration = configuration;
     }
 
     Object invoke(Class<?> api, MethodInvocation method) {
         if (method.isDeclaredInObject())
             return method.invoke(this);
 
-        MultivaluedMap<String, Object> headers = new HeaderBuilder(api, method).build();
+        MultivaluedMap<String, Object> headers = new HeaderBuilder(api,
+                method,
+                configuration != null ? configuration.getHeaders() : Collections.emptyMap())
+                        .build();
         String request = request(method);
 
         String response = post(request, headers);
