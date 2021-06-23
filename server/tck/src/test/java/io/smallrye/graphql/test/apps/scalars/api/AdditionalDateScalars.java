@@ -1,10 +1,11 @@
 package io.smallrye.graphql.test.apps.scalars.api;
 
+import static java.time.ZoneOffset.UTC;
+
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 
 public class AdditionalDateScalars {
@@ -13,14 +14,15 @@ public class AdditionalDateScalars {
     private final java.sql.Date sqlDate;
     private final Timestamp sqlTimestamp;
     private final Time sqlTime;
-    private final Instant now;
+    private final Instant instant;
 
     public AdditionalDateScalars() {
-        this.now = LocalDateTime.parse("2006-01-02T15:04:05.876").atZone(ZoneId.systemDefault()).toInstant();
-        this.date = Date.from(now);
-        this.sqlDate = new java.sql.Date(date.getTime());
-        this.sqlTimestamp = new Timestamp(date.getTime());
-        this.sqlTime = new Time(date.getTime());
+        this.instant = Instant.parse("2006-01-02T15:04:05.876Z");
+        this.date = Date.from(instant);
+        LocalDateTime local = LocalDateTime.ofInstant(instant, UTC);
+        this.sqlDate = java.sql.Date.valueOf(local.toLocalDate());
+        this.sqlTimestamp = Timestamp.valueOf(local);
+        this.sqlTime = Time.valueOf(local.toLocalTime());
     }
 
     public Date getDate() {
@@ -40,6 +42,6 @@ public class AdditionalDateScalars {
     }
 
     public Instant getInstant() {
-        return now;
+        return instant;
     }
 }

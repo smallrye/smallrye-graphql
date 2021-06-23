@@ -1,11 +1,11 @@
 package io.smallrye.graphql.transformation;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+import static java.time.ZoneOffset.UTC;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class LegacyDateTransformer implements Transformer<Date, String> {
             return java.sql.Timestamp.valueOf(localdatetime);
         } else if (targetClassName.equals(Date.class.getName())) {
             LocalDateTime localdatetime = (LocalDateTime) dateTransformer.in(o);
-            return Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
+            return Date.from(localdatetime.atZone(UTC).toInstant());
         }
         throw msg.cantParseDate(o.getClass().getName(), targetClassName);
     }
@@ -65,7 +65,7 @@ public class LegacyDateTransformer implements Transformer<Date, String> {
             java.sql.Timestamp casted = (java.sql.Timestamp) dateType;
             return dateTransformer.out(casted.toLocalDateTime());
         } else {
-            return dateTransformer.out(dateType.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+            return dateTransformer.out(dateType.toInstant());
         }
     }
 
