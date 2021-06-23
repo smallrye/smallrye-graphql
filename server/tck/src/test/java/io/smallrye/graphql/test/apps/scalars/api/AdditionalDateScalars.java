@@ -3,8 +3,6 @@ package io.smallrye.graphql.test.apps.scalars.api;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 
 public class AdditionalDateScalars {
@@ -16,7 +14,7 @@ public class AdditionalDateScalars {
     private final Instant now;
 
     public AdditionalDateScalars() {
-        this.now = LocalDateTime.parse("2006-01-02T15:04:05.876").atZone(ZoneId.systemDefault()).toInstant();
+        this.now = Instant.parse("2006-01-02T15:04:05.876Z");
         this.date = Date.from(now);
         this.sqlDate = new java.sql.Date(date.getTime());
         this.sqlTimestamp = new Timestamp(date.getTime());
