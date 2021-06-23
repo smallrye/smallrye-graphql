@@ -17,7 +17,7 @@
     sqlTimestampDefault
 
     instant
-    instantInput(instant:"2006-01-02T15:04:05.876")
+    instantInput(instant:"2006-01-02T15:04:05.876Z")
     instantDefault
   }
 }

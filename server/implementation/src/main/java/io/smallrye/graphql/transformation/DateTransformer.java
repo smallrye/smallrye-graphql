@@ -1,6 +1,10 @@
 package io.smallrye.graphql.transformation;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+import static java.time.temporal.ChronoField.EPOCH_DAY;
+import static java.time.temporal.ChronoField.INSTANT_SECONDS;
+import static java.time.temporal.ChronoField.NANO_OF_DAY;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,16 +12,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Transformation;
@@ -29,7 +32,6 @@ public class DateTransformer implements Transformer<Temporal, String> {
 
     private static final Map<String, DateTimeFormatter> DEFAULT_FORMATTER = createDefaultFormatter();
     private static final Map<String, TemporalQuery<?>> TEMPORAL_QUERYS = createTemporalQuerys();
-    public static final Set<String> SUPPORTED_TYPES = Collections.unmodifiableSet(DEFAULT_FORMATTER.keySet());
 
     private final DateTimeFormatter dateTimeFormatter;
 
@@ -52,12 +54,20 @@ public class DateTransformer implements Transformer<Temporal, String> {
             throw msg.notValidDateOrTimeType(targetClassName);
         }
 
-        return (Temporal) dateTimeFormatter.parse(o.toString(), temporalAccessor);
+        return (Temporal) dateTimeFormatter.parse(o, temporalAccessor);
     }
 
     @Override
-    public String out(final Temporal dateType) {
-        return dateTimeFormatter.format(dateType);
+    public String out(Temporal temporal) {
+        if (temporal instanceof Instant) {
+            /*
+             * Instant provides only INSTANT_SECONDS and fractions thereof.
+             * This is not sufficient for most date time formats, so we provide additional fields
+             * by converting it to an OffsetDateTime.
+             */
+            temporal = ((Instant) temporal).atOffset(ZoneOffset.UTC);
+        }
+        return dateTimeFormatter.format(temporal);
     }
 
     private static Map<String, TemporalQuery<?>> createTemporalQuerys() {
@@ -69,9 +79,22 @@ public class DateTransformer implements Transformer<Temporal, String> {
         defaultFormatter.put(OffsetTime.class.getName(), OffsetTime::from);
         defaultFormatter.put(OffsetDateTime.class.getName(), OffsetDateTime::from);
         defaultFormatter.put(ZonedDateTime.class.getName(), ZonedDateTime::from);
-        defaultFormatter.put(Instant.class.getName(), Instant::from);
+        defaultFormatter.put(Instant.class.getName(), DateTransformer::instantFrom);
 
         return defaultFormatter;
+    }
+
+    /**
+     * {@link Instant#from(TemporalAccessor)} accesses the INSTANT_SECONDS and NANO_OF_SECOND fields.
+     * But they are not available, e.g., from a `java.time.format.Parsed`.
+     */
+    private static Instant instantFrom(TemporalAccessor temporal) {
+        if (temporal.isSupported(INSTANT_SECONDS) && temporal.isSupported(NANO_OF_SECOND)) {
+            return Instant.from(temporal);
+        }
+        LocalDate date = LocalDate.ofEpochDay(temporal.getLong(EPOCH_DAY));
+        LocalTime time = LocalTime.ofNanoOfDay(temporal.getLong(NANO_OF_DAY));
+        return date.atTime(time).toInstant(ZoneOffset.UTC);
     }
 
     private static DateTimeFormatter getDateFormat(Transformation formatter, String className) {
@@ -98,8 +121,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         defaultFormatter.put(OffsetTime.class.getName(), DateTimeFormatter.ISO_OFFSET_TIME);
         defaultFormatter.put(OffsetDateTime.class.getName(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         defaultFormatter.put(ZonedDateTime.class.getName(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
-        defaultFormatter.put(Instant.class.getName(),
-                DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault()));
+        defaultFormatter.put(Instant.class.getName(), DateTimeFormatter.ISO_INSTANT);
 
         return defaultFormatter;
     }
