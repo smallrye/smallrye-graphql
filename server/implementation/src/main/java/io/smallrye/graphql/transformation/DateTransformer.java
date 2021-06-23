@@ -1,6 +1,7 @@
 package io.smallrye.graphql.transformation;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoField.EPOCH_DAY;
 import static java.time.temporal.ChronoField.INSTANT_SECONDS;
 import static java.time.temporal.ChronoField.NANO_OF_DAY;
@@ -12,7 +13,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -65,7 +65,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
              * This is not sufficient for most date time formats, so we provide additional fields
              * by converting it to an OffsetDateTime.
              */
-            temporal = ((Instant) temporal).atOffset(ZoneOffset.UTC);
+            temporal = ((Instant) temporal).atOffset(UTC);
         }
         return dateTimeFormatter.format(temporal);
     }
@@ -94,7 +94,7 @@ public class DateTransformer implements Transformer<Temporal, String> {
         }
         LocalDate date = LocalDate.ofEpochDay(temporal.getLong(EPOCH_DAY));
         LocalTime time = LocalTime.ofNanoOfDay(temporal.getLong(NANO_OF_DAY));
-        return date.atTime(time).toInstant(ZoneOffset.UTC);
+        return date.atTime(time).toInstant(UTC);
     }
 
     private static DateTimeFormatter getDateFormat(Transformation formatter, String className) {

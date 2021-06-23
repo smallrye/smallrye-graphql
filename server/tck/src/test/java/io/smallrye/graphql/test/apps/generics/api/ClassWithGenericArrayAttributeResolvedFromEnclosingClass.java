@@ -1,13 +1,14 @@
 package io.smallrye.graphql.test.apps.generics.api;
 
+import static java.time.ZoneOffset.UTC;
+
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class ClassWithGenericArrayAttributeResolvedFromEnclosingClass<V> {
-    private final Date date = Date.from(LocalDate.of(2020, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private final Date date = Date.from(LocalDate.of(2020, 1, 1).atStartOfDay(UTC).toInstant());
     private V v;
 
     public ClassWithGenericArrayAttributeResolvedFromEnclosingClass() {
