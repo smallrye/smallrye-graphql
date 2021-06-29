@@ -15,6 +15,7 @@ import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.EnumType;
+import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
@@ -52,7 +53,9 @@ public class EnumCreator implements Creator<EnumType> {
             if (classInfo.name().equals(field.type().name())) { // Only include the enum fields
                 Annotations annotationsForField = Annotations.getAnnotationsForPojo(Direction.OUT, field);
                 if (!field.type().kind().equals(Type.Kind.ARRAY) && !IgnoreHelper.shouldIgnore(annotationsForField, field)) {
-                    enumType.addValue(field.name());
+                    String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
+                            .orElse(null);
+                    enumType.addValue(new EnumValue(description, field.name()));
                 }
             }
         }
