@@ -12,7 +12,7 @@ import java.util.Set;
  */
 public final class EnumType extends Reference {
     private String description;
-    private Set<String> values = new LinkedHashSet<>();
+    private Set<EnumValue> values = new LinkedHashSet<>();
 
     public EnumType() {
     }
@@ -30,15 +30,15 @@ public final class EnumType extends Reference {
         return description;
     }
 
-    public void setValues(Set<String> values) {
+    public void setValues(Set<EnumValue> values) {
         this.values = values;
     }
 
-    public Set<String> getValues() {
+    public Set<EnumValue> getValues() {
         return this.values;
     }
 
-    public void addValue(String value) {
+    public void addValue(EnumValue value) {
         this.values.add(value);
     }
 

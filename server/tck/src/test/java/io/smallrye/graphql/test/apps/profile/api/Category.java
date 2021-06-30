@@ -1,5 +1,6 @@
 package io.smallrye.graphql.test.apps.profile.api;
 
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Ignore;
 
 /**
@@ -9,6 +10,7 @@ import org.eclipse.microprofile.graphql.Ignore;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public enum Category {
+    @Description("AI/Machine Learning")
     AI_MACHINE_LEARNING("AI/Machine Learning"),
     @Ignore
     FIELD_SHOULD_BE_IGNORED("Please ignore me"),

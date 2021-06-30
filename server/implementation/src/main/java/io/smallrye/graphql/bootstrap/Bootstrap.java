@@ -62,6 +62,7 @@ import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.EnumType;
+import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.InputType;
@@ -334,8 +335,8 @@ public class Bootstrap {
                 .name(enumType.getName())
                 .description(enumType.getDescription());
         // Values
-        for (String value : enumType.getValues()) {
-            enumBuilder = enumBuilder.value(value);
+        for (EnumValue value : enumType.getValues()) {
+            enumBuilder = enumBuilder.value(value.getValue(), value.getValue(), value.getDescription());
         }
         GraphQLEnumType graphQLEnumType = enumBuilder.build();
         enumMap.put(enumType.getClassName(), graphQLEnumType);

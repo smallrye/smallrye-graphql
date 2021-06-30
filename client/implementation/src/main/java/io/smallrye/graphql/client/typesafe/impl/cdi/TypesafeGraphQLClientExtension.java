@@ -12,6 +12,7 @@ import javax.enterprise.inject.spi.WithAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 public class TypesafeGraphQLClientExtension implements Extension {
@@ -34,5 +35,6 @@ public class TypesafeGraphQLClientExtension implements Extension {
         for (Class<?> api : apis) {
             afterBeanDiscovery.addBean(new TypesafeGraphQLClientBean<>(api));
         }
+        GraphQLClientsConfiguration.apiClasses(apis);
     }
 }

@@ -5,12 +5,13 @@ import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import javax.enterprise.inject.spi.CDI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-
+import io.smallrye.graphql.client.GraphQLClientConfiguration;
+import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
@@ -55,10 +56,30 @@ public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
 
     @Override
     public <T> T build(Class<T> apiClass) {
-        readConfig(apiClass.getAnnotation(GraphQLClientApi.class));
+        if (configKey == null) {
+            configKey = configKey(apiClass);
+        }
 
-        WebTarget webTarget = client().target(resolveEndpoint(apiClass));
-        JaxRsTypesafeGraphQLClientProxy graphQlClient = new JaxRsTypesafeGraphQLClientProxy(webTarget);
+        GraphQLClientConfiguration persistentConfig;
+        try {
+            persistentConfig = CDI.current()
+                    .select(GraphQLClientsConfiguration.class).get()
+                    .getClients().get(configKey);
+        } catch (IllegalStateException ex) {
+            // Probably running in a non-CDI environment so we can't use the GraphQLClientsConfiguration bean
+            // TODO: right now, the GraphQLClientsConfiguration contains only metadata derived
+            // from config properties. Once we move annotation-derived metadata there, that bean will
+            // always be necessary (otherwise the client would ignore annotations within GraphQLClientApi interfaces)
+            // so we need to make sure that the config bean will be available without CDI
+            // - perhaps fall back to a pure Java singleton if CDI is not available?
+            persistentConfig = null;
+        }
+        if (persistentConfig != null) {
+            applyConfig(persistentConfig);
+        }
+
+        WebTarget webTarget = client().target(endpoint);
+        JaxRsTypesafeGraphQLClientProxy graphQlClient = new JaxRsTypesafeGraphQLClientProxy(webTarget, persistentConfig);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
@@ -79,22 +100,22 @@ public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) apiClass::getClassLoader);
     }
 
-    private void readConfig(GraphQLClientApi annotation) {
-        if (annotation == null)
-            return;
-        if (this.endpoint == null && !annotation.endpoint().isEmpty())
-            this.endpoint = URI.create(annotation.endpoint());
-        if (this.configKey == null && !annotation.configKey().isEmpty())
-            this.configKey = annotation.configKey();
-    }
-
-    private URI resolveEndpoint(Class<?> apiClass) {
-        if (endpoint != null)
-            return endpoint;
-        return ConfigProvider.getConfig().getValue(configKey(apiClass) + "/mp-graphql/url", URI.class);
+    /**
+     * Applies values from known global configuration. This does NOT override values passed to this
+     * builder by method calls.
+     */
+    private void applyConfig(GraphQLClientConfiguration configuration) {
+        if (this.endpoint == null && configuration.getUrl() != null) {
+            this.endpoint = URI.create(configuration.getUrl());
+        }
     }
 
     private String configKey(Class<?> apiClass) {
-        return (configKey == null) ? apiClass.getName() : configKey;
+        GraphQLClientApi annotation = apiClass.getAnnotation(GraphQLClientApi.class);
+        if (annotation == null) {
+            return apiClass.getName();
+        }
+        String keyFromAnnotation = annotation.configKey();
+        return (keyFromAnnotation.isEmpty()) ? apiClass.getName() : keyFromAnnotation;
     }
 }

@@ -12,7 +12,7 @@
     <name>SmallRye: GraphQL Client :: Artifact with all dependencies</name>
 
     <properties>
-        <version.smallrye.config>2.4.0</version.smallrye.config>
+        <version.smallrye.config>2.4.1</version.smallrye.config>
         <version.resteasy.client>4.6.1.Final</version.resteasy.client>
     </properties>
 
