@@ -123,7 +123,8 @@ public class MethodInvocation {
             this.parameters = IntStream.range(0, method.getParameterCount())
                     .mapToObj(i -> new ParameterInfo(this,
                             method.getParameters()[i],
-                            parameterValues[i]))
+                            parameterValues[i],
+                            method.getGenericParameterTypes()[i]))
                     .collect(toList());
         return parameters.stream();
     }
