@@ -6,8 +6,12 @@ package io.smallrye.graphql.schema.model;
  * @author Felix König (de.felix.koenig@gmail.com)
  */
 public final class EnumValue {
-    private final String description;
-    private final String value;
+
+    private String description;
+    private String value;
+
+    public EnumValue() {
+    }
 
     public EnumValue(String description, String value) {
         this.description = description;
@@ -20,5 +24,13 @@ public final class EnumValue {
 
     public String getValue() {
         return value;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 }
