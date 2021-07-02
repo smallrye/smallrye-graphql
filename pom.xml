@@ -31,7 +31,7 @@
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.graphql-java>16.2</version.graphql-java>
         <verison.io.micrometer>1.7.1</verison.io.micrometer>
-        <version.vertx>4.1.0</version.vertx>
+        <version.vertx>4.1.1</version.vertx>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR3</version.arquillian.jetty>
