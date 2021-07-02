@@ -55,6 +55,11 @@ public class Field implements Serializable {
      */
     private Mapping mapping = null;
 
+    /**
+     * If the field contains an adaptor
+     */
+    private Adapter adaptor = null;
+
     private String defaultValue = null;
     private boolean notNull = false;
 
@@ -152,6 +157,18 @@ public class Field implements Serializable {
 
     public boolean hasMapping() {
         return this.mapping != null;
+    }
+
+    public Adapter getAdaptor() {
+        return adaptor;
+    }
+
+    public void setAdaptor(Adapter adaptor) {
+        this.adaptor = adaptor;
+    }
+
+    public boolean hasAdaptor() {
+        return this.adaptor != null;
     }
 
     public String getDefaultValue() {

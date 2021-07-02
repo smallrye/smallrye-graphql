@@ -496,6 +496,7 @@ public class Annotations {
     public static final DotName JSONB_PROPERTY = DotName.createSimple("javax.json.bind.annotation.JsonbProperty");
     public static final DotName JSONB_TRANSIENT = DotName.createSimple("javax.json.bind.annotation.JsonbTransient");
     public static final DotName JSONB_CREATOR = DotName.createSimple("javax.json.bind.annotation.JsonbCreator");
+    public static final DotName JSONB_TYPE_ADAPTER = DotName.createSimple("javax.json.bind.annotation.JsonbTypeAdapter");
 
     // Bean Validation Annotations (SmallRye extra, not part of the spec)
     public static final DotName BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");
