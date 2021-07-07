@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +35,12 @@ public class GraphQLClientsConfiguration {
      * of this bean (it does not exist yet), this needs to be a static field.
      * Therefore, to allow multiple applications within one VM without clashing, this static field is a map,
      * where the key is the context class loader of an application.
+     * If we're in an environment that only supports a single application (Quarkus)
+     * then `singleApplication` can be set to true and we will use null for the class loader key
      */
     private static Map<ClassLoader, List<Class<?>>> apis = new WeakHashMap<>();
+
+    private static boolean singleApplication = false;
 
     /**
      * Initializes this configuration bean with config from system properties and annotations.
@@ -45,7 +50,11 @@ public class GraphQLClientsConfiguration {
         clients = new HashMap<>();
 
         // store configurations for detected typesafe clients (interfaces with @GraphQLClientApi)
-        List<Class<?>> classes = apis.get(Thread.currentThread().getContextClassLoader());
+        List<Class<?>> classes = apis.get(singleApplication ? null : Thread.currentThread().getContextClassLoader());
+        if (classes == null) {
+            SmallRyeGraphQLClientLogging.log.apisNotSet();
+            classes = Collections.emptyList();
+        }
         for (Class<?> api : classes) {
             TypesafeClientConfigurationReader configReader = new TypesafeClientConfigurationReader(api);
             clients.put(configReader.getConfigKey(), configReader.getClientConfiguration());
@@ -78,8 +87,10 @@ public class GraphQLClientsConfiguration {
     }
 
     // FIXME: find a better way to let this bean know what api classes are known
-    public static void apiClasses(List<Class<?>> apiList) {
-        apis.put(Thread.currentThread().getContextClassLoader(), apiList);
+    public static void apiClasses(List<Class<?>> apiList, boolean singleApplication) {
+        GraphQLClientsConfiguration.singleApplication = singleApplication;
+        apis.put(GraphQLClientsConfiguration.singleApplication ? null : Thread.currentThread().getContextClassLoader(),
+                apiList);
     }
 
     private Map<String, String> getConfigurationValueMap(String clientName, String configKey, Config config) {

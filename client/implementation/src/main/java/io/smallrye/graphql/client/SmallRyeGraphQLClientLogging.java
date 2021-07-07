@@ -17,4 +17,9 @@ public interface SmallRyeGraphQLClientLogging {
     @Message(id = 30000, value = "Received response containing no data")
     void noDataInResponse();
 
+    @LogMessage(level = Logger.Level.WARN)
+    @Message(id = 30001, value = "The runtime did not set the `apis` field in `GraphQLClientsConfiguration`, so the bean " +
+            "is unable to locate configurations of typesafe clients")
+    void apisNotSet();
+
 }
