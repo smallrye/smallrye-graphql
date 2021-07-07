@@ -56,7 +56,9 @@ public class GraphQLClientsConfiguration {
         List<String> detectedClientNames = new ArrayList<>();
         Config mpConfig = ConfigProvider.getConfig();
         for (String propertyName : mpConfig.getPropertyNames()) {
-            if (propertyName.matches("[a-z]+/mp-graphql/.+")) {
+            // assume that the name of a configured client can consist of
+            // uppercase and lowercase letters, numbers, dashes and underscores
+            if (propertyName.matches("^[A-Za-z0-9-_]+/mp-graphql/.+$")) {
                 String key = propertyName.substring(0, propertyName.indexOf("/mp-graphql"));
                 if (!clients.containsKey(key)) {
                     detectedClientNames.add(key);
