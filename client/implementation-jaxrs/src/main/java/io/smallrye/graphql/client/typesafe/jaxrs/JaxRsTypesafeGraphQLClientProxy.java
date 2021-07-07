@@ -81,7 +81,7 @@ class JaxRsTypesafeGraphQLClientProxy {
         request.add("query", query);
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
-        log.infof("request graphql: %s", query);
+        log.debugf("request graphql: %s", query);
         String requestString = request.build().toString();
         log.debugf("full graphql request: %s", requestString);
         return requestString;
