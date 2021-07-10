@@ -13,7 +13,7 @@
 
     <properties>
         <version.smallrye.config>2.4.1</version.smallrye.config>
-        <version.resteasy.client>4.6.2.Final</version.resteasy.client>
+        <version.resteasy.client>4.7.0.Final</version.resteasy.client>
     </properties>
 
     <dependencies>
