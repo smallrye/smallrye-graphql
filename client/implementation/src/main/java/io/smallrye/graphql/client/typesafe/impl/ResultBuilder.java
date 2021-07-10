@@ -85,7 +85,7 @@ public class ResultBuilder {
         return new GraphQLClientError() {
             @Override
             public String getMessage() {
-                return jsonObject.getString("message");
+                return jsonObject.getString("message", null);
             }
 
             @Override

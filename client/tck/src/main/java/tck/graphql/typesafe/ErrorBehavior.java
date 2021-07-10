@@ -108,6 +108,68 @@ class ErrorBehavior {
     }
 
     @Test
+    void shouldFailOnErrorWithoutMessage() {
+        fixture.returns("{" +
+                "\"data\":{\"greeting\":null}," +
+                "\"errors\":[{" +
+                /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
+                /**/"\"path\": [\"greeting\"],\n" +
+                /**/"\"extensions\":{" +
+                /**//**/"\"description\":\"some description\"," +
+                /**//**/"\"queryPath\":[\"greeting\"]," +
+                /**//**/"\"classification\":\"DataFetchingException\"," +
+                /**//**/"\"code\":\"no-greeting\"}" +
+                "}]}}");
+        StringApi api = fixture.build(StringApi.class);
+
+        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+
+        then(thrown).hasMessage("errors from service (and we can't apply them to a java.lang.String value for" +
+                " tck.graphql.typesafe.ErrorBehavior$StringApi#greeting; see ErrorOr)");
+        then(thrown).hasToString(
+                "GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
+                        + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
+                        "errors:\n" +
+                        "- no-greeting: [greeting] [(1:2@loc)]" +
+                        " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
+        then(thrown.getErrors()).hasSize(1);
+        GraphQLClientError error = thrown.getErrors().get(0);
+        then(error.getMessage()).isNull();
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        then(error.getPath()).containsExactly("greeting");
+        then(error.getErrorCode()).isEqualTo("no-greeting");
+    }
+
+    @Test
+    void shouldFailOnErrorWithNullMessage() {
+        fixture.returns("{\n" +
+                "  \"errors\": [\n" +
+                "    {\n" +
+                "      \"message\": null,\n" +
+                "      \"extensions\": {\n" +
+                "        \"classification\": \"SomeClassification\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"data\": null\n" +
+                "}\n");
+        StringApi api = fixture.build(StringApi.class);
+
+        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+
+        then(thrown).hasMessage("errors from service");
+        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- {classification=SomeClassification})");
+        then(thrown.getErrors()).hasSize(1);
+        GraphQLClientError error = thrown.getErrors().get(0);
+        then(error.getMessage()).isNull();
+        then(error.getLocations()).isNull();
+        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
+    }
+
+    @Test
     void shouldFailOnErrorWithoutExtensions() {
         fixture.returns("{\n" +
                 "  \"errors\": [\n" +
