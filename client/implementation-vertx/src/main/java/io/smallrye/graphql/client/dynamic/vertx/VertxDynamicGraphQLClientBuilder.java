@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.dynamic.vertx;
 
+import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 import io.vertx.core.MultiMap;
@@ -14,6 +15,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     private Vertx vertx;
     private String url;
+    private String configKey;
     private final MultiMap headersMap;
     private WebClientOptions options;
 
@@ -44,9 +46,15 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     }
 
     @Override
+    public DynamicGraphQLClientBuilder configKey(String configKey) {
+        this.configKey = configKey;
+        return this;
+    }
+
+    @Override
     public DynamicGraphQLClient build() {
         if (url == null) {
-            throw new IllegalArgumentException("URL is required");
+            throw SmallRyeGraphQLClientMessages.msg.urlNotConfiguredForProgrammaticClient();
         }
         Vertx toUseVertx = vertx != null ? vertx : Vertx.vertx();
         return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options);

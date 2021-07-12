@@ -12,10 +12,10 @@ import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
+import io.smallrye.graphql.client.ErrorMessageProvider;
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.GraphQLClientsConfiguration;
-import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 
@@ -43,11 +43,12 @@ public class NamedDynamicClients {
         return createdClients.computeIfAbsent(clientName, name -> {
             GraphQLClientConfiguration config = globalConfig.getClients().get(name);
             if (config == null || config.getUrl() == null) {
-                throw SmallRyeGraphQLClientMessages.msg.urlNotConfiguredForNamedClient(clientName);
+                throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(clientName);
             }
 
             DynamicGraphQLClientBuilder builder = DynamicGraphQLClientBuilder.newBuilder();
             builder = builder.url(config.getUrl());
+            builder = builder.configKey(name);
             for (Map.Entry<String, String> headers : config.getHeaders().entrySet()) {
                 builder = builder.header(headers.getKey(), headers.getValue());
             }

@@ -18,7 +18,11 @@ public interface SmallRyeGraphQLClientMessages {
     @Message(id = 35000, value = "Cannot parse response: %s")
     DynamicClientException cannotParseResponse(String response);
 
-    @Message(id = 35001, value = "URL not configured for client named '%s'. Please define the property smallrye.graphql.client.CLIENT_NAME/url")
+    @Message(id = 35001, value = "URL not configured for client. Please define the property %s/mp-graphql/url or pass it to " +
+            "your client builder dynamically")
     NoSuchElementException urlNotConfiguredForNamedClient(String name);
+
+    @Message(id = 35002, value = "URL not configured for client. Please pass a url using your client builder.")
+    NoSuchElementException urlNotConfiguredForProgrammaticClient();
 
 }
