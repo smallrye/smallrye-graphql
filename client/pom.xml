@@ -21,7 +21,6 @@
     <modules>
         <module>api</module>
         <module>implementation</module>
-        <module>implementation-jaxrs</module>
         <module>implementation-vertx</module>
         <module>generator</module>
         <module>generator-test</module>

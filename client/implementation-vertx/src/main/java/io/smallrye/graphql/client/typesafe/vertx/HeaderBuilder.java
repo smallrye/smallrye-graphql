@@ -1,13 +1,9 @@
-package io.smallrye.graphql.client.typesafe.jaxrs;
+package io.smallrye.graphql.client.typesafe.vertx;
 
-import static io.smallrye.graphql.client.typesafe.jaxrs.JaxRsCollectionUtils.toMultivaluedMap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Base64;
 import java.util.Map;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -19,6 +15,8 @@ import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodResolver;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 
 public class HeaderBuilder {
     private final Class<?> api;
@@ -31,25 +29,33 @@ public class HeaderBuilder {
         this.additionalHeaders = additionalHeaders;
     }
 
-    public MultivaluedMap<String, Object> build() {
-        MultivaluedMap<String, Object> headers = method.getResolvedAnnotations(api, Header.class)
-                .map(header -> new SimpleEntry<>(header.name(), resolveValue(header)))
-                .collect(toMultivaluedMap());
+    public MultiMap build() {
+        MultiMap headers = new HeadersMultiMap();
+        method.getResolvedAnnotations(api, Header.class)
+                .forEach(e -> {
+                    // getResolvedAnnotations returns class-level annotations first
+                    // so if there is something on class level, it will be overwritten
+                    // by a header on the method
+                    headers.set(e.name(), resolveValue(e));
+                });
         method.headerParameters().forEach(parameter -> {
             Header header = parameter.getAnnotations(Header.class)[0];
-            headers.add(header.name(), parameter.getValue());
+            headers.set(header.name(), (String) parameter.getValue());
         });
         method.getResolvedAnnotations(api, AuthorizationHeader.class)
-                .findFirst()
+                // getResolvedAnnotations returns class-level annotations first, then method-level annotations
+                // so we need to take the last element of this stream.
+                // This reduce operation is basically 'find the last element'
+                .reduce((first, second) -> second)
                 .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
-                .ifPresent(auth -> headers.add("Authorization", auth));
+                .ifPresent(auth -> headers.set("Authorization", auth));
         if (additionalHeaders != null) {
-            additionalHeaders.forEach(headers::putSingle);
+            additionalHeaders.forEach(headers::set);
         }
         return headers;
     }
 
-    private Object resolveValue(Header header) {
+    private String resolveValue(Header header) {
         if (!header.method().isEmpty()) {
             if (!header.constant().isEmpty())
                 throw new GraphQLClientException("Header with 'method' AND 'constant' not allowed: " + header);
@@ -60,7 +66,7 @@ public class HeaderBuilder {
         return header.constant();
     }
 
-    private Object resolveMethodValue(String methodName) {
+    private String resolveMethodValue(String methodName) {
         TypeInfo declaringType = method.getDeclaringType();
         MethodInvocation method = new MethodResolver(declaringType, methodName).resolve();
         if (!method.isStatic())
