@@ -10,6 +10,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import io.smallrye.graphql.client.ErrorMessageProvider;
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
@@ -76,6 +77,9 @@ public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
         if (persistentConfig != null) {
             applyConfig(persistentConfig);
+        }
+        if (endpoint == null) {
+            throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
 
         WebTarget webTarget = client().target(endpoint);

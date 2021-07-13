@@ -13,9 +13,7 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
 import io.smallrye.graphql.client.GraphQLClient;
-import io.smallrye.graphql.client.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.GraphQLClientsConfiguration;
-import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 
@@ -40,19 +38,8 @@ public class NamedDynamicClients {
     DynamicGraphQLClient getClient(InjectionPoint ip) {
         GraphQLClient annotation = ip.getAnnotated().getAnnotation(GraphQLClient.class);
         String clientName = annotation != null ? annotation.value() : DEFAULT_CLIENT_NAME;
-        return createdClients.computeIfAbsent(clientName, name -> {
-            GraphQLClientConfiguration config = globalConfig.getClients().get(name);
-            if (config == null || config.getUrl() == null) {
-                throw SmallRyeGraphQLClientMessages.msg.urlNotConfiguredForNamedClient(clientName);
-            }
-
-            DynamicGraphQLClientBuilder builder = DynamicGraphQLClientBuilder.newBuilder();
-            builder = builder.url(config.getUrl());
-            for (Map.Entry<String, String> headers : config.getHeaders().entrySet()) {
-                builder = builder.header(headers.getKey(), headers.getValue());
-            }
-            return builder.build();
-        });
+        return createdClients.computeIfAbsent(clientName,
+                name -> DynamicGraphQLClientBuilder.newBuilder().configKey(name).build());
     }
 
     @PreDestroy
