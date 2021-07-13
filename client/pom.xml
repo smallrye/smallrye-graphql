@@ -26,7 +26,6 @@
         <module>generator</module>
         <module>generator-test</module>
         <module>tck</module>
-        <module>all</module>
     </modules>
 
     <!-- TODO remove the dependency management when the parent dependency management was updated to 5.8.0/1.8.0 -->
