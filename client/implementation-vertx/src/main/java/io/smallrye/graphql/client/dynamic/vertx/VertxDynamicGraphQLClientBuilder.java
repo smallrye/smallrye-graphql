@@ -1,5 +1,10 @@
 package io.smallrye.graphql.client.dynamic.vertx;
 
+import javax.enterprise.inject.spi.CDI;
+
+import io.smallrye.graphql.client.ErrorMessageProvider;
+import io.smallrye.graphql.client.GraphQLClientConfiguration;
+import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
@@ -53,11 +58,43 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     @Override
     public DynamicGraphQLClient build() {
+        if (configKey != null) {
+            GraphQLClientConfiguration persistentConfig;
+            try {
+                persistentConfig = CDI.current()
+                        .select(GraphQLClientsConfiguration.class).get()
+                        .getClients().get(configKey);
+            } catch (IllegalStateException ex) {
+                persistentConfig = null;
+            }
+            if (persistentConfig != null) {
+                applyConfig(persistentConfig);
+            }
+        }
         if (url == null) {
-            throw SmallRyeGraphQLClientMessages.msg.urlNotConfiguredForProgrammaticClient();
+            if (configKey == null) {
+                throw SmallRyeGraphQLClientMessages.msg.urlNotConfiguredForProgrammaticClient();
+            } else {
+                throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
+            }
         }
         Vertx toUseVertx = vertx != null ? vertx : Vertx.vertx();
         return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options);
+    }
+
+    /**
+     * Applies values from known global configuration. This does NOT override values passed to this
+     * builder by method calls.
+     */
+    private void applyConfig(GraphQLClientConfiguration configuration) {
+        if (this.url == null && configuration.getUrl() != null) {
+            this.url = configuration.getUrl();
+        }
+        configuration.getHeaders().forEach((k, v) -> {
+            if (!this.headersMap.contains(k)) {
+                this.headersMap.set(k, v);
+            }
+        });
     }
 
 }
