@@ -1,5 +1,7 @@
 package io.smallrye.graphql.bootstrap;
 
+import static io.smallrye.graphql.bootstrap.LogPayloadOption.OFF;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -75,8 +77,8 @@ public interface Config {
         return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
     }
 
-    default boolean logPayload() {
-        return false;
+    default LogPayloadOption logPayload() {
+        return OFF;
     }
 
     default String getFieldVisibility() {

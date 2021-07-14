@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.bootstrap.LogPayloadOption;
 
 /**
  * Configuration for GraphQL
@@ -91,8 +92,8 @@ public class GraphQLConfig implements Config {
     private boolean includeIntrospectionTypesInSchema;
 
     @Inject
-    @ConfigProperty(name = ConfigKey.LOG_PAYLOAD, defaultValue = "false")
-    private boolean logPayload;
+    @ConfigProperty(name = ConfigKey.LOG_PAYLOAD, defaultValue = "off")
+    private LogPayloadOption logPayload;
 
     @Inject
     @ConfigProperty(name = ConfigKey.FIELD_VISIBILITY, defaultValue = Config.FIELD_VISIBILITY_DEFAULT)
@@ -182,7 +183,7 @@ public class GraphQLConfig implements Config {
     }
 
     @Override
-    public boolean logPayload() {
+    public LogPayloadOption logPayload() {
         return logPayload;
     }
 
@@ -254,7 +255,7 @@ public class GraphQLConfig implements Config {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
     }
 
-    public void setLogPayload(boolean logPayload) {
+    public void setLogPayload(LogPayloadOption logPayload) {
         this.logPayload = logPayload;
     }
 
@@ -286,4 +287,5 @@ public class GraphQLConfig implements Config {
             return Optional.empty();
         }
     }
+
 }
