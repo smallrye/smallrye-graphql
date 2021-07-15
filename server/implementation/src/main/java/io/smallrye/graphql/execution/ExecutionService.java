@@ -83,9 +83,9 @@ public class ExecutionService {
             if (query == null || query.isEmpty()) {
                 throw new RuntimeException("Query can not be null");
             }
-            if (payloadOption.getPayload().equals(LogPayloadOption.WITHOUTVARIABLE.getPayload())) {
+            if (payloadOption.equals(LogPayloadOption.queryOnly)) {
                 log.payloadIn(query);
-            } else if (payloadOption.getPayload().equals(LogPayloadOption.WITHVARIABLE.getPayload())) {
+            } else if (payloadOption.equals(LogPayloadOption.queryAndVariables)) {
                 log.payloadIn(query);
                 log.payloadIn(variables.toString());
             }
@@ -126,7 +126,7 @@ public class ExecutionService {
                 eventEmitter.fireAfterExecute(context);
 
                 ExecutionResponse executionResponse = new ExecutionResponse(executionResult, config);
-                if (!payloadOption.getPayload().equals(LogPayloadOption.OFF.getPayload())) {
+                if (!payloadOption.equals(LogPayloadOption.off)) {
                     log.payloadOut(executionResponse.toString());
                 }
 

@@ -1,7 +1,5 @@
 package io.smallrye.graphql.bootstrap;
 
-import static io.smallrye.graphql.bootstrap.LogPayloadOption.OFF;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -78,7 +76,7 @@ public interface Config {
     }
 
     default LogPayloadOption logPayload() {
-        return OFF;
+        return LogPayloadOption.off;
     }
 
     default String getFieldVisibility() {
