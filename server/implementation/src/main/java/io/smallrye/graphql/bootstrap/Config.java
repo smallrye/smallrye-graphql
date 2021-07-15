@@ -75,8 +75,8 @@ public interface Config {
         return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
     }
 
-    default boolean logPayload() {
-        return false;
+    default LogPayloadOption logPayload() {
+        return LogPayloadOption.off;
     }
 
     default String getFieldVisibility() {

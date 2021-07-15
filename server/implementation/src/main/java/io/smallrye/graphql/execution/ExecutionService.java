@@ -2,8 +2,7 @@ package io.smallrye.graphql.execution;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
@@ -24,6 +23,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
+import io.smallrye.graphql.bootstrap.LogPayloadOption;
 import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
@@ -74,15 +74,20 @@ public class ExecutionService {
 
         // ExecutionId
         ExecutionId finalExecutionId = ExecutionId.from(executionIdPrefix + executionId.getAndIncrement());
+        LogPayloadOption payloadOption = config.logPayload();
 
         try {
             String query = context.getQuery();
+            Optional<Map<String, Object>> variables = context.getVariables();
 
             if (query == null || query.isEmpty()) {
                 throw new RuntimeException("Query can not be null");
             }
-            if (config.logPayload()) {
+            if (payloadOption.equals(LogPayloadOption.queryOnly)) {
                 log.payloadIn(query);
+            } else if (payloadOption.equals(LogPayloadOption.queryAndVariables)) {
+                log.payloadIn(query);
+                log.payloadIn(variables.toString());
             }
 
             GraphQL g = getGraphQL();
@@ -121,7 +126,7 @@ public class ExecutionService {
                 eventEmitter.fireAfterExecute(context);
 
                 ExecutionResponse executionResponse = new ExecutionResponse(executionResult, config);
-                if (config.logPayload()) {
+                if (!payloadOption.equals(LogPayloadOption.off)) {
                     log.payloadOut(executionResponse.toString());
                 }
 
