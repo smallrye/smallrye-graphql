@@ -3,6 +3,7 @@ package io.smallrye.graphql.tests.tracing;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.Typed;
 import javax.inject.Singleton;
 
 import io.opentracing.Tracer;
@@ -13,7 +14,8 @@ public class TracerProducer {
     @Default
     @Produces
     @Singleton
-    public Tracer tracer() {
+    @Typed({ Tracer.class, MockTracer.class })
+    public MockTracer tracer() {
         return new MockTracer();
     }
 }
