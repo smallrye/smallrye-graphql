@@ -1,27 +1,14 @@
 package io.smallrye.graphql.client.dynamic.vertx;
 
-import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-
-import io.smallrye.graphql.client.Error;
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
+import io.smallrye.graphql.client.ResponseReader;
 import io.smallrye.graphql.client.core.Document;
-import io.smallrye.graphql.client.dynamic.ErrorImpl;
 import io.smallrye.graphql.client.dynamic.RequestImpl;
-import io.smallrye.graphql.client.dynamic.ResponseImpl;
-import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientLogging;
-import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -108,7 +95,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 .toCompletionStage()
                 .toCompletableFuture()
                 .get();
-        return readFrom(result.body());
+        return ResponseReader.readFrom(result.bodyAsString());
     }
 
     @Override
@@ -162,7 +149,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                         .putHeaders(headers)
                         .sendBuffer(buffer)
                         .toCompletionStage())
-                .map(response -> readFrom(response.body()));
+                .map(response -> ResponseReader.readFrom(response.bodyAsString()));
     }
 
     @Override
@@ -219,7 +206,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                             WebSocket socket = result.result();
                             socket.writeTextMessage(requestJson);
                             socket.handler(message -> {
-                                e.emit(readFrom(message));
+                                e.emit(ResponseReader.readFrom(message.toString()));
                             });
                             socket.closeHandler((v) -> {
                                 e.complete();
@@ -250,42 +237,6 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     @Override
     public void close() {
         httpClient.close();
-    }
-
-    private ResponseImpl readFrom(Buffer input) {
-        // FIXME: is there a more performant way to read the input?
-        JsonReader jsonReader = Json.createReader(new StringReader(input.toString()));
-        JsonObject jsonResponse;
-        try {
-            jsonResponse = jsonReader.readObject();
-        } catch (Exception e) {
-            throw SmallRyeGraphQLDynamicClientMessages.msg.cannotParseResponse(input.toString());
-        }
-
-        JsonObject data = null;
-        if (jsonResponse.containsKey("data")) {
-            if (!jsonResponse.isNull("data")) {
-                data = jsonResponse.getJsonObject("data");
-            } else {
-                SmallRyeGraphQLDynamicClientLogging.log.noDataInResponse();
-            }
-        }
-
-        List<Error> errors = null;
-        if (jsonResponse.containsKey("errors")) {
-            JsonArray rawErrors = jsonResponse.getJsonArray("errors");
-            Jsonb jsonb = JsonbBuilder.create();
-            errors = jsonb.fromJson(
-                    rawErrors.toString(),
-                    new ArrayList<ErrorImpl>() {
-                    }.getClass().getGenericSuperclass());
-            try {
-                jsonb.close();
-            } catch (Exception ignore) {
-            }
-        }
-
-        return new ResponseImpl(data, errors);
     }
 
 }
