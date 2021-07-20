@@ -134,16 +134,19 @@ public class MethodInvocation {
     }
 
     public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<?> declaring, Class<A> type) {
-        return Stream.concat(resolveAnnotations(method, type),
-                resolveInheritedAnnotations(declaring, type))
+        return Stream.concat(
+                resolveInheritedAnnotations(declaring, type),
+                resolveAnnotations(method, type))
                 .filter(Objects::nonNull);
     }
 
     private <A extends Annotation> Stream<A> resolveInheritedAnnotations(Class<?> declaring, Class<A> type) {
-        Stream<A> stream = resolveAnnotations(declaring, type);
+        // super first, sub second
+        Stream<A> stream = Stream.empty();
         for (Class<?> i : declaring.getInterfaces()) {
             stream = Stream.concat(stream, resolveInheritedAnnotations(i, type));
         }
+        stream = Stream.concat(stream, resolveAnnotations(declaring, type));
         return stream;
     }
 

@@ -1,17 +1,15 @@
-package io.smallrye.graphql.client.typesafe.jaxrs;
-
-import static javax.ws.rs.client.Entity.entity;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+package io.smallrye.graphql.client.typesafe.vertx;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import javax.json.Json;
@@ -21,11 +19,6 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 
 import org.jboss.logging.Logger;
 
@@ -36,37 +29,53 @@ import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
-class JaxRsTypesafeGraphQLClientProxy {
+class VertxTypesafeGraphQLClientProxy {
 
-    private static final Logger log = Logger.getLogger(JaxRsTypesafeGraphQLClientProxy.class);
-    private static final MediaType APPLICATION_JSON_UTF8 = APPLICATION_JSON_TYPE.withCharset("utf-8");
+    private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientProxy.class);
+    private static final String APPLICATION_JSON_UTF8 = "application/json;charset=utf-8";
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
 
     private final Map<String, String> queryCache = new HashMap<>();
-    private final WebTarget target;
+    private final Vertx vertx;
+    private final WebClient webClient;
     private final GraphQLClientConfiguration configuration;
+    private final URI endpoint;
 
-    JaxRsTypesafeGraphQLClientProxy(WebTarget target) {
-        this.target = target;
-        this.configuration = null;
-    }
-
-    JaxRsTypesafeGraphQLClientProxy(WebTarget target,
-            GraphQLClientConfiguration configuration) {
-        this.target = target;
-        this.configuration = configuration;
+    VertxTypesafeGraphQLClientProxy(Vertx vertx,
+            GraphQLClientConfiguration config,
+            WebClientOptions options,
+            URI endpoint,
+            WebClient webClient) {
+        this.vertx = vertx;
+        this.configuration = config;
+        if (webClient != null) {
+            this.webClient = webClient;
+        } else {
+            HttpClient httpClient = options != null ? vertx.createHttpClient(options) : vertx.createHttpClient();
+            this.webClient = WebClient.wrap(httpClient);
+        }
+        this.endpoint = endpoint;
     }
 
     Object invoke(Class<?> api, MethodInvocation method) {
         if (method.isDeclaredInObject())
             return method.invoke(this);
 
-        MultivaluedMap<String, Object> headers = new HeaderBuilder(api,
+        MultiMap headers = new HeaderBuilder(api,
                 method,
                 configuration != null ? configuration.getHeaders() : Collections.emptyMap())
                         .build();
+        headers.set("Accept", APPLICATION_JSON_UTF8);
         String request = request(method);
 
         String response = post(request, headers);
@@ -148,16 +157,25 @@ class JaxRsTypesafeGraphQLClientProxy {
         return builder.build();
     }
 
-    private String post(String request, MultivaluedMap<String, Object> headers) {
-        Response response = target
-                .request(APPLICATION_JSON_UTF8)
-                .headers(headers)
-                .post(entity(request, APPLICATION_JSON_UTF8));
-        StatusType status = response.getStatusInfo();
-        if (status.getFamily() != SUCCESSFUL)
-            throw new GraphQLClientException("expected successful status code but got " +
-                    status.getStatusCode() + " " + status.getReasonPhrase() + ":\n" +
-                    response.readEntity(String.class));
-        return response.readEntity(String.class);
+    private String post(String request, MultiMap headers) {
+        Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.toString())
+                .putHeader("Content-Type", APPLICATION_JSON_UTF8)
+                .putHeaders(headers)
+                .sendBuffer(Buffer.buffer(request));
+        try {
+            HttpResponse<Buffer> result = future.toCompletionStage().toCompletableFuture().get();
+            if (result.statusCode() != 200) {
+                throw new GraphQLClientException("expected successful status code but got " +
+                        result.statusCode() + " " + result.statusMessage() + ":\n" +
+                        result.bodyAsString());
+            }
+            return result.bodyAsString();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new GraphQLClientException("Request failed", e);
+        }
+    }
+
+    void close() {
+        webClient.close();
     }
 }

@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.typesafe.jaxrs;
+package io.smallrye.graphql.client.typesafe.vertx;
 
 import java.lang.reflect.Proxy;
 import java.net.URI;
@@ -6,9 +6,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.enterprise.inject.spi.CDI;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 
 import io.smallrye.graphql.client.ErrorMessageProvider;
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
@@ -16,11 +13,16 @@ import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
-public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
+public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
     private String configKey = null;
-    private Client client;
     private URI endpoint;
+    private Vertx vertx;
+    private WebClientOptions options;
+    private WebClient webClient;
 
     @Override
     public TypesafeGraphQLClientBuilder configKey(String configKey) {
@@ -28,30 +30,30 @@ public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
-    public TypesafeGraphQLClientBuilder client(Client client) {
-        this.client = client;
+    public TypesafeGraphQLClientBuilder vertx(Vertx vertx) {
+        this.vertx = vertx;
         return this;
     }
 
-    private Client client() {
-        if (client == null)
-            client = ClientBuilder.newClient();
-        return client;
+    public TypesafeGraphQLClientBuilder client(WebClient webClient) {
+        this.webClient = webClient;
+        return this;
+    }
+
+    public TypesafeGraphQLClientBuilder options(WebClientOptions options) {
+        this.options = options;
+        return this;
+    }
+
+    private Vertx vertx() {
+        if (vertx == null)
+            vertx = Vertx.vertx();
+        return vertx;
     }
 
     @Override
     public TypesafeGraphQLClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;
-        return this;
-    }
-
-    public TypesafeGraphQLClientBuilder register(Class<?> componentClass) {
-        client().register(componentClass);
-        return this;
-    }
-
-    public TypesafeGraphQLClientBuilder register(Object component) {
-        client().register(component);
         return this;
     }
 
@@ -82,17 +84,17 @@ public class JaxRsTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
 
-        WebTarget webTarget = client().target(endpoint);
-        JaxRsTypesafeGraphQLClientProxy graphQlClient = new JaxRsTypesafeGraphQLClientProxy(webTarget, persistentConfig);
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(vertx(), persistentConfig, options,
+                endpoint, webClient);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
 
-    private Object invoke(Class<?> apiClass, JaxRsTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
+    private Object invoke(Class<?> apiClass, VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
             Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
-            client().close();
+            graphQlClient.close();
             return null; // void
         }
         return graphQlClient.invoke(apiClass, methodInvocation);
