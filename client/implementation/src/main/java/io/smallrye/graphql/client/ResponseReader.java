@@ -108,6 +108,20 @@ public class ResponseReader {
                     decodedError.setExtensions(extensionMap);
                 }
 
+                // check if there are any other fields beyond the ones described by the specification
+                Map<String, JsonValue> otherFields = new HashMap<>();
+                for (String key : errorObject.keySet()) {
+                    if (!key.equals("extensions") &&
+                            !key.equals("locations") &&
+                            !key.equals("message") &&
+                            !key.equals("path")) {
+                        otherFields.put(key, errorObject.get(key));
+                    }
+                }
+                if (!otherFields.isEmpty()) {
+                    decodedError.setOtherFields(otherFields);
+                }
+
                 errors.add(decodedError);
             }
         }

@@ -3,6 +3,8 @@ package io.smallrye.graphql.client.dynamic;
 import java.util.List;
 import java.util.Map;
 
+import javax.json.JsonValue;
+
 import io.smallrye.graphql.client.Error;
 
 public class ErrorImpl implements Error {
@@ -10,15 +12,18 @@ public class ErrorImpl implements Error {
     private List<Map<String, Integer>> locations;
     private Object[] path;
     private Map<String, Object> extensions;
+    private Map<String, JsonValue> otherFields;
 
     public ErrorImpl() {
     }
 
-    public ErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions) {
+    public ErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions,
+            Map<String, JsonValue> otherFields) {
         this.message = message;
         this.locations = locations;
         this.path = path;
         this.extensions = extensions;
+        this.otherFields = otherFields;
     }
 
     public String getMessage() {
@@ -37,6 +42,11 @@ public class ErrorImpl implements Error {
         return extensions;
     }
 
+    @Override
+    public Map<String, JsonValue> getOtherFields() {
+        return otherFields;
+    }
+
     public void setMessage(String message) {
         this.message = message;
     }
@@ -51,6 +61,10 @@ public class ErrorImpl implements Error {
 
     public void setExtensions(Map<String, Object> extensions) {
         this.extensions = extensions;
+    }
+
+    public void setOtherFields(Map<String, JsonValue> otherFields) {
+        this.otherFields = otherFields;
     }
 
     @Override
