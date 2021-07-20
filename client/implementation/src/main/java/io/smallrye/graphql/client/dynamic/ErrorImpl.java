@@ -12,7 +12,6 @@ public class ErrorImpl implements Error {
     private Map<String, Object> extensions;
 
     public ErrorImpl() {
-        // Used by JsonB
     }
 
     public ErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions) {
@@ -36,6 +35,22 @@ public class ErrorImpl implements Error {
 
     public Map<String, Object> getExtensions() {
         return extensions;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setLocations(List<Map<String, Integer>> locations) {
+        this.locations = locations;
+    }
+
+    public void setPath(Object[] path) {
+        this.path = path;
+    }
+
+    public void setExtensions(Map<String, Object> extensions) {
+        this.extensions = extensions;
     }
 
     @Override
