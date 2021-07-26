@@ -13,8 +13,8 @@ public interface Fragment extends FragmentOrOperation {
     /*
      * Static factory methods
      */
-    static List<Fragment> fragments(Fragment... fields) {
-        return asList(fields);
+    static List<Fragment> fragments(Fragment... fragments) {
+        return asList(fragments);
     }
 
     static FragmentBuilder fragment(String name) {

@@ -7,7 +7,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 
-public interface Operation extends Buildable {
+public interface Operation extends FragmentOrOperation {
     /*
      * Helpers
      */

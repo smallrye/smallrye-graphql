@@ -3,19 +3,19 @@ package io.smallrye.graphql.client.dynamic.core;
 import java.util.List;
 
 import io.smallrye.graphql.client.core.Document;
-import io.smallrye.graphql.client.core.Operation;
+import io.smallrye.graphql.client.core.FragmentOrOperation;
 
 public abstract class AbstractDocument implements Document {
-    private List<Operation> operations;
+    private List<FragmentOrOperation> operations;
 
     public AbstractDocument() {
     }
 
-    public List<Operation> getOperations() {
+    public List<FragmentOrOperation> getOperations() {
         return operations;
     }
 
-    public void setOperations(List<Operation> operations) {
+    public void setOperations(List<FragmentOrOperation> operations) {
         this.operations = operations;
     }
 }
