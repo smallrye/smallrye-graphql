@@ -21,7 +21,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import graphql.ExecutionResult;
-import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 
@@ -38,9 +37,6 @@ public class SubscriptionWebSocket {
 
     @Inject
     ExecutionService executionService;
-
-    @Inject
-    GraphQLConfig config;
 
     @OnClose
     public void onClose(Session session) {
@@ -88,7 +84,7 @@ public class SubscriptionWebSocket {
                     public void onNext(ExecutionResult er) {
                         try {
                             if (session.isOpen()) {
-                                ExecutionResponse executionResponse = new ExecutionResponse(er, config);
+                                ExecutionResponse executionResponse = new ExecutionResponse(er);
                                 session.getBasicRemote().sendText(executionResponse.getExecutionResultAsString());
                                 Subscription s = subscriptionRefs.get(session.getId()).get();
                                 s.request(1);

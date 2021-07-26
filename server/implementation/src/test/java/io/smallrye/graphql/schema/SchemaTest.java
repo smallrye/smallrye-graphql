@@ -24,18 +24,11 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.model.Schema;
 
 class SchemaTest {
     private static final Logger LOG = Logger.getLogger(SchemaTest.class.getName());
-    private static final Config PRINTER_CONFIG = new Config() {
-        @Override
-        public boolean isIncludeDirectivesInSchema() {
-            return true;
-        }
-    };
 
     @BeforeEach
     public void skipInjectionValidation() {
@@ -80,7 +73,7 @@ class SchemaTest {
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
         assertNotNull(fieldDirectiveInstance);
 
-        String schemaString = new SchemaPrinter(PRINTER_CONFIG).print(graphQLSchema);
+        String schemaString = new SchemaPrinter().print(graphQLSchema);
         LOG.info(schemaString);
         assertTrue(schemaString.contains("\"test-description\"\n" +
                 "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n"));

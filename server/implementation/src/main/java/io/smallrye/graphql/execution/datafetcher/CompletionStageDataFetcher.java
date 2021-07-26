@@ -12,7 +12,6 @@ import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -26,8 +25,8 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  */
 public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public CompletionStageDataFetcher(Operation operation, Config config) {
-        super(operation, config);
+    public CompletionStageDataFetcher(Operation operation) {
+        super(operation);
     }
 
     @Override

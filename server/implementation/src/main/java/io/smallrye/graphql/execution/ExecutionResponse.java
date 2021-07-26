@@ -13,7 +13,6 @@ import javax.json.spi.JsonProvider;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 
 /**
@@ -29,15 +28,12 @@ public class ExecutionResponse {
     private static final Jsonb jsonB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
+    private static final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
-    private final Config config;
     private final ExecutionResult executionResult;
-    private final ExecutionErrorsService errorsService;
 
-    public ExecutionResponse(ExecutionResult executionResult, Config config) {
-        this.config = config;
+    public ExecutionResponse(ExecutionResult executionResult) {
         this.executionResult = executionResult;
-        this.errorsService = new ExecutionErrorsService(config);
     }
 
     public ExecutionResult getExecutionResult() {

@@ -93,6 +93,12 @@
             <artifactId>mutiny</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.smallrye.config</groupId>
+            <artifactId>smallrye-config</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
         <!-- The model builder -->
         <dependency>
             <groupId>${project.groupId}</groupId>

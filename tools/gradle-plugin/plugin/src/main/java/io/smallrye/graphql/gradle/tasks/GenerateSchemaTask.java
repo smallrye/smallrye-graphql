@@ -32,10 +32,10 @@ import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Generate schema task.
@@ -227,32 +227,10 @@ public class GenerateSchemaTask extends DefaultTask {
     }
 
     private String generateSchema(IndexView index) {
-        Config config = new Config() {
-            @Override
-            public boolean isIncludeScalarsInSchema() {
-                return includeScalars;
-            }
-
-            @Override
-            public boolean isIncludeDirectivesInSchema() {
-                return includeDirectives;
-            }
-
-            @Override
-            public boolean isIncludeSchemaDefinitionInSchema() {
-                return includeSchemaDefinition;
-            }
-
-            @Override
-            public boolean isIncludeIntrospectionTypesInSchema() {
-                return includeIntrospectionTypes;
-            }
-        };
-        
         Schema internalSchema = SchemaBuilder.build(index);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
         if(graphQLSchema!=null){
-            return new SchemaPrinter(config).print(graphQLSchema);
+            return new SchemaPrinter().print(graphQLSchema);
         }
         return null;
     }
@@ -273,6 +251,34 @@ public class GenerateSchemaTask extends DefaultTask {
             }
         } catch (IOException e) {
             throw new GradleException("Can't write the result", e);
+        }
+    }
+    
+    class GradleConfig implements Config {
+    
+        @Override
+        public String getName() {
+            return "Gradle Config Service";
+        }
+
+        @Override
+        public boolean isIncludeScalarsInSchema() {
+            return includeScalars;
+        }
+
+        @Override
+        public boolean isIncludeDirectivesInSchema() {
+            return includeDirectives;
+        }
+
+        @Override
+        public boolean isIncludeSchemaDefinitionInSchema() {
+            return includeSchemaDefinition;
+        }
+
+        @Override
+        public boolean isIncludeIntrospectionTypesInSchema() {
+            return includeIntrospectionTypes;
         }
     }
 }

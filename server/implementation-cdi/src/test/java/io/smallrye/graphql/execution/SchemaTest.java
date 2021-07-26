@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -48,8 +47,7 @@ public class SchemaTest {
     public void testSchemaModelCreation() {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
         assertNotNull(graphQLSchema);
-        String schemaString = new SchemaPrinter(new Config() {
-        }).print(graphQLSchema);
+        String schemaString = new SchemaPrinter().print(graphQLSchema);
         assertNotNull(schemaString);
 
         LOG.info(schemaString);

@@ -20,7 +20,7 @@ import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
-import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Test for {@link ExecutionErrorsService}
@@ -29,7 +29,7 @@ import io.smallrye.graphql.bootstrap.Config;
  */
 class ExecutionErrorsServiceTest {
 
-    private final ExecutionErrorsService executionErrorsService = new ExecutionErrorsService(getGraphQLConfig());
+    private final ExecutionErrorsService executionErrorsService = new ExecutionErrorsService();
 
     @Test
     void testToJsonErrors_WhenExceptionWhileDataFetchingErrorCaught_ShouldReturnJsonBodyWithCustomExtensions() {
@@ -108,6 +108,11 @@ class ExecutionErrorsServiceTest {
             @Override
             public Optional<List<String>> getErrorExtensionFields() {
                 return Optional.of(Config.ERROR_EXTENSION_ALL_KNOWN);
+            }
+
+            @Override
+            public String getName() {
+                return "Test Execution errors config";
             }
         };
     }

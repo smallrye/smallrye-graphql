@@ -12,7 +12,6 @@ import org.eclipse.microprofile.context.ThreadContext;
 import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 
@@ -25,8 +24,8 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public DefaultDataFetcher(Operation operation, Config config) {
-        super(operation, config);
+    public DefaultDataFetcher(Operation operation) {
+        super(operation);
     }
 
     @Override

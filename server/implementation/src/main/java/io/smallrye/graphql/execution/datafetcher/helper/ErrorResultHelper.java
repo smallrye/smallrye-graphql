@@ -11,7 +11,6 @@ import graphql.execution.DataFetcherResult;
 import graphql.execution.ResultPath;
 import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 
@@ -22,11 +21,7 @@ import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
  */
 public class ErrorResultHelper {
 
-    private final ExceptionHandler exceptionHandler;
-
-    public ErrorResultHelper(Config config) {
-        this.exceptionHandler = new ExceptionHandler(config);
-    }
+    private final ExceptionHandler exceptionHandler = new ExceptionHandler();
 
     public void appendPartialResult(
             DataFetcherResult.Builder<Object> resultBuilder,

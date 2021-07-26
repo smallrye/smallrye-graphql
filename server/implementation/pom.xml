@@ -125,11 +125,6 @@
             <artifactId>smallrye-context-propagation-cdi</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.smallrye.config</groupId>
-            <artifactId>smallrye-config</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

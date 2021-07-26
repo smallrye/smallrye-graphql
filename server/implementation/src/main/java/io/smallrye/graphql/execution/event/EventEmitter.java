@@ -1,10 +1,8 @@
 package io.smallrye.graphql.execution.event;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.jboss.logging.Logger;
@@ -12,9 +10,9 @@ import org.jboss.logging.Logger;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Fire some events while booting or executing.
@@ -24,33 +22,31 @@ import io.smallrye.graphql.spi.EventingService;
  */
 public class EventEmitter {
     private static final Logger LOG = Logger.getLogger(EventEmitter.class);
-    private static final Map<Config, EventEmitter> INSTANCES = new IdentityHashMap<>();
     private final List<EventingService> enabledServices = new ArrayList<>();
 
-    public static EventEmitter getInstance(Config config) {
-        return INSTANCES.computeIfAbsent(config, k -> new EventEmitter(config));
+    public static EventEmitter getInstance() {
+        return new EventEmitter();
     }
 
-    private EventEmitter(Config config) {
-        if (config != null) {
-            ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
-            Iterator<EventingService> it = eventingServices.iterator();
+    private EventEmitter() {
+        Config config = Config.get();
+        ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
+        Iterator<EventingService> it = eventingServices.iterator();
 
-            EventingService eventingService = null;
-            while (it.hasNext()) {
-                try {
-                    eventingService = it.next();
-                    String configKey = eventingService.getConfigKey();
-                    boolean enabled = config.getConfigValue(configKey, boolean.class, false);
-                    if (enabled) {
-                        enabledServices.add(eventingService);
-                    }
-                } catch (Throwable t) {
-                    // Ignore that service...
-                    Throwable cause = t.getCause();
-                    LOG.warn("Failed to register " + t.getMessage()
-                            + (cause != null ? "\n\tCaused by: " + cause.toString() : ""));
+        EventingService eventingService = null;
+        while (it.hasNext()) {
+            try {
+                eventingService = it.next();
+                String configKey = eventingService.getConfigKey();
+                boolean enabled = config.getConfigValue(configKey, boolean.class, false);
+                if (enabled) {
+                    enabledServices.add(eventingService);
                 }
+            } catch (Throwable t) {
+                // Ignore that service...
+                Throwable cause = t.getCause();
+                LOG.warn("Failed to register " + t.getMessage()
+                        + (cause != null ? "\n\tCaused by: " + cause.toString() : ""));
             }
         }
     }
