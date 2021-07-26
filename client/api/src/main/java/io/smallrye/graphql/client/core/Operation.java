@@ -16,7 +16,7 @@ public interface Operation extends Buildable {
     }
 
     // (fields)
-    static Operation operation(Field... fields) {
+    static Operation operation(FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(QUERY);
@@ -28,7 +28,7 @@ public interface Operation extends Buildable {
     }
 
     // (vars, fields)
-    static Operation operation(List<Variable> vars, Field... fields) {
+    static Operation operation(List<Variable> vars, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(QUERY);
@@ -40,7 +40,7 @@ public interface Operation extends Buildable {
     }
 
     // (type, fields)
-    static Operation operation(OperationType type, Field... fields) {
+    static Operation operation(OperationType type, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(type);
@@ -52,7 +52,7 @@ public interface Operation extends Buildable {
     }
 
     // (type, vars, fields)
-    static Operation operation(OperationType type, List<Variable> vars, Field... fields) {
+    static Operation operation(OperationType type, List<Variable> vars, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(type);
@@ -64,7 +64,7 @@ public interface Operation extends Buildable {
     }
 
     // (name, fields)
-    static Operation operation(String name, Field... fields) {
+    static Operation operation(String name, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(QUERY);
@@ -76,7 +76,7 @@ public interface Operation extends Buildable {
     }
 
     // (type, name, fields)
-    static Operation operation(OperationType type, String name, Field... fields) {
+    static Operation operation(OperationType type, String name, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(type);
@@ -88,7 +88,7 @@ public interface Operation extends Buildable {
     }
 
     // (name, vars, fields)
-    static Operation operation(String name, List<Variable> vars, Field... fields) {
+    static Operation operation(String name, List<Variable> vars, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(QUERY);
@@ -100,7 +100,7 @@ public interface Operation extends Buildable {
     }
 
     // (type, name, vars, fields)
-    static Operation operation(OperationType type, String name, List<Variable> vars, Field... fields) {
+    static Operation operation(OperationType type, String name, List<Variable> vars, FieldOrFragment... fields) {
         Operation operation = getNewInstanceOf(Operation.class);
 
         operation.setType(type);
@@ -126,7 +126,7 @@ public interface Operation extends Buildable {
 
     void setVariables(List<Variable> vars);
 
-    List<Field> getFields();
+    List<FieldOrFragment> getFields();
 
-    void setFields(List<Field> fields);
+    void setFields(List<FieldOrFragment> fields);
 }

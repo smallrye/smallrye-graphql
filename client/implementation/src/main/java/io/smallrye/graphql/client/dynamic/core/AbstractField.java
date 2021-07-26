@@ -4,11 +4,12 @@ import java.util.List;
 
 import io.smallrye.graphql.client.core.Argument;
 import io.smallrye.graphql.client.core.Field;
+import io.smallrye.graphql.client.core.FieldOrFragment;
 
 public abstract class AbstractField implements Field {
     private String name;
     private List<Argument> arguments;
-    private List<Field> fields;
+    private List<FieldOrFragment> fields;
 
     public AbstractField() {
     }
@@ -29,11 +30,11 @@ public abstract class AbstractField implements Field {
         this.arguments = arguments;
     }
 
-    public List<Field> getFields() {
+    public List<FieldOrFragment> getFields() {
         return fields;
     }
 
-    public void setFields(List<Field> fields) {
+    public void setFields(List<FieldOrFragment> fields) {
         this.fields = fields;
     }
 }
