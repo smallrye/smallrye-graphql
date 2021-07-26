@@ -12,7 +12,6 @@ import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -29,8 +28,8 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
  */
 public class PublisherDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public PublisherDataFetcher(Operation operation, Config config) {
-        super(operation, config);
+    public PublisherDataFetcher(Operation operation) {
+        super(operation);
     }
 
     @Override

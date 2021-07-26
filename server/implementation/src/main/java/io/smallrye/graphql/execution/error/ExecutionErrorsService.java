@@ -22,8 +22,8 @@ import javax.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.model.ErrorInfo;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Help to create the exceptions
@@ -38,11 +38,7 @@ public class ExecutionErrorsService {
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
 
-    private final Config config;
-
-    public ExecutionErrorsService(Config config) {
-        this.config = config;
-    }
+    private Config config = Config.get();
 
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();

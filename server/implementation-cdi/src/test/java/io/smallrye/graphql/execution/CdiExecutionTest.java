@@ -9,9 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -32,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.cdi.CdiLookupService;
 import io.smallrye.graphql.cdi.event.EventsService;
 import io.smallrye.graphql.schema.SchemaBuilder;
@@ -58,7 +55,7 @@ public class CdiExecutionTest {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations(),
+        this.executionService = new ExecutionService(graphQLSchema, schema.getBatchOperations(),
                 schema.hasSubscriptions());
     }
 
@@ -357,20 +354,6 @@ public class CdiExecutionTest {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         builder.add("query", graphQL);
         return builder.build();
-    }
-
-    private Config getGraphQLConfig() {
-        return new Config() {
-            @Override
-            public boolean isPrintDataFetcherException() {
-                return true;
-            }
-
-            @Override
-            public Optional<List<String>> getErrorExtensionFields() {
-                return Optional.of(Config.ERROR_EXTENSION_ALL_KNOWN);
-            }
-        };
     }
 
     private String getPrettyJson(JsonObject jsonObject) {

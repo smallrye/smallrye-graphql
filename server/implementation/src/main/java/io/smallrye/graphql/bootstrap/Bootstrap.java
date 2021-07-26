@@ -74,6 +74,7 @@ import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -84,9 +85,8 @@ import io.smallrye.graphql.spi.LookupService;
 public class Bootstrap {
 
     private final Schema schema;
-    private final Config config;
-    private final EventEmitter eventEmitter;
-    private final DataFetcherFactory dataFetcherFactory;
+    private final EventEmitter eventEmitter = EventEmitter.getInstance();
+    private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final Set<GraphQLDirective> directiveTypes = new LinkedHashSet<>();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
@@ -99,13 +99,8 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        return bootstrap(schema, new Config() {
-        });
-    }
-
-    public static GraphQLSchema bootstrap(Schema schema, Config config) {
         if (schema != null && (schema.hasOperations())) {
-            Bootstrap bootstrap = new Bootstrap(schema, config);
+            Bootstrap bootstrap = new Bootstrap(schema);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
         } else {
@@ -114,11 +109,8 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema, Config config) {
+    private Bootstrap(Schema schema) {
         this.schema = schema;
-        this.config = config;
-        this.dataFetcherFactory = new DataFetcherFactory(config);
-        this.eventEmitter = EventEmitter.getInstance(config);
         SmallRyeContext.setSchema(schema);
         if (!Boolean.getBoolean("test.skip.injection.validation")) {
             verifyInjectionIsAvailable();
@@ -529,7 +521,7 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
@@ -840,20 +832,19 @@ public class Bootstrap {
      * @see <a href="www.graphql-java.com/documentation/v15/fieldvisibility/">GraphQL Java Field Visibility</a>
      */
     private GraphqlFieldVisibility getGraphqlFieldVisibility() {
-        if (config != null) {
-            String fieldVisibility = config.getFieldVisibility();
-            if (fieldVisibility != null && !fieldVisibility.isEmpty()) {
+        Config config = Config.get();
+        String fieldVisibility = config.getFieldVisibility();
+        if (fieldVisibility != null && !fieldVisibility.isEmpty()) {
 
-                if (fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
-                    return NO_INTROSPECTION_FIELD_VISIBILITY;
-                } else {
-                    String[] patterns = fieldVisibility.split(COMMA);
-                    BlockedFields.Builder blockedFields = BlockedFields.newBlock();
-                    for (String pattern : patterns) {
-                        blockedFields = blockedFields.addPattern(pattern);
-                    }
-                    return blockedFields.build();
+            if (fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
+                return NO_INTROSPECTION_FIELD_VISIBILITY;
+            } else {
+                String[] patterns = fieldVisibility.split(COMMA);
+                BlockedFields.Builder blockedFields = BlockedFields.newBlock();
+                for (String pattern : patterns) {
+                    blockedFields = blockedFields.addPattern(pattern);
                 }
+                return blockedFields.build();
             }
         }
         return DEFAULT_FIELD_VISIBILITY;

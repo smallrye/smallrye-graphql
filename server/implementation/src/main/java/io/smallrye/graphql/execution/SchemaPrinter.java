@@ -1,7 +1,7 @@
 package io.smallrye.graphql.execution;
 
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.bootstrap.Config;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Printing the schema
@@ -10,17 +10,13 @@ import io.smallrye.graphql.bootstrap.Config;
  */
 public class SchemaPrinter {
 
-    private final graphql.schema.idl.SchemaPrinter schemaPrinter;
-
-    public SchemaPrinter(final Config config) {
-        this.schemaPrinter = createSchemaPrinter(config);
-    }
-
     public String print(GraphQLSchema schema) {
+        graphql.schema.idl.SchemaPrinter schemaPrinter = createSchemaPrinter();
         return schemaPrinter.print(schema);
     }
 
-    private graphql.schema.idl.SchemaPrinter createSchemaPrinter(Config config) {
+    private graphql.schema.idl.SchemaPrinter createSchemaPrinter() {
+        Config config = Config.get();
         graphql.schema.idl.SchemaPrinter.Options options = graphql.schema.idl.SchemaPrinter.Options.defaultOptions();
         options = options.descriptionsAsHashComments(false);
         options = options.includeDirectives(config.isIncludeDirectivesInSchema());

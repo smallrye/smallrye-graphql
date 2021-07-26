@@ -1,4 +1,4 @@
-package io.smallrye.graphql.bootstrap;
+package io.smallrye.graphql.spi.config;
 
 public enum LogPayloadOption {
 

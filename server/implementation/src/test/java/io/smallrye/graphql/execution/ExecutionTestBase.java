@@ -3,9 +3,7 @@ package io.smallrye.graphql.execution;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -22,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -42,12 +39,12 @@ public abstract class ExecutionTestBase {
         Schema schema = SchemaBuilder.build(index);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
 
-        SchemaPrinter printer = new SchemaPrinter(getGraphQLConfig());
+        SchemaPrinter printer = new SchemaPrinter();
         String schemaString = printer.print(graphQLSchema);
         LOG.info("================== Testing against: ====================");
         LOG.info(schemaString);
         LOG.info("========================================================");
-        this.executionService = new ExecutionService(getGraphQLConfig(), graphQLSchema, schema.getBatchOperations(), true);
+        this.executionService = new ExecutionService(graphQLSchema, schema.getBatchOperations(), true);
     }
 
     protected IndexView getIndex() {
@@ -89,30 +86,6 @@ public abstract class ExecutionTestBase {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         builder.add("query", graphQL);
         return builder.build();
-    }
-
-    private Config getGraphQLConfig() {
-        Config config = new Config() {
-
-            @Override
-            public boolean isPrintDataFetcherException() {
-                return true;
-            }
-
-            @Override
-            public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
-                if (key.equals(TestEventingService.KEY)) {
-                    return (T) new Boolean(true);
-                }
-                return Config.super.getConfigValue(key, type, defaultValue);
-            }
-
-            @Override
-            public Optional<List<String>> getErrorExtensionFields() {
-                return Optional.of(Config.ERROR_EXTENSION_ALL_KNOWN);
-            }
-        };
-        return config;
     }
 
     private String getPrettyJson(JsonObject jsonObject) {

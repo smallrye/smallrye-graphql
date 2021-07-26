@@ -2,7 +2,7 @@ package io.smallrye.graphql.cdi.config;
 
 import org.eclipse.microprofile.config.spi.Converter;
 
-import io.smallrye.graphql.bootstrap.LogPayloadOption;
+import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Allow for using true/false as valid value (backward compatible)
