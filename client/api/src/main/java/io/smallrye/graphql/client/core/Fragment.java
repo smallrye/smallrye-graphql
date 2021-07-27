@@ -32,9 +32,9 @@ public interface Fragment extends FragmentOrOperation {
 
     void setTargetType(String name);
 
-    List<Field> getFields();
+    List<FieldOrFragment> getFields();
 
-    void setFields(List<Field> fields);
+    void setFields(List<FieldOrFragment> fields);
 
     class FragmentBuilder {
 
@@ -42,13 +42,13 @@ public interface Fragment extends FragmentOrOperation {
 
         private String targetType;
 
-        private List<Field> fields;
+        private List<FieldOrFragment> fields;
 
         FragmentBuilder(String name) {
             this.name = name;
         }
 
-        public Fragment on(String targetType, Field... fields) {
+        public Fragment on(String targetType, FieldOrFragment... fields) {
             this.targetType = targetType;
             this.fields = asList(fields);
             return build();

@@ -2,21 +2,21 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.core.Field;
+import io.smallrye.graphql.client.core.FieldOrFragment;
 import io.smallrye.graphql.client.core.InlineFragment;
 
 public abstract class AbstractInlineFragment implements InlineFragment {
 
     private String type;
-    private List<Field> fields;
+    private List<FieldOrFragment> fields;
 
     @Override
-    public List<Field> getFields() {
+    public List<FieldOrFragment> getFields() {
         return this.fields;
     }
 
     @Override
-    public void setFields(List<Field> fields) {
+    public void setFields(List<FieldOrFragment> fields) {
         this.fields = fields;
     }
 
