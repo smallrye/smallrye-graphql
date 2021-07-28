@@ -1,0 +1,10 @@
+query {
+    regularField
+    ... on Type1 {
+        type1Field1
+        type1Field2
+    }
+    ... on Type2 {
+        type2Field
+    }
+}
