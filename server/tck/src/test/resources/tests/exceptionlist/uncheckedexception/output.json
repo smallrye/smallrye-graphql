@@ -1,0 +1,22 @@
+{
+  "errors": [
+    {
+      "message": "This error will not show",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "checkedException"
+      ],
+      "extensions": {
+        "classification": "DataFetchingException"
+      }
+    }
+  ],
+  "data": {
+    "checkedException": null
+  }
+}

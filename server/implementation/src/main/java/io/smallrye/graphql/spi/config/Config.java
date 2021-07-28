@@ -86,8 +86,16 @@ public interface Config {
         }
 
         // Check that specific class
-        if (classNames.contains(throwableClass.getName())) {
-            return true;
+        for (String configuredValue : classNames) {
+            if (configuredValue.equals(throwableClass.getName())) {
+                return true;
+            } else if (configuredValue.endsWith("*")) {
+                String values = configuredValue.substring(0, configuredValue.length() - 2);
+                if (throwableClass.getName().startsWith(values)) {
+                    return true;
+                }
+                continue;
+            }
         }
 
         // Check transitive
