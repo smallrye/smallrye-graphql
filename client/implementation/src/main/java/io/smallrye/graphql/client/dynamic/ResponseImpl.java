@@ -23,7 +23,7 @@ public class ResponseImpl implements Response {
 
     public <T> T getObject(Class<T> dataType, String rootField) {
         JsonObject jsonObject = data.getJsonObject(rootField);
-        return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), jsonObject);
+        return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), jsonObject, null);
     }
 
     public <T> List<T> getList(Class<T> dataType, String rootField) {
@@ -38,7 +38,7 @@ public class ResponseImpl implements Response {
 
         JsonArray jsonArray = (JsonArray) item;
         TypeInfo type = TypeInfo.of(dataType);
-        jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o)));
+        jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o, null)));
 
         return result;
     }

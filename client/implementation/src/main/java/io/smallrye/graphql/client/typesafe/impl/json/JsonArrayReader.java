@@ -16,6 +16,7 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonArrayReader extends Reader<JsonArray> {
@@ -23,8 +24,8 @@ class JsonArrayReader extends Reader<JsonArray> {
     private Class<?> collectionType;
     private TypeInfo itemType;
 
-    JsonArrayReader(TypeInfo type, Location location, JsonArray value) {
-        super(type, location, value);
+    JsonArrayReader(TypeInfo type, Location location, JsonArray value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
@@ -39,7 +40,7 @@ class JsonArrayReader extends Reader<JsonArray> {
         TypeInfo itemType = getItemType();
         if (itemValue.getValueType() == ValueType.NULL && itemType.isNonNull())
             throw new GraphQLClientException("invalid null " + itemLocation);
-        return readJson(itemLocation, itemType, itemValue);
+        return readJson(itemLocation, itemType, itemValue, field);
     }
 
     private Collector<Object, ?, ?> collector() {
