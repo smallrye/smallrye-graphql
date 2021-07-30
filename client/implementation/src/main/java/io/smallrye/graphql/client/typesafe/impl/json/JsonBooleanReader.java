@@ -6,11 +6,12 @@ import static javax.json.JsonValue.ValueType.TRUE;
 
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonBooleanReader extends Reader<JsonValue> {
-    JsonBooleanReader(TypeInfo type, Location location, JsonValue value) {
-        super(type, location, value);
+    JsonBooleanReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override

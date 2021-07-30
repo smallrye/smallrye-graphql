@@ -15,25 +15,26 @@ import javax.json.JsonValue;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 public class JsonReader extends Reader<JsonValue> {
-    public static Object readJson(String description, TypeInfo type, JsonValue value) {
-        return readJson(new Location(type, description), type, value);
+    public static Object readJson(String description, TypeInfo type, JsonValue value, FieldInfo field) {
+        return readJson(new Location(type, description), type, value, field);
     }
 
-    static Object readJson(Location location, TypeInfo type, JsonValue value) {
-        return new JsonReader(type, location, value).read();
+    static Object readJson(Location location, TypeInfo type, JsonValue value, FieldInfo field) {
+        return new JsonReader(type, location, value, field).read();
     }
 
-    private JsonReader(TypeInfo type, Location location, JsonValue value) {
-        super(type, location, value);
+    private JsonReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
     Object read() {
         if (type.isOptional())
-            return Optional.ofNullable(readJson(location, type.getItemType(), value));
+            return Optional.ofNullable(readJson(location, type.getItemType(), value, field));
         if (type.isErrorOr())
             return readErrorOr();
         if (isListOfErrors(value) && !isGraphQlErrorsType())
@@ -44,12 +45,12 @@ public class JsonReader extends Reader<JsonValue> {
     private ErrorOr<Object> readErrorOr() {
         if (isListOfErrors(value))
             return ErrorOr.ofErrors(readGraphQlClientErrors());
-        return ErrorOr.of(readJson(location, type.getItemType(), value));
+        return ErrorOr.of(readJson(location, type.getItemType(), value, field));
     }
 
     private List<GraphQLClientError> readGraphQlClientErrors() {
         return value.asJsonArray().stream()
-                .map(item -> (GraphQLClientError) readJson(location, TypeInfo.of(GraphQLClientErrorImpl.class), item))
+                .map(item -> (GraphQLClientError) readJson(location, TypeInfo.of(GraphQLClientErrorImpl.class), item, field))
                 .collect(toList());
     }
 
@@ -69,18 +70,18 @@ public class JsonReader extends Reader<JsonValue> {
     private Reader<?> reader(Location location) {
         switch (value.getValueType()) {
             case ARRAY:
-                return new JsonArrayReader(type, location, (JsonArray) value);
+                return new JsonArrayReader(type, location, (JsonArray) value, field);
             case OBJECT:
-                return new JsonObjectReader(type, location, (JsonObject) value);
+                return new JsonObjectReader(type, location, (JsonObject) value, field);
             case STRING:
-                return new JsonStringReader(type, location, (JsonString) value);
+                return new JsonStringReader(type, location, (JsonString) value, field);
             case NUMBER:
-                return new JsonNumberReader(type, location, (JsonNumber) value);
+                return new JsonNumberReader(type, location, (JsonNumber) value, field);
             case TRUE:
             case FALSE:
-                return new JsonBooleanReader(type, location, value);
+                return new JsonBooleanReader(type, location, value, field);
             case NULL:
-                return new JsonNullReader(type, location, value);
+                return new JsonNullReader(type, location, value, field);
         }
         throw new GraphQLClientException("unreachable code");
     }

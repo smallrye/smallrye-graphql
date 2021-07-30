@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.reflection;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Optional;
 
@@ -41,6 +42,10 @@ public class FieldInfo {
         if (field.isAnnotationPresent(Name.class))
             return Optional.of(getRawName());
         return Optional.empty();
+    }
+
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        return field.getAnnotation(annotationClass);
     }
 
     public Object get(Object instance) {

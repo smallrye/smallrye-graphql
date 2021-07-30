@@ -14,8 +14,8 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonObjectReader extends Reader<JsonObject> {
-    JsonObjectReader(TypeInfo type, Location location, JsonObject value) {
-        super(type, location, value);
+    JsonObjectReader(TypeInfo type, Location location, JsonObject value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
@@ -52,6 +52,6 @@ class JsonObjectReader extends Reader<JsonObject> {
                 throw new GraphQLClientException("missing " + fieldLocation);
             return null;
         }
-        return readJson(fieldLocation, field.getType(), jsonFieldValue);
+        return readJson(fieldLocation, field.getType(), jsonFieldValue, field);
     }
 }
