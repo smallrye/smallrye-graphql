@@ -1,15 +1,15 @@
 {
   "errors": [
     {
-      "message": "This error will not show",
+      "message": "This error should show",
       "locations": [
         {
           "line": 2,
-          "column": 3
+          "column": 5
         }
       ],
       "path": [
-        "checkedException"
+        "uncheckedException"
       ],
       "extensions": {
         "classification": "DataFetchingException"
@@ -17,6 +17,6 @@
     }
   ],
   "data": {
-    "checkedException": null
+    "uncheckedException": null
   }
 }

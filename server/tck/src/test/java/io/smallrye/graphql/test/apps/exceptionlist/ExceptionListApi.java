@@ -8,12 +8,12 @@ public class ExceptionListApi {
 
     @Query
     public String checkedException() throws MyCheckedException {
-        throw new MyCheckedException("This error will not show");
+        throw new MyCheckedException("This error should not show");
     }
 
     @Query
     public String uncheckedException() throws MyUncheckedException {
-        throw new MyUncheckedException("This error will show");
+        throw new MyUncheckedException("This error should show");
     }
 
 }

@@ -1,19 +1,16 @@
 {
   "errors": [
     {
-      "message": "This error will not show",
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
       "locations": [
         {
           "line": 2,
-          "column": 3
+          "column": 5
         }
       ],
       "path": [
         "checkedException"
-      ],
-      "extensions": {
-        "classification": "DataFetchingException"
-      }
+      ]
     }
   ],
   "data": {
