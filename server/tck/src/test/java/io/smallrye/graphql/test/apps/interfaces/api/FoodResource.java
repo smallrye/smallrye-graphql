@@ -11,6 +11,13 @@ public class FoodResource {
         return new Apple("Granny Smith", "green");
     }
 
+    @Query
+    public MyClass getMyClassWithSerializable() {
+        MyClass mc = new MyClass();
+        mc.setSomething("Here a String");
+        return mc;
+    }
+
     public static class Apple implements Eatable {
 
         private String name;
