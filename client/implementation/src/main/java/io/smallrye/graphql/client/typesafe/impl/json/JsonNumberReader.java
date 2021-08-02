@@ -7,11 +7,12 @@ import java.math.BigInteger;
 
 import javax.json.JsonNumber;
 
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonNumberReader extends Reader<JsonNumber> {
-    JsonNumberReader(TypeInfo type, Location location, JsonNumber value) {
-        super(type, location, value);
+    JsonNumberReader(TypeInfo type, Location location, JsonNumber value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override

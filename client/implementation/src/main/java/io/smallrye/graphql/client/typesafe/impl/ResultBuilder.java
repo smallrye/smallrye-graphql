@@ -42,7 +42,7 @@ public class ResultBuilder {
         if (data == null)
             return null;
         JsonValue value = method.isSingle() ? data.get(method.getName()) : data;
-        return JsonReader.readJson(method.toString(), method.getReturnType(), value);
+        return JsonReader.readJson(method.toString(), method.getReturnType(), value, null);
     }
 
     private JsonObject readData() {

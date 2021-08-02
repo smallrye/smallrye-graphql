@@ -4,11 +4,12 @@ import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueEx
 
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonNullReader extends Reader<JsonValue> {
-    JsonNullReader(TypeInfo type, Location location, JsonValue value) {
-        super(type, location, value);
+    JsonNullReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
