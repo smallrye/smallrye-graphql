@@ -1,0 +1,42 @@
+{
+  "data": {
+    "sortedValues": [
+      {
+        "id": 1,
+        "anotherNumber": 999
+      },
+      {
+        "id": 2,
+        "anotherNumber": 666
+      },
+      {
+        "id": 3,
+        "anotherNumber": 333
+      },
+      {
+        "id": 4,
+        "anotherNumber": 999
+      },
+      {
+        "id": 5,
+        "anotherNumber": 666
+      },
+      {
+        "id": 6,
+        "anotherNumber": 333
+      },
+      {
+        "id": 7,
+        "anotherNumber": 999
+      },
+      {
+        "id": 8,
+        "anotherNumber": 666
+      },
+      {
+        "id": 9,
+        "anotherNumber": 333
+      }
+    ]
+  }
+}
