@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected failure in the system. Jarvis is working to fix it.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 5
+        }
+      ],
+      "path": [
+        "checkedException"
+      ]
+    }
+  ],
+  "data": {
+    "checkedException": null
+  }
+}
