@@ -1,0 +1,3 @@
+# testInterfaceAsType
+1| type Query             |   apple: Eatable           |   Eatable should be mapped to a type in Query
+2| type Eatable           |   color: String            |   Eatable should be mapped to a type

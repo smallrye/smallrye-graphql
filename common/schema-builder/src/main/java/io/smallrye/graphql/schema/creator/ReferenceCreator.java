@@ -177,8 +177,10 @@ public class ReferenceCreator {
         // we figure out this is actually an enum or interface
         ReferenceType referenceType = getCorrectReferenceType(direction);
 
+        Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
+
         // Now check if this is an interface or enum
-        if (Classes.isInterface(classInfo)) {
+        if (isInterface(classInfo, annotationsForClass)) {
             // Also check that we create all implementations
             Collection<ClassInfo> knownDirectImplementors = ScanningContext.getIndex()
                     .getAllKnownImplementors(classInfo.name());
@@ -218,7 +220,7 @@ public class ReferenceCreator {
 
         // Now we should have the correct reference type.
         String className = classInfo.name().toString();
-        Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
+
         String name = TypeNameHelper.getAnyTypeName(
                 addParametrizedTypeNameExtension
                         ? TypeNameHelper.createParametrizedTypeNameExtension(parametrizedTypeArgumentsReferences)
@@ -239,6 +241,18 @@ public class ReferenceCreator {
             putIfAbsent(name, reference, referenceType);
         }
         return reference;
+    }
+
+    private boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
+        boolean isJavaInterface = Classes.isInterface(classInfo);
+        if (isJavaInterface) {
+            if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.TYPE, Annotations.INPUT)) {
+                // This should be mapped to a type/input and not an interface
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations) {

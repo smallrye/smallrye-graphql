@@ -22,6 +22,7 @@ import io.smallrye.graphql.test.apps.exceptionlist.ExceptionListApi;
 import io.smallrye.graphql.test.apps.fieldexistence.api.FieldExistenceApi;
 import io.smallrye.graphql.test.apps.generics.api.ControllerWithGenerics;
 import io.smallrye.graphql.test.apps.grouping.api.BookGraphQLApi;
+import io.smallrye.graphql.test.apps.interfaces.api.FoodResource;
 import io.smallrye.graphql.test.apps.jsonp.api.JsonPApi;
 import io.smallrye.graphql.test.apps.mapping.api.MappingResource;
 import io.smallrye.graphql.test.apps.mutiny.api.MutinyApi;
@@ -99,7 +100,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(CreatorApi.class.getPackage());
             war.addPackage(EnumListApi.class.getPackage());
             war.addPackage(ExceptionListApi.class.getPackage());
-
+            war.addPackage(FoodResource.class.getPackage());
         }
     }
 }
