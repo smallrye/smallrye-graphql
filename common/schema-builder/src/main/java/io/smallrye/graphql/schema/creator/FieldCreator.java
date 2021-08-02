@@ -8,6 +8,7 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -278,7 +279,8 @@ public class FieldCreator {
     }
 
     private static Type getFieldType(FieldInfo fieldInfo, Type defaultType) {
-        if (fieldInfo == null) {
+        if (fieldInfo == null || fieldInfo.type().name().equals(Classes.SERIALIZABLE)
+                || fieldInfo.type().name().equals(Classes.OBJECT)) {
             return defaultType;
         }
         return fieldInfo.type();

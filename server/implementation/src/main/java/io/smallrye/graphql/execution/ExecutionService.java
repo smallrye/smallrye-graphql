@@ -2,7 +2,10 @@ package io.smallrye.graphql.execution;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
