@@ -28,7 +28,7 @@ public class CollectionResource {
         return ss;
     }
 
-    private static class MySortableType implements Comparable<MySortableType> {
+    public static class MySortableType implements Comparable<MySortableType> {
         private final int value;
         private final int hashCode;
 
@@ -43,8 +43,10 @@ public class CollectionResource {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             MySortableType that = (MySortableType) o;
             return value == that.value;
         }
