@@ -15,53 +15,49 @@ public class CollectionResource {
 
         SortedSet<MySortableType> ss = new TreeSet<>();
 
-        ss.add(new MySortableType(6, 333L));
-        ss.add(new MySortableType(3, 333L));
-        ss.add(new MySortableType(4, 999L));
-        ss.add(new MySortableType(8, 666L));
-        ss.add(new MySortableType(1, 999L));
-        ss.add(new MySortableType(7, 999L));
-        ss.add(new MySortableType(2, 666L));
-        ss.add(new MySortableType(5, 666L));
-        ss.add(new MySortableType(9, 333L));
+        ss.add(new MySortableType(6, 333));
+        ss.add(new MySortableType(3, 333));
+        ss.add(new MySortableType(4, 999));
+        ss.add(new MySortableType(8, 666));
+        ss.add(new MySortableType(1, 999));
+        ss.add(new MySortableType(7, 999));
+        ss.add(new MySortableType(2, 666));
+        ss.add(new MySortableType(5, 666));
+        ss.add(new MySortableType(9, 333));
 
         return ss;
     }
 
-    public class MySortableType implements Comparable<MySortableType> {
+    private static class MySortableType implements Comparable<MySortableType> {
+        private final int value;
+        private final int hashCode;
 
-        private Integer id;
-        private Long anotherNumber;
-
-        public MySortableType() {
+        public MySortableType(final int value, final int hashCode) {
+            this.value = value;
+            this.hashCode = hashCode;
         }
 
-        public MySortableType(int id, Long anotherNumber) {
-            this.id = id;
-            this.anotherNumber = anotherNumber;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public Long getAnotherNumber() {
-            return anotherNumber;
-        }
-
-        public void setAnotherNumber(Long anotherNumber) {
-            this.anotherNumber = anotherNumber;
+        public int getValue() {
+            return value;
         }
 
         @Override
-        public int compareTo(MySortableType t) {
-            return this.id.compareTo(t.id);
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MySortableType that = (MySortableType) o;
+            return value == that.value;
         }
 
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        @Override
+        public int compareTo(final MySortableType other) {
+            return Integer.compare(value, other.value);
+        }
     }
 
 }
