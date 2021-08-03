@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonException;
 import javax.json.JsonObject;
 import javax.json.JsonPatch;
 import javax.json.JsonPointer;
@@ -72,12 +73,23 @@ public class ResultBuilder {
         if (data == null || path == null)
             return false;
         JsonPointer pointer = Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
+        if (!exists(pointer))
+            return false;
         JsonArrayBuilder errors = Json.createArrayBuilder();
         if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
             pointer.getValue(data).asJsonArray().forEach(errors::add);
         errors.add(ERROR_MARK.apply((JsonObject) error));
         this.data = pointer.replace(data, errors.build());
         return true;
+    }
+
+    private boolean exists(JsonPointer pointer) {
+        try {
+            pointer.containsValue(data);
+            return true;
+        } catch (JsonException e) {
+            return false;
+        }
     }
 
     private GraphQLClientError convert(JsonValue jsonValue) {
