@@ -310,21 +310,25 @@ public class FieldCreator {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
                 Annotations.QUERY,
-                Annotations.JSONB_PROPERTY)
+                Annotations.JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
                         Annotations.QUERY,
-                        Annotations.JSONB_PROPERTY)
+                        Annotations.JSONB_PROPERTY,
+                        Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.OUT, fieldName)));
     }
 
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
-                Annotations.JSONB_PROPERTY)
+                Annotations.JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
-                        Annotations.JSONB_PROPERTY)
+                        Annotations.JSONB_PROPERTY,
+                        Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.IN, fieldName)));
     }
 }

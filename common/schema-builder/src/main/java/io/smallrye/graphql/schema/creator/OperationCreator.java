@@ -111,7 +111,8 @@ public class OperationCreator {
         return annotations.getOneOfTheseMethodAnnotationsValue(
                 operationAnnotation,
                 Annotations.NAME,
-                Annotations.JSONB_PROPERTY)
+                Annotations.JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
                 .orElse(getDefaultExecutionTypeName(methodInfo, operationType));
 
     }

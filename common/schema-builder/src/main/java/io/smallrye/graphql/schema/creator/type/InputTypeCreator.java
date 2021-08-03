@@ -90,7 +90,8 @@ public class InputTypeCreator implements Creator<InputType> {
             if (constructor.parameters().isEmpty()) {
                 return constructor;
             }
-            if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)) {
+            if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)
+                    || constructor.hasAnnotation(Annotations.JACKSON_CREATOR)) {
                 return constructor;
             }
         }
@@ -101,7 +102,8 @@ public class InputTypeCreator implements Creator<InputType> {
             if (!Modifier.isPublic(factoryMethod.flags()))
                 continue;
 
-            if (factoryMethod.hasAnnotation(Annotations.JSONB_CREATOR)) {
+            if (factoryMethod.hasAnnotation(Annotations.JSONB_CREATOR)
+                    || factoryMethod.hasAnnotation(Annotations.JACKSON_CREATOR)) {
                 return factoryMethod;
             }
         }
