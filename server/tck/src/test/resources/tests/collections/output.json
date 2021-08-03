@@ -2,40 +2,31 @@
   "data": {
     "sortedValues": [
       {
-        "id": 1,
-        "anotherNumber": 999
+        "value": 1
       },
       {
-        "id": 2,
-        "anotherNumber": 666
+        "value": 2
       },
       {
-        "id": 3,
-        "anotherNumber": 333
+        "value": 3
       },
       {
-        "id": 4,
-        "anotherNumber": 999
+        "value": 4
       },
       {
-        "id": 5,
-        "anotherNumber": 666
+        "value": 5
       },
       {
-        "id": 6,
-        "anotherNumber": 333
+        "value": 6
       },
       {
-        "id": 7,
-        "anotherNumber": 999
+        "value": 7
       },
       {
-        "id": 8,
-        "anotherNumber": 666
+        "value": 8
       },
       {
-        "id": 9,
-        "anotherNumber": 333
+        "value": 9
       }
     ]
   }
