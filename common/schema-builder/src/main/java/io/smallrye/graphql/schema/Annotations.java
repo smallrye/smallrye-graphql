@@ -497,11 +497,15 @@ public class Annotations {
     public static final DotName JSONB_TRANSIENT = DotName.createSimple("javax.json.bind.annotation.JsonbTransient");
     public static final DotName JSONB_CREATOR = DotName.createSimple("javax.json.bind.annotation.JsonbCreator");
 
+    // Jackson Annotations
+    public static final DotName JACKSON_IGNORE = DotName.createSimple("com.fasterxml.jackson.annotation.JsonIgnore");
+    public static final DotName JACKSON_PROPERTY = DotName.createSimple("com.fasterxml.jackson.annotation.JsonProperty");
+    public static final DotName JACKSON_CREATOR = DotName.createSimple("com.fasterxml.jackson.annotation.JsonCreator");
+    public static final DotName JACKSON_FORMAT = DotName.createSimple("com.fasterxml.jackson.annotation.JsonFormat");
+
     // Bean Validation Annotations (SmallRye extra, not part of the spec)
     public static final DotName BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
-
-    // TODO: Also support OpenAPI Schema ??
 
 }

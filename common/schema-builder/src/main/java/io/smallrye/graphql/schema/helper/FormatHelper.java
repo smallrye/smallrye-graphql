@@ -122,6 +122,9 @@ public class FormatHelper {
     private static Optional<Transformation> getDateFormat(AnnotationInstance annotationInstance) {
         if (annotationInstance != null) {
             String format = getStringValue(annotationInstance);
+            if (format == null || format.isEmpty()) {
+                format = getStringValue(annotationInstance, "pattern");
+            }
             String locale = getStringValue(annotationInstance, LOCALE);
             return Optional.of(new Transformation(
                     Transformation.Type.DATE,
@@ -137,7 +140,8 @@ public class FormatHelper {
     }
 
     private static Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {
-        return annotations.getOneOfTheseAnnotations(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT);
+        return annotations.getOneOfTheseAnnotations(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT,
+                Annotations.JACKSON_FORMAT);
     }
 
     private static Optional<AnnotationInstance> getNumberFormatAnnotation(Annotations annotations) {
