@@ -458,6 +458,34 @@ class ErrorBehavior {
         then(error.getErrorCode()).isEqualTo("team-search-disabled");
     }
 
+    @Test
+    void shouldFetchErrorOrWithNullInPath() {
+        fixture.returns("{" +
+                "\"data\":{\"teams\":null}," +
+                "\"errors\":[{" +
+                /**/"\"message\":\"can't get team name\"," +
+                /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
+                /**/"\"path\": [\"teams\",\"name\"],\n" +
+                /**/"\"extensions\":{" +
+                /**//**/"\"code\":\"team-name-disabled\"}" +
+                "}]}}");
+        SuperHeroApi api = fixture.build(SuperHeroApi.class);
+
+        GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
+
+        then(fixture.query()).isEqualTo("query teams { teams {name} }");
+        then(throwable).hasMessage("errors from service");
+        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
+                "errors:\n" +
+                "- team-name-disabled: [teams, name] can't get team name [(1:2@loc)] {code=team-name-disabled})");
+        then(throwable.getErrors()).hasSize(1);
+        GraphQLClientError error = throwable.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("can't get team name");
+        then(error.getPath()).containsExactly("teams", "name");
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        then(error.getErrorCode()).isEqualTo("team-name-disabled");
+    }
+
     static class Wrapper {
         @Name("findHeroes")
         List<ErrorOr<SuperHero>> superHeroes;
