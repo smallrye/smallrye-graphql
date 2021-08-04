@@ -86,7 +86,7 @@ public class GraphQLScalarTypes {
 
     private static void mapType(AbstractScalar abstractScalar) {
         for (Class c : abstractScalar.getSupportedClasses()) {
-            SCALAR_MAP.put(c.getName(), abstractScalar);
+            SCALAR_MAP.put(c.getName(), abstractScalar.getScalarType());
         }
     }
 }

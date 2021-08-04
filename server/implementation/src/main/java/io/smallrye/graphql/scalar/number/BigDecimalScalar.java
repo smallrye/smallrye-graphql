@@ -3,8 +3,6 @@ package io.smallrye.graphql.scalar.number;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import graphql.Scalars;
-
 /**
  * Scalar for BigDecimal.
  * Based on graphql-java's Scalars.GraphQLBigDecimal
@@ -15,7 +13,7 @@ public class BigDecimalScalar extends AbstractNumberScalar {
 
     public BigDecimalScalar() {
 
-        super(Scalars.GraphQLBigDecimal.getName(),
+        super("BigDecimal",
                 new Converter() {
                     @Override
                     public Object fromBigDecimal(BigDecimal bigDecimal) {
