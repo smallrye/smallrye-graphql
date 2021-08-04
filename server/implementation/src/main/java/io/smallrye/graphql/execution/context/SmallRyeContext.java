@@ -25,6 +25,7 @@ import graphql.language.Document;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
@@ -281,8 +282,14 @@ public class SmallRyeContext implements Context {
     }
 
     private boolean isScalar(SelectedField field) {
-        GraphQLType graphQLType = unwrapGraphQLType(field.getFieldDefinition().getType());
-        return isScalar(graphQLType);
+        List<GraphQLFieldDefinition> fieldDefinitions = field.getFieldDefinitions();
+        for (GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+            GraphQLType graphQLType = unwrapGraphQLType(fieldDefinition.getType());
+            if (isScalar(graphQLType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isScalar(GraphQLType gqlt) {

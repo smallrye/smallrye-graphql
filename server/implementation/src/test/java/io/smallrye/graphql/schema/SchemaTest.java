@@ -67,7 +67,7 @@ class SchemaTest {
         assertEquals("intArrayTestDirective", intArrayTestDirective.getName());
         GraphQLArgument argument = intArrayTestDirective.getArgument("value");
         assertEquals("value", argument.getName());
-        assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getValue());
+        assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getArgumentValue().getValue());
 
         GraphQLFieldDefinition valueField = testTypeWithDirectives.getFieldDefinition("value");
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
