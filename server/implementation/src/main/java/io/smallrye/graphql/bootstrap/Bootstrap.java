@@ -605,7 +605,9 @@ public class Bootstrap {
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
 
         // Default value (on method)
-        inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
+        if (field.hasDefaultValue()) {
+            inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
+        }
 
         return inputFieldBuilder.build();
     }
@@ -734,8 +736,11 @@ public class Bootstrap {
     private GraphQLArgument createGraphQLArgument(Argument argument) {
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                 .name(argument.getName())
-                .description(argument.getDescription())
-                .defaultValue(sanitizeDefaultValue(argument));
+                .description(argument.getDescription());
+
+        if (argument.hasDefaultValue()) {
+            argumentBuilder = argumentBuilder.defaultValue(sanitizeDefaultValue(argument));
+        }
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
