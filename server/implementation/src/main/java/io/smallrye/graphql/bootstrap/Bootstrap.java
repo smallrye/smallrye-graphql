@@ -99,8 +99,12 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
+        return bootstrap(schema, false);
+    }
+
+    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments) {
         if (schema != null && (schema.hasOperations())) {
-            Bootstrap bootstrap = new Bootstrap(schema);
+            Bootstrap bootstrap = new Bootstrap(schema, allowMultipleDeployments);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
         } else {
@@ -109,9 +113,9 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema) {
+    private Bootstrap(Schema schema, boolean allowMultipleDeployments) {
         this.schema = schema;
-        SmallRyeContext.setSchema(schema);
+        SmallRyeContext.setSchema(schema, allowMultipleDeployments);
         if (!Boolean.getBoolean("test.skip.injection.validation")) {
             verifyInjectionIsAvailable();
         }
