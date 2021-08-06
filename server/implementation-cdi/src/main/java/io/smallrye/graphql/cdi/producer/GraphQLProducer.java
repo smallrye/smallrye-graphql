@@ -21,16 +21,24 @@ public class GraphQLProducer {
     }
 
     public GraphQLSchema initialize(Schema schema) {
-        this.schema = schema;
-        return initialize();
+        return initialize(schema, false);
     }
 
-    public GraphQLSchema initialize() {
+    public GraphQLSchema initialize(Schema schema, boolean allowMultipleDeployments) {
+        this.schema = schema;
+        return initialize(allowMultipleDeployments);
+    }
 
-        this.graphQLSchema = Bootstrap.bootstrap(schema);
+    public GraphQLSchema initialize(boolean allowMultipleDeployments) {
+
+        this.graphQLSchema = Bootstrap.bootstrap(schema, allowMultipleDeployments);
         this.executionService = new ExecutionService(graphQLSchema, this.schema.getBatchOperations(),
                 schema.hasSubscriptions());
         return this.graphQLSchema;
+    }
+
+    public GraphQLSchema initialize() {
+        return initialize(false);
     }
 
     @Produces

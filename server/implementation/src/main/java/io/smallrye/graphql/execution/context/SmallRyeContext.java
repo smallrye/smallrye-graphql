@@ -3,11 +3,13 @@ package io.smallrye.graphql.execution.context;
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -45,7 +47,17 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContext implements Context {
-    private static Schema schema;
+
+    // If support for multiple deployments is enabled, schemas stored in this map are keyed by
+    // each application's context class loader. If there is only a single app in this process,
+    // the map will contain only one entry and it will be under a null key
+    // One of the reasons is that Quarkus initializes this class at build time, so keying by
+    // class loader is not possible, because class loader at runtime will be different.
+    // allowMultipleDeployments MUST always be false in native mode.
+    // FIXME: this approach could use some improvements, perhaps we could instead use an application-scoped bean
+    // to separate things belonging to different apps?
+    private static final Map<ClassLoader, Schema> schemas = Collections.synchronizedMap(new WeakHashMap<>());
+    private static volatile boolean allowMultipleDeployments = false;
 
     private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
 
@@ -54,8 +66,18 @@ public class SmallRyeContext implements Context {
         current.set(registry);
     }
 
-    public static void setSchema(Schema schema) {
-        SmallRyeContext.schema = schema;
+    public static void setSchema(Schema schema, boolean allowMultipleDeployments) {
+        if (allowMultipleDeployments) {
+            SmallRyeContext.allowMultipleDeployments = true;
+            schemas.put(Thread.currentThread().getContextClassLoader(), schema);
+        } else {
+            schemas.put(null, schema);
+        }
+    }
+
+    public static Schema getSchema() {
+        ClassLoader key = allowMultipleDeployments ? Thread.currentThread().getContextClassLoader() : null;
+        return schemas.get(key);
     }
 
     public static SmallRyeContext getContext() {
@@ -275,7 +297,7 @@ public class SmallRyeContext implements Context {
 
     private boolean isSourceField(SelectedField selectedField) {
         if (field.getReference().getType().equals(ReferenceType.TYPE)) {
-            Type type = schema.getTypes().get(field.getReference().getName());
+            Type type = getSchema().getTypes().get(field.getReference().getName());
             return type.hasOperation(selectedField.getName());
         }
         return false; // Only Type has source field (for now)
