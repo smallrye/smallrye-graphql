@@ -105,7 +105,9 @@ public class SchemaBuilder {
         Collection<AnnotationInstance> graphQLApiAnnotations = ScanningContext.getIndex()
                 .getAnnotations(Annotations.GRAPHQL_API);
 
-        final Schema schema = new Schema();
+        boolean isFederated =
+            ScanningContext.getIndex().getAnnotations(Annotations.EXTENDS).stream().findFirst().isPresent();
+        final Schema schema = new Schema(isFederated);
 
         addDirectiveTypes(schema);
         setupDirectives(new Directives(schema.getDirectiveTypes()));
