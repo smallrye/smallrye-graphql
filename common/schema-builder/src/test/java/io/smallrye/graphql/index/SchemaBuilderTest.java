@@ -133,6 +133,43 @@ public class SchemaBuilderTest {
         }
     }
 
+    /**
+     * Test a schema which includes a federated directives. The model should indicate that the schema isn't federated.
+     */
+    @Test
+    public void testSchemaWithoutFederatedDirectives() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/app");
+            IndexView index = indexer.complete();
+
+            final Schema schema = SchemaBuilder.build(index);
+
+            Assertions.assertFalse(schema.isFederated());
+        } catch (SchemaBuilderException e) {
+            // ok
+        }
+    }
+
+
+    /**
+     * Test a schema which includes a federated directives. The model should indicate that the schema is federated.
+     */
+    @Test
+    public void testSchemaWithFederatedDirectives() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/federated");
+            IndexView index = indexer.complete();
+
+            final Schema schema = SchemaBuilder.build(index);
+
+            Assertions.assertTrue(schema.isFederated());
+        } catch (SchemaBuilderException e) {
+            // ok
+        }
+    }
+
     @Test
     public void testSchemaWithDirectives() throws IOException {
         Indexer indexer = new Indexer();
