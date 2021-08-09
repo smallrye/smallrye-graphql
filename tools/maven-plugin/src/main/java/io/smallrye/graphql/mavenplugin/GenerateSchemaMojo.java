@@ -35,10 +35,10 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.spi.config.Config;
 
 @Mojo(name = "generate-schema", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class GenerateSchemaMojo extends AbstractMojo {
+    private static MavenConfig mavenConfig;
 
     /**
      * Destination file where to output the schema.
@@ -100,8 +100,16 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.outputDirectory}", property = "classesDir")
     private File classesDir;
 
+    /**
+     * @return the configuration set by the plugin's parameters
+     */
+    public static MavenConfig getMavenConfig() {
+        return mavenConfig;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
+        mavenConfig = new MavenConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
         if (!skip) {
             ClassLoader classLoader = getClassLoader();
             Thread.currentThread().setContextClassLoader(classLoader);
@@ -205,30 +213,33 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     }
 
-    class MavenConfig implements Config {
+    public static class MavenConfig {
+        private final boolean includeScalars;
+        private final boolean includeDirectives;
+        private final boolean includeSchemaDefinition;
+        private final boolean includeIntrospectionTypes;
 
-        @Override
-        public String getName() {
-            return "Maven Config Service";
+        public MavenConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition,
+                boolean includeIntrospectionTypes) {
+            this.includeScalars = includeScalars;
+            this.includeDirectives = includeDirectives;
+            this.includeSchemaDefinition = includeSchemaDefinition;
+            this.includeIntrospectionTypes = includeIntrospectionTypes;
         }
 
-        @Override
-        public boolean isIncludeScalarsInSchema() {
+        public boolean isIncludeScalars() {
             return includeScalars;
         }
 
-        @Override
-        public boolean isIncludeDirectivesInSchema() {
+        public boolean isIncludeDirectives() {
             return includeDirectives;
         }
 
-        @Override
-        public boolean isIncludeSchemaDefinitionInSchema() {
+        public boolean isIncludeSchemaDefinition() {
             return includeSchemaDefinition;
         }
 
-        @Override
-        public boolean isIncludeIntrospectionTypesInSchema() {
+        public boolean isIncludeIntrospectionTypes() {
             return includeIntrospectionTypes;
         }
     }
