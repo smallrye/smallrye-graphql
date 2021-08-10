@@ -68,3 +68,6 @@ client/shade/dependency-reduced-pom.xml
 
 # gradle
 tools/gradle-plugin/.gradle
+
+# testing artifacts
+/tools/maven-plugin-tests/testing-project/log.txt
