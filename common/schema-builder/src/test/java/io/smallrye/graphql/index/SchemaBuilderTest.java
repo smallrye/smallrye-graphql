@@ -134,7 +134,7 @@ public class SchemaBuilderTest {
 
         final Schema schema = SchemaBuilder.build(index);
 
-        Assertions.assertFalse(schema.isFederated());
+        assertFalse(schema.isFederated());
     }
 
     /**
@@ -148,7 +148,7 @@ public class SchemaBuilderTest {
 
         final Schema schema = SchemaBuilder.build(index);
 
-        Assertions.assertTrue(schema.isFederated());
+        assertTrue(schema.isFederated());
     }
 
     @Test
