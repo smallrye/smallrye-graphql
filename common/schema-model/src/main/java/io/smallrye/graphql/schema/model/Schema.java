@@ -17,7 +17,7 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
-    private final boolean isFederated;
+    private boolean isFederated = false;
     private Set<Operation> queries = new HashSet<>();
     private Set<Operation> mutations = new HashSet<>();
     private Set<Operation> subscriptions = new HashSet<>();
@@ -36,11 +36,9 @@ public final class Schema implements Serializable {
 
     /**
      * Constructor
-     * 
-     * @param isFederated indicates if the schema is a federated schema
+     *
      */
-    public Schema(boolean isFederated) {
-        this.isFederated = isFederated;
+    public Schema() {
     }
 
     public Set<Operation> getQueries() {
@@ -281,6 +279,15 @@ public final class Schema implements Serializable {
 
     public boolean hasDirectiveTypes() {
         return !directiveTypes.isEmpty();
+    }
+
+    /**
+     * Sets whether the schema includes Graph QL federated directives or not
+     * 
+     * @param federated true if it includes federated directives, otherwise false
+     */
+    public void setFederated(boolean federated) {
+        isFederated = federated;
     }
 
     /**
