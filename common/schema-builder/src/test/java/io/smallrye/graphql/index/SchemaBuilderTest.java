@@ -4,9 +4,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.*;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,16 +18,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import io.smallrye.graphql.index.app.SomeDirective;
-import io.smallrye.graphql.schema.SchemaBuilder;
-import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.model.*;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
+
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.index.app.SomeDirective;
+import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.model.*;
 
 /**
  * Test the model creation
