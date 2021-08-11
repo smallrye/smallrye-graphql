@@ -2,12 +2,11 @@ package io.smallrye.graphql.index;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,25 +21,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-
+import io.smallrye.graphql.index.app.SomeDirective;
+import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.model.*;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import io.smallrye.graphql.index.app.SomeDirective;
-import io.smallrye.graphql.schema.SchemaBuilder;
-import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.model.DirectiveInstance;
-import io.smallrye.graphql.schema.model.DirectiveType;
-import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Test the model creation
@@ -138,17 +128,13 @@ public class SchemaBuilderTest {
      */
     @Test
     public void testSchemaWithoutFederatedDirectives() {
-        try {
-            Indexer indexer = new Indexer();
-            indexDirectory(indexer, "io/smallrye/graphql/index/app");
-            IndexView index = indexer.complete();
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/app");
+        IndexView index = indexer.complete();
 
-            final Schema schema = SchemaBuilder.build(index);
+        final Schema schema = SchemaBuilder.build(index);
 
-            Assertions.assertFalse(schema.isFederated());
-        } catch (SchemaBuilderException e) {
-            // ok
-        }
+        Assertions.assertFalse(schema.isFederated());
     }
 
     /**
@@ -156,17 +142,13 @@ public class SchemaBuilderTest {
      */
     @Test
     public void testSchemaWithFederatedDirectives() {
-        try {
-            Indexer indexer = new Indexer();
-            indexDirectory(indexer, "io/smallrye/graphql/index/federated");
-            IndexView index = indexer.complete();
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/federated");
+        IndexView index = indexer.complete();
 
-            final Schema schema = SchemaBuilder.build(index);
+        final Schema schema = SchemaBuilder.build(index);
 
-            Assertions.assertTrue(schema.isFederated());
-        } catch (SchemaBuilderException e) {
-            // ok
-        }
+        Assertions.assertTrue(schema.isFederated());
     }
 
     @Test
