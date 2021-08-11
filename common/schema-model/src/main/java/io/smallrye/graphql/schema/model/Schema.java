@@ -34,9 +34,9 @@ public final class Schema implements Serializable {
 
     private Map<String, ErrorInfo> errors = new HashMap<>();
 
-
     /**
      * Constructor
+     * 
      * @param isFederated indicates if the schema is a federated schema
      */
     public Schema(boolean isFederated) {

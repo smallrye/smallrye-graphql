@@ -151,7 +151,6 @@ public class SchemaBuilderTest {
         }
     }
 
-
     /**
      * Test a schema which includes a federated directives. The model should indicate that the schema is federated.
      */

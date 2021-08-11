@@ -48,11 +48,6 @@
             <artifactId>smallrye-graphql-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.smallrye</groupId>
-            <artifactId>smallrye-graphql-federation-api</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

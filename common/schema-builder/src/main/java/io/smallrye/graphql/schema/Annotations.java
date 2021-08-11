@@ -491,7 +491,7 @@ public class Annotations {
     public static final DotName SOURCE = DotName.createSimple("org.eclipse.microprofile.graphql.Source");
 
     // Schema Federation Annotations
-    public static final DotName EXTENDS = DotName.createSimple("io.smallrye.graphql.federation.api.Extends");
+    public static final DotName EXTENDS = DotName.createSimple("io.smallrye.graphql.api.federation.Extends");
 
     // Json-B Annotations
     public static final DotName JSONB_DATE_FORMAT = DotName.createSimple("javax.json.bind.annotation.JsonbDateFormat");
