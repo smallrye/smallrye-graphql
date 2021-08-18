@@ -185,7 +185,9 @@ public final class Schema implements Serializable {
     }
 
     public void addInterface(Type interfaceType) {
-        this.interfaces.put(interfaceType.getName(), interfaceType);
+        if (interfaceType.getFields() != null && !interfaceType.getFields().isEmpty()) {
+            this.interfaces.put(interfaceType.getName(), interfaceType);
+        }
     }
 
     public boolean containsInterface(String name) {

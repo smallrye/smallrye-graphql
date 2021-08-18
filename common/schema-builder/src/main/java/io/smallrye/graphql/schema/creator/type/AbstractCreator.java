@@ -52,7 +52,7 @@ abstract class AbstractCreator implements Creator<Type> {
 
     @Override
     public Type create(ClassInfo classInfo, Reference reference) {
-        LOG.debug("Creating Interface from " + classInfo.name().toString());
+        LOG.debug("Creating from " + classInfo.name().toString());
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
