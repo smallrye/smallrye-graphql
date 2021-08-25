@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.dynamic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -15,10 +16,12 @@ public class ResponseImpl implements Response {
 
     private final JsonObject data;
     private final List<Error> errors;
+    private List<Map.Entry<String, String>> headers;
 
-    public ResponseImpl(JsonObject data, List<Error> errors) {
+    public ResponseImpl(JsonObject data, List<Error> errors, List<Map.Entry<String, String>> headers) {
         this.data = data;
         this.errors = errors;
+        this.headers = headers;
     }
 
     public <T> T getObject(Class<T> dataType, String rootField) {
@@ -63,4 +66,7 @@ public class ResponseImpl implements Response {
         return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + '}';
     }
 
+    public List<Map.Entry<String, String>> getHeaders(){
+        return new ArrayList<>(headers);
+    }
 }

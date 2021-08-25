@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.dynamic.vertx;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -95,7 +96,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 .toCompletionStage()
                 .toCompletableFuture()
                 .get();
-        return ResponseReader.readFrom(result.bodyAsString());
+        return ResponseReader.readFrom(result.bodyAsString(), result.headers().entries());
     }
 
     @Override
@@ -149,7 +150,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                         .putHeaders(headers)
                         .sendBuffer(buffer)
                         .toCompletionStage())
-                .map(response -> ResponseReader.readFrom(response.bodyAsString()));
+                .map(response -> ResponseReader.readFrom(response.bodyAsString(), response.headers().entries()));
     }
 
     @Override
@@ -206,7 +207,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                             WebSocket socket = result.result();
                             socket.writeTextMessage(requestJson);
                             socket.handler(message -> {
-                                e.emit(ResponseReader.readFrom(message.toString()));
+                                e.emit(ResponseReader.readFrom(message.toString(), Collections.emptyList()));
                             });
                             socket.closeHandler((v) -> {
                                 e.complete();
