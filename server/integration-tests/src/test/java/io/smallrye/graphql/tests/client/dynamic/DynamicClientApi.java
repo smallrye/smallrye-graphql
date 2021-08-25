@@ -37,6 +37,13 @@ public class DynamicClientApi {
     }
 
     @Query
+    public Dummy queryWithArgument2(@Name(value = "obj") DummyObject obj) {
+        Dummy ret = new Dummy();
+        ret.setDummyObject(obj);
+        return ret;
+    }
+
+    @Query
     public Dummy withRenamedField() {
         Dummy ret = new Dummy();
         ret.setRenamedField("foo");

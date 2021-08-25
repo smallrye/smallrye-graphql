@@ -4,11 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import javax.json.*;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
 
 import io.smallrye.graphql.client.Request;
+import org.eclipse.yasson.internal.JsonBinding;
 
 public class RequestImpl implements Request {
 
@@ -41,6 +42,14 @@ public class RequestImpl implements Request {
                 varBuilder.add(k, (String) v);
             } else if (v instanceof Integer) {
                 varBuilder.add(k, (Integer) v);
+            } else if (v instanceof JsonValue) {
+                varBuilder.add(k, (JsonValue) v);
+            } else {
+                try (Jsonb jsonb = JsonbBuilder.create()) {
+                    JsonStructure struct = ((JsonBinding) jsonb).toJsonStructure(v);
+                    varBuilder.add(k, struct);
+                } catch (Exception ignore) {
+                }
             }
         });
 
