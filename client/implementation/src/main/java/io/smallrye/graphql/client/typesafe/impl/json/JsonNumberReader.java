@@ -41,7 +41,7 @@ class JsonNumberReader extends Reader<JsonNumber> {
             return value.doubleValue();
         if (BigInteger.class.equals(rawType))
             return value.bigIntegerValueExact();
-        if (BigDecimal.class.equals(rawType))
+        if (BigDecimal.class.equals(rawType) || Object.class.equals(rawType))
             return value.bigDecimalValue();
 
         throw new GraphQLClientValueException(location, value);
