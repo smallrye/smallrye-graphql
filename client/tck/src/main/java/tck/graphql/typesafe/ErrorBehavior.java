@@ -602,12 +602,14 @@ class ErrorBehavior {
 
         GraphQLClientException throwable = catchThrowableOfType(() -> api.order("o1"), GraphQLClientException.class);
 
-        then(fixture.query()).isEqualTo("query order($id: String!) { order(id: $id) {id orderDate items {product {id name}}} }");
+        then(fixture.query())
+                .isEqualTo("query order($id: String!) { order(id: $id) {id orderDate items {product {id name}}} }");
         then(fixture.variables()).isEqualTo("{'id':'o1'}");
         then(throwable).hasMessage("errors from service (and we can't apply them to a " + Product.class.getName()
                 + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)");
         then(throwable).hasToString("GraphQlClientException: errors from service (and we can't apply them to a " +
-                Product.class.getName() + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)\n" +
+                Product.class.getName()
+                + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)\n" +
                 "errors:\n" +
                 "- [order, items, 0, product] System error [(1:84)])");
         then(throwable.getErrors()).hasSize(1);
