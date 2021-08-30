@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-parent</artifactId>
-        <version>30</version>
+        <version>31</version>
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
@@ -29,7 +29,7 @@
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>1.0.8</version.yasson>
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
-        <version.graphql-java>17.1</version.graphql-java>
+        <version.graphql-java>17.2</version.graphql-java>
         <verison.io.micrometer>1.7.3</verison.io.micrometer>
         <version.vertx>4.1.2</version.vertx>
 
@@ -39,7 +39,7 @@
         <version.smallrye-opentracing>2.0.1</version.smallrye-opentracing>
         <version.hibernate-validator>6.2.0.Final</version.hibernate-validator>
         <version.glasfish-el>3.0.3</version.glasfish-el>
-        <version.mockito>3.12.3</version.mockito>
+        <version.mockito>3.12.4</version.mockito>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
