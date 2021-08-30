@@ -3,16 +3,16 @@ package io.smallrye.graphql.client;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.json.JsonNumber;
 
 import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.dynamic.ResponseImpl;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class ResponseReaderTest {
 
@@ -24,7 +24,7 @@ public class ResponseReaderTest {
                 "\"somethingExtra\": 123456," +
                 "\"extensions\": {\"code\":\"GRAPHQL_VALIDATION_FAILED\"}}]}";
 
-        List<Map.Entry<String, String>> headers=new ArrayList<>();
+        List<Map.Entry<String, String>> headers = new ArrayList<>();
         headers.add(MapEntry.entry("Cookie", "myCookie"));
         ResponseImpl response = ResponseReader.readFrom(responseString, headers);
 
@@ -35,7 +35,7 @@ public class ResponseReaderTest {
         assertEquals(1, theError.getLocations().get(0).get("line"));
         assertEquals(30, theError.getLocations().get(0).get("column"));
         assertArrayEquals(new Object[] { 1, 2, 3, "asd" }, theError.getPath());
-        assertEquals(response.getHeaders().get(0).getKey(), "Cookie");
-        assertEquals(response.getHeaders().get(0).getValue(), "myCookie");
+        assertEquals(response.getHeaders().entries().get(0).getKey(), "Cookie");
+        assertEquals(response.getHeaders().entries().get(0).getValue(), "myCookie");
     }
 }

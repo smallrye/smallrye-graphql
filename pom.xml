@@ -207,7 +207,12 @@
                 <artifactId>vertx-web-client</artifactId>
                 <version>${version.vertx}</version>
             </dependency>
-            
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-core</artifactId>
+                <version>${version.vertx}</version>
+            </dependency>
+
             <!-- Dependencies provided by the project -->
             <dependency>
                 <groupId>${project.groupId}</groupId>
