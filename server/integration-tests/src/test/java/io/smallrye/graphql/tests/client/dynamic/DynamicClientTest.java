@@ -46,7 +46,7 @@ public class DynamicClientTest {
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "validation-test.war")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-                .addClasses(DynamicClientApi.class, Dummy.class);
+                .addClasses(DynamicClientApi.class, DummyObject.class, Dummy.class);
     }
 
     @ArquillianResource
@@ -105,6 +105,17 @@ public class DynamicClientTest {
                 .executeSync("query($x:Int) {queryWithArgument(number: $x){integer}}", vars)
                 .getData();
         assertEquals(67, data.getJsonObject("queryWithArgument").getInt("integer"));
+    }
+
+    @Test
+    public void testStringQueryWithObject() throws ExecutionException, InterruptedException {
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("x", new DummyObject("a", "b"));
+        JsonObject data = client
+                .executeSync("query($x: DummyObjectInput) {queryWithArgument2(obj: $x){dummyObject{a}}}", vars)
+                .getData();
+        System.out.println(data);
+        assertEquals("a", data.getJsonObject("queryWithArgument2").getJsonObject("dummyObject").getString("a"));
     }
 
     @Test

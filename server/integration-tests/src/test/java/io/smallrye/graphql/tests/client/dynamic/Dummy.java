@@ -4,6 +4,8 @@ import org.eclipse.microprofile.graphql.Name;
 
 public class Dummy {
 
+    private DummyObject dummyObject;
+
     private String string;
 
     private Integer integer;
@@ -33,5 +35,13 @@ public class Dummy {
 
     public void setRenamedField(String renamedField) {
         this.renamedField = renamedField;
+    }
+
+    public DummyObject getDummyObject() {
+        return dummyObject;
+    }
+
+    public void setDummyObject(DummyObject dummyObject) {
+        this.dummyObject = dummyObject;
     }
 }
