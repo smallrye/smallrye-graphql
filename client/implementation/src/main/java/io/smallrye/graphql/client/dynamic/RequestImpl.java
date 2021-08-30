@@ -8,8 +8,9 @@ import javax.json.*;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 
-import io.smallrye.graphql.client.Request;
 import org.eclipse.yasson.internal.JsonBinding;
+
+import io.smallrye.graphql.client.Request;
 
 public class RequestImpl implements Request {
 
