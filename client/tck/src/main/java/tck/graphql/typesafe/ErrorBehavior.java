@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
@@ -555,5 +557,66 @@ class ErrorBehavior {
         then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
         then(error.getPath()).containsExactly("find", "teams");
         then(error.getErrorCode()).isEqualTo("team-search-disabled");
+    }
+
+    interface OrderApi {
+        @SuppressWarnings("UnusedReturnValue")
+        Order order(@NonNull String id);
+    }
+
+    @SuppressWarnings("unused")
+    public static class Order {
+        public String id;
+        public String orderDate;
+        public List<OrderItem> items;
+    }
+
+    public static class OrderItem {
+        @SuppressWarnings("unused")
+        public Product product;
+    }
+
+    public static class Product {
+        @SuppressWarnings("unused")
+        public String id;
+        public String name;
+    }
+
+    @Test
+    void shouldFetchComplexError() {
+        fixture.returns("{\"errors\":[" +
+                "{" +
+                "\"message\":\"System error\"," +
+                "\"locations\":[{\"line\":1,\"column\":84}]," +
+                "\"path\":[\"order\",\"items\",0,\"product\"]" +
+                "}" +
+                "]," +
+                "\"data\":{" +
+                "\"order\":{" +
+                "\"id\":\"o1\"," +
+                "\"items\":[" +
+                "{\"product\":null}," +
+                "{\"product\":null}" +
+                "]}}}");
+        OrderApi api = fixture.build(OrderApi.class);
+
+        GraphQLClientException throwable = catchThrowableOfType(() -> api.order("o1"), GraphQLClientException.class);
+
+        then(fixture.query())
+                .isEqualTo("query order($id: String!) { order(id: $id) {id orderDate items {product {id name}}} }");
+        then(fixture.variables()).isEqualTo("{'id':'o1'}");
+        then(throwable).hasMessage("errors from service (and we can't apply them to a " + Product.class.getName()
+                + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)");
+        then(throwable).hasToString("GraphQlClientException: errors from service (and we can't apply them to a " +
+                Product.class.getName()
+                + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)\n" +
+                "errors:\n" +
+                "- [order, items, 0, product] System error [(1:84)])");
+        then(throwable.getErrors()).hasSize(1);
+        GraphQLClientError error = throwable.getErrors().get(0);
+        then(error.getMessage()).isEqualTo("System error");
+        then(error.getPath()).containsExactly("order", "items", BigDecimal.ZERO, "product");
+        then(error.getLocations()).containsExactly(new SourceLocation(1, 84, null));
+        then(error.getErrorCode()).isNull();
     }
 }
