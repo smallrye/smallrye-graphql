@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.dynamic;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +70,11 @@ public class ErrorImpl implements Error {
 
     @Override
     public String toString() {
-        return "GraphQLError{" + "message=" + message + ", locations=" + locations + ", path=" + path + ", extensions="
-                + extensions + '}';
+        String other = otherFields.isEmpty() ? "" : ", otherFields=" + otherFields;
+        return "GraphQLError{message=" + message +
+                ", locations=" + locations +
+                ", path=" + Arrays.toString(path) +
+                ", extensions=" + extensions +
+                other + '}';
     }
 }
