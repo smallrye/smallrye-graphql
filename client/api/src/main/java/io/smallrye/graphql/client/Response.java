@@ -1,10 +1,9 @@
 package io.smallrye.graphql.client;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.json.JsonObject;
-
-import io.vertx.core.MultiMap;
 
 public interface Response {
 
@@ -20,5 +19,5 @@ public interface Response {
 
     boolean hasError();
 
-    MultiMap getHeaders();
+    List<Map.Entry<String, String>> getHeaders();
 }

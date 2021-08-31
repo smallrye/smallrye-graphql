@@ -35,7 +35,7 @@ public class ResponseReaderTest {
         assertEquals(1, theError.getLocations().get(0).get("line"));
         assertEquals(30, theError.getLocations().get(0).get("column"));
         assertArrayEquals(new Object[] { 1, 2, 3, "asd" }, theError.getPath());
-        assertEquals(response.getHeaders().entries().get(0).getKey(), "Cookie");
-        assertEquals(response.getHeaders().entries().get(0).getValue(), "myCookie");
+        assertEquals(response.getHeaders().get(0).getKey(), "Cookie");
+        assertEquals(response.getHeaders().get(0).getValue(), "myCookie");
     }
 }
