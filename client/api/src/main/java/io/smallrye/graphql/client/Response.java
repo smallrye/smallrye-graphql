@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.json.JsonObject;
 
@@ -17,4 +18,6 @@ public interface Response {
     boolean hasData();
 
     boolean hasError();
+
+    List<Map.Entry<String, String>> getHeaders();
 }

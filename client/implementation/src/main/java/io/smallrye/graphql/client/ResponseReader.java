@@ -21,7 +21,7 @@ import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientMessages;
 
 public class ResponseReader {
 
-    public static ResponseImpl readFrom(String input) {
+    public static ResponseImpl readFrom(String input, List<Map.Entry<String, String>> headers) {
         JsonReader jsonReader = Json.createReader(new StringReader(input));
         JsonObject jsonResponse;
         try {
@@ -126,6 +126,6 @@ public class ResponseReader {
             }
         }
 
-        return new ResponseImpl(data, errors);
+        return new ResponseImpl(data, errors, headers);
     }
 }
