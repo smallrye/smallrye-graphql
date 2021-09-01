@@ -10,7 +10,6 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
 
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.GraphQLClientsConfiguration;
@@ -22,12 +21,12 @@ public class NamedDynamicClients {
 
     private final String DEFAULT_CLIENT_NAME = "default";
 
-    @Inject
     GraphQLClientsConfiguration globalConfig;
 
     @PostConstruct
     void initialize() {
         createdClients = new HashMap<>();
+        globalConfig = GraphQLClientsConfiguration.getInstance();
     }
 
     private Map<String, DynamicGraphQLClient> createdClients;

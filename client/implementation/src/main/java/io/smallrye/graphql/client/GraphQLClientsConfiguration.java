@@ -7,17 +7,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 /**
  * The wrapper that stores configuration of all GraphQL clients.
  */
-@ApplicationScoped
 public class GraphQLClientsConfiguration {
+
+    private static final Map<ClassLoader, GraphQLClientsConfiguration> INSTANCES = new WeakHashMap<>();
+    private static volatile boolean singleApplication = false;
+
+    /**
+     * This needs to be set to true if the runtime only supports a single deployment.
+     */
+    public static void setSingleApplication(boolean singleApplication) {
+        GraphQLClientsConfiguration.singleApplication = singleApplication;
+    }
+
+    public static GraphQLClientsConfiguration getInstance() {
+        ClassLoader key = singleApplication ? null : Thread.currentThread().getContextClassLoader();
+        return INSTANCES.computeIfAbsent(key, x -> new GraphQLClientsConfiguration());
+    }
 
     /**
      * The map storing the configs of each individual client.
@@ -26,48 +37,16 @@ public class GraphQLClientsConfiguration {
      * For typesafe clients, the client's `configKey` or, if the `configKey` is not defined, the fully qualified class name
      * For dynamic clients, always the client's `configKey`.
      */
-    private Map<String, GraphQLClientConfiguration> clients;
+    private final Map<String, GraphQLClientConfiguration> clients = new HashMap<>();
 
-    /**
-     * This bean needs to know the list of known @GraphQLClientApi classes.
-     * This needs to be set before this bean is instantiated.
-     * The CDI extension takes care of setting this, but because it can't access the instance
-     * of this bean (it does not exist yet), this needs to be a static field.
-     * Therefore, to allow multiple applications within one VM without clashing, this static field is a map,
-     * where the key is the context class loader of an application.
-     * If we're in an environment that only supports a single application (Quarkus)
-     * then `singleApplication` can be set to true and we will use null for the class loader key
-     */
-    private static Map<ClassLoader, List<Class<?>>> apis = new WeakHashMap<>();
-
-    private static boolean singleApplication = false;
-
-    /**
-     * Initializes this configuration bean with config from system properties and annotations.
-     */
-    @PostConstruct
-    void initialize() {
-        clients = new HashMap<>();
-
-        // store configurations for detected typesafe clients (interfaces with @GraphQLClientApi)
-        List<Class<?>> classes = apis.get(singleApplication ? null : Thread.currentThread().getContextClassLoader());
-        if (classes == null) {
-            SmallRyeGraphQLClientLogging.log.apisNotSet();
-            classes = Collections.emptyList();
-        }
-        for (Class<?> api : classes) {
-            TypesafeClientConfigurationReader configReader = new TypesafeClientConfigurationReader(api);
-            clients.put(configReader.getConfigKey(), configReader.getClientConfiguration());
-        }
-
-        // store configured dynamic clients
-        // FIXME: move this logic to a class similar to TypesafeClientConfigurationReader?
+    public GraphQLClientsConfiguration() {
+        // Store configuration found in config properties
         List<String> detectedClientNames = new ArrayList<>();
         Config mpConfig = ConfigProvider.getConfig();
         for (String propertyName : mpConfig.getPropertyNames()) {
             // assume that the name of a configured client can consist of
             // uppercase and lowercase letters, numbers, dashes and underscores
-            if (propertyName.matches("^[A-Za-z0-9-_]+/mp-graphql/.+$")) {
+            if (propertyName.matches("^[A-Za-z0-9-_.$]+/mp-graphql/.+$")) {
                 String key = propertyName.substring(0, propertyName.indexOf("/mp-graphql"));
                 if (!clients.containsKey(key)) {
                     detectedClientNames.add(key);
@@ -82,15 +61,24 @@ public class GraphQLClientsConfiguration {
         }
     }
 
-    public Map<String, GraphQLClientConfiguration> getClients() {
-        return clients;
+    /**
+     * Scan the passed Java interfaces for `@GraphQLClientApi` annotations and create and register
+     * client configuration objects for them. This needs to be called by the runtime some time during initialization,
+     * before clients are actually created.
+     */
+    public void addTypesafeClientApis(List<Class<?>> apis) {
+        if (apis == null) {
+            SmallRyeGraphQLClientLogging.log.apisNotSet();
+            apis = Collections.emptyList();
+        }
+        for (Class<?> api : apis) {
+            TypesafeClientConfigurationReader configReader = new TypesafeClientConfigurationReader(api);
+            clients.put(configReader.getConfigKey(), configReader.getClientConfiguration());
+        }
     }
 
-    // FIXME: find a better way to let this bean know what api classes are known
-    public static void apiClasses(List<Class<?>> apiList, boolean singleApplication) {
-        GraphQLClientsConfiguration.singleApplication = singleApplication;
-        apis.put(GraphQLClientsConfiguration.singleApplication ? null : Thread.currentThread().getContextClassLoader(),
-                apiList);
+    public GraphQLClientConfiguration getClient(String key) {
+        return clients.get(key);
     }
 
     private Map<String, String> getConfigurationValueMap(String clientName, String configKey, Config config) {

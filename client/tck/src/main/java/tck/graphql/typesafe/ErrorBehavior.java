@@ -559,6 +559,7 @@ class ErrorBehavior {
         then(error.getErrorCode()).isEqualTo("team-search-disabled");
     }
 
+    @GraphQLClientApi
     interface OrderApi {
         @SuppressWarnings("UnusedReturnValue")
         Order order(@NonNull String id);

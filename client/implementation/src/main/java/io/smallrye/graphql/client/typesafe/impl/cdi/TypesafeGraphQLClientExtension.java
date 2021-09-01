@@ -35,6 +35,6 @@ public class TypesafeGraphQLClientExtension implements Extension {
         for (Class<?> api : apis) {
             afterBeanDiscovery.addBean(new TypesafeGraphQLClientBean<>(api));
         }
-        GraphQLClientsConfiguration.apiClasses(apis, false);
+        GraphQLClientsConfiguration.getInstance().addTypesafeClientApis(apis);
     }
 }
