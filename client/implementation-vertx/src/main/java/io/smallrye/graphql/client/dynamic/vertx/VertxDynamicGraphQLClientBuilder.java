@@ -8,6 +8,7 @@ import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
+import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
@@ -78,7 +79,18 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
             }
         }
-        Vertx toUseVertx = vertx != null ? vertx : Vertx.vertx();
+        Vertx toUseVertx;
+        if (vertx != null) {
+            toUseVertx = vertx;
+        } else {
+            Context vertxContext = Vertx.currentContext();
+            if (vertxContext != null && vertxContext.owner() != null) {
+                toUseVertx = vertxContext.owner();
+            } else {
+                // create a new vertx instance if there is none
+                toUseVertx = Vertx.vertx();
+            }
+        }
         return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options);
     }
 

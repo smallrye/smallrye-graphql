@@ -13,6 +13,7 @@ import io.smallrye.graphql.client.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -46,8 +47,15 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     private Vertx vertx() {
-        if (vertx == null)
-            vertx = Vertx.vertx();
+        if (vertx == null) {
+            Context vertxContext = Vertx.currentContext();
+            if (vertxContext != null && vertxContext.owner() != null) {
+                vertx = vertxContext.owner();
+            } else {
+                // create a new vertx instance if there is none
+                vertx = Vertx.vertx();
+            }
+        }
         return vertx;
     }
 
