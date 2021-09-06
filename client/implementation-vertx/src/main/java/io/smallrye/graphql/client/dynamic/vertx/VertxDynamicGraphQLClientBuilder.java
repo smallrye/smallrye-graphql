@@ -1,7 +1,5 @@
 package io.smallrye.graphql.client.dynamic.vertx;
 
-import javax.enterprise.inject.spi.CDI;
-
 import io.smallrye.graphql.client.ErrorMessageProvider;
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.GraphQLClientsConfiguration;
@@ -60,14 +58,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     @Override
     public DynamicGraphQLClient build() {
         if (configKey != null) {
-            GraphQLClientConfiguration persistentConfig;
-            try {
-                persistentConfig = CDI.current()
-                        .select(GraphQLClientsConfiguration.class).get()
-                        .getClients().get(configKey);
-            } catch (IllegalStateException ex) {
-                persistentConfig = null;
-            }
+            GraphQLClientConfiguration persistentConfig = GraphQLClientsConfiguration.getInstance().getClient(configKey);
             if (persistentConfig != null) {
                 applyConfig(persistentConfig);
             }

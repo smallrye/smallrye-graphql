@@ -19,10 +19,7 @@ class TypesafeClientConfigurationReader {
 
     TypesafeClientConfigurationReader(Class<?> apiClass) {
         GraphQLClientApi annotation = apiClass.getAnnotation(GraphQLClientApi.class);
-        if (annotation == null) {
-            throw new RuntimeException("Could not find a GraphQLClientApi annotation on " + apiClass);
-        }
-        configKey = !annotation.configKey().isEmpty() ? annotation.configKey() : apiClass.getName();
+        configKey = (annotation != null && !annotation.configKey().isEmpty()) ? annotation.configKey() : apiClass.getName();
         clientConfiguration = new GraphQLClientConfiguration();
 
         // Now, read configuration from config properties.
@@ -34,9 +31,8 @@ class TypesafeClientConfigurationReader {
         if (configuredUrl.isPresent()) {
             clientConfiguration.setUrl(configuredUrl.get());
         } else {
-            String endpointFromAnnotation = annotation.endpoint();
-            if (!endpointFromAnnotation.isEmpty()) {
-                clientConfiguration.setUrl(endpointFromAnnotation);
+            if (annotation != null && !annotation.endpoint().isEmpty()) {
+                clientConfiguration.setUrl(annotation.endpoint());
             }
         }
 

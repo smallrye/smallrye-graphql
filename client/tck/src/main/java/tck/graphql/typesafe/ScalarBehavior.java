@@ -830,6 +830,7 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQLClientApi
     interface StringGettersApi {
         String getGreeting();
 

@@ -4,8 +4,7 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
-import javax.enterprise.inject.spi.CDI;
+import java.util.Collections;
 
 import io.smallrye.graphql.client.ErrorMessageProvider;
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
@@ -71,23 +70,22 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             configKey = configKey(apiClass);
         }
 
-        GraphQLClientConfiguration persistentConfig;
-        try {
-            persistentConfig = CDI.current()
-                    .select(GraphQLClientsConfiguration.class).get()
-                    .getClients().get(configKey);
-        } catch (IllegalStateException ex) {
-            // Probably running in a non-CDI environment so we can't use the GraphQLClientsConfiguration bean
-            // TODO: right now, the GraphQLClientsConfiguration contains only metadata derived
-            // from config properties. Once we move annotation-derived metadata there, that bean will
-            // always be necessary (otherwise the client would ignore annotations within GraphQLClientApi interfaces)
-            // so we need to make sure that the config bean will be available without CDI
-            // - perhaps fall back to a pure Java singleton if CDI is not available?
-            persistentConfig = null;
+        GraphQLClientsConfiguration configs = GraphQLClientsConfiguration.getInstance();
+        GraphQLClientConfiguration persistentConfig = configs
+                .getClient(configKey);
+        if (persistentConfig == null) {
+            // in case that we're running in a plain Java SE application, it is possible that the client configuration
+            // hasn't been added yet, because there is no CDI extension or Jandex processor that scans for @GraphQLClientApi annotations
+            // at startup => try adding a configuration entry dynamically for this client interface in particular.
+            // Then try again.
+            configs.addTypesafeClientApis(Collections.singletonList(apiClass));
+            persistentConfig = configs
+                    .getClient(configKey);
         }
         if (persistentConfig != null) {
             applyConfig(persistentConfig);
         }
+
         if (endpoint == null) {
             throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
