@@ -81,6 +81,10 @@ public class GraphQLClientsConfiguration {
         return clients.get(key);
     }
 
+    public void addClient(String key, GraphQLClientConfiguration config) {
+        clients.put(key, config);
+    }
+
     private Map<String, String> getConfigurationValueMap(String clientName, String configKey, Config config) {
         Map<String, String> map = new HashMap<>();
         for (String propertyName : config.getPropertyNames()) {
