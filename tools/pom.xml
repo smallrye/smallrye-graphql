@@ -16,5 +16,6 @@
     <modules>
         <module>maven-plugin</module>
         <module>gradle-plugin</module>
+        <module>maven-plugin-tests</module>
     </modules>
 </project>
