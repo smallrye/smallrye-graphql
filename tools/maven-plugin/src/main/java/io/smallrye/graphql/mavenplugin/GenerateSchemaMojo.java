@@ -34,6 +34,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Schema;
 
 @Mojo(name = "generate-schema", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
@@ -109,7 +110,8 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        mavenConfig = new MavenConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
+        mavenConfig = new MavenConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes,
+                TypeAutoNameStrategy.valueOf(typeAutoNameStrategy));
         if (!skip) {
             ClassLoader classLoader = getClassLoader();
             Thread.currentThread().setContextClassLoader(classLoader);
@@ -169,7 +171,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
     }
 
     private String generateSchema(IndexView index) {
-        Schema internalSchema = SchemaBuilder.build(index);
+        Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
         if (graphQLSchema != null) {
             return new SchemaPrinter().print(graphQLSchema);
@@ -218,13 +220,15 @@ public class GenerateSchemaMojo extends AbstractMojo {
         private final boolean includeDirectives;
         private final boolean includeSchemaDefinition;
         private final boolean includeIntrospectionTypes;
+        private final TypeAutoNameStrategy typeAutoNameStrategy;
 
         public MavenConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition,
-                boolean includeIntrospectionTypes) {
+                boolean includeIntrospectionTypes, TypeAutoNameStrategy typeAutoNameStrategy) {
             this.includeScalars = includeScalars;
             this.includeDirectives = includeDirectives;
             this.includeSchemaDefinition = includeSchemaDefinition;
             this.includeIntrospectionTypes = includeIntrospectionTypes;
+            this.typeAutoNameStrategy = typeAutoNameStrategy;
         }
 
         public boolean isIncludeScalars() {
@@ -241,6 +245,10 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
         public boolean isIncludeIntrospectionTypes() {
             return includeIntrospectionTypes;
+        }
+
+        public TypeAutoNameStrategy getTypeAutoNameStrategy() {
+            return typeAutoNameStrategy;
         }
     }
 }
