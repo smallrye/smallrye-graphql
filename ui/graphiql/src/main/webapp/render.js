@@ -1,5 +1,6 @@
 const api = '/graphql';
 const ui = '/graphql-ui';
+const logo = '/graphql-ui';
 const defaultQuery = "";
 const headerEditorEnabled = true;
 const shouldPersistHeaders = false;
@@ -191,4 +192,4 @@ ReactDOM.render(
         document.getElementById('graphiql'),
         );
 
-document.getElementsByClassName("title")[0].innerHTML = "<a href='" + ui + "'><img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'></a>";
+document.getElementsByClassName("title")[0].innerHTML = "<a id='graphQLUiLogoLink' href='" + logo + "'><img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'></a><a id='graphQLUiTitleLink' href='" + ui + "'></a>";
