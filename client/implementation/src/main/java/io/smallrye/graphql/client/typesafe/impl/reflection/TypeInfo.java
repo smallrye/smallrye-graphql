@@ -19,6 +19,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -150,6 +151,10 @@ public class TypeInfo {
         return ErrorOr.class.equals(getRawType());
     }
 
+    public boolean isRecord() {
+        return rawType.getSuperclass().getName().equals("java.lang.Record");
+    }
+
     public boolean isScalar() {
         return isPrimitive()
                 || Number.class.isAssignableFrom(getRawType())
@@ -194,22 +199,42 @@ public class TypeInfo {
         return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
     }
 
-    public Object newInstance() {
+    public Object newInstance(Object[] args) {
         try {
-            Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
-            noArgsConstructor.setAccessible(true);
-            return noArgsConstructor.newInstance();
+            if (args.length == 0) {
+                Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
+                noArgsConstructor.setAccessible(true);
+                return noArgsConstructor.newInstance();
+            } else {
+                Class<?> rawType = getRawType();
+                Optional<Constructor<?>> constructor = Arrays.stream(rawType.getDeclaredConstructors())
+                        .filter(c -> !c.getDeclaringClass().equals(Class.class))
+                        .filter(c -> c.getParameterCount() == args.length)
+                        .findAny();
+                if (constructor.isPresent()) {
+                    Constructor<?> c = constructor.get();
+                    c.setAccessible(true);
+                    return c.newInstance(args);
+                } else {
+                    throw new RuntimeException("Could not find a suitable constructor of type " + type);
+                }
+            }
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("can't instantiate " + type, e);
         }
     }
 
     private Constructor<?> getDeclaredConstructor(Class<?> type) throws NoSuchMethodException {
+        return getDeclaredConstructor(type, new Class[0]);
+    }
+
+    private Constructor<?> getDeclaredConstructor(Class<?> type, Class<?>[] parameters) throws NoSuchMethodException {
         if (System.getSecurityManager() == null) {
-            return type.getDeclaredConstructor();
+            return type.getDeclaredConstructor(parameters);
         }
         try {
-            return AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>) type::getDeclaredConstructor);
+            return AccessController
+                    .doPrivileged((PrivilegedExceptionAction<Constructor<?>>) () -> type.getDeclaredConstructor(parameters));
         } catch (PrivilegedActionException pae) {
             if (pae.getCause() instanceof NoSuchMethodException) {
                 throw (NoSuchMethodException) pae.getCause();
