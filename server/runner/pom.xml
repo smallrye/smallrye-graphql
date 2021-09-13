@@ -149,7 +149,17 @@
                         </users>
                     </add-user>
                 </configuration>
-            </plugin>    
+            </plugin>
+
+            <!-- not completely sure about this, but this is needed to build successfully on JDK 16 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

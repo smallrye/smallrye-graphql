@@ -17,7 +17,6 @@
     <properties>
         <gradle.executable>./gradlew</gradle.executable>
         <gradle.task>build</gradle.task>
-        <skip.gradle.build>false</skip.gradle.build>
     </properties>
 
     <dependencies>
