@@ -27,20 +27,29 @@ class JsonObjectReader extends Reader<JsonObject> {
     }
 
     private Object readObject() {
-        Object instance = newInstance();
-        type.fields().forEach(field -> {
-            Object fieldValue = buildValue(location, value, field);
-            field.set(instance, fieldValue);
-        });
-        return instance;
+        if (!type.isRecord()) {
+            Object instance = newInstance();
+            type.fields().forEach(field -> {
+                Object fieldValue = buildValue(location, value, field);
+                field.set(instance, fieldValue);
+            });
+            return instance;
+        } else {
+            Object[] values = type.fields().map(field -> buildValue(location, value, field)).toArray(Object[]::new);
+            return newInstance(values);
+        }
     }
 
-    private Object newInstance() {
+    private Object newInstance(Object[] parameters) {
         try {
-            return type.newInstance();
+            return type.newInstance(parameters);
         } catch (Exception e) {
             throw new GraphQLClientException("can't create " + location, e);
         }
+    }
+
+    private Object newInstance() {
+        return newInstance(new Object[0]);
     }
 
     private Object buildValue(Location location, JsonObject value, FieldInfo field) {
