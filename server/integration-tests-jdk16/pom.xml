@@ -212,6 +212,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <release>16</release>
+                    <!-- parameters needed for RecordTest#testSimpleRecordWithFactory because otherwise Yasson
+                        doesn't properly use the static factory method -->
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
         </plugins>
