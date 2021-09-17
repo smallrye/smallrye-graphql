@@ -26,4 +26,9 @@ public class CdiLookupService implements LookupService {
     public Object getInstance(Class<?> declaringClass) {
         return CDI.current().select(declaringClass).get();
     }
+
+    @Override
+    public boolean isResolvable(Class<?> declaringClass) {
+        return CDI.current().select(declaringClass).isResolvable();
+    }
 }

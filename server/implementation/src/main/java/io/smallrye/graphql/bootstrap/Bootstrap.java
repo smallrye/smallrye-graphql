@@ -139,10 +139,8 @@ public class Bootstrap {
                 .flatMap(stream -> stream)
                 .distinct().forEach(beanClassName -> {
                     // verify that the bean is injectable
-                    try {
-                        lookupService.getClass(classloadingService.loadClass(beanClassName));
-                    } catch (Exception e) {
-                        throw SmallRyeGraphQLServerMessages.msg.canNotInjectClass(beanClassName, e);
+                    if (!lookupService.isResolvable(classloadingService.loadClass(beanClassName))) {
+                        throw SmallRyeGraphQLServerMessages.msg.canNotInjectClass(beanClassName, null);
                     }
                 });
     }
