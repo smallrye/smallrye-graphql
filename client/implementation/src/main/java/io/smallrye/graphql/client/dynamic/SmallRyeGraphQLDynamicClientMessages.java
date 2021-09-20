@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.dynamic;
 
 import org.jboss.logging.Messages;
+import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageBundle;
 
@@ -14,6 +15,6 @@ public interface SmallRyeGraphQLDynamicClientMessages {
     // numbers reserved for this module are 35000-39999
 
     @Message(id = 35000, value = "Cannot parse response: %s")
-    DynamicClientException cannotParseResponse(String response);
+    DynamicClientException cannotParseResponse(String response, @Cause Throwable t);
 
 }

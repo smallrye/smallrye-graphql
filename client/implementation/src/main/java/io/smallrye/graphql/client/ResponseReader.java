@@ -27,7 +27,7 @@ public class ResponseReader {
         try {
             jsonResponse = jsonReader.readObject();
         } catch (Exception e) {
-            throw SmallRyeGraphQLDynamicClientMessages.msg.cannotParseResponse(input);
+            throw SmallRyeGraphQLDynamicClientMessages.msg.cannotParseResponse(input, e);
         }
 
         JsonObject data = null;
