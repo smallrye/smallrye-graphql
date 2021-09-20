@@ -2,10 +2,13 @@ package io.smallrye.graphql.client;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import javax.json.JsonNumber;
 
@@ -15,6 +18,95 @@ import org.junit.jupiter.api.Test;
 import io.smallrye.graphql.client.dynamic.ResponseImpl;
 
 public class ResponseReaderTest {
+
+    private static final String EXAMPLE_RESPONSE_ONE_ITEM = "{\n" +
+            "  \"data\": {\n" +
+            "    \"people\": \n" +
+            "      {\n" +
+            "        \"name\": \"jane\",\n" +
+            "        \"gender\": \"FEMALE\"\n" +
+            "      }\n" +
+            "  }\n" +
+            "}";
+
+    private static final String EXAMPLE_RESPONSE_TWO_ITEMS = "{\n" +
+            "  \"data\": {\n" +
+            "    \"people\": [\n" +
+            "      {\n" +
+            "        \"name\": \"david\",\n" +
+            "        \"gender\": \"MALE\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"name\": \"jane\",\n" +
+            "        \"gender\": \"FEMALE\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}";
+
+    enum Gender {
+        MALE,
+        FEMALE;
+    }
+
+    static class Person {
+
+        private String name;
+        private Gender gender;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Gender getGender() {
+            return gender;
+        }
+
+        public void setGender(Gender gender) {
+            this.gender = gender;
+        }
+    }
+
+    @Test
+    public void testGetObject() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
+        Person person = response.getObject(Person.class, "people");
+        assertEquals("jane", person.getName());
+        assertEquals(Gender.FEMALE, person.getGender());
+    }
+
+    @Test
+    public void testGetList() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
+        List<Person> list = response.getList(Person.class, "people");
+        assertEquals(2, list.size());
+    }
+
+    @Test
+    public void testGetObjectWrongField() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
+        try {
+            response.getObject(Person.class, "WRONG_FIELD");
+            fail("Expected an exception");
+        } catch (NoSuchElementException e) {
+            assertTrue(e.getMessage().contains("people"), "Exception should tell what fields are available in the response");
+        }
+    }
+
+    @Test
+    public void testGetListWrongField() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
+        try {
+            response.getList(Person.class, "WRONG_FIELD");
+            fail("Expected an exception");
+        } catch (NoSuchElementException e) {
+            assertTrue(e.getMessage().contains("people"), "Exception should tell what fields are available in the response");
+        }
+    }
 
     @Test
     public void verifyErrors() {
