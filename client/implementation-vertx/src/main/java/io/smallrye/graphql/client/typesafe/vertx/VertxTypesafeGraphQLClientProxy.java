@@ -153,7 +153,11 @@ class VertxTypesafeGraphQLClientProxy {
 
     private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        fields.forEach(field -> builder.add(field.getName(), value(field.get(object))));
+        fields.forEach(field -> {
+            if (field.isIncludeNull() || field.get(object) != null) {
+                builder.add(field.getName(), value(field.get(object)));
+            }
+        });
         return builder.build();
     }
 
