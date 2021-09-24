@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'io.smallrye.graphql'
+}
+
+dependencies {
+    implementation "io.smallrye:smallrye-graphql:1.3.2"
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+generateSchema {
+    // FIXME: how to properly pass properties to runs? see the comment in GradlePluginGenerateSchemaTest.java
+    includeDirectives = Boolean.getBoolean("includeDirectives")
+}
+
+group 'org.acme'
+version '1.0.0'

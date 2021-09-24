@@ -67,7 +67,9 @@ client/shade/dependency-reduced-pom.xml
 .vscode/
 
 # gradle
-tools/gradle-plugin/.gradle
+.gradle
+
+
 
 # testing artifacts
 /tools/maven-plugin-tests/testing-project/log.txt

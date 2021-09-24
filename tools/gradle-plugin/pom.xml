@@ -44,6 +44,14 @@
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
         </dependency>
+
+        <!-- This is actually added to tests by build.gradle rather than pom.xml, but IDEs might think that the correct dependencies
+            are derived from pom.xml -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
