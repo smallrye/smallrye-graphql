@@ -2,10 +2,12 @@ package io.smallrye.graphql.client;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -129,5 +131,13 @@ public class ResponseReaderTest {
         assertArrayEquals(new Object[] { 1, 2, 3, "asd" }, theError.getPath());
         assertEquals(response.getHeaders().get(0).getKey(), "Cookie");
         assertEquals(response.getHeaders().get(0).getValue(), "myCookie");
+    }
+
+    @Test
+    public void nullPathInError() {
+        String responseString = "{\"errors\":[{\"message\":\"blabla\"," +
+                "\"path\": null}]}";
+        ResponseImpl response = ResponseReader.readFrom(responseString, Collections.emptyList());
+        assertNull(response.getErrors().get(0).getPath());
     }
 }

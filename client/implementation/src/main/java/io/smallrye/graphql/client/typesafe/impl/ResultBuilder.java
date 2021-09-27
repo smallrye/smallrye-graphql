@@ -132,7 +132,13 @@ public class ResultBuilder {
     }
 
     private static List<Object> getPath(JsonValue jsonValue) {
-        JsonArray jsonArray = jsonValue.asJsonObject().getJsonArray("path");
+        JsonValue value = jsonValue.asJsonObject().get("path");
+        JsonArray jsonArray;
+        if (value != null && value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
+            jsonArray = value.asJsonArray();
+        } else {
+            jsonArray = null;
+        }
         return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
     }
 

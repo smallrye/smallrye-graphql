@@ -62,7 +62,8 @@ public class ResponseReader {
                     decodedError.setLocations(locationList);
                 }
 
-                if (errorObject.containsKey("path")) {
+                if (errorObject.containsKey("path")
+                        && errorObject.get("path").getValueType().equals(JsonValue.ValueType.ARRAY)) {
                     Object[] path = new Object[errorObject.getJsonArray("path").size()];
                     int i = 0;
                     for (JsonValue segment : errorObject.getJsonArray("path")) {
