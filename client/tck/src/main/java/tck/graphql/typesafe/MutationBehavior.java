@@ -100,7 +100,7 @@ class MutationBehavior {
         Greeting greeting = api.say(new Greeting(null, 5));
 
         then(fixture.query()).isEqualTo("mutation say($greet: GreetingInput) { say(greet: $greet) {text count} }");
-        then(fixture.variables()).isEqualTo("{'greet':{'text':null,'count':5}}");
+        then(fixture.variables()).isEqualTo("{'greet':{'count':5}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 
@@ -190,7 +190,7 @@ class MutationBehavior {
 
         then(fixture.query())
                 .isEqualTo("mutation say($greeting: GreetingContainerInput) { say(greeting: $greeting) {text count} }");
-        then(fixture.variables()).isEqualTo("{'greeting':{'greeting':{'text':null,'count':5},'when':null}}");
+        then(fixture.variables()).isEqualTo("{'greeting':{'greeting':{'count':5}}}");
         then(greeting).isEqualTo(new Greeting("ho", 3));
     }
 

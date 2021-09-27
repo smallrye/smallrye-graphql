@@ -4,6 +4,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 
+import javax.json.bind.annotation.JsonbProperty;
+
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
@@ -171,5 +173,69 @@ class AnnotationBehavior {
         Thing things = stuff.things();
 
         then(things.otherThings).hasSize(1);
+    }
+
+    @GraphQLClientApi
+    interface NillableFieldsApi {
+        String query(NillableFields param);
+    }
+
+    static class NillableFields {
+
+        public NillableFields(String string, Integer integer) {
+            this.string = string;
+            this.integer = integer;
+        }
+
+        @JsonbProperty(nillable = false)
+        String string;
+
+        @JsonbProperty(nillable = true)
+        Integer integer;
+
+    }
+
+    @Test
+    void nillableFields() {
+        fixture.returnsData("'query': 'blabla'");
+        NillableFieldsApi client = fixture.build(NillableFieldsApi.class);
+
+        NillableFields param = new NillableFields(null, null);
+        String res = client.query(param);
+
+        then(fixture.variables()).doesNotContain("'string'");
+        then(fixture.variables()).contains("'integer':null");
+    }
+
+    @GraphQLClientApi
+    interface JsonbPropertyApi {
+        String query(JsonbPropertyAnnotatedFields param);
+    }
+
+    static class JsonbPropertyAnnotatedFields {
+
+        public JsonbPropertyAnnotatedFields(String aaa, String bbb) {
+            this.aaa = aaa;
+            this.bbb = bbb;
+        }
+
+        @JsonbProperty(value = "xxx")
+        String aaa;
+
+        @JsonbProperty(value = "yyy")
+        String bbb;
+
+    }
+
+    @Test
+    void fieldsRenamedByJsonbAnnotation() {
+        fixture.returnsData("'query': 'blabla'");
+        JsonbPropertyApi client = fixture.build(JsonbPropertyApi.class);
+
+        JsonbPropertyAnnotatedFields param = new JsonbPropertyAnnotatedFields("123", "456");
+        String res = client.query(param);
+
+        then(fixture.variables()).contains("'xxx':'123'");
+        then(fixture.variables()).contains("'yyy':'456'");
     }
 }

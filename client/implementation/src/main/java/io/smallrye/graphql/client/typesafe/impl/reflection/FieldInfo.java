@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Optional;
 
+import javax.json.bind.annotation.JsonbProperty;
+
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -12,10 +14,20 @@ import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 public class FieldInfo {
     private final TypeInfo container;
     private final Field field;
+    private final boolean includeIfNull;
 
     FieldInfo(TypeInfo container, Field field) {
         this.container = container;
         this.field = field;
+        JsonbProperty jsonbPropertyAnnotation = field.getAnnotation(JsonbProperty.class);
+        if (jsonbPropertyAnnotation != null) {
+            includeIfNull = jsonbPropertyAnnotation.nillable();
+        } else {
+            // TODO: this means a breaking change because this switches the default 'include-nulls'
+            // behavior from 'true' to 'false'. But 'false' is the default value of the 'nillable'
+            // parameter in the JsonbProperty annotation, so it's probably correct to default to false.
+            includeIfNull = false;
+        }
     }
 
     @Override
@@ -28,6 +40,9 @@ public class FieldInfo {
     }
 
     public String getName() {
+        if (field.isAnnotationPresent(JsonbProperty.class) &&
+                !field.getAnnotation(JsonbProperty.class).value().isEmpty())
+            return field.getAnnotation(JsonbProperty.class).value();
         if (field.isAnnotationPresent(Name.class))
             return field.getAnnotation(Name.class).value();
         return getRawName();
@@ -69,5 +84,9 @@ public class FieldInfo {
 
     public boolean isNonNull() {
         return field.isAnnotationPresent(NonNull.class) || getType().isPrimitive();
+    }
+
+    public boolean isIncludeNull() {
+        return includeIfNull;
     }
 }
