@@ -220,5 +220,27 @@
         </plugins>
     </build>
 
+    <profiles>
+        <!-- During the release job, we include this jdk16 module even though the release runs with JDK 8. The reason is
+            that we want to increment the project.version of this module. This snippet turns off the compiler plugin because
+            attempting to compile this module with JDK 8 will obviously fail.
+            -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <skipMain>true</skipMain>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 
 </project>
