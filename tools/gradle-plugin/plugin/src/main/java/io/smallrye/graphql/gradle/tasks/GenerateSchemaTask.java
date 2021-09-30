@@ -2,11 +2,16 @@ package io.smallrye.graphql.gradle.tasks;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -165,10 +170,19 @@ public class GenerateSchemaTask extends DefaultTask {
         this.classesDir = classesDir;
     }
 
+    private static GradleConfig config;
+
+    public static GradleConfig getConfig() {
+        return config;
+    }
+
     @TaskAction
-    public void generateSchema() {
+    public void generateSchema() throws Exception {
+        this.config = new GradleConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
+        System.setProperty("test.skip.injection.validation", "true");
+        ClassLoader classLoader = getClassLoader();
+        Thread.currentThread().setContextClassLoader(classLoader);
         IndexView index = createIndex();
-        
         String schema = generateSchema(index);
         if (schema != null) {
             write(schema);
@@ -253,32 +267,33 @@ public class GenerateSchemaTask extends DefaultTask {
             throw new GradleException("Can't write the result", e);
         }
     }
-    
-    class GradleConfig implements Config {
-    
-        @Override
-        public String getName() {
-            return "Gradle Config Service";
-        }
 
-        @Override
-        public boolean isIncludeScalarsInSchema() {
-            return includeScalars;
+    private ClassLoader getClassLoader() throws MalformedURLException {
+        Set<URL> urls = new HashSet<>();
+        ConfigurationContainer configurationContainer = getProject().getConfigurations();
+        for (String name : configurations) {
+            Configuration configuration = configurationContainer.getByName(name);
+            Configuration copiedConfiguration = configuration.copyRecursive();
+            copiedConfiguration.setCanBeResolved(true);
+            copiedConfiguration.setTransitive(includeTransitiveDependencies);
+            ResolvedConfiguration resolvedConfiguration = copiedConfiguration.getResolvedConfiguration();
+            Set<ResolvedArtifact> artifacts = resolvedConfiguration.getResolvedArtifacts();
+            for (ResolvedArtifact artifact : artifacts) {
+                if (dependencyExtensions.contains(artifact.getExtension())) {
+                    getLogger().debug("Adding to classloader: " + artifact.getFile());
+                    urls.add(artifact.getFile().toURI().toURL());
+                }
+            }
         }
+        // FIXME: ROOT/build/classes/java/main might not always be the correct directory?!
+        Path classes = Paths.get(classesDir.getAbsolutePath(), "java", "main");
+        getLogger().debug("Adding classes directory: " +classes);
+        urls.add(classes.toUri().toURL());
 
-        @Override
-        public boolean isIncludeDirectivesInSchema() {
-            return includeDirectives;
-        }
+        return URLClassLoader.newInstance(
+            urls.toArray(new URL[0]),
+            Thread.currentThread().getContextClassLoader());
 
-        @Override
-        public boolean isIncludeSchemaDefinitionInSchema() {
-            return includeSchemaDefinition;
-        }
-
-        @Override
-        public boolean isIncludeIntrospectionTypesInSchema() {
-            return includeIntrospectionTypes;
-        }
     }
+
 }
