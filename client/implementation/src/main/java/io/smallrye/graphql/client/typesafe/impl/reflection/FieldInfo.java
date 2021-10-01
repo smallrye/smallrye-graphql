@@ -2,6 +2,8 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Optional;
 
 import javax.json.bind.annotation.JsonbProperty;
@@ -15,6 +17,10 @@ public class FieldInfo {
     private final TypeInfo container;
     private final Field field;
     private final boolean includeIfNull;
+    private final String name;
+
+    private static final String JSONB_PROPERTY = "javax.json.bind.annotation.JsonbProperty";
+    private static final String JACKSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
 
     FieldInfo(TypeInfo container, Field field) {
         this.container = container;
@@ -23,11 +29,9 @@ public class FieldInfo {
         if (jsonbPropertyAnnotation != null) {
             includeIfNull = jsonbPropertyAnnotation.nillable();
         } else {
-            // TODO: this means a breaking change because this switches the default 'include-nulls'
-            // behavior from 'true' to 'false'. But 'false' is the default value of the 'nillable'
-            // parameter in the JsonbProperty annotation, so it's probably correct to default to false.
             includeIfNull = false;
         }
+        this.name = computeName();
     }
 
     @Override
@@ -40,12 +44,48 @@ public class FieldInfo {
     }
 
     public String getName() {
-        if (field.isAnnotationPresent(JsonbProperty.class) &&
-                !field.getAnnotation(JsonbProperty.class).value().isEmpty())
-            return field.getAnnotation(JsonbProperty.class).value();
-        if (field.isAnnotationPresent(Name.class))
-            return field.getAnnotation(Name.class).value();
-        return getRawName();
+        return name;
+    }
+
+    private String computeName() {
+        String name = null;
+        if (field.isAnnotationPresent(Name.class)) {
+            name = field.getAnnotation(Name.class).value();
+        } else {
+            Optional<Annotation> jsonbProperty = getAnnotationByClassName(JSONB_PROPERTY);
+            if (jsonbProperty.isPresent()) {
+                Object value = getAnnotationParameter(jsonbProperty.get(), "value");
+                if (value != null && !((String) value).isEmpty()) {
+                    name = (String) value;
+                }
+            }
+            Optional<Annotation> jacksonProperty = getAnnotationByClassName(JACKSON_PROPERTY);
+            if (jacksonProperty.isPresent()) {
+                Object value = getAnnotationParameter(jacksonProperty.get(), "value");
+                if (value != null && !((String) value).isEmpty()) {
+                    name = (String) value;
+                }
+            }
+        }
+        if (name == null) {
+            name = getRawName();
+        }
+        return name;
+    }
+
+    private Object getAnnotationParameter(Annotation annotation, String parameterName) {
+        try {
+            Method m = annotation.getClass().getMethod(parameterName);
+            return m.invoke(annotation);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<Annotation> getAnnotationByClassName(String className) {
+        return Arrays.stream(field.getAnnotations())
+                .filter(a -> a.annotationType().getName().equals(className))
+                .findAny();
     }
 
     public String getRawName() {
