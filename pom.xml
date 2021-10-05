@@ -269,11 +269,6 @@
                 <artifactId>smallrye-graphql-client-implementation-vertx</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>smallrye-graphql-client-implementation-jaxrs</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <!-- Tests -->
             <dependency>
