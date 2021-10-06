@@ -82,10 +82,32 @@ public class ResponseReaderTest {
     }
 
     @Test
+    public void testGetListWhenResponseContainsObject() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
+        try {
+            List<Person> list = response.getList(Person.class, "people");
+            fail("Exception expected");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("SRGQLDC035006"));
+        }
+    }
+
+    @Test
     public void testGetList() {
         ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
         List<Person> list = response.getList(Person.class, "people");
         assertEquals(2, list.size());
+    }
+
+    @Test
+    public void testGetObjectWhenResponseContainsList() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
+        try {
+            Person person = response.getObject(Person.class, "people");
+            fail("Exception expected");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("SRGQLDC035007"));
+        }
     }
 
     @Test
@@ -140,4 +162,5 @@ public class ResponseReaderTest {
         ResponseImpl response = ResponseReader.readFrom(responseString, Collections.emptyList());
         assertNull(response.getErrors().get(0).getPath());
     }
+
 }
