@@ -8,6 +8,7 @@ import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageBundle;
 
 import io.smallrye.graphql.client.dynamic.api.DynamicClientException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 @MessageBundle(projectCode = "SRGQLDC")
 public interface SmallRyeGraphQLClientMessages {
@@ -31,5 +32,14 @@ public interface SmallRyeGraphQLClientMessages {
 
     @Message(id = 35004, value = "Field %s not found in response's data. Available fields are: %s")
     NoSuchElementException fieldNotFoundInResponse(String field, Set<String> availableFields);
+
+    @Message(id = 35005, value = "Value in the response at path '%s' is of an unexpected type: %s")
+    GraphQLClientException unexpectedValueInResponse(String path, String value);
+
+    @Message(id = 35006, value = "Field %s in the response is a single object, please use the method `getObject` instead of `getList`")
+    GraphQLClientException responseContainsSingleObject(String field);
+
+    @Message(id = 35007, value = "Field %s in the response is an array, please use the method `getList` instead of `getObject`")
+    GraphQLClientException responseContainsArray(String field);
 
 }

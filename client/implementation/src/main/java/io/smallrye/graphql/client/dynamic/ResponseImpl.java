@@ -31,34 +31,38 @@ public class ResponseImpl implements Response {
         if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
         }
-        JsonObject jsonObject = data.getJsonObject(rootField);
-        if (jsonObject == null) {
+        JsonValue value = data.get(rootField);
+        if (value == null || value.getValueType().equals(JsonValue.ValueType.NULL)) {
             throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
         }
-        return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), jsonObject, null);
+        if (value.getValueType().equals(JsonValue.ValueType.OBJECT)) {
+            return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), value.asJsonObject(), null);
+        } else if (value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
+            throw SmallRyeGraphQLClientMessages.msg.responseContainsArray(rootField);
+        } else {
+            throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, value.getValueType().toString());
+        }
     }
 
     public <T> List<T> getList(Class<T> dataType, String rootField) {
-        List<T> result = new ArrayList<T>();
-
         if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
         }
-        Object item = data.get(rootField);
+        JsonValue item = data.get(rootField);
         if (item == null) {
             throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
         }
         if (item instanceof JsonObject) {
-            // A single Object can be returned as a mono-element List
-            result.add(getObject(dataType, rootField));
+            throw SmallRyeGraphQLClientMessages.msg.responseContainsSingleObject(rootField);
+        }
+        if (item instanceof JsonArray) {
+            List<T> result = new ArrayList<T>();
+            JsonArray jsonArray = (JsonArray) item;
+            TypeInfo type = TypeInfo.of(dataType);
+            jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o, null)));
             return result;
         }
-
-        JsonArray jsonArray = (JsonArray) item;
-        TypeInfo type = TypeInfo.of(dataType);
-        jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o, null)));
-
-        return result;
+        throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, item.getValueType().toString());
     }
 
     public JsonObject getData() {
