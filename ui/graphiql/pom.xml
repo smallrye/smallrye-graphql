@@ -17,7 +17,7 @@
         <path.graphiql>graphql-ui</path.graphiql>
         <react.version>17.0.2</react.version>
         <graphiql.version>1.4.2</graphiql.version>
-        <rxjs.version>6.6.7</rxjs.version>
+        <rxjs.version>7.4.0</rxjs.version>
     </properties>
     
     <dependencies>
