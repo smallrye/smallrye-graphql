@@ -46,6 +46,20 @@ public class ResponseReaderTest {
             "  }\n" +
             "}";
 
+    private static final String EXAMPLE_RESPONSE_SCALARS = "{\n" +
+            "  \"data\": {\n" +
+            "    \"number\": 32,\n" +
+            "    \"string\": \"hello\"\n" +
+            "  }\n" +
+            "}";
+
+    private static final String EXAMPLE_RESPONSE_SCALARS_LIST = "{\n" +
+            "  \"data\": {\n" +
+            "    \"numbers\": [32, 33],\n" +
+            "    \"strings\": [\"hello\", \"bye\"]\n" +
+            "  }\n" +
+            "}";
+
     enum Gender {
         MALE,
         FEMALE;
@@ -79,6 +93,22 @@ public class ResponseReaderTest {
         Person person = response.getObject(Person.class, "people");
         assertEquals("jane", person.getName());
         assertEquals(Gender.FEMALE, person.getGender());
+    }
+
+    @Test
+    public void testScalars() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_SCALARS, null);
+        assertEquals("hello", response.getObject(String.class, "string"));
+        assertEquals(32, response.getObject(Long.class, "number"));
+    }
+
+    @Test
+    public void testScalarsList() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_SCALARS_LIST, null);
+        assertEquals("hello", response.getList(String.class, "strings").get(0));
+        assertEquals("bye", response.getList(String.class, "strings").get(1));
+        assertEquals(32, response.getList(Long.class, "numbers").get(0));
+        assertEquals(33, response.getList(Long.class, "numbers").get(1));
     }
 
     @Test
