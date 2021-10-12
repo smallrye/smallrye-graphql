@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.json.JsonArray;
+import javax.json.JsonNumber;
 import javax.json.JsonObject;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.Error;
@@ -40,6 +42,10 @@ public class ResponseImpl implements Response {
         } else if (value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsArray(rootField);
         } else {
+            Object scalarValue = getScalarValue(value);
+            if (scalarValue != null) {
+                return (T) scalarValue;
+            }
             throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, value.getValueType().toString());
         }
     }
@@ -59,10 +65,31 @@ public class ResponseImpl implements Response {
             List<T> result = new ArrayList<T>();
             JsonArray jsonArray = (JsonArray) item;
             TypeInfo type = TypeInfo.of(dataType);
-            jsonArray.forEach(o -> result.add((T) JsonReader.readJson(rootField, type, o, null)));
+            jsonArray.forEach(o -> {
+                if (o.getValueType().equals(JsonValue.ValueType.OBJECT)) {
+                    result.add((T) JsonReader.readJson(rootField, type, o, null));
+                } else {
+                    result.add((T) getScalarValue(o));
+                }
+            });
             return result;
         }
         throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, item.getValueType().toString());
+    }
+
+    private Object getScalarValue(JsonValue value) {
+        switch (value.getValueType()) {
+            case NUMBER:
+                return ((JsonNumber) value).longValue();
+            case STRING:
+                return ((JsonString) value).getString();
+            case TRUE:
+                return true;
+            case FALSE:
+                return false;
+            default:
+                return null;
+        }
     }
 
     public JsonObject getData() {
