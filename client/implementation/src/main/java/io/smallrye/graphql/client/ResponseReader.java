@@ -16,8 +16,6 @@ import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.dynamic.ErrorImpl;
 import io.smallrye.graphql.client.dynamic.ResponseImpl;
-import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientLogging;
-import io.smallrye.graphql.client.dynamic.SmallRyeGraphQLDynamicClientMessages;
 
 public class ResponseReader {
 
@@ -27,7 +25,7 @@ public class ResponseReader {
         try {
             jsonResponse = jsonReader.readObject();
         } catch (Exception e) {
-            throw SmallRyeGraphQLDynamicClientMessages.msg.cannotParseResponse(input, e);
+            throw SmallRyeGraphQLClientMessages.msg.cannotParseResponse(input, e);
         }
 
         JsonObject data = null;
@@ -35,7 +33,7 @@ public class ResponseReader {
             if (!jsonResponse.isNull("data")) {
                 data = jsonResponse.getJsonObject("data");
             } else {
-                SmallRyeGraphQLDynamicClientLogging.log.noDataInResponse();
+                SmallRyeGraphQLClientLogging.log.noDataInResponse();
             }
         }
 
