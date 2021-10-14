@@ -24,6 +24,7 @@ public class ReferenceCreatorTest {
         public GenericInterface<String> getGenericInterface() {
             return null;
         }
+        public GenericInterface<? extends String> getWildcardInterface() { return null; }
     }
 
     public static class SpecializedImplementorOfGenericInterface implements GenericInterface<String> {
@@ -40,6 +41,33 @@ public class ReferenceCreatorTest {
 
             ClassInfo testOps = index.getClassByName(DotName.createSimple(TestOps.class.getName()));
             MethodInfo method = testOps.method("getGenericInterface");
+            Reference reference = referenceCreator.createReferenceForOperationField(method.returnType(),
+                    Annotations.getAnnotationsForMethod(method));
+
+            assertEquals("io_smallrye_graphql_schema_creator_ReferenceCreatorTestGenericInterface_String", reference.getName());
+            assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface", reference.getClassName());
+            assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface",
+                    reference.getGraphQlClassName());
+            assertEquals(ReferenceType.INTERFACE, reference.getType());
+            assertNull(reference.getMapping());
+            assertFalse(reference.getParametrizedTypeArguments().isEmpty());
+            assertTrue(reference.isAddParametrizedTypeNameExtension());
+        } finally {
+            ScanningContext.remove();
+        }
+    }
+
+    @Test
+    public void shouldCreateReferenceDespiteWildcardExtends() throws Exception {
+        try {
+            ReferenceCreator referenceCreator = new ReferenceCreator(TypeAutoNameStrategy.Full);
+
+            Index index = IndexCreator.index(TestOps.class, GenericInterface.class,
+                    SpecializedImplementorOfGenericInterface.class);
+            ScanningContext.register(index);
+
+            ClassInfo testOps = index.getClassByName(DotName.createSimple(TestOps.class.getName()));
+            MethodInfo method = testOps.method("getWildcardInterface");
             Reference reference = referenceCreator.createReferenceForOperationField(method.returnType(),
                     Annotations.getAnnotationsForMethod(method));
 
