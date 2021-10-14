@@ -1,23 +1,47 @@
 package io.smallrye.graphql.schema;
 
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Type;
-
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.*;
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.Queue;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Type;
+
 /**
  * Class helper
- *
+ * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
@@ -31,7 +55,7 @@ public class Classes {
 
     /**
      * Check if this is a Parameterized type
-     *
+     * 
      * @param type
      * @return
      */
@@ -41,7 +65,7 @@ public class Classes {
 
     /**
      * Check if a certain type is Optional
-     *
+     * 
      * @param type the type
      * @return true if it is
      */
@@ -54,7 +78,7 @@ public class Classes {
 
     /**
      * Check if a certain class is an interface
-     *
+     * 
      * @param classInfo the class to check
      * @return true if it is
      */
@@ -66,7 +90,7 @@ public class Classes {
 
     /**
      * Check if a certain class is an enum
-     *
+     * 
      * @param classInfo the class to check
      * @return true if it is
      */
@@ -78,7 +102,7 @@ public class Classes {
 
     /**
      * Check if this type is a Number (or collection of numbers)
-     *
+     * 
      * @param type the type to check
      * @return true if it is
      */
@@ -90,7 +114,7 @@ public class Classes {
 
     /**
      * Check if this type is a Date (or collection of numbers)
-     *
+     * 
      * @param type the type to check
      * @return true if it is
      */
@@ -125,13 +149,12 @@ public class Classes {
                 || type.name().equals(COMPLETION_STAGE)
                 || type.name().equals(UNI)
                 || type.name().equals(MULTI)
-                || type.name().equals(PUBLISHER)
-                || type.name().equals(KOTLIN_CONTINUATION);
+                || type.name().equals(PUBLISHER);
     }
 
     /**
      * Return true if type is java array, or it is Collection type which is handled as GraphQL array
-     *
+     * 
      * @param type to check
      * @return if this is a collection or array
      */
@@ -142,7 +165,7 @@ public class Classes {
 
     /**
      * Return true if this is an array
-     *
+     * 
      * @param type
      * @return
      */
@@ -152,7 +175,7 @@ public class Classes {
 
     /**
      * Return true if type is java Collection type which is handled as GraphQL array
-     *
+     * 
      * @param type to check
      * @return if this is a collection
      */
@@ -187,7 +210,7 @@ public class Classes {
     /**
      * Return true if given type is parametrized type unwrapped/handled by the runtime before the serialization
      * (Optional&lt;&gt;, CompletableFutur&lt;&gt;, CompletionStage&lt;&gt; etc)
-     *
+     * 
      * @param type to be checked
      * @return true if type is unwrapped by the runtime
      */
@@ -209,8 +232,6 @@ public class Classes {
     private static final DotName MULTI = DotName.createSimple("io.smallrye.mutiny.Multi");
     @Deprecated
     private static final DotName PUBLISHER = DotName.createSimple("org.reactivestreams.Publisher");
-
-    private static final DotName KOTLIN_CONTINUATION = DotName.createSimple("kotlin.coroutines.Continuation");
 
     public static final DotName SERIALIZABLE = DotName.createSimple(Serializable.class.getName());
     public static final DotName OBJECT = DotName.createSimple(Object.class.getName());
