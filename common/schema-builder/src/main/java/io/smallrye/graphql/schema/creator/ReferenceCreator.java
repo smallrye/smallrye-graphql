@@ -360,7 +360,7 @@ public class ReferenceCreator {
             if (classInfo != null) {
                 return getReference(direction, bound, methodType, annotations, parentObjectReference);
             } else {
-                return getNonIndexedReference(direction, fieldType);
+                return getNonIndexedReference(direction, bound);
             }
         } else {
             throw new SchemaBuilderException(

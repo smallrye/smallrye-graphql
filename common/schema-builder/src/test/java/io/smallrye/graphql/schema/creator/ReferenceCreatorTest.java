@@ -14,6 +14,8 @@ import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class ReferenceCreatorTest {
 
@@ -25,7 +27,11 @@ public class ReferenceCreatorTest {
             return null;
         }
 
-        public GenericInterface<? extends String> getWildcardInterface() {
+        public GenericInterface<? super String> getWildcardInterfaceSuper() {
+            return null;
+        }
+
+        public GenericInterface<? extends String> getWildcardInterfaceExtends() {
             return null;
         }
     }
@@ -33,44 +39,18 @@ public class ReferenceCreatorTest {
     public static class SpecializedImplementorOfGenericInterface implements GenericInterface<String> {
     }
 
-    @Test
-    public void shouldCreateReferenceDespiteSpecializedImplementationOfInterface() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = { "getGenericInterface", "getWildcardInterfaceSuper", "getWildcardInterfaceExtends" })
+    public void shouldCreateReferenceDespiteSpecializedImplementationOfInterface(String methodName) throws Exception {
         try {
             ReferenceCreator referenceCreator = new ReferenceCreator(TypeAutoNameStrategy.Full);
 
             Index index = IndexCreator.index(TestOps.class, GenericInterface.class,
-                    SpecializedImplementorOfGenericInterface.class);
+                    SpecializedImplementorOfGenericInterface.class, java.lang.String.class);
             ScanningContext.register(index);
 
             ClassInfo testOps = index.getClassByName(DotName.createSimple(TestOps.class.getName()));
-            MethodInfo method = testOps.method("getGenericInterface");
-            Reference reference = referenceCreator.createReferenceForOperationField(method.returnType(),
-                    Annotations.getAnnotationsForMethod(method));
-
-            assertEquals("io_smallrye_graphql_schema_creator_ReferenceCreatorTestGenericInterface_String", reference.getName());
-            assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface", reference.getClassName());
-            assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface",
-                    reference.getGraphQlClassName());
-            assertEquals(ReferenceType.INTERFACE, reference.getType());
-            assertNull(reference.getMapping());
-            assertFalse(reference.getParametrizedTypeArguments().isEmpty());
-            assertTrue(reference.isAddParametrizedTypeNameExtension());
-        } finally {
-            ScanningContext.remove();
-        }
-    }
-
-    @Test
-    public void shouldCreateReferenceDespiteWildcardExtends() throws Exception {
-        try {
-            ReferenceCreator referenceCreator = new ReferenceCreator(TypeAutoNameStrategy.Full);
-
-            Index index = IndexCreator.index(TestOps.class, GenericInterface.class,
-                    SpecializedImplementorOfGenericInterface.class);
-            ScanningContext.register(index);
-
-            ClassInfo testOps = index.getClassByName(DotName.createSimple(TestOps.class.getName()));
-            MethodInfo method = testOps.method("getWildcardInterface");
+            MethodInfo method = testOps.method(methodName);
             Reference reference = referenceCreator.createReferenceForOperationField(method.returnType(),
                     Annotations.getAnnotationsForMethod(method));
 
