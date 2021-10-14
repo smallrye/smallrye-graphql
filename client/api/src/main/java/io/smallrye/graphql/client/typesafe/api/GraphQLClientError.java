@@ -3,6 +3,9 @@ package io.smallrye.graphql.client.typesafe.api;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO: delete this and use io.smallrye.graphql.client.Error instead
+ */
 public interface GraphQLClientError {
     String getMessage();
 

@@ -23,7 +23,6 @@ import javax.json.JsonValue;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.QueryBuilder;
 import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
@@ -169,13 +168,13 @@ class VertxTypesafeGraphQLClientProxy {
         try {
             HttpResponse<Buffer> result = future.toCompletionStage().toCompletableFuture().get();
             if (result.statusCode() != 200) {
-                throw new GraphQLClientException("expected successful status code but got " +
+                throw new RuntimeException("expected successful status code but got " +
                         result.statusCode() + " " + result.statusMessage() + ":\n" +
                         result.bodyAsString());
             }
             return result.bodyAsString();
         } catch (InterruptedException | ExecutionException e) {
-            throw new GraphQLClientException("Request failed", e);
+            throw new RuntimeException("Request failed", e);
         }
     }
 

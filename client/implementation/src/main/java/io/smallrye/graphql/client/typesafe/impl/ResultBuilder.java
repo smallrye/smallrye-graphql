@@ -19,6 +19,7 @@ import javax.json.JsonPatch;
 import javax.json.JsonPointer;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
@@ -51,7 +52,7 @@ public class ResultBuilder {
             return null;
         JsonObject data = response.getJsonObject("data");
         if (method.isSingle() && !data.containsKey(method.getName()))
-            throw new GraphQLClientException("no data for '" + method.getName() + "':\n  " + data);
+            throw new InvalidResponseException("No data for '" + method.getName() + "'");
         return data;
     }
 

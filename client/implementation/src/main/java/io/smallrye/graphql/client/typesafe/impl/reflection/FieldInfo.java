@@ -11,8 +11,6 @@ import javax.json.bind.annotation.JsonbProperty;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
-
 public class FieldInfo {
     private final TypeInfo container;
     private final Field field;
@@ -108,7 +106,7 @@ public class FieldInfo {
             field.setAccessible(true);
             return field.get(instance);
         } catch (ReflectiveOperationException e) {
-            throw new GraphQLClientException("can't get field " + this, e); // TODO test with static?
+            throw new RuntimeException("can't get field " + this, e); // TODO test with static?
         }
     }
 
@@ -118,7 +116,7 @@ public class FieldInfo {
             field.set(instance, value);
         } catch (ReflectiveOperationException e) {
             // this code is unreachable: setAccessible also allows to change `final` fields
-            throw new GraphQLClientException("can't set field " + this + " to " + value, e); // TODO test with static
+            throw new RuntimeException("can't set field " + this + " to " + value, e); // TODO test with static
         }
     }
 

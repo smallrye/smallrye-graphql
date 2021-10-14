@@ -14,7 +14,7 @@ import javax.json.bind.annotation.JsonbNumberFormat;
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NumberFormat;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ConstructionInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
@@ -28,7 +28,7 @@ class JsonStringReader extends Reader<JsonString> {
     Object read() {
         if (char.class.equals(type.getRawType()) || Character.class.equals(type.getRawType())) {
             if (value.getChars().length() != 1)
-                throw new GraphQLClientValueException(location, value);
+                throw GraphQLClientValueHelper.fail(location, value);
             return value.getChars().charAt(0);
         }
         if (String.class.equals(type.getRawType()) || Object.class.equals(type.getRawType())) // TODO CharSequence
@@ -50,11 +50,11 @@ class JsonStringReader extends Reader<JsonString> {
         }
 
         ConstructionInfo constructor = type.scalarConstructor()
-                .orElseThrow(() -> new GraphQLClientValueException(location, value));
+                .orElseThrow(() -> GraphQLClientValueHelper.fail(location, value));
         try {
             return constructor.execute(value.getString());
         } catch (Exception e) {
-            throw new GraphQLClientException("can't create scalar " + location, e);
+            throw new RuntimeException("can't create scalar " + location, e);
         }
     }
 
@@ -91,7 +91,7 @@ class JsonStringReader extends Reader<JsonString> {
             try {
                 return df.parse(value);
             } catch (ParseException e) {
-                throw new GraphQLClientException("Cannot parse date", e);
+                throw new RuntimeException("Cannot parse date", e);
             }
         } else {
             return java.util.Date.from(Instant.parse(value));
@@ -125,7 +125,7 @@ class JsonStringReader extends Reader<JsonString> {
         try {
             return nf.parse(input);
         } catch (ParseException e) {
-            throw new GraphQLClientException("Can't parse number", e);
+            throw new InvalidResponseException("Can't parse number", e);
         }
     }
 

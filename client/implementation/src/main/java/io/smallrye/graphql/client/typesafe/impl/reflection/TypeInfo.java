@@ -29,7 +29,6 @@ import java.util.stream.Stream.Builder;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 public class TypeInfo {
     private final TypeInfo container;
@@ -307,7 +306,7 @@ public class TypeInfo {
             return raw(((ParameterizedType) type).getRawType());
         if (type instanceof TypeVariable)
             return resolveTypeVariable();
-        throw new GraphQLClientException("unsupported reflection type " + type.getClass());
+        throw new RuntimeException("unsupported reflection type " + type.getClass());
     }
 
     public Optional<MethodInvocation> getMethod(String name, Class<?>... args) {

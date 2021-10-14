@@ -13,8 +13,8 @@ import java.util.Set;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 class NestedBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
@@ -40,7 +40,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':'a'");
         StringSetApi api = fixture.build(StringSetApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: \"a\"");
@@ -51,7 +51,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':12345");
         StringSetApi api = fixture.build(StringSetApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: 12345");
@@ -62,7 +62,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':true");
         StringSetApi api = fixture.build(StringSetApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName() + "#greetings: true");
@@ -73,7 +73,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':{'foo':'bar'}");
         StringSetApi api = fixture.build(StringSetApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage("invalid java.util.Set<java.lang.String> value for " + StringSetApi.class.getName()
                 + "#greetings: {\"foo\":\"bar\"}");
@@ -149,7 +149,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':['a',null]");
         NonNullStringListApi api = fixture.build(NonNullStringListApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid null java.lang.String value for " + NonNullStringListApi.class.getName() + "#greetings[1]");
@@ -223,7 +223,7 @@ class NestedBehavior {
         fixture.returnsData("'greeting':'a'");
         ObjectApi api = fixture.build(ObjectApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greeting, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: \"a\"");
@@ -234,7 +234,7 @@ class NestedBehavior {
         fixture.returnsData("'greeting':12.34");
         ObjectApi api = fixture.build(ObjectApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greeting, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: 12.34");
@@ -245,7 +245,7 @@ class NestedBehavior {
         fixture.returnsData("'greeting':false");
         ObjectApi api = fixture.build(ObjectApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greeting, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid " + Greeting.class.getName() + " value for " + ObjectApi.class.getName() + "#greeting: false");
@@ -278,7 +278,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':[{'text':'a','code':1},123456]");
         ObjectListApi api = fixture.build(ObjectListApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage("invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName()
                 + "#greetings[1]: 123456");
@@ -289,7 +289,7 @@ class NestedBehavior {
         fixture.returnsData("'greetings':[123,456.78]");
         ObjectListApi api = fixture.build(ObjectListApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greetings, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greetings, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid " + Greeting.class.getName() + " value for " + ObjectListApi.class.getName() + "#greetings[0]: 123");
@@ -541,7 +541,7 @@ class NestedBehavior {
         fixture.returnsData("'container':{'code':{'value':1000},'count':3}");
         WrappedByteApi api = fixture.build(WrappedByteApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::container, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::container, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid java.lang.Byte value for " + WrappedByteApi.class.getName() + "#container.code.value: 1000");
@@ -598,7 +598,7 @@ class NestedBehavior {
         fixture.returnsData("'container':{'codes':[97,98,9999],'count':3}");
         WrappedListByteApi api = fixture.build(WrappedListByteApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::container, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::container, InvalidResponseException.class);
 
         then(thrown).hasMessage(
                 "invalid java.lang.Byte value for " + WrappedListByteApi.class.getName() + "#container.codes[2]: 9999");
@@ -707,9 +707,9 @@ class NestedBehavior {
         fixture.returnsData("'call':{'foo':'a','bar':'b'}");
         ObjectWithoutDefaultConstructorApi api = fixture.build(ObjectWithoutDefaultConstructorApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::call, GraphQLClientException.class);
+        Exception thrown = catchThrowableOfType(api::call, Exception.class);
 
-        then(thrown).hasMessage("can't create " + ObjectWithoutDefaultConstructor.class.getName() +
+        then(thrown).hasMessageContaining("Cannot instantiate " + ObjectWithoutDefaultConstructor.class.getName() +
                 " value for " + ObjectWithoutDefaultConstructorApi.class.getName() + "#call");
     }
 
@@ -756,7 +756,7 @@ class NestedBehavior {
         fixture.returnsData("'call':{'foo':'a'}");
         MissingNonNullFieldApi api = fixture.build(MissingNonNullFieldApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::call, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::call, InvalidResponseException.class);
 
         then(thrown).hasMessage("missing java.lang.String value for " + MissingNonNullFieldApi.class.getName() + "#call.bar");
     }
@@ -779,7 +779,7 @@ class NestedBehavior {
         fixture.returnsData("'call':{'foo':'a'}");
         MissingPrimitiveFieldApi api = fixture.build(MissingPrimitiveFieldApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::call, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::call, InvalidResponseException.class);
 
         then(thrown).hasMessage("missing boolean value for " + MissingPrimitiveFieldApi.class.getName() + "#call.bar");
     }
@@ -806,8 +806,8 @@ class NestedBehavior {
     void shouldFailToCallApiWithRecursiveFields() {
         RecursiveApi api = fixture.build(RecursiveApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::member, GraphQLClientException.class);
+        IllegalStateException thrown = catchThrowableOfType(api::member, IllegalStateException.class);
 
-        then(thrown).hasMessage("field recursion found");
+        then(thrown).hasMessageContaining("Field recursion found");
     }
 }

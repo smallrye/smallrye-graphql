@@ -40,4 +40,13 @@ public interface SmallRyeGraphQLClientMessages {
     @Message(id = 35007, value = "Field %s in the response is an array, please use the method `getList` instead of `getObject`")
     IllegalArgumentException responseContainsArray(String field);
 
+    @Message(id = 35008, value = "Field recursion found")
+    IllegalStateException fieldRecursionFound();
+
+    @Message(id = 35010, value = "Cannot instantiate %s")
+    RuntimeException cannotInstantiateDomainObject(String object, @Cause Throwable t);
+
+    @Message(id = 35011, value = "The response does not contain any data for operation %s")
+    RuntimeException missingDataForOperation(String operation);
+
 }

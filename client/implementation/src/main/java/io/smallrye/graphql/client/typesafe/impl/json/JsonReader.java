@@ -83,6 +83,6 @@ public class JsonReader extends Reader<JsonValue> {
             case NULL:
                 return new JsonNullReader(type, location, value, field);
         }
-        throw new GraphQLClientException("unreachable code");
+        return null;
     }
 }

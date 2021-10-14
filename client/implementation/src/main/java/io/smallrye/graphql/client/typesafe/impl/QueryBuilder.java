@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Stack;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
@@ -53,7 +53,7 @@ public class QueryBuilder {
 
     private String fields(TypeInfo type) {
         if (typeStack.contains(type.getTypeName()))
-            throw new GraphQLClientException("field recursion found");
+            throw SmallRyeGraphQLClientMessages.msg.fieldRecursionFound();
         try {
             typeStack.push(type.getTypeName());
 
