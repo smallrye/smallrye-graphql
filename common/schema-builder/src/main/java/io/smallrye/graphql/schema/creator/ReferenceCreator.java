@@ -14,6 +14,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.jandex.TypeVariable;
+import org.jboss.jandex.WildcardType;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -347,6 +348,20 @@ public class ReferenceCreator {
             }
 
             return ret;
+        } else if (fieldType.kind().equals(Type.Kind.WILDCARD_TYPE)) {
+            WildcardType finalFieldType = fieldType.asWildcardType();
+            Type bound = Optional.of(finalFieldType.superBound())
+                    .orElseGet(finalFieldType::extendsBound);
+
+            LOG.debug("Type variable: " + finalFieldType.name() + " bound: "
+                    + bound);
+
+            ClassInfo classInfo = ScanningContext.getIndex().getClassByName(bound.name());
+            if (classInfo != null) {
+                return getReference(direction, bound, methodType, annotations, parentObjectReference);
+            } else {
+                return getNonIndexedReference(direction, fieldType);
+            }
         } else {
             throw new SchemaBuilderException(
                     "Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind() + "]");
