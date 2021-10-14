@@ -33,9 +33,9 @@ import io.smallrye.graphql.schema.model.Scalars;
 
 /**
  * Here we create references to things that might not yet exist.
- * 
+ *
  * We store all references to be created later.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReferenceCreator {
@@ -76,7 +76,7 @@ public class ReferenceCreator {
 
     /**
      * Get the values for a certain type
-     * 
+     *
      * @param referenceType the type
      * @return the references
      */
@@ -87,7 +87,7 @@ public class ReferenceCreator {
     /**
      * Get a reference to a field type for an operation Direction is OUT on a field (and IN on an argument) In the case
      * of operations, there is no fields (only methods)
-     * 
+     *
      * @param fieldType the java type
      * @param annotationsForMethod annotation on this operations method
      * @return a reference to the type
@@ -99,7 +99,7 @@ public class ReferenceCreator {
     /**
      * Get a reference to a argument type for an operation Direction is IN on an argument (and OUT on a field) In the
      * case of operation, there is no field (only methods)
-     * 
+     *
      * @param argumentType the java type
      * @param annotationsForThisArgument annotations on this argument
      * @return a reference to the argument
@@ -121,9 +121,9 @@ public class ReferenceCreator {
 
     /**
      * Get a reference to a field (method response) on an interface
-     * 
+     *
      * Interfaces is only usable on Type, so the direction in OUT.
-     * 
+     *
      * @param methodType the method response type
      * @param annotationsForThisMethod annotations on this method
      * @return a reference to the type
@@ -135,9 +135,9 @@ public class ReferenceCreator {
 
     /**
      * Get a reference to a Field Type for a InputType or Type.
-     * 
+     *
      * We need both the type and the getter/setter method as both is applicable.
-     * 
+     *
      * @param direction in or out
      * @param fieldType the field type
      * @param methodType the method type
@@ -153,7 +153,7 @@ public class ReferenceCreator {
     /**
      * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
      * already know about it.
-     * 
+     *
      * @param direction the direction (in or out)
      * @param classInfo the Java class
      * @return a reference
@@ -165,7 +165,7 @@ public class ReferenceCreator {
     /**
      * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
      * already know about it.
-     * 
+     *
      * @param direction the direction (in or out)
      * @param classInfo the Java class
      * @param createType create the type in the schema

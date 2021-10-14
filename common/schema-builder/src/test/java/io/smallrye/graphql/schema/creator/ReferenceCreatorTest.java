@@ -24,7 +24,10 @@ public class ReferenceCreatorTest {
         public GenericInterface<String> getGenericInterface() {
             return null;
         }
-        public GenericInterface<? extends String> getWildcardInterface() { return null; }
+
+        public GenericInterface<? extends String> getWildcardInterface() {
+            return null;
+        }
     }
 
     public static class SpecializedImplementorOfGenericInterface implements GenericInterface<String> {
