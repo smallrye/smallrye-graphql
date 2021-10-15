@@ -135,8 +135,8 @@ public class MethodInvocation {
 
     public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<?> declaring, Class<A> type) {
         return Stream.concat(
-                        resolveInheritedAnnotations(declaring, type),
-                        resolveAnnotations(method, type))
+                resolveInheritedAnnotations(declaring, type),
+                resolveAnnotations(method, type))
                 .filter(Objects::nonNull);
     }
 
