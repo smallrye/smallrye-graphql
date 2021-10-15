@@ -14,10 +14,13 @@ import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
+    private static Vertx VERTX;
+
     private String configKey = null;
     private URI endpoint;
     private Vertx vertx;
@@ -43,19 +46,6 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     public TypesafeGraphQLClientBuilder options(WebClientOptions options) {
         this.options = options;
         return this;
-    }
-
-    private Vertx vertx() {
-        if (vertx == null) {
-            Context vertxContext = Vertx.currentContext();
-            if (vertxContext != null && vertxContext.owner() != null) {
-                vertx = vertxContext.owner();
-            } else {
-                // create a new vertx instance if there is none
-                vertx = Vertx.vertx();
-            }
-        }
-        return vertx;
     }
 
     @Override
@@ -90,14 +80,38 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
 
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(vertx(), persistentConfig, options,
-                endpoint, webClient);
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(persistentConfig,
+                endpoint, webClient());
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
 
+    private WebClient webClient() {
+        if (webClient == null) {
+            HttpClient httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
+            this.webClient = WebClient.wrap(httpClient);
+        }
+        return webClient;
+    }
+
+    private Vertx vertx() {
+        if (vertx == null) {
+            Context vertxContext = Vertx.currentContext();
+            if (vertxContext != null && vertxContext.owner() != null) {
+                vertx = vertxContext.owner();
+            } else {
+                // create a new vertx instance if there is none
+                if (VERTX == null) {
+                    VERTX = Vertx.vertx();
+                }
+                vertx = VERTX;
+            }
+        }
+        return vertx;
+    }
+
     private Object invoke(Class<?> apiClass, VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
-            Object... args) {
+                          Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             graphQlClient.close();
