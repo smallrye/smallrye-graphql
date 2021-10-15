@@ -13,6 +13,7 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
@@ -267,7 +268,7 @@ class ErrorBehavior {
         fixture.returnsServerError();
         StringApi api = fixture.build(StringApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+        RuntimeException thrown = catchThrowableOfType(api::greeting, RuntimeException.class);
 
         then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\nfailed");
     }
@@ -277,9 +278,9 @@ class ErrorBehavior {
         fixture.returnsData("");
         StringApi api = fixture.build(StringApi.class);
 
-        GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
+        InvalidResponseException thrown = catchThrowableOfType(api::greeting, InvalidResponseException.class);
 
-        then(thrown).hasMessage("no data for 'greeting':\n  {}");
+        then(thrown).hasMessageContaining("No data for 'greeting'");
     }
 
     @Test

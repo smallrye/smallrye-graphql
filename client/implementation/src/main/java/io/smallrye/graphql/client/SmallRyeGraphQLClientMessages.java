@@ -4,11 +4,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.jboss.logging.Messages;
+import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageBundle;
-
-import io.smallrye.graphql.client.dynamic.api.DynamicClientException;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 @MessageBundle(projectCode = "SRGQLDC")
 public interface SmallRyeGraphQLClientMessages {
@@ -18,7 +16,7 @@ public interface SmallRyeGraphQLClientMessages {
     // numbers reserved for this module are 35000-39999
 
     @Message(id = 35000, value = "Cannot parse response: %s")
-    DynamicClientException cannotParseResponse(String response);
+    RuntimeException cannotParseResponse(String response, @Cause Throwable cause);
 
     @Message(id = 35001, value = "URL not configured for client. Please define the property %s/mp-graphql/url or pass it to " +
             "your client builder dynamically")
@@ -34,12 +32,21 @@ public interface SmallRyeGraphQLClientMessages {
     NoSuchElementException fieldNotFoundInResponse(String field, Set<String> availableFields);
 
     @Message(id = 35005, value = "Value in the response at path '%s' is of an unexpected type: %s")
-    GraphQLClientException unexpectedValueInResponse(String path, String value);
+    RuntimeException unexpectedValueInResponse(String path, String value);
 
     @Message(id = 35006, value = "Field %s in the response is a single object, please use the method `getObject` instead of `getList`")
-    GraphQLClientException responseContainsSingleObject(String field);
+    IllegalArgumentException responseContainsSingleObject(String field);
 
     @Message(id = 35007, value = "Field %s in the response is an array, please use the method `getList` instead of `getObject`")
-    GraphQLClientException responseContainsArray(String field);
+    IllegalArgumentException responseContainsArray(String field);
+
+    @Message(id = 35008, value = "Field recursion found")
+    IllegalStateException fieldRecursionFound();
+
+    @Message(id = 35010, value = "Cannot instantiate %s")
+    RuntimeException cannotInstantiateDomainObject(String object, @Cause Throwable t);
+
+    @Message(id = 35011, value = "The response does not contain any data for operation %s")
+    RuntimeException missingDataForOperation(String operation);
 
 }

@@ -1,27 +1,22 @@
 package io.smallrye.graphql.client.typesafe.api;
 
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
+/**
+ * Represents a response that contained application-level errors and thus can't be turned into a domain object.
+ * Thrown by the typesafe client upon an invocation.
+ * This does NOT represent a response that can't be properly parsed, only a response that contains
+ * application-level errors.
+ */
 public class GraphQLClientException extends RuntimeException {
     private final List<GraphQLClientError> errors;
-
-    public GraphQLClientException(String message) {
-        super(message);
-        this.errors = emptyList();
-    }
 
     public GraphQLClientException(String message, List<GraphQLClientError> errors) {
         super(message);
         this.errors = requireNonNull(errors);
-    }
-
-    public GraphQLClientException(String message, Throwable cause) {
-        super(message, cause);
-        this.errors = emptyList();
     }
 
     @Override
