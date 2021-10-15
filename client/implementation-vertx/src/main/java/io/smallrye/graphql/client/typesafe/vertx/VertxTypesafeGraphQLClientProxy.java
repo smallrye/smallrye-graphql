@@ -62,7 +62,7 @@ class VertxTypesafeGraphQLClientProxy {
         MultiMap headers = new HeaderBuilder(api,
                 method,
                 configuration != null ? configuration.getHeaders() : Collections.emptyMap())
-                .build();
+                        .build();
         headers.set("Accept", APPLICATION_JSON_UTF8);
         String request = request(method);
 
