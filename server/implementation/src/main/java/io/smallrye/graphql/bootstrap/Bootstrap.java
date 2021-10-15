@@ -99,12 +99,16 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        return bootstrap(schema, false);
+        return bootstrap(schema, false, false);
     }
 
     public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments) {
+        return bootstrap(schema, allowMultipleDeployments, false);
+    }
+
+    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
         if (schema != null && (schema.hasOperations())) {
-            Bootstrap bootstrap = new Bootstrap(schema, allowMultipleDeployments);
+            Bootstrap bootstrap = new Bootstrap(schema, allowMultipleDeployments, skipInjectionValidation);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
         } else {
@@ -113,10 +117,12 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema, boolean allowMultipleDeployments) {
+    private Bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
         this.schema = schema;
         SmallRyeContext.setSchema(schema, allowMultipleDeployments);
-        if (!Boolean.getBoolean("test.skip.injection.validation")) {
+        // setting `skipInjectionValidation` through a system property is not recommended,
+        // but kept for backward compatibility for now
+        if (!Boolean.getBoolean("test.skip.injection.validation") && !skipInjectionValidation) {
             verifyInjectionIsAvailable();
         }
     }

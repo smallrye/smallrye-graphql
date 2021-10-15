@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
@@ -30,25 +28,13 @@ import io.smallrye.graphql.schema.model.Schema;
 class SchemaTest {
     private static final Logger LOG = Logger.getLogger(SchemaTest.class.getName());
 
-    @BeforeEach
-    public void skipInjectionValidation() {
-        // in a unit test we don't have injection available, this is a hack needed to tell the Bootstrap class
-        // that it should not verify injection availability
-        System.setProperty("test.skip.injection.validation", "true");
-    }
-
-    @AfterEach
-    public void skipInjectionValidationCleanup() {
-        System.clearProperty("test.skip.injection.validation");
-    }
-
     @Test
     void testSchemaWithDirectives() {
         Schema schema = SchemaBuilder
                 .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
                         TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, false, true);
         assertNotNull(graphQLSchema);
 
         GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");

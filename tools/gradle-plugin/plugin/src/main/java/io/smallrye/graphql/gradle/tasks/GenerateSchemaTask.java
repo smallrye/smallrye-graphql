@@ -179,7 +179,6 @@ public class GenerateSchemaTask extends DefaultTask {
     @TaskAction
     public void generateSchema() throws Exception {
         this.config = new GradleConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
-        System.setProperty("test.skip.injection.validation", "true");
         ClassLoader classLoader = getClassLoader();
         Thread.currentThread().setContextClassLoader(classLoader);
         IndexView index = createIndex();
@@ -242,7 +241,7 @@ public class GenerateSchemaTask extends DefaultTask {
 
     private String generateSchema(IndexView index) {
         Schema internalSchema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, false, true);
         if(graphQLSchema!=null){
             return new SchemaPrinter().print(graphQLSchema);
         }
