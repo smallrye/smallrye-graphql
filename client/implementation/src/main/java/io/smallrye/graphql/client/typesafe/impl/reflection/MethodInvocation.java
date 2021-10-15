@@ -97,10 +97,6 @@ public class MethodInvocation {
         return rootParameters().findAny().isPresent();
     }
 
-    public boolean hasNestedParameters(String path) {
-        return nestedParameters(path).findAny().isPresent();
-    }
-
     public Stream<ParameterInfo> headerParameters() {
         return parameters().filter(ParameterInfo::isHeaderParameter);
     }
@@ -113,9 +109,13 @@ public class MethodInvocation {
         return parameters().filter(ParameterInfo::isRootParameter);
     }
 
-    public Stream<ParameterInfo> nestedParameters(String path) {
-        return parameters().filter(ParameterInfo::isNestedParameter)
-                .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path));
+    public List<ParameterInfo> nestedParameters(String path) {
+        return parameters()
+                .filter(ParameterInfo::isNestedParameter)
+                .filter(parameterInfo -> parameterInfo
+                        .getNestedParameterNames()
+                        .anyMatch(path::equals))
+                .collect(toList());
     }
 
     private Stream<ParameterInfo> parameters() {
@@ -135,8 +135,8 @@ public class MethodInvocation {
 
     public <A extends Annotation> Stream<A> getResolvedAnnotations(Class<?> declaring, Class<A> type) {
         return Stream.concat(
-                resolveInheritedAnnotations(declaring, type),
-                resolveAnnotations(method, type))
+                        resolveInheritedAnnotations(declaring, type),
+                        resolveAnnotations(method, type))
                 .filter(Objects::nonNull);
     }
 
