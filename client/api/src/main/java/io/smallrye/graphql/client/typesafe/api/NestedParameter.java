@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  *     Team team(String teamName, @NestedParameter("members") int limit);
  * }
  * </pre>
- *
+ * <p>
  * Generates a request:
  *
  * <pre>
@@ -29,12 +29,15 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
- *
+ * <p>
  * To nest a parameter deeper in the request, provide the path of the fields delimited with a period,
  * e.g. <code>teams.members</code>. Note that multiple parameters can be bound to the same path.
+ * <p>
+ * The value is an array, so the same parameter value can be used for multiple destinations,
+ * e.g. for {@link Multiple} requests.
  */
 @Retention(RUNTIME)
 @Target(PARAMETER)
 public @interface NestedParameter {
-    String value();
+    String[] value();
 }

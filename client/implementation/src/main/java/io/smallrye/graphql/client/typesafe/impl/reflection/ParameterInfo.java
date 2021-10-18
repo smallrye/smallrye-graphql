@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.stream.Stream;
 
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Input;
@@ -149,7 +150,7 @@ public class ParameterInfo {
         return parameter.isAnnotationPresent(NestedParameter.class);
     }
 
-    public String getNestedParameterName() {
-        return parameter.getAnnotation(NestedParameter.class).value();
+    public Stream<String> getNestedParameterNames() {
+        return Stream.of(parameter.getAnnotation(NestedParameter.class).value());
     }
 }
