@@ -508,4 +508,7 @@ public class Annotations {
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
+    //Kotlin NotNull
+    public static final DotName KOTLIN_NOT_NULL = DotName.createSimple("org.jetbrains.annotations.NotNull");
+
 }
