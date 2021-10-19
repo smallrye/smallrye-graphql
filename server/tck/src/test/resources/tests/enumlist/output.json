@@ -1,0 +1,12 @@
+{
+  "data": {
+    "objectWithEnumList": {
+      "allpets": [
+        "Cat",
+        "Dog",
+        "Fish"
+      ],
+      "nopets": []
+    }
+  }
+}

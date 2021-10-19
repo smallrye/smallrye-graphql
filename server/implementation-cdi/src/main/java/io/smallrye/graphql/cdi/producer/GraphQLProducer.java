@@ -2,13 +2,10 @@ package io.smallrye.graphql.cdi.producer;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionService;
-import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.model.Schema;
 
 /**
@@ -19,34 +16,30 @@ import io.smallrye.graphql.schema.model.Schema;
 @ApplicationScoped
 public class GraphQLProducer {
 
-    @Inject
-    GraphQLConfig graphQLConfig;
-
     public void setSchema(Schema schema) {
         this.schema = schema;
     }
 
     public GraphQLSchema initialize(Schema schema) {
-        this.schema = schema;
-        return initialize();
+        return initialize(schema, false);
     }
 
-    public GraphQLSchema initialize(Schema schema, GraphQLConfig graphQLConfig) {
+    public GraphQLSchema initialize(Schema schema, boolean allowMultipleDeployments) {
         this.schema = schema;
-        this.graphQLConfig = graphQLConfig;
-        return initialize();
+        return initialize(allowMultipleDeployments);
     }
 
-    public GraphQLSchema initialize() {
-        this.graphQLSchema = Bootstrap.bootstrap(schema, graphQLConfig);
-        this.executionService = new ExecutionService(graphQLConfig, graphQLSchema, this.schema.getBatchOperations(),
+    public GraphQLSchema initialize(boolean allowMultipleDeployments) {
+
+        this.graphQLSchema = Bootstrap.bootstrap(schema, allowMultipleDeployments);
+        this.executionService = new ExecutionService(graphQLSchema, this.schema.getBatchOperations(),
                 schema.hasSubscriptions());
-        this.schemaPrinter = new SchemaPrinter(graphQLConfig);
         return this.graphQLSchema;
     }
 
-    @Produces
-    SchemaPrinter schemaPrinter;
+    public GraphQLSchema initialize() {
+        return initialize(false);
+    }
 
     @Produces
     ExecutionService executionService;

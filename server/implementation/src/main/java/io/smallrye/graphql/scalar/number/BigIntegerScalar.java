@@ -5,8 +5,6 @@ import java.math.BigInteger;
 import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicLong;
 
-import graphql.Scalars;
-
 /**
  * Scalar for BigInteger.
  * Based on graphql-java's Scalars.GraphQLBigInteger
@@ -17,7 +15,7 @@ public class BigIntegerScalar extends AbstractNumberScalar {
 
     public BigIntegerScalar() {
 
-        super(Scalars.GraphQLBigInteger.getName(),
+        super("BigInteger",
                 new Converter() {
                     @Override
                     public Object fromBigDecimal(BigDecimal bigDecimal) {

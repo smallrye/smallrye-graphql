@@ -13,13 +13,18 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
 import io.smallrye.graphql.test.apps.batch.api.BatchApi;
+import io.smallrye.graphql.test.apps.collections.api.CollectionResource;
 import io.smallrye.graphql.test.apps.context.api.ContextApi;
 import io.smallrye.graphql.test.apps.creators.api.CreatorApi;
 import io.smallrye.graphql.test.apps.defaultvalue.api.DefaultValueParrotAPI;
+import io.smallrye.graphql.test.apps.enumlist.api.EnumListApi;
 import io.smallrye.graphql.test.apps.error.api.ErrorApi;
+import io.smallrye.graphql.test.apps.exceptionlist.ExceptionListApi;
 import io.smallrye.graphql.test.apps.fieldexistence.api.FieldExistenceApi;
 import io.smallrye.graphql.test.apps.generics.api.ControllerWithGenerics;
 import io.smallrye.graphql.test.apps.grouping.api.BookGraphQLApi;
+import io.smallrye.graphql.test.apps.interfaces.api.FoodResource;
+import io.smallrye.graphql.test.apps.jackson.api.JacksonApi;
 import io.smallrye.graphql.test.apps.jsonp.api.JsonPApi;
 import io.smallrye.graphql.test.apps.mapping.api.MappingResource;
 import io.smallrye.graphql.test.apps.mutiny.api.MutinyApi;
@@ -95,7 +100,11 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(MappingResource.class.getPackage());
             war.addPackage(FieldExistenceApi.class.getPackage());
             war.addPackage(CreatorApi.class.getPackage());
-
+            war.addPackage(EnumListApi.class.getPackage());
+            war.addPackage(ExceptionListApi.class.getPackage());
+            war.addPackage(FoodResource.class.getPackage());
+            war.addPackage(CollectionResource.class.getPackage());
+            war.addPackage(JacksonApi.class.getPackage());
         }
     }
 }

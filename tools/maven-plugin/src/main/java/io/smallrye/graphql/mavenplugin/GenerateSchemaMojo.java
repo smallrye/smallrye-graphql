@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,13 +33,14 @@ import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
+import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Schema;
 
 @Mojo(name = "generate-schema", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class GenerateSchemaMojo extends AbstractMojo {
+    private static MavenConfig mavenConfig;
 
     /**
      * Destination file where to output the schema.
@@ -100,8 +102,17 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.outputDirectory}", property = "classesDir")
     private File classesDir;
 
+    /**
+     * @return the configuration set by the plugin's parameters
+     */
+    public static MavenConfig getMavenConfig() {
+        return mavenConfig;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
+        mavenConfig = new MavenConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes,
+                TypeAutoNameStrategy.valueOf(typeAutoNameStrategy));
         if (!skip) {
             ClassLoader classLoader = getClassLoader();
             Thread.currentThread().setContextClassLoader(classLoader);
@@ -117,32 +128,53 @@ public class GenerateSchemaMojo extends AbstractMojo {
     }
 
     private IndexView createIndex() throws MojoExecutionException {
-        IndexView moduleIndex;
+        List<IndexView> indexes = new ArrayList<>();
         try {
-            moduleIndex = indexModuleClasses();
+            IndexView moduleIndex = indexModuleClasses();
+            indexes.add(moduleIndex);
         } catch (IOException e) {
             throw new MojoExecutionException("Can't compute index", e);
         }
+
+        // always include Mutiny if it is present in the dependencies,
+        // even if includeDependencies=false
+        Predicate<Artifact> isMutiny = a -> a.getGroupId().equals("io.smallrye.reactive") &&
+                a.getArtifactId().equals("mutiny");
+        mavenProject.getArtifacts()
+                .stream()
+                .filter(isMutiny)
+                .findAny()
+                .ifPresent(a -> {
+                    Result r = indexJar(((Artifact) a).getFile());
+                    if (r != null) {
+                        indexes.add(r.getIndex());
+                    }
+                });
+
         if (includeDependencies) {
-            List<IndexView> indexes = new ArrayList<>();
-            indexes.add(moduleIndex);
             for (Object a : mavenProject.getArtifacts()) {
                 Artifact artifact = (Artifact) a;
                 if (includeDependenciesScopes.contains(artifact.getScope())
-                        && includeDependenciesTypes.contains(artifact.getType())) {
-                    getLog().debug("Indexing file " + artifact.getFile());
-                    try {
-                        Result result = JarIndexer.createJarIndex(artifact.getFile(), new Indexer(),
-                                false, false, false);
+                        && includeDependenciesTypes.contains(artifact.getType())
+                        && !isMutiny.test(artifact)) {
+                    Result result = indexJar(artifact.getFile());
+                    if (result != null) {
                         indexes.add(result.getIndex());
-                    } catch (Exception e) {
-                        getLog().error("Can't compute index of " + artifact.getFile().getAbsolutePath() + ", skipping", e);
                     }
                 }
             }
-            return CompositeIndex.create(indexes);
-        } else {
-            return moduleIndex;
+        }
+        return CompositeIndex.create(indexes);
+    }
+
+    private Result indexJar(File file) {
+        try {
+            getLog().debug("Indexing file " + file);
+            return JarIndexer.createJarIndex(file, new Indexer(),
+                    false, false, false);
+        } catch (IOException e) {
+            getLog().error("Can't compute index of " + file.getAbsolutePath() + ", skipping", e);
+            return null;
         }
     }
 
@@ -161,32 +193,10 @@ public class GenerateSchemaMojo extends AbstractMojo {
     }
 
     private String generateSchema(IndexView index) {
-        Config config = new Config() {
-            @Override
-            public boolean isIncludeScalarsInSchema() {
-                return includeScalars;
-            }
-
-            @Override
-            public boolean isIncludeDirectivesInSchema() {
-                return includeDirectives;
-            }
-
-            @Override
-            public boolean isIncludeSchemaDefinitionInSchema() {
-                return includeSchemaDefinition;
-            }
-
-            @Override
-            public boolean isIncludeIntrospectionTypesInSchema() {
-                return includeIntrospectionTypes;
-            }
-        };
-
-        Schema internalSchema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, config);
+        Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, false, true);
         if (graphQLSchema != null) {
-            return new SchemaPrinter(config).print(graphQLSchema);
+            return new SchemaPrinter().print(graphQLSchema);
         }
         return null;
     }
@@ -225,5 +235,42 @@ public class GenerateSchemaMojo extends AbstractMojo {
                 urls.toArray(new URL[0]),
                 Thread.currentThread().getContextClassLoader());
 
+    }
+
+    public static class MavenConfig {
+        private final boolean includeScalars;
+        private final boolean includeDirectives;
+        private final boolean includeSchemaDefinition;
+        private final boolean includeIntrospectionTypes;
+        private final TypeAutoNameStrategy typeAutoNameStrategy;
+
+        public MavenConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition,
+                boolean includeIntrospectionTypes, TypeAutoNameStrategy typeAutoNameStrategy) {
+            this.includeScalars = includeScalars;
+            this.includeDirectives = includeDirectives;
+            this.includeSchemaDefinition = includeSchemaDefinition;
+            this.includeIntrospectionTypes = includeIntrospectionTypes;
+            this.typeAutoNameStrategy = typeAutoNameStrategy;
+        }
+
+        public boolean isIncludeScalars() {
+            return includeScalars;
+        }
+
+        public boolean isIncludeDirectives() {
+            return includeDirectives;
+        }
+
+        public boolean isIncludeSchemaDefinition() {
+            return includeSchemaDefinition;
+        }
+
+        public boolean isIncludeIntrospectionTypes() {
+            return includeIntrospectionTypes;
+        }
+
+        public TypeAutoNameStrategy getTypeAutoNameStrategy() {
+            return typeAutoNameStrategy;
+        }
     }
 }

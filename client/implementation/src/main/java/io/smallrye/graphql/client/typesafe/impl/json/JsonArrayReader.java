@@ -1,7 +1,7 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
 import static io.smallrye.graphql.client.typesafe.impl.CollectionUtils.toArray;
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueHelper.check;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonReader.readJson;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -15,7 +15,8 @@ import javax.json.JsonArray;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonArrayReader extends Reader<JsonArray> {
@@ -23,8 +24,8 @@ class JsonArrayReader extends Reader<JsonArray> {
     private Class<?> collectionType;
     private TypeInfo itemType;
 
-    JsonArrayReader(TypeInfo type, Location location, JsonArray value) {
-        super(type, location, value);
+    JsonArrayReader(TypeInfo type, Location location, JsonArray value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
@@ -38,8 +39,8 @@ class JsonArrayReader extends Reader<JsonArray> {
         Location itemLocation = locationBuilder.nextLocation();
         TypeInfo itemType = getItemType();
         if (itemValue.getValueType() == ValueType.NULL && itemType.isNonNull())
-            throw new GraphQLClientException("invalid null " + itemLocation);
-        return readJson(itemLocation, itemType, itemValue);
+            throw new InvalidResponseException("invalid null " + itemLocation);
+        return readJson(itemLocation, itemType, itemValue, field);
     }
 
     private Collector<Object, ?, ?> collector() {

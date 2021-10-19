@@ -2,7 +2,7 @@
 
 This allows you you add GraphiQL UI with your project. 
 
-image:/ui/graphiql/graphiql.png[link="/master/ui/graphiql/graphiql.png"]
+image:/ui/graphiql/graphiql.png[link="/main/ui/graphiql/graphiql.png"]
 
 The UI will be available under `/graphql-ui`.
 

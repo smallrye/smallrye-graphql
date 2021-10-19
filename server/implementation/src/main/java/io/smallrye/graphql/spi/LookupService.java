@@ -40,6 +40,8 @@ public interface LookupService {
 
     Object getInstance(Class<?> declaringClass);
 
+    boolean isResolvable(Class<?> declaringClass);
+
     /**
      * Default Lookup service that gets used when none is provided with SPI.
      * This use reflection
@@ -64,6 +66,11 @@ public interface LookupService {
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw msg.countNotGetInstance(ex);
             }
+        }
+
+        @Override
+        public boolean isResolvable(Class<?> declaringClass) {
+            return true;
         }
     }
 }

@@ -33,3 +33,4 @@ The schema will appear as `target/generated/schema.graphql` by default.
 - `includeDirectives` - Include directives in the schema. Default false.
 - `includeSchemaDefinition` - Include the schema definition. Default false.
 - `includeIntrospectionTypes` - Include the introspection types in the schema. Default false.
+- `typeAutoNameStrategy` - Strategy for transforming class names into GraphQL type names. Valid values are `MergeInnerClass`, `Full` and `Default`.

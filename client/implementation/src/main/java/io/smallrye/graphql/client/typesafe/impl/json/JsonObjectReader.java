@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueHelper.check;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonReader.readJson;
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.toMap;
 
@@ -9,13 +9,14 @@ import java.util.Map;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonObjectReader extends Reader<JsonObject> {
-    JsonObjectReader(TypeInfo type, Location location, JsonObject value) {
-        super(type, location, value);
+    JsonObjectReader(TypeInfo type, Location location, JsonObject value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
@@ -27,20 +28,29 @@ class JsonObjectReader extends Reader<JsonObject> {
     }
 
     private Object readObject() {
-        Object instance = newInstance();
-        type.fields().forEach(field -> {
-            Object fieldValue = buildValue(location, value, field);
-            field.set(instance, fieldValue);
-        });
-        return instance;
+        if (!type.isRecord()) {
+            Object instance = newInstance();
+            type.fields().forEach(field -> {
+                Object fieldValue = buildValue(location, value, field);
+                field.set(instance, fieldValue);
+            });
+            return instance;
+        } else {
+            Object[] values = type.fields().map(field -> buildValue(location, value, field)).toArray(Object[]::new);
+            return newInstance(values);
+        }
+    }
+
+    private Object newInstance(Object[] parameters) {
+        try {
+            return type.newInstance(parameters);
+        } catch (Exception e) {
+            throw SmallRyeGraphQLClientMessages.msg.cannotInstantiateDomainObject(location.toString(), e);
+        }
     }
 
     private Object newInstance() {
-        try {
-            return type.newInstance();
-        } catch (Exception e) {
-            throw new GraphQLClientException("can't create " + location, e);
-        }
+        return newInstance(new Object[0]);
     }
 
     private Object buildValue(Location location, JsonObject value, FieldInfo field) {
@@ -49,9 +59,9 @@ class JsonObjectReader extends Reader<JsonObject> {
         JsonValue jsonFieldValue = value.get(fieldName);
         if (jsonFieldValue == null) {
             if (field.isNonNull())
-                throw new GraphQLClientException("missing " + fieldLocation);
+                throw new InvalidResponseException("missing " + fieldLocation);
             return null;
         }
-        return readJson(fieldLocation, field.getType(), jsonFieldValue);
+        return readJson(fieldLocation, field.getType(), jsonFieldValue, field);
     }
 }

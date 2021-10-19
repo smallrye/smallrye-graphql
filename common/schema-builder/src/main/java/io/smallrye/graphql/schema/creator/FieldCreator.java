@@ -8,6 +8,7 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DefaultValueHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -278,7 +279,8 @@ public class FieldCreator {
     }
 
     private static Type getFieldType(FieldInfo fieldInfo, Type defaultType) {
-        if (fieldInfo == null) {
+        if (fieldInfo == null || fieldInfo.type().name().equals(Classes.SERIALIZABLE)
+                || fieldInfo.type().name().equals(Classes.OBJECT)) {
             return defaultType;
         }
         return fieldInfo.type();
@@ -308,21 +310,25 @@ public class FieldCreator {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
                 Annotations.QUERY,
-                Annotations.JSONB_PROPERTY)
+                Annotations.JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
                         Annotations.QUERY,
-                        Annotations.JSONB_PROPERTY)
+                        Annotations.JSONB_PROPERTY,
+                        Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.OUT, fieldName)));
     }
 
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
-                Annotations.JSONB_PROPERTY)
+                Annotations.JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
-                        Annotations.JSONB_PROPERTY)
+                        Annotations.JSONB_PROPERTY,
+                        Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.IN, fieldName)));
     }
 }

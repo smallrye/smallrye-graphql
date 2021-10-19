@@ -1,0 +1,10 @@
+query {
+    people {
+        ...sensitiveFields
+    }
+}
+
+fragment sensitiveFields on Person {
+    age
+    religion
+}

@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -231,6 +232,9 @@ public class Classes {
     private static final DotName MULTI = DotName.createSimple("io.smallrye.mutiny.Multi");
     @Deprecated
     private static final DotName PUBLISHER = DotName.createSimple("org.reactivestreams.Publisher");
+
+    public static final DotName SERIALIZABLE = DotName.createSimple(Serializable.class.getName());
+    public static final DotName OBJECT = DotName.createSimple(Object.class.getName());
 
     public static final DotName COLLECTION = DotName.createSimple(Collection.class.getName());
     public static final DotName LIST = DotName.createSimple(List.class.getName());

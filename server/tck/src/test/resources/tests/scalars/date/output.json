@@ -17,9 +17,9 @@
       "sqlTimestampInput": "2006-01-02T15:04:05.876",
       "sqlTimestampDefault": "2006-01-02T15:04:05.876",
 
-      "instant": "2006-01-02T15:04:05.876",
-      "instantInput": "2006-01-02T15:04:05.876",
-      "instantDefault": "2006-01-02T15:04:05.876"
+      "instant": "2006-01-02T15:04:05.876Z",
+      "instantInput": "2006-01-02T15:04:05.876Z",
+      "instantDefault": "2006-01-02T15:04:05.876Z"
     }
   }
 }

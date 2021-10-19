@@ -6,7 +6,7 @@ import io.smallrye.graphql.spi.EventingService;
 public class TestEventingService implements EventingService {
     public static Context beforeExecuteContext;
     public static Context afterExecuteContext;
-    public static final String KEY = "TestEventingService.enabled";;
+    public static final String KEY = "smallrye.graphql.events.enabled";
 
     public static void reset() {
         beforeExecuteContext = null;

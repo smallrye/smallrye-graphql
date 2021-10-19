@@ -3,7 +3,9 @@ package io.smallrye.graphql.execution;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
@@ -22,7 +24,6 @@ import graphql.execution.ExecutionId;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
@@ -30,6 +31,8 @@ import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.spi.config.Config;
+import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Executing the GraphQL request
@@ -41,32 +44,32 @@ public class ExecutionService {
     private final String executionIdPrefix;
     private final AtomicLong executionId = new AtomicLong();
 
-    private final Config config;
-
     private final GraphQLSchema graphQLSchema;
 
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
-    private final DataFetcherFactory dataFetcherFactory;
+    private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final List<Operation> batchOperations;
 
-    private final EventEmitter eventEmitter;
+    private final EventEmitter eventEmitter = EventEmitter.getInstance();
 
     private GraphQL graphQL;
 
     private final boolean hasSubscription;
     private final QueryCache queryCache;
+    private final LogPayloadOption payloadOption;
 
-    public ExecutionService(Config config, GraphQLSchema graphQLSchema, List<Operation> batchOperations,
+    public ExecutionService(GraphQLSchema graphQLSchema, List<Operation> batchOperations,
             boolean hasSubscription) {
-        this.config = config;
+
         this.graphQLSchema = graphQLSchema;
-        this.dataFetcherFactory = new DataFetcherFactory(config);
         this.batchOperations = batchOperations;
-        this.eventEmitter = EventEmitter.getInstance(config);
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
         this.hasSubscription = hasSubscription;
         this.queryCache = new QueryCache();
+
+        Config config = Config.get();
+        this.payloadOption = config.logPayload();
     }
 
     public ExecutionResponse execute(JsonObject jsonInput) {
@@ -77,12 +80,16 @@ public class ExecutionService {
 
         try {
             String query = context.getQuery();
+            Optional<Map<String, Object>> variables = context.getVariables();
 
             if (query == null || query.isEmpty()) {
                 throw new RuntimeException("Query can not be null");
             }
-            if (config.logPayload()) {
+            if (payloadOption.equals(LogPayloadOption.queryOnly)) {
                 log.payloadIn(query);
+            } else if (payloadOption.equals(LogPayloadOption.queryAndVariables)) {
+                log.payloadIn(query);
+                log.payloadIn(variables.toString());
             }
 
             GraphQL g = getGraphQL();
@@ -120,8 +127,8 @@ public class ExecutionService {
                 // Notify after
                 eventEmitter.fireAfterExecute(context);
 
-                ExecutionResponse executionResponse = new ExecutionResponse(executionResult, config);
-                if (config.logPayload()) {
+                ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+                if (!payloadOption.equals(LogPayloadOption.off)) {
                     log.payloadOut(executionResponse.toString());
                 }
 
@@ -158,11 +165,9 @@ public class ExecutionService {
 
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(config);
             if (graphQLSchema != null) {
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
-
-                graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(exceptionHandler);
+                graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(new ExceptionHandler());
                 graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 

@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.smallrye.graphql.cdi.config.GraphQLConfig;
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Executing the GraphQL request
@@ -37,15 +37,13 @@ public class ExecutionServlet extends HttpServlet {
     @Inject
     ExecutionService executionService;
 
-    @Inject
-    GraphQLConfig config;
+    private Config config = Config.get();
 
     public ExecutionServlet() {
     }
 
-    public ExecutionServlet(ExecutionService executionService, GraphQLConfig config) {
+    public ExecutionServlet(ExecutionService executionService) {
         this.executionService = executionService;
-        this.config = config;
     }
 
     @Override

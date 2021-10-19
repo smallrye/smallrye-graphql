@@ -19,6 +19,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -28,12 +29,13 @@ import java.util.stream.Stream.Builder;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 public class TypeInfo {
     private final TypeInfo container;
     private final Type type; // TODO only use annotatedType
     private final AnnotatedType annotatedType;
+    private final Type genericType; // we need this for GraalVM native mode because the other Type
+                                    // does not contain annotation metadata for some reason
 
     private TypeInfo itemType;
     private Class<?> rawType;
@@ -43,13 +45,18 @@ public class TypeInfo {
     }
 
     TypeInfo(TypeInfo container, Type type) {
-        this(container, type, null);
+        this(container, type, null, null);
     }
 
     TypeInfo(TypeInfo container, Type type, AnnotatedType annotatedType) {
+        this(container, type, annotatedType, null);
+    }
+
+    TypeInfo(TypeInfo container, Type type, AnnotatedType annotatedType, Type genericType) {
         this.container = container;
         this.type = requireNonNull(type);
         this.annotatedType = annotatedType;
+        this.genericType = genericType;
     }
 
     @Override
@@ -143,6 +150,10 @@ public class TypeInfo {
         return ErrorOr.class.equals(getRawType());
     }
 
+    public boolean isRecord() {
+        return rawType.getSuperclass().getName().equals("java.lang.Record");
+    }
+
     public boolean isScalar() {
         return isPrimitive()
                 || Number.class.isAssignableFrom(getRawType())
@@ -187,22 +198,42 @@ public class TypeInfo {
         return executable.getParameterCount() == 1 && CharSequence.class.isAssignableFrom(executable.getParameterTypes()[0]);
     }
 
-    public Object newInstance() {
+    public Object newInstance(Object[] args) {
         try {
-            Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
-            noArgsConstructor.setAccessible(true);
-            return noArgsConstructor.newInstance();
+            if (args.length == 0) {
+                Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
+                noArgsConstructor.setAccessible(true);
+                return noArgsConstructor.newInstance();
+            } else {
+                Class<?> rawType = getRawType();
+                Optional<Constructor<?>> constructor = Arrays.stream(rawType.getDeclaredConstructors())
+                        .filter(c -> !c.getDeclaringClass().equals(Class.class))
+                        .filter(c -> c.getParameterCount() == args.length)
+                        .findAny();
+                if (constructor.isPresent()) {
+                    Constructor<?> c = constructor.get();
+                    c.setAccessible(true);
+                    return c.newInstance(args);
+                } else {
+                    throw new RuntimeException("Could not find a suitable constructor of type " + type);
+                }
+            }
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("can't instantiate " + type, e);
         }
     }
 
     private Constructor<?> getDeclaredConstructor(Class<?> type) throws NoSuchMethodException {
+        return getDeclaredConstructor(type, new Class[0]);
+    }
+
+    private Constructor<?> getDeclaredConstructor(Class<?> type, Class<?>[] parameters) throws NoSuchMethodException {
         if (System.getSecurityManager() == null) {
-            return type.getDeclaredConstructor();
+            return type.getDeclaredConstructor(parameters);
         }
         try {
-            return AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>) type::getDeclaredConstructor);
+            return AccessController
+                    .doPrivileged((PrivilegedExceptionAction<Constructor<?>>) () -> type.getDeclaredConstructor(parameters));
         } catch (PrivilegedActionException pae) {
             if (pae.getCause() instanceof NoSuchMethodException) {
                 throw (NoSuchMethodException) pae.getCause();
@@ -245,10 +276,24 @@ public class TypeInfo {
             return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[0].getType();
         if (type instanceof ParameterizedType)
             return ((ParameterizedType) type).getActualTypeArguments()[0];
+        // this workaround might be needed in native mode because the other `annotatedType`,
+        // which is retrieved by calling parameter.getAnnotatedType,
+        // can't be casted to AnnotatedParameterizedType - at least with GraalVM 21.0 and 21.1
+        if (genericType instanceof ParameterizedType)
+            return ((ParameterizedType) genericType).getActualTypeArguments()[0];
         return ((Class<?>) type).getComponentType();
     }
 
     private AnnotatedType computeAnnotatedItemType() {
+        // FIXME: if the item type contains annotations, they are not present in the
+        // returned object if using native mode with GraalVM 21.0 and 21.1
+        // But right now I have no idea how to work around that. This annotatedType
+        // is retrieved using parameter.getAnnotatedType(). If I instead use an AnnotatedType
+        // returned from calling method.getGenericParameterTypes()[i] on the enclosing method,
+        // I get something that, after casting to AnnotatedParameterizedType and calling
+        // getAnnotatedActualTypeArguments(), throws a NullPointerException. What do we do?
+        // This effectively means that providing an argument of type
+        // @NonNull String List<@NonNull String> will be treated as [String]! instead of [String!]!
         if (annotatedType instanceof AnnotatedParameterizedType)
             return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[0];
         return null;
@@ -261,7 +306,7 @@ public class TypeInfo {
             return raw(((ParameterizedType) type).getRawType());
         if (type instanceof TypeVariable)
             return resolveTypeVariable();
-        throw new GraphQLClientException("unsupported reflection type " + type.getClass());
+        throw new RuntimeException("unsupported reflection type " + type.getClass());
     }
 
     public Optional<MethodInvocation> getMethod(String name, Class<?>... args) {

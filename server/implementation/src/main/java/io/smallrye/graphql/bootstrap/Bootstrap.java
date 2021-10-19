@@ -62,6 +62,7 @@ import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.EnumType;
+import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.InputType;
@@ -73,6 +74,7 @@ import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -83,9 +85,8 @@ import io.smallrye.graphql.spi.LookupService;
 public class Bootstrap {
 
     private final Schema schema;
-    private final Config config;
-    private final EventEmitter eventEmitter;
-    private final DataFetcherFactory dataFetcherFactory;
+    private final EventEmitter eventEmitter = EventEmitter.getInstance();
+    private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final Set<GraphQLDirective> directiveTypes = new LinkedHashSet<>();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
@@ -98,13 +99,16 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        return bootstrap(schema, new Config() {
-        });
+        return bootstrap(schema, false, false);
     }
 
-    public static GraphQLSchema bootstrap(Schema schema, Config config) {
+    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments) {
+        return bootstrap(schema, allowMultipleDeployments, false);
+    }
+
+    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
         if (schema != null && (schema.hasOperations())) {
-            Bootstrap bootstrap = new Bootstrap(schema, config);
+            Bootstrap bootstrap = new Bootstrap(schema, allowMultipleDeployments, skipInjectionValidation);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
         } else {
@@ -113,13 +117,12 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema, Config config) {
+    private Bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
         this.schema = schema;
-        this.config = config;
-        this.dataFetcherFactory = new DataFetcherFactory(config);
-        this.eventEmitter = EventEmitter.getInstance(config);
-        SmallRyeContext.setSchema(schema);
-        if (!Boolean.getBoolean("test.skip.injection.validation")) {
+        SmallRyeContext.setSchema(schema, allowMultipleDeployments);
+        // setting `skipInjectionValidation` through a system property is not recommended,
+        // but kept for backward compatibility for now
+        if (!Boolean.getBoolean("test.skip.injection.validation") && !skipInjectionValidation) {
             verifyInjectionIsAvailable();
         }
     }
@@ -142,10 +145,8 @@ public class Bootstrap {
                 .flatMap(stream -> stream)
                 .distinct().forEach(beanClassName -> {
                     // verify that the bean is injectable
-                    try {
-                        lookupService.getClass(classloadingService.loadClass(beanClassName));
-                    } catch (Exception e) {
-                        throw SmallRyeGraphQLServerMessages.msg.canNotInjectClass(beanClassName, e);
+                    if (!lookupService.isResolvable(classloadingService.loadClass(beanClassName))) {
+                        throw SmallRyeGraphQLServerMessages.msg.canNotInjectClass(beanClassName, null);
                     }
                 });
     }
@@ -334,8 +335,8 @@ public class Bootstrap {
                 .name(enumType.getName())
                 .description(enumType.getDescription());
         // Values
-        for (String value : enumType.getValues()) {
-            enumBuilder = enumBuilder.value(value);
+        for (EnumValue value : enumType.getValues()) {
+            enumBuilder = enumBuilder.value(value.getValue(), value.getValue(), value.getDescription());
         }
         GraphQLEnumType graphQLEnumType = enumBuilder.build();
         enumMap.put(enumType.getClassName(), graphQLEnumType);
@@ -528,7 +529,7 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, config);
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
@@ -612,7 +613,9 @@ public class Bootstrap {
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
 
         // Default value (on method)
-        inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
+        if (field.hasDefaultValue()) {
+            inputFieldBuilder = inputFieldBuilder.defaultValue(sanitizeDefaultValue(field));
+        }
 
         return inputFieldBuilder.build();
     }
@@ -741,8 +744,11 @@ public class Bootstrap {
     private GraphQLArgument createGraphQLArgument(Argument argument) {
         GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                 .name(argument.getName())
-                .description(argument.getDescription())
-                .defaultValue(sanitizeDefaultValue(argument));
+                .description(argument.getDescription());
+
+        if (argument.hasDefaultValue()) {
+            argumentBuilder = argumentBuilder.defaultValue(sanitizeDefaultValue(argument));
+        }
 
         GraphQLInputType graphQLInputType = referenceGraphQLInputType(argument);
 
@@ -839,20 +845,19 @@ public class Bootstrap {
      * @see <a href="www.graphql-java.com/documentation/v15/fieldvisibility/">GraphQL Java Field Visibility</a>
      */
     private GraphqlFieldVisibility getGraphqlFieldVisibility() {
-        if (config != null) {
-            String fieldVisibility = config.getFieldVisibility();
-            if (fieldVisibility != null && !fieldVisibility.isEmpty()) {
+        Config config = Config.get();
+        String fieldVisibility = config.getFieldVisibility();
+        if (fieldVisibility != null && !fieldVisibility.isEmpty()) {
 
-                if (fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
-                    return NO_INTROSPECTION_FIELD_VISIBILITY;
-                } else {
-                    String[] patterns = fieldVisibility.split(COMMA);
-                    BlockedFields.Builder blockedFields = BlockedFields.newBlock();
-                    for (String pattern : patterns) {
-                        blockedFields = blockedFields.addPattern(pattern);
-                    }
-                    return blockedFields.build();
+            if (fieldVisibility.equals(Config.FIELD_VISIBILITY_NO_INTROSPECTION)) {
+                return NO_INTROSPECTION_FIELD_VISIBILITY;
+            } else {
+                String[] patterns = fieldVisibility.split(COMMA);
+                BlockedFields.Builder blockedFields = BlockedFields.newBlock();
+                for (String pattern : patterns) {
+                    blockedFields = blockedFields.addPattern(pattern);
                 }
+                return blockedFields.build();
             }
         }
         return DEFAULT_FIELD_VISIBILITY;

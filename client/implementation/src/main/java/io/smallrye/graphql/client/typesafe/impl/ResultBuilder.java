@@ -13,11 +13,13 @@ import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonException;
 import javax.json.JsonObject;
 import javax.json.JsonPatch;
 import javax.json.JsonPointer;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
@@ -42,7 +44,7 @@ public class ResultBuilder {
         if (data == null)
             return null;
         JsonValue value = method.isSingle() ? data.get(method.getName()) : data;
-        return JsonReader.readJson(method.toString(), method.getReturnType(), value);
+        return JsonReader.readJson(method.toString(), method.getReturnType(), value, null);
     }
 
     private JsonObject readData() {
@@ -50,7 +52,7 @@ public class ResultBuilder {
             return null;
         JsonObject data = response.getJsonObject("data");
         if (method.isSingle() && !data.containsKey(method.getName()))
-            throw new GraphQLClientException("no data for '" + method.getName() + "':\n  " + data);
+            throw new InvalidResponseException("No data for '" + method.getName() + "'");
         return data;
     }
 
@@ -72,6 +74,8 @@ public class ResultBuilder {
         if (data == null || path == null)
             return false;
         JsonPointer pointer = Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
+        if (!exists(pointer))
+            return false;
         JsonArrayBuilder errors = Json.createArrayBuilder();
         if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
             pointer.getValue(data).asJsonArray().forEach(errors::add);
@@ -80,12 +84,21 @@ public class ResultBuilder {
         return true;
     }
 
+    private boolean exists(JsonPointer pointer) {
+        try {
+            pointer.containsValue(data);
+            return true;
+        } catch (JsonException e) {
+            return false;
+        }
+    }
+
     private GraphQLClientError convert(JsonValue jsonValue) {
         JsonObject jsonObject = jsonValue.asJsonObject();
         return new GraphQLClientError() {
             @Override
             public String getMessage() {
-                return jsonObject.getString("message");
+                return jsonObject.getString("message", null);
             }
 
             @Override
@@ -120,7 +133,13 @@ public class ResultBuilder {
     }
 
     private static List<Object> getPath(JsonValue jsonValue) {
-        JsonArray jsonArray = jsonValue.asJsonObject().getJsonArray("path");
+        JsonValue value = jsonValue.asJsonObject().get("path");
+        JsonArray jsonArray;
+        if (value != null && value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
+            jsonArray = value.asJsonArray();
+        } else {
+            jsonArray = null;
+        }
         return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
     }
 

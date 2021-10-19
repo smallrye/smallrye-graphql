@@ -10,6 +10,7 @@ import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
 import io.opentracing.Tracer;
+import io.smallrye.mutiny.Uni;
 
 @GraphQLApi
 @ApplicationScoped
@@ -27,6 +28,11 @@ public class DummyGraphQLApi {
         return foo;
     }
 
+    @Query(value = "foo")
+    public Foo foo() {
+        return new Foo();
+    }
+
     @Mutation(value = "mutate")
     public Foo mutation() {
         foo.update();
@@ -36,6 +42,18 @@ public class DummyGraphQLApi {
     @Name("description")
     public String source(@Source Foo foo) {
         return "Awesome";
+    }
+
+    public Foo2 foo2(@Source Foo foo) {
+        return new Foo2(4);
+    }
+
+    public Uni<Foo2> foo2uni(@Source Foo foo) {
+        return Uni.createFrom().item(new Foo2(3));
+    }
+
+    public Foo3 foo3(@Source Foo2 foo2) {
+        return new Foo3(5);
     }
 
 }

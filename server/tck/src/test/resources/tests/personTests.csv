@@ -14,3 +14,4 @@
 # testEnumWithMethods
 6| enum Category            |   !FIELD_SHOULD_BE_IGNORED        |   Ignore on Enum field not working
 7| enum Category            |   !displayName                    |   Enum methods should not be part of the enum values
+8| enum Category            |   "AI/Machine Learning"           |   Enum value did not emit its description

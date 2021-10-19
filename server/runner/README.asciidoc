@@ -1,6 +1,6 @@
 = SmallRye GraphQL Runner
 
-image:/server/runner/graphiql.png[link="/master/server/runner/graphiql.png"]
+image:/server/runner/graphiql.png[link="/main/server/runner/graphiql.png"]
 
 == Starting the runner
 

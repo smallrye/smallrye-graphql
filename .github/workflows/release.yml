@@ -15,7 +15,7 @@ jobs:
       GITHUB_TOKEN: ${{secrets.RELEASE_TOKEN}}
 
     steps:
-      - uses: radcortez/project-metadata-action@master
+      - uses: radcortez/project-metadata-action@main
         name: retrieve project metadata
         id: metadata
         with:
@@ -42,14 +42,15 @@ jobs:
           git config --global user.name "SmallRye CI"
           git config --global user.email "smallrye@googlegroups.com"
           git checkout -b release
-          mvn -B release:prepare -Prelease -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
+          # make sure the server/integration-tests-jdk16 gets its version updated too: include the jdk16plus profile
+          mvn -B release:prepare -Prelease -Pjdk16plus -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
           git checkout ${{github.base_ref}}
           git rebase release
-          mvn -B release:perform -Prelease -s maven-settings.xml
+          mvn -B release:perform -Prelease -Pjdk16plus -s maven-settings.xml
           git push
           git push --tags
 
-      - uses: radcortez/milestone-release-action@master
+      - uses: radcortez/milestone-release-action@main
         name: milestone release
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}

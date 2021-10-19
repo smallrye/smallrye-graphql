@@ -2,7 +2,7 @@ package io.smallrye.graphql.client.dynamic.core;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.core.Field;
+import io.smallrye.graphql.client.core.FieldOrFragment;
 import io.smallrye.graphql.client.core.Operation;
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.core.Variable;
@@ -11,7 +11,7 @@ public abstract class AbstractOperation implements Operation {
     private OperationType type;
     private String name;
     private List<Variable> variables;
-    private List<Field> fields;
+    private List<FieldOrFragment> fields;
 
     /*
      * Constructors
@@ -46,11 +46,11 @@ public abstract class AbstractOperation implements Operation {
         this.variables = vars;
     }
 
-    public List<Field> getFields() {
+    public List<FieldOrFragment> getFields() {
         return fields;
     }
 
-    public void setFields(List<Field> fields) {
+    public void setFields(List<FieldOrFragment> fields) {
         this.fields = fields;
     }
 }

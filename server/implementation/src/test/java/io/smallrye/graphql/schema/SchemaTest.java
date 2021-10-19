@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.logging.Logger;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
@@ -24,30 +22,11 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.model.Schema;
 
 class SchemaTest {
     private static final Logger LOG = Logger.getLogger(SchemaTest.class.getName());
-    private static final Config PRINTER_CONFIG = new Config() {
-        @Override
-        public boolean isIncludeDirectivesInSchema() {
-            return true;
-        }
-    };
-
-    @BeforeEach
-    public void skipInjectionValidation() {
-        // in a unit test we don't have injection available, this is a hack needed to tell the Bootstrap class
-        // that it should not verify injection availability
-        System.setProperty("test.skip.injection.validation", "true");
-    }
-
-    @AfterEach
-    public void skipInjectionValidationCleanup() {
-        System.clearProperty("test.skip.injection.validation");
-    }
 
     @Test
     void testSchemaWithDirectives() {
@@ -55,7 +34,7 @@ class SchemaTest {
                 .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
                         TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, false, true);
         assertNotNull(graphQLSchema);
 
         GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");
@@ -74,13 +53,13 @@ class SchemaTest {
         assertEquals("intArrayTestDirective", intArrayTestDirective.getName());
         GraphQLArgument argument = intArrayTestDirective.getArgument("value");
         assertEquals("value", argument.getName());
-        assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getValue());
+        assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getArgumentValue().getValue());
 
         GraphQLFieldDefinition valueField = testTypeWithDirectives.getFieldDefinition("value");
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
         assertNotNull(fieldDirectiveInstance);
 
-        String schemaString = new SchemaPrinter(PRINTER_CONFIG).print(graphQLSchema);
+        String schemaString = new SchemaPrinter().print(graphQLSchema);
         LOG.info(schemaString);
         assertTrue(schemaString.contains("\"test-description\"\n" +
                 "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n"));

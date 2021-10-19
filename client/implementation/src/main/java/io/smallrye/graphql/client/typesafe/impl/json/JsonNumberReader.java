@@ -1,17 +1,18 @@
 package io.smallrye.graphql.client.typesafe.impl.json;
 
-import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueException.check;
+import static io.smallrye.graphql.client.typesafe.impl.json.GraphQLClientValueHelper.check;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.json.JsonNumber;
 
+import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 
 class JsonNumberReader extends Reader<JsonNumber> {
-    JsonNumberReader(TypeInfo type, Location location, JsonNumber value) {
-        super(type, location, value);
+    JsonNumberReader(TypeInfo type, Location location, JsonNumber value, FieldInfo field) {
+        super(type, location, value, field);
     }
 
     @Override
@@ -19,7 +20,7 @@ class JsonNumberReader extends Reader<JsonNumber> {
         try {
             return read(location, value, type.getRawType());
         } catch (ArithmeticException e) {
-            throw new GraphQLClientValueException(location, value, e);
+            throw GraphQLClientValueHelper.fail(location, value);
         }
     }
 
@@ -40,10 +41,10 @@ class JsonNumberReader extends Reader<JsonNumber> {
             return value.doubleValue();
         if (BigInteger.class.equals(rawType))
             return value.bigIntegerValueExact();
-        if (BigDecimal.class.equals(rawType))
+        if (BigDecimal.class.equals(rawType) || Object.class.equals(rawType))
             return value.bigDecimalValue();
 
-        throw new GraphQLClientValueException(location, value);
+        throw GraphQLClientValueHelper.fail(location, value);
     }
 
     private int readIntBetween(Location location, JsonNumber value, int minValue, int maxValue) {

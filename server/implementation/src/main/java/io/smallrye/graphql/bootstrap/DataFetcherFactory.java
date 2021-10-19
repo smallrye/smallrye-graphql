@@ -22,12 +22,6 @@ import io.smallrye.graphql.schema.model.Wrapper;
  */
 public class DataFetcherFactory {
 
-    private final Config config;
-
-    public DataFetcherFactory(Config config) {
-        this.config = config;
-    }
-
     public <T> DataFetcher<T> getDataFetcher(Operation operation) {
         return (DataFetcher<T>) get(operation);
     }
@@ -54,15 +48,15 @@ public class DataFetcherFactory {
     // TODO: Have some way to load custom ?    
     private <V> V get(Operation operation) {
         if (isCompletionStage(operation)) {
-            return (V) new CompletionStageDataFetcher(operation, config);
+            return (V) new CompletionStageDataFetcher(operation);
         } else if (isMutinyUni(operation)) {
-            return (V) new UniDataFetcher(operation, config);
+            return (V) new UniDataFetcher(operation);
         } else if (isPublisher(operation)) {
-            return (V) new PublisherDataFetcher(operation, config);
+            return (V) new PublisherDataFetcher(operation);
         } else if (isMutinyMulti(operation)) {
-            return (V) new MultiDataFetcher(operation, config);
+            return (V) new MultiDataFetcher(operation);
         }
-        return (V) new DefaultDataFetcher(operation, config);
+        return (V) new DefaultDataFetcher(operation);
     }
 
     private boolean isAsync(Field field) {

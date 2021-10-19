@@ -2,12 +2,14 @@ package io.smallrye.graphql.client.typesafe.impl.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
+import java.util.stream.Stream;
 
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.NonNull;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
@@ -17,10 +19,13 @@ public class ParameterInfo {
     private final TypeInfo type;
     private final Object value;
 
-    public ParameterInfo(MethodInvocation method, Parameter parameter, Object value) {
+    public ParameterInfo(MethodInvocation method, Parameter parameter, Object value, Type genericParameterType) {
         this.method = method;
         this.parameter = parameter;
-        this.type = new TypeInfo(null, parameter.getType(), parameter.getAnnotatedType());
+        this.type = new TypeInfo(null,
+                parameter.getType(),
+                parameter.getAnnotatedType(),
+                genericParameterType);
         this.value = value;
     }
 
@@ -94,7 +99,16 @@ public class ParameterInfo {
     }
 
     private String optionalExclamationMark(TypeInfo itemType) {
-        return itemType.isNonNull() ? "!" : "";
+        if (itemType == this.type) {
+            // Work around a weird GraalVM native mode behavior in which the object returned by
+            // parameter.getAnnotatedType() does not include annotation metadata. So if we're
+            // determining whether this Parameter itself is nullable, introspect the Parameter
+            // instance itself rather than its AnnotatedType (which is what the
+            // `itemType.isNonNull` method would do).
+            return this.type.isPrimitive() || parameter.isAnnotationPresent(NonNull.class) ? "!" : "";
+        } else {
+            return itemType.isNonNull() ? "!" : "";
+        }
     }
 
     public Object getValue() {
@@ -105,7 +119,7 @@ public class ParameterInfo {
         if (parameter.isAnnotationPresent(Name.class))
             return parameter.getAnnotation(Name.class).value();
         if (!parameter.isNamePresent())
-            throw new GraphQLClientException("Missing name information for " + this + ".\n" +
+            throw new RuntimeException("Missing name information for " + this + ".\n" +
                     "You can either annotate all parameters with @Name, " +
                     "or compile your source code with the -parameters options, " +
                     "so the parameter names are compiled into the class file and available at runtime.");
@@ -136,7 +150,7 @@ public class ParameterInfo {
         return parameter.isAnnotationPresent(NestedParameter.class);
     }
 
-    public String getNestedParameterName() {
-        return parameter.getAnnotation(NestedParameter.class).value();
+    public Stream<String> getNestedParameterNames() {
+        return Stream.of(parameter.getAnnotation(NestedParameter.class).value());
     }
 }

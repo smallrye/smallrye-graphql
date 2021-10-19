@@ -10,7 +10,7 @@ public interface Document extends Buildable {
     /*
      * Static factory methods
      */
-    static Document document(Operation... operations) {
+    static Document document(FragmentOrOperation... operations) {
         Document document = getNewInstanceOf(Document.class);
 
         document.setOperations(asList(operations));
@@ -21,7 +21,7 @@ public interface Document extends Buildable {
     /*
      * Getter/Setter
      */
-    List<Operation> getOperations();
+    List<FragmentOrOperation> getOperations();
 
-    void setOperations(List<Operation> operations);
+    void setOperations(List<FragmentOrOperation> operations);
 }

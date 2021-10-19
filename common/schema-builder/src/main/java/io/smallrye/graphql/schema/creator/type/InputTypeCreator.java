@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
@@ -38,6 +39,8 @@ public class InputTypeCreator implements Creator<InputType> {
 
     private final FieldCreator fieldCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
+
+    private final DotName RECORD = DotName.createSimple("java.lang.Record");
 
     public InputTypeCreator(FieldCreator fieldCreator, TypeAutoNameStrategy autoNameStrategy) {
         this.fieldCreator = fieldCreator;
@@ -84,13 +87,26 @@ public class InputTypeCreator implements Creator<InputType> {
      * @return the creator, null, if no public constructor or factory method is found
      */
     public MethodInfo findCreator(ClassInfo classInfo) {
+        if (classInfo.superName().equals(RECORD)) {
+            // records should always have a canonical constructor
+            // the creator will be picked by the JSONB impl at runtime anyway, so
+            // just make sure we can find a public constructor and move on
+            for (MethodInfo constructor : classInfo.constructors()) {
+                if (!Modifier.isPublic(constructor.flags()))
+                    continue;
+                return constructor;
+            }
+            return null;
+        }
+
         for (final MethodInfo constructor : classInfo.constructors()) {
             if (!Modifier.isPublic(constructor.flags()))
                 continue;
             if (constructor.parameters().isEmpty()) {
                 return constructor;
             }
-            if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)) {
+            if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)
+                    || constructor.hasAnnotation(Annotations.JACKSON_CREATOR)) {
                 return constructor;
             }
         }
@@ -101,7 +117,8 @@ public class InputTypeCreator implements Creator<InputType> {
             if (!Modifier.isPublic(factoryMethod.flags()))
                 continue;
 
-            if (factoryMethod.hasAnnotation(Annotations.JSONB_CREATOR)) {
+            if (factoryMethod.hasAnnotation(Annotations.JSONB_CREATOR)
+                    || factoryMethod.hasAnnotation(Annotations.JACKSON_CREATOR)) {
                 return factoryMethod;
             }
         }

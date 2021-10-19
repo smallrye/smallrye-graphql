@@ -23,8 +23,16 @@ class NestedParameterBehavior {
     }
 
     static class Team {
-        String headQuarter;
+        List<HeadQuarter> headQuarters;
         List<SuperHero> members;
+    }
+
+    static class HeadQuarter {
+        String name;
+
+        String getName() {
+            return name;
+        }
     }
 
     @GraphQLClientApi
@@ -34,16 +42,39 @@ class NestedParameterBehavior {
 
     @Test
     void shouldCallNestedParameterQuery() {
-        fixture.returnsData("'team':{'members':[{'name':'Spider-Man'},{'name':'Black Panther'},{'name':'Groot'}]}");
+        fixture.returnsData("'team':{" +
+                "'members':[{'name':'Spider-Man'},{'name':'Black Panther'},{'name':'Groot'}]," +
+                "'headQuarters':[{'name':'Earth'}]}");
         TeamsApi api = fixture.build(TeamsApi.class);
 
         Team team = api.team("endgame", 3);
 
         then(fixture.query())
                 .isEqualTo("query team($teamName: String, $limit: Int!) { team(teamName: $teamName) " +
-                        "{headQuarter members(limit: $limit) {name}} }");
+                        "{headQuarters {name} members(limit: $limit) {name}} }");
         then(fixture.variables()).isEqualTo("{'teamName':'endgame','limit':3}");
-        then(team.headQuarter).isNull();
+        then(team.headQuarters.stream().map(HeadQuarter::getName)).containsExactly("Earth");
+        then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
+    }
+
+    @GraphQLClientApi
+    interface MultipleTeamsApi {
+        Team team(String teamName, @NestedParameter({ "members", "headQuarters" }) int limit);
+    }
+
+    @Test
+    void shouldCallMultipleNestedParameterQuery() {
+        fixture.returnsData(
+                "'team':{'members':[{'name':'Spider-Man'},{'name':'Black Panther'},{'name':'Groot'}],'headQuarters':[]}");
+        MultipleTeamsApi api = fixture.build(MultipleTeamsApi.class);
+
+        Team team = api.team("endgame", 3);
+
+        then(fixture.query())
+                .isEqualTo("query team($teamName: String, $limit: Int!) { team(teamName: $teamName) " +
+                        "{headQuarters(limit: $limit) {name} members(limit: $limit) {name}} }");
+        then(fixture.variables()).isEqualTo("{'teamName':'endgame','limit':3}");
+        then(team.headQuarters).isEmpty();
         then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
     }
 
@@ -70,11 +101,11 @@ class NestedParameterBehavior {
 
         then(fixture.query())
                 .isEqualTo("query universeWithTeam($teamName: String, $offset: Int, $limit: Int) { universeWithTeam " +
-                        "{name teams(teamName: $teamName) {headQuarter members(offset: $offset, limit: $limit) {name}}} }");
+                        "{name teams(teamName: $teamName) {headQuarters {name} members(offset: $offset, limit: $limit) {name}}} }");
         then(fixture.variables()).isEqualTo("{'teamName':'endgame','offset':32,'limit':3}");
         then(universe.name).isEqualTo("Marvel");
         Team team = universe.teams.get(0);
-        then(team.headQuarter).isNull();
+        then(team.headQuarters).isNull();
         then(team.members.stream().map(SuperHero::getName)).containsExactly("Spider-Man", "Black Panther", "Groot");
     }
 

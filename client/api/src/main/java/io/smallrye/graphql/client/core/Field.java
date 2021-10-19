@@ -6,7 +6,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 
-public interface Field extends Buildable {
+public interface Field extends FieldOrFragment {
     /*
      * Static factory methods
      */
@@ -26,7 +26,7 @@ public interface Field extends Buildable {
     }
 
     // (name, subfields)
-    static Field field(String name, Field... fields) {
+    static Field field(String name, FieldOrFragment... fields) {
         Field field = getNewInstanceOf(Field.class);
 
         field.setName(name);
@@ -69,7 +69,7 @@ public interface Field extends Buildable {
 
     void setArguments(List<Argument> arguments);
 
-    List<Field> getFields();
+    List<FieldOrFragment> getFields();
 
-    void setFields(List<Field> fields);
+    void setFields(List<FieldOrFragment> fields);
 }

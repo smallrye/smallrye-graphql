@@ -22,4 +22,5 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String ERROR_EXTENSION_FIELDS = "smallrye.graphql.errorExtensionFields";
     public static final String FIELD_VISIBILITY = "smallrye.graphql.fieldVisibility";
     public static final String UNWRAP_EXCEPTIONS = "smallrye.graphql.unwrapExceptions";
+
 }

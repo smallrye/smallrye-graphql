@@ -22,8 +22,8 @@ import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 class ScalarBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
@@ -56,7 +56,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':null");
             BoolApi api = fixture.build(BoolApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: null");
         }
@@ -66,7 +66,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':'xxx'");
             BoolApi api = fixture.build(BoolApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: \"xxx\"");
         }
@@ -76,7 +76,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':123");
             BoolApi api = fixture.build(BoolApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: 123");
         }
@@ -86,7 +86,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':[123]");
             BoolApi api = fixture.build(BoolApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: [123]");
         }
@@ -96,7 +96,7 @@ class ScalarBehavior {
             fixture.returnsData("'bool':{'foo':'bar'}");
             BoolApi api = fixture.build(BoolApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.bool(true), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: {\"foo\":\"bar\"}");
         }
@@ -153,7 +153,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             ByteApi api = fixture.build(ByteApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code((byte) 1), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code((byte) 1), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Byte value for " + ByteApi.class.getName() + "#code: " + tooBig);
         }
@@ -164,7 +164,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             ByteApi api = fixture.build(ByteApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code((byte) 1), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code((byte) 1), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Byte value for " + ByteApi.class.getName() + "#code: " + tooSmall);
         }
@@ -198,7 +198,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':'ab'");
             CharacterApi api = fixture.build(CharacterApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code('c'), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: \"ab\"");
         }
@@ -220,7 +220,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             CharacterApi api = fixture.build(CharacterApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code('c'), InvalidResponseException.class);
 
             then(thrown)
                     .hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: " + tooBig);
@@ -231,7 +231,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':-15");
             CharacterApi api = fixture.build(CharacterApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code('c'), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Character value for " + CharacterApi.class.getName() + "#code: -15");
         }
@@ -252,7 +252,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':'ab'");
             PrimitiveCharApi api = fixture.build(PrimitiveCharApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code('c'), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code('c'), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid char value for " + PrimitiveCharApi.class.getName() + "#code: \"ab\"");
         }
@@ -287,7 +287,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             ShortApi api = fixture.build(ShortApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code((short) 2), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code((short) 2), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Short value for " + ShortApi.class.getName() + "#code: " + tooSmall);
         }
@@ -298,7 +298,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             ShortApi api = fixture.build(ShortApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code((short) 2), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code((short) 2), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Short value for " + ShortApi.class.getName() + "#code: " + tooBig);
         }
@@ -344,7 +344,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + number);
             IntegerApi api = fixture.build(IntegerApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code(3), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + number);
         }
@@ -355,7 +355,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             IntegerApi api = fixture.build(IntegerApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code(3), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + tooSmall);
         }
@@ -366,7 +366,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             IntegerApi api = fixture.build(IntegerApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code(3), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code(3), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Integer value for " + IntegerApi.class.getName() + "#code: " + tooBig);
         }
@@ -412,7 +412,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooSmall);
             LongApi api = fixture.build(LongApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code(7L), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code(7L), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Long value for " + LongApi.class.getName() + "#code: " + tooSmall);
         }
@@ -423,7 +423,7 @@ class ScalarBehavior {
             fixture.returnsData("'code':" + tooBig);
             LongApi api = fixture.build(LongApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(() -> api.code(7L), GraphQLClientException.class);
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.code(7L), InvalidResponseException.class);
 
             then(thrown).hasMessage("invalid java.lang.Long value for " + LongApi.class.getName() + "#code: " + tooBig);
         }
@@ -801,7 +801,7 @@ class ScalarBehavior {
             fixture.returnsData("'foo':'a'");
             FailingScalarApi api = fixture.build(FailingScalarApi.class);
 
-            GraphQLClientException thrown = catchThrowableOfType(api::foo, GraphQLClientException.class);
+            RuntimeException thrown = catchThrowableOfType(api::foo, RuntimeException.class);
 
             then(thrown).hasMessage("can't create scalar " + FailingScalar.class.getName() + " value " +
                     "for " + FailingScalarApi.class.getName() + "#foo");
@@ -830,6 +830,7 @@ class ScalarBehavior {
         }
     }
 
+    @GraphQLClientApi
     interface StringGettersApi {
         String getGreeting();
 

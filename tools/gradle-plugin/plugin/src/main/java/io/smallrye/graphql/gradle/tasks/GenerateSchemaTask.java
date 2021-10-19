@@ -2,11 +2,16 @@ package io.smallrye.graphql.gradle.tasks;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,10 +37,10 @@ import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Generate schema task.
@@ -165,10 +170,18 @@ public class GenerateSchemaTask extends DefaultTask {
         this.classesDir = classesDir;
     }
 
+    private static GradleConfig config;
+
+    public static GradleConfig getConfig() {
+        return config;
+    }
+
     @TaskAction
-    public void generateSchema() {
+    public void generateSchema() throws Exception {
+        this.config = new GradleConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
+        ClassLoader classLoader = getClassLoader();
+        Thread.currentThread().setContextClassLoader(classLoader);
         IndexView index = createIndex();
-        
         String schema = generateSchema(index);
         if (schema != null) {
             write(schema);
@@ -227,32 +240,10 @@ public class GenerateSchemaTask extends DefaultTask {
     }
 
     private String generateSchema(IndexView index) {
-        Config config = new Config() {
-            @Override
-            public boolean isIncludeScalarsInSchema() {
-                return includeScalars;
-            }
-
-            @Override
-            public boolean isIncludeDirectivesInSchema() {
-                return includeDirectives;
-            }
-
-            @Override
-            public boolean isIncludeSchemaDefinitionInSchema() {
-                return includeSchemaDefinition;
-            }
-
-            @Override
-            public boolean isIncludeIntrospectionTypesInSchema() {
-                return includeIntrospectionTypes;
-            }
-        };
-        
         Schema internalSchema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, false, true);
         if(graphQLSchema!=null){
-            return new SchemaPrinter(config).print(graphQLSchema);
+            return new SchemaPrinter().print(graphQLSchema);
         }
         return null;
     }
@@ -275,4 +266,33 @@ public class GenerateSchemaTask extends DefaultTask {
             throw new GradleException("Can't write the result", e);
         }
     }
+
+    private ClassLoader getClassLoader() throws MalformedURLException {
+        Set<URL> urls = new HashSet<>();
+        ConfigurationContainer configurationContainer = getProject().getConfigurations();
+        for (String name : configurations) {
+            Configuration configuration = configurationContainer.getByName(name);
+            Configuration copiedConfiguration = configuration.copyRecursive();
+            copiedConfiguration.setCanBeResolved(true);
+            copiedConfiguration.setTransitive(includeTransitiveDependencies);
+            ResolvedConfiguration resolvedConfiguration = copiedConfiguration.getResolvedConfiguration();
+            Set<ResolvedArtifact> artifacts = resolvedConfiguration.getResolvedArtifacts();
+            for (ResolvedArtifact artifact : artifacts) {
+                if (dependencyExtensions.contains(artifact.getExtension())) {
+                    getLogger().debug("Adding to classloader: " + artifact.getFile());
+                    urls.add(artifact.getFile().toURI().toURL());
+                }
+            }
+        }
+        // FIXME: ROOT/build/classes/java/main might not always be the correct directory?!
+        Path classes = Paths.get(classesDir.getAbsolutePath(), "java", "main");
+        getLogger().debug("Adding classes directory: " +classes);
+        urls.add(classes.toUri().toURL());
+
+        return URLClassLoader.newInstance(
+            urls.toArray(new URL[0]),
+            Thread.currentThread().getContextClassLoader());
+
+    }
+
 }

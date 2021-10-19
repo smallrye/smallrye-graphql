@@ -3,6 +3,9 @@ package io.smallrye.graphql.client.typesafe.api;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO: delete this and use io.smallrye.graphql.client.Error instead
+ */
 public interface GraphQLClientError {
     String getMessage();
 
@@ -27,12 +30,13 @@ public interface GraphQLClientError {
     default String defaultToString() {
         String errorCode = getErrorCode();
         List<Object> path = getPath();
+        String message = getMessage();
         List<SourceLocation> locations = getLocations();
         Map<String, Object> extensions = getExtensions();
-        return ((errorCode == null) ? "" : errorCode + ": ")
+        return (((errorCode == null) ? "" : errorCode + ": ")
                 + ((path == null) ? "" : path + " ")
-                + getMessage()
-                + ((locations == null) ? "" : " " + locations)
-                + ((extensions == null || extensions.isEmpty()) ? "" : " " + extensions);
+                + ((message == null) ? "" : message + " ")
+                + ((locations == null) ? "" : locations + " ")
+                + ((extensions == null || extensions.isEmpty()) ? "" : extensions + " ")).trim();
     }
 }

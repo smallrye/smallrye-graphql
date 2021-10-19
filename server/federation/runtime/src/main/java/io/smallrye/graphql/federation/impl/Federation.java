@@ -48,7 +48,6 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchema.Builder;
 import graphql.schema.GraphQLUnionType;
-import io.smallrye.graphql.bootstrap.Config;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.federation.api.External;
@@ -68,18 +67,6 @@ public class Federation {
     private static final Logger LOG = Logger.getLogger(EventEmitter.class);
     private static final DotName KEY = DotName.createSimple(Key.class.getName());
     private static final DotName FEDERATED_SOURCE = DotName.createSimple(FederatedSource.class.getName());
-
-    private static final Config PRINTER_CONFIG = new Config() {
-        @Override
-        public boolean isIncludeDirectivesInSchema() {
-            return true;
-        }
-
-        @Override
-        public boolean isIncludeScalarsInSchema() {
-            return true;
-        }
-    };
 
     private static final GraphQLScalarType _FieldSet = GraphQLScalarType.newScalar().name("_FieldSet")
             .coercing(new GraphqlStringCoercing()).build();
@@ -154,7 +141,7 @@ public class Federation {
         builder.clearDirectives();
         builder.clearSchemaDirectives();
         builder.clearAdditionalTypes();
-        return new SchemaPrinter(PRINTER_CONFIG).print(builder.build())
+        return new SchemaPrinter().print(builder.build())
                 // TODO C: remove standard directive declarations
                 .replace("\"Marks the field or enum value as deprecated\"\n" +
                         "directive @deprecated(\n" +
@@ -204,11 +191,13 @@ public class Federation {
     }
 
     private void addQueries() {
-        // _entities(representations: [_Any!]!): [_Entity]!
-        this._entities = newFieldDefinition().name("_entities")
-                .argument(newArgument().name("representations").type(nonNull(list(nonNull(_Any)))))
-                .type(nonNull(list(_Entity))).build();
-        query.field(_entities);
+        if (_Entity != null) {
+            // _entities(representations: [_Any!]!): [_Entity]!
+            this._entities = newFieldDefinition().name("_entities")
+                    .argument(newArgument().name("representations").type(nonNull(list(nonNull(_Any)))))
+                    .type(nonNull(list(_Entity))).build();
+            query.field(_entities);
+        }
 
         // _service: _Service!
         this._Service_sdl = newFieldDefinition().name("sdl").type(nonNull(GraphQLString))
