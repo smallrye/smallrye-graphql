@@ -11,38 +11,77 @@ import java.io.Serializable;
  */
 public class Adapter implements Serializable {
 
-    private Reference reference;
-    private String deserializeMethod = null; // default null (pass through)
-    private String serializeMethod = "toString"; // default try and use toString
+    private String adapterInterface; // The interface implemented by the user
+    private String fromMethod; // The from method defined by that interface
+    private String toMethod; // The to method defined by that interface
+
+    private String adapterClass; // The concrete class implementing the adapterInterface
+    private String fromClass; // The class we are adapting from
+    private String toClass; // The class we are adapting to
 
     public Adapter() {
     }
 
-    public Adapter(Reference reference) {
-        this.reference = reference;
+    public Adapter(String adapterInterface, String fromMethod, String toMethod) {
+        this(adapterInterface, fromMethod, toMethod, null, null, null);
     }
 
-    public Reference getReference() {
-        return reference;
+    public Adapter(String adapterInterface, String fromMethod, String toMethod, String adapterClass, String fromClass,
+            String toClass) {
+        this.adapterInterface = adapterInterface;
+        this.fromMethod = fromMethod;
+        this.toMethod = toMethod;
+        this.adapterClass = adapterClass;
+        this.fromClass = fromClass;
+        this.toClass = toClass;
     }
 
-    public void setReference(Reference reference) {
-        this.reference = reference;
+    public String getAdapterInterface() {
+        return adapterInterface;
     }
 
-    public String getDeserializeMethod() {
-        return deserializeMethod;
+    public void setAdapterInterface(String adapterInterface) {
+        this.adapterInterface = adapterInterface;
     }
 
-    public void setDeserializeMethod(String deserializeMethod) {
-        this.deserializeMethod = deserializeMethod;
+    public String getFromMethod() {
+        return fromMethod;
     }
 
-    public String getSerializeMethod() {
-        return serializeMethod;
+    public void setFromMethod(String fromMethod) {
+        this.fromMethod = fromMethod;
     }
 
-    public void setSerializeMethod(String serializeMethod) {
-        this.serializeMethod = serializeMethod;
+    public String getToMethod() {
+        return toMethod;
     }
+
+    public void setToMethod(String toMethod) {
+        this.toMethod = toMethod;
+    }
+
+    public String getAdapterClass() {
+        return adapterClass;
+    }
+
+    public void setAdapterClass(String adapterClass) {
+        this.adapterClass = adapterClass;
+    }
+
+    public String getFromClass() {
+        return fromClass;
+    }
+
+    public void setFromClass(String fromClass) {
+        this.fromClass = fromClass;
+    }
+
+    public String getToClass() {
+        return toClass;
+    }
+
+    public void setToClass(String toClass) {
+        this.toClass = toClass;
+    }
+
 }

@@ -10,15 +10,11 @@ import org.jboss.jandex.Type;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.helper.DefaultValueHelper;
-import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.AdapterHelper;
 import io.smallrye.graphql.schema.helper.Direction;
-import io.smallrye.graphql.schema.helper.Directives;
-import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
-import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
 
@@ -27,17 +23,12 @@ import io.smallrye.graphql.schema.model.Reference;
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class FieldCreator {
+public class FieldCreator extends ModelCreator {
 
     private final ReferenceCreator referenceCreator;
-    private Directives directives;
 
     public FieldCreator(ReferenceCreator referenceCreator) {
         this.referenceCreator = referenceCreator;
-    }
-
-    public void setDirectives(Directives directives) {
-        this.directives = directives;
     }
 
     /**
@@ -54,7 +45,10 @@ public class FieldCreator {
             return Optional.empty();
         }
 
-        Type returnType = methodInfo.returnType();
+        // Adapting
+        Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForMethod);
+
+        Type returnType = getReturnType(adapter, methodInfo);
 
         // Name
         String name = getFieldName(Direction.OUT, annotationsForMethod, methodInfo.name());
@@ -66,41 +60,9 @@ public class FieldCreator {
 
         Field field = new Field(methodInfo.name(), MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()), name,
                 reference);
-        configure(field, returnType, annotationsForMethod);
+        populateField(field, returnType, adapter, annotationsForMethod);
 
         return Optional.of(field);
-    }
-
-    public void configure(Field field, Type type, Annotations annotations) {
-        // Wrapper
-        field.setWrapper(WrapperCreator.createWrapper(type).orElse(null));
-
-        configure2(field, type, annotations);
-    }
-
-    private void configure2(Field field, Type type, Annotations annotations) {
-        // Description
-        DescriptionHelper.getDescriptionForField(annotations, type).ifPresent(field::setDescription);
-
-        // NotNull
-        if (NonNullHelper.markAsNonNull(type, annotations)) {
-            field.setNotNull(true);
-        }
-
-        // TransformInfo
-        field.setTransformation(FormatHelper.getFormat(type, annotations).orElse(null));
-
-        // MappingInfo
-        field.setMapping(MappingHelper.getMapping(field, annotations).orElse(null));
-
-        // Default Value
-        field.setDefaultValue(DefaultValueHelper.getDefaultValue(annotations).orElse(null));
-
-        // Directives
-        if (directives != null) { // this happens while scanning for the directive types
-            field.setDirectiveInstances(
-                    directives.buildDirectiveInstances(name -> annotations.getOneOfTheseAnnotations(name).orElse(null)));
-        }
     }
 
     /**
@@ -117,14 +79,17 @@ public class FieldCreator {
         Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo, methodInfo);
 
         if (isGraphQlField(direction, fieldInfo, methodInfo)) {
-            Type methodType = getMethodType(methodInfo, direction);
+            // Adapting
+            Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForPojo);
+
+            Type methodType = getMethodType(adapter, methodInfo, direction);
 
             // Name
             String name = getFieldName(direction, annotationsForPojo, methodInfo.name());
 
             // Field Type
             validateFieldType(direction, methodInfo);
-            Type fieldType = getFieldType(fieldInfo, methodType);
+            Type fieldType = getFieldType(adapter, fieldInfo, methodType);
 
             Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
                     annotationsForPojo, parentObjectReference);
@@ -132,10 +97,7 @@ public class FieldCreator {
             Field field = new Field(methodInfo.name(), MethodHelper.getPropertyName(direction, methodInfo.name()), name,
                     reference);
 
-            // Wrapper
-            field.setWrapper(WrapperCreator.createWrapper(fieldType, methodType).orElse(null));
-
-            configure2(field, methodType, annotationsForPojo);
+            populateField(field, fieldType, methodType, adapter, annotationsForPojo);
 
             return Optional.of(field);
         }
@@ -146,11 +108,14 @@ public class FieldCreator {
             Reference parentObjectReference) {
         Annotations annotationsForPojo = Annotations.getAnnotationsForInputCreator(method, position, fieldInfo);
 
+        // Adapting
+        Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForPojo);
+
         // Name
         String name = getFieldName(Direction.IN, annotationsForPojo, method.parameterName(position));
 
         // Field Type
-        Type fieldType = getFieldType(fieldInfo, method.parameters().get(position));
+        Type fieldType = getFieldType(adapter, fieldInfo, method.parameters().get(position));
 
         Reference reference = referenceCreator.createReferenceForPojoField(Direction.IN, fieldType,
                 method.parameters().get(position), annotationsForPojo, parentObjectReference);
@@ -158,10 +123,7 @@ public class FieldCreator {
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
 
-        // Wrapper
-        field.setWrapper(WrapperCreator.createWrapper(fieldType, method.parameters().get(position)).orElse(null));
-
-        configure2(field, method.parameters().get(position), annotationsForPojo);
+        populateField(field, fieldType, method.parameters().get(position), adapter, annotationsForPojo);
 
         return Optional.of(field);
 
@@ -179,11 +141,14 @@ public class FieldCreator {
         if (isGraphQlField(direction, fieldInfo, null)) {
             Annotations annotationsForPojo = Annotations.getAnnotationsForPojo(direction, fieldInfo);
 
+            // Adapting
+            Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForPojo);
+
             // Name
             String name = getFieldName(direction, annotationsForPojo, fieldInfo.name());
 
             // Field Type
-            Type fieldType = fieldInfo.type();
+            Type fieldType = getFieldType(adapter, fieldInfo);
 
             Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
                     annotationsForPojo, parentObjectReference);
@@ -193,7 +158,7 @@ public class FieldCreator {
                     name,
                     reference);
 
-            configure(field, fieldType, annotationsForPojo);
+            populateField(field, fieldType, adapter, annotationsForPojo);
 
             return Optional.of(field);
         }
@@ -271,19 +236,28 @@ public class FieldCreator {
         }
     }
 
-    private static Type getMethodType(MethodInfo method, Direction direction) {
+    private static Type getMethodType(Optional<Adapter> adapter, MethodInfo method, Direction direction) {
         if (direction.equals(Direction.IN)) {
             return method.parameters().get(0);
         }
-        return method.returnType();
+        return getReturnType(adapter, method);
     }
 
+    private static Type getFieldType(Optional<Adapter> adapter, FieldInfo fieldInfo) {
+        return getReturnType(adapter, fieldInfo);
+    }
+
+<<<<<<< HEAD
     private static Type getFieldType(FieldInfo fieldInfo, Type defaultType) {
         if (fieldInfo == null || fieldInfo.type().name().equals(Classes.SERIALIZABLE)
                 || fieldInfo.type().name().equals(Classes.OBJECT)) {
+=======
+    private static Type getFieldType(Optional<Adapter> adapter, FieldInfo fieldInfo, Type defaultType) {
+        if (fieldInfo == null && !adapter.isPresent()) {
+>>>>>>> 4cc350a7 (Adapters now creating schema correctly)
             return defaultType;
         }
-        return fieldInfo.type();
+        return getReturnType(adapter, fieldInfo);
     }
 
     /**

@@ -467,7 +467,9 @@ public class Annotations {
     private static final short ZERO = 0;
 
     // SmallRye GraphQL Annotations (Experimental)
-    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
+    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
+    public static final DotName ADAPT_TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.AdaptToScalar");
+    public static final DotName ADAPT_WITH = DotName.createSimple("io.smallrye.graphql.api.AdaptWith");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
@@ -509,4 +511,9 @@ public class Annotations {
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
+<<<<<<< HEAD
+=======
+    // TODO: Also support OpenAPI Schema ??
+    // TODO: Also support Jackson
+>>>>>>> 4cc350a7 (Adapters now creating schema correctly)
 }

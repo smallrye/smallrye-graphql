@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.smallrye.graphql.api;
 
 import java.lang.annotation.Documented;
@@ -25,45 +24,29 @@ import java.lang.annotation.Target;
 import io.smallrye.common.annotation.Experimental;
 
 /**
- * Allows users to map a certain field or class to a scalar type<br>
+ * Allow adapting objects using an Adapter class<br>
  * This is an experimental feature that might move to the spec.
  * <br>
  * Example:
  * 
  * <pre>
  * public class Profile {
- *     //  Map a Scalar to another existing Scalar
- *     {@literal @}ToScalar(Scalar.Int.class)
-     private Long id;
- 
-     // Map a POJO to another existing Scalar
-     {@literal @}ToScalar(Scalar.String.class)
-     private IdNumber idNumber;
-
-     // Map a List of POJOs to a list of existing Scalars
-     {@literal @}ToScalar(Scalar.String.class)
-     private List&lt;Website&gt; bookmarks;
+ *     //  Map a EmailAdress to an Address
+ *     {@literal @}AdaptWith(EmailAdapter.class)
+ *     private Address email;
  *
  *     // other getters/setters...
  * }
  * </pre>
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
- * @deprecated Use AdaptToScalar
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
-@Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
+@Experimental("Allow you to map to and from another object. Not covered by the specification. " +
         "Subject to change.")
-@Deprecated
-public @interface ToScalar {
-    /**
-     * @return the scalar to use.
-     */
-    Class<? extends Scalar> value();
+public @interface AdaptWith {
 
-    String deserializeMethod() default ""; // Can be auto discovered for certain cases
-
-    // TODO: Also add serilize that currently defaults to toString?
+    public Class<? extends Adapter> value();
 }

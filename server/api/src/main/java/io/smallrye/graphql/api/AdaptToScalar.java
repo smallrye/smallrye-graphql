@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,15 @@ import io.smallrye.common.annotation.Experimental;
  * <pre>
  * public class Profile {
  *     //  Map a Scalar to another existing Scalar
- *     {@literal @}ToScalar(Scalar.Int.class)
+ *     {@literal @}AdaptToScalar(Scalar.Int.class)
      private Long id;
  
      // Map a POJO to another existing Scalar
-     {@literal @}ToScalar(Scalar.String.class)
+     {@literal @}AdaptToScalar(Scalar.String.class)
      private IdNumber idNumber;
 
      // Map a List of POJOs to a list of existing Scalars
-     {@literal @}ToScalar(Scalar.String.class)
+     {@literal @}AdaptToScalar(Scalar.String.class)
      private List&lt;Website&gt; bookmarks;
  *
  *     // other getters/setters...
@@ -49,15 +49,13 @@ import io.smallrye.common.annotation.Experimental;
  * </pre>
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
- * @deprecated Use AdaptToScalar
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
 @Documented
 @Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
         "Subject to change.")
-@Deprecated
-public @interface ToScalar {
+public @interface AdaptToScalar {
     /**
      * @return the scalar to use.
      */
