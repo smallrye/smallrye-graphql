@@ -174,7 +174,7 @@ public class ResponseReaderTest {
         headers.add(MapEntry.entry("Cookie", "myCookie"));
         ResponseImpl response = ResponseReader.readFrom(responseString, headers);
 
-        Error theError = response.getErrors().get(0);
+        GraphQLError theError = response.getErrors().get(0);
         assertEquals("blabla", theError.getMessage());
         assertEquals(123456, ((JsonNumber) theError.getOtherFields().get("somethingExtra")).intValue());
         assertEquals("GRAPHQL_VALIDATION_FAILED", theError.getExtensions().get("code"));

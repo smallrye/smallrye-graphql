@@ -6,19 +6,19 @@ import java.util.Map;
 
 import javax.json.JsonValue;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 
-public class ErrorImpl implements Error {
+public class GraphQLErrorImpl implements GraphQLError {
     private String message;
     private List<Map<String, Integer>> locations;
     private Object[] path;
     private Map<String, Object> extensions;
     private Map<String, JsonValue> otherFields;
 
-    public ErrorImpl() {
+    public GraphQLErrorImpl() {
     }
 
-    public ErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions,
+    public GraphQLErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions,
             Map<String, JsonValue> otherFields) {
         this.message = message;
         this.locations = locations;

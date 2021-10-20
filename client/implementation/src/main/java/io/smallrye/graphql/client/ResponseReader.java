@@ -15,7 +15,7 @@ import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
-import io.smallrye.graphql.client.dynamic.ErrorImpl;
+import io.smallrye.graphql.client.dynamic.GraphQLErrorImpl;
 import io.smallrye.graphql.client.dynamic.ResponseImpl;
 
 public class ResponseReader {
@@ -38,7 +38,7 @@ public class ResponseReader {
             }
         }
 
-        List<Error> errors = null;
+        List<GraphQLError> errors = null;
         if (jsonResponse.containsKey("errors")) {
             errors = new ArrayList<>();
             for (JsonValue error : jsonResponse.getJsonArray("errors")) {
@@ -49,9 +49,9 @@ public class ResponseReader {
         return new ResponseImpl(data, errors, headers);
     }
 
-    public static Error readError(JsonValue errorJson) {
+    public static GraphQLError readError(JsonValue errorJson) {
         JsonObject errorObject = errorJson.asJsonObject();
-        ErrorImpl decodedError = new ErrorImpl();
+        GraphQLErrorImpl decodedError = new GraphQLErrorImpl();
 
         JsonValue message = errorObject.get("message");
         if (message instanceof JsonString) {

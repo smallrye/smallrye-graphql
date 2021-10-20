@@ -13,7 +13,7 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
@@ -47,7 +47,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't greet");
         Map<String, Integer> sourceLocation = new HashMap<>();
         sourceLocation.put("line", 1);
@@ -87,7 +87,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage())
                 .isEqualTo("Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'");
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -117,7 +117,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isNull();
         Map<String, Integer> sourceLocation = new HashMap<>();
         sourceLocation.put("line", 1);
@@ -145,7 +145,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isNull();
         then(error.getLocations()).isNull();
         then(error.getExtensions().get("code")).isNull();
@@ -173,7 +173,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
         Map<String, Integer> sourceLocation = new HashMap<>();
         sourceLocation.put("line", 1);
@@ -201,7 +201,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
         then(error.getLocations()).isNull();
         then(error.getExtensions().get("code")).isNull();
@@ -227,7 +227,7 @@ class ErrorBehavior {
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
         then(thrown.getErrors()).hasSize(1);
-        Error error = thrown.getErrors().get(0);
+        GraphQLError error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
         then(error.getLocations()).isEmpty();
         then(error.getExtensions().get("code")).isNull();
@@ -316,7 +316,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(response.getErrors()).hasSize(1);
-        io.smallrye.graphql.client.Error error = response.getErrors().get(0);
+        GraphQLError error = response.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).containsExactly("teams");
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -347,7 +347,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(throwable.getErrors()).hasSize(1);
-        Error error = throwable.getErrors().get(0);
+        GraphQLError error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).containsExactly("teams");
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -386,7 +386,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(response.getErrors()).hasSize(2);
-        Error error1 = response.getErrors().get(0);
+        GraphQLError error1 = response.getErrors().get(0);
         then(error1.getMessage()).isEqualTo("currently can't search for teams");
         then(error1.getPath()).containsExactly("teams");
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -395,7 +395,7 @@ class ErrorBehavior {
         then(error1.getLocations()).containsExactly(sourceLocation);
         then(error1.getExtensions().get("code")).isEqualTo("team-search-disabled");
 
-        Error error2 = response.getErrors().get(1);
+        GraphQLError error2 = response.getErrors().get(1);
         then(error2.getMessage()).isEqualTo("feeling dizzy");
         then(error2.getPath()).containsExactly("teams");
         Map<String, Integer> sourceLocation2 = new HashMap<>();
@@ -425,7 +425,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(throwable.getErrors()).hasSize(1);
-        Error error = throwable.getErrors().get(0);
+        GraphQLError error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).isNull();
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -452,7 +452,7 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(throwable.getErrors()).hasSize(1);
-        Error error = throwable.getErrors().get(0);
+        GraphQLError error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("can't get team name");
         then(error.getPath()).containsExactly("teams", "name");
         Map<String, Integer> sourceLocation = new HashMap<>();
@@ -526,7 +526,7 @@ class ErrorBehavior {
         then(response.teams.isPresent()).isFalse();
         then(catchThrowable(() -> response.teams.get())).isInstanceOf(NoSuchElementException.class);
         then(response.teams.getErrors()).hasSize(1);
-        Error error = response.teams.getErrors().get(0);
+        GraphQLError error = response.teams.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         Map<String, Integer> sourceLocation = new HashMap<>();
         sourceLocation.put("line", 1);
@@ -584,7 +584,7 @@ class ErrorBehavior {
                 .isEqualTo("query order($id: String!) { order(id: $id) {id orderDate items {product {id name}}} }");
         then(fixture.variables()).isEqualTo("{'id':'o1'}");
         then(throwable.getErrors()).hasSize(1);
-        Error error = throwable.getErrors().get(0);
+        GraphQLError error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("System error");
         then(error.getPath()).containsExactly("order", "items", 0, "product");
         Map<String, Integer> sourceLocation = new HashMap<>();

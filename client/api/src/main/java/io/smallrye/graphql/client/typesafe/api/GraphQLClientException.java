@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 
 /**
  * Represents a response that contained application-level errors and thus can't be turned into a domain object.
@@ -14,9 +14,9 @@ import io.smallrye.graphql.client.Error;
  * application-level errors.
  */
 public class GraphQLClientException extends RuntimeException {
-    private final List<Error> errors;
+    private final List<GraphQLError> errors;
 
-    public GraphQLClientException(String message, List<Error> errors) {
+    public GraphQLClientException(String message, List<GraphQLError> errors) {
         super(message);
         this.errors = requireNonNull(errors);
     }
@@ -24,10 +24,10 @@ public class GraphQLClientException extends RuntimeException {
     @Override
     public String toString() {
         return "GraphQlClientException: " + getMessage() + (errors.isEmpty() ? ""
-                : "\nerrors:\n- " + errors.stream().map(Error::toString).collect(joining("\n- "))) + ")";
+                : "\nerrors:\n- " + errors.stream().map(GraphQLError::toString).collect(joining("\n- "))) + ")";
     }
 
-    public List<Error> getErrors() {
+    public List<GraphQLError> getErrors() {
         return errors;
     }
 }

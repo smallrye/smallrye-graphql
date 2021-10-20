@@ -18,11 +18,11 @@ import javax.json.JsonValue;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 
 class ErrorOrTest {
-    private static final Error CLIENT_ERROR = new Error() {
+    private static final GraphQLError CLIENT_ERROR = new GraphQLError() {
         @Override
         public String getMessage() {
             return "some message";
