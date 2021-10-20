@@ -38,17 +38,13 @@ public class AdapterHelper {
         if (adapterType != null) {
 
             Type type = adapterType.type;
-            System.err.println(">>>>> type " + type);
             Adapter adapter = adapterType.adapter;
-            System.err.println(">>>>> adapter " + adapter);
             if (type.kind().equals(Type.Kind.CLASS)) {
                 ClassInfo classInfo = ScanningContext.getIndex().getClassByName(type.name());
                 List<Type> interfaceTypes = classInfo.interfaceTypes();
 
                 // Look for supported intefaces
                 for (Type interfaceType : interfaceTypes) {
-                    System.err.println(">>>>> interfaceType.name().toString() " + interfaceType.name().toString());
-                    System.err.println(">>>>> adapter.getAdapterInterface() " + adapter.getAdapterInterface());
                     if (interfaceType.name().toString().equals(adapter.getAdapterInterface())
                             && interfaceType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
                         ParameterizedType adapterInterface = interfaceType.asParameterizedType();
@@ -94,6 +90,8 @@ public class AdapterHelper {
                     return new AdapterType(type, adapter);
                 }
             }
+
+            // TODO: add support for Jackson ?
         }
         return null;
     }

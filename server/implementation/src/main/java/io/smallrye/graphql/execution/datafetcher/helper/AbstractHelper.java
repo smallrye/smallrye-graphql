@@ -1,14 +1,18 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Wrapper;
@@ -25,6 +29,7 @@ public abstract class AbstractHelper {
 
     protected final ClassloadingService classloadingService = ClassloadingService.get();
     private final Map<String, Transformer> transformerMap = new HashMap<>();
+    private final Map<Integer, ReflectionInvoker> invokerMap = new HashMap<>();
 
     protected AbstractHelper() {
     }
@@ -199,6 +204,27 @@ public abstract class AbstractHelper {
         return transformer;
     }
 
+    protected ReflectionInvoker getReflectionInvoker(Adapter adapter) {
+        List<String> parameters = new ArrayList<>();
+        parameters.add(adapter.getFromClass());
+        return getReflectionInvoker(adapter.getAdapterClass(), adapter.getToMethod(), parameters);
+    }
+
+    protected ReflectionInvoker getReflectionInvoker(String className, String methodName, List<String> parameterClasses) {
+        Integer key = getKey(className, methodName, parameterClasses);
+        if (invokerMap.containsKey(key)) {
+            return invokerMap.get(key);
+        } else {
+            ReflectionInvoker reflectionInvoker = new ReflectionInvoker(className, methodName, parameterClasses);
+            invokerMap.put(key, reflectionInvoker);
+            return reflectionInvoker;
+        }
+    }
+
+    private Integer getKey(String className, String methodName, List<String> parameterClasses) {
+        return Objects.hash(className, methodName, parameterClasses.toArray());
+    }
+
     /**
      * Checks, if this field is a scalar and the object has the wrong type.
      * Transformation is only possible for scalars and only needed if types don't match.
@@ -207,8 +233,9 @@ public abstract class AbstractHelper {
      * @return if transformation is needed
      */
     protected boolean shouldTransform(Field field) {
-        return field.getReference().getType() == ReferenceType.SCALAR
-                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName());
+        return (field.getReference().getType() == ReferenceType.SCALAR
+                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName())
+                || field.hasAdapter());
     }
 
     /**

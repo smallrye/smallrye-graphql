@@ -1,0 +1,18 @@
+{
+  "data": {
+    "adapterData": {
+      "id": 1,
+      "name": "Foo",
+      "address": {
+        "value": "phillip@kruger.co.za"
+      },
+      "tags": "foo bar",
+      "email": {
+        "addressType": "email",
+        "lines": [
+          "piet@pompies.co.za"
+        ]
+      }
+    }
+  }
+}
