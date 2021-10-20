@@ -2,8 +2,6 @@ package io.smallrye.graphql.test.apps.mapping.api;
 
 import java.util.Currency;
 
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.bind.adapter.JsonbAdapter;
 
 /**
@@ -11,17 +9,15 @@ import javax.json.bind.adapter.JsonbAdapter;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class CurrencyAdapter implements JsonbAdapter<Currency, JsonObject> {
+public class CurrencyAdapter implements JsonbAdapter<Currency, String> {
 
     @Override
-    public JsonObject adaptToJson(Currency currency) {
-        return Json.createObjectBuilder()
-                .add("currencyCode", currency.getCurrencyCode())
-                .build();
+    public String adaptToJson(Currency currency) {
+        return currency.getCurrencyCode();
     }
 
     @Override
-    public Currency adaptFromJson(JsonObject json) {
-        return Currency.getInstance(json.getString("currencyCode"));
+    public Currency adaptFromJson(String currencyCode) {
+        return Currency.getInstance(currencyCode);
     }
 }

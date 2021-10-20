@@ -37,6 +37,13 @@ public class AdapterResource {
         return d;
     }
 
+    @Query
+    public List<AdapterData> getAdapterDatas() {
+        List<AdapterData> adapterDatas = new ArrayList<>();
+        adapterDatas.add(getAdapterData());
+        return adapterDatas;
+    }
+
     @Mutation
     public AdapterData updateAdapterData(AdapterData adapterData) {
         System.err.println("adapterData = " + adapterData);
