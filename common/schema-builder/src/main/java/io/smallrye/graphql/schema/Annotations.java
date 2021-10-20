@@ -511,9 +511,4 @@ public class Annotations {
     public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
     public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
 
-<<<<<<< HEAD
-=======
-    // TODO: Also support OpenAPI Schema ??
-    // TODO: Also support Jackson
->>>>>>> 4cc350a7 (Adapters now creating schema correctly)
 }

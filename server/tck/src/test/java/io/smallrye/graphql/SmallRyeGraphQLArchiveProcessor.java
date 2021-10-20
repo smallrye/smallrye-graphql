@@ -101,15 +101,12 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(MappingResource.class.getPackage());
             war.addPackage(FieldExistenceApi.class.getPackage());
             war.addPackage(CreatorApi.class.getPackage());
-<<<<<<< HEAD
             war.addPackage(EnumListApi.class.getPackage());
             war.addPackage(ExceptionListApi.class.getPackage());
             war.addPackage(FoodResource.class.getPackage());
             war.addPackage(CollectionResource.class.getPackage());
             war.addPackage(JacksonApi.class.getPackage());
-=======
             war.addPackage(AdapterResource.class.getPackage());
->>>>>>> 4cc350a7 (Adapters now creating schema correctly)
         }
     }
 }

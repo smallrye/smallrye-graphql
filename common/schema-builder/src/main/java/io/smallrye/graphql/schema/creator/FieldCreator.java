@@ -247,14 +247,10 @@ public class FieldCreator extends ModelCreator {
         return getReturnType(adapter, fieldInfo);
     }
 
-<<<<<<< HEAD
-    private static Type getFieldType(FieldInfo fieldInfo, Type defaultType) {
-        if (fieldInfo == null || fieldInfo.type().name().equals(Classes.SERIALIZABLE)
-                || fieldInfo.type().name().equals(Classes.OBJECT)) {
-=======
     private static Type getFieldType(Optional<Adapter> adapter, FieldInfo fieldInfo, Type defaultType) {
-        if (fieldInfo == null && !adapter.isPresent()) {
->>>>>>> 4cc350a7 (Adapters now creating schema correctly)
+
+        if ((fieldInfo == null || fieldInfo.type().name().equals(Classes.SERIALIZABLE)
+                || fieldInfo.type().name().equals(Classes.OBJECT)) && !adapter.isPresent()) {
             return defaultType;
         }
         return getReturnType(adapter, fieldInfo);

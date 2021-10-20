@@ -2,8 +2,6 @@ package io.smallrye.graphql.test.apps.mapping.api;
 
 import java.util.Currency;
 
-import javax.json.bind.annotation.JsonbTypeAdapter;
-
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
@@ -37,11 +35,11 @@ public class MappingResource {
         public String name;
 
         @ToScalar(value = Scalar.String.class, deserializeMethod = "getInstance")
-        @JsonbTypeAdapter(CurrencyAdapter.class)
+        //@JsonbTypeAdapter(CurrencyAdapter.class)
         public Currency currency;
 
         @ToScalar(Scalar.String.class)
-        @JsonbTypeAdapter(EmailAdapter.class)
+        //@JsonbTypeAdapter(EmailAdapter.class)
         public Email email;
 
     }
