@@ -71,7 +71,7 @@ public class ErrorImpl implements Error {
     @Override
     public String toString() {
         String other = (otherFields == null || otherFields.isEmpty()) ? "" : ", otherFields=" + otherFields;
-        return "GraphQLError{message=" + message +
+        return "Error{message=" + message +
                 ", locations=" + locations +
                 ", path=" + Arrays.toString(path) +
                 ", extensions=" + extensions +

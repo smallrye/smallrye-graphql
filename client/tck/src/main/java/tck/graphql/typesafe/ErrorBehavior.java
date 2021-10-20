@@ -1,24 +1,23 @@
 package tck.graphql.typesafe;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.Error;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
-import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 
 class ErrorBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
@@ -35,7 +34,7 @@ class ErrorBehavior {
                 "\"data\":{\"greeting\":null}," +
                 "\"errors\":[{" +
                 /**/"\"message\":\"currently can't greet\"," +
-                /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
+                /**/"\"locations\":[{\"line\":1,\"column\":2}]," +
                 /**/"\"path\": [\"greeting\"],\n" +
                 /**/"\"extensions\":{" +
                 /**//**/"\"description\":\"some description\"," +
@@ -47,20 +46,15 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service (and we can't apply them to a java.lang.String value for" +
-                " tck.graphql.typesafe.ErrorBehavior$StringApi#greeting; see ErrorOr)");
-        then(thrown).hasToString(
-                "GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
-                        + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
-                        "errors:\n" +
-                        "- no-greeting: [greeting] currently can't greet [(1:2@loc)]" +
-                        " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't greet");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
         then(error.getPath()).containsExactly("greeting");
-        then(error.getErrorCode()).isEqualTo("no-greeting");
+        then(error.getExtensions().get("code")).isEqualTo("no-greeting");
     }
 
     @Test
@@ -92,21 +86,16 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service");
-        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo' [(1:8)]" +
-                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined," +
-                " queryPath=[foo], classification=ValidationError})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage())
                 .isEqualTo("Validation error of type FieldUndefined: Field 'foo' in type 'Query' is undefined @ 'foo'");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 8, null));
-        then(error.getErrorCode()).isNull();
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 8);
+        then(error.getLocations()).containsExactly(sourceLocation);
         then(error.getExtensions().get("description")).isEqualTo("Field 'foo' in type 'Query' is undefined");
         then(error.getExtensions().get("validationErrorType")).isEqualTo("FieldUndefined");
-        then(error.getExtensions().get("queryPath")).isEqualTo(singletonList("foo"));
         then(error.getExtensions().get("classification")).isEqualTo("ValidationError");
     }
 
@@ -127,20 +116,15 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service (and we can't apply them to a java.lang.String value for" +
-                " tck.graphql.typesafe.ErrorBehavior$StringApi#greeting; see ErrorOr)");
-        then(thrown).hasToString(
-                "GraphQlClientException: errors from service (and we can't apply them to a java.lang.String value for "
-                        + StringApi.class.getName() + "#greeting; see ErrorOr)\n" +
-                        "errors:\n" +
-                        "- no-greeting: [greeting] [(1:2@loc)]" +
-                        " {description=some description, queryPath=[greeting], classification=DataFetchingException, code=no-greeting})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isNull();
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
         then(error.getPath()).containsExactly("greeting");
-        then(error.getErrorCode()).isEqualTo("no-greeting");
+        then(error.getExtensions().get("code")).isEqualTo("no-greeting");
     }
 
     @Test
@@ -160,15 +144,11 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service");
-        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- {classification=SomeClassification})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isNull();
         then(error.getLocations()).isNull();
-        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("code")).isNull();
         then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
     }
 
@@ -192,16 +172,15 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service");
-        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- something went wrong [(1:8)])");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 8, null));
-        then(error.getErrorCode()).isNull();
-        then(error.getExtensions()).isNull();
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 8);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isNull();
+        then(error.getExtensions()).isEmpty();
     }
 
     @Test
@@ -221,15 +200,11 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service");
-        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- something went wrong {classification=SomeClassification})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
         then(error.getLocations()).isNull();
-        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("code")).isNull();
         then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
     }
 
@@ -251,15 +226,11 @@ class ErrorBehavior {
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
 
-        then(thrown).hasMessage("errors from service");
-        then(thrown).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- something went wrong [] {classification=SomeClassification})");
         then(thrown.getErrors()).hasSize(1);
-        GraphQLClientError error = thrown.getErrors().get(0);
+        Error error = thrown.getErrors().get(0);
         then(error.getMessage()).isEqualTo("something went wrong");
         then(error.getLocations()).isEmpty();
-        then(error.getErrorCode()).isNull();
+        then(error.getExtensions().get("code")).isNull();
         then(error.getExtensions().get("classification")).isEqualTo("SomeClassification");
     }
 
@@ -345,11 +316,14 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(response.getErrors()).hasSize(1);
-        GraphQLClientError error = response.getErrors().get(0);
+        io.smallrye.graphql.client.Error error = response.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).containsExactly("teams");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error.getErrorCode()).isEqualTo("team-search-disabled");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isEqualTo("team-search-disabled");
     }
 
     @Test
@@ -372,18 +346,15 @@ class ErrorBehavior {
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(throwable).hasMessage("errors from service");
-        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- team-search-disabled: [teams] currently can't search for teams [(1:2@loc)]" +
-                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined, queryPath=[foo]," +
-                " classification=ValidationError, code=team-search-disabled})");
         then(throwable.getErrors()).hasSize(1);
-        GraphQLClientError error = throwable.getErrors().get(0);
+        Error error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).containsExactly("teams");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error.getErrorCode()).isEqualTo("team-search-disabled");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isEqualTo("team-search-disabled");
     }
 
     @Test
@@ -415,17 +386,23 @@ class ErrorBehavior {
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
         then(response.getErrors()).hasSize(2);
-        GraphQLClientError error1 = response.getErrors().get(0);
+        Error error1 = response.getErrors().get(0);
         then(error1.getMessage()).isEqualTo("currently can't search for teams");
         then(error1.getPath()).containsExactly("teams");
-        then(error1.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error1.getErrorCode()).isEqualTo("team-search-disabled");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error1.getLocations()).containsExactly(sourceLocation);
+        then(error1.getExtensions().get("code")).isEqualTo("team-search-disabled");
 
-        GraphQLClientError error2 = response.getErrors().get(1);
+        Error error2 = response.getErrors().get(1);
         then(error2.getMessage()).isEqualTo("feeling dizzy");
         then(error2.getPath()).containsExactly("teams");
-        then(error2.getLocations()).containsExactly(new SourceLocation(2, 3, "lock"));
-        then(error2.getErrorCode()).isEqualTo("dizzy");
+        Map<String, Integer> sourceLocation2 = new HashMap<>();
+        sourceLocation2.put("line", 2);
+        sourceLocation2.put("column", 3);
+        then(error2.getLocations()).containsExactly(sourceLocation2);
+        then(error2.getExtensions().get("code")).isEqualTo("dizzy");
     }
 
     @Test
@@ -447,18 +424,15 @@ class ErrorBehavior {
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(throwable).hasMessage("errors from service");
-        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- team-search-disabled: currently can't search for teams [(1:2@loc)]" +
-                " {description=Field 'foo' in type 'Query' is undefined, validationErrorType=FieldUndefined, queryPath=[foo]," +
-                " classification=ValidationError, code=team-search-disabled})");
         then(throwable.getErrors()).hasSize(1);
-        GraphQLClientError error = throwable.getErrors().get(0);
+        Error error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
         then(error.getPath()).isNull();
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error.getErrorCode()).isEqualTo("team-search-disabled");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isEqualTo("team-search-disabled");
     }
 
     @Test
@@ -477,16 +451,15 @@ class ErrorBehavior {
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
 
         then(fixture.query()).isEqualTo("query teams { teams {name} }");
-        then(throwable).hasMessage("errors from service");
-        then(throwable).hasToString("GraphQlClientException: errors from service\n" +
-                "errors:\n" +
-                "- team-name-disabled: [teams, name] can't get team name [(1:2@loc)] {code=team-name-disabled})");
         then(throwable.getErrors()).hasSize(1);
-        GraphQLClientError error = throwable.getErrors().get(0);
+        Error error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("can't get team name");
         then(error.getPath()).containsExactly("teams", "name");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
-        then(error.getErrorCode()).isEqualTo("team-name-disabled");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isEqualTo("team-name-disabled");
     }
 
     static class Wrapper {
@@ -553,11 +526,14 @@ class ErrorBehavior {
         then(response.teams.isPresent()).isFalse();
         then(catchThrowable(() -> response.teams.get())).isInstanceOf(NoSuchElementException.class);
         then(response.teams.getErrors()).hasSize(1);
-        GraphQLClientError error = response.teams.getErrors().get(0);
+        Error error = response.teams.getErrors().get(0);
         then(error.getMessage()).isEqualTo("currently can't search for teams");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 2, "loc"));
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 2);
+        then(error.getLocations()).containsExactly(sourceLocation);
         then(error.getPath()).containsExactly("find", "teams");
-        then(error.getErrorCode()).isEqualTo("team-search-disabled");
+        then(error.getExtensions().get("code")).isEqualTo("team-search-disabled");
     }
 
     @GraphQLClientApi
@@ -607,18 +583,14 @@ class ErrorBehavior {
         then(fixture.query())
                 .isEqualTo("query order($id: String!) { order(id: $id) {id orderDate items {product {id name}}} }");
         then(fixture.variables()).isEqualTo("{'id':'o1'}");
-        then(throwable).hasMessage("errors from service (and we can't apply them to a " + Product.class.getName()
-                + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)");
-        then(throwable).hasToString("GraphQlClientException: errors from service (and we can't apply them to a " +
-                Product.class.getName()
-                + " value for tck.graphql.typesafe.ErrorBehavior$OrderApi#order.items[0].product; see ErrorOr)\n" +
-                "errors:\n" +
-                "- [order, items, 0, product] System error [(1:84)])");
         then(throwable.getErrors()).hasSize(1);
-        GraphQLClientError error = throwable.getErrors().get(0);
+        Error error = throwable.getErrors().get(0);
         then(error.getMessage()).isEqualTo("System error");
-        then(error.getPath()).containsExactly("order", "items", BigDecimal.ZERO, "product");
-        then(error.getLocations()).containsExactly(new SourceLocation(1, 84, null));
-        then(error.getErrorCode()).isNull();
+        then(error.getPath()).containsExactly("order", "items", 0, "product");
+        Map<String, Integer> sourceLocation = new HashMap<>();
+        sourceLocation.put("line", 1);
+        sourceLocation.put("column", 84);
+        then(error.getLocations()).containsExactly(sourceLocation);
+        then(error.getExtensions().get("code")).isNull();
     }
 }

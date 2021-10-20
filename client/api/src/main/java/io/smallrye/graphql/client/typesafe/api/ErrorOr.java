@@ -12,20 +12,23 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import io.smallrye.graphql.client.Error;
+
 /**
- * Like an {@link java.util.Optional}, but if a value is not present, there is a List of {@link GraphQLClientError}s instead.
+ * Like an {@link java.util.Optional}, but if a value is not present, there is a List of
+ * {@link io.smallrye.graphql.client.Error}s instead.
  * There can be the paradox situation that there is a <code>value</code> <em>as well as</em> errors,
  * but this is what a GraphQL service could theoretically return!
  */
 public final class ErrorOr<T> {
     private final T value;
-    private final List<GraphQLClientError> errors;
+    private final List<Error> errors;
 
     public static <T> ErrorOr<T> of(T value) {
         return new ErrorOr<>(requireNonNull(value, "value must not be null"), null);
     }
 
-    public static <T> ErrorOr<T> ofErrors(List<GraphQLClientError> errors) {
+    public static <T> ErrorOr<T> ofErrors(List<Error> errors) {
         if (errors == null)
             throw new NullPointerException("errors must not be null");
         if (errors.isEmpty())
@@ -33,7 +36,7 @@ public final class ErrorOr<T> {
         return new ErrorOr<>(null, unmodifiableList(new ArrayList<>(errors)));
     }
 
-    private ErrorOr(T value, List<GraphQLClientError> errors) {
+    private ErrorOr(T value, List<Error> errors) {
         this.value = value;
         this.errors = errors;
     }
@@ -72,7 +75,7 @@ public final class ErrorOr<T> {
         return value;
     }
 
-    public List<GraphQLClientError> getErrors() {
+    public List<Error> getErrors() {
         if (isPresent())
             throw new NoSuchElementException("No error present, but value " + value);
         return errors;
@@ -84,7 +87,7 @@ public final class ErrorOr<T> {
             action.accept(value);
     }
 
-    public void handle(Consumer<? super T> dataAction, Consumer<List<GraphQLClientError>> errorsAction) {
+    public void handle(Consumer<? super T> dataAction, Consumer<List<Error>> errorsAction) {
         Objects.requireNonNull(dataAction, "handle dataAction must not be null");
         Objects.requireNonNull(errorsAction, "handle errorsAction must not be null");
         if (isPresent())
