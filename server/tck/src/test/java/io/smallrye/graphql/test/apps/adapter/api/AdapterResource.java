@@ -37,6 +37,9 @@ public class AdapterResource {
         @AdaptWith(AddressAdapter.class)
         public Address address;
 
+        @AdaptWith(TagsAdapter.class)
+        public Tags tags;
+
         @Override
         public String toString() {
             return "AdapterData{" + "id=" + id + ", name=" + name + ", email=" + email + ", address=" + address + '}';

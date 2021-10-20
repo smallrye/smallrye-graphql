@@ -9,3 +9,5 @@
 8| input AdapterDataInput   |   address: EmailAddressInput                  |   Address should be mapped to EmailAddress on Input
 9| type EmailAddress        |   value: String                               |   EmailAddress should have a String value
 10| input EmailAddressInput |   value: String                               |   EmailAddressInput should have a String value
+11| type AdapterData        |   tags: String                                |   Tags should be mapped to String on Type
+12| input AdapterDataInput  |   tags: String                                |   Tags should be mapped to String on Input
