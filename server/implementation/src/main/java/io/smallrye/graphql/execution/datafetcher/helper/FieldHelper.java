@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -84,6 +85,42 @@ public class FieldHelper extends AbstractHelper {
             return object;
         }
 
+        if (field.hasAdapter()) {
+            return transformOutputWithAdapter(field, object);
+        } else {
+            return transformOutputWithTransformer(field, object);
+        }
+    }
+
+    /**
+     * This is for when a user provided a adapter.
+     * 
+     * @param field the field definition
+     * @param object the pre transform value
+     * @return the transformed value
+     * @throws AbstractDataFetcherException
+     */
+    private Object transformOutputWithAdapter(Field field, Object object) throws AbstractDataFetcherException {
+        Adapter adapter = field.getAdapter();
+        ReflectionInvoker reflectionInvoker = getReflectionInvokerForOutput(adapter);
+        try {
+            Object adaptedObject = reflectionInvoker.invoke(object);
+            return adaptedObject;
+        } catch (Exception ex) {
+            log.transformError(ex);
+            throw new TransformException(ex, field, object);
+        }
+    }
+
+    /**
+     * This is the build in transformation (eg. number and date formatting)
+     * 
+     * @param field the field definition
+     * @param object the pre transform value
+     * @return the transformed value
+     * @throws AbstractDataFetcherException
+     */
+    private Object transformOutputWithTransformer(Field field, Object object) throws AbstractDataFetcherException {
         try {
             Transformer transformer = super.getTransformer(field);
             if (transformer == null) {

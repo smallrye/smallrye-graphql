@@ -300,6 +300,10 @@ public class Classes {
     private static final DotName FLOAT = DotName.createSimple(Float.class.getName());
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
 
+    // Adapters
+    public static final DotName JSONB_ADAPTER = DotName.createSimple("javax.json.bind.adapter.JsonbAdapter");
+    public static final DotName ADAPTER = DotName.createSimple("io.smallrye.graphql.api.Adapter");
+
     private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
     static {
         KNOWN_COLLECTIONS.add(COLLECTION);

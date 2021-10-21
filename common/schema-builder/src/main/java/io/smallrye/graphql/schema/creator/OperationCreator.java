@@ -10,8 +10,10 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.AdapterHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -22,17 +24,14 @@ import io.smallrye.graphql.schema.model.Reference;
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class OperationCreator {
+public class OperationCreator extends ModelCreator {
 
     private final ReferenceCreator referenceCreator;
     private final ArgumentCreator argumentCreator;
-    private final FieldCreator fieldCreator;
 
-    public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator,
-            FieldCreator fieldCreator) {
+    public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator) {
         this.referenceCreator = referenceCreator;
         this.argumentCreator = argumentCreator;
-        this.fieldCreator = fieldCreator;
     }
 
     /**
@@ -55,7 +54,11 @@ public class OperationCreator {
         }
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
-        Type fieldType = methodInfo.returnType();
+
+        // Adapting
+        Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForMethod);
+
+        Type fieldType = getReturnType(adapter, methodInfo);
 
         // Name
         String name = getOperationName(methodInfo, operationType, annotationsForMethod);
@@ -81,7 +84,7 @@ public class OperationCreator {
             maybeArgument.ifPresent(operation::addArgument);
         }
 
-        fieldCreator.configure(operation, fieldType, annotationsForMethod);
+        populateField(operation, fieldType, adapter, annotationsForMethod);
 
         return operation;
     }

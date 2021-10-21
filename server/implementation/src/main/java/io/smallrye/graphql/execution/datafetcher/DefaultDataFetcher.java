@@ -34,7 +34,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
-            Object resultFromMethodCall = reflectionHelper.invoke(transformedArguments);
+            Object resultFromMethodCall = operationInvoker.invoke(transformedArguments);
             Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
             resultBuilder.data(resultFromTransform);
             return (T) resultBuilder.build();
@@ -60,7 +60,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
             CompletableFuture<List<T>> reflectionSupplier = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return (List<T>) reflectionHelper.invokePrivileged(tccl, arguments);
+                    return (List<T>) operationInvoker.invokePrivileged(tccl, arguments);
                 } catch (Exception e) {
                     if (e instanceof RuntimeException && e.getCause() != null && !(e.getCause() instanceof RuntimeException)) {
                         throw msg.dataFetcherException(operation, e.getCause());

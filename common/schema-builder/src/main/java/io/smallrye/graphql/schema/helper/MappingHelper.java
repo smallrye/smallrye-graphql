@@ -124,10 +124,19 @@ public class MappingHelper {
     }
 
     private static Type getMapTo(Annotations annotations) {
-        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR);
-            if (annotationValue != null) {
-                return annotationValue.asClass();
+        if (annotations != null) {
+            if (annotations.containsOneOfTheseAnnotations(Annotations.ADAPT_TO_SCALAR)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ADAPT_TO_SCALAR);
+                if (annotationValue != null) {
+                    return annotationValue.asClass();
+                }
+            }
+            // TODO: Remove below (deprecated)
+            if (annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR);
+                if (annotationValue != null) {
+                    return annotationValue.asClass();
+                }
             }
         }
         return null;
@@ -142,12 +151,24 @@ public class MappingHelper {
     }
 
     private static String getAnnotationParameterAsString(Annotations annotations, String param) {
-        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
-            AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR, param);
-            if (annotationValue != null) {
-                String value = annotationValue.asString();
-                if (value != null && !value.isEmpty()) {
-                    return value;
+        if (annotations != null) {
+            if (annotations.containsOneOfTheseAnnotations(Annotations.ADAPT_TO_SCALAR)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.ADAPT_TO_SCALAR, param);
+                if (annotationValue != null) {
+                    String value = annotationValue.asString();
+                    if (value != null && !value.isEmpty()) {
+                        return value;
+                    }
+                }
+            }
+            // TODO: Remove below (deprecated)
+            if (annotations.containsOneOfTheseAnnotations(Annotations.TO_SCALAR)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.TO_SCALAR, param);
+                if (annotationValue != null) {
+                    String value = annotationValue.asString();
+                    if (value != null && !value.isEmpty()) {
+                        return value;
+                    }
                 }
             }
         }

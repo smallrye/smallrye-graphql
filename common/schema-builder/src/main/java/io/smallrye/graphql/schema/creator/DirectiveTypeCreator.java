@@ -1,4 +1,4 @@
-package io.smallrye.graphql.schema.creator.type;
+package io.smallrye.graphql.schema.creator;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 import static java.util.stream.Collectors.toSet;
@@ -12,26 +12,21 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
-import io.smallrye.graphql.schema.creator.FieldCreator;
-import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
-public class DirectiveTypeCreator {
+public class DirectiveTypeCreator extends ModelCreator {
     private static final Logger LOG = Logger.getLogger(DirectiveTypeCreator.class.getName());
 
     private final ReferenceCreator referenceCreator;
     private final TypeAutoNameStrategy autoNameStrategy;
-    private final FieldCreator fieldCreator;
 
-    public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy,
-            FieldCreator fieldCreator) {
+    public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy) {
         this.referenceCreator = referenceCreator;
         this.autoNameStrategy = autoNameStrategy;
-        this.fieldCreator = fieldCreator;
     }
 
     public DirectiveType create(ClassInfo classInfo) {
@@ -50,7 +45,7 @@ public class DirectiveTypeCreator {
             argument.setReference(referenceCreator.createReferenceForOperationArgument(method.returnType(), null));
             argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
-            fieldCreator.configure(argument, method.returnType(), annotationsForMethod);
+            populateField(argument, method.returnType(), annotationsForMethod);
             directiveType.addArgumentType(argument);
         }
 
