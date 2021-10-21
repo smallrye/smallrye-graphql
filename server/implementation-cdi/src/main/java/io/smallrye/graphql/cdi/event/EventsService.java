@@ -2,6 +2,7 @@ package io.smallrye.graphql.cdi.event;
 
 import java.lang.annotation.Annotation;
 
+import javax.annotation.Priority;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 
@@ -10,6 +11,7 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
 import io.smallrye.graphql.execution.event.InvokeInfo;
+import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 
@@ -19,6 +21,7 @@ import io.smallrye.graphql.spi.EventingService;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@Priority(Priorities.FIRST_IN_LAST_OUT + 200)
 public class EventsService implements EventingService {
 
     @Override

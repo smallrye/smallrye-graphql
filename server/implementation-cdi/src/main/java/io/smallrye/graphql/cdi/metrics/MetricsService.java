@@ -2,8 +2,11 @@ package io.smallrye.graphql.cdi.metrics;
 
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
+
+import javax.annotation.Priority;
 
 /**
  * A wrapper that chooses an underlying service implementation for metrics
@@ -12,6 +15,7 @@ import io.smallrye.graphql.spi.EventingService;
  * Right now, it supports Micrometer and MP Metrics 3.x, while Micrometer
  * is preferred.
  */
+@Priority(Priorities.FIRST_IN_LAST_OUT + 100)
 public class MetricsService implements EventingService {
 
     private final EventingService wrapped;

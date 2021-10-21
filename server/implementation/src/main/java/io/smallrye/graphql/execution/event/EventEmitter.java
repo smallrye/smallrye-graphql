@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.event;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -14,6 +15,8 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 import io.smallrye.graphql.spi.config.Config;
 
+import javax.annotation.Priority;
+
 /**
  * Fire some events while booting or executing.
  * This allows some extension
@@ -22,7 +25,7 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class EventEmitter {
     private static final Logger LOG = Logger.getLogger(EventEmitter.class);
-    private final List<EventingService> enabledServices = new ArrayList<>();
+    private final List<EventingService> enabledServices;
 
     public static EventEmitter getInstance() {
         return new EventEmitter();
@@ -32,11 +35,10 @@ public class EventEmitter {
         Config config = Config.get();
         ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
         Iterator<EventingService> it = eventingServices.iterator();
-
-        EventingService eventingService = null;
+        List<EventingService> enabledServices = new ArrayList<>();
         while (it.hasNext()) {
             try {
-                eventingService = it.next();
+                EventingService eventingService = it.next();
                 String configKey = eventingService.getConfigKey();
                 boolean enabled = config.getConfigValue(configKey, boolean.class, false);
                 if (enabled) {
@@ -48,6 +50,18 @@ public class EventEmitter {
                 LOG.warn("Failed to register " + t.getMessage()
                         + (cause != null ? "\n\tCaused by: " + cause.toString() : ""));
             }
+        }
+        enabledServices.sort(Comparator.comparing(this::getPriority));
+        this.enabledServices = enabledServices;
+        LOG.debugf("Enabled Eventingservices: %s", enabledServices);
+    }
+
+    private int getPriority(EventingService es) {
+        Priority priority = es.getClass().getAnnotation(Priority.class);
+        if (priority == null) {
+            return Priorities.DEFAULT;
+        } else {
+            return priority.value();
         }
     }
 
@@ -66,7 +80,8 @@ public class EventEmitter {
     }
 
     public void fireAfterExecute(Context context) {
-        for (EventingService extensionService : enabledServices) {
+        for (int i = enabledServices.size() - 1; i > -1; i--) {
+            EventingService extensionService = enabledServices.get(i);
             extensionService.afterExecute(context);
         }
     }
@@ -91,7 +106,8 @@ public class EventEmitter {
     }
 
     public void fireAfterDataFetch(Context context) {
-        for (EventingService extensionService : enabledServices) {
+        for (int i = enabledServices.size() - 1; i > -1; i--) {
+            EventingService extensionService = enabledServices.get(i);
             extensionService.afterDataFetch(context);
         }
     }

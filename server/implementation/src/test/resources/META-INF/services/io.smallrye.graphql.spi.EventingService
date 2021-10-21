@@ -1,1 +1,3 @@
-io.smallrye.graphql.execution.TestEventingService
+io.smallrye.graphql.execution.event.LastEventingService
+io.smallrye.graphql.execution.event.TestEventingService
+io.smallrye.graphql.execution.event.FirstEventingService
