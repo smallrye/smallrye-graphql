@@ -9,7 +9,7 @@ public interface Response {
 
     JsonObject getData();
 
-    List<Error> getErrors();
+    List<GraphQLError> getErrors();
 
     <T> List<T> getList(Class<T> dataType, String rootField);
 

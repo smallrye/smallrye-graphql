@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.json.JsonValue;
 
-public interface Error {
+public interface GraphQLError {
 
     /**
      * Textual description of the error, supplied by the service.

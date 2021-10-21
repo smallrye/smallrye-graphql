@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.core.OperationType;
@@ -102,7 +102,7 @@ public class DynamicClientSubscriptionTest {
         // right now, there is no error message present, which is a bug
     }
 
-    private void assertNoErrors(List<Error> errors) {
+    private void assertNoErrors(List<GraphQLError> errors) {
         if (errors != null && !errors.isEmpty()) {
             fail("No error expected, but there was: " + errors);
         }
