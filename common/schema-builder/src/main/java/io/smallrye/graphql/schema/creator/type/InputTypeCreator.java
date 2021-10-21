@@ -87,7 +87,7 @@ public class InputTypeCreator implements Creator<InputType> {
      * @return the creator, null, if no public constructor or factory method is found
      */
     public MethodInfo findCreator(ClassInfo classInfo) {
-        if (classInfo.superName().equals(RECORD)) {
+        if (RECORD.equals(classInfo.superName())) {
             // records should always have a canonical constructor
             // the creator will be picked by the JSONB impl at runtime anyway, so
             // just make sure we can find a public constructor and move on
