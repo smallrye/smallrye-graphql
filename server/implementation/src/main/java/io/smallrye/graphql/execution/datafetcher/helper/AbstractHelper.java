@@ -204,7 +204,13 @@ public abstract class AbstractHelper {
         return transformer;
     }
 
-    protected ReflectionInvoker getReflectionInvoker(Adapter adapter) {
+    protected ReflectionInvoker getReflectionInvokerForInput(Adapter adapter) {
+        List<String> parameters = new ArrayList<>();
+        parameters.add(adapter.getToClass());
+        return getReflectionInvoker(adapter.getAdapterClass(), adapter.getFromMethod(), parameters);
+    }
+
+    protected ReflectionInvoker getReflectionInvokerForOutput(Adapter adapter) {
         List<String> parameters = new ArrayList<>();
         parameters.add(adapter.getFromClass());
         return getReflectionInvoker(adapter.getAdapterClass(), adapter.getToMethod(), parameters);

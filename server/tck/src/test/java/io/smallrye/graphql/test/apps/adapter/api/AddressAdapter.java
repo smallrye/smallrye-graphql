@@ -19,7 +19,7 @@ public class AddressAdapter implements Adapter<Address, EmailAddress> {
 
     @Override
     public EmailAddress to(Address address) {
-        if (address.addressType.equals(AddressType.email)) {
+        if (address != null && address.addressType != null && address.addressType.equals(AddressType.email)) {
             return new EmailAddress(address.lines.get(0));
         }
         return null;

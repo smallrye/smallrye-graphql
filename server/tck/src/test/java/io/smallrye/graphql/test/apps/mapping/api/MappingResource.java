@@ -33,11 +33,9 @@ public class MappingResource {
 
         public String name;
 
-        //@ToScalar(value = Scalar.String.class, deserializeMethod = "getInstance")
         @JsonbTypeAdapter(CurrencyAdapter.class)
         public Currency currency;
 
-        //@ToScalar(Scalar.String.class)
         @JsonbTypeAdapter(EmailAdapter.class)
         public Email email;
 

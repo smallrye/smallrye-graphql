@@ -6,7 +6,7 @@ import java.util.List;
 import io.smallrye.graphql.api.Adapter;
 
 /**
- * Using an adapter
+ * Using an adapter to String
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

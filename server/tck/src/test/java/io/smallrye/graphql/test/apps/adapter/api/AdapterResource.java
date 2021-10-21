@@ -34,6 +34,7 @@ public class AdapterResource {
         address.addressType = AddressType.email;
         d.address = address;
 
+        d.wordNumber = new WordNumber("seven");
         return d;
     }
 
@@ -46,7 +47,6 @@ public class AdapterResource {
 
     @Mutation
     public AdapterData updateAdapterData(AdapterData adapterData) {
-        System.err.println("adapterData = " + adapterData);
         return adapterData;
     }
 
@@ -63,6 +63,9 @@ public class AdapterResource {
 
         @AdaptWith(TagsAdapter.class)
         public Tags tags;
+
+        @AdaptWith(WordNumberAdapter.class)
+        public WordNumber wordNumber;
 
         @Override
         public String toString() {

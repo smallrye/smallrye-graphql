@@ -132,4 +132,9 @@ public class ReflectionInvoker {
         list.set(injectContextAt, SmallRyeContext.getContext());
         return list.toArray();
     }
+
+    @Override
+    public String toString() {
+        return method.toString();
+    }
 }

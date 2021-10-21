@@ -84,4 +84,8 @@ public class Adapter implements Serializable {
         this.toClass = toClass;
     }
 
+    public boolean isJsonB() {
+        return this.adapterInterface.equals("javax.json.bind.adapter.JsonbAdapter")
+                || this.adapterInterface.equals("jakarta.json.bind.adapter.JsonbAdapter");
+    }
 }

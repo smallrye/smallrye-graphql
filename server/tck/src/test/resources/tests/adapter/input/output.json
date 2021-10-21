@@ -1,0 +1,19 @@
+{
+  "data": {
+    "updateAdapterData": {
+      "id": 1,
+      "name": "Foo",
+      "address": {
+        "value": "phillip@redhat.com"
+      },
+      "tags": "lekker man",
+      "email": {
+        "addressType": "email",
+        "lines": [
+          "foo@bar.com"
+        ]
+      },
+      "wordNumber": 8
+    }
+  }
+}

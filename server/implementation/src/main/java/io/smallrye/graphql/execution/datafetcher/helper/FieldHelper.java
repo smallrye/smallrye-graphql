@@ -102,7 +102,7 @@ public class FieldHelper extends AbstractHelper {
      */
     private Object transformOutputWithAdapter(Field field, Object object) throws AbstractDataFetcherException {
         Adapter adapter = field.getAdapter();
-        ReflectionInvoker reflectionInvoker = getReflectionInvoker(adapter);
+        ReflectionInvoker reflectionInvoker = getReflectionInvokerForOutput(adapter);
         try {
             Object adaptedObject = reflectionInvoker.invoke(object);
             return adaptedObject;
