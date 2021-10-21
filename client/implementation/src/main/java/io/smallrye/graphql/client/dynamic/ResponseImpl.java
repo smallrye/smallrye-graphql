@@ -11,7 +11,7 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
-import io.smallrye.graphql.client.Error;
+import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
@@ -20,10 +20,10 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 public class ResponseImpl implements Response {
 
     private final JsonObject data;
-    private final List<Error> errors;
+    private final List<GraphQLError> errors;
     private final List<Map.Entry<String, String>> headers;
 
-    public ResponseImpl(JsonObject data, List<Error> errors, List<Map.Entry<String, String>> headers) {
+    public ResponseImpl(JsonObject data, List<GraphQLError> errors, List<Map.Entry<String, String>> headers) {
         this.data = data;
         this.errors = errors;
         this.headers = Collections.unmodifiableList(headers != null ? headers : Collections.emptyList());
@@ -96,7 +96,7 @@ public class ResponseImpl implements Response {
         return data;
     }
 
-    public List<Error> getErrors() {
+    public List<GraphQLError> getErrors() {
         return errors;
     }
 
