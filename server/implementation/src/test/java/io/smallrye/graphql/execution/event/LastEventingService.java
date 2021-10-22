@@ -1,11 +1,11 @@
 package io.smallrye.graphql.execution.event;
 
-import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.spi.EventingService;
+import static io.smallrye.graphql.execution.event.TestEventingService.KEY;
 
 import javax.annotation.Priority;
 
-import static io.smallrye.graphql.execution.event.TestEventingService.KEY;
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.spi.EventingService;
 
 @Priority(Priorities.LAST_IN_FIRST_OUT)
 public class LastEventingService implements EventingService {

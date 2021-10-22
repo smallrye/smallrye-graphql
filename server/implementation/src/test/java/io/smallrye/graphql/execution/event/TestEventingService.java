@@ -1,10 +1,7 @@
 package io.smallrye.graphql.execution.event;
 
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.spi.EventingService;
-
-import javax.annotation.Priority;
 
 public class TestEventingService implements EventingService {
 

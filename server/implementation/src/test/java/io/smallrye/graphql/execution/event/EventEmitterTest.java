@@ -1,16 +1,17 @@
 package io.smallrye.graphql.execution.event;
 
-import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.spi.EventingService;
-import org.junit.jupiter.api.Test;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.spi.EventingService;
 
 class EventEmitterTest {
 
@@ -35,8 +36,9 @@ class EventEmitterTest {
         EventEmitter instance = EventEmitter.getInstance();
         instance.fireBeforeExecute(mock(Context.class));
         assertThat(
-                asList(TestEventingService.invocationOrder,FirstEventingService.invocationOrder, LastEventingService.invocationOrder))
-                .isEqualTo(asList(1, 0, 2));
+                asList(TestEventingService.invocationOrder, FirstEventingService.invocationOrder,
+                        LastEventingService.invocationOrder))
+                                .isEqualTo(asList(1, 0, 2));
     }
 
     @Test
@@ -47,7 +49,8 @@ class EventEmitterTest {
         EventEmitter instance = EventEmitter.getInstance();
         instance.fireAfterExecute(mock(Context.class));
         assertThat(
-                asList(TestEventingService.invocationOrder,FirstEventingService.invocationOrder, LastEventingService.invocationOrder))
-                .isEqualTo(asList(1, 2, 0));
+                asList(TestEventingService.invocationOrder, FirstEventingService.invocationOrder,
+                        LastEventingService.invocationOrder))
+                                .isEqualTo(asList(1, 2, 0));
     }
 }

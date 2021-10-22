@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import javax.json.JsonObject;
 
-import io.smallrye.graphql.execution.event.TestEventingService;
 import org.junit.jupiter.api.Test;
 
 import graphql.language.Document;
+import io.smallrye.graphql.execution.event.TestEventingService;
 
 /**
  * Test the context

@@ -1,12 +1,12 @@
 package io.smallrye.graphql.cdi.metrics;
 
+import javax.annotation.Priority;
+
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
 import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
-
-import javax.annotation.Priority;
 
 /**
  * A wrapper that chooses an underlying service implementation for metrics

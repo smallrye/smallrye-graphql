@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
+import javax.annotation.Priority;
+
 import org.jboss.logging.Logger;
 
 import graphql.GraphQL;
@@ -14,8 +16,6 @@ import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 import io.smallrye.graphql.spi.config.Config;
-
-import javax.annotation.Priority;
 
 /**
  * Fire some events while booting or executing.
