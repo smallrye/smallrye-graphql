@@ -1,0 +1,13 @@
+# testType
+1| type AdapterData         |   email: Address                              |   EmailAddress should be mapped to Address on Type
+2| input AdapterDataInput   |   email: AddressInput                         |   EmailAddress should be mapped to Address on Input
+3| type Address             |   addressType: AddressType                    |   Address should have an AddressType
+4| type Address             |   lines: [String]                             |   Address should have a list of lines
+5| input AddressInput       |   addressType: AddressType                    |   AddressInput should have an AddressType
+6| input AddressInput       |   lines: [String]                             |   AddressInput should have a list of lines
+7| type AdapterData         |   address: EmailAddress                       |   Address should be mapped to EmailAddress on Type
+8| input AdapterDataInput   |   address: EmailAddressInput                  |   Address should be mapped to EmailAddress on Input
+9| type EmailAddress        |   value: String                               |   EmailAddress should have a String value
+10| input EmailAddressInput |   value: String                               |   EmailAddressInput should have a String value
+11| type AdapterData        |   tags: String                                |   Tags should be mapped to String on Type
+12| input AdapterDataInput  |   tags: String                                |   Tags should be mapped to String on Input

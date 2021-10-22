@@ -1,13 +1,11 @@
 package io.smallrye.graphql.client.typesafe.impl;
 
 import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.isListOf;
-import static io.smallrye.graphql.client.typesafe.impl.json.JsonUtils.toMap;
 import static java.util.stream.Collectors.joining;
 import static javax.json.stream.JsonCollectors.toJsonArray;
 
 import java.io.StringReader;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.json.Json;
@@ -20,10 +18,9 @@ import javax.json.JsonPointer;
 import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.ResponseReader;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
-import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonReader;
 import io.smallrye.graphql.client.typesafe.impl.json.JsonUtils;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
@@ -66,7 +63,7 @@ public class ResultBuilder {
         if (unapplied.isEmpty())
             return;
         throw new GraphQLClientException("errors from service",
-                unapplied.stream().map(this::convert).collect(Collectors.toList()));
+                unapplied.stream().map(ResponseReader::readError).collect(Collectors.toList()));
     }
 
     private boolean apply(JsonValue error) {
@@ -91,45 +88,6 @@ public class ResultBuilder {
         } catch (JsonException e) {
             return false;
         }
-    }
-
-    private GraphQLClientError convert(JsonValue jsonValue) {
-        JsonObject jsonObject = jsonValue.asJsonObject();
-        return new GraphQLClientError() {
-            @Override
-            public String getMessage() {
-                return jsonObject.getString("message", null);
-            }
-
-            @Override
-            public List<SourceLocation> getLocations() {
-                JsonArray locations = jsonObject.getJsonArray("locations");
-                return (locations == null) ? null : locations.stream().map(this::toSourceLocation).collect(Collectors.toList());
-            }
-
-            private SourceLocation toSourceLocation(JsonValue jsonValue) {
-                JsonObject jsonObject = jsonValue.asJsonObject();
-                return new SourceLocation(
-                        jsonObject.getInt("line", 0),
-                        jsonObject.getInt("column", 0),
-                        jsonObject.getString("sourceName", null));
-            }
-
-            @Override
-            public List<Object> getPath() {
-                return ResultBuilder.getPath(jsonObject);
-            }
-
-            @Override
-            public Map<String, Object> getExtensions() {
-                return toMap(jsonObject.getJsonObject("extensions"));
-            }
-
-            @Override
-            public String toString() {
-                return defaultToString();
-            }
-        };
     }
 
     private static List<Object> getPath(JsonValue jsonValue) {

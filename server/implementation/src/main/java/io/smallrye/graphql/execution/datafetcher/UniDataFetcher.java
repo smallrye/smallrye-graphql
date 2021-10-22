@@ -38,7 +38,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
-            Uni<?> uni = reflectionHelper.invoke(transformedArguments);
+            Uni<?> uni = operationInvoker.invoke(transformedArguments);
             return (O) uni
                     .onItemOrFailure()
                     .transformToUni((result, throwable, emitter) -> {
@@ -87,7 +87,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return ((Uni<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments))
+        return ((Uni<List<T>>) operationInvoker.invokePrivileged(tccl, arguments))
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                 .subscribe().asCompletionStage();
     }

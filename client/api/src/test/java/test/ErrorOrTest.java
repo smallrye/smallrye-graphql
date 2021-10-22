@@ -1,11 +1,11 @@
 package test;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,28 +13,37 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.json.JsonValue;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
-import io.smallrye.graphql.client.typesafe.api.SourceLocation;
 
 class ErrorOrTest {
-    private static final GraphQLClientError CLIENT_ERROR = new GraphQLClientError() {
+    private static final GraphQLError CLIENT_ERROR = new GraphQLError() {
         @Override
         public String getMessage() {
             return "some message";
         }
 
         @Override
-        public List<SourceLocation> getLocations() {
-            return singletonList(new SourceLocation(1, 2, "3"));
+        public Map<String, JsonValue> getOtherFields() {
+            return Collections.emptyMap();
         }
 
         @Override
-        public List<Object> getPath() {
-            return asList("one", "two", "three");
+        public List<Map<String, Integer>> getLocations() {
+            Map<String, Integer> location1 = new HashMap<>();
+            location1.put("line", 1);
+            location1.put("column", 2);
+            return singletonList(location1);
+        }
+
+        @Override
+        public Object[] getPath() {
+            return new Object[] { "one", "two", "three" };
         }
 
         @Override

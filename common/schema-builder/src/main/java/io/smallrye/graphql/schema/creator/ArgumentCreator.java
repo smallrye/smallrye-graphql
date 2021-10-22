@@ -8,9 +8,11 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.AdapterHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
@@ -21,14 +23,12 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ArgumentCreator {
+public class ArgumentCreator extends ModelCreator {
 
     private final ReferenceCreator referenceCreator;
-    private final FieldCreator fieldCreator;
 
-    public ArgumentCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator) {
+    public ArgumentCreator(ReferenceCreator referenceCreator) {
         this.referenceCreator = referenceCreator;
-        this.fieldCreator = fieldCreator;
     }
 
     /**
@@ -48,6 +48,9 @@ public class ArgumentCreator {
         }
 
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
+
+        // Adapting
+        Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForThisArgument);
 
         if (IgnoreHelper.shouldIgnore(annotationsForThisArgument)) {
             return Optional.empty();
@@ -80,7 +83,7 @@ public class ArgumentCreator {
             argument.setSourceArgument(true);
         }
 
-        fieldCreator.configure(argument, argumentType, annotationsForThisArgument);
+        populateField(argument, argumentType, adapter, annotationsForThisArgument);
 
         return Optional.of(argument);
     }

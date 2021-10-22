@@ -38,7 +38,7 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
         SmallRyeContext.setContext(context);
         try {
             CompletionStage<Object> futureResultFromMethodCall = threadContext
-                    .withContextCapture(reflectionHelper.invoke(transformedArguments));
+                    .withContextCapture(operationInvoker.invoke(transformedArguments));
 
             return (T) futureResultFromMethodCall.handle((result, throwable) -> {
 
@@ -81,7 +81,7 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
         try {
             SmallRyeContext.setContext(context);
             return threadContext
-                    .withContextCapture((CompletableFuture<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments));
+                    .withContextCapture((CompletableFuture<List<T>>) operationInvoker.invokePrivileged(tccl, arguments));
         } finally {
             SmallRyeContext.remove();
         }

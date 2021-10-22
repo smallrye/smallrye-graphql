@@ -467,7 +467,9 @@ public class Annotations {
     private static final short ZERO = 0;
 
     // SmallRye GraphQL Annotations (Experimental)
-    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar");
+    public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
+    public static final DotName ADAPT_TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.AdaptToScalar");
+    public static final DotName ADAPT_WITH = DotName.createSimple("io.smallrye.graphql.api.AdaptWith");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
@@ -496,6 +498,7 @@ public class Annotations {
     public static final DotName JSONB_PROPERTY = DotName.createSimple("javax.json.bind.annotation.JsonbProperty");
     public static final DotName JSONB_TRANSIENT = DotName.createSimple("javax.json.bind.annotation.JsonbTransient");
     public static final DotName JSONB_CREATOR = DotName.createSimple("javax.json.bind.annotation.JsonbCreator");
+    public static final DotName JSONB_TYPE_ADAPTER = DotName.createSimple("javax.json.bind.annotation.JsonbTypeAdapter");
 
     // Jackson Annotations
     public static final DotName JACKSON_IGNORE = DotName.createSimple("com.fasterxml.jackson.annotation.JsonIgnore");

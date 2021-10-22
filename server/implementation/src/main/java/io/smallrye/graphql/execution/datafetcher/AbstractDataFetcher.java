@@ -12,7 +12,7 @@ import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ErrorResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.ReflectionHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.OperationInvoker;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -28,7 +28,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
 
     protected Operation operation;
     protected FieldHelper fieldHelper;
-    protected ReflectionHelper reflectionHelper;
+    protected OperationInvoker operationInvoker;
     protected ErrorResultHelper errorResultHelper = new ErrorResultHelper();
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter = EventEmitter.getInstance();
@@ -37,7 +37,7 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     public AbstractDataFetcher(Operation operation) {
         this.operation = operation;
         this.fieldHelper = new FieldHelper(operation);
-        this.reflectionHelper = new ReflectionHelper(operation, eventEmitter);
+        this.operationInvoker = new OperationInvoker(operation);
         this.argumentHelper = new ArgumentHelper(operation.getArguments());
     }
 

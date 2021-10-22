@@ -39,7 +39,7 @@ public class MultiDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
-            Multi<?> multi = reflectionHelper.invoke(transformedArguments);
+            Multi<?> multi = operationInvoker.invoke(transformedArguments);
 
             return (O) multi
 
@@ -90,7 +90,7 @@ public class MultiDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        return ((Multi<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments))
+        return ((Multi<List<T>>) operationInvoker.invokePrivileged(tccl, arguments))
                 .toUni().runSubscriptionOn(Infrastructure.getDefaultExecutor())
                 .subscribe().asCompletionStage();
     }

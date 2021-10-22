@@ -28,6 +28,9 @@ public interface SmallRyeGraphQLServerMessages {
     @Message(id = 2, value = "Data fetching failed for operation [%s]")
     DataFetcherException dataFetcherException(Operation operation, @Cause Throwable cause);
 
+    @Message(id = 3, value = "Data fetching failed for [%s]")
+    DataFetcherException generalDataFetcherException(String operation, @Cause Throwable cause);
+
     @Message(id = 5, value = "Could not get Instance using the default lookup service")
     RuntimeException countNotGetInstance(@Cause Throwable t);
 
