@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import io.smallrye.graphql.execution.event.TestEventingService;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 

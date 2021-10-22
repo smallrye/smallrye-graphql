@@ -9,6 +9,7 @@ import javax.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import graphql.language.Document;
+import io.smallrye.graphql.execution.event.TestEventingService;
 
 /**
  * Test the context
