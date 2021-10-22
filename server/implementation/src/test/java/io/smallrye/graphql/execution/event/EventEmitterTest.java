@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.api.Context;
@@ -16,6 +17,14 @@ import io.smallrye.graphql.spi.EventingService;
 class EventEmitterTest {
 
     public static int counter = 0;
+
+    @BeforeEach
+    void reset() {
+        counter = 0;
+        TestEventingService.reset();
+        FirstEventingService.reset();
+        LastEventingService.reset();
+    }
 
     @Test
     void testOrderingOfEventingServices() throws NoSuchFieldException, IllegalAccessException {
@@ -30,9 +39,6 @@ class EventEmitterTest {
 
     @Test
     void testInvocationOrderBeforeExecute() {
-        TestEventingService.reset();
-        FirstEventingService.reset();
-        LastEventingService.reset();
         EventEmitter instance = EventEmitter.getInstance();
         instance.fireBeforeExecute(mock(Context.class));
         assertThat(
@@ -43,9 +49,6 @@ class EventEmitterTest {
 
     @Test
     void testInvocationOrderAfterExecute() {
-        TestEventingService.reset();
-        FirstEventingService.reset();
-        LastEventingService.reset();
         EventEmitter instance = EventEmitter.getInstance();
         instance.fireAfterExecute(mock(Context.class));
         assertThat(
