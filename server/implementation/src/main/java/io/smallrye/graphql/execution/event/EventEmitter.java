@@ -20,7 +20,16 @@ import io.smallrye.graphql.spi.config.Config;
 /**
  * Fire some events while booting or executing.
  * This allows some extension
- * 
+ *
+ * Loads implementations of {@code EventingService} with Java {@code ServiceLoader}.
+ * The order in which {@code EventingService}s are invoked can be controlled by annotating the class implementing
+ * {@code EventingService} with {@code javax.annotation.Priority}.
+ * See also {@code io.smallrye.graphql.execution.event.Priorities} containing relevant constants.
+ * When before* events happen {@code EventingService}s are invoked by ascending @{code @Priority}, and for after* events
+ * invocations are done by descending @{code @Priority}.
+ * Meaning that an {@code EventingService} with low {@code javax.annotation.Priority} is executed first on the way in,
+ * and last on the way out.
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class EventEmitter {
@@ -65,7 +74,7 @@ public class EventEmitter {
         }
     }
 
-    // Execution 
+    // Execution
 
     public void fireBeforeExecute(Context context) {
         for (EventingService extensionService : enabledServices) {
@@ -114,7 +123,7 @@ public class EventEmitter {
 
     /**
      * This gets fired just before we build the GraphQL object
-     * 
+     *
      * @param builder as it stands
      * @return builder modified by listener
      */
@@ -130,7 +139,7 @@ public class EventEmitter {
     /**
      * This gets fired just before we create the final schema. This allows listeners to add to the builder any
      * custom elements.
-     * 
+     *
      * @param builder as it stands
      * @return builder modified by listener
      */
@@ -145,7 +154,7 @@ public class EventEmitter {
     /**
      * This gets fired during the bootstrap phase before a new operation
      * is being created. This allows listeners to modify the operation
-     * 
+     *
      * @param operation as it stands
      * @return operation possibly modified
      */
