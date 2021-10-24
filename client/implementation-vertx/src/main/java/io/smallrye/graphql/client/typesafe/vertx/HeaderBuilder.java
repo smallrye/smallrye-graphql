@@ -36,7 +36,10 @@ public class HeaderBuilder {
                     // getResolvedAnnotations returns class-level annotations first
                     // so if there is something on class level, it will be overwritten
                     // by a header on the method
-                    headers.set(e.name(), resolveValue(e));
+                    String value = resolveValue(e);
+                    if (value != null) {
+                        headers.set(e.name(), value);
+                    }
                 });
         method.headerParameters().forEach(parameter -> {
             Header header = parameter.getAnnotations(Header.class)[0];
@@ -73,7 +76,8 @@ public class HeaderBuilder {
             throw new RuntimeException("referenced header method '" + methodName + "'" +
                     " in " + declaringType.getTypeName() + " is not static");
         try {
-            return method.invoke(null).toString();
+            Object result = method.invoke(null);
+            return (result == null) ? null : result.toString();
         } catch (RuntimeException e) {
             if (e instanceof GraphQLClientException)
                 throw e;
