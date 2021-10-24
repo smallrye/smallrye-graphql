@@ -117,6 +117,26 @@ class HeaderBehavior {
     }
 
     @GraphQLClientApi
+    @Header(name = "H", method = "f")
+    interface NullMethodHeadersApi {
+        String greeting();
+
+        static String f() {
+            return null;
+        }
+    }
+
+    @Test
+    void shouldAddNullMethodHeaders() {
+        fixture.returnsData("'greeting':'dummy'");
+        NullMethodHeadersApi api = fixture.build(NullMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isNull();
+    }
+
+    @GraphQLClientApi
     interface DefaultMethodHeaderApi {
         @Header(name = "H", method = "f")
         String greeting();
