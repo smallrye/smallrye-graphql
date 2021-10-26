@@ -29,6 +29,7 @@ import jakarta.json.bind.Jsonb;
 
 import com.apollographql.federation.graphqljava.Federation;
 import com.apollographql.federation.graphqljava._Entity;
+
 import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
@@ -143,10 +144,10 @@ public class Bootstrap {
         // This crazy stream operation basically collects all class names where we need to verify that
         // it belongs to an injectable bean
         Stream.of(
-                        schema.getQueries().stream().map(Operation::getClassName),
-                        schema.getMutations().stream().map(Operation::getClassName),
-                        schema.getGroupedQueries().values().stream().flatMap(Collection::stream).map(Operation::getClassName),
-                        schema.getGroupedMutations().values().stream().flatMap(Collection::stream).map(Operation::getClassName))
+                schema.getQueries().stream().map(Operation::getClassName),
+                schema.getMutations().stream().map(Operation::getClassName),
+                schema.getGroupedQueries().values().stream().flatMap(Collection::stream).map(Operation::getClassName),
+                schema.getGroupedMutations().values().stream().flatMap(Collection::stream).map(Operation::getClassName))
                 .flatMap(stream -> stream)
                 .distinct().forEach(beanClassName -> {
                     // verify that the bean is injectable
@@ -191,7 +192,7 @@ public class Bootstrap {
 
         if (Config.get().isFederationEnabled()) {
             this.graphQLSchema = Federation.transform(schemaBuilder.build())
-                    .fetchEntities(env -> env.<List<Map<String, Object>>>getArgument(_Entity.argumentName).stream()
+                    .fetchEntities(env -> env.<List<Map<String, Object>>> getArgument(_Entity.argumentName).stream()
                             .map(fetchEntities())
                             .collect(Collectors.toList()))
                     .resolveEntityType(fetchEntityType())
@@ -294,7 +295,7 @@ public class Bootstrap {
     }
 
     private void addRootObject(GraphQLObjectType.Builder rootBuilder, Set<Operation> operations,
-                               String rootName) {
+            String rootName) {
 
         for (Operation operation : operations) {
             operation = eventEmitter.fireCreateOperation(operation);
@@ -305,7 +306,7 @@ public class Bootstrap {
     }
 
     private void addGroupedRootObject(GraphQLObjectType.Builder rootBuilder,
-                                      Map<Group, Set<Operation>> operationMap, String rootName) {
+            Map<Group, Set<Operation>> operationMap, String rootName) {
         Set<Map.Entry<Group, Set<Operation>>> operationsSet = operationMap.entrySet();
 
         for (Map.Entry<Group, Set<Operation>> operationsEntry : operationsSet) {
@@ -605,7 +606,7 @@ public class Bootstrap {
     }
 
     private GraphQLFieldDefinition createGraphQLFieldDefinitionFromBatchOperation(String operationTypeName,
-                                                                                  Operation operation) {
+            Operation operation) {
         // Fields
         GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
                 .name(operation.getName())
@@ -789,8 +790,7 @@ public class Bootstrap {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            do
-            {
+            do {
                 if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
@@ -820,8 +820,7 @@ public class Bootstrap {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
-            do
-            {
+            do {
                 if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLOutputType = list(graphQLOutputType);
                     wrapper = wrapper.getWrapper();
@@ -921,8 +920,7 @@ public class Bootstrap {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
-            do
-            {
+            do {
                 if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
@@ -994,7 +992,7 @@ public class Bootstrap {
     private boolean isJsonString(String string) {
         if (string != null && !string.isEmpty() && (string.contains("{") || string.contains("["))) {
             try (StringReader stringReader = new StringReader(string);
-                 JsonReader jsonReader = jsonReaderFactory.createReader(stringReader)) {
+                    JsonReader jsonReader = jsonReaderFactory.createReader(stringReader)) {
 
                 jsonReader.readValue();
                 return true;
