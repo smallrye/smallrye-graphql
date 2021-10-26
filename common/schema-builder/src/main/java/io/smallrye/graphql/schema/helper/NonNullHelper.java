@@ -62,7 +62,8 @@ public class NonNullHelper {
         return annotations.containsOneOfTheseAnnotations(Annotations.NON_NULL,
                 Annotations.BEAN_VALIDATION_NOT_NULL,
                 Annotations.BEAN_VALIDATION_NOT_EMPTY,
-                Annotations.BEAN_VALIDATION_NOT_BLANK);
+                Annotations.BEAN_VALIDATION_NOT_BLANK,
+                Annotations.KOTLIN_NOT_NULL);
     }
 
     private static boolean hasDefaultValue(Annotations annotations) {

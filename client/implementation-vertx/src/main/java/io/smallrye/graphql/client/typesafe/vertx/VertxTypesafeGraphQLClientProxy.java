@@ -23,7 +23,6 @@ import javax.json.JsonValue;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.GraphQLClientConfiguration;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.QueryBuilder;
 import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
@@ -31,12 +30,9 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 
 class VertxTypesafeGraphQLClientProxy {
 
@@ -46,25 +42,17 @@ class VertxTypesafeGraphQLClientProxy {
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
 
     private final Map<String, String> queryCache = new HashMap<>();
-    private final Vertx vertx;
-    private final WebClient webClient;
     private final GraphQLClientConfiguration configuration;
     private final URI endpoint;
+    private final WebClient webClient;
 
-    VertxTypesafeGraphQLClientProxy(Vertx vertx,
+    VertxTypesafeGraphQLClientProxy(
             GraphQLClientConfiguration config,
-            WebClientOptions options,
             URI endpoint,
             WebClient webClient) {
-        this.vertx = vertx;
         this.configuration = config;
-        if (webClient != null) {
-            this.webClient = webClient;
-        } else {
-            HttpClient httpClient = options != null ? vertx.createHttpClient(options) : vertx.createHttpClient();
-            this.webClient = WebClient.wrap(httpClient);
-        }
         this.endpoint = endpoint;
+        this.webClient = webClient;
     }
 
     Object invoke(Class<?> api, MethodInvocation method) {
@@ -169,13 +157,13 @@ class VertxTypesafeGraphQLClientProxy {
         try {
             HttpResponse<Buffer> result = future.toCompletionStage().toCompletableFuture().get();
             if (result.statusCode() != 200) {
-                throw new GraphQLClientException("expected successful status code but got " +
+                throw new RuntimeException("expected successful status code but got " +
                         result.statusCode() + " " + result.statusMessage() + ":\n" +
                         result.bodyAsString());
             }
             return result.bodyAsString();
         } catch (InterruptedException | ExecutionException e) {
-            throw new GraphQLClientException("Request failed", e);
+            throw new RuntimeException("Request failed", e);
         }
     }
 

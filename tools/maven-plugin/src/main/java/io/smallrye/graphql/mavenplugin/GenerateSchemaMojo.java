@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,32 +128,53 @@ public class GenerateSchemaMojo extends AbstractMojo {
     }
 
     private IndexView createIndex() throws MojoExecutionException {
-        IndexView moduleIndex;
+        List<IndexView> indexes = new ArrayList<>();
         try {
-            moduleIndex = indexModuleClasses();
+            IndexView moduleIndex = indexModuleClasses();
+            indexes.add(moduleIndex);
         } catch (IOException e) {
             throw new MojoExecutionException("Can't compute index", e);
         }
+
+        // always include Mutiny if it is present in the dependencies,
+        // even if includeDependencies=false
+        Predicate<Artifact> isMutiny = a -> a.getGroupId().equals("io.smallrye.reactive") &&
+                a.getArtifactId().equals("mutiny");
+        mavenProject.getArtifacts()
+                .stream()
+                .filter(isMutiny)
+                .findAny()
+                .ifPresent(a -> {
+                    Result r = indexJar(((Artifact) a).getFile());
+                    if (r != null) {
+                        indexes.add(r.getIndex());
+                    }
+                });
+
         if (includeDependencies) {
-            List<IndexView> indexes = new ArrayList<>();
-            indexes.add(moduleIndex);
             for (Object a : mavenProject.getArtifacts()) {
                 Artifact artifact = (Artifact) a;
                 if (includeDependenciesScopes.contains(artifact.getScope())
-                        && includeDependenciesTypes.contains(artifact.getType())) {
-                    getLog().debug("Indexing file " + artifact.getFile());
-                    try {
-                        Result result = JarIndexer.createJarIndex(artifact.getFile(), new Indexer(),
-                                false, false, false);
+                        && includeDependenciesTypes.contains(artifact.getType())
+                        && !isMutiny.test(artifact)) {
+                    Result result = indexJar(artifact.getFile());
+                    if (result != null) {
                         indexes.add(result.getIndex());
-                    } catch (Exception e) {
-                        getLog().error("Can't compute index of " + artifact.getFile().getAbsolutePath() + ", skipping", e);
                     }
                 }
             }
-            return CompositeIndex.create(indexes);
-        } else {
-            return moduleIndex;
+        }
+        return CompositeIndex.create(indexes);
+    }
+
+    private Result indexJar(File file) {
+        try {
+            getLog().debug("Indexing file " + file);
+            return JarIndexer.createJarIndex(file, new Indexer(),
+                    false, false, false);
+        } catch (IOException e) {
+            getLog().error("Can't compute index of " + file.getAbsolutePath() + ", skipping", e);
+            return null;
         }
     }
 
@@ -172,7 +194,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     private String generateSchema(IndexView index) {
         Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, false, true);
         if (graphQLSchema != null) {
             return new SchemaPrinter().print(graphQLSchema);
         }

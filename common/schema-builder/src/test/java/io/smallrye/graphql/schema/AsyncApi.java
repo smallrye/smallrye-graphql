@@ -5,6 +5,7 @@ import java.util.concurrent.CompletionStage;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 public class AsyncApi {
 
@@ -13,6 +14,11 @@ public class AsyncApi {
     }
 
     public CompletionStage<@NonNull String> nonNullString() {
+        return null;
+    }
+
+    @NotNull
+    public CompletionStage<@NotNull String> nonNullStringKotlin() {
         return null;
     }
 

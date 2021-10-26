@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
+import javax.annotation.Priority;
 import javax.enterprise.inject.spi.CDI;
 
 import graphql.ExecutionInput;
@@ -23,6 +24,7 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.spi.EventingService;
 
 /**
@@ -37,6 +39,7 @@ import io.smallrye.graphql.spi.EventingService;
  * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
+@Priority(Priorities.FIRST_IN_LAST_OUT)
 public class TracingService implements EventingService {
 
     private final String SPAN_CLASS = "io.opentracing.Span";

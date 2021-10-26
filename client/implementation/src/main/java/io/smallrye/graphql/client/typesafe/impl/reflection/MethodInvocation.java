@@ -23,7 +23,6 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation {
@@ -97,10 +96,6 @@ public class MethodInvocation {
         return rootParameters().findAny().isPresent();
     }
 
-    public boolean hasNestedParameters(String path) {
-        return nestedParameters(path).findAny().isPresent();
-    }
-
     public Stream<ParameterInfo> headerParameters() {
         return parameters().filter(ParameterInfo::isHeaderParameter);
     }
@@ -113,9 +108,13 @@ public class MethodInvocation {
         return parameters().filter(ParameterInfo::isRootParameter);
     }
 
-    public Stream<ParameterInfo> nestedParameters(String path) {
-        return parameters().filter(ParameterInfo::isNestedParameter)
-                .filter(parameterInfo -> parameterInfo.getNestedParameterName().equals(path));
+    public List<ParameterInfo> nestedParameters(String path) {
+        return parameters()
+                .filter(ParameterInfo::isNestedParameter)
+                .filter(parameterInfo -> parameterInfo
+                        .getNestedParameterNames()
+                        .anyMatch(path::equals))
+                .collect(toList());
     }
 
     private Stream<ParameterInfo> parameters() {
@@ -178,7 +177,7 @@ public class MethodInvocation {
                 throw (RuntimeException) e.getCause();
             if (e.getCause() instanceof Error)
                 throw (Error) e.getCause();
-            throw new GraphQLClientException("can't invoke " + this, e);
+            throw new RuntimeException("can't invoke " + this, e);
         } catch (IllegalAccessException e) {
             throw new AssertionError("expected to be unreachable", e);
         }

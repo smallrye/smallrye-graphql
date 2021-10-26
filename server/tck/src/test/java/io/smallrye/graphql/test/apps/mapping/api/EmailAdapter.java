@@ -1,8 +1,6 @@
 
 package io.smallrye.graphql.test.apps.mapping.api;
 
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.bind.adapter.JsonbAdapter;
 
 /**
@@ -10,17 +8,15 @@ import javax.json.bind.adapter.JsonbAdapter;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class EmailAdapter implements JsonbAdapter<Email, JsonObject> {
+public class EmailAdapter implements JsonbAdapter<Email, String> {
 
     @Override
-    public JsonObject adaptToJson(Email email) {
-        return Json.createObjectBuilder()
-                .add("value", email.getValue())
-                .build();
+    public String adaptToJson(Email email) {
+        return email.getValue();
     }
 
     @Override
-    public Email adaptFromJson(JsonObject json) {
-        return new Email(json.getString("value"));
+    public Email adaptFromJson(String email) {
+        return new Email(email);
     }
 }

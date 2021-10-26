@@ -12,8 +12,9 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.GraphQLError;
+import io.smallrye.graphql.client.ResponseReader;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
@@ -48,9 +49,9 @@ public class JsonReader extends Reader<JsonValue> {
         return ErrorOr.of(readJson(location, type.getItemType(), value, field));
     }
 
-    private List<GraphQLClientError> readGraphQlClientErrors() {
+    private List<GraphQLError> readGraphQlClientErrors() {
         return value.asJsonArray().stream()
-                .map(item -> (GraphQLClientError) readJson(location, TypeInfo.of(GraphQLClientErrorImpl.class), item, field))
+                .map(ResponseReader::readError)
                 .collect(toList());
     }
 
@@ -59,10 +60,10 @@ public class JsonReader extends Reader<JsonValue> {
     }
 
     private boolean isGraphQlErrorsType() {
-        return GraphQLClientError.class.isAssignableFrom(type.getRawType());
+        return GraphQLError.class.isAssignableFrom(type.getRawType());
     }
 
-    private GraphQLClientException cantApplyErrors(List<GraphQLClientError> errors) {
+    private GraphQLClientException cantApplyErrors(List<GraphQLError> errors) {
         return new GraphQLClientException("errors from service (and we can't apply them to a " + location + "; see ErrorOr)",
                 errors);
     }
@@ -83,6 +84,6 @@ public class JsonReader extends Reader<JsonValue> {
             case NULL:
                 return new JsonNullReader(type, location, value, field);
         }
-        throw new GraphQLClientException("unreachable code");
+        return null;
     }
 }

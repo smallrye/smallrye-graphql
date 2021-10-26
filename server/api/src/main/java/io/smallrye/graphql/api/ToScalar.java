@@ -49,12 +49,14 @@ import io.smallrye.common.annotation.Experimental;
  * </pre>
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * @deprecated Use AdaptToScalar
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
 @Documented
 @Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
         "Subject to change.")
+@Deprecated
 public @interface ToScalar {
     /**
      * @return the scalar to use.

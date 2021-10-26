@@ -41,7 +41,7 @@ public class PublisherDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
         try {
             SmallRyeContext.setContext(context);
-            Publisher<?> publisher = reflectionHelper.invoke(transformedArguments);
+            Publisher<?> publisher = operationInvoker.invoke(transformedArguments);
 
             Multi<?> multi = Multi.createFrom().publisher(publisher);
 
@@ -97,7 +97,7 @@ public class PublisherDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
-        Publisher<List<T>> publisher = (Publisher<List<T>>) reflectionHelper.invokePrivileged(tccl, arguments);
+        Publisher<List<T>> publisher = (Publisher<List<T>>) operationInvoker.invokePrivileged(tccl, arguments);
 
         return Multi.createFrom().publisher(publisher).toUni().runSubscriptionOn(Infrastructure.getDefaultExecutor())
                 .subscribe().asCompletionStage();

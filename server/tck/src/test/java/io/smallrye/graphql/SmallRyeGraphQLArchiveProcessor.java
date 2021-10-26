@@ -11,6 +11,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
+import io.smallrye.graphql.test.apps.adapter.api.AdapterResource;
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
 import io.smallrye.graphql.test.apps.batch.api.BatchApi;
 import io.smallrye.graphql.test.apps.collections.api.CollectionResource;
@@ -105,6 +106,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(FoodResource.class.getPackage());
             war.addPackage(CollectionResource.class.getPackage());
             war.addPackage(JacksonApi.class.getPackage());
+            war.addPackage(AdapterResource.class.getPackage());
         }
     }
 }

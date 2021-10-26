@@ -11,8 +11,6 @@ import javax.json.bind.annotation.JsonbProperty;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
-
 public class FieldInfo {
     private final TypeInfo container;
     private final Field field;
@@ -48,44 +46,34 @@ public class FieldInfo {
     }
 
     private String computeName() {
-        String name = null;
         if (field.isAnnotationPresent(Name.class)) {
-            name = field.getAnnotation(Name.class).value();
-        } else {
-            Optional<Annotation> jsonbProperty = getAnnotationByClassName(JSONB_PROPERTY);
-            if (jsonbProperty.isPresent()) {
-                Object value = getAnnotationParameter(jsonbProperty.get(), "value");
-                if (value != null && !((String) value).isEmpty()) {
-                    name = (String) value;
-                }
-            }
-            Optional<Annotation> jacksonProperty = getAnnotationByClassName(JACKSON_PROPERTY);
-            if (jacksonProperty.isPresent()) {
-                Object value = getAnnotationParameter(jacksonProperty.get(), "value");
-                if (value != null && !((String) value).isEmpty()) {
-                    name = (String) value;
-                }
-            }
+            return field.getAnnotation(Name.class).value();
         }
-        if (name == null) {
-            name = getRawName();
+        String jsonbValue = getAnnotationByClassName(JSONB_PROPERTY).map(this::getNonEmptyValue).orElse(null);
+        if (jsonbValue != null) {
+            return jsonbValue;
         }
-        return name;
-    }
-
-    private Object getAnnotationParameter(Annotation annotation, String parameterName) {
-        try {
-            Method m = annotation.getClass().getMethod(parameterName);
-            return m.invoke(annotation);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        String jacksonValue = getAnnotationByClassName(JACKSON_PROPERTY).map(this::getNonEmptyValue).orElse(null);
+        if (jacksonValue != null) {
+            return jacksonValue;
         }
+        return getRawName();
     }
 
     private Optional<Annotation> getAnnotationByClassName(String className) {
         return Arrays.stream(field.getAnnotations())
                 .filter(a -> a.annotationType().getName().equals(className))
                 .findAny();
+    }
+
+    private String getNonEmptyValue(Annotation jsonbProperty) {
+        try {
+            Method method = jsonbProperty.getClass().getMethod("value");
+            String value = (String) method.invoke(jsonbProperty);
+            return (value == null || value.isEmpty()) ? null : value;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getRawName() {
@@ -108,7 +96,7 @@ public class FieldInfo {
             field.setAccessible(true);
             return field.get(instance);
         } catch (ReflectiveOperationException e) {
-            throw new GraphQLClientException("can't get field " + this, e); // TODO test with static?
+            throw new RuntimeException("can't get field " + this, e); // TODO test with static?
         }
     }
 
@@ -118,7 +106,7 @@ public class FieldInfo {
             field.set(instance, value);
         } catch (ReflectiveOperationException e) {
             // this code is unreachable: setAccessible also allows to change `final` fields
-            throw new GraphQLClientException("can't set field " + this + " to " + value, e); // TODO test with static
+            throw new RuntimeException("can't set field " + this + " to " + value, e); // TODO test with static
         }
     }
 

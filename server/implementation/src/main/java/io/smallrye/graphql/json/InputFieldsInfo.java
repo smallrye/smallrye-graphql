@@ -42,6 +42,11 @@ public class InputFieldsInfo {
                         && !field.getTransformation().isJsonB()) {
                     fieldsThatNeedsTransformation.put(field.getName(), field);
                 }
+                // See if there is a adapter
+                if (field.hasAdapter()
+                        && !field.getAdapter().isJsonB()) {
+                    fieldsThatNeedsTransformation.put(field.getName(), field);
+                }
 
                 // See if there is a mapping
                 if (field.hasMapping() || field.getReference().hasMapping()) {

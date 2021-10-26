@@ -11,7 +11,6 @@ import javax.enterprise.inject.Stereotype;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.typesafe.api.Header;
 import tck.graphql.typesafe.HeaderBehavior.EnclosingClass.EnclosingEnclosingPublicMethodHeadersApi;
 
@@ -53,7 +52,6 @@ class HeaderBehavior {
 
         Throwable thrown = catchThrowable(api::greeting);
 
-        then(thrown).isInstanceOf(GraphQLClientException.class);
         then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
                 .isEqualTo("Header with 'method' AND 'constant' not allowed: @" + Header.class.getName()
                         + "(method=M, constant=C, name=H)");
@@ -72,7 +70,6 @@ class HeaderBehavior {
 
         Throwable thrown = catchThrowable(api::greeting);
 
-        then(thrown).isInstanceOf(GraphQLClientException.class);
         then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
                 .isEqualTo("Header must have either 'method' XOR 'constant': @" + Header.class.getName()
                         + "(method=, constant=, name=H)");
@@ -120,6 +117,26 @@ class HeaderBehavior {
     }
 
     @GraphQLClientApi
+    @Header(name = "H", method = "f")
+    interface NullMethodHeadersApi {
+        String greeting();
+
+        static String f() {
+            return null;
+        }
+    }
+
+    @Test
+    void shouldAddNullMethodHeaders() {
+        fixture.returnsData("'greeting':'dummy'");
+        NullMethodHeadersApi api = fixture.build(NullMethodHeadersApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("H")).isNull();
+    }
+
+    @GraphQLClientApi
     interface DefaultMethodHeaderApi {
         @Header(name = "H", method = "f")
         String greeting();
@@ -137,7 +154,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("referenced header method 'f' in " + DefaultMethodHeaderApi.class.getName() + " is not static");
     }
 
@@ -155,7 +171,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("no no-arg method 'f' found in " + UnknownMethodHeadersApi.class.getName());
     }
 
@@ -173,7 +188,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("class not found for expression 'foo.bar'");
     }
 
@@ -279,7 +293,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage(QualifiedPrivateMethodHeadersApi.class.getName() + " can't access "
                         + Outside.class.getName() + "#privateMethod");
     }
@@ -355,7 +368,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("referenced header method '" + HeaderBehavior.class.getName() + ".nonStaticProtectedMethod' in "
                         + QualifiedNonStaticEnclosingProtectedMethodHeadersApi.class.getName() + " is not static");
     }
@@ -378,7 +390,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("can't resolve header method expression 'f' in " + FailingMethodHeadersApi.class.getName())
                 .hasRootCauseExactlyInstanceOf(RuntimeException.class)
                 .hasRootCauseMessage("dummy");
@@ -422,10 +433,7 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isExactlyInstanceOf(GraphQLClientException.class)
-                .hasMessage("can't invoke " + ExceptionFailingMethodHeadersApi.class.getName() + "#f")
-                .hasRootCauseExactlyInstanceOf(Exception.class)
-                .hasRootCauseMessage("dummy");
+                .hasMessageContaining("can't resolve header method expression");
     }
 
     @GraphQLClientApi
@@ -446,7 +454,6 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .isInstanceOf(GraphQLClientException.class)
                 .hasMessage("no no-arg method 'f' found in " + ArgMethodHeadersApi.class.getName());
     }
 

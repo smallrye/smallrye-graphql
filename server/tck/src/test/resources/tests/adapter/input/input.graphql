@@ -1,0 +1,30 @@
+mutation updateAdapterData {
+  updateAdapterData(adapterData: {
+                        id:1,
+                        name:"Foo", 
+                        address:{
+                            value:"phillip@redhat.com"
+                        },
+                        email:{
+                            addressType:email,
+                            lines:[
+                                "foo@bar.com"
+                            ]
+                        },
+                        tags:"lekker man",
+                        wordNumber: 8
+                    }
+  		){
+    id
+    name
+    address{
+      value
+    }
+    tags
+    email{
+      addressType
+    	lines
+    }
+    wordNumber
+  }
+}

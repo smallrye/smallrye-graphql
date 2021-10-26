@@ -18,32 +18,35 @@ import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.event.InvokeInfo;
-import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
 
 /**
- * Help with reflection on an operation
+ * Invoke methods using reflection
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class ReflectionHelper {
+public class ReflectionInvoker {
 
     private final LookupService lookupService = LookupService.get();
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
-    private final Operation operation;
-    private final EventEmitter eventEmitter;
+    private final EventEmitter eventEmitter = EventEmitter.getInstance();
     private final Class<?> operationClass;
-    private final Method method;
+    private Method method;
     private int injectContextAt = -1;
 
-    public ReflectionHelper(Operation operation, EventEmitter eventEmitter) {
-        this.operation = operation;
-        this.eventEmitter = eventEmitter;
-        this.operationClass = classloadingService.loadClass(operation.getClassName());
-        this.method = lookupMethod(operationClass, operation);
+    public ReflectionInvoker(String className) {
+        this.operationClass = classloadingService.loadClass(className);
+    }
+
+    public ReflectionInvoker(String className, String methodName, List<String> parameterClasses) {
+        this.operationClass = classloadingService.loadClass(className);
+        this.setMethod(methodName, parameterClasses);
+    }
+
+    public void setMethod(String methodName, List<String> parameterClasses) {
+        this.method = lookupMethod(operationClass, methodName, parameterClasses);
     }
 
     public <T> T invokePrivileged(Object... arguments) {
@@ -75,12 +78,13 @@ public class ReflectionHelper {
     }
 
     public <T> T invoke(Object... arguments) throws Exception {
+        if (this.injectContextAt > -1) {
+            arguments = injectContext(arguments);
+        }
         try {
             Object operationInstance = lookupService.getInstance(operationClass);
             eventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
-            if (this.injectContextAt > -1) {
-                arguments = injectContext(arguments);
-            }
+
             return (T) this.method.invoke(operationInstance, arguments);
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
@@ -93,37 +97,31 @@ public class ReflectionHelper {
             } else if (throwable instanceof Exception) {
                 throw (Exception) throwable;
             } else {
-                throw msg.dataFetcherException(operation, throwable);
+                throw msg.generalDataFetcherException(operationClass.getName() + ": " + method.getName(), throwable);
             }
         }
     }
 
-    private Method lookupMethod(Class<?> operationClass, Operation operation) {
+    private Method lookupMethod(Class<?> operationClass, String methodName, List<String> parameterClasses) {
         try {
-            return operationClass.getMethod(operation.getMethodName(), getParameterClasses(operation));
+            return operationClass.getMethod(methodName, getParameterClasses(parameterClasses));
         } catch (NoSuchMethodException e) {
-            throw msg.dataFetcherException(operation, e);
+            throw msg.generalDataFetcherException(operationClass.getName() + ": " + methodName, e);
         }
     }
 
-    private Class<?>[] getParameterClasses(Operation operation) {
-        if (operation.hasArguments()) {
+    private Class<?>[] getParameterClasses(List<String> parameterClasses) {
+        if (parameterClasses != null && !parameterClasses.isEmpty()) {
             List<Class<?>> cl = new LinkedList<>();
             int cnt = 0;
-            for (Field argument : operation.getArguments()) {
-                // If the argument is wrapped, load the wrapper
-                if (argument.hasWrapper()) {
-                    Class<?> clazz = classloadingService.loadClass(argument.getWrapper().getWrapperClassName());
-                    cl.add(clazz);
-                } else {
-                    Class<?> clazz = classloadingService.loadClass(argument.getReference().getClassName());
-                    cl.add(clazz);
-                    if (argument.getReference().getClassName().equals(Context.class.getName())) {
-                        this.injectContextAt = cnt;
-                    }
+            for (String className : parameterClasses) {
+                cl.add(classloadingService.loadClass(className));
+                if (className.equals(Context.class.getName())) {
+                    this.injectContextAt = cnt;
                 }
                 cnt++;
             }
+
             return cl.toArray(new Class[] {});
         }
         return null;
@@ -133,5 +131,10 @@ public class ReflectionHelper {
         ArrayList list = new ArrayList(Arrays.asList(arguments));
         list.set(injectContextAt, SmallRyeContext.getContext());
         return list.toArray();
+    }
+
+    @Override
+    public String toString() {
+        return method.toString();
     }
 }

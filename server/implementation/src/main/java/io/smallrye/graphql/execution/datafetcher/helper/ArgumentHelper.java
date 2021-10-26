@@ -24,6 +24,7 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
+import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
@@ -183,6 +184,50 @@ public class ArgumentHelper extends AbstractHelper {
         if (!shouldTransform(field)) {
             return object;
         }
+
+        if (field.hasAdapter()) {
+            return transformInputWithAdapter(field, object);
+        } else {
+            return transformInputWithTransformer(field, object);
+        }
+    }
+
+    /**
+     * This is for when a user provided a adapter.
+     * 
+     * @param field the field definition
+     * @param object the pre transform value
+     * @return the transformed value
+     * @throws AbstractDataFetcherException
+     */
+    private Object transformInputWithAdapter(Field field, Object object) throws AbstractDataFetcherException {
+
+        if (!field.getAdapter().isJsonB()) { // We use JsonB internally, so we can skip for JsonB
+            Adapter adapter = field.getAdapter();
+            ReflectionInvoker reflectionInvoker = getReflectionInvokerForInput(adapter);
+            try {
+                if (Map.class.isAssignableFrom(object.getClass())) { // For complex object we receive a map from graphql-java
+                    object = correctComplexObjectFromMap((Map) object, field);
+                }
+                Object adaptedObject = reflectionInvoker.invoke(object);
+                return adaptedObject;
+            } catch (Exception ex) {
+                log.transformError(ex);
+                throw new TransformException(ex, field, object);
+            }
+        }
+        return object;
+    }
+
+    /**
+     * This is the build in transformation (eg. number and date formatting)
+     * 
+     * @param field the field definition
+     * @param object the pre transform value
+     * @return the transformed value
+     * @throws AbstractDataFetcherException
+     */
+    private Object transformInputWithTransformer(Field field, Object object) throws AbstractDataFetcherException {
         try {
             Transformer transformer = super.getTransformer(field);
             if (transformer == null) {
@@ -256,13 +301,13 @@ public class ArgumentHelper extends AbstractHelper {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
-        } else if (GraphQLScalarTypes.isGraphQLScalarType(field.getReference().getClassName())) {
+        } else if (!field.hasAdapter() && GraphQLScalarTypes.isGraphQLScalarType(field.getReference().getClassName())) {
             GraphQLScalarType scalar = GraphQLScalarTypes.getScalarByClassName(field.getReference().getClassName());
             return scalar.getCoercing().parseLiteral(argumentValue);
-        } else {
+        } else if (!field.hasAdapter()) {
             log.dontKnowHoToHandleArgument(argumentValue.getClass().getName(), field.getMethodName());
-            return argumentValue;
         }
+        return argumentValue;
     }
 
     /**
@@ -281,7 +326,7 @@ public class ArgumentHelper extends AbstractHelper {
     private Object correctComplexObjectFromMap(Map m, Field field) throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
 
-        // Let's see if there are any fields that needs transformation
+        // Let's see if there are any fields that needs transformation or adaption
         if (InputFieldsInfo.hasTransformationFields(className)) {
             Map<String, Field> transformationFields = InputFieldsInfo.getTransformationFields(className);
 
@@ -372,14 +417,17 @@ public class ArgumentHelper extends AbstractHelper {
             this.types = types;
         }
 
+        @Override
         public Type getRawType() {
             return ownerClass;
         }
 
+        @Override
         public Type getOwnerType() {
             return null;
         }
 
+        @Override
         public Type[] getActualTypeArguments() {
             return types;
         }

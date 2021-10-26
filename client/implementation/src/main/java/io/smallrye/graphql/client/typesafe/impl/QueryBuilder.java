@@ -2,9 +2,10 @@ package io.smallrye.graphql.client.typesafe.impl;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.List;
 import java.util.Stack;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
+import io.smallrye.graphql.client.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.ParameterInfo;
@@ -53,7 +54,7 @@ public class QueryBuilder {
 
     private String fields(TypeInfo type) {
         if (typeStack.contains(type.getTypeName()))
-            throw new GraphQLClientException("field recursion found");
+            throw SmallRyeGraphQLClientMessages.msg.fieldRecursionFound();
         try {
             typeStack.push(type.getTypeName());
 
@@ -83,8 +84,9 @@ public class QueryBuilder {
         expression.append(field.getName());
         if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
             String path = nestedExpressionPrefix() + field.getRawName();
-            if (method.hasNestedParameters(path))
-                expression.append(method.nestedParameters(path)
+            List<ParameterInfo> nestedParameters = method.nestedParameters(path);
+            if (!nestedParameters.isEmpty())
+                expression.append(nestedParameters.stream()
                         .map(this::bind)
                         .collect(joining(", ", "(", ")")));
             expressionStack.push(path);

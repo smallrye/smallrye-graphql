@@ -19,11 +19,11 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.creator.ArgumentCreator;
+import io.smallrye.graphql.schema.creator.DirectiveTypeCreator;
 import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.creator.type.Creator;
-import io.smallrye.graphql.schema.creator.type.DirectiveTypeCreator;
 import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
@@ -90,13 +90,13 @@ public class SchemaBuilder {
         enumCreator = new EnumCreator(autoNameStrategy);
         referenceCreator = new ReferenceCreator(autoNameStrategy);
         fieldCreator = new FieldCreator(referenceCreator);
-        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator, fieldCreator);
+        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
 
         inputTypeCreator = new InputTypeCreator(fieldCreator, autoNameStrategy);
-        operationCreator = new OperationCreator(referenceCreator, argumentCreator, fieldCreator);
+        operationCreator = new OperationCreator(referenceCreator, argumentCreator);
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator, autoNameStrategy);
         interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy, operationCreator);
-        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy, fieldCreator);
+        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy);
     }
 
     private Schema generateSchema() {

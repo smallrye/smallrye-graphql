@@ -36,7 +36,10 @@ public class HeaderBuilder {
                     // getResolvedAnnotations returns class-level annotations first
                     // so if there is something on class level, it will be overwritten
                     // by a header on the method
-                    headers.set(e.name(), resolveValue(e));
+                    String value = resolveValue(e);
+                    if (value != null) {
+                        headers.set(e.name(), value);
+                    }
                 });
         method.headerParameters().forEach(parameter -> {
             Header header = parameter.getAnnotations(Header.class)[0];
@@ -58,11 +61,11 @@ public class HeaderBuilder {
     private String resolveValue(Header header) {
         if (!header.method().isEmpty()) {
             if (!header.constant().isEmpty())
-                throw new GraphQLClientException("Header with 'method' AND 'constant' not allowed: " + header);
+                throw new RuntimeException("Header with 'method' AND 'constant' not allowed: " + header);
             return resolveMethodValue(header.method());
         }
         if (header.constant().isEmpty())
-            throw new GraphQLClientException("Header must have either 'method' XOR 'constant': " + header);
+            throw new RuntimeException("Header must have either 'method' XOR 'constant': " + header);
         return header.constant();
     }
 
@@ -70,14 +73,15 @@ public class HeaderBuilder {
         TypeInfo declaringType = method.getDeclaringType();
         MethodInvocation method = new MethodResolver(declaringType, methodName).resolve();
         if (!method.isStatic())
-            throw new GraphQLClientException("referenced header method '" + methodName + "'" +
+            throw new RuntimeException("referenced header method '" + methodName + "'" +
                     " in " + declaringType.getTypeName() + " is not static");
         try {
-            return method.invoke(null).toString();
+            Object result = method.invoke(null);
+            return (result == null) ? null : result.toString();
         } catch (RuntimeException e) {
             if (e instanceof GraphQLClientException)
                 throw e;
-            throw new GraphQLClientException("can't resolve header method expression '" + methodName + "'" +
+            throw new RuntimeException("can't resolve header method expression '" + methodName + "'" +
                     " in " + declaringType.getTypeName(), e);
         }
     }
