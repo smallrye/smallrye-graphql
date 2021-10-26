@@ -13,7 +13,7 @@ import io.smallrye.graphql.execution.datafetcher.DataFetcherException;
 /**
  * This will load the config service
  * Example, using microprofile config
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface Config {
@@ -157,6 +157,10 @@ public interface Config {
 
     default boolean shouldEmitEvents() {
         return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
+    }
+
+    default boolean isFederationEnabled() {
+        return false;
     }
 
     default LogPayloadOption logPayload() {

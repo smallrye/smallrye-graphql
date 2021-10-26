@@ -1,4 +1,4 @@
-package io.smallrye.graphql.federation.api;
+package io.smallrye.graphql.api.federation;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
