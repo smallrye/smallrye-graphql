@@ -9,11 +9,13 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.AsyncApi;
 import io.smallrye.graphql.schema.IndexCreator;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.model.Transformation;
 
 public class FormatHelperTest {
@@ -21,6 +23,7 @@ public class FormatHelperTest {
     @Test
     public void testFormattedLocalDate() throws Exception {
         Index complete = IndexCreator.index(AsyncApi.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(AsyncApi.class.getName()));
         MethodInfo nonNullString = classByName.method("formattedLocalDate");
@@ -37,6 +40,7 @@ public class FormatHelperTest {
     @Test
     public void testFormattedCompletionStage() throws Exception {
         Index complete = IndexCreator.index(AsyncApi.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(AsyncApi.class.getName()));
         MethodInfo nonNullString = classByName.method("formattedCompletionStage");
@@ -48,5 +52,10 @@ public class FormatHelperTest {
 
         Transformation transformInfo = format.get();
         assertEquals("yyyy-MM-dd", transformInfo.getFormat());
+    }
+
+    @AfterEach
+    void tearDown() {
+        ScanningContext.remove();
     }
 }

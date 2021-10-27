@@ -34,6 +34,8 @@ public class Annotations {
 
     private final Map<DotName, AnnotationInstance> annotationsMap;
 
+    public final Map<DotName, AnnotationInstance> parentAnnotations;
+
     /**
      * Get used when creating operations.
      * Operation only have methods (no properties)
@@ -61,7 +63,54 @@ public class Annotations {
             }
         }
 
-        return new Annotations(annotationMap);
+        Map<DotName, AnnotationInstance> parentAnnotations = getParentAnnotations(methodInfo.declaringClass());
+
+        return new Annotations(annotationMap, parentAnnotations);
+    }
+
+    private static Map<DotName, AnnotationInstance> getParentAnnotations(FieldInfo fieldInfo, MethodInfo methodInfo) {
+        ClassInfo declaringClass = fieldInfo != null ? fieldInfo.declaringClass() : methodInfo.declaringClass();
+        return getParentAnnotations(declaringClass);
+    }
+
+    private static Map<DotName, AnnotationInstance> getParentAnnotations(ClassInfo classInfo) {
+        Map<DotName, AnnotationInstance> parentAnnotations = new HashMap<>();
+
+        for (AnnotationInstance classAnnotation : classInfo.classAnnotations()) {
+            parentAnnotations.putIfAbsent(classAnnotation.name(), classAnnotation);
+        }
+
+        Map<DotName, AnnotationInstance> packageAnnotations = getPackageAnnotations(classInfo);
+        for (DotName dotName : packageAnnotations.keySet()) {
+            parentAnnotations.putIfAbsent(dotName, packageAnnotations.get(dotName));
+        }
+
+        return parentAnnotations;
+    }
+
+    private static Map<DotName, AnnotationInstance> getPackageAnnotations(ClassInfo classInfo) {
+        Map<DotName, AnnotationInstance> packageAnnotations = new HashMap<>();
+
+        DotName packageName = packageInfo(classInfo);
+        if (packageName != null) {
+            ClassInfo packageInfo = ScanningContext.getIndex().getClassByName(packageName);
+            if (packageInfo != null) {
+                for (AnnotationInstance packageAnnotation : packageInfo.classAnnotations()) {
+                    packageAnnotations.putIfAbsent(packageAnnotation.name(), packageAnnotation);
+                }
+            }
+        }
+
+        return packageAnnotations;
+    }
+
+    private static DotName packageInfo(ClassInfo classInfo) {
+        String className = classInfo.name().toString();
+        int index = className.lastIndexOf('.');
+        if (index == -1) {
+            return null;
+        }
+        return DotName.createSimple(className.substring(0, index) + ".package-info");
     }
 
     /**
@@ -111,7 +160,10 @@ public class Annotations {
             annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
         }
         annotationsForField.putAll(getAnnotationsForArgument(method, position).annotationsMap);
-        return new Annotations(annotationsForField);
+
+        Map<DotName, AnnotationInstance> parentAnnotations = getParentAnnotations(fieldInfo, method);
+
+        return new Annotations(annotationsForField, parentAnnotations);
     }
 
     /**
@@ -131,7 +183,12 @@ public class Annotations {
             annotationMap.put(name, annotationInstance);
         }
 
-        return new Annotations(annotationMap);
+        Map<DotName, AnnotationInstance> packageAnnotations = getPackageAnnotations(classInfo);
+        for (DotName dotName : packageAnnotations.keySet()) {
+            annotationMap.putIfAbsent(dotName, packageAnnotations.get(dotName));
+        }
+
+        return new Annotations(annotationMap, packageAnnotations);
     }
 
     /**
@@ -179,18 +236,25 @@ public class Annotations {
             }
         }
 
-        return new Annotations(annotationMap);
+        final Map<DotName, AnnotationInstance> parentAnnotations = getParentAnnotations(methodInfo.declaringClass());
+
+        return new Annotations(annotationMap, parentAnnotations);
     }
 
     // ------- All static creators done, now the actual class --------
+
+    private Annotations(Map<DotName, AnnotationInstance> annotations) {
+        this(annotations, new HashMap<>());
+    }
 
     /**
      * Create the annotations, mapped by name
      *
      * @param annotations the annotation
      */
-    private Annotations(Map<DotName, AnnotationInstance> annotations) {
+    private Annotations(Map<DotName, AnnotationInstance> annotations, Map<DotName, AnnotationInstance> parentAnnotations) {
         this.annotationsMap = annotations;
+        this.parentAnnotations = parentAnnotations;
     }
 
     public Set<DotName> getAnnotationNames() {
@@ -236,6 +300,15 @@ public class Annotations {
     public boolean containsOneOfTheseAnnotations(DotName... annotations) {
         for (DotName name : annotations) {
             if (this.annotationsMap.containsKey(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean containsOneOfTheseInheritableAnnotations(DotName... annotations) {
+        for (DotName name : annotations) {
+            if (this.parentAnnotations.containsKey(name)) {
                 return true;
             }
         }
@@ -372,11 +445,15 @@ public class Annotations {
                 annotationsForField.putAll(getTypeUseAnnotations(param));
             }
         }
-        return new Annotations(annotationsForField);
+
+        final Map<DotName, AnnotationInstance> parentAnnotations = getParentAnnotations(fieldInfo, methodInfo);
+
+        return new Annotations(annotationsForField, parentAnnotations);
     }
 
     private static Annotations getAnnotationsForOutputField(FieldInfo fieldInfo, MethodInfo methodInfo) {
         Map<DotName, AnnotationInstance> annotationsForField = getAnnotationsForField(fieldInfo, methodInfo);
+
         if (fieldInfo != null) {
             annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
         }
@@ -386,7 +463,10 @@ public class Annotations {
                 annotationsForField.putAll(getTypeUseAnnotations(methodInfo.returnType()));
             }
         }
-        return new Annotations(annotationsForField);
+
+        Map<DotName, AnnotationInstance> parentAnnotations = getParentAnnotations(fieldInfo, methodInfo);
+
+        return new Annotations(annotationsForField, parentAnnotations);
     }
 
     private static Map<DotName, AnnotationInstance> getTypeUseAnnotations(org.jboss.jandex.Type type) {
@@ -473,6 +553,8 @@ public class Annotations {
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
+    public static final DotName ALL_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.AllNonNull");
+    public static final DotName NULLABLE = DotName.createSimple("io.smallrye.graphql.api.Nullable");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");

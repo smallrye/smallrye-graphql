@@ -1,0 +1,16 @@
+# test @AllNonNull
+1| type NonNullClass                |   nonNullString: String!      |   nonNullString in @AllNonNull-class should be String!
+2| type NonNullClass                |   optionalString: String      |   optionalString in @AllNonNull-class should be String
+3| type NonNullClass                |   nullableString: String      |   nullableString in @AllNonNull-class should be String
+
+4| type NonNullPackageClass         |   nonNullString: String!      |   nonNullString in @AllNonNull-package should be String!
+5| type NonNullPackageClass         |   optionalString: String      |   optionalString in @AllNonNull-package should be String
+6| type NonNullPackageClass         |   nullableString: String      |   nullableString in @AllNonNull-package should be String
+
+7| input NonNullClassInput          |   nonNullString: String!      |   nonNullString in @AllNonNull-class should be String!
+8| input NonNullClassInput          |   optionalString: String      |   optionalString in @AllNonNull-class should be String
+9| input NonNullClassInput          |   nullableString: String      |   nullableString in @AllNonNull-class should be String
+
+10| input NonNullPackageClassInput  |   nonNullString: String!      |   nonNullString in @AllNonNull-package should be String!
+11| input NonNullPackageClassInput  |   optionalString: String      |   optionalString in @AllNonNull-package should be String
+12| input NonNullPackageClassInput  |   nullableString: String      |   nullableString in @AllNonNull-package should be String

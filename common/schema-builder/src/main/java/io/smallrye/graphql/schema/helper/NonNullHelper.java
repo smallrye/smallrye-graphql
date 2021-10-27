@@ -4,6 +4,7 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 
 /**
  * Helping to figure out of some should be marked as Non null
@@ -39,7 +40,12 @@ public class NonNullHelper {
      */
     public static boolean markAsNonNull(Type type, Annotations annotations, boolean ignorePrimitiveCheck) {
         // check if the @NonNull annotation is present
-        boolean hasNonNull = hasNonNull(annotations);
+        boolean hasNonNull = hasNonNull(annotations) || hasNonNullOnClassOrPackage(annotations);
+
+        if (Classes.isOptional(type) || hasNullable(annotations)) {
+            hasNonNull = false;
+        }
+
         // true if this is a primitive
         if (!ignorePrimitiveCheck && type.kind().equals(Type.Kind.PRIMITIVE)) {
             hasNonNull = true; // By implication
@@ -64,6 +70,14 @@ public class NonNullHelper {
                 Annotations.BEAN_VALIDATION_NOT_EMPTY,
                 Annotations.BEAN_VALIDATION_NOT_BLANK,
                 Annotations.KOTLIN_NOT_NULL);
+    }
+
+    private static boolean hasNullable(Annotations annotations) {
+        return annotations.containsOneOfTheseAnnotations(Annotations.NULLABLE);
+    }
+
+    private static boolean hasNonNullOnClassOrPackage(Annotations annotations) {
+        return annotations.containsOneOfTheseInheritableAnnotations(Annotations.ALL_NON_NULL);
     }
 
     private static boolean hasDefaultValue(Annotations annotations) {
