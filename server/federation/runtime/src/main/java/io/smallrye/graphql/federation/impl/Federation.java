@@ -10,13 +10,18 @@ import static java.util.stream.Collectors.toList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -24,6 +29,7 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Name;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
@@ -32,7 +38,6 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
-
 import graphql.TypeResolutionEnvironment;
 import graphql.scalar.GraphqlStringCoercing;
 import graphql.schema.Coercing;
@@ -43,10 +48,12 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchema.Builder;
+import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLUnionType;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.event.EventEmitter;
@@ -140,7 +147,7 @@ public class Federation {
         Builder builder = GraphQLSchema.newSchema(original);
         builder.clearDirectives();
         builder.clearSchemaDirectives();
-        builder.clearAdditionalTypes();
+        //builder.clearAdditionalTypes();
         return new SchemaPrinter().print(builder.build())
                 // TODO C: remove standard directive declarations
                 .replace("\"Marks the field or enum value as deprecated\"\n" +
@@ -169,7 +176,8 @@ public class Federation {
                 .getAnnotations(KEY).stream()
                 .map(AnnotationInstance::target)
                 .map(AnnotationTarget::asClass)
-                .map(typeInfo -> toObjectType(typeInfo, graphQLSchema))
+                .flatMap(typeInfo -> toObjectType(typeInfo, graphQLSchema))
+                .distinct()
                 .toArray(GraphQLObjectType[]::new);
         if (entityUnionTypes.length == 0)
             return;
@@ -182,12 +190,26 @@ public class Federation {
         builder.additionalType(_Entity);
     }
 
-    private GraphQLObjectType toObjectType(ClassInfo typeInfo, GraphQLSchema graphQLSchema) {
-        String typeName = typeInfo.name().local();
-        GraphQLObjectType objectType = graphQLSchema.getObjectType(typeName);
-        if (objectType == null)
+    private Stream<GraphQLObjectType> toObjectType(ClassInfo typeInfo, GraphQLSchema graphQLSchema) {
+        AnnotationInstance nameAnnotation = typeInfo.classAnnotation(DotName.createSimple("org.eclipse.microprofile.graphql.Name"));
+        String typeName;
+        if (nameAnnotation!=null) {
+            typeName = nameAnnotation.value().asString();
+        } else {
+            typeName = typeInfo.name().local();
+        }
+        GraphQLType graphQLType = graphQLSchema.getType(typeName);
+        if (graphQLType==null)
             throw new IllegalStateException("no class registered in schema for " + typeName);
-        return objectType;
+        if (graphQLType instanceof GraphQLObjectType) {
+            return Stream.of((GraphQLObjectType) graphQLType);
+        } else if (graphQLType instanceof GraphQLInterfaceType) {
+            return graphQLSchema.getImplementations((GraphQLInterfaceType) graphQLType).stream();
+        } else {
+            throw new IllegalStateException(String.format("You have asked for named object type '%s' or '%s' but its not an object type but rather a '%s'",
+                    GraphQLInterfaceType.class.getSimpleName(), GraphQLObjectType.class.getSimpleName(),
+                    graphQLType.getClass().getName()));
+        }
     }
 
     private void addQueries() {
@@ -220,7 +242,14 @@ public class Federation {
     }
 
     public GraphQLObjectType resolveEntity(TypeResolutionEnvironment environment) {
-        String typeName = environment.getObject().getClass().getSimpleName(); // TODO B: type renames
+        //environment.getObject().getClass() does not work with mutiny! returns
+        Class<?> clazz = this.type((Map<String, Object>) ((ArrayList) environment.getArguments().get("representations")).get(0));
+
+        String typeName = clazz.getSimpleName();
+        Name annotation = clazz.getAnnotation(Name.class);
+        if (annotation!=null) {
+            typeName = annotation.value();
+        }
         return environment.getSchema().getObjectType(typeName);
     }
 
@@ -247,6 +276,8 @@ public class Federation {
         String typeName = (String) representation.get("__typename");
         try {
             io.smallrye.graphql.schema.model.Type type = schema.getTypes().get(typeName);
+            if (type == null)
+                type = schema.getInterfaces().get(typeName);
             if (type == null)
                 throw new IllegalStateException("no class registered in schema for " + typeName);
             return Class.forName(type.getClassName());
@@ -304,7 +335,7 @@ public class Federation {
         try {
             Class<?> declaringClass = Class.forName(methodInfo.declaringClass().name().toString());
             Class<?>[] parameterTypes = methodInfo.parameters().stream()
-                    .map(Type::asClassType)
+                    //.map(Type::asClassType) //does not work with primitive parameters like int
                     .map(Type::name)
                     .map(DotName::toString)
                     .map(Federation::toClass)
@@ -316,6 +347,25 @@ public class Federation {
     }
 
     private static Class<?> toClass(String className) {
+        switch (className) {
+            case "int":
+                return int.class;
+            case "double":
+                return double.class;
+            case "float":
+                return float.class;
+            case "byte":
+                return byte.class;
+            case "char":
+                return char.class;
+            case "long":
+                return long.class;
+            case "short":
+                return short.class;
+            case "boolean":
+                return boolean.class;
+        }
+
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
@@ -355,7 +405,13 @@ public class Federation {
         }
 
         public Class<?> getType() {
-            return method.getReturnType();
+            java.lang.reflect.Type returnType = method.getGenericReturnType();
+            if (returnType instanceof ParameterizedType) {
+                //TODO Allow only return types which are supported by io.smallrye.graphql.bootstrap.DataFetcherFactory
+                ParameterizedType genericReturnType = (ParameterizedType) returnType;
+                return (Class<?>) genericReturnType.getActualTypeArguments()[0];
+            }
+            return (Class<?>) returnType;
         }
 
         @Override
@@ -395,29 +451,63 @@ public class Federation {
 
         /** Create a prefilled instance of the type going into the federated entity resolver */
         private Object instantiate(Map<String, Object> representation) {
+            String targetFieldName = getTargetFieldName();
             String typeName = (String) representation.get("__typename");
             try {
-                io.smallrye.graphql.schema.model.Type type = schema.getTypes().get(typeName);
-                if (type == null)
-                    throw new IllegalStateException("no class registered in schema for " + typeName);
-                Class<?> cls = Class.forName(type.getClassName());
-                Object instance = cls.getConstructor().newInstance();
-                // TODO B: field renames
-                for (String fieldName : type.getFields().keySet()) {
-                    if ("__typename".equals(fieldName))
-                        continue;
-                    String value = (String) representation.get(fieldName);
-                    Field field = cls.getDeclaredField(fieldName);
-                    if (field.isAnnotationPresent(External.class))
-                        LOG.debug("non-external field " + fieldName + " on " + typeName);
-
-                    field.setAccessible(true);
-                    field.set(instance, value);
-                }
-                return instance;
+                return createInstance(representation, targetFieldName, typeName);
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException("can't create extended type instance " + typeName, e);
+            } catch (Exception e) {
+                throw e;
             }
+        }
+
+        private Object createInstance(Map<String, Object> representation, String targetFieldName, String typeName)
+                throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException,
+                NoSuchFieldException {
+            io.smallrye.graphql.schema.model.Type type = schema.getTypes().get(typeName);
+            if (type==null)
+                throw new IllegalStateException("no class registered in schema for " + typeName);
+            Class<?> cls = Class.forName(type.getClassName());
+            Object instance = cls.getConstructor().newInstance();
+            // TODO B: field renames
+
+            for (Map.Entry<String, io.smallrye.graphql.schema.model.Field> entry : type.getFields().entrySet()) {
+                if ("__typename".equals(entry.getKey()))
+                    continue;
+                //skip target fieldname
+                if (targetFieldName.equals(entry.getKey()))
+                    continue;
+                Object value = representation.get(entry.getKey());
+                if (value instanceof Map) {
+                    // set subfields
+                    value = createInstance((Map<String, Object>) value, entry.getValue().getPropertyName(), entry.getValue().getReference().getName());
+                }
+                Field field = cls.getDeclaredField(entry.getKey());
+                if (field.isAnnotationPresent(External.class))
+                    LOG.debug("non-external field " + entry.getKey() + " on " + typeName);
+                //todo do something better than this
+                if (value!=null && !field.getType().equals(value.getClass())) {
+                    value = tryToBuildObject(field, (String) value);
+                }
+
+                field.setAccessible(true);
+                field.set(instance, value);
+            }
+            return instance;
+        }
+
+        private Object tryToBuildObject(Field f, String value) {
+            if (f.getType().equals(UUID.class)) {
+                return UUID.fromString(value);
+            }
+            if (f.getType().equals(Long.class)) {
+                return Long.valueOf(value);
+            }
+            if (f.getType().equals(Integer.class)) {
+                return Integer.valueOf(value);
+            }
+            throw new UnsupportedOperationException("Can not create instance of " + f.getType() + " for field " + f.getName());
         }
 
         private Object invoke(Object source) {
@@ -429,8 +519,12 @@ public class Federation {
             }
         }
 
+        private String getTargetFieldName() {
+            return method.getName();
+        }
+
         private void set(Object source, Object value) {
-            String fieldName = method.getName(); // TODO B: method renames
+            String fieldName = getTargetFieldName(); // TODO B: method renames
             try {
                 Field field = source.getClass().getDeclaredField(fieldName);
                 field.setAccessible(true);
