@@ -115,4 +115,8 @@ public class ResponseImpl implements Response {
     public List<Map.Entry<String, String>> getHeaders() {
         return headers;
     }
+
+    public List<Map.Entry<String, String>> getTransportMeta() {
+        return headers;
+    }
 }
