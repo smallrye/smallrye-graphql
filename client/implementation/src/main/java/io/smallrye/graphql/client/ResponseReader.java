@@ -99,26 +99,7 @@ public class ResponseReader {
             JsonObject extensions = errorObject.getJsonObject("extensions");
             Map<String, Object> extensionMap = new HashMap<>();
             extensions.forEach((key, value) -> {
-                switch (value.getValueType()) {
-                    // TODO: handle arrays somehow
-                    case STRING:
-                        extensionMap.put(key, ((JsonString) value).getString());
-                        break;
-                    case NUMBER:
-                        extensionMap.put(key, ((JsonNumber) value).longValue());
-                        break;
-                    case FALSE:
-                        extensionMap.put(key, false);
-                        break;
-                    case TRUE:
-                        extensionMap.put(key, true);
-                        break;
-                    case NULL:
-                        extensionMap.put(key, null);
-                        break;
-                    default:
-                        SmallRyeGraphQLClientLogging.log.unknownExtensionType(value.getValueType());
-                }
+                extensionMap.put(key, decode(value));
             });
             decodedError.setExtensions(extensionMap);
         } else {
@@ -126,18 +107,35 @@ public class ResponseReader {
         }
 
         // check if there are any other fields beyond the ones described by the specification
-        Map<String, JsonValue> otherFields = new HashMap<>();
+        Map<String, Object> otherFields = new HashMap<>();
         for (String key : errorObject.keySet()) {
             if (!key.equals("extensions") &&
                     !key.equals("locations") &&
                     !key.equals("message") &&
                     !key.equals("path")) {
-                otherFields.put(key, errorObject.get(key));
+                otherFields.put(key, decode(errorObject.get(key)));
             }
         }
         if (!otherFields.isEmpty()) {
             decodedError.setOtherFields(otherFields);
         }
         return decodedError;
+    }
+
+    private static Object decode(JsonValue value) {
+        switch (value.getValueType()) {
+            case STRING:
+                return ((JsonString) value).getString();
+            case NUMBER:
+                return ((JsonNumber) value).longValue();
+            case FALSE:
+                return false;
+            case TRUE:
+                return true;
+            case NULL:
+                return null;
+            default:
+                return value;
+        }
     }
 }

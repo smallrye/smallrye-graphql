@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import javax.json.JsonNumber;
-
 import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.Test;
 
@@ -176,7 +174,7 @@ public class ResponseReaderTest {
 
         GraphQLError theError = response.getErrors().get(0);
         assertEquals("blabla", theError.getMessage());
-        assertEquals(123456, ((JsonNumber) theError.getOtherFields().get("somethingExtra")).intValue());
+        assertEquals(123456L, theError.getOtherFields().get("somethingExtra"));
         assertEquals("GRAPHQL_VALIDATION_FAILED", theError.getExtensions().get("code"));
         assertEquals(1, theError.getLocations().get(0).get("line"));
         assertEquals(30, theError.getLocations().get(0).get("column"));

@@ -3,8 +3,6 @@ package io.smallrye.graphql.client;
 import java.util.List;
 import java.util.Map;
 
-import javax.json.JsonValue;
-
 public interface GraphQLError {
 
     /**
@@ -33,5 +31,5 @@ public interface GraphQLError {
      * Any other fields beyond message, locations, path and extensions. These are discouraged by the spec,
      * but if a GraphQL service adds them, they will appear in this map.
      */
-    Map<String, JsonValue> getOtherFields();
+    Map<String, Object> getOtherFields();
 }
