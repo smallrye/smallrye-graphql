@@ -1,10 +1,10 @@
 package io.smallrye.graphql.client.dynamic.core;
 
-import io.smallrye.graphql.client.core.exceptions.BuildException;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import io.smallrye.graphql.client.core.exceptions.BuildException;
 
 public class EnumImpl extends AbstractEnum {
 
