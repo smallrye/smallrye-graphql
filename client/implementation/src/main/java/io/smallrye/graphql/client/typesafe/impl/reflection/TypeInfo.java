@@ -29,6 +29,8 @@ import java.util.stream.Stream.Builder;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 
 public class TypeInfo {
     private final TypeInfo container;
@@ -109,6 +111,18 @@ public class TypeInfo {
                 || Collection.class.isAssignableFrom(getRawType());
     }
 
+    public boolean isAsync() {
+        return isMulti() || isUni();
+    }
+
+    public boolean isMulti() {
+        return Multi.class.isAssignableFrom(getRawType());
+    }
+
+    public boolean isUni() {
+        return Uni.class.isAssignableFrom(getRawType());
+    }
+
     private boolean ifClass(Predicate<Class<?>> predicate) {
         return (type instanceof Class) && predicate.test((Class<?>) type);
     }
@@ -151,7 +165,8 @@ public class TypeInfo {
     }
 
     public boolean isRecord() {
-        return rawType.getSuperclass().getName().equals("java.lang.Record");
+        Class<?> superclass = rawType.getSuperclass();
+        return superclass != null && superclass.getName().equals("java.lang.Record");
     }
 
     public boolean isScalar() {
@@ -265,7 +280,7 @@ public class TypeInfo {
     }
 
     public TypeInfo getItemType() {
-        assert isCollection() || isOptional() || isErrorOr();
+        assert isCollection() || isOptional() || isErrorOr() || isAsync();
         if (itemType == null)
             itemType = new TypeInfo(this, computeItemType(), computeAnnotatedItemType());
         return this.itemType;
