@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.json.JsonValue;
-
 import io.smallrye.graphql.client.GraphQLError;
 
 public class GraphQLErrorImpl implements GraphQLError {
@@ -13,13 +11,13 @@ public class GraphQLErrorImpl implements GraphQLError {
     private List<Map<String, Integer>> locations;
     private Object[] path;
     private Map<String, Object> extensions;
-    private Map<String, JsonValue> otherFields;
+    private Map<String, Object> otherFields;
 
     public GraphQLErrorImpl() {
     }
 
     public GraphQLErrorImpl(String message, List<Map<String, Integer>> locations, Object[] path, Map<String, Object> extensions,
-            Map<String, JsonValue> otherFields) {
+            Map<String, Object> otherFields) {
         this.message = message;
         this.locations = locations;
         this.path = path;
@@ -44,7 +42,7 @@ public class GraphQLErrorImpl implements GraphQLError {
     }
 
     @Override
-    public Map<String, JsonValue> getOtherFields() {
+    public Map<String, Object> getOtherFields() {
         return otherFields;
     }
 
@@ -64,7 +62,7 @@ public class GraphQLErrorImpl implements GraphQLError {
         this.extensions = extensions;
     }
 
-    public void setOtherFields(Map<String, JsonValue> otherFields) {
+    public void setOtherFields(Map<String, Object> otherFields) {
         this.otherFields = otherFields;
     }
 
