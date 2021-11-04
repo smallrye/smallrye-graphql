@@ -88,7 +88,7 @@
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <phase>generate-test-sources</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
