@@ -15,8 +15,8 @@ import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
     private static Vertx VERTX;
@@ -24,8 +24,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private String configKey = null;
     private URI endpoint;
     private Vertx vertx;
-    private WebClientOptions options;
+    private HttpClientOptions options;
     private WebClient webClient;
+    private HttpClient httpClient;
 
     @Override
     public TypesafeGraphQLClientBuilder configKey(String configKey) {
@@ -43,7 +44,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
-    public TypesafeGraphQLClientBuilder options(WebClientOptions options) {
+    public TypesafeGraphQLClientBuilder options(HttpClientOptions options) {
         this.options = options;
         return this;
     }
@@ -80,18 +81,24 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
 
+        initClients();
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(persistentConfig,
-                endpoint, webClient());
+                endpoint, httpClient, webClient);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
 
-    private WebClient webClient() {
+    private void initClients() {
         if (webClient == null) {
-            HttpClient httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
-            this.webClient = WebClient.wrap(httpClient);
+            if (httpClient == null) {
+                httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
+            }
+            webClient = WebClient.wrap(httpClient);
+        } else {
+            if (httpClient == null) {
+                httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
+            }
         }
-        return webClient;
     }
 
     private Vertx vertx() {

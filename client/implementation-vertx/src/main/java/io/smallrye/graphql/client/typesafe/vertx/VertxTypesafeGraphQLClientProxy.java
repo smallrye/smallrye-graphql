@@ -3,12 +3,14 @@ package io.smallrye.graphql.client.typesafe.vertx;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
@@ -28,9 +30,14 @@ import io.smallrye.graphql.client.typesafe.impl.ResultBuilder;
 import io.smallrye.graphql.client.typesafe.impl.reflection.FieldInfo;
 import io.smallrye.graphql.client.typesafe.impl.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.impl.reflection.TypeInfo;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebsocketVersion;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
@@ -44,14 +51,17 @@ class VertxTypesafeGraphQLClientProxy {
     private final Map<String, String> queryCache = new HashMap<>();
     private final GraphQLClientConfiguration configuration;
     private final URI endpoint;
+    private final HttpClient httpClient;
     private final WebClient webClient;
 
     VertxTypesafeGraphQLClientProxy(
             GraphQLClientConfiguration config,
             URI endpoint,
+            HttpClient httpClient,
             WebClient webClient) {
         this.configuration = config;
         this.endpoint = endpoint;
+        this.httpClient = httpClient;
         this.webClient = webClient;
     }
 
@@ -66,10 +76,42 @@ class VertxTypesafeGraphQLClientProxy {
         headers.set("Accept", APPLICATION_JSON_UTF8);
         String request = request(method);
 
-        String response = post(request, headers);
-        log.debugf("response graphql: %s", response);
-
-        return new ResultBuilder(method, response).read();
+        if (method.getReturnType().isUni()) {
+            return Uni.createFrom()
+                    .completionStage(postAsync(request, headers))
+                    .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+        } else if (method.getReturnType().isMulti()) {
+            String WSURL = endpoint.toString().replaceFirst("http", "ws");
+            return Multi.createFrom()
+                    .emitter(e -> {
+                        httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
+                            if (result.succeeded()) {
+                                WebSocket socket = result.result();
+                                socket.writeTextMessage(request);
+                                socket.handler(message -> {
+                                    Object item = new ResultBuilder(method, message.toString()).read();
+                                    if (item != null) {
+                                        e.emit(new ResultBuilder(method, message.toString()).read());
+                                    } else {
+                                        // FIXME: item is null when there was a data fetching exception.
+                                        // How to propagate this error to the application?
+                                        e.complete();
+                                    }
+                                });
+                                socket.closeHandler((v) -> {
+                                    e.complete();
+                                });
+                                e.onTermination(socket::close);
+                            } else {
+                                e.fail(result.cause());
+                            }
+                        });
+                    });
+        } else {
+            String response = postSync(request, headers);
+            log.debugf("response graphql: %s", response);
+            return new ResultBuilder(method, response).read();
+        }
     }
 
     private String request(MethodInvocation method) {
@@ -149,7 +191,15 @@ class VertxTypesafeGraphQLClientProxy {
         return builder.build();
     }
 
-    private String post(String request, MultiMap headers) {
+    private CompletionStage<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {
+        return webClient.postAbs(endpoint.toString())
+                .putHeader("Content-Type", APPLICATION_JSON_UTF8)
+                .putHeaders(headers)
+                .sendBuffer(Buffer.buffer(request))
+                .toCompletionStage();
+    }
+
+    private String postSync(String request, MultiMap headers) {
         Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.toString())
                 .putHeader("Content-Type", APPLICATION_JSON_UTF8)
                 .putHeaders(headers)
@@ -168,6 +218,15 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     void close() {
-        webClient.close();
+        try {
+            httpClient.close();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        try {
+            webClient.close();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 }

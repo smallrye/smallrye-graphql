@@ -23,6 +23,8 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation {
@@ -50,8 +52,14 @@ public class MethodInvocation {
         return method.toGenericString();
     }
 
-    public boolean isQuery() {
-        return !method.isAnnotationPresent(Mutation.class);
+    public OperationType getOperationType() {
+        if (method.isAnnotationPresent(Mutation.class)) {
+            return OperationType.MUTATION;
+        }
+        if (method.isAnnotationPresent(Subscription.class)) {
+            return OperationType.SUBSCRIPTION;
+        }
+        return OperationType.QUERY;
     }
 
     public String getName() {

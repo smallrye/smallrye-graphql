@@ -22,7 +22,17 @@ public class QueryBuilder {
 
     public String build() {
         StringBuilder request = new StringBuilder();
-        request.append(method.isQuery() ? "query " : "mutation ");
+        switch (method.getOperationType()) {
+            case QUERY:
+                request.append("query ");
+                break;
+            case MUTATION:
+                request.append("mutation ");
+                break;
+            case SUBSCRIPTION:
+                request.append("subscription ");
+                break;
+        }
         request.append(method.getName());
         if (method.hasValueParameters())
             request.append(method.valueParameters().map(this::declare).collect(joining(", ", "(", ")")));
@@ -70,7 +80,7 @@ public class QueryBuilder {
 
         if (type.isScalar())
             return "";
-        if (type.isCollection())
+        if (type.isCollection() || type.isAsync())
             return fields(type.getItemType());
         return type.fields()
                 .map(this::field)

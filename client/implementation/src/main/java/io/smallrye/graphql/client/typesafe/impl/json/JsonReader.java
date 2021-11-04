@@ -36,6 +36,9 @@ public class JsonReader extends Reader<JsonValue> {
     Object read() {
         if (type.isOptional())
             return Optional.ofNullable(readJson(location, type.getItemType(), value, field));
+        if (type.isAsync()) {
+            return readJson(location, type.getItemType(), value, field);
+        }
         if (type.isErrorOr())
             return readErrorOr();
         if (isListOfErrors(value) && !isGraphQlErrorsType())
