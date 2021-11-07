@@ -2,10 +2,10 @@ package io.smallrye.graphql.schema.helper.class_nonnull;
 
 import java.util.Optional;
 
-import io.smallrye.graphql.api.AllNonNull;
+import io.smallrye.graphql.api.DefaultNonNull;
 import io.smallrye.graphql.api.Nullable;
 
-@AllNonNull
+@DefaultNonNull
 public class ClassNonNullTestApi {
 
     public String string() {

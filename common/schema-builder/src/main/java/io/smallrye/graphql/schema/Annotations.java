@@ -553,7 +553,7 @@ public class Annotations {
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
-    public static final DotName ALL_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.AllNonNull");
+    public static final DotName DEFAULT_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.DefaultNonNull");
     public static final DotName NULLABLE = DotName.createSimple("io.smallrye.graphql.api.Nullable");
 
     // MicroProfile GraphQL Annotations

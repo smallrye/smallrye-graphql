@@ -77,7 +77,7 @@ public class NonNullHelper {
     }
 
     private static boolean hasNonNullOnClassOrPackage(Annotations annotations) {
-        return annotations.containsOneOfTheseInheritableAnnotations(Annotations.ALL_NON_NULL);
+        return annotations.containsOneOfTheseInheritableAnnotations(Annotations.DEFAULT_NON_NULL);
     }
 
     private static boolean hasDefaultValue(Annotations annotations) {

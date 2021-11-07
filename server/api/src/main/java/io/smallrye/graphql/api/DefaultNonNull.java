@@ -13,6 +13,6 @@ import io.smallrye.common.annotation.Experimental;
 @Target({ TYPE, PACKAGE })
 @Experimental("Allow you to mark all fields in a class/package as non-null. Not covered by the specification. " +
         "Subject to change.")
-public @interface AllNonNull {
+public @interface DefaultNonNull {
 
 }

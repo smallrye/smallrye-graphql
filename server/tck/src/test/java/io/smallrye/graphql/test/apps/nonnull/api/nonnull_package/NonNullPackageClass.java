@@ -1,5 +1,7 @@
 package io.smallrye.graphql.test.apps.nonnull.api.nonnull_package;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.microprofile.graphql.Input;
@@ -17,5 +19,7 @@ public class NonNullPackageClass {
 
     @Nullable
     public String nullableString = null;
+
+    public List<String> strings = Collections.emptyList();
 
 }
