@@ -7,6 +7,7 @@ import org.jboss.jandex.Type;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.schema.model.WrapperType;
 

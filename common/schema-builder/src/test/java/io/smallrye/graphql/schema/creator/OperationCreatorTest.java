@@ -7,9 +7,11 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.MethodInfo;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.IndexCreator;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -25,6 +27,7 @@ public class OperationCreatorTest {
     @Test
     public void testFailOnNonPublicOperation() throws Exception {
         Index complete = IndexCreator.index(TestApi.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(TestApi.class.getName()));
         MethodInfo method = classByName.method("nonPublicQuery");
@@ -39,6 +42,7 @@ public class OperationCreatorTest {
     @Test
     public void testPublicOperation() throws Exception {
         Index complete = IndexCreator.index(TestApi.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(TestApi.class.getName()));
         MethodInfo method = classByName.method("publicQuery");
@@ -46,6 +50,11 @@ public class OperationCreatorTest {
         final Operation operation = operationCreator().createOperation(method, OperationType.QUERY, null);
 
         assertEquals("publicQuery", operation.getName());
+    }
+
+    @AfterEach
+    void tearDown() {
+        ScanningContext.remove();
     }
 
 }
