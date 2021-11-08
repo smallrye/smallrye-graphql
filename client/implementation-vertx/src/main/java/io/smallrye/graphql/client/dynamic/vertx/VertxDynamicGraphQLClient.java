@@ -2,8 +2,10 @@ package io.smallrye.graphql.client.dynamic.vertx;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
@@ -96,7 +98,15 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 .toCompletionStage()
                 .toCompletableFuture()
                 .get();
-        return ResponseReader.readFrom(result.bodyAsString(), result.headers().entries());
+        return ResponseReader.readFrom(result.bodyAsString(), convertHeaders(result.headers()));
+    }
+
+    // converts the list of HTTP headers from a `MultiMap`
+    // (which is returned by vert.x) to a `Map<String, List<String>>`, which we expose further
+    private Map<String, List<String>> convertHeaders(MultiMap input) {
+        return input.entries().stream()
+                .collect(Collectors.groupingBy(Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
     @Override
@@ -150,7 +160,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                         .putHeaders(headers)
                         .sendBuffer(buffer)
                         .toCompletionStage())
-                .map(response -> ResponseReader.readFrom(response.bodyAsString(), response.headers().entries()));
+                .map(response -> ResponseReader.readFrom(response.bodyAsString(),
+                        convertHeaders(response.headers())));
     }
 
     @Override
@@ -207,7 +218,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                             WebSocket socket = result.result();
                             socket.writeTextMessage(requestJson);
                             socket.handler(message -> {
-                                e.emit(ResponseReader.readFrom(message.toString(), Collections.emptyList()));
+                                e.emit(ResponseReader.readFrom(message.toString(), Collections.emptyMap()));
                             });
                             socket.closeHandler((v) -> {
                                 e.complete();

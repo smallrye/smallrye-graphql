@@ -6,13 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.dynamic.ResponseImpl;
@@ -168,8 +167,8 @@ public class ResponseReaderTest {
                 "\"somethingExtra\": 123456," +
                 "\"extensions\": {\"code\":\"GRAPHQL_VALIDATION_FAILED\"}}]}";
 
-        List<Map.Entry<String, String>> headers = new ArrayList<>();
-        headers.add(MapEntry.entry("Cookie", "myCookie"));
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("Cookie", Collections.singletonList("myCookie"));
         ResponseImpl response = ResponseReader.readFrom(responseString, headers);
 
         GraphQLError theError = response.getErrors().get(0);
@@ -179,15 +178,14 @@ public class ResponseReaderTest {
         assertEquals(1, theError.getLocations().get(0).get("line"));
         assertEquals(30, theError.getLocations().get(0).get("column"));
         assertArrayEquals(new Object[] { 1, 2, 3, "asd" }, theError.getPath());
-        assertEquals(response.getHeaders().get(0).getKey(), "Cookie");
-        assertEquals(response.getHeaders().get(0).getValue(), "myCookie");
+        assertEquals(response.getHeaders().get("Cookie").get(0), "myCookie");
     }
 
     @Test
     public void nullPathInError() {
         String responseString = "{\"errors\":[{\"message\":\"blabla\"," +
                 "\"path\": null}]}";
-        ResponseImpl response = ResponseReader.readFrom(responseString, Collections.emptyList());
+        ResponseImpl response = ResponseReader.readFrom(responseString, Collections.emptyMap());
         assertNull(response.getErrors().get(0).getPath());
     }
 

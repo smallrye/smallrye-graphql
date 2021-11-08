@@ -20,7 +20,7 @@ import io.smallrye.graphql.client.dynamic.ResponseImpl;
 
 public class ResponseReader {
 
-    public static ResponseImpl readFrom(String input, List<Map.Entry<String, String>> headers) {
+    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
         JsonReader jsonReader = Json.createReader(new StringReader(input));
         JsonObject jsonResponse;
         try {

@@ -44,5 +44,5 @@ public interface Response {
     /**
      * Get transport-specific metadata that came from the server with this response.
      */
-    List<Map.Entry<String, String>> getTransportMeta();
+    Map<String, List<String>> getTransportMeta();
 }
