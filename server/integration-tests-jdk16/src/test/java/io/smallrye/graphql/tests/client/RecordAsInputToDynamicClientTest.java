@@ -2,7 +2,7 @@ package io.smallrye.graphql.tests.client;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.URL;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

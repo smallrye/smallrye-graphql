@@ -1,1 +1,1 @@
-io.smallrye.graphql.client.dynamic.core.FragmentReferenceImpl
+io.smallrye.graphql.client.impl.core.FragmentReferenceImpl

@@ -1,1 +1,1 @@
-io.smallrye.graphql.client.dynamic.core.EnumImpl
+io.smallrye.graphql.client.impl.core.EnumImpl

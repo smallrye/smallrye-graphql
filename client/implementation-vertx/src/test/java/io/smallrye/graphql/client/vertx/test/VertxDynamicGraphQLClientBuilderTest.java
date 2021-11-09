@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
 public class VertxDynamicGraphQLClientBuilderTest {
 
