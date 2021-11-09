@@ -14,7 +14,8 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
-import io.smallrye.graphql.client.dynamic.ResponseImpl;
+import io.smallrye.graphql.client.impl.ResponseImpl;
+import io.smallrye.graphql.client.impl.ResponseReader;
 
 public class ResponseReaderTest {
 

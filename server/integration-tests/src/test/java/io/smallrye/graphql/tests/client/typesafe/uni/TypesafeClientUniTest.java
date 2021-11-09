@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.smallrye.graphql.client.typesafe.vertx.VertxTypesafeGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 
 /**
  * Test for usage of Uni in typesafe clients.

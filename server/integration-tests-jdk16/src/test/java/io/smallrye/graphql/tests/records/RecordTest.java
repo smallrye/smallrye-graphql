@@ -2,10 +2,8 @@ package io.smallrye.graphql.tests.records;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
-import io.smallrye.graphql.client.core.InputObject;
-import io.smallrye.graphql.client.core.InputObjectField;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;

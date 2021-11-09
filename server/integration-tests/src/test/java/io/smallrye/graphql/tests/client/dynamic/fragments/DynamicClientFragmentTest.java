@@ -30,8 +30,8 @@ import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClient;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
 @RunWith(Arquillian.class)
 @RunAsClient
