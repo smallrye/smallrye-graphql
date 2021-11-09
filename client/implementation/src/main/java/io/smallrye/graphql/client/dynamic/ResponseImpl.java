@@ -21,12 +21,12 @@ public class ResponseImpl implements Response {
 
     private final JsonObject data;
     private final List<GraphQLError> errors;
-    private final List<Map.Entry<String, String>> headers;
+    private final Map<String, List<String>> headers;
 
-    public ResponseImpl(JsonObject data, List<GraphQLError> errors, List<Map.Entry<String, String>> headers) {
+    public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers) {
         this.data = data;
         this.errors = errors;
-        this.headers = Collections.unmodifiableList(headers != null ? headers : Collections.emptyList());
+        this.headers = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
     }
 
     public <T> T getObject(Class<T> dataType, String rootField) {
@@ -112,11 +112,11 @@ public class ResponseImpl implements Response {
         return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + '}';
     }
 
-    public List<Map.Entry<String, String>> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return headers;
     }
 
-    public List<Map.Entry<String, String>> getTransportMeta() {
+    public Map<String, List<String>> getTransportMeta() {
         return headers;
     }
 }
