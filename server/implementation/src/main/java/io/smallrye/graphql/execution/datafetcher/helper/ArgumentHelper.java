@@ -10,6 +10,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -357,14 +358,45 @@ public class ArgumentHelper extends AbstractHelper {
         }
 
         // make sure, all fields required by creator-method are set
-        for (final String s : InputFieldsInfo.getCreatorParameters(className)) {
-            // null should be safe, since primitive fields are already set (since marked as non null)
-            m.putIfAbsent(s, null);
+        for (final Field f : InputFieldsInfo.getCreatorParameters(className)) {
+            String s = f.getName();
+            if (m.containsKey(s)) {
+                if (m.get(s) instanceof Map) {
+                    m.put(s, includeNullCreatorParameters((Map) m.get(s), f));
+                }
+            } else {
+                // null should be safe, since primitive fields are already set (since marked as non null)
+                m.put(s, null);
+            }
         }
 
         // Create a valid jsonString from a map
         String jsonString = JsonBCreator.getJsonB().toJson(m);
         return correctComplexObjectFromJsonString(jsonString, field);
+    }
+
+    /**
+     * Recursively add null fields for creator parameters which are not present in this map.
+     * This is required by Yasson to be able to deserialize an object from the map.
+     */
+    private Map includeNullCreatorParameters(Map m, Field field) {
+        if (m == null) {
+            return null;
+        }
+        String className = field.getReference().getClassName();
+        Map result = new HashMap(m);
+        for (final Field f : InputFieldsInfo.getCreatorParameters(className)) {
+            String s = f.getName();
+            if (result.containsKey(s)) {
+                Object fieldValue = result.get(s);
+                if (fieldValue instanceof Map) {
+                    result.put(s, includeNullCreatorParameters(result, f));
+                }
+            } else {
+                result.put(s, null);
+            }
+        }
+        return result;
     }
 
     /**
