@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -21,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
+import io.smallrye.mutiny.Multi;
 
 @RunWith(Arquillian.class)
 @RunAsClient
@@ -75,6 +78,19 @@ public class TypesafeClientSubscriptionTest {
             assertTrue(item.getFailingSourceField().hasErrors());
             assertEquals(item.getNumber(), (Integer) i);
         }
+    }
+
+    @Test
+    public void failingSubscriptionShouldCloseClient() throws InterruptedException {
+        Multi<Dummy> items = client.countToFive(true);
+        CountDownLatch end = new CountDownLatch(1);
+        items.subscribe().with(item -> {
+        }, () -> {
+            end.countDown();
+        });
+        boolean ended = end.await(10, TimeUnit.SECONDS);
+        assertTrue("The client-side multi should receive onComplete after the subscription fails due" +
+                " to an exception in server-side processing", ended);
     }
 
 }
