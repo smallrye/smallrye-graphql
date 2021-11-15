@@ -2,6 +2,7 @@ package io.smallrye.graphql.tests.client.typesafe.subscription;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.mutiny.Multi;
@@ -16,13 +17,16 @@ public class SubscriptionApi {
     }
 
     @Subscription
-    public Multi<Integer> countToFive() {
-        return Multi.createFrom().range(0, 5);
+    public Multi<Dummy> countToFive(boolean shouldFail) {
+        if (shouldFail) {
+            return Multi.createFrom().failure(new RuntimeException("FAILED OPERATION ROOT"));
+        } else {
+            return Multi.createFrom().range(0, 5).map(Dummy::new);
+        }
     }
 
-    @Subscription
-    public Multi<Integer> failingImmediately() {
-        return Multi.createFrom().failure(new RuntimeException("blabla"));
+    public Integer failingSourceField(@Source Dummy dummy) {
+        throw new RuntimeException("FAILED SOURCE FIELD");
     }
 
 }

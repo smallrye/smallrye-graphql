@@ -53,9 +53,9 @@ public class BeanValidationTest {
         assertThat(response).isNotNull();
         assertThat(response).isNotEmpty();
 
-        assertThat(response).contains("validation failed: update.arg0.firstName must match");
-        assertThat(response).contains("validation failed: update.arg0.lastName must not be empty");
-        assertThat(response).contains("validation failed: update.arg0.age must be greater than or equal to 0");
+        assertThat(response).contains("validation failed: update.person.firstName must match");
+        assertThat(response).contains("validation failed: update.person.lastName must not be empty");
+        assertThat(response).contains("validation failed: update.person.age must be greater than or equal to 0");
 
     }
 }
