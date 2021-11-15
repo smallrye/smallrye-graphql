@@ -65,7 +65,8 @@ public class MethodInvocation {
     public String getName() {
         return queryName()
                 .orElseGet(() -> mutationName()
-                        .orElseGet(this::methodName));
+                        .orElseGet(() -> subscriptionName()
+                                .orElseGet(this::methodName)));
     }
 
     private Optional<String> queryName() {
@@ -82,6 +83,13 @@ public class MethodInvocation {
         Mutation mutation = method.getAnnotation(Mutation.class);
         if (mutation != null && !mutation.value().isEmpty())
             return Optional.of(mutation.value());
+        return Optional.empty();
+    }
+
+    private Optional<String> subscriptionName() {
+        Subscription annotation = method.getAnnotation(Subscription.class);
+        if (annotation != null && !annotation.value().isEmpty())
+            return Optional.of(annotation.value());
         return Optional.empty();
     }
 
