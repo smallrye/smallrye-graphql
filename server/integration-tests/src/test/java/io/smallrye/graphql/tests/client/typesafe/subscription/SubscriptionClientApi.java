@@ -10,9 +10,11 @@ import io.smallrye.mutiny.Multi;
 public interface SubscriptionClientApi extends Closeable {
 
     @Subscription
-    Multi<Integer> countToFive();
+    Multi<Dummy> countToFive(boolean shouldFail);
 
-    @Subscription
-    Multi<Integer> failingImmediately();
+    // the `shouldFail` argument refers to the operation root, not the source field!
+    // the source field will fail always
+    @Subscription(value = "countToFive")
+    Multi<DummyWithErrorOrOnFailingSourceField> countToFiveWithFailingSourceField(boolean shouldFail);
 
 }
