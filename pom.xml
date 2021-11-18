@@ -21,7 +21,7 @@
 <!--        <version.eclipse.microprofile.graphql-client>1.1-SNAPSHOT</version.eclipse.microprofile.graphql-client>-->
         <version.eclipse.microprofile.metrics>3.0</version.eclipse.microprofile.metrics>
         <version.eclipse.microprofile.context-propagation>1.2</version.eclipse.microprofile.context-propagation>
-        <version.smallrye-config>2.6.0</version.smallrye-config>
+        <version.smallrye-config>2.6.1</version.smallrye-config>
         <version.smallrye.metrics>3.0.4</version.smallrye.metrics>
         <version.smallrye-common>1.8.0</version.smallrye-common>
         <version.smallrye-mutiny>1.1.2</version.smallrye-mutiny>
