@@ -63,6 +63,19 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=2.0-SNAPSHOT
 
 * link:ui/graphiql[GraphiQL] UI for your project
 
+==== Documentation
+
+* link:docs[Documentation] SmallRye GraphQL documentation source
+
+Documentation resides in the `docs` directory and is built using the `mkdocs` tool.
+See link:https://www.mkdocs.org/user-guide/installation/[Installation guide] on how to install it.
+Then, building the documentation locally will be as simple as running `mkdocs build` in the root
+of this repository - the output should appear in the `site` directory. To fix a few things, like
+making links work correctly, you should serve the site via Jekyll (`jekyll serve` from the `site` directory)
+rather than directly open the HTML files in a browser.
+
+GitHub actions take care of building the site on each tag push, and adding it to the `gh-pages` branch.
+
 === Links
 
 * http://github.com/smallrye/smallrye-graphql/[Project Homepage]
