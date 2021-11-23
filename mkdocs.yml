@@ -4,8 +4,17 @@ edit_uri: edit/main/docs/
 
 nav:
   - Overview: 'index.md'
+  - Typesafe client:
+      - Basic usage: 'typesafe-client-usage.md'
+      - Adding headers: 'typesafe-client-headers.md'
+      - Logging: 'typesafe-client-logging.md'
+      - Running multiple queries at once: 'typesafe-client-multiple-queries.md'
+      - Error handling: 'typesafe-client-error-handling.md'
+  - Dynamic client:
+      - Basic usage: 'dynamic-client-usage.md'
   - Reference material:
       - Server-side configuration: 'server_configuration.md'
+#      - Client-side configuration: 'client_configuration.md'
 
 copyright: >-
   Sponsored by <a href="https://www.redhat.com"><img style="vertical-align: middle; height: 2.5em;" alt="Red Hat" src="./images/redhat_reversed.svg"/></a> <br/>
