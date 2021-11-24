@@ -4,6 +4,8 @@ edit_uri: edit/main/docs/
 
 nav:
   - Overview: 'index.md'
+  - Power annotations:
+      - Power annotations: 'power-annotations.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Adding headers: 'typesafe-client-headers.md'
