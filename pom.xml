@@ -16,7 +16,7 @@
     <url>http://smallrye.io</url>
 
     <properties>
-        <version.eclipse.microprofile.config>2.0</version.eclipse.microprofile.config>
+        <version.eclipse.microprofile.config>3.0.1</version.eclipse.microprofile.config>
         <version.eclipse.microprofile.graphql>1.1.0</version.eclipse.microprofile.graphql>
 <!--        <version.eclipse.microprofile.graphql-client>1.1-SNAPSHOT</version.eclipse.microprofile.graphql-client>-->
         <version.eclipse.microprofile.metrics>3.0</version.eclipse.microprofile.metrics>
