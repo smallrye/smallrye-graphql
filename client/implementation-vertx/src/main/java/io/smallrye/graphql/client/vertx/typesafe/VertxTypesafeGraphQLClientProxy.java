@@ -30,6 +30,7 @@ import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
@@ -89,11 +90,33 @@ class VertxTypesafeGraphQLClientProxy {
                                 WebSocket socket = result.result();
                                 socket.writeTextMessage(request);
                                 socket.handler(message -> {
-                                    Object item = new ResultBuilder(method, message.toString()).read();
-                                    if (item != null) {
-                                        e.emit(new ResultBuilder(method, message.toString()).read());
+                                    if (!e.isCancelled()) {
+                                        try {
+                                            Object item = new ResultBuilder(method, message.toString()).read();
+                                            if (item != null) {
+                                                e.emit(item);
+                                            } else {
+                                                e.complete();
+                                            }
+                                        } catch (GraphQLClientException ex) {
+                                            // this means there were errors returned from the service, and we couldn't build a result object
+                                            // (there was no `ErrorOr` on the failing field, etc.)
+                                            // so we propagate this exception to the subscribers. Unfortunately this causes the subscription
+                                            // to end even though the server might still be sending more events. This can be avoided by using the ErrorOr
+                                            // wrapper on the client side.
+                                            if (!e.isCancelled()) {
+                                                e.fail(ex);
+                                            }
+                                        }
                                     } else {
-                                        e.complete();
+                                        // We still received some more messages after the Emitter got cancelled. This can happen
+                                        // if the server is sending events very quickly and one of them contains an error that can't be applied
+                                        // (and thus fails the client-side Multi with a GraphQLClientException), in which case we close the websocket
+                                        // immediately, but if the server was fast enough, we might have received more messages before actually closing the websocket.
+                                        // But because the Multi has already received a failure, we can't propagate this to the client application anymore.
+                                        // Let's just log it.
+                                        log.warn(
+                                                "Received an additional item for a subscription that has already ended with a failure, dropping it.");
                                     }
                                 });
                                 socket.closeHandler((v) -> {

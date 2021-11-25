@@ -1,6 +1,7 @@
 package io.smallrye.graphql.tests.client.typesafe.subscription;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -22,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 import io.smallrye.mutiny.Multi;
 
@@ -71,13 +74,35 @@ public class TypesafeClientSubscriptionTest {
 
     @Test
     public void testErrorOrOnSourceField() {
-        List<DummyWithErrorOrOnFailingSourceField> items = client.countToFiveWithFailingSourceField(false)
+        List<DummyWithErrorOrOnFailingSourceField> items = client.countToFiveWithFailingSourceFieldInErrorOr(false)
                 .subscribe().asStream().collect(Collectors.toList());
         for (int i = 0; i < 5; i++) {
             DummyWithErrorOrOnFailingSourceField item = items.get(i);
             assertTrue(item.getFailingSourceField().hasErrors());
             assertEquals(item.getNumber(), (Integer) i);
         }
+    }
+
+    /**
+     * A source field is failing, and it's not wrapped in `ErrorOr`, so the subscription
+     * will fail on the client side. The server might still be sending more items after that, but these will be ignored!
+     */
+    @Test
+    public void failingSourceFieldWithoutErrorOr() throws InterruptedException {
+        CountDownLatch end = new CountDownLatch(1);
+        AtomicReference<DummyWithSourceField> receivedItem = new AtomicReference<>();
+        AtomicReference<Throwable> receivedThrowable = new AtomicReference<>();
+        client.countToFiveWithFailingSourceField(false)
+                .subscribe().with(
+                        dummy -> {
+                            receivedItem.set(dummy);
+                        }, t -> {
+                            receivedThrowable.set(t);
+                            end.countDown();
+                        });
+        end.await(20, TimeUnit.SECONDS);
+        assertNull("Should not receive any valid item", receivedItem.get());
+        assertEquals(GraphQLClientException.class, receivedThrowable.get().getClass());
     }
 
     @Test

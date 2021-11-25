@@ -12,9 +12,12 @@ public interface SubscriptionClientApi extends Closeable {
     @Subscription
     Multi<Dummy> countToFive(boolean shouldFail);
 
+    @Subscription(value = "countToFive")
+    Multi<DummyWithSourceField> countToFiveWithFailingSourceField(boolean shouldFail);
+
     // the `shouldFail` argument refers to the operation root, not the source field!
     // the source field will fail always
     @Subscription(value = "countToFive")
-    Multi<DummyWithErrorOrOnFailingSourceField> countToFiveWithFailingSourceField(boolean shouldFail);
+    Multi<DummyWithErrorOrOnFailingSourceField> countToFiveWithFailingSourceFieldInErrorOr(boolean shouldFail);
 
 }
