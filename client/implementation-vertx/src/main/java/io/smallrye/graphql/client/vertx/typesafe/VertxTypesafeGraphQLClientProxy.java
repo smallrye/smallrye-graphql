@@ -93,8 +93,6 @@ class VertxTypesafeGraphQLClientProxy {
                                     if (item != null) {
                                         e.emit(new ResultBuilder(method, message.toString()).read());
                                     } else {
-                                        // FIXME: item is null when there was a data fetching exception.
-                                        // How to propagate this error to the application?
                                         e.complete();
                                     }
                                 });

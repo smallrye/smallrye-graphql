@@ -25,31 +25,29 @@ build phase.
 Configuration options
 =====================
 
--   `destination` - To override the default
-    `target/generated/schema.graphql` destination
+- `destination` - To override the default `target/generated/schema.graphql` destination
 
--   `includeDependencies` - Scan project’s dependencies for GraphQL
-    model classes too. Off (false) by default.
+- `includeDependencies` - Scan project’s dependencies for GraphQL
+model classes too. This is necessary if your GraphQL endpoint exposes
+classes that are not in the application's main module. Off (`false`) by default, because
+scanning a potentially large dependency tree slows down execution substantially.
+Usage of reactive types does not require turning this option on. 
 
--   `includeDependenciesScopes` - If the above `includeDependencies` is
-    true, you can control what scopes should be included. Default is
-    `compile, system`
+- `includeDependenciesScopes` - If the above `includeDependencies` is
+true, you can control what scopes should be included. Default is
+`compile, system`
 
--   `includeDependenciesTypes` - If the above `includeDependencies` is
-    true, you can control what types should be included. Default is
-    `jar`
+- `includeDependenciesTypes` - If the above `includeDependencies` is
+true, you can control what types should be included. Default is
+`jar`
 
--   `includeScalars` - Include scalars in the schema. Default false.
+- `includeScalars` - Include scalars in the schema. Default false.
 
--   `includeDirectives` - Include directives in the schema. Default
-    false.
+- `includeDirectives` - Include directives in the schema. Default false.
 
--   `includeSchemaDefinition` - Include the schema definition. Default
-    false.
+- `includeSchemaDefinition` - Include the schema definition. Default false.
 
--   `includeIntrospectionTypes` - Include the introspection types in the
-    schema. Default false.
+- `includeIntrospectionTypes` - Include the introspection types in the schema. Default false.
 
--   `typeAutoNameStrategy` - Strategy for transforming class names into
-    GraphQL type names. Valid values are `MergeInnerClass`, `Full` and
-    `Default`.
+- `typeAutoNameStrategy` - Strategy for transforming class names into GraphQL type names. 
+Valid values are `MergeInnerClass`, `Full` and`Default`.
