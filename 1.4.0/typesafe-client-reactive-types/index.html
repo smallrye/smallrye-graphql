@@ -14,7 +14,7 @@
     
     
       
-        <title>Server-side configuration - Smallrye GraphQL</title>
+        <title>Reactive - Smallrye GraphQL</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#configuration-properties" class="md-skip">
+        <a href="#reactive-types-usage-in-typesafe-clients" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Server-side configuration
+              Reactive
             
           </span>
         </div>
@@ -277,14 +277,16 @@
 
   
   
+    
+  
   
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       
       
@@ -319,11 +321,80 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../typesafe-client-reactive-types/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Reactive
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Reactive
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reactive-types-with-queries-and-mutations" class="md-nav__link">
+    Reactive types with queries and mutations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#important-note-about-errors" class="md-nav__link">
+    Important note about errors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subscription-example" class="md-nav__link">
+    Subscription example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -511,16 +582,14 @@
 
   
   
-    
-  
   
     
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
       
       
       
@@ -541,60 +610,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Server-side configuration
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../server_configuration/" class="md-nav__link">
         Server-side configuration
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#from-microprofile-graphql" class="md-nav__link">
-    From MicroProfile GraphQL
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#from-smallrye-graphql" class="md-nav__link">
-    From SmallRye GraphQL
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -634,16 +654,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#from-microprofile-graphql" class="md-nav__link">
-    From MicroProfile GraphQL
+  <a href="#reactive-types-with-queries-and-mutations" class="md-nav__link">
+    Reactive types with queries and mutations
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#from-smallrye-graphql" class="md-nav__link">
-    From SmallRye GraphQL
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
   </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#important-note-about-errors" class="md-nav__link">
+    Important note about errors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subscription-example" class="md-nav__link">
+    Subscription example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -659,117 +699,43 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/smallrye/smallrye-graphql/edit/main/docs/server_configuration.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/smallrye/smallrye-graphql/edit/main/docs/typesafe-client-reactive-types.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="configuration-properties">Configuration properties</h1>
-<p>These are properties understood directly by SmallRye GraphQL. If you're using SmallRye GraphQL through
-Quarkus, these will generally work, but Quarkus offers its own counterparts for most of these, 
-and it is recommended to use the <code>quarkus.*</code> properties. Refer to the Quarkus documentation: 
-<a href="https://quarkus.io/guides/all-config#quarkus-smallrye-graphql_quarkus-smallrye-graphql-smallrye-graphql">Server</a> and
-<a href="https://quarkus.io/guides/all-config#quarkus-smallrye-graphql-client_quarkus-smallrye-graphql-client-smallrye-graphql-client">Client</a>
-side Quarkus properties.</p>
-<h2 id="from-microprofile-graphql">From MicroProfile GraphQL</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Default value</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>mp.graphql.defaultErrorMessage</code></td>
-<td><code>Server Error</code></td>
-<td>Error message for hidden exceptions</td>
-</tr>
-<tr>
-<td><code>mp.graphql.hideErrorMessage</code></td>
-<td>Runtime exceptions</td>
-<td>Exceptions that will be hidden</td>
-</tr>
-<tr>
-<td><code>mp.graphql.showErrorMessage</code></td>
-<td>Checked exceptions</td>
-<td>Exceptions that will not be hidden.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="from-smallrye-graphql">From SmallRye GraphQL</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Default value</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>smallrye.graphql.printDataFetcherException</code></td>
-<td><code>false</code></td>
-<td>Include the stacktrace of the data fetching exception in the log output</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.allowGet</code></td>
-<td><code>false</code></td>
-<td>Allow HTTP GET Method</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.metrics.enabled</code></td>
-<td><code>false</code></td>
-<td>Enable metrics</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.tracing.enabled</code></td>
-<td><code>false</code></td>
-<td>Enable tracing</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.validation.enabled</code></td>
-<td><code>false</code></td>
-<td>Enable Bean Validation</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.events.enabled</code></td>
-<td><code>true</code> if one of metrics, tracing or bean validation is true</td>
-<td>Enable eventing</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.logPayload</code></td>
-<td><code>false</code></td>
-<td>Log the payload in the log file</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.fieldVisibility</code></td>
-<td></td>
-<td>To control the field visibility on introspection</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.schema.includeScalars</code></td>
-<td><code>true</code></td>
-<td>Include Scalar definitions in the schema</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.schema.includeSchemaDefinition</code></td>
-<td><code>false</code></td>
-<td>Include Schema definition</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.schema.includeDirectives</code></td>
-<td><code>false</code></td>
-<td>Include directives in the schema</td>
-</tr>
-<tr>
-<td><code>smallrye.graphql.schema.includeIntrospectionTypes</code></td>
-<td><code>false</code></td>
-<td>Include Introspection types in the schema</td>
-</tr>
-</tbody>
-</table>
+                <h1 id="reactive-types-usage-in-typesafe-clients">Reactive types usage in typesafe clients</h1>
+<h2 id="reactive-types-with-queries-and-mutations">Reactive types with queries and mutations</h2>
+<p>Regardless of the type that a query or mutation returns, you can always wrap the return type in a <code>Uni</code> in your
+<code>@GraphQLClientApi</code> interface. The <code>Uni</code> will be completed after the response is received and processed.</p>
+<h2 id="subscriptions">Subscriptions</h2>
+<p>The return type of a subscription operation must always be wrapped in a <code>Multi</code>.
+The communication with the server runs over a WebSocket.</p>
+<h3 id="important-note-about-errors">Important note about errors</h3>
+<p>When using the typesafe client for subscriptions, if it is expected that the server might return errors,
+then it is highly recommended to wrap the return types into an <code>ErrorOr</code>
+(for example, turn the API method <code>@Subscription Multi&lt;Person&gt; people</code> into <code>@Subscription Multi&lt;ErrorOr&lt;Person&gt;&gt; people</code>).
+The reason is once there is an error returned from the service and the result can't be turned into a domain object due to that,
+the <code>Multi</code> will receive a failure as a result. Because of the design of Mutiny, a <code>Multi</code> can't continue producing any items after
+a failure. That means the subscription will be cancelled after the first error, even though the server might continue
+sending more items. In such case, your application would have to detect the error and start a new subscription.
+See <a href="../typesafe-client-error-handling/">Error handling</a> for more details on how to use <code>ErrorOr</code>.</p>
+<h3 id="subscription-example">Subscription example</h3>
+<p>Given a server-side definition like this:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@Subscription</span>
+<span class="kd">public</span> <span class="n">Multi</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="nf">countToFive</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Multi</span><span class="p">.</span><span class="na">createFrom</span><span class="p">().</span><span class="na">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>A client to consume this subscription can look like this:
+<div class="highlight"><pre><span></span><code><span class="n">client</span><span class="p">.</span><span class="na">countToFive</span>
+    <span class="p">.</span><span class="na">subscribe</span><span class="p">()</span>
+    <span class="p">.</span><span class="na">with</span><span class="p">(</span> <span class="c1">// onItem:</span>
+        <span class="n">i</span> <span class="o">-&gt;</span> <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Received number&quot;</span> <span class="o">+</span> <span class="n">i</span><span class="p">),</span>
+        <span class="c1">// onFailure:</span>
+        <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">()</span>
+    <span class="p">);</span>
+</code></pre></div></p>
                 
               
               
@@ -789,7 +755,7 @@ side Quarkus properties.</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../gradle-plugin/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Gradle plugin" rel="prev">
+        <a href="../typesafe-client-usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Basic usage" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -798,11 +764,26 @@ side Quarkus properties.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Gradle plugin
+              Basic usage
             </div>
           </div>
         </a>
       
+      
+        
+        <a href="../typesafe-client-headers/" class="md-footer__link md-footer__link--next" aria-label="Next: Adding headers" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Adding headers
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
       
     </nav>
   

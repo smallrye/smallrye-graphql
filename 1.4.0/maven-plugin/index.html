@@ -321,6 +321,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../typesafe-client-reactive-types/" class="md-nav__link">
+        Reactive
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../typesafe-client-headers/" class="md-nav__link">
         Adding headers
       </a>
@@ -609,42 +623,40 @@ build phase.</p>
 <h1 id="configuration-options">Configuration options</h1>
 <ul>
 <li>
-<p><code>destination</code> - To override the default
-    <code>target/generated/schema.graphql</code> destination</p>
+<p><code>destination</code> - To override the default <code>target/generated/schema.graphql</code> destination</p>
 </li>
 <li>
 <p><code>includeDependencies</code> - Scan project’s dependencies for GraphQL
-    model classes too. Off (false) by default.</p>
+model classes too. This is necessary if your GraphQL endpoint exposes
+classes that are not in the application's main module. Off (<code>false</code>) by default, because
+scanning a potentially large dependency tree slows down execution substantially.
+Usage of reactive types does not require turning this option on. </p>
 </li>
 <li>
 <p><code>includeDependenciesScopes</code> - If the above <code>includeDependencies</code> is
-    true, you can control what scopes should be included. Default is
-    <code>compile, system</code></p>
+true, you can control what scopes should be included. Default is
+<code>compile, system</code></p>
 </li>
 <li>
 <p><code>includeDependenciesTypes</code> - If the above <code>includeDependencies</code> is
-    true, you can control what types should be included. Default is
-    <code>jar</code></p>
+true, you can control what types should be included. Default is
+<code>jar</code></p>
 </li>
 <li>
 <p><code>includeScalars</code> - Include scalars in the schema. Default false.</p>
 </li>
 <li>
-<p><code>includeDirectives</code> - Include directives in the schema. Default
-    false.</p>
+<p><code>includeDirectives</code> - Include directives in the schema. Default false.</p>
 </li>
 <li>
-<p><code>includeSchemaDefinition</code> - Include the schema definition. Default
-    false.</p>
+<p><code>includeSchemaDefinition</code> - Include the schema definition. Default false.</p>
 </li>
 <li>
-<p><code>includeIntrospectionTypes</code> - Include the introspection types in the
-    schema. Default false.</p>
+<p><code>includeIntrospectionTypes</code> - Include the introspection types in the schema. Default false.</p>
 </li>
 <li>
-<p><code>typeAutoNameStrategy</code> - Strategy for transforming class names into
-    GraphQL type names. Valid values are <code>MergeInnerClass</code>, <code>Full</code> and
-    <code>Default</code>.</p>
+<p><code>typeAutoNameStrategy</code> - Strategy for transforming class names into GraphQL type names. 
+Valid values are <code>MergeInnerClass</code>, <code>Full</code> and<code>Default</code>.</p>
 </li>
 </ul>
                 
