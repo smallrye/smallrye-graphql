@@ -1,11 +1,9 @@
-package io.smallrye.graphql.client.typesafe.api;
+package io.smallrye.graphql.client;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
-
-import io.smallrye.graphql.client.GraphQLError;
 
 /**
  * Represents a response that contained application-level errors and thus can't be turned into a domain object.
