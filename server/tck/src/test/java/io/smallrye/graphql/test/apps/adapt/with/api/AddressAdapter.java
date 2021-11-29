@@ -11,7 +11,6 @@ public class AddressAdapter implements Adapter<Address, EmailAddress> {
 
     @Override
     public Address from(EmailAddress email) {
-        System.err.println(">>>>>>>> FROM " + email);
         Address a = new Address();
         a.addressType = AddressType.email;
         a.addLine(email.getValue());
@@ -20,7 +19,6 @@ public class AddressAdapter implements Adapter<Address, EmailAddress> {
 
     @Override
     public EmailAddress to(Address address) {
-        System.err.println(">>>>>>>> TO " + address);
         if (address != null && address.addressType != null && address.addressType.equals(AddressType.email)) {
             return new EmailAddress(address.lines.get(0));
         }

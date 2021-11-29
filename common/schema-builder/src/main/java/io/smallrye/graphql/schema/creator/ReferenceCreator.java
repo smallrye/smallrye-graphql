@@ -329,17 +329,6 @@ public class ReferenceCreator {
             List<Type> fieldArguments = parameterizedFieldType.arguments();
             List<Type> methodArguments = methodType.asParameterizedType().arguments();
 
-            Type keyTypeInFieldMap = fieldArguments.get(0);
-            Type keyTypeInMethodMap = methodArguments.get(0);
-
-            Type valueTypeInFieldMap = fieldArguments.get(1);
-            Type valueTypeInMethodMap = methodArguments.get(1);
-
-            // TODO: Create the references for the types.
-            //createReference(direction, impl, createAdapedToType, createAdapedWithType, parentObjectReference,
-            //            parametrizedTypeArgumentsReferencesImpl,
-            //                        true);
-
             ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(new Type[] {}), null);
 
             return getReference(direction, entryType, entryType, annotations, parentObjectReference);

@@ -13,6 +13,7 @@
           "piet@pompies.co.za"
         ]
       },
+      "wordNumber": 7,
       "metadata": [
         {
           "key": "foo",
@@ -25,50 +26,40 @@
       ],
       "properties": [
         {
-          "key": "foo2",
-          "value": "bar2"
-        },
-        {
           "key": "description2",
           "value": "here some more info2"
-        }
-      ]
-    },
-    "adapterDatas": [
-      {
-        "id": 1,
-      "name": "Foo",
-      "address": {
-        "value": "phillip@kruger.co.za"
-      },
-      "tags": "foo bar",
-      "email": {
-        "addressType": "email",
-        "lines": [
-          "piet@pompies.co.za"
-        ]
-      },
-      "metadata": [
-        {
-          "key": "foo",
-          "value": "bar"
         },
         {
-          "key": "description",
-          "value": "here some more info"
+          "key": "foo2",
+          "value": "bar2"
         }
       ],
-      "properties": [
+      "complexMap": [
         {
-          "key": "foo2",
-          "value": "bar2"
+          "key": {
+            "id": 2
+          },
+          "value": {
+            "id": 1,
+            "values": [
+              "v2a",
+              "v2b"
+            ]
+          }
         },
         {
-          "key": "description2",
-          "value": "here some more info2"
+          "key": {
+            "id": 1
+          },
+          "value": {
+            "id": 1,
+            "values": [
+              "v1a",
+              "v1b"
+            ]
+          }
         }
       ]
-      }
-    ]
+    }
   }
 }
