@@ -14,7 +14,7 @@
     
     
       
-        <title>Client configuration - Smallrye GraphQL</title>
+        <title>Error handling - Smallrye GraphQL</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#client-side-configuration-properties" class="md-skip">
+        <a href="#error-handling-with-dynamic-clients" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Client configuration
+              Error handling
             
           </span>
         </div>
@@ -397,14 +397,16 @@
 
   
   
+    
+  
   
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
       
       
       
@@ -439,11 +441,21 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../dynamic-client-error-handling/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Error handling
       </a>
+      
     </li>
   
 
@@ -600,13 +612,20 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/smallrye/smallrye-graphql/edit/main/docs/client_configuration.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/smallrye/smallrye-graphql/edit/main/docs/dynamic-client-error-handling.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="client-side-configuration-properties">Client-side configuration properties</h1>
-<p>TODO</p>
+                <h1 id="error-handling-with-dynamic-clients">Error handling with dynamic clients</h1>
+<p>When executing GraphQL operations using a dynamic client, the application receives back an
+instance of <code>io.smallrye.graphql.client.Response</code> that encapsulates the whole response from the service,
+including potential errors. Errors are represented as <code>io.smallrye.graphql.client.GraphQLError</code>
+and can be inspected after retrieving a list of all errors using <code>response.getErrors()</code>.</p>
+<p>It is also possible to convert a response's errors into a <code>io.smallrye.graphql.client.GraphQLClientException</code>
+by calling <code>throwExceptionIfErrors()</code> - the response has to be cast to <code>ResponseImpl</code> for this as of now.
+This method will, if there are any errors in the response, convert the errors into a <code>GraphQLClientException</code> 
+and throw it.</p>
                 
               
               
@@ -622,6 +641,41 @@
       
         
 <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../dynamic-client-usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Basic usage" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Basic usage
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../maven-plugin/" class="md-footer__link md-footer__link--next" aria-label="Next: Maven plugin" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Maven plugin
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
