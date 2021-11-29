@@ -56,7 +56,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
                             }
                         } else {
                             try {
-                                resultBuilder.data(fieldHelper.transformResponse(result));
+                                resultBuilder.data(fieldHelper.transformOrAdaptResponse(result));
                             } catch (AbstractDataFetcherException te) {
                                 te.appendDataFetcherResult(resultBuilder, dfe);
                             }

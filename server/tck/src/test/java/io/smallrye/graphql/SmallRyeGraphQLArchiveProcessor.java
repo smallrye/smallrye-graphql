@@ -11,7 +11,8 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
-import io.smallrye.graphql.test.apps.adapter.api.AdapterResource;
+import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.test.apps.adapt.with.api.AdapterResource;
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
 import io.smallrye.graphql.test.apps.batch.api.BatchApi;
 import io.smallrye.graphql.test.apps.collections.api.CollectionResource;
@@ -27,7 +28,6 @@ import io.smallrye.graphql.test.apps.grouping.api.BookGraphQLApi;
 import io.smallrye.graphql.test.apps.interfaces.api.FoodResource;
 import io.smallrye.graphql.test.apps.jackson.api.JacksonApi;
 import io.smallrye.graphql.test.apps.jsonp.api.JsonPApi;
-import io.smallrye.graphql.test.apps.mapping.api.MappingResource;
 import io.smallrye.graphql.test.apps.mutiny.api.MutinyApi;
 import io.smallrye.graphql.test.apps.optional.api.OptionalTestingApi;
 import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
@@ -84,6 +84,8 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                     .asFile();
             war.addAsLibraries(dependencies);
 
+            // For our auto Map adaption
+            war.addPackage(Entry.class.getPackage());
             // Add our own test app
             war.addPackage(ProfileGraphQLApi.class.getPackage());
             war.addPackage(AdditionalScalarsApi.class.getPackage());
@@ -98,7 +100,6 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(ContextApi.class.getPackage());
             war.addPackage(JsonPApi.class.getPackage());
             war.addPackage(BatchApi.class.getPackage());
-            war.addPackage(MappingResource.class.getPackage());
             war.addPackage(FieldExistenceApi.class.getPackage());
             war.addPackage(CreatorApi.class.getPackage());
             war.addPackage(EnumListApi.class.getPackage());

@@ -37,7 +37,7 @@ public class DataFetcherFactory {
             return field.getWrapper().getWrapper();
         } else if (isBatch) {
             return field.getWrapper().getWrapper();
-        } else if (field.hasWrapper() && field.getWrapper().isCollectionOrArray()) {
+        } else if (field.hasWrapper() && field.getWrapper().isCollectionOrArrayOrMap()) {
             return field.getWrapper();
         } else if (field.hasWrapper()) {
             // TODO: Move Generics logic here ?

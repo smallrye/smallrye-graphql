@@ -35,7 +35,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         try {
             SmallRyeContext.setContext(context);
             Object resultFromMethodCall = operationInvoker.invoke(transformedArguments);
-            Object resultFromTransform = fieldHelper.transformResponse(resultFromMethodCall);
+            Object resultFromTransform = fieldHelper.transformOrAdaptResponse(resultFromMethodCall);
             resultBuilder.data(resultFromTransform);
             return (T) resultBuilder.build();
         } finally {

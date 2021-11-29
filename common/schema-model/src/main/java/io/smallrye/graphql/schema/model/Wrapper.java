@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * If the type is wrapped in a generics bucket or in an array, keep the info here.
@@ -65,12 +66,16 @@ public class Wrapper implements Serializable {
         return this.wrapper != null;
     }
 
-    public boolean isCollectionOrArray() {
-        return isCollection() || isArray();
+    public boolean isCollectionOrArrayOrMap() {
+        return isCollection() || isArray() || isMap();
     }
 
     public boolean isCollection() {
         return wrapperType.equals(WrapperType.COLLECTION);
+    }
+
+    public boolean isMap() {
+        return wrapperType.equals(WrapperType.MAP);
     }
 
     public boolean isArray() {
@@ -87,7 +92,44 @@ public class Wrapper implements Serializable {
 
     @Override
     public String toString() {
-        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", notEmpty=" + notEmpty
-                + ", wrapperType=" + wrapperType + ", wrapper=" + wrapper + '}';
+        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", notEmpty=" + notEmpty + ", wrapperType=" + wrapperType
+                + ", wrapper=" + wrapper + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.wrapperClassName);
+        hash = 59 * hash + (this.notEmpty ? 1 : 0);
+        hash = 59 * hash + Objects.hashCode(this.wrapperType);
+        hash = 59 * hash + Objects.hashCode(this.wrapper);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Wrapper other = (Wrapper) obj;
+        if (this.notEmpty != other.notEmpty) {
+            return false;
+        }
+        if (!Objects.equals(this.wrapperClassName, other.wrapperClassName)) {
+            return false;
+        }
+        if (this.wrapperType != other.wrapperType) {
+            return false;
+        }
+        if (!Objects.equals(this.wrapper, other.wrapper)) {
+            return false;
+        }
+        return true;
     }
 }

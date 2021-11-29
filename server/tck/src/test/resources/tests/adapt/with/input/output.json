@@ -1,0 +1,39 @@
+{
+  "data": {
+    "updateAdapterData": {
+      "id": 1,
+      "name": "Foo",
+      "address": {
+        "value": "phillip@redhat.com"
+      },
+      "tags": "lekker man",
+      "email": {
+        "addressType": "email",
+        "lines": [
+          "foo@bar.com"
+        ]
+      },
+      "wordNumber": 8,
+      "metadata": [
+        {
+          "key": "mkey1",
+          "value": "mbla1"
+        },
+        {
+          "key": "mkey2",
+          "value": "mval2"
+        }
+      ],
+      "properties": [
+        {
+          "key": "key1",
+          "value": "bla1"
+        },
+        {
+          "key": "key2",
+          "value": "val2"
+        }
+      ]
+    }
+  }
+}

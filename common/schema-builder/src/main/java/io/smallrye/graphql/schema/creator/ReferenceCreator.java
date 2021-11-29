@@ -20,12 +20,14 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.AdaptToHelper;
+import io.smallrye.graphql.schema.helper.AdaptWithHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.FormatHelper;
-import io.smallrye.graphql.schema.helper.MappingHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
-import io.smallrye.graphql.schema.model.Mapping;
+import io.smallrye.graphql.schema.model.AdaptTo;
+import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
@@ -81,6 +83,18 @@ public class ReferenceCreator {
      */
     public Queue<Reference> values(ReferenceType referenceType) {
         return getReferenceQueue(referenceType);
+    }
+
+    /**
+     * Get a reference to a field type for an adapter on a field
+     * 
+     * @param direction the direction
+     * @param fieldType the java type
+     * @param annotations annotation on this operations method
+     * @return a reference to the type
+     */
+    public Reference createReferenceForAdapter(Direction direction, Type fieldType, Annotations annotations) {
+        return getReference(direction, null, fieldType, annotations);
     }
 
     /**
@@ -158,7 +172,7 @@ public class ReferenceCreator {
      * @return a reference
      */
     public Reference createReference(Direction direction, ClassInfo classInfo) {
-        return createReference(direction, classInfo, true, null, null, true);
+        return createReference(direction, classInfo, true, true, null, null, true);
     }
 
     /**
@@ -167,10 +181,11 @@ public class ReferenceCreator {
      * 
      * @param direction the direction (in or out)
      * @param classInfo the Java class
-     * @param createType create the type in the schema
+     * @param createAdapedToType create the type in the schema
      * @return a reference
      */
-    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createType,
+    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createAdapedToType,
+            boolean createAdapedWithType,
             Reference parentObjectReference, Map<String, Reference> parametrizedTypeArgumentsReferences,
             boolean addParametrizedTypeNameExtension) {
         // Get the initial reference type. It's either Type or Input depending on the direction. This might change as
@@ -210,7 +225,8 @@ public class ReferenceCreator {
 
                 }
 
-                createReference(direction, impl, createType, parentObjectReference, parametrizedTypeArgumentsReferencesImpl,
+                createReference(direction, impl, createAdapedToType, createAdapedWithType, parentObjectReference,
+                        parametrizedTypeArgumentsReferencesImpl,
                         true);
             }
             referenceType = ReferenceType.INTERFACE;
@@ -231,16 +247,30 @@ public class ReferenceCreator {
         Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences,
                 addParametrizedTypeNameExtension);
 
-        // Map to Scalar info
-        boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotationsForClass);
-        Optional<Mapping> mapping = MappingHelper.getMapping(reference, annotationsForClass);
-        reference.setMapping(mapping.orElse(null));
+        // Adapt to Scalar
+        boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotationsForClass);
+        Optional<AdaptTo> adaptTo = AdaptToHelper.getAdaptTo(reference, annotationsForClass);
+        reference.setAdaptTo(adaptTo.orElse(null));
 
         // Now add it to the correct map
-        if (shouldCreateType && createType) {
+        if (shouldCreateAdapedToType && createAdapedToType) {
+            putIfAbsent(name, reference, referenceType);
+        }
+
+        // Adapt with adapter
+        boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotationsForClass);
+        Optional<AdaptWith> adaptWith = AdaptWithHelper.getAdaptWith(direction, this, reference, annotationsForClass);
+        reference.setAdaptWith(adaptWith.orElse(null));
+
+        // Now add it to the correct map
+        if (shouldCreateAdapedWithType && createAdapedWithType) {
             putIfAbsent(name, reference, referenceType);
         }
         return reference;
+    }
+
+    public TypeAutoNameStrategy getTypeAutoNameStrategy() {
+        return this.autoNameStrategy;
     }
 
     private boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
@@ -255,11 +285,17 @@ public class ReferenceCreator {
         return false;
     }
 
-    private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations) {
+    private Reference getReference(Direction direction,
+            Type fieldType,
+            Type methodType,
+            Annotations annotations) {
         return getReference(direction, fieldType, methodType, annotations, null);
     }
 
-    private Reference getReference(Direction direction, Type fieldType, Type methodType, Annotations annotations,
+    private Reference getReference(Direction direction,
+            Type fieldType,
+            Type methodType,
+            Annotations annotations,
             Reference parentObjectReference) {
 
         // In some case, like operations and interfaces, there is not fieldType
@@ -288,6 +324,25 @@ public class ReferenceCreator {
             Type typeInCollection = fieldType.asParameterizedType().arguments().get(0);
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
             return getReference(direction, typeInCollection, typeInMethodCollection, annotations, parentObjectReference);
+        } else if (Classes.isMap(fieldType)) {
+            ParameterizedType parameterizedFieldType = fieldType.asParameterizedType();
+            List<Type> fieldArguments = parameterizedFieldType.arguments();
+            List<Type> methodArguments = methodType.asParameterizedType().arguments();
+
+            Type keyTypeInFieldMap = fieldArguments.get(0);
+            Type keyTypeInMethodMap = methodArguments.get(0);
+
+            Type valueTypeInFieldMap = fieldArguments.get(1);
+            Type valueTypeInMethodMap = methodArguments.get(1);
+
+            // TODO: Create the references for the types.
+            //createReference(direction, impl, createAdapedToType, createAdapedWithType, parentObjectReference,
+            //            parametrizedTypeArgumentsReferencesImpl,
+            //                        true);
+
+            ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(new Type[] {}), null);
+
+            return getReference(direction, entryType, entryType, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
@@ -306,8 +361,10 @@ public class ReferenceCreator {
                             direction, parentObjectReference);
                 }
 
-                boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
-                return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
+                boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
+                boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
+                return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
+                        parentObjectReference,
                         parametrizedTypeArgumentsReferences, false);
             } else {
                 return getNonIndexedReference(direction, fieldType);
@@ -324,8 +381,10 @@ public class ReferenceCreator {
                 Map<String, Reference> parametrizedTypeArgumentsReferences = collectParametrizedTypes(classInfo,
                         parametrizedTypeArguments, direction, parentObjectReference);
 
-                boolean shouldCreateType = MappingHelper.shouldCreateTypeInSchema(annotations);
-                return createReference(direction, classInfo, shouldCreateType, parentObjectReference,
+                boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
+                boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
+                return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
+                        parentObjectReference,
                         parametrizedTypeArgumentsReferences, true);
             } else {
                 return getNonIndexedReference(direction, fieldType);
@@ -454,7 +513,7 @@ public class ReferenceCreator {
 
     private Reference getNonIndexedReference(Direction direction, Type fieldType) {
 
-        // If this is an unknown Wrapper (like map) throw an exception
+        // If this is an unknown Wrapper, throw an exception
         if (fieldType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
 
             if (direction.equals(Direction.IN)) {

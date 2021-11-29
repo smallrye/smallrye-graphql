@@ -45,7 +45,7 @@ public class MultiDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
                     .onItem().transform((t) -> {
                         try {
-                            Object resultFromTransform = fieldHelper.transformResponse(t);
+                            Object resultFromTransform = fieldHelper.transformOrAdaptResponse(t);
                             resultBuilder.data(resultFromTransform);
                             return (O) resultBuilder.build();
                         } catch (AbstractDataFetcherException abstractDataFetcherException) {

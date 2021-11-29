@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,8 +51,11 @@ public class IndexInitializer {
         }
 
         // Classes in this artifact
-        IndexView i = createIndexView(urls);
-        indexes.add(i);
+        IndexView artifact = createIndexView(urls);
+        indexes.add(artifact);
+
+        IndexView jdk = createJdkIndex();
+        indexes.add(jdk);
 
         return merge(indexes);
     }
@@ -59,6 +63,17 @@ public class IndexInitializer {
     public IndexView createIndex() {
         Set<URL> urls = getUrlFromClassPath();
         return createIndexView(urls);
+    }
+
+    private IndexView createJdkIndex() {
+        Indexer indexer = new Indexer();
+
+        try {
+            indexer.indexClass(Map.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return indexer.complete();
     }
 
     private IndexView createIndexView(Set<URL> urls) {

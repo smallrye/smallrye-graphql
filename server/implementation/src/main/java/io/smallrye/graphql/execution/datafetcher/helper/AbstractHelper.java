@@ -5,14 +5,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
+import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
-import io.smallrye.graphql.schema.model.Adapter;
+import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Wrapper;
@@ -28,10 +31,46 @@ import io.smallrye.graphql.transformation.Transformer;
 public abstract class AbstractHelper {
 
     protected final ClassloadingService classloadingService = ClassloadingService.get();
+    protected final DefaultMapAdapter mapAdapter = new DefaultMapAdapter();
     private final Map<String, Transformer> transformerMap = new HashMap<>();
     private final Map<Integer, ReflectionInvoker> invokerMap = new HashMap<>();
 
     protected AbstractHelper() {
+    }
+
+    /**
+     * Checks, if this field is a scalar and the object has the wrong type.
+     * Transformation is only possible for scalars and only needed if types don't match.
+     *
+     * @param field the field
+     * @return if transformation is needed
+     */
+    protected boolean shouldTransform(Field field) {
+        return (field.getReference().getType() == ReferenceType.SCALAR
+                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName()));
+    }
+
+    /**
+     * Checks if we should adapt the field
+     * This is (for now) only applying to AdaptWith
+     *
+     * @param field the field
+     * @return if adaption is needed
+     */
+    protected boolean shouldAdapt(Field field) {
+        return field.getReference().isAdaptingWith() || field.isAdaptingWith()
+                || (field.hasWrapper() && field.getWrapper().isMap());
+    }
+
+    public Object transformOrAdapt(Object val, Field field)
+            throws AbstractDataFetcherException {
+
+        val = recursiveTransform(val, field);
+        if (shouldAdapt(field)) {
+            val = recursiveAdapting(val, field);
+        }
+
+        return val;
     }
 
     /**
@@ -53,13 +92,13 @@ public abstract class AbstractHelper {
     abstract Object singleTransform(Object argumentValue, Field field) throws AbstractDataFetcherException;
 
     /**
-     * This does the mapping of a 'leaf' value
+     * This does the adapting to a scalar of a 'leaf' value
      *
      * @param argumentValue the value
      * @param field the field as scanned
      * @return mapped value
      */
-    abstract Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException;
+    abstract Object singleAdapting(Object argumentValue, Field field) throws AbstractDataFetcherException;
 
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
@@ -78,6 +117,8 @@ public abstract class AbstractHelper {
         // First handle the array if this is an array
         if (field.hasWrapper() && field.getWrapper().isArray()) {
             return recursiveTransformArray(inputValue, field);
+        } else if (field.hasWrapper() && field.getWrapper().isMap()) {
+            return inputValue;
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
             return recursiveTransformCollection(inputValue, field);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
@@ -93,13 +134,13 @@ public abstract class AbstractHelper {
     }
 
     /**
-     * Here we actually do the mapping. This method get called recursively in the case of arrays
+     * Here we actually do the adapting. This method get called recursively in the case of arrays etc.
      *
      * @param inputValue the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and mapped
      */
-    Object recursiveMapping(Object inputValue, Field field)
+    Object recursiveAdapting(Object inputValue, Field field)
             throws AbstractDataFetcherException {
 
         if (inputValue == null) {
@@ -107,17 +148,21 @@ public abstract class AbstractHelper {
         }
 
         if (field.hasWrapper() && field.getWrapper().isArray()) {
-            return recursiveMappingArray(inputValue, field);
+            return recursiveAdaptArray(inputValue, field);
+        } else if (Classes.isMap(inputValue) && shouldAdaptWithToMap(field)) {
+            return singleAdapting(inputValue, field);
+        } else if (shouldAdaptWithFromMap(field)) {
+            return singleAdapting(new HashSet((Collection) inputValue), field);
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
-            return recursiveMappingCollection(inputValue, field);
+            return recursiveAdaptCollection(inputValue, field);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
-            return recursiveMappingOptional(inputValue, field);
+            return recursiveAdaptOptional(inputValue, field);
         } else {
-            // we need to transform before we make sure the type is correct
-            inputValue = singleMapping(inputValue, field);
+            // we need to adapt before we make sure the type is correct
+            inputValue = singleAdapting(inputValue, field);
         }
 
-        // Recursive transformation done.
+        // Recursive adapting done.
         return inputValue;
     }
 
@@ -157,14 +202,14 @@ public abstract class AbstractHelper {
     }
 
     /**
-     * This just creates a new array and add values to it by calling the recursiveMapping method.
+     * This just creates a new array and add values to it by calling the recursiveAdapting method.
      * This allows arrays of arrays and mapping inside arrays
      *
      * @param array the array or list as from graphql-java,
      * @param field the field as created while scanning
      * @return an array with the mapped values in.
      */
-    private Object recursiveMappingArray(Object array, Field field) throws AbstractDataFetcherException {
+    private Object recursiveAdaptArray(Object array, Field field) throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
             array = ((Collection) array).toArray();
         }
@@ -182,66 +227,11 @@ public abstract class AbstractHelper {
         for (int i = 0; i < length; i++) {
             Field fieldInCollection = getFieldInField(field);
             Object element = Array.get(array, i);
-            Object targetElement = recursiveMapping(element, fieldInCollection);
+            Object targetElement = recursiveAdapting(element, fieldInCollection);
             Array.set(targetArray, i, targetElement);
         }
 
         return targetArray;
-    }
-
-    protected Class<?> getArrayType(Field field) {
-        String classNameInCollection = field.getReference().getClassName();
-        Class classInCollection = classloadingService.loadClass(classNameInCollection);
-        return classInCollection;
-    }
-
-    protected Transformer getTransformer(Field field) {
-        if (transformerMap.containsKey(field.getName())) {
-            return transformerMap.get(field.getName());
-        }
-        Transformer transformer = Transformer.transformer(field);
-        transformerMap.put(field.getName(), transformer);
-        return transformer;
-    }
-
-    protected ReflectionInvoker getReflectionInvokerForInput(Adapter adapter) {
-        List<String> parameters = new ArrayList<>();
-        parameters.add(adapter.getToClass());
-        return getReflectionInvoker(adapter.getAdapterClass(), adapter.getFromMethod(), parameters);
-    }
-
-    protected ReflectionInvoker getReflectionInvokerForOutput(Adapter adapter) {
-        List<String> parameters = new ArrayList<>();
-        parameters.add(adapter.getFromClass());
-        return getReflectionInvoker(adapter.getAdapterClass(), adapter.getToMethod(), parameters);
-    }
-
-    protected ReflectionInvoker getReflectionInvoker(String className, String methodName, List<String> parameterClasses) {
-        Integer key = getKey(className, methodName, parameterClasses);
-        if (invokerMap.containsKey(key)) {
-            return invokerMap.get(key);
-        } else {
-            ReflectionInvoker reflectionInvoker = new ReflectionInvoker(className, methodName, parameterClasses);
-            invokerMap.put(key, reflectionInvoker);
-            return reflectionInvoker;
-        }
-    }
-
-    private Integer getKey(String className, String methodName, List<String> parameterClasses) {
-        return Objects.hash(className, methodName, parameterClasses.toArray());
-    }
-
-    /**
-     * Checks, if this field is a scalar and the object has the wrong type.
-     * Transformation is only possible for scalars and only needed if types don't match.
-     *
-     * @param field the field
-     * @return if transformation is needed
-     */
-    protected boolean shouldTransform(Field field) {
-        return (field.getReference().getType() == ReferenceType.SCALAR
-                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName())
-                || field.hasAdapter());
     }
 
     /**
@@ -261,8 +251,8 @@ public abstract class AbstractHelper {
 
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
 
+        Field fieldInCollection = getFieldInField(field);
         for (Object objectInGivenCollection : givenCollection) {
-            Field fieldInCollection = getFieldInField(field);
             Object objectInCollection = recursiveTransform(objectInGivenCollection,
                     fieldInCollection);
             convertedCollection.add(objectInCollection);
@@ -272,21 +262,21 @@ public abstract class AbstractHelper {
     }
 
     /**
-     * This just creates a new correct type collection and add values to it by calling the recursiveMapping method.
+     * This just creates a new correct type collection and add values to it by calling the recursiveAdapting method.
      * This allows collections of collections and mapping inside collections
      *
      * @param argumentValue the list as from graphql-java (always an arraylist)
      * @param field the field as created while scanning
      * @return a collection with the mapped values in.
      */
-    private Object recursiveMappingCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Object recursiveAdaptCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
         String collectionClassName = field.getWrapper().getWrapperClassName();
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
 
+        Field fieldInCollection = getFieldInField(field);
         for (Object objectInGivenCollection : givenCollection) {
-            Field fieldInCollection = getFieldInField(field);
-            Object objectInCollection = recursiveMapping(objectInGivenCollection,
+            Object objectInCollection = recursiveAdapting(objectInGivenCollection,
                     fieldInCollection);
             convertedCollection.add(objectInCollection);
         }
@@ -312,7 +302,6 @@ public abstract class AbstractHelper {
             Field f = getFieldInField(field);
             return Optional.of(recursiveTransform(o, f));
         }
-
     }
 
     /**
@@ -322,7 +311,8 @@ public abstract class AbstractHelper {
      * @param field the graphql-field
      * @return a optional with the mapped value in.
      */
-    private Optional<Object> recursiveMappingOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Optional<Object> recursiveAdaptOptional(Object argumentValue, Field field)
+            throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
         if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
             return Optional.empty();
@@ -330,9 +320,63 @@ public abstract class AbstractHelper {
             Optional optional = (Optional) argumentValue;
             Object o = optional.get();
             Field f = getFieldInField(field);
-            return Optional.of(recursiveMapping(o, f));
+            return Optional.of(recursiveAdapting(o, f));
         }
 
+    }
+
+    protected Class<?> getArrayType(Field field) {
+        String classNameInCollection = field.getReference().getClassName();
+        Class classInCollection = classloadingService.loadClass(classNameInCollection);
+        return classInCollection;
+    }
+
+    protected Transformer getTransformer(Field field) {
+        if (transformerMap.containsKey(field.getName())) {
+            return transformerMap.get(field.getName());
+        }
+        Transformer transformer = Transformer.transformer(field);
+        transformerMap.put(field.getName(), transformer);
+        return transformer;
+    }
+
+    protected ReflectionInvoker getReflectionInvokerForInput(AdaptWith adaptWith) {
+        List<String> parameters = new ArrayList<>();
+        if (adaptWith.getToReference().hasWrapper()) {
+            parameters.add(adaptWith.getToReference().getWrapper().getWrapperClassName());
+        } else {
+            parameters.add(adaptWith.getToReference().getClassName());
+        }
+
+        return getReflectionInvoker(adaptWith.getAdapterClass(), adaptWith.getFromMethod(), parameters);
+
+    }
+
+    protected ReflectionInvoker getReflectionInvokerForOutput(AdaptWith adaptWith) {
+        List<String> parameters = new ArrayList<>();
+
+        if (adaptWith.getFromReference().hasWrapper()) {
+            parameters.add(adaptWith.getFromReference().getWrapper().getWrapperClassName());
+        } else {
+            parameters.add(adaptWith.getFromReference().getClassName());
+        }
+
+        return getReflectionInvoker(adaptWith.getAdapterClass(), adaptWith.getToMethod(), parameters);
+    }
+
+    private ReflectionInvoker getReflectionInvoker(String className, String methodName, List<String> parameterClasses) {
+        Integer key = getKey(className, methodName, parameterClasses);
+        if (invokerMap.containsKey(key)) {
+            return invokerMap.get(key);
+        } else {
+            ReflectionInvoker reflectionInvoker = new ReflectionInvoker(className, methodName, parameterClasses);
+            invokerMap.put(key, reflectionInvoker);
+            return reflectionInvoker;
+        }
+    }
+
+    private Integer getKey(String className, String methodName, List<String> parameterClasses) {
+        return Objects.hash(className, methodName, parameterClasses.toArray());
     }
 
     /**
@@ -355,8 +399,10 @@ public abstract class AbstractHelper {
         child.setDescription(owner.getDescription());
         // transform info
         child.setTransformation(owner.getTransformation());
-        // mapping info
-        child.setMapping(owner.getMapping());
+        // adapting to
+        child.setAdaptTo(owner.getAdaptTo());
+        // adapting with
+        child.setAdaptWith(owner.getAdaptWith());
         // default value
         child.setDefaultValue(owner.getDefaultValue());
 
@@ -380,6 +426,28 @@ public abstract class AbstractHelper {
         } else {
             return Arrays.asList((T[]) argumentValue);
         }
+    }
+
+    // TODO: Support more concrete maps too
+    private boolean shouldAdaptWithFromMap(Field field) {
+        if (field.isAdaptingWith()) {
+            return field.getAdaptWith().getFromReference().getClassName().equals(Map.class.getName())
+                    || (field.getAdaptWith().getFromReference().hasWrapper()
+                            && field.getAdaptWith().getFromReference().getWrapper().getWrapperClassName()
+                                    .equals(Map.class.getName()));
+        }
+
+        return field.hasWrapper() && field.getWrapper().isMap();
+    }
+
+    private boolean shouldAdaptWithToMap(Field field) {
+        if (field.isAdaptingWith()) {
+            return field.getAdaptWith().getToReference().hasWrapper()
+                    && field.getAdaptWith().getToReference().getWrapper().getWrapperClassName().equals(Set.class.getName())
+                    && field.getAdaptWith().getToReference().getClassName().equals(Entry.class.getName());
+        }
+
+        return field.hasWrapper() && field.getWrapper().isMap();
     }
 
 }

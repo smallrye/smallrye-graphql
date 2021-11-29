@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represent a property on a complex type (Type/Input/Interface)
@@ -53,12 +54,12 @@ public class Field implements Serializable {
     /**
      * If the field is mapped to another type
      */
-    private Mapping mapping = null;
+    private AdaptTo adaptTo = null;
 
     /**
      * If the field contains an adapter
      */
-    private Adapter adapter = null;
+    private AdaptWith adaptWith = null;
 
     private String defaultValue = null;
     private boolean notNull = false;
@@ -147,28 +148,28 @@ public class Field implements Serializable {
         return this.transformation != null;
     }
 
-    public Mapping getMapping() {
-        return mapping;
+    public AdaptTo getAdaptTo() {
+        return adaptTo;
     }
 
-    public void setMapping(Mapping mapping) {
-        this.mapping = mapping;
+    public void setAdaptTo(AdaptTo adaptTo) {
+        this.adaptTo = adaptTo;
     }
 
-    public boolean hasMapping() {
-        return this.mapping != null;
+    public boolean isAdaptingTo() {
+        return this.adaptTo != null;
     }
 
-    public Adapter getAdapter() {
-        return adapter;
+    public AdaptWith getAdaptWith() {
+        return adaptWith;
     }
 
-    public void setAdapter(Adapter adapter) {
-        this.adapter = adapter;
+    public void setAdaptWith(AdaptWith adaptWith) {
+        this.adaptWith = adaptWith;
     }
 
-    public boolean hasAdapter() {
-        return this.adapter != null;
+    public boolean isAdaptingWith() {
+        return this.adaptWith != null;
     }
 
     public String getDefaultValue() {
@@ -193,5 +194,82 @@ public class Field implements Serializable {
 
     public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
         this.directiveInstances = directiveInstances;
+    }
+
+    @Override
+    public String toString() {
+        return "Field{" + "methodName=" + methodName + ", propertyName=" + propertyName + ", name=" + name + ", description="
+                + description + ", reference=" + reference + ", wrapper=" + wrapper + ", transformation=" + transformation
+                + ", adaptTo=" + adaptTo + ", adaptWith=" + adaptWith + ", defaultValue=" + defaultValue + ", notNull="
+                + notNull + ", directiveInstances=" + directiveInstances + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.methodName);
+        hash = 73 * hash + Objects.hashCode(this.propertyName);
+        hash = 73 * hash + Objects.hashCode(this.name);
+        hash = 73 * hash + Objects.hashCode(this.description);
+        hash = 73 * hash + Objects.hashCode(this.reference);
+        hash = 73 * hash + Objects.hashCode(this.wrapper);
+        hash = 73 * hash + Objects.hashCode(this.transformation);
+        hash = 73 * hash + Objects.hashCode(this.adaptTo);
+        hash = 73 * hash + Objects.hashCode(this.adaptWith);
+        hash = 73 * hash + Objects.hashCode(this.defaultValue);
+        hash = 73 * hash + (this.notNull ? 1 : 0);
+        hash = 73 * hash + Objects.hashCode(this.directiveInstances);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Field other = (Field) obj;
+        if (this.notNull != other.notNull) {
+            return false;
+        }
+        if (!Objects.equals(this.methodName, other.methodName)) {
+            return false;
+        }
+        if (!Objects.equals(this.propertyName, other.propertyName)) {
+            return false;
+        }
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        if (!Objects.equals(this.description, other.description)) {
+            return false;
+        }
+        if (!Objects.equals(this.defaultValue, other.defaultValue)) {
+            return false;
+        }
+        if (!Objects.equals(this.reference, other.reference)) {
+            return false;
+        }
+        if (!Objects.equals(this.wrapper, other.wrapper)) {
+            return false;
+        }
+        if (!Objects.equals(this.transformation, other.transformation)) {
+            return false;
+        }
+        if (!Objects.equals(this.adaptTo, other.adaptTo)) {
+            return false;
+        }
+        if (!Objects.equals(this.adaptWith, other.adaptWith)) {
+            return false;
+        }
+        if (!Objects.equals(this.directiveInstances, other.directiveInstances)) {
+            return false;
+        }
+        return true;
     }
 }

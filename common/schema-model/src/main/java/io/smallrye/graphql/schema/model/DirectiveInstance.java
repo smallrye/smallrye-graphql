@@ -35,4 +35,9 @@ public class DirectiveInstance {
     public void setValues(Map<String, Object> values) {
         this.values = values;
     }
+
+    @Override
+    public String toString() {
+        return "DirectiveInstance{" + "type=" + type + ", values=" + values + '}';
+    }
 }

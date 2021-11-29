@@ -45,4 +45,9 @@ public final class EnumType extends Reference {
     public boolean hasValues() {
         return !this.values.isEmpty();
     }
+
+    @Override
+    public String toString() {
+        return "EnumType{" + "description=" + description + ", values=" + values + '}';
+    }
 }

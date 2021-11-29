@@ -10,10 +10,8 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
-import io.smallrye.graphql.schema.helper.AdapterHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.model.Adapter;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -26,11 +24,10 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class OperationCreator extends ModelCreator {
 
-    private final ReferenceCreator referenceCreator;
     private final ArgumentCreator argumentCreator;
 
     public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator) {
-        this.referenceCreator = referenceCreator;
+        super(referenceCreator);
         this.argumentCreator = argumentCreator;
     }
 
@@ -55,10 +52,7 @@ public class OperationCreator extends ModelCreator {
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
 
-        // Adapting
-        Optional<Adapter> adapter = AdapterHelper.getAdapter(annotationsForMethod);
-
-        Type fieldType = getReturnType(adapter, methodInfo);
+        Type fieldType = getReturnType(methodInfo);
 
         // Name
         String name = getOperationName(methodInfo, operationType, annotationsForMethod);
@@ -84,7 +78,7 @@ public class OperationCreator extends ModelCreator {
             maybeArgument.ifPresent(operation::addArgument);
         }
 
-        populateField(operation, fieldType, adapter, annotationsForMethod);
+        populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
         return operation;
     }
@@ -121,12 +115,15 @@ public class OperationCreator extends ModelCreator {
     }
 
     private static DotName getOperationAnnotation(OperationType operationType) {
-        if (operationType.equals(OperationType.QUERY)) {
-            return Annotations.QUERY;
-        } else if (operationType.equals(OperationType.MUTATION)) {
-            return Annotations.MUTATION;
-        } else if (operationType.equals(OperationType.SUBSCRIPTION)) {
-            return Annotations.SUBCRIPTION;
+        switch (operationType) {
+            case QUERY:
+                return Annotations.QUERY;
+            case MUTATION:
+                return Annotations.MUTATION;
+            case SUBSCRIPTION:
+                return Annotations.SUBCRIPTION;
+            default:
+                break;
         }
         return null;
     }

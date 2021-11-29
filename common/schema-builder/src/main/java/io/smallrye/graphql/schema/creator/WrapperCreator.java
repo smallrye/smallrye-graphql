@@ -58,6 +58,8 @@ public class WrapperCreator {
             return WrapperType.ARRAY;
         } else if (Classes.isCollection(type)) {
             return WrapperType.COLLECTION;
+        } else if (Classes.isMap(type)) {
+            return WrapperType.MAP;
         } else if (Classes.isParameterized(type)) {
             return WrapperType.UNKNOWN;
         }

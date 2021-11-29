@@ -12,7 +12,6 @@ import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Type;
@@ -29,9 +28,8 @@ public class InterfaceCreator extends AbstractCreator {
 
     private final FieldCreator fieldCreator;
 
-    public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator,
-            TypeAutoNameStrategy autoNameStrategy, OperationCreator operationCreator) {
-        super(operationCreator, referenceCreator, autoNameStrategy);
+    public InterfaceCreator(ReferenceCreator referenceCreator, FieldCreator fieldCreator, OperationCreator operationCreator) {
+        super(operationCreator, referenceCreator);
         this.fieldCreator = fieldCreator;
     }
 

@@ -1,0 +1,42 @@
+{
+  adapterData{
+    id
+    name
+    address{
+      value
+    }
+    tags
+    email {
+      addressType
+      lines
+    }
+    metadata{
+      key
+      value
+    }
+    properties{
+      key
+      value
+    }
+  }
+  adapterDatas{
+    id
+    name
+    address{
+      value
+    }
+    tags
+    email {
+      addressType
+      lines
+    }
+    metadata{
+      key
+      value
+    }
+    properties{
+      key
+      value
+    }
+  }
+}

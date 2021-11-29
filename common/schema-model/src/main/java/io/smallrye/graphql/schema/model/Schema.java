@@ -277,4 +277,13 @@ public final class Schema implements Serializable {
     public boolean hasDirectiveTypes() {
         return !directiveTypes.isEmpty();
     }
+
+    @Override
+    public String toString() {
+        return "Schema{" + "queries=" + queries + ", mutations=" + mutations + ", subscriptions=" + subscriptions
+                + ", groupedQueries=" + groupedQueries + ", groupedMutations=" + groupedMutations + ", groupedSubscriptions="
+                + groupedSubscriptions + ", directiveTypes=" + directiveTypes + ", inputs=" + inputs + ", types=" + types
+                + ", interfaces=" + interfaces + ", enums=" + enums + ", errors=" + errors + '}';
+    }
+
 }

@@ -1,0 +1,74 @@
+{
+  "data": {
+    "adapterData": {
+      "id": 1,
+      "name": "Foo",
+      "address": {
+        "value": "phillip@kruger.co.za"
+      },
+      "tags": "foo bar",
+      "email": {
+        "addressType": "email",
+        "lines": [
+          "piet@pompies.co.za"
+        ]
+      },
+      "metadata": [
+        {
+          "key": "foo",
+          "value": "bar"
+        },
+        {
+          "key": "description",
+          "value": "here some more info"
+        }
+      ],
+      "properties": [
+        {
+          "key": "foo2",
+          "value": "bar2"
+        },
+        {
+          "key": "description2",
+          "value": "here some more info2"
+        }
+      ]
+    },
+    "adapterDatas": [
+      {
+        "id": 1,
+      "name": "Foo",
+      "address": {
+        "value": "phillip@kruger.co.za"
+      },
+      "tags": "foo bar",
+      "email": {
+        "addressType": "email",
+        "lines": [
+          "piet@pompies.co.za"
+        ]
+      },
+      "metadata": [
+        {
+          "key": "foo",
+          "value": "bar"
+        },
+        {
+          "key": "description",
+          "value": "here some more info"
+        }
+      ],
+      "properties": [
+        {
+          "key": "foo2",
+          "value": "bar2"
+        },
+        {
+          "key": "description2",
+          "value": "here some more info2"
+        }
+      ]
+      }
+    ]
+  }
+}

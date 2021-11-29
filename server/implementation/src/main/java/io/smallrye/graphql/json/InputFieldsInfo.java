@@ -18,7 +18,8 @@ import io.smallrye.graphql.schema.model.InputType;
 public class InputFieldsInfo {
 
     private static final Map<String, Map<String, Field>> inputFieldTransformationMap = new HashMap<>();
-    private static final Map<String, Map<String, Field>> inputFieldMappingMap = new HashMap<>();
+    private static final Map<String, Map<String, Field>> inputFieldAdaptingToMap = new HashMap<>();
+    private static final Map<String, Map<String, Field>> inputFieldAdaptingWithMap = new HashMap<>();
     private static final Map<String, List<String>> creatorParameters = new HashMap<>();
 
     private InputFieldsInfo() {
@@ -33,7 +34,8 @@ public class InputFieldsInfo {
             InputFieldsInfo.creatorParameters.put(inputType.getClassName(), creatorParameters);
 
             Map<String, Field> fieldsThatNeedsTransformation = new HashMap<>();
-            Map<String, Field> fieldsThatNeedsMapping = new HashMap<>();
+            Map<String, Field> fieldsThatNeedsAdaptingToScalar = new HashMap<>();
+            Map<String, Field> fieldsThatNeedsAdaptingWith = new HashMap<>();
 
             Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
@@ -43,14 +45,17 @@ public class InputFieldsInfo {
                     fieldsThatNeedsTransformation.put(field.getName(), field);
                 }
                 // See if there is a adapter
-                if (field.hasAdapter()
-                        && !field.getAdapter().isJsonB()) {
-                    fieldsThatNeedsTransformation.put(field.getName(), field);
+                if (field.isAdaptingWith()
+                        && !field.getAdaptWith().isJsonB()) {
+                    fieldsThatNeedsAdaptingWith.put(field.getName(), field);
+                    // See if there is a map (default adapter)
+                } else if (field.hasWrapper() && field.getWrapper().isMap()) {
+                    fieldsThatNeedsAdaptingWith.put(field.getName(), field);
                 }
 
-                // See if there is a mapping
-                if (field.hasMapping() || field.getReference().hasMapping()) {
-                    fieldsThatNeedsMapping.putIfAbsent(field.getName(), field);
+                // See if there is adapting to scalar
+                if (field.isAdaptingTo() || field.getReference().isAdaptingTo()) {
+                    fieldsThatNeedsAdaptingToScalar.putIfAbsent(field.getName(), field);
                 }
             }
 
@@ -58,18 +63,18 @@ public class InputFieldsInfo {
                 inputFieldTransformationMap.put(inputType.getClassName(), fieldsThatNeedsTransformation);
             }
 
-            if (!fieldsThatNeedsMapping.isEmpty()) {
-                inputFieldMappingMap.put(inputType.getClassName(), fieldsThatNeedsMapping);
+            if (!fieldsThatNeedsAdaptingToScalar.isEmpty()) {
+                inputFieldAdaptingToMap.put(inputType.getClassName(), fieldsThatNeedsAdaptingToScalar);
+            }
+
+            if (!fieldsThatNeedsAdaptingWith.isEmpty()) {
+                inputFieldAdaptingWithMap.put(inputType.getClassName(), fieldsThatNeedsAdaptingWith);
             }
         }
     }
 
     public static boolean hasTransformationFields(String className) {
         return inputFieldTransformationMap.containsKey(className);
-    }
-
-    public static boolean hasMappingFields(String className) {
-        return inputFieldMappingMap.containsKey(className);
     }
 
     public static Map<String, Field> getTransformationFields(String className) {
@@ -79,9 +84,24 @@ public class InputFieldsInfo {
         return null;
     }
 
-    public static Map<String, Field> getMappingFields(String className) {
-        if (inputFieldMappingMap.containsKey(className)) {
-            return inputFieldMappingMap.get(className);
+    public static boolean hasAdaptToFields(String className) {
+        return inputFieldAdaptingToMap.containsKey(className);
+    }
+
+    public static Map<String, Field> getAdaptToFields(String className) {
+        if (inputFieldAdaptingToMap.containsKey(className)) {
+            return inputFieldAdaptingToMap.get(className);
+        }
+        return null;
+    }
+
+    public static boolean hasAdaptWithFields(String className) {
+        return inputFieldAdaptingWithMap.containsKey(className);
+    }
+
+    public static Map<String, Field> getAdaptWithFields(String className) {
+        if (inputFieldAdaptingWithMap.containsKey(className)) {
+            return inputFieldAdaptingWithMap.get(className);
         }
         return null;
     }

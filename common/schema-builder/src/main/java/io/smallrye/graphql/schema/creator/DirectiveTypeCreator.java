@@ -13,7 +13,7 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
-import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
+import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveType;
@@ -21,12 +21,8 @@ import io.smallrye.graphql.schema.model.DirectiveType;
 public class DirectiveTypeCreator extends ModelCreator {
     private static final Logger LOG = Logger.getLogger(DirectiveTypeCreator.class.getName());
 
-    private final ReferenceCreator referenceCreator;
-    private final TypeAutoNameStrategy autoNameStrategy;
-
-    public DirectiveTypeCreator(ReferenceCreator referenceCreator, TypeAutoNameStrategy autoNameStrategy) {
-        this.referenceCreator = referenceCreator;
-        this.autoNameStrategy = autoNameStrategy;
+    public DirectiveTypeCreator(ReferenceCreator referenceCreator) {
+        super(referenceCreator);
     }
 
     public DirectiveType create(ClassInfo classInfo) {
@@ -45,7 +41,7 @@ public class DirectiveTypeCreator extends ModelCreator {
             argument.setReference(referenceCreator.createReferenceForOperationArgument(method.returnType(), null));
             argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
-            populateField(argument, method.returnType(), annotationsForMethod);
+            populateField(Direction.IN, argument, method.returnType(), annotationsForMethod);
             directiveType.addArgumentType(argument);
         }
 
@@ -53,7 +49,8 @@ public class DirectiveTypeCreator extends ModelCreator {
     }
 
     private String toDirectiveName(ClassInfo classInfo, Annotations annotations) {
-        String name = TypeNameHelper.getAnyTypeName((String) null, null, classInfo, annotations, autoNameStrategy);
+        String name = TypeNameHelper.getAnyTypeName((String) null, null, classInfo, annotations,
+                referenceCreator.getTypeAutoNameStrategy());
         if (Character.isUpperCase(name.charAt(0)))
             name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
         return name;

@@ -207,7 +207,7 @@ public class Bootstrap {
 
     private GraphQLInputType argumentType(DirectiveArgument argumentType) {
         GraphQLInputType inputType = getGraphQLInputType(argumentType.getReference());
-        if (argumentType.hasWrapper() && argumentType.getWrapper().isCollectionOrArray()) {
+        if (argumentType.hasWrapper() && argumentType.getWrapper().isCollectionOrArrayOrMap()) {
             inputType = list(inputType);
         }
         return inputType;
@@ -627,14 +627,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -657,14 +657,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(field, isBatch);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLOutputType = list(graphQLOutputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -716,12 +716,14 @@ public class Bootstrap {
     }
 
     private Reference getCorrectFieldReference(Field field) {
-        // First check if this is mapped to some other type
-
-        if (field.getReference().hasMapping()) { // Global
-            return field.getReference().getMapping().getReference();
-        } else if (field.hasMapping()) { // Per field
-            return field.getMapping().getReference();
+        if (field.getReference().isAdaptingWith()) {
+            return field.getReference().getAdaptWith().getToReference();
+        } else if (field.isAdaptingWith()) {
+            return field.getAdaptWith().getToReference();
+        } else if (field.getReference().isAdaptingTo()) {
+            return field.getReference().getAdaptTo().getReference();
+        } else if (field.isAdaptingTo()) {
+            return field.getAdaptTo().getReference();
         } else {
             return field.getReference();
         }
@@ -755,14 +757,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(argument, false);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -793,7 +795,7 @@ public class Bootstrap {
             Class<?> type;
             Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
-            if (wrapper != null && wrapper.isCollectionOrArray()) {
+            if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
                 type = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
                 if (Collection.class.isAssignableFrom(type)) {
                     type = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName(), 0).getClass();

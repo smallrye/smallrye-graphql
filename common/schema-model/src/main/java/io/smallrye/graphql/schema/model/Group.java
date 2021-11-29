@@ -60,4 +60,10 @@ public class Group implements Serializable {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Group{" + "name=" + name + ", description=" + description + '}';
+    }
+
 }

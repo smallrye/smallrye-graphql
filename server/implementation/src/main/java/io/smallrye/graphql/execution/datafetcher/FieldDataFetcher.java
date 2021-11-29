@@ -67,7 +67,7 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
         try {
             // See if we need to transform
             @SuppressWarnings("unchecked")
-            T transformResponse = (T) fieldHelper.transformResponse(resultFromMethodCall);
+            T transformResponse = (T) fieldHelper.transformOrAdaptResponse(resultFromMethodCall);
             return transformResponse;
         } catch (AbstractDataFetcherException ex) {
             log.transformError(ex);
