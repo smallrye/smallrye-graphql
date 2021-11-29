@@ -24,13 +24,13 @@ import javax.json.JsonValue;
 
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.QueryBuilder;
 import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;

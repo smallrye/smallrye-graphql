@@ -17,13 +17,13 @@ import javax.json.JsonPatch;
 import javax.json.JsonPointer;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientException;
 
 public class ResultBuilder {
     private final MethodInvocation method;

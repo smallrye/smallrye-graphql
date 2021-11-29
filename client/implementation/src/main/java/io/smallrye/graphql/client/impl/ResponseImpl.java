@@ -11,6 +11,7 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
@@ -97,6 +98,17 @@ public class ResponseImpl implements Response {
 
     public List<GraphQLError> getErrors() {
         return errors;
+    }
+
+    /**
+     * If there are application errors inside this response, this method converts these errors into a `GraphQLClientException`
+     * and throws it. If there are no errors, then this method does nothing.
+     */
+    // This is currently only in the implementation, if this is deemed useful we might move it up to the `Response` interface
+    public void throwExceptionIfErrors() {
+        if (!errors.isEmpty()) {
+            throw new GraphQLClientException("Errors from service", errors);
+        }
     }
 
     public boolean hasData() {
