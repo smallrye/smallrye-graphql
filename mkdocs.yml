@@ -15,6 +15,7 @@ nav:
       - Error handling: 'typesafe-client-error-handling.md'
   - Dynamic client:
       - Basic usage: 'dynamic-client-usage.md'
+      - Error handling: 'dynamic-client-error-handling.md'
   - Developer tools:
       - Maven plugin: 'maven-plugin.md'
       - Gradle plugin: 'gradle-plugin.md'
