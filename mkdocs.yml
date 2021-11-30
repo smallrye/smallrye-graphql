@@ -9,6 +9,7 @@ nav:
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'
+      - Custom scalar types: 'typesafe-client-custom-scalars.md'
       - Adding headers: 'typesafe-client-headers.md'
       - Logging: 'typesafe-client-logging.md'
       - Running multiple queries at once: 'typesafe-client-multiple-queries.md'
