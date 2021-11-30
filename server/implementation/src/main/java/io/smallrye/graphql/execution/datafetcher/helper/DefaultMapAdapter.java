@@ -2,10 +2,10 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.smallrye.graphql.api.Adapter;
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Wrapper;
@@ -16,11 +16,10 @@ import io.smallrye.graphql.schema.model.WrapperType;
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class DefaultMapAdapter<K, V> implements Adapter<Map<K, V>, Set<Entry<K, V>>> {
+public class DefaultMapAdapter<K, V> {
 
     private final Map<Field, Field> fieldAdaptionMap = new HashMap<>();
 
-    @Override
     public Map<K, V> from(Set<Entry<K, V>> entries) {
         Map<K, V> map = new HashMap<>();
         for (Object e : entries) {
@@ -30,13 +29,20 @@ public class DefaultMapAdapter<K, V> implements Adapter<Map<K, V>, Set<Entry<K, 
         return map;
     }
 
-    @Override
-    public Set<Entry<K, V>> to(Map<K, V> map) {
+    public Set<Entry<K, V>> to(Map<K, V> map, List<K> key) {
         Set<Entry<K, V>> entries = new HashSet<>();
-        Set<Map.Entry<K, V>> entrySet = map.entrySet();
-        for (Map.Entry<K, V> e : entrySet) {
-            entries.add(new Entry(e.getKey(), e.getValue()));
-            e.getKey();
+        if (key == null || key.isEmpty()) {
+            Set<Map.Entry<K, V>> entrySet = map.entrySet();
+            for (Map.Entry<K, V> e : entrySet) {
+                entries.add(new Entry(e.getKey(), e.getValue()));
+            }
+        } else {
+            for (K k : key) {
+                V queriedValue = map.get(k);
+                if (queriedValue != null) {
+                    entries.add(new Entry(key, queriedValue));
+                }
+            }
         }
         return entries;
     }

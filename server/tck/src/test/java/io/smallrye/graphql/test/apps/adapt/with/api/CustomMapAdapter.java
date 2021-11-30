@@ -17,7 +17,6 @@ public class CustomMapAdapter implements Adapter<Map<String, String>, Set<Entry<
 
     @Override
     public Map<String, String> from(Set entries) {
-        System.err.println(">>>>>>> entries: " + entries);
         Map<String, String> map = new HashMap<>();
         for (Object e : entries) {
             Map<String, String> graphQLJavaMap = (Map<String, String>) e; // The entry complex type comes from graphql-java as an Map

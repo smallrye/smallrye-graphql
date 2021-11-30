@@ -116,7 +116,7 @@ public class ArgumentHelper extends AbstractHelper {
             argumentValueFromGraphQLJava = Optional.of(argumentValueFromGraphQLJava);
         }
 
-        return transformOrAdapt(argumentValueFromGraphQLJava, argument);
+        return transformOrAdapt(argumentValueFromGraphQLJava, argument, dfe);
     }
 
     /**
@@ -144,17 +144,17 @@ public class ArgumentHelper extends AbstractHelper {
      * @return mapped value
      */
     @Override
-    Object singleAdapting(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    Object singleAdapting(Object argumentValue, Field field, DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
         if (argumentValue == null) {
             return null;
         }
 
         if (shouldAdaptWith(field)) {
-            return adaptInputWith(field, argumentValue);
+            return adaptInputWith(field, argumentValue, dfe);
         } else if (shouldAdaptTo(field)) {
             return adaptInputTo(field, argumentValue);
         } else if (field.hasWrapper() && field.getWrapper().isMap()) {
-            return defaultAdaptMap(field, argumentValue);
+            return defaultAdaptMap(field, argumentValue, dfe);
         }
         // Fall back to the original value
         return argumentValue;
@@ -191,13 +191,15 @@ public class ArgumentHelper extends AbstractHelper {
         return object;
     }
 
-    private Object defaultAdaptMap(Field field, Object argumentValue) throws AbstractDataFetcherException {
+    private Object defaultAdaptMap(Field field, Object argumentValue, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         Set providedSet = (Set) argumentValue;
-        Set adaptInnerSet = (Set) recursiveAdapting(providedSet, mapAdapter.getAdaptedField(field));
+        Set adaptInnerSet = (Set) recursiveAdapting(providedSet, mapAdapter.getAdaptedField(field), dfe);
         return mapAdapter.from(adaptInnerSet);
     }
 
-    private Object adaptInputWith(Field field, Object argumentValue) throws TransformException, AbstractDataFetcherException {
+    private Object adaptInputWith(Field field, Object argumentValue, DataFetchingEnvironment dfe)
+            throws TransformException, AbstractDataFetcherException {
         if (argumentValue == null) {
             return null;
         }
@@ -207,7 +209,7 @@ public class ArgumentHelper extends AbstractHelper {
             ReflectionInvoker reflectionInvoker = getReflectionInvokerForInput(adaptWith);
 
             if (Map.class.isAssignableFrom(argumentValue.getClass())) {
-                argumentValue = correctComplexObjectFromMap((Map) argumentValue, field);
+                argumentValue = correctComplexObjectFromMap((Map) argumentValue, field, dfe);
             }
 
             try {
@@ -271,7 +273,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String expectedType = field.getReference().getClassName();
         String receivedType = fieldValue.getClass().getName();
 
@@ -285,7 +288,7 @@ public class ArgumentHelper extends AbstractHelper {
             Class<?> enumClass = classloadingService.loadClass(field.getReference().getClassName());
             return Enum.valueOf((Class<Enum>) enumClass, fieldValue.toString());
         } else {
-            return correctObjectClass(fieldValue, field);
+            return correctObjectClass(fieldValue, field, dfe);
         }
     }
 
@@ -297,11 +300,12 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return the return value
      */
-    private Object correctObjectClass(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Object correctObjectClass(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
-            return correctComplexObjectFromMap((Map) argumentValue, field);
+            return correctComplexObjectFromMap((Map) argumentValue, field, dfe);
         } else if (receivedClassName.equals(String.class.getName())) {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
@@ -328,7 +332,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return a java object of this type.
      */
-    private Object correctComplexObjectFromMap(Map m, Field field) throws AbstractDataFetcherException {
+    private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
 
         // Let's see if there are any fields that needs transformation or adaption
@@ -340,7 +345,8 @@ public class ArgumentHelper extends AbstractHelper {
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldTransform = m.get(fieldName);
                     Field fieldThatShouldTransform = entry.getValue();
-                    valueThatShouldTransform = super.recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform);
+                    valueThatShouldTransform = super.recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform,
+                            dfe);
                     m.put(fieldName, valueThatShouldTransform);
                 }
             }
@@ -355,7 +361,7 @@ public class ArgumentHelper extends AbstractHelper {
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldMap = m.get(fieldName);
                     Field fieldThatShouldMap = entry.getValue();
-                    valueThatShouldMap = super.recursiveAdapting(valueThatShouldMap, fieldThatShouldMap);
+                    valueThatShouldMap = super.recursiveAdapting(valueThatShouldMap, fieldThatShouldMap, dfe);
                     m.put(fieldName, valueThatShouldMap);
                 }
             }
@@ -369,7 +375,7 @@ public class ArgumentHelper extends AbstractHelper {
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldAdapt = m.get(fieldName);
                     Field fieldThatShouldAdapt = entry.getValue();
-                    Object valueThatAdapted = super.recursiveAdapting(valueThatShouldAdapt, fieldThatShouldAdapt);
+                    Object valueThatAdapted = super.recursiveAdapting(valueThatShouldAdapt, fieldThatShouldAdapt, dfe);
                     m.put(fieldName, valueThatAdapted);
                 }
             }

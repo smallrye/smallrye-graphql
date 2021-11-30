@@ -586,6 +586,27 @@ public class Bootstrap {
             }
         }
 
+        // Auto Map argument
+        if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+            Reference keyReference = parametrizedTypeArguments.get("K");
+            ReferenceType type = keyReference.getType();
+            if (type.equals(ReferenceType.SCALAR)) {
+                GraphQLInputType keyInput = getGraphQLInputType(keyReference);
+                keyInput = list(keyInput); // Allow multiple keys
+                GraphQLArgument byKey = GraphQLArgument.newArgument()
+                        .name("key")
+                        .description("Get entry/entries for a certain key/s")
+                        .type(keyInput)
+                        .build();
+
+                fieldBuilder.argument(byKey);
+                // } else {
+                // TODO: For now we only support auto query by key if the key is a scalar. We should be able to extend this to all types later.
+                // GraphQLInputObjectType keyInput = null;
+            }
+        }
+
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher

@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
@@ -62,12 +63,12 @@ public abstract class AbstractHelper {
                 || (field.hasWrapper() && field.getWrapper().isMap());
     }
 
-    public Object transformOrAdapt(Object val, Field field)
+    public Object transformOrAdapt(Object val, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
 
-        val = recursiveTransform(val, field);
+        val = recursiveTransform(val, field, dfe);
         if (shouldAdapt(field)) {
-            val = recursiveAdapting(val, field);
+            val = recursiveAdapting(val, field, dfe);
         }
 
         return val;
@@ -80,7 +81,8 @@ public abstract class AbstractHelper {
      * @param field the field as created when scanning
      * @return the return value
      */
-    abstract Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException;
+    abstract Object afterRecursiveTransform(Object fieldValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException;
 
     /**
      * This do the transform of a 'leaf' value
@@ -98,7 +100,8 @@ public abstract class AbstractHelper {
      * @param field the field as scanned
      * @return mapped value
      */
-    abstract Object singleAdapting(Object argumentValue, Field field) throws AbstractDataFetcherException;
+    abstract Object singleAdapting(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException;
 
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
@@ -107,7 +110,7 @@ public abstract class AbstractHelper {
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and transformed
      */
-    Object recursiveTransform(Object inputValue, Field field)
+    Object recursiveTransform(Object inputValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
 
         if (inputValue == null) {
@@ -116,21 +119,21 @@ public abstract class AbstractHelper {
 
         // First handle the array if this is an array
         if (field.hasWrapper() && field.getWrapper().isArray()) {
-            return recursiveTransformArray(inputValue, field);
+            return recursiveTransformArray(inputValue, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isMap()) {
             return inputValue;
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
-            return recursiveTransformCollection(inputValue, field);
+            return recursiveTransformCollection(inputValue, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
             // Also handle optionals
-            return recursiveTransformOptional(inputValue, field);
+            return recursiveTransformOptional(inputValue, field, dfe);
         } else {
             // we need to transform before we make sure the type is correct
             inputValue = singleTransform(inputValue, field);
         }
 
         // Recursive transformation done.
-        return afterRecursiveTransform(inputValue, field);
+        return afterRecursiveTransform(inputValue, field, dfe);
     }
 
     /**
@@ -140,7 +143,7 @@ public abstract class AbstractHelper {
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and mapped
      */
-    Object recursiveAdapting(Object inputValue, Field field)
+    Object recursiveAdapting(Object inputValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
 
         if (inputValue == null) {
@@ -148,18 +151,18 @@ public abstract class AbstractHelper {
         }
 
         if (field.hasWrapper() && field.getWrapper().isArray()) {
-            return recursiveAdaptArray(inputValue, field);
+            return recursiveAdaptArray(inputValue, field, dfe);
         } else if (Classes.isMap(inputValue) && shouldAdaptWithToMap(field)) {
-            return singleAdapting(inputValue, field);
+            return singleAdapting(inputValue, field, dfe);
         } else if (shouldAdaptWithFromMap(field)) {
-            return singleAdapting(new HashSet((Collection) inputValue), field);
+            return singleAdapting(new HashSet((Collection) inputValue), field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
-            return recursiveAdaptCollection(inputValue, field);
+            return recursiveAdaptCollection(inputValue, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
-            return recursiveAdaptOptional(inputValue, field);
+            return recursiveAdaptOptional(inputValue, field, dfe);
         } else {
             // we need to adapt before we make sure the type is correct
-            inputValue = singleAdapting(inputValue, field);
+            inputValue = singleAdapting(inputValue, field, dfe);
         }
 
         // Recursive adapting done.
@@ -176,7 +179,8 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return an array with the transformed values in.
      */
-    private Object recursiveTransformArray(Object array, Field field) throws AbstractDataFetcherException {
+    private Object recursiveTransformArray(Object array, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
             array = ((Collection) array).toArray();
         }
@@ -194,7 +198,7 @@ public abstract class AbstractHelper {
         for (int i = 0; i < length; i++) {
             Field fieldInCollection = getFieldInField(field);
             Object element = Array.get(array, i);
-            Object targetElement = recursiveTransform(element, fieldInCollection);
+            Object targetElement = recursiveTransform(element, fieldInCollection, dfe);
             Array.set(targetArray, i, targetElement);
         }
 
@@ -209,7 +213,8 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return an array with the mapped values in.
      */
-    private Object recursiveAdaptArray(Object array, Field field) throws AbstractDataFetcherException {
+    private Object recursiveAdaptArray(Object array, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
             array = ((Collection) array).toArray();
         }
@@ -227,7 +232,7 @@ public abstract class AbstractHelper {
         for (int i = 0; i < length; i++) {
             Field fieldInCollection = getFieldInField(field);
             Object element = Array.get(array, i);
-            Object targetElement = recursiveAdapting(element, fieldInCollection);
+            Object targetElement = recursiveAdapting(element, fieldInCollection, dfe);
             Array.set(targetArray, i, targetElement);
         }
 
@@ -244,7 +249,8 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return a collection with the transformed values in.
      */
-    private Object recursiveTransformCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Object recursiveTransformCollection(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
 
         String collectionClassName = field.getWrapper().getWrapperClassName();
@@ -254,7 +260,7 @@ public abstract class AbstractHelper {
         Field fieldInCollection = getFieldInField(field);
         for (Object objectInGivenCollection : givenCollection) {
             Object objectInCollection = recursiveTransform(objectInGivenCollection,
-                    fieldInCollection);
+                    fieldInCollection, dfe);
             convertedCollection.add(objectInCollection);
         }
 
@@ -269,7 +275,8 @@ public abstract class AbstractHelper {
      * @param field the field as created while scanning
      * @return a collection with the mapped values in.
      */
-    private Object recursiveAdaptCollection(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Object recursiveAdaptCollection(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         Collection givenCollection = getGivenCollection(argumentValue);
         String collectionClassName = field.getWrapper().getWrapperClassName();
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
@@ -277,7 +284,7 @@ public abstract class AbstractHelper {
         Field fieldInCollection = getFieldInField(field);
         for (Object objectInGivenCollection : givenCollection) {
             Object objectInCollection = recursiveAdapting(objectInGivenCollection,
-                    fieldInCollection);
+                    fieldInCollection, dfe);
             convertedCollection.add(objectInCollection);
         }
 
@@ -292,7 +299,8 @@ public abstract class AbstractHelper {
      * @param field the graphql-field
      * @return a optional with the transformed value in.
      */
-    private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
         if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
             return Optional.empty();
@@ -300,7 +308,7 @@ public abstract class AbstractHelper {
             Optional optional = (Optional) argumentValue;
             Object o = optional.get();
             Field f = getFieldInField(field);
-            return Optional.of(recursiveTransform(o, f));
+            return Optional.of(recursiveTransform(o, f, dfe));
         }
     }
 
@@ -311,7 +319,7 @@ public abstract class AbstractHelper {
      * @param field the graphql-field
      * @return a optional with the mapped value in.
      */
-    private Optional<Object> recursiveAdaptOptional(Object argumentValue, Field field)
+    private Optional<Object> recursiveAdaptOptional(Object argumentValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
         if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
@@ -320,7 +328,7 @@ public abstract class AbstractHelper {
             Optional optional = (Optional) argumentValue;
             Object o = optional.get();
             Field f = getFieldInField(field);
-            return Optional.of(recursiveAdapting(o, f));
+            return Optional.of(recursiveAdapting(o, f, dfe));
         }
 
     }

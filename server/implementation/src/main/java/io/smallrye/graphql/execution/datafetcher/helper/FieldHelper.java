@@ -2,9 +2,11 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -32,10 +34,10 @@ public class FieldHelper extends AbstractHelper {
         this.field = field;
     }
 
-    public Object transformOrAdaptResponse(Object argumentValue)
+    public Object transformOrAdaptResponse(Object argumentValue, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
 
-        return super.transformOrAdapt(argumentValue, field);
+        return super.transformOrAdapt(argumentValue, field, dfe);
     }
 
     /**
@@ -62,7 +64,7 @@ public class FieldHelper extends AbstractHelper {
      * @return mapped value
      */
     @Override
-    Object singleAdapting(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    Object singleAdapting(Object argumentValue, Field field, DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
         if (argumentValue == null) {
             return null;
         }
@@ -78,15 +80,22 @@ public class FieldHelper extends AbstractHelper {
                 throw new TransformException(ex, field, argumentValue);
             }
         } else if (field.hasWrapper() && field.getWrapper().isMap()) {
-            Set entrySet = mapAdapter.to((Map) argumentValue);
-            return recursiveAdapting(entrySet, mapAdapter.getAdaptedField(field));
+            Object key = null;
+            Map<String, Object> arguments = dfe.getArguments();
+            if (arguments != null && arguments.size() > 0 && arguments.containsKey(KEY)) {
+                key = arguments.get(KEY);
+            }
+
+            Set entrySet = mapAdapter.to((Map) argumentValue, (List) key);
+
+            return recursiveAdapting(entrySet, mapAdapter.getAdaptedField(field), dfe);
 
         }
         return argumentValue;
     }
 
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field, DataFetchingEnvironment dfe) {
         return fieldValue;
     }
 
@@ -113,5 +122,7 @@ public class FieldHelper extends AbstractHelper {
             throw new TransformException(e, field, object);
         }
     }
+
+    private static final String KEY = "key";
 
 }

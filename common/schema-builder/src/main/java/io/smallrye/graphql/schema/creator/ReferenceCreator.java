@@ -327,10 +327,7 @@ public class ReferenceCreator {
         } else if (Classes.isMap(fieldType)) {
             ParameterizedType parameterizedFieldType = fieldType.asParameterizedType();
             List<Type> fieldArguments = parameterizedFieldType.arguments();
-            List<Type> methodArguments = methodType.asParameterizedType().arguments();
-
             ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(new Type[] {}), null);
-
             return getReference(direction, entryType, entryType, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());

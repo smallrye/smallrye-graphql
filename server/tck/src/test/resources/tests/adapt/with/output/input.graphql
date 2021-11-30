@@ -6,7 +6,7 @@
       value
     }
     tags
-    email {
+    email{
       addressType
       lines
     }
@@ -17,6 +17,9 @@
     }
     properties{
       key
+      value
+    }
+    foo2:properties(key:"foo2"){
       value
     }
     complexMap{
@@ -36,7 +39,7 @@
       value
     }
     tags
-    email {
+    email{
       addressType
       lines
     }
@@ -47,6 +50,9 @@
     }
     properties{
       key
+      value
+    }
+    foo2:properties(key:"foo2"){
       value
     }
     complexMap{
