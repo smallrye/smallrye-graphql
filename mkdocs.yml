@@ -4,8 +4,8 @@ edit_uri: edit/main/docs/
 
 nav:
   - Overview: 'index.md'
-  - Power annotations:
-      - Power annotations: 'power-annotations.md'
+#  - Power annotations: # Power annotations are unused right now
+#      - Power annotations: 'power-annotations.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'
