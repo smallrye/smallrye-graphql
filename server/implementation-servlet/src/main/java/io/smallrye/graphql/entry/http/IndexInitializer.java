@@ -27,6 +27,8 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
+import io.smallrye.graphql.api.Entry;
+
 /**
  * This creates an index from the classpath.
  * 
@@ -54,8 +56,8 @@ public class IndexInitializer {
         IndexView artifact = createIndexView(urls);
         indexes.add(artifact);
 
-        IndexView jdk = createJdkIndex();
-        indexes.add(jdk);
+        IndexView custom = createCustomIndex();
+        indexes.add(custom);
 
         return merge(indexes);
     }
@@ -65,11 +67,12 @@ public class IndexInitializer {
         return createIndexView(urls);
     }
 
-    private IndexView createJdkIndex() {
+    private IndexView createCustomIndex() {
         Indexer indexer = new Indexer();
 
         try {
             indexer.indexClass(Map.class);
+            indexer.indexClass(Entry.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

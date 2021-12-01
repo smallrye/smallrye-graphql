@@ -56,6 +56,14 @@ public class AdapterResource {
         complexMap.put(new ComplexKey(2, "k2", "The complex key's key 2"), new ComplexValue(1, "v2a", "v2b"));
         d.complexMap = complexMap;
 
+        // Map that use auto adapting (enum keys)
+        Map<ISO6391, Language> langMap = new HashMap<>();
+        langMap.put(ISO6391.en, new Language(ISO6391.en, "english", "english", "please", "thank you"));
+        langMap.put(ISO6391.af, new Language(ISO6391.af, "afrikaans", "afrikaans", "asseblief", "dankie"));
+        langMap.put(ISO6391.de, new Language(ISO6391.de, "deutsch", "german", "bitte", "danke dir"));
+        langMap.put(ISO6391.fr, new Language(ISO6391.fr, "français", "french", "s'il te plaît", "merci"));
+        d.langMap = langMap;
+
         return d;
     }
 
@@ -94,6 +102,8 @@ public class AdapterResource {
         public Map<String, String> properties;
 
         public Map<ComplexKey, ComplexValue> complexMap;
+
+        public Map<ISO6391, Language> langMap;
 
         @Override
         public String toString() {

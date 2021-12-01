@@ -413,7 +413,7 @@ public class Bootstrap {
         }
     }
 
-    private void createGraphQLInputObjectType(InputType inputType) {
+    private GraphQLInputObjectType createGraphQLInputObjectType(InputType inputType) {
         GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject()
                 .name(inputType.getName())
                 .description(inputType.getDescription());
@@ -427,7 +427,10 @@ public class Bootstrap {
         }
 
         GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
-        inputMap.put(inputType.getName(), graphQLInputObjectType);
+        if (!inputMap.containsKey(inputType.getName())) {
+            inputMap.put(inputType.getName(), graphQLInputObjectType);
+        }
+        return graphQLInputObjectType;
     }
 
     private void createGraphQLObjectTypes() {
@@ -589,21 +592,31 @@ public class Bootstrap {
         // Auto Map argument
         if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
             Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
-            Reference keyReference = parametrizedTypeArguments.get("K");
+            Reference keyReference = parametrizedTypeArguments.get(AUTOMAP_KEY_KEY);
+
             ReferenceType type = keyReference.getType();
-            if (type.equals(ReferenceType.SCALAR)) {
+            if (type.equals(ReferenceType.SCALAR) || type.equals(ReferenceType.ENUM)) {
                 GraphQLInputType keyInput = getGraphQLInputType(keyReference);
-                keyInput = list(keyInput); // Allow multiple keys
                 GraphQLArgument byKey = GraphQLArgument.newArgument()
-                        .name("key")
-                        .description("Get entry/entries for a certain key/s")
-                        .type(keyInput)
+                        .name(AUTOMAP_KEY_NAME)
+                        .description(AUTOMAP_KEY_DESC)
+                        .type(list(keyInput))
                         .build();
 
                 fieldBuilder.argument(byKey);
-                // } else {
-                // TODO: For now we only support auto query by key if the key is a scalar. We should be able to extend this to all types later.
-                // GraphQLInputObjectType keyInput = null;
+            } else {
+                String complexKeyName = keyReference.getName() + AUTOMAP_KEY_INPUT;
+                if (schema.getInputs().containsKey(complexKeyName)) {
+                    InputType complexKeyInputType = schema.getInputs().get(complexKeyName);
+                    GraphQLInputObjectType keyInput = createGraphQLInputObjectType(complexKeyInputType);
+                    GraphQLArgument byKey = GraphQLArgument.newArgument()
+                            .name(AUTOMAP_KEY_NAME)
+                            .description(AUTOMAP_KEY_DESC)
+                            .type(list(keyInput))
+                            .build();
+
+                    fieldBuilder.argument(byKey);
+                }
             }
         }
 
@@ -903,4 +916,10 @@ public class Bootstrap {
     private static final String OBSERVES = "javax.enterprise.event.Observes";
 
     private static final List<String> IGNORABLE_ARGUMENTS = Arrays.asList(CONTEXT, OBSERVES);
+
+    private static final String AUTOMAP_KEY_NAME = "key";
+    private static final String AUTOMAP_KEY_DESC = "Get entry/entries for a certain key/s";
+    private static final String AUTOMAP_KEY_KEY = "K";
+    private static final String AUTOMAP_KEY_INPUT = "Input";
+
 }

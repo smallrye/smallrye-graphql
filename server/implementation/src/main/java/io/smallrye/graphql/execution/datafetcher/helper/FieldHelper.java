@@ -86,7 +86,7 @@ public class FieldHelper extends AbstractHelper {
                 key = arguments.get(KEY);
             }
 
-            Set entrySet = mapAdapter.to((Map) argumentValue, (List) key);
+            Set entrySet = mapAdapter.to((Map) argumentValue, (List) key, field);
 
             return recursiveAdapting(entrySet, mapAdapter.getAdaptedField(field), dfe);
 
