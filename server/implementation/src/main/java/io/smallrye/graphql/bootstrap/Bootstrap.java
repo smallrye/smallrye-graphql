@@ -16,6 +16,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -554,6 +555,11 @@ public class Bootstrap {
         if (operation.hasArguments()) {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
+        // Auto Map argument
+        Optional<GraphQLArgument> autoMapArgument = getAutoMapArgument(operation);
+        if (autoMapArgument.isPresent()) {
+            fieldBuilder.argument(autoMapArgument.get());
+        }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
@@ -590,6 +596,22 @@ public class Bootstrap {
         }
 
         // Auto Map argument
+        Optional<GraphQLArgument> autoMapArgument = getAutoMapArgument(field);
+        if (autoMapArgument.isPresent())
+            fieldBuilder.argument(autoMapArgument.get());
+
+        GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
+
+        // DataFetcher
+        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, owner);
+        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(owner.getName(), graphQLFieldDefinition.getName()),
+                datafetcher);
+
+        return graphQLFieldDefinition;
+    }
+
+    private Optional<GraphQLArgument> getAutoMapArgument(Field field) {
+        // Auto Map argument
         if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
             Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
             Reference keyReference = parametrizedTypeArguments.get(AUTOMAP_KEY_KEY);
@@ -603,31 +625,28 @@ public class Bootstrap {
                         .type(list(keyInput))
                         .build();
 
-                fieldBuilder.argument(byKey);
+                return Optional.of(byKey);
             } else {
                 String complexKeyName = keyReference.getName() + AUTOMAP_KEY_INPUT;
                 if (schema.getInputs().containsKey(complexKeyName)) {
                     InputType complexKeyInputType = schema.getInputs().get(complexKeyName);
-                    GraphQLInputObjectType keyInput = createGraphQLInputObjectType(complexKeyInputType);
+                    GraphQLInputObjectType keyInput;
+                    if (inputMap.containsKey(complexKeyInputType.getName())) {
+                        keyInput = inputMap.get(complexKeyInputType.getName());
+                    } else {
+                        keyInput = createGraphQLInputObjectType(complexKeyInputType);
+                    }
                     GraphQLArgument byKey = GraphQLArgument.newArgument()
                             .name(AUTOMAP_KEY_NAME)
                             .description(AUTOMAP_KEY_DESC)
                             .type(list(keyInput))
                             .build();
 
-                    fieldBuilder.argument(byKey);
+                    return Optional.of(byKey);
                 }
             }
         }
-
-        GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
-
-        // DataFetcher
-        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, owner);
-        this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(owner.getName(), graphQLFieldDefinition.getName()),
-                datafetcher);
-
-        return graphQLFieldDefinition;
+        return Optional.empty();
     }
 
     private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Collection<Field> fields) {

@@ -11,7 +11,7 @@ import io.smallrye.graphql.api.AdaptToScalar;
 import io.smallrye.graphql.api.Scalar;
 
 @GraphQLApi
-public class AdapToResource {
+public class AdaptToResource {
 
     @Query
     public AdaptToData getAdaptToData() {
