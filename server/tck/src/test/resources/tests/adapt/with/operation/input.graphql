@@ -1,0 +1,22 @@
+{
+  mapOperationBasic {
+    key
+    value
+  }
+  mapOperationComplex(key:{id:2}){
+    key{
+      id
+      description
+    }
+    value{
+      values
+    }
+  }
+  mapOperationEnum (forLang: af){
+    key
+    value {
+      enName
+      please
+    }
+  }
+}

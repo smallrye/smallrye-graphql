@@ -17,17 +17,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
@@ -207,6 +212,34 @@ public class Classes {
         return false;
     }
 
+    public static boolean isMap(Type type) {
+        if (isParameterized(type)) {
+
+            ClassInfo clazz = ScanningContext.getIndex().getClassByName(type.name());
+            if (clazz == null) {
+                // use classloader instead of jandex to handle basic java classes/interfaces
+                try {
+                    Class<?> clazzLoaded = Classes.class.getClassLoader().loadClass(type.name().toString());
+                    return Map.class.isAssignableFrom(clazzLoaded);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Info not found in Jandex index nor classpath for class name:" + type.name());
+                }
+            }
+            if (KNOWN_MAPS.contains(clazz.name())) {
+                return true;
+            }
+
+            // we have to go recursively over all super-interfaces as Jandex provides only direct interfaces
+            // implemented in the class itself
+            for (Type intf : clazz.interfaceTypes()) {
+                if (isMap(intf)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Return true if given type is parametrized type unwrapped/handled by the runtime before the serialization
      * (Optional&lt;&gt;, CompletableFutur&lt;&gt;, CompletionStage&lt;&gt; etc)
@@ -250,6 +283,14 @@ public class Classes {
 
     public static final DotName QUEUE = DotName.createSimple(Queue.class.getName());
     public static final DotName DEQUE = DotName.createSimple(Deque.class.getName());
+
+    public static final DotName MAP = DotName.createSimple(Map.class.getName());
+    public static final DotName HASH_MAP = DotName.createSimple(HashMap.class.getName());
+    public static final DotName TREE_MAP = DotName.createSimple(TreeMap.class.getName());
+    public static final DotName HASHTABLE = DotName.createSimple(Hashtable.class.getName());
+    public static final DotName SORTED_MAP = DotName.createSimple(SortedMap.class.getName());
+
+    public static final DotName ENTRY = DotName.createSimple("io.smallrye.graphql.api.Entry");
 
     public static final DotName OPTIONAL = DotName.createSimple(Optional.class.getName());
 
@@ -305,6 +346,7 @@ public class Classes {
     public static final DotName ADAPTER = DotName.createSimple("io.smallrye.graphql.api.Adapter");
 
     private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
+    private static final List<DotName> KNOWN_MAPS = new ArrayList<>();
     static {
         KNOWN_COLLECTIONS.add(COLLECTION);
         KNOWN_COLLECTIONS.add(LIST);
@@ -318,5 +360,11 @@ public class Classes {
         KNOWN_COLLECTIONS.add(TREE_SET);
         KNOWN_COLLECTIONS.add(QUEUE);
         KNOWN_COLLECTIONS.add(DEQUE);
+
+        KNOWN_MAPS.add(MAP);
+        KNOWN_MAPS.add(HASH_MAP);
+        KNOWN_MAPS.add(TREE_MAP);
+        KNOWN_MAPS.add(HASHTABLE);
+        KNOWN_MAPS.add(SORTED_MAP);
     }
 }

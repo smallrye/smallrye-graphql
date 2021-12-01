@@ -87,4 +87,10 @@ public final class Operation extends Field {
     public boolean isSourceField() {
         return this.sourceFieldOn != null;
     }
+
+    @Override
+    public String toString() {
+        return "Operation{" + "className=" + className + ", arguments=" + arguments + ", operationType=" + operationType
+                + ", sourceFieldOn=" + sourceFieldOn + '}';
+    }
 }

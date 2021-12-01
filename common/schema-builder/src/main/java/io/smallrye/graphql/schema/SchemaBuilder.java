@@ -92,11 +92,11 @@ public class SchemaBuilder {
         fieldCreator = new FieldCreator(referenceCreator);
         ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
 
-        inputTypeCreator = new InputTypeCreator(fieldCreator, autoNameStrategy);
+        inputTypeCreator = new InputTypeCreator(fieldCreator);
         operationCreator = new OperationCreator(referenceCreator, argumentCreator);
-        typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator, autoNameStrategy);
-        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, autoNameStrategy, operationCreator);
-        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator, autoNameStrategy);
+        typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
+        interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, operationCreator);
+        directiveTypeCreator = new DirectiveTypeCreator(referenceCreator);
     }
 
     private Schema generateSchema() {

@@ -3,6 +3,7 @@ package io.smallrye.graphql.execution.datafetcher;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import graphql.GraphQLContext;
 import graphql.GraphQLException;
@@ -62,12 +63,14 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
             this.propertyAccessor = buildPropertyAccessor();
         }
 
+        Map<String, Object> arguments = dfe.getArguments();
+
         Object source = dfe.getSource();
         Object resultFromMethodCall = propertyAccessor.get(source);
         try {
             // See if we need to transform
             @SuppressWarnings("unchecked")
-            T transformResponse = (T) fieldHelper.transformResponse(resultFromMethodCall);
+            T transformResponse = (T) fieldHelper.transformOrAdaptResponse(resultFromMethodCall, dfe);
             return transformResponse;
         } catch (AbstractDataFetcherException ex) {
             log.transformError(ex);

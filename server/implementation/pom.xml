@@ -54,7 +54,7 @@
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
         </dependency>
-
+        
         <!-- Mutiny -->
         <dependency>
             <groupId>io.smallrye.reactive</groupId>

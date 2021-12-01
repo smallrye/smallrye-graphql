@@ -133,4 +133,11 @@ public final class Type extends Reference {
     public void setIsInterface(boolean isInterface) {
         isInterface = isInterface;
     }
+
+    @Override
+    public String toString() {
+        return "Type{" + "description=" + description + ", isInterface=" + isInterface + ", fields=" + fields + ", operations="
+                + operations + ", batchOperations=" + batchOperations + ", interfaces=" + interfaces + '}';
+    }
+
 }

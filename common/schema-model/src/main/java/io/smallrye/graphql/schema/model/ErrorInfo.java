@@ -35,4 +35,9 @@ public final class ErrorInfo implements Serializable {
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorInfo{" + "className=" + className + ", errorCode=" + errorCode + '}';
+    }
 }

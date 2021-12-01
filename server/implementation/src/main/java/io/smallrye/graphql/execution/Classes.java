@@ -61,6 +61,12 @@ public class Classes {
         return Collection.class.isAssignableFrom(c.getClass());
     }
 
+    public static boolean isMap(Object c) {
+        if (c == null)
+            return false;
+        return Map.class.isAssignableFrom(c.getClass());
+    }
+
     public static Class getPrimativeClassType(String primitiveName) throws ClassNotFoundException {
         if (isPrimitive(primitiveName)) {
             return PRIMITIVE_CLASSES.get(primitiveName);

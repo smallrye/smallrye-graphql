@@ -33,4 +33,9 @@ public final class EnumValue {
     public void setValue(String value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "EnumValue{" + "description=" + description + ", value=" + value + '}';
+    }
 }

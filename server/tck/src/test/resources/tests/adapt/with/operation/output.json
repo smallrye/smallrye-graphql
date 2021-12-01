@@ -1,0 +1,41 @@
+{
+  "data": {
+    "mapOperationBasic": [
+      {
+        "key": "key3",
+        "value": "value3"
+      },
+      {
+        "key": "key1",
+        "value": "value1"
+      },
+      {
+        "key": "key2",
+        "value": "value2"
+      }
+    ],
+    "mapOperationComplex": [
+      {
+        "key": {
+          "id": 2,
+          "description": "The complex key's key 2"
+        },
+        "value": {
+          "values": [
+            "v2a",
+            "v2b"
+          ]
+        }
+      }
+    ],
+    "mapOperationEnum": [
+      {
+        "key": "af",
+        "value": {
+          "enName": "afrikaans",
+          "please": "asseblief"
+        }
+      }
+    ]
+  }
+}

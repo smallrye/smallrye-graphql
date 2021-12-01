@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbException;
@@ -25,7 +26,7 @@ import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
-import io.smallrye.graphql.schema.model.Adapter;
+import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
@@ -116,7 +117,7 @@ public class ArgumentHelper extends AbstractHelper {
             argumentValueFromGraphQLJava = Optional.of(argumentValueFromGraphQLJava);
         }
 
-        return super.recursiveTransform(argumentValueFromGraphQLJava, argument);
+        return transformOrAdapt(argumentValueFromGraphQLJava, argument, dfe);
     }
 
     /**
@@ -137,44 +138,89 @@ public class ArgumentHelper extends AbstractHelper {
     }
 
     /**
-     * By now this is a 'leaf' value, i.e not a collection of array, so we just map if needed.
+     * By now this is a 'leaf' value, i.e not a collection of array, so we just adapt if needed.
      *
      * @param argumentValue the value to map
      * @param field the field as created while scanning
      * @return mapped value
      */
     @Override
-    Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
-        if (shouldApplyMapping(field)) {
-            String methodName = getCreateMethodName(field);
-            if (methodName != null && !methodName.isEmpty()) {
-                Class<?> mappingClass = classloadingService.loadClass(field.getReference().getClassName());
-                try {
-                    if (methodName.equals(CONTRUCTOR_METHOD_NAME)) {
-                        // Try with contructor
-                        Constructor<?> constructor = mappingClass.getConstructor(argumentValue.getClass());
-                        return constructor.newInstance(argumentValue);
+    Object singleAdapting(Object argumentValue, Field field, DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
+        if (argumentValue == null) {
+            return null;
+        }
 
-                    } else {
-                        // Try with method
-                        Method method = mappingClass.getMethod(methodName, argumentValue.getClass());
-                        if (Modifier.isStatic(method.getModifiers())) {
-                            Object instance = method.invoke(null, argumentValue);
-                            return instance;
-                        } else { // We need an instance, so assuming a public no-arg contructor
-                            Constructor<?> constructor = mappingClass.getConstructor();
-                            Object instance = constructor.newInstance();
-                            method.invoke(instance, argumentValue);
-                            return instance;
-                        }
-                    }
-                } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
-                        | IllegalArgumentException | InvocationTargetException ex) {
-                    ex.printStackTrace();
-                }
-            }
+        if (shouldAdaptWith(field)) {
+            return adaptInputWith(field, argumentValue, dfe);
+        } else if (shouldAdaptTo(field)) {
+            return adaptInputTo(field, argumentValue);
+        } else if (field.hasWrapper() && field.getWrapper().isMap()) {
+            return defaultAdaptMap(field, argumentValue, dfe);
         }
         // Fall back to the original value
+        return argumentValue;
+    }
+
+    private Object adaptInputTo(Field field, Object object) {
+        String methodName = getCreateMethodName(field);
+        if (methodName != null && !methodName.isEmpty()) {
+            Class<?> mappingClass = classloadingService.loadClass(field.getReference().getClassName());
+            try {
+                if (methodName.equals(CONTRUCTOR_METHOD_NAME)) {
+                    // Try with contructor
+                    Constructor<?> constructor = mappingClass.getConstructor(object.getClass());
+                    return constructor.newInstance(object);
+
+                } else {
+                    // Try with method
+                    Method method = mappingClass.getMethod(methodName, object.getClass());
+                    if (Modifier.isStatic(method.getModifiers())) {
+                        Object instance = method.invoke(null, object);
+                        return instance;
+                    } else { // We need an instance, so assuming a public no-arg contructor
+                        Constructor<?> constructor = mappingClass.getConstructor();
+                        Object instance = constructor.newInstance();
+                        method.invoke(instance, object);
+                        return instance;
+                    }
+                }
+            } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return object;
+    }
+
+    private Object defaultAdaptMap(Field field, Object argumentValue, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
+        Set providedSet = (Set) argumentValue;
+        Set adaptInnerSet = (Set) recursiveAdapting(providedSet, mapAdapter.getAdaptedField(field), dfe);
+        return mapAdapter.from(adaptInnerSet);
+    }
+
+    private Object adaptInputWith(Field field, Object argumentValue, DataFetchingEnvironment dfe)
+            throws TransformException, AbstractDataFetcherException {
+        if (argumentValue == null) {
+            return null;
+        }
+
+        if (field.isAdaptingWith()) {
+            AdaptWith adaptWith = field.getAdaptWith();
+            ReflectionInvoker reflectionInvoker = getReflectionInvokerForInput(adaptWith);
+
+            if (Map.class.isAssignableFrom(argumentValue.getClass())) {
+                argumentValue = correctComplexObjectFromMap((Map) argumentValue, field, dfe);
+            }
+
+            try {
+                Object adaptedObject = reflectionInvoker.invoke(argumentValue);
+                return adaptedObject;
+            } catch (Exception ex) {
+                log.transformError(ex);
+                throw new TransformException(ex, field, argumentValue);
+            }
+        }
         return argumentValue;
     }
 
@@ -186,49 +232,6 @@ public class ArgumentHelper extends AbstractHelper {
             return object;
         }
 
-        if (field.hasAdapter()) {
-            return transformInputWithAdapter(field, object);
-        } else {
-            return transformInputWithTransformer(field, object);
-        }
-    }
-
-    /**
-     * This is for when a user provided a adapter.
-     * 
-     * @param field the field definition
-     * @param object the pre transform value
-     * @return the transformed value
-     * @throws AbstractDataFetcherException
-     */
-    private Object transformInputWithAdapter(Field field, Object object) throws AbstractDataFetcherException {
-
-        if (!field.getAdapter().isJsonB()) { // We use JsonB internally, so we can skip for JsonB
-            Adapter adapter = field.getAdapter();
-            ReflectionInvoker reflectionInvoker = getReflectionInvokerForInput(adapter);
-            try {
-                if (Map.class.isAssignableFrom(object.getClass())) { // For complex object we receive a map from graphql-java
-                    object = correctComplexObjectFromMap((Map) object, field);
-                }
-                Object adaptedObject = reflectionInvoker.invoke(object);
-                return adaptedObject;
-            } catch (Exception ex) {
-                log.transformError(ex);
-                throw new TransformException(ex, field, object);
-            }
-        }
-        return object;
-    }
-
-    /**
-     * This is the build in transformation (eg. number and date formatting)
-     * 
-     * @param field the field definition
-     * @param object the pre transform value
-     * @return the transformed value
-     * @throws AbstractDataFetcherException
-     */
-    private Object transformInputWithTransformer(Field field, Object object) throws AbstractDataFetcherException {
         try {
             Transformer transformer = super.getTransformer(field);
             if (transformer == null) {
@@ -240,19 +243,23 @@ public class ArgumentHelper extends AbstractHelper {
         }
     }
 
-    private boolean shouldApplyMapping(Field field) {
-        return field.getReference().hasMapping()
-                && field.getReference().getMapping().getDeserializeMethod() != null
+    private boolean shouldAdaptTo(Field field) {
+        return field.getReference().isAdaptingTo()
+                && field.getReference().getAdaptTo().getDeserializeMethod() != null
                 ||
-                field.hasMapping()
-                        && field.getMapping().getDeserializeMethod() != null;
+                field.isAdaptingTo()
+                        && field.getAdaptTo().getDeserializeMethod() != null;
+    }
+
+    private boolean shouldAdaptWith(Field field) {
+        return field.getReference().isAdaptingWith() || field.isAdaptingWith();
     }
 
     private String getCreateMethodName(Field field) {
-        if (field.getReference().hasMapping()) {
-            return field.getReference().getMapping().getDeserializeMethod();
-        } else if (field.hasMapping()) {
-            return field.getMapping().getDeserializeMethod();
+        if (field.getReference().isAdaptingTo()) {
+            return field.getReference().getAdaptTo().getDeserializeMethod();
+        } else if (field.isAdaptingTo()) {
+            return field.getAdaptTo().getDeserializeMethod();
         }
         return null;
     }
@@ -267,7 +274,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) throws AbstractDataFetcherException {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String expectedType = field.getReference().getClassName();
         String receivedType = fieldValue.getClass().getName();
 
@@ -281,7 +289,7 @@ public class ArgumentHelper extends AbstractHelper {
             Class<?> enumClass = classloadingService.loadClass(field.getReference().getClassName());
             return Enum.valueOf((Class<Enum>) enumClass, fieldValue.toString());
         } else {
-            return correctObjectClass(fieldValue, field);
+            return correctObjectClass(fieldValue, field, dfe);
         }
     }
 
@@ -293,19 +301,20 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return the return value
      */
-    private Object correctObjectClass(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    private Object correctObjectClass(Object argumentValue, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String receivedClassName = argumentValue.getClass().getName();
 
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
-            return correctComplexObjectFromMap((Map) argumentValue, field);
+            return correctComplexObjectFromMap((Map) argumentValue, field, dfe);
         } else if (receivedClassName.equals(String.class.getName())) {
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
-        } else if (!field.hasAdapter() && GraphQLScalarTypes.isGraphQLScalarType(field.getReference().getClassName())) {
+        } else if (GraphQLScalarTypes.isGraphQLScalarType(field.getReference().getClassName())) {
             GraphQLScalarType scalar = GraphQLScalarTypes.getScalarByClassName(field.getReference().getClassName());
             return scalar.getCoercing().parseLiteral(argumentValue);
-        } else if (!field.hasAdapter()) {
+        } else {
             log.dontKnowHoToHandleArgument(argumentValue.getClass().getName(), field.getMethodName());
         }
         return argumentValue;
@@ -324,7 +333,8 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return a java object of this type.
      */
-    private Object correctComplexObjectFromMap(Map m, Field field) throws AbstractDataFetcherException {
+    private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
 
         // Let's see if there are any fields that needs transformation or adaption
@@ -336,23 +346,38 @@ public class ArgumentHelper extends AbstractHelper {
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldTransform = m.get(fieldName);
                     Field fieldThatShouldTransform = entry.getValue();
-                    valueThatShouldTransform = super.recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform);
+                    valueThatShouldTransform = super.recursiveTransform(valueThatShouldTransform, fieldThatShouldTransform,
+                            dfe);
                     m.put(fieldName, valueThatShouldTransform);
                 }
             }
         }
 
-        // Let's see if there are any fields that needs mapping
-        if (InputFieldsInfo.hasMappingFields(className)) {
-            Map<String, Field> mappingFields = InputFieldsInfo.getMappingFields(className);
+        // Let's see if there are any fields that needs adapting
+        if (InputFieldsInfo.hasAdaptToFields(className)) {
+            Map<String, Field> mappingFields = InputFieldsInfo.getAdaptToFields(className);
 
             for (Map.Entry<String, Field> entry : mappingFields.entrySet()) {
                 String fieldName = entry.getKey();
                 if (m.containsKey(fieldName)) {
                     Object valueThatShouldMap = m.get(fieldName);
                     Field fieldThatShouldMap = entry.getValue();
-                    valueThatShouldMap = recursiveMapping(valueThatShouldMap, fieldThatShouldMap);
+                    valueThatShouldMap = super.recursiveAdapting(valueThatShouldMap, fieldThatShouldMap, dfe);
                     m.put(fieldName, valueThatShouldMap);
+                }
+            }
+        }
+
+        if (InputFieldsInfo.hasAdaptWithFields(className)) {
+            Map<String, Field> adaptingFields = InputFieldsInfo.getAdaptWithFields(className);
+
+            for (Map.Entry<String, Field> entry : adaptingFields.entrySet()) {
+                String fieldName = entry.getKey();
+                if (m.containsKey(fieldName)) {
+                    Object valueThatShouldAdapt = m.get(fieldName);
+                    Field fieldThatShouldAdapt = entry.getValue();
+                    Object valueThatAdapted = super.recursiveAdapting(valueThatShouldAdapt, fieldThatShouldAdapt, dfe);
+                    m.put(fieldName, valueThatAdapted);
                 }
             }
         }
@@ -407,10 +432,18 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the correct object
      */
     private Object correctComplexObjectFromJsonString(String jsonString, Field field) throws AbstractDataFetcherException {
-        Type type = getType(field.getReference());
+        Type type;
+        String className;
+        if (field.isAdaptingWith()) {
+            className = field.getAdaptWith().getToReference().getClassName();
+            type = getType(field.getAdaptWith().getToReference());
+        } else {
+            type = getType(field.getReference());
+            className = field.getReference().getClassName();
+        }
 
         try {
-            Jsonb jsonb = JsonBCreator.getJsonB(field.getReference().getClassName());
+            Jsonb jsonb = JsonBCreator.getJsonB(className);
             return jsonb.fromJson(jsonString, type);
         } catch (JsonbException jbe) {
             throw new TransformException(jbe, field, jsonString);

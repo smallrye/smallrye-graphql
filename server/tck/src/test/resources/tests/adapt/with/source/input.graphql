@@ -1,0 +1,24 @@
+{
+  adapterData{
+    name
+    mapSourceBasic {
+      key
+      value
+    }
+    mapSourceComplex {
+      key{
+        description
+      }
+      value {
+        values
+      }
+    }
+    mapSourceEnum(forLang: af){
+      key
+      value {
+        please
+        thankyou
+      }
+    }
+  }
+}

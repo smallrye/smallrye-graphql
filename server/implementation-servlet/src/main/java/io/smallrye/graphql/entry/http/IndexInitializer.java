@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,6 +26,8 @@ import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
+
+import io.smallrye.graphql.api.Entry;
 
 /**
  * This creates an index from the classpath.
@@ -50,8 +53,11 @@ public class IndexInitializer {
         }
 
         // Classes in this artifact
-        IndexView i = createIndexView(urls);
-        indexes.add(i);
+        IndexView artifact = createIndexView(urls);
+        indexes.add(artifact);
+
+        IndexView custom = createCustomIndex();
+        indexes.add(custom);
 
         return merge(indexes);
     }
@@ -59,6 +65,18 @@ public class IndexInitializer {
     public IndexView createIndex() {
         Set<URL> urls = getUrlFromClassPath();
         return createIndexView(urls);
+    }
+
+    private IndexView createCustomIndex() {
+        Indexer indexer = new Indexer();
+
+        try {
+            indexer.indexClass(Map.class);
+            indexer.indexClass(Entry.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return indexer.complete();
     }
 
     private IndexView createIndexView(Set<URL> urls) {

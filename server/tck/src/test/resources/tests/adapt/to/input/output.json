@@ -1,0 +1,11 @@
+{
+  "data": {
+    "updateAdaptToData": {
+      "id": 1,
+      "withConstructor": "bar",
+      "withSetValue": "bar",
+      "withStaticFrom": "bar",
+      "withGetInstance": "bar"
+    }
+  }
+}

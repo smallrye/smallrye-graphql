@@ -19,7 +19,6 @@ import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
-import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
@@ -38,13 +37,10 @@ public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     private final FieldCreator fieldCreator;
-    private final TypeAutoNameStrategy autoNameStrategy;
-
     private final DotName RECORD = DotName.createSimple("java.lang.Record");
 
-    public InputTypeCreator(FieldCreator fieldCreator, TypeAutoNameStrategy autoNameStrategy) {
+    public InputTypeCreator(FieldCreator fieldCreator) {
         this.fieldCreator = fieldCreator;
-        this.autoNameStrategy = autoNameStrategy;
     }
 
     @Override
@@ -60,7 +56,8 @@ public class InputTypeCreator implements Creator<InputType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.INPUT, classInfo, annotations, autoNameStrategy);
+        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.INPUT, classInfo, annotations,
+                fieldCreator.getTypeAutoNameStrategy());
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

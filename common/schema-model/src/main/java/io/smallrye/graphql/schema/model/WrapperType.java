@@ -8,6 +8,7 @@ package io.smallrye.graphql.schema.model;
 public enum WrapperType {
     OPTIONAL,
     COLLECTION,
+    MAP,
     ARRAY,
     UNKNOWN // Could be a plugged in type, or normal generics
 }

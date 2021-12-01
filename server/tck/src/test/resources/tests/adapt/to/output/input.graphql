@@ -1,0 +1,9 @@
+{
+  adaptToData{
+    id
+    withConstructor
+    withSetValue
+    withStaticFrom
+    withGetInstance
+  }
+}

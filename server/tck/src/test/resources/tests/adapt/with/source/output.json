@@ -1,0 +1,54 @@
+{
+  "data": {
+    "adapterData": {
+      "name": "Foo",
+      "mapSourceBasic": [
+        {
+          "key": "key2",
+          "value": "value2"
+        },
+        {
+          "key": "key3",
+          "value": "value3"
+        },
+        {
+          "key": "key1",
+          "value": "value1"
+        }
+      ],
+      "mapSourceComplex": [
+        {
+          "key": {
+            "description": "The complex key's key 1"
+          },
+          "value": {
+            "values": [
+              "v1a",
+              "v1b"
+            ]
+          }
+        },
+        {
+          "key": {
+            "description": "The complex key's key 2"
+          },
+          "value": {
+            "values": [
+              "v2a",
+              "v2b"
+            ]
+          }
+        }
+      ],
+      "mapSourceEnum": [
+        {
+          "key": "af",
+          "value": {
+            "please": "asseblief",
+            "thankyou": "dankie"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -37,4 +37,9 @@ public final class Argument extends Field {
     public boolean isSourceArgument() {
         return sourceArgument;
     }
+
+    @Override
+    public String toString() {
+        return "Argument{" + "methodArgumentName=" + methodArgumentName + ", sourceArgument=" + sourceArgument + '}';
+    }
 }

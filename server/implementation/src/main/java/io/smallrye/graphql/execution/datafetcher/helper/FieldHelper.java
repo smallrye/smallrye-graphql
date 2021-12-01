@@ -2,7 +2,12 @@ package io.smallrye.graphql.execution.datafetcher.helper;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import io.smallrye.graphql.schema.model.Adapter;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
@@ -29,14 +34,10 @@ public class FieldHelper extends AbstractHelper {
         this.field = field;
     }
 
-    public Object transformResponse(Object argumentValue)
+    public Object transformOrAdaptResponse(Object argumentValue, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
-        if (!shouldTransform(field)) {
-            return argumentValue;
-        } else {
-            argumentValue = super.recursiveTransform(argumentValue, field);
-            return argumentValue;
-        }
+
+        return super.transformOrAdapt(argumentValue, field, dfe);
     }
 
     /**
@@ -56,19 +57,45 @@ public class FieldHelper extends AbstractHelper {
     }
 
     /**
-     * By now this is a 'leaf' value, i.e not a collection of array, so we just transform if needed.
+     * By now this is a 'leaf' value, i.e not a collection of array, so we just adapt to if needed.
      * 
      * @param argumentValue the value to map
      * @param field the field as created while scanning
      * @return mapped value
      */
     @Override
-    Object singleMapping(Object argumentValue, Field field) throws AbstractDataFetcherException {
+    Object singleAdapting(Object argumentValue, Field field, DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
+        if (argumentValue == null) {
+            return null;
+        }
+
+        if (field.isAdaptingWith()) {
+            AdaptWith adaptWith = field.getAdaptWith();
+            ReflectionInvoker reflectionInvoker = getReflectionInvokerForOutput(adaptWith);
+            try {
+                Object adaptedObject = reflectionInvoker.invoke(argumentValue);
+                return adaptedObject;
+            } catch (Exception ex) {
+                log.transformError(ex);
+                throw new TransformException(ex, field, argumentValue);
+            }
+        } else if (field.hasWrapper() && field.getWrapper().isMap()) {
+            Object key = null;
+            Map<String, Object> arguments = dfe.getArguments();
+            if (arguments != null && arguments.size() > 0 && arguments.containsKey(KEY)) {
+                key = arguments.get(KEY);
+            }
+
+            Set entrySet = mapAdapter.to((Map) argumentValue, (List) key, field);
+
+            return recursiveAdapting(entrySet, mapAdapter.getAdaptedField(field), dfe);
+
+        }
         return argumentValue;
     }
 
     @Override
-    protected Object afterRecursiveTransform(Object fieldValue, Field field) {
+    protected Object afterRecursiveTransform(Object fieldValue, Field field, DataFetchingEnvironment dfe) {
         return fieldValue;
     }
 
@@ -84,43 +111,6 @@ public class FieldHelper extends AbstractHelper {
         if (!shouldTransform(field)) {
             return object;
         }
-
-        if (field.hasAdapter()) {
-            return transformOutputWithAdapter(field, object);
-        } else {
-            return transformOutputWithTransformer(field, object);
-        }
-    }
-
-    /**
-     * This is for when a user provided a adapter.
-     * 
-     * @param field the field definition
-     * @param object the pre transform value
-     * @return the transformed value
-     * @throws AbstractDataFetcherException
-     */
-    private Object transformOutputWithAdapter(Field field, Object object) throws AbstractDataFetcherException {
-        Adapter adapter = field.getAdapter();
-        ReflectionInvoker reflectionInvoker = getReflectionInvokerForOutput(adapter);
-        try {
-            Object adaptedObject = reflectionInvoker.invoke(object);
-            return adaptedObject;
-        } catch (Exception ex) {
-            log.transformError(ex);
-            throw new TransformException(ex, field, object);
-        }
-    }
-
-    /**
-     * This is the build in transformation (eg. number and date formatting)
-     * 
-     * @param field the field definition
-     * @param object the pre transform value
-     * @return the transformed value
-     * @throws AbstractDataFetcherException
-     */
-    private Object transformOutputWithTransformer(Field field, Object object) throws AbstractDataFetcherException {
         try {
             Transformer transformer = super.getTransformer(field);
             if (transformer == null) {
@@ -132,5 +122,7 @@ public class FieldHelper extends AbstractHelper {
             throw new TransformException(e, field, object);
         }
     }
+
+    private static final String KEY = "key";
 
 }

@@ -16,6 +16,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -207,7 +208,7 @@ public class Bootstrap {
 
     private GraphQLInputType argumentType(DirectiveArgument argumentType) {
         GraphQLInputType inputType = getGraphQLInputType(argumentType.getReference());
-        if (argumentType.hasWrapper() && argumentType.getWrapper().isCollectionOrArray()) {
+        if (argumentType.hasWrapper() && argumentType.getWrapper().isCollectionOrArrayOrMap()) {
             inputType = list(inputType);
         }
         return inputType;
@@ -413,7 +414,7 @@ public class Bootstrap {
         }
     }
 
-    private void createGraphQLInputObjectType(InputType inputType) {
+    private GraphQLInputObjectType createGraphQLInputObjectType(InputType inputType) {
         GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject()
                 .name(inputType.getName())
                 .description(inputType.getDescription());
@@ -427,7 +428,10 @@ public class Bootstrap {
         }
 
         GraphQLInputObjectType graphQLInputObjectType = inputObjectTypeBuilder.build();
-        inputMap.put(inputType.getName(), graphQLInputObjectType);
+        if (!inputMap.containsKey(inputType.getName())) {
+            inputMap.put(inputType.getName(), graphQLInputObjectType);
+        }
+        return graphQLInputObjectType;
     }
 
     private void createGraphQLObjectTypes() {
@@ -551,6 +555,11 @@ public class Bootstrap {
         if (operation.hasArguments()) {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
+        // Auto Map argument
+        Optional<GraphQLArgument> autoMapArgument = getAutoMapArgument(operation);
+        if (autoMapArgument.isPresent()) {
+            fieldBuilder.argument(autoMapArgument.get());
+        }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
@@ -586,6 +595,11 @@ public class Bootstrap {
             }
         }
 
+        // Auto Map argument
+        Optional<GraphQLArgument> autoMapArgument = getAutoMapArgument(field);
+        if (autoMapArgument.isPresent())
+            fieldBuilder.argument(autoMapArgument.get());
+
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
@@ -594,6 +608,45 @@ public class Bootstrap {
                 datafetcher);
 
         return graphQLFieldDefinition;
+    }
+
+    private Optional<GraphQLArgument> getAutoMapArgument(Field field) {
+        // Auto Map argument
+        if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+            Reference keyReference = parametrizedTypeArguments.get(AUTOMAP_KEY_KEY);
+
+            ReferenceType type = keyReference.getType();
+            if (type.equals(ReferenceType.SCALAR) || type.equals(ReferenceType.ENUM)) {
+                GraphQLInputType keyInput = getGraphQLInputType(keyReference);
+                GraphQLArgument byKey = GraphQLArgument.newArgument()
+                        .name(AUTOMAP_KEY_NAME)
+                        .description(AUTOMAP_KEY_DESC)
+                        .type(list(keyInput))
+                        .build();
+
+                return Optional.of(byKey);
+            } else {
+                String complexKeyName = keyReference.getName() + AUTOMAP_KEY_INPUT;
+                if (schema.getInputs().containsKey(complexKeyName)) {
+                    InputType complexKeyInputType = schema.getInputs().get(complexKeyName);
+                    GraphQLInputObjectType keyInput;
+                    if (inputMap.containsKey(complexKeyInputType.getName())) {
+                        keyInput = inputMap.get(complexKeyInputType.getName());
+                    } else {
+                        keyInput = createGraphQLInputObjectType(complexKeyInputType);
+                    }
+                    GraphQLArgument byKey = GraphQLArgument.newArgument()
+                            .name(AUTOMAP_KEY_NAME)
+                            .description(AUTOMAP_KEY_DESC)
+                            .type(list(keyInput))
+                            .build();
+
+                    return Optional.of(byKey);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Collection<Field> fields) {
@@ -627,14 +680,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -657,14 +710,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(field, isBatch);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLOutputType = list(graphQLOutputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -716,12 +769,14 @@ public class Bootstrap {
     }
 
     private Reference getCorrectFieldReference(Field field) {
-        // First check if this is mapped to some other type
-
-        if (field.getReference().hasMapping()) { // Global
-            return field.getReference().getMapping().getReference();
-        } else if (field.hasMapping()) { // Per field
-            return field.getMapping().getReference();
+        if (field.getReference().isAdaptingWith()) {
+            return field.getReference().getAdaptWith().getToReference();
+        } else if (field.isAdaptingWith()) {
+            return field.getAdaptWith().getToReference();
+        } else if (field.getReference().isAdaptingTo()) {
+            return field.getReference().getAdaptTo().getReference();
+        } else if (field.isAdaptingTo()) {
+            return field.getAdaptTo().getReference();
         } else {
             return field.getReference();
         }
@@ -755,14 +810,14 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(argument, false);
 
         // Collection
-        if (wrapper != null && wrapper.isCollectionOrArray()) {
+        if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
             if (wrapper.isNotEmpty()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
             do {
-                if (wrapper.isCollectionOrArray()) {
+                if (wrapper.isCollectionOrArrayOrMap()) {
                     graphQLInputType = list(graphQLInputType);
                     wrapper = wrapper.getWrapper();
                 } else {
@@ -793,7 +848,7 @@ public class Bootstrap {
             Class<?> deserType;
             Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
-            if (wrapper != null && wrapper.isCollectionOrArray()) {
+            if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
                 deserType = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
                 if (Collection.class.isAssignableFrom(deserType)) {
                     deserType = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName(), 0).getClass();
@@ -880,4 +935,10 @@ public class Bootstrap {
     private static final String OBSERVES = "javax.enterprise.event.Observes";
 
     private static final List<String> IGNORABLE_ARGUMENTS = Arrays.asList(CONTEXT, OBSERVES);
+
+    private static final String AUTOMAP_KEY_NAME = "key";
+    private static final String AUTOMAP_KEY_DESC = "Get entry/entries for a certain key/s";
+    private static final String AUTOMAP_KEY_KEY = "K";
+    private static final String AUTOMAP_KEY_INPUT = "Input";
+
 }

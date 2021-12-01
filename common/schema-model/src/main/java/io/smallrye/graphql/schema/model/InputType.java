@@ -72,4 +72,11 @@ public final class InputType extends Reference {
     public void addCreatorParameter(Field creatorParameter) {
         this.creatorParameters.add(creatorParameter);
     }
+
+    @Override
+    public String toString() {
+        return "InputType{" + "description=" + description + ", fields=" + fields + ", creatorParameters=" + creatorParameters
+                + '}';
+    }
+
 }

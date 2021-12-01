@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Indicate that a field should apply transformation
@@ -66,6 +67,48 @@ public class Transformation implements Serializable {
     public enum Type {
         NUMBER,
         DATE
+    }
+
+    @Override
+    public String toString() {
+        return "Transformation{" + "format=" + format + ", locale=" + locale + ", type=" + type + ", jsonB=" + jsonB + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.format);
+        hash = 89 * hash + Objects.hashCode(this.locale);
+        hash = 89 * hash + Objects.hashCode(this.type);
+        hash = 89 * hash + (this.jsonB ? 1 : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Transformation other = (Transformation) obj;
+        if (this.jsonB != other.jsonB) {
+            return false;
+        }
+        if (!Objects.equals(this.format, other.format)) {
+            return false;
+        }
+        if (!Objects.equals(this.locale, other.locale)) {
+            return false;
+        }
+        if (this.type != other.type) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -54,7 +54,7 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
                     }
                 } else {
                     try {
-                        resultBuilder.data(fieldHelper.transformResponse(result));
+                        resultBuilder.data(fieldHelper.transformOrAdaptResponse(result, dfe));
                     } catch (AbstractDataFetcherException te) {
                         te.appendDataFetcherResult(resultBuilder, dfe);
                     }

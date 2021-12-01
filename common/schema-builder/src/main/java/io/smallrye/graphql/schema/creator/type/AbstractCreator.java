@@ -18,7 +18,6 @@ import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.SourceOperationHelper;
-import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -34,14 +33,11 @@ abstract class AbstractCreator implements Creator<Type> {
 
     private final OperationCreator operationCreator;
     private final ReferenceCreator referenceCreator;
-    private final TypeAutoNameStrategy autoNameStrategy;
     private Directives directives;
 
-    protected AbstractCreator(OperationCreator operationCreator, ReferenceCreator referenceCreator,
-            TypeAutoNameStrategy autoNameStrategy) {
+    protected AbstractCreator(OperationCreator operationCreator, ReferenceCreator referenceCreator) {
         this.operationCreator = operationCreator;
         this.referenceCreator = referenceCreator;
-        this.autoNameStrategy = autoNameStrategy;
     }
 
     public void setDirectives(Directives directives) {
@@ -58,7 +54,7 @@ abstract class AbstractCreator implements Creator<Type> {
 
         // Name
         String name = TypeNameHelper.getAnyTypeName(reference, referenceType(), classInfo, annotations,
-                autoNameStrategy);
+                referenceCreator.getTypeAutoNameStrategy());
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
@@ -101,7 +97,8 @@ abstract class AbstractCreator implements Creator<Type> {
                         parametrizedTypeArgumentsReferences = referenceCreator.collectParametrizedTypes(interfaceInfo,
                                 interfaceType.asParameterizedType().arguments(), Direction.OUT, reference);
 
-                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, reference,
+                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, true,
+                            reference,
                             parametrizedTypeArgumentsReferences, true);
                     type.addInterface(interfaceRef);
                     // add all parent interfaces recursively as GraphQL schema requires it
