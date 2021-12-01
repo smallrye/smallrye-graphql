@@ -1,0 +1,16 @@
+mutation updateAdaptToData {
+  updateAdaptToData(adaptToData: {
+                        id:1
+                        withConstructor: "bar",
+                        withSetValue: "bar",
+                        withStaticFrom: "bar",
+                        withGetInstance: "bar"
+                    }
+  		){
+    id
+    withConstructor
+    withSetValue
+    withStaticFrom
+    withGetInstance
+  }
+}
