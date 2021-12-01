@@ -39,6 +39,10 @@ public class ParameterInfo {
             return "ID" + optionalExclamationMark(type);
         } else if (type.isCollection()) {
             return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
+        } else if (type.isMap()) {
+            return "[Entry_" + withExclamationMark(type.getKeyType())
+                    + "_" + withExclamationMark(type.getValueType()) + "Input]"
+                    + optionalExclamationMark(type);
         } else {
             return withExclamationMark(type);
         }

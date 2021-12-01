@@ -82,6 +82,11 @@ public class QueryBuilder {
             return "";
         if (type.isCollection() || type.isAsync())
             return fields(type.getItemType());
+        if (type.isMap()) {
+            String keyFields = fields(type.getKeyType());
+            String valueFields = fields(type.getValueType());
+            return "{ key " + keyFields + " value " + valueFields + "}";
+        }
         return type.fields()
                 .map(this::field)
                 .collect(joining(" ", " {", "}"));
