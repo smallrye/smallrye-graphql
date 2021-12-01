@@ -20,16 +20,16 @@ public class InputFieldsInfo {
     private static final Map<String, Map<String, Field>> inputFieldTransformationMap = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldAdaptingToMap = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldAdaptingWithMap = new HashMap<>();
-    private static final Map<String, List<String>> creatorParameters = new HashMap<>();
+    private static final Map<String, List<Field>> creatorParameters = new HashMap<>();
 
     private InputFieldsInfo() {
     }
 
     protected static void register(InputType inputType) {
         if (inputType.hasFields()) {
-            final ArrayList<String> creatorParameters = new ArrayList<>();
+            final ArrayList<Field> creatorParameters = new ArrayList<>();
             for (final Field creatorParameter : inputType.getCreatorParameters()) {
-                creatorParameters.add(creatorParameter.getName());
+                creatorParameters.add(creatorParameter);
             }
             InputFieldsInfo.creatorParameters.put(inputType.getClassName(), creatorParameters);
 
@@ -106,7 +106,7 @@ public class InputFieldsInfo {
         return null;
     }
 
-    public static List<String> getCreatorParameters(String className) {
+    public static List<Field> getCreatorParameters(String className) {
         if (creatorParameters.containsKey(className)) {
             return creatorParameters.get(className);
         }

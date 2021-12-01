@@ -30,6 +30,8 @@ import io.smallrye.graphql.test.apps.interfaces.api.FoodResource;
 import io.smallrye.graphql.test.apps.jackson.api.JacksonApi;
 import io.smallrye.graphql.test.apps.jsonp.api.JsonPApi;
 import io.smallrye.graphql.test.apps.mutiny.api.MutinyApi;
+import io.smallrye.graphql.test.apps.nonnull.api.NonNullClass;
+import io.smallrye.graphql.test.apps.nonnull.api.nonnull_package.NonNullPackageClass;
 import io.smallrye.graphql.test.apps.optional.api.OptionalTestingApi;
 import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
 import io.smallrye.graphql.test.apps.scalars.api.AdditionalScalarsApi;
@@ -110,6 +112,8 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(JacksonApi.class.getPackage());
             war.addPackage(AdapterResource.class.getPackage());
             war.addPackage(AdaptToResource.class.getPackage());
+            war.addPackage(NonNullClass.class.getPackage());
+            war.addPackage(NonNullPackageClass.class.getPackage());
         }
     }
 }

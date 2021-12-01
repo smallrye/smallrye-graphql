@@ -1,1 +1,1 @@
-io.smallrye.graphql.client.dynamic.core.InputObjectFieldImpl
+io.smallrye.graphql.client.impl.core.InputObjectFieldImpl

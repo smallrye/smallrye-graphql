@@ -1,0 +1,72 @@
+site_name: Smallrye GraphQL
+repo_url: https://github.com/smallrye/smallrye-graphql
+edit_uri: edit/main/docs/
+
+nav:
+  - Overview: 'index.md'
+#  - Power annotations: # Power annotations are unused right now
+#      - Power annotations: 'power-annotations.md'
+  - Typesafe client:
+      - Basic usage: 'typesafe-client-usage.md'
+      - Reactive: 'typesafe-client-reactive-types.md'
+      - Custom scalar types: 'typesafe-client-custom-scalars.md'
+      - Adding headers: 'typesafe-client-headers.md'
+      - Logging: 'typesafe-client-logging.md'
+      - Running multiple queries at once: 'typesafe-client-multiple-queries.md'
+      - Error handling: 'typesafe-client-error-handling.md'
+  - Dynamic client:
+      - Basic usage: 'dynamic-client-usage.md'
+      - Error handling: 'dynamic-client-error-handling.md'
+  - Developer tools:
+      - Maven plugin: 'maven-plugin.md'
+      - Gradle plugin: 'gradle-plugin.md'
+  - Reference material:
+      - Server-side configuration: 'server_configuration.md'
+#      - Client-side configuration: 'client_configuration.md'
+
+copyright: >-
+  Sponsored by <a href="https://www.redhat.com"><img style="vertical-align: middle; height: 2.5em;" alt="Red Hat" src="./images/redhat_reversed.svg"/></a> <br/>
+  <a href="https://creativecommons.org/licenses/by/3.0/">CC by 3.0</a> |
+  <a href="https://www.redhat.com/en/about/privacy-policy">Privacy Policy</a>
+
+theme:
+  name: material
+  palette:
+    primary: black
+    accent: red
+  font:
+    text: Red Hat Text
+    code: Ubuntu Mono
+#  logo: images/stork-white.png
+#  favicon: images/stork-white.png
+  features:
+    - navigation.sections
+
+extra_css:
+  - extra.css
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - admonition
+
+plugins:
+  - search
+  - build_plantuml:
+      render: "server"
+      server: "http://www.plantuml.com/plantuml"
+      output_format: "png"
+      diagram_root: "docs"
+      output_folder: "target"
+      input_folder: "diagrams"
+      input_extensions: "puml"
+  - macros
+
+
+
+extra:
+  manifest: manifest.webmanifest
+  version:
+    current: !ENV [SR_GRAPHQL_VERSION, "SNAPSHOT"]
+    provider: mike

@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
-import io.smallrye.graphql.client.dynamic.vertx.VertxDynamicGraphQLClient;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.vertx.core.MultiMap;
 
 /**

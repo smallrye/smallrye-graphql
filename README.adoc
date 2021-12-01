@@ -31,6 +31,12 @@ mvn clean install
 mvn clean install -Dversion.eclipse.microprofile.graphql=2.0-SNAPSHOT
 ----
 
+=== Documentation
+
+The live documentation is available at link:https://smallrye.io/smallrye-graphql[this link].
+
+Info about how to build and manage the documentation is in `docs/README.adoc`.
+
 === Project structure
 
 ==== Common
@@ -63,7 +69,12 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=2.0-SNAPSHOT
 
 * link:ui/graphiql[GraphiQL] UI for your project
 
+==== Documentation
+
+* link:docs[Documentation] SmallRye GraphQL documentation source
+
 === Links
 
 * http://github.com/smallrye/smallrye-graphql/[Project Homepage]
 * {microprofile-graphql}[Eclipse MicroProfile GraphQL]
+* https://smallrye.io/smallrye-graphql[SmallRye GraphQL Documentation]

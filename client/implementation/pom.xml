@@ -29,6 +29,10 @@
         <!-- The API -->
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-client-api</artifactId>
         </dependency>
         <dependency>

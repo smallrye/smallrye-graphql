@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.jboss.jandex.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import io.smallrye.graphql.schema.IndexCreator;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Field;
@@ -120,6 +122,7 @@ class FieldCreatorTest {
             return null;
         }
         Index complete = IndexCreator.index(SimplePojo.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(SimplePojo.class.getName()));
         return classByName.field(name);
@@ -130,9 +133,15 @@ class FieldCreatorTest {
             return null;
         }
         Index complete = IndexCreator.index(SimplePojo.class);
+        ScanningContext.register(complete);
 
         ClassInfo classByName = complete.getClassByName(DotName.createSimple(SimplePojo.class.getName()));
         return classByName.firstMethod(name);
+    }
+
+    @AfterEach
+    void tearDown() {
+        ScanningContext.remove();
     }
 
 }

@@ -356,7 +356,7 @@ public class Bootstrap {
                 .name(interfaceType.getName())
                 .description(interfaceType.getDescription());
 
-        // Fields 
+        // Fields
         if (interfaceType.hasFields()) {
             interfaceTypeBuilder = interfaceTypeBuilder
                     .fields(createGraphQLFieldDefinitionsFromFields(interfaceType,
@@ -423,7 +423,7 @@ public class Bootstrap {
         if (inputType.hasFields()) {
             inputObjectTypeBuilder = inputObjectTypeBuilder
                     .fields(createGraphQLInputObjectFieldsFromFields(inputType.getFields().values()));
-            // Register this input for posible JsonB usage 
+            // Register this input for posible JsonB usage
             JsonInputRegistry.register(inputType);
         }
 
@@ -845,27 +845,27 @@ public class Bootstrap {
         }
 
         if (isJsonString(jsonString)) {
-            Class<?> type;
+            Class<?> deserType;
             Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
 
             if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
-                type = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
-                if (Collection.class.isAssignableFrom(type)) {
-                    type = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName(), 0).getClass();
+                deserType = classloadingService.loadClass(field.getWrapper().getWrapperClassName());
+                if (Collection.class.isAssignableFrom(deserType)) {
+                    deserType = CollectionCreator.newCollection(field.getWrapper().getWrapperClassName(), 0).getClass();
                 }
             } else {
-                type = classloadingService.loadClass(field.getReference().getClassName());
-            }
-            Jsonb jsonB = JsonBCreator.getJsonB(type.getName());
+                Reference reference = getCorrectFieldReference(field);
+                ReferenceType referenceType = reference.getType();
 
-            Reference reference = getCorrectFieldReference(field);
-            ReferenceType referenceType = reference.getType();
-
-            if (referenceType.equals(ReferenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) { // Complex type
-                return jsonB.fromJson(jsonString, Map.class);
-            } else { // Basic Type
-                return jsonB.fromJson(jsonString, type);
+                if (referenceType.equals(ReferenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) {
+                    deserType = Map.class;
+                } else {
+                    deserType = classloadingService.loadClass(field.getReference().getClassName());
+                }
             }
+
+            Jsonb jsonB = JsonBCreator.getJsonB(deserType.getName());
+            return jsonB.fromJson(jsonString, deserType);
         }
 
         if (Classes.isNumberLikeType(field.getReference().getGraphQlClassName())) {

@@ -1,1 +1,1 @@
-io.smallrye.graphql.client.dynamic.core.FragmentImpl
+io.smallrye.graphql.client.impl.core.FragmentImpl

@@ -8,9 +8,11 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.MethodInfo;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.fieldnameapp.SomeObjectAnnotatedGetters;
 import io.smallrye.graphql.schema.helper.Direction;
 
@@ -20,6 +22,7 @@ public class FieldNameTest {
         Indexer indexer = new Indexer();
         indexDirectory(indexer, "io/smallrye/graphql/schema/creator/fieldnameapp");
         IndexView index = indexer.complete();
+        ScanningContext.register(index);
 
         ClassInfo classInfo = index.getClassByName(DotName.createSimple(SomeObjectAnnotatedGetters.class.getName()));
         // @Name
@@ -41,5 +44,10 @@ public class FieldNameTest {
         methodInfo = classInfo.method("getFieldName");
         annotations = Annotations.getAnnotationsForMethod(methodInfo);
         assertEquals("fieldName", FieldCreator.getFieldName(Direction.OUT, annotations, "fieldName"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        ScanningContext.remove();
     }
 }
