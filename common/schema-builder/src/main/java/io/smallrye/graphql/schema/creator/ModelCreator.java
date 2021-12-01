@@ -43,9 +43,8 @@ public abstract class ModelCreator {
     }
 
     /**
-     * The the return type. This is usually the method return type, but can also be adapted to something else
+     * The the return type.This is usually the method return type, but can also be adapted to something else
      * 
-     * @param adapter possible adapter
      * @param methodInfo method
      * @return the return type
      */
@@ -56,7 +55,6 @@ public abstract class ModelCreator {
     /**
      * The the return type.This is usually the method return type, but can also be adapted to something else
      * 
-     * @param adapter possible adapter
      * @param fieldInfo
      * @return the return type
      */
