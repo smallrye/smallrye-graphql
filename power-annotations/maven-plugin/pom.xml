@@ -22,14 +22,14 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.plugin.skipErrorNoDescriptorsFound>true</maven.plugin.skipErrorNoDescriptorsFound>
 
-        <maven.version>3.8.3</maven.version>
+        <maven.version>3.8.4</maven.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.1</version>
+            <version>3.6.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
