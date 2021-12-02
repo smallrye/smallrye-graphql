@@ -15,6 +15,7 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
 
 /**
@@ -26,12 +27,11 @@ import io.smallrye.graphql.schema.ScanningContext;
 public class SourceOperationHelper {
     private final Logger LOG = Logger.getLogger(SourceOperationHelper.class.getName());
 
-    private Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(
+    private Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(false, false,
             Type.Kind.CLASS,
             Type.Kind.PRIMITIVE);
 
-    private Map<DotName, List<MethodParameterInfo>> sourceListAnnotations = scanAllSourceAnnotations(
-            Type.Kind.PARAMETERIZED_TYPE,
+    private Map<DotName, List<MethodParameterInfo>> sourceListAnnotations = scanAllSourceAnnotations(true, false,
             Type.Kind.ARRAY);
 
     public SourceOperationHelper() {
@@ -45,7 +45,8 @@ public class SourceOperationHelper {
         return sourceListAnnotations;
     }
 
-    private Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(Type.Kind... forReturnType) {
+    private Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(boolean includeCollections, boolean includeMap,
+            Type.Kind... forReturnType) {
         Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
         Collection<AnnotationInstance> sourceAnnotations = ScanningContext.getIndex().getAnnotations(Annotations.SOURCE);
         for (AnnotationInstance ai : sourceAnnotations) {
@@ -57,6 +58,14 @@ public class SourceOperationHelper {
                 if (forReturnType == null || Arrays.asList(forReturnType).contains(returnType.kind())) {
                     DotName name = getName(returnType);
                     sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
+                } else if (returnType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
+                    if (includeCollections && Classes.isCollection(returnType)) {
+                        DotName name = getName(returnType);
+                        sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
+                    } else if (includeMap && Classes.isMap(returnType)) {
+                        DotName name = getName(returnType);
+                        sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);
+                    }
                 }
             } else {
                 LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind() + ". Only expecting @"
