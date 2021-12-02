@@ -1,0 +1,23 @@
+mutation MapInputs {
+  mapMutationBasic(in:[{key:"foo",value:"bar"},{key:"oof",value:"rab"}]){
+    key
+    value
+  }
+  mapMutationEnum(in:{key:af,value:{enName:"Afrikaans"}}){
+    key
+    value{
+      enName
+    } 
+  }
+  mapMutationComplex(in:{key:{id:1,key:"k1",description:"k1 desc"},value:{id:1,values:["v1"]}}){
+    key{
+      id
+      key
+      description
+    }
+    value {
+      id
+      values
+    }
+  }
+}

@@ -26,10 +26,20 @@ public class AdapterResource {
         return m;
     }
 
+    @Mutation
+    public Map<String, String> mapMutationBasic(Map<String, String> in) {
+        return in;
+    }
+
     @Query
     public Map<ComplexKey, ComplexValue> mapOperationComplex() {
         Map<ComplexKey, ComplexValue> m = createComplexMap();
         return m;
+    }
+
+    @Mutation
+    public Map<ComplexKey, ComplexValue> mapMutationComplex(Map<ComplexKey, ComplexValue> in) {
+        return in;
     }
 
     @Query
@@ -42,6 +52,11 @@ public class AdapterResource {
         } else {
             return m;
         }
+    }
+
+    @Mutation
+    public Map<ISO6391, Language> mapMutationEnum(Map<ISO6391, Language> in) {
+        return in;
     }
 
     public Map<String, String> mapSourceBasic(@Source AdapterData adapterData) {

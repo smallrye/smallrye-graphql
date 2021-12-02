@@ -28,11 +28,21 @@ public class DefaultMapAdapter<K, V> {
     private final Map<Field, Field> fieldAdaptionMap = new HashMap<>();
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
-    public Map<K, V> from(Set<Entry<K, V>> entries) {
+    public Map<K, V> from(Set<Entry<K, V>> entries, Field field) {
+
         Map<K, V> map = new HashMap<>();
         for (Object e : entries) {
             Map<K, V> graphQLJavaMap = (Map<K, V>) e; // The entry complex type comes from graphql-java as an Map
-            map.put((K) graphQLJavaMap.get(KEY), (V) graphQLJavaMap.get(VALUE));
+
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+
+            Reference keyReference = parametrizedTypeArguments.get("K");
+            Reference valueReference = parametrizedTypeArguments.get("V");
+
+            K k = (K) toObject(keyReference, graphQLJavaMap.get(KEY));
+            V v = (V) toObject(valueReference, graphQLJavaMap.get(VALUE));
+
+            map.put(k, v);
         }
         return map;
     }
@@ -53,17 +63,7 @@ public class DefaultMapAdapter<K, V> {
             String keyClassName = keyReference.getClassName();
             for (K k : key) {
 
-                if (!type.equals(ReferenceType.SCALAR)) { // TODO: Test with enum
-                    String jsonString = JsonBCreator.getJsonB().toJson(k);
-                    try {
-                        Jsonb jsonb = JsonBCreator.getJsonB(keyClassName);
-                        Class<?> clazz = classloadingService.loadClass(keyClassName);
-                        k = (K) jsonb.fromJson(jsonString, clazz);
-                    } catch (JsonbException jbe) {
-                        throw new RuntimeException(jbe);
-                    }
-                }
-
+                k = toObject(keyReference, k);
                 V queriedValue = map.get(k);
                 if (queriedValue != null) {
                     k = map.keySet().stream().filter(k::equals).findAny().orElse(k);
@@ -72,6 +72,22 @@ public class DefaultMapAdapter<K, V> {
             }
         }
         return entries;
+    }
+
+    private <T> T toObject(Reference reference, T t) {
+        ReferenceType type = reference.getType();
+        String className = reference.getClassName();
+        if (!type.equals(ReferenceType.SCALAR)) {
+            String jsonString = JsonBCreator.getJsonB().toJson(t);
+            try {
+                Jsonb jsonb = JsonBCreator.getJsonB(className);
+                Class<?> clazz = classloadingService.loadClass(className);
+                return (T) jsonb.fromJson(jsonString, clazz);
+            } catch (JsonbException jbe) {
+                throw new RuntimeException(jbe);
+            }
+        }
+        return t;
     }
 
     public Field getAdaptedField(Field original) {

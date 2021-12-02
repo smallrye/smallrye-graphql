@@ -1,0 +1,37 @@
+{
+    "data": {
+        "mapMutationBasic": [
+            {
+                "key": "foo",
+                "value": "bar"
+            },
+            {
+                "key": "oof",
+                "value": "rab"
+            }
+        ],
+        "mapMutationEnum": [
+            {
+                "key": "af",
+                "value": {
+                    "enName": "Afrikaans"
+                }
+            }
+        ],
+        "mapMutationComplex": [
+            {
+                "key": {
+                    "id": 1,
+                    "key": "k1",
+                    "description": "k1 desc"
+                },
+                "value": {
+                    "id": 1,
+                    "values": [
+                        "v1"
+                    ]
+                }
+            }
+        ]
+    }
+}

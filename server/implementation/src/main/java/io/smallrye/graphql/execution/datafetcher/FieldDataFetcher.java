@@ -3,7 +3,6 @@ package io.smallrye.graphql.execution.datafetcher;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import graphql.GraphQLContext;
 import graphql.GraphQLException;
@@ -62,8 +61,6 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
             // lazy initialize method handle, does not have to be threadsafe
             this.propertyAccessor = buildPropertyAccessor();
         }
-
-        Map<String, Object> arguments = dfe.getArguments();
 
         Object source = dfe.getSource();
         Object resultFromMethodCall = propertyAccessor.get(source);
