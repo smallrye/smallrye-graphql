@@ -21,6 +21,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -39,7 +40,9 @@ public class TypeInfo {
     private final Type genericType; // we need this for GraalVM native mode because the other Type
                                     // does not contain annotation metadata for some reason
 
-    private TypeInfo itemType;
+    private TypeInfo itemType; // if `this` represents a collection, this field denotes the type of items included
+    private TypeInfo keyType; // if `this` represents a map, this field denotes the type of the map's keys
+    private TypeInfo valueType; // if `this` represents a map, this field denotes the type of the map's values
     private Class<?> rawType;
 
     public static TypeInfo of(Type type) {
@@ -121,6 +124,10 @@ public class TypeInfo {
 
     public boolean isUni() {
         return Uni.class.isAssignableFrom(getRawType());
+    }
+
+    public boolean isMap() {
+        return Map.class.isAssignableFrom(getRawType());
     }
 
     private boolean ifClass(Predicate<Class<?>> predicate) {
@@ -282,20 +289,34 @@ public class TypeInfo {
     public TypeInfo getItemType() {
         assert isCollection() || isOptional() || isErrorOr() || isAsync();
         if (itemType == null)
-            itemType = new TypeInfo(this, computeItemType(), computeAnnotatedItemType());
+            itemType = new TypeInfo(this, computeParameterType(0), computeAnnotatedItemType());
         return this.itemType;
     }
 
-    private Type computeItemType() {
+    /** Get the type of keys included in this Map. This only works when this type is a Map */
+    public TypeInfo getKeyType() {
+        if (keyType == null)
+            keyType = new TypeInfo(this, computeParameterType(0), computeAnnotatedItemType());
+        return this.keyType;
+    }
+
+    /** Get the type of values included in this Map. This only works when this type is a Map */
+    public TypeInfo getValueType() {
+        if (valueType == null)
+            valueType = new TypeInfo(this, computeParameterType(1), computeAnnotatedItemType());
+        return this.valueType;
+    }
+
+    private Type computeParameterType(Integer index) {
         if (annotatedType instanceof AnnotatedParameterizedType)
-            return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[0].getType();
+            return ((AnnotatedParameterizedType) annotatedType).getAnnotatedActualTypeArguments()[index].getType();
         if (type instanceof ParameterizedType)
-            return ((ParameterizedType) type).getActualTypeArguments()[0];
+            return ((ParameterizedType) type).getActualTypeArguments()[index];
         // this workaround might be needed in native mode because the other `annotatedType`,
         // which is retrieved by calling parameter.getAnnotatedType,
         // can't be casted to AnnotatedParameterizedType - at least with GraalVM 21.0 and 21.1
         if (genericType instanceof ParameterizedType)
-            return ((ParameterizedType) genericType).getActualTypeArguments()[0];
+            return ((ParameterizedType) genericType).getActualTypeArguments()[index];
         return ((Class<?>) type).getComponentType();
     }
 

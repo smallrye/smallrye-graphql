@@ -14,6 +14,7 @@ import javax.json.JsonValue;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
@@ -43,7 +44,12 @@ public class JsonReader extends Reader<JsonValue> {
             return readErrorOr();
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
-        return reader(location).read();
+        Reader<?> reader = reader(location);
+        if (reader == null) {
+            throw new InvalidResponseException(
+                    "invalid " + type.getTypeName() + " value for " + location.getDescription() + ": " + value);
+        }
+        return reader.read();
     }
 
     private ErrorOr<Object> readErrorOr() {
@@ -73,8 +79,15 @@ public class JsonReader extends Reader<JsonValue> {
 
     private Reader<?> reader(Location location) {
         switch (value.getValueType()) {
-            case ARRAY:
-                return new JsonArrayReader(type, location, (JsonArray) value, field);
+            case ARRAY: {
+                if (type.isCollection()) {
+                    return new JsonArrayReader(type, location, (JsonArray) value, field);
+                } else if (type.isMap()) {
+                    return new JsonMapReader(type, location, (JsonArray) value, field);
+                } else {
+                    return null;
+                }
+            }
             case OBJECT:
                 return new JsonObjectReader(type, location, (JsonObject) value, field);
             case STRING:

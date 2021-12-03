@@ -153,6 +153,8 @@ class VertxTypesafeGraphQLClientProxy {
         return builder;
     }
 
+    // TODO: the logic for serializing objects into JSON should probably be shared with server-side module
+    // through a common module. Also this is not vert.x specific, another reason to move it out of this module
     private JsonValue value(Object value) {
         if (value == null)
             return JsonValue.NULL;
@@ -161,6 +163,8 @@ class VertxTypesafeGraphQLClientProxy {
             return scalarValue(value);
         if (type.isCollection())
             return arrayValue(value);
+        if (type.isMap())
+            return mapValue(value);
         return objectValue(value, type.fields());
     }
 
@@ -195,6 +199,18 @@ class VertxTypesafeGraphQLClientProxy {
     private JsonArray arrayValue(Object value) {
         JsonArrayBuilder array = Json.createArrayBuilder();
         values(value).forEach(item -> array.add(value(item)));
+        return array.build();
+    }
+
+    private JsonArray mapValue(Object value) {
+        Map<?, ?> map = (Map<?, ?>) value;
+        JsonArrayBuilder array = Json.createArrayBuilder();
+        map.forEach((k, v) -> {
+            JsonObjectBuilder entryBuilder = Json.createObjectBuilder();
+            entryBuilder.add("key", value(k));
+            entryBuilder.add("value", value(v));
+            array.add(entryBuilder.build());
+        });
         return array.build();
     }
 

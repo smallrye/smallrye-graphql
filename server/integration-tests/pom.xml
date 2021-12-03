@@ -189,6 +189,9 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <forkCount>1</forkCount>
+                    <systemProperties>
+                        <smallrye.graphql.printDataFetcherException>true</smallrye.graphql.printDataFetcherException>
+                    </systemProperties>
                 </configuration>
             </plugin>
             <plugin>
