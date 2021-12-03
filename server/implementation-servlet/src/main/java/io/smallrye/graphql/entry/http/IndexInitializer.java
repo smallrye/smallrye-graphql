@@ -71,12 +71,17 @@ public class IndexInitializer {
         Indexer indexer = new Indexer();
 
         try {
-            indexer.indexClass(Map.class);
-            indexer.indexClass(Entry.class);
+            indexer.index(convertClassToInputStream(Map.class));
+            indexer.index(convertClassToInputStream(Entry.class));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
         return indexer.complete();
+    }
+
+    private InputStream convertClassToInputStream(Class<?> clazz) {
+        String resourceName = '/' + clazz.getName().replace('.', '/') + ".class";
+        return clazz.getResourceAsStream(resourceName);
     }
 
     private IndexView createIndexView(Set<URL> urls) {
