@@ -196,7 +196,7 @@ public class ArgumentHelper extends AbstractHelper {
             throws AbstractDataFetcherException {
         Set providedSet = (Set) argumentValue;
         Set adaptInnerSet = (Set) recursiveAdapting(providedSet, mapAdapter.getAdaptedField(field), dfe);
-        return mapAdapter.from(adaptInnerSet);
+        return mapAdapter.from(adaptInnerSet, field);
     }
 
     private Object adaptInputWith(Field field, Object argumentValue, DataFetchingEnvironment dfe)
