@@ -43,10 +43,10 @@ jobs:
           git config --global user.email "smallrye@googlegroups.com"
           git checkout -b release
           # make sure the server/integration-tests-jdk16 gets its version updated too: include the jdk16plus profile
-          mvn -B release:prepare -Prelease -Pjdk16plus -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
+          mvn -B release:prepare -Pjdk16plus -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
           git checkout ${{github.base_ref}}
           git rebase release
-          mvn -B release:perform -Prelease -Pjdk16plus -s maven-settings.xml
+          mvn -B release:perform -Pjdk16plus -s maven-settings.xml
           git push
           git push --tags
 
