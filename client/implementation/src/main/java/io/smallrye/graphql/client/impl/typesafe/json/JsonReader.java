@@ -45,10 +45,6 @@ public class JsonReader extends Reader<JsonValue> {
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
         Reader<?> reader = reader(location);
-        if (reader == null) {
-            throw new InvalidResponseException(
-                    "invalid " + type.getTypeName() + " value for " + location.getDescription() + ": " + value);
-        }
         return reader.read();
     }
 
@@ -85,7 +81,8 @@ public class JsonReader extends Reader<JsonValue> {
                 } else if (type.isMap()) {
                     return new JsonMapReader(type, location, (JsonArray) value, field);
                 } else {
-                    return null;
+                    throw new InvalidResponseException(
+                            "invalid " + type.getTypeName() + " value for " + location.getDescription() + ": " + value);
                 }
             }
             case OBJECT:
@@ -100,6 +97,6 @@ public class JsonReader extends Reader<JsonValue> {
             case NULL:
                 return new JsonNullReader(type, location, value, field);
         }
-        return null;
+        throw new InvalidResponseException("unexpected value type for " + location.getDescription() + ": " + value);
     }
 }
