@@ -54,7 +54,7 @@ class HeaderBehavior {
 
         then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
                 .isEqualTo("Header with 'method' AND 'constant' not allowed: @" + Header.class.getName()
-                        + "(method=M, constant=C, name=H)");
+                        + "(name=H, method=M, constant=C)");
     }
 
     @GraphQLClientApi
@@ -72,7 +72,7 @@ class HeaderBehavior {
 
         then(thrown.getMessage().replace("\"", "")) // JDK 11 prints the quotes, JDK 8 doesn't
                 .isEqualTo("Header must have either 'method' XOR 'constant': @" + Header.class.getName()
-                        + "(method=, constant=, name=H)");
+                        + "(name=H, method=, constant=)");
     }
 
     @GraphQLClientApi
@@ -585,5 +585,82 @@ class HeaderBehavior {
         then(fixture.variables()).isEqualTo("{'target':'foo'}");
         then(fixture.sentHeader("Content-Type")).hasToString("application/json;charset=utf-8");
         then(fixture.sentHeader("Accept")).hasToString("application/json;charset=utf-8");
+    }
+
+    @GraphQLClientApi
+    interface NonStringHeadersApi {
+        String greeting(@Header(name = "foo") Long id);
+    }
+
+    @Test
+    void shouldAddNonStringHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        NonStringHeadersApi api = fixture.build(NonStringHeadersApi.class);
+
+        api.greeting(123L);
+
+        then(fixture.sentHeader("foo")).isEqualTo("123");
+    }
+
+    @Test
+    void shouldNotAddNullNonStringHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        NonStringHeadersApi api = fixture.build(NonStringHeadersApi.class);
+
+        api.greeting(null);
+
+        then(fixture.sentHeader("foo")).isNull();
+    }
+
+    @GraphQLClientApi
+    @Header(method = "foo")
+    interface MethodNameHeaderApi {
+        String greeting();
+
+        static String foo() {
+            return "bar";
+        }
+    }
+
+    @Test
+    void shouldAddMethodNameHeader() {
+        fixture.returnsData("'greeting':'dummy'");
+        MethodNameHeaderApi api = fixture.build(MethodNameHeaderApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("foo")).isEqualTo("bar");
+    }
+
+    @GraphQLClientApi
+    interface ConstantHeaderWithoutNameApi {
+        @Header(constant = "foo")
+        String greeting();
+    }
+
+    @Test
+    void shouldFailToAddConstantHeaderWithoutName() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        ConstantHeaderWithoutNameApi api = fixture.build(ConstantHeaderWithoutNameApi.class);
+
+        Throwable thrown = catchThrowable(api::greeting);
+
+        then(thrown)
+                .hasMessage("Missing header name for constant 'foo'");
+    }
+
+    @GraphQLClientApi
+    interface ParameterNameHeaderApi {
+        String greeting(@Header Long foo);
+    }
+
+    @Test
+    void shouldAddParameterNameHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        ParameterNameHeaderApi api = fixture.build(ParameterNameHeaderApi.class);
+
+        api.greeting(123L);
+
+        then(fixture.sentHeader("foo")).isEqualTo("123");
     }
 }

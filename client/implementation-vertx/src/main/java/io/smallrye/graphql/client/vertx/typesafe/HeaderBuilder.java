@@ -11,6 +11,7 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodResolver;
+import io.smallrye.graphql.client.impl.typesafe.reflection.ParameterInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
@@ -31,20 +32,12 @@ public class HeaderBuilder {
 
     public MultiMap build() {
         MultiMap headers = new HeadersMultiMap();
+        // getResolvedAnnotations returns class-level annotations first
+        // so if there is something on class level, it will be overwritten
+        // by a header on the method
         method.getResolvedAnnotations(api, Header.class)
-                .forEach(e -> {
-                    // getResolvedAnnotations returns class-level annotations first
-                    // so if there is something on class level, it will be overwritten
-                    // by a header on the method
-                    String value = resolveValue(e);
-                    if (value != null) {
-                        headers.set(e.name(), value);
-                    }
-                });
-        method.headerParameters().forEach(parameter -> {
-            Header header = parameter.getAnnotations(Header.class)[0];
-            headers.set(header.name(), (String) parameter.getValue());
-        });
+                .forEach(annotation -> resolve(annotation).apply(headers));
+        method.headerParameters().forEach(parameter -> resolve(parameter).apply(headers));
         method.getResolvedAnnotations(api, AuthorizationHeader.class)
                 // getResolvedAnnotations returns class-level annotations first, then method-level annotations
                 // so we need to take the last element of this stream.
@@ -58,15 +51,38 @@ public class HeaderBuilder {
         return headers;
     }
 
-    private String resolveValue(Header header) {
+    private HeaderValue resolve(Header header) {
         if (!header.method().isEmpty()) {
             if (!header.constant().isEmpty())
                 throw new RuntimeException("Header with 'method' AND 'constant' not allowed: " + header);
-            return resolveMethodValue(header.method());
+            return new HeaderValue(resolveMethodValue(header.method()), header.name(), header.method());
         }
         if (header.constant().isEmpty())
             throw new RuntimeException("Header must have either 'method' XOR 'constant': " + header);
-        return header.constant();
+        if (header.name().isEmpty())
+            throw new RuntimeException("Missing header name for constant '" + header.constant() + "'");
+        return new HeaderValue(header.constant(), header.name(), null);
+    }
+
+    private HeaderValue resolve(ParameterInfo parameter) {
+        Header header = parameter.getAnnotations(Header.class)[0];
+        return new HeaderValue(parameter.getValue(), header.name(), parameter.getName());
+    }
+
+    private static class HeaderValue {
+        private final String name;
+        private final String value;
+
+        public HeaderValue(Object value, String name, String fallbackName) {
+            this.value = (value == null) ? null : value.toString();
+            this.name = (name.isEmpty()) ? fallbackName : name;
+        }
+
+        public void apply(MultiMap headers) {
+            if (value != null) {
+                headers.set(name, value);
+            }
+        }
     }
 
     private String resolveMethodValue(String methodName) {

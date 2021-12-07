@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 /**
  * Adds a custom header to the http requests sent out by the GraphQL Client.
- * Annotate your method or the {@link GraphQLClientApi API} interface.
+ * Annotate parameters, your method or the {@link GraphQLClientApi API} interface.
  * <p>
  * The `name` is always fixed, but the value can be either a `constant`
  * or the name of a `method` for dynamic values. It can't be both or neither.
@@ -20,16 +20,19 @@ import java.lang.annotation.Target;
  * prefixed by the fully qualified class name plus <code>.</code> and is accessible,
  * e.g. `java.lang.System.lineSeparator`.
  * <p>
- * In rare cases, you may want to pass the value of a header as a parameter;
+ * In some cases, you may want to pass the value of a header as a parameter;
  * neither `constant` nor `method` will be allowed then.
  * <p>
- * <code>@Header</code> annotations can be defined via <code>@Steretype</code>s.
+ * The `name` can be derived from the name of the parameter or method. It's mandatory
+ * for `constant` headers.
+ * <p>
+ * <code>@Header</code> annotations can be defined via <code>@Stereotype</code>s.
  */
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD, PARAMETER })
 @Repeatable(Headers.class)
 public @interface Header {
-    String name();
+    String name() default "";
 
     String constant() default "";
 
