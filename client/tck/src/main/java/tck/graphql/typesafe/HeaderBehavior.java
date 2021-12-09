@@ -734,6 +734,21 @@ class HeaderBehavior {
     }
 
     @GraphQLClientApi
+    interface ParameterRenameHeaderApi {
+        String greeting(@Header @Name("Custom-Header") Long foo);
+    }
+
+    @Test
+    void shouldAddParameterRenameHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        ParameterRenameHeaderApi api = fixture.build(ParameterRenameHeaderApi.class);
+
+        api.greeting(123L);
+
+        then(fixture.sentHeader("Custom-Header")).isEqualTo("123");
+    }
+
+    @GraphQLClientApi
     interface ParameterCamelNameHeaderApi {
         String greeting(@Header Long customHeader);
     }
