@@ -66,7 +66,7 @@ public class MethodInvocation {
         return queryName()
                 .orElseGet(() -> mutationName()
                         .orElseGet(() -> subscriptionName()
-                                .orElseGet(this::methodName)));
+                                .orElseGet(this::getRawName)));
     }
 
     private Optional<String> queryName() {
@@ -93,11 +93,15 @@ public class MethodInvocation {
         return Optional.empty();
     }
 
-    private String methodName() {
+    private String getRawName() {
         String name = method.getName();
         if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
             return Character.toLowerCase(name.charAt(3)) + name.substring(4);
         return name;
+    }
+
+    public boolean isRenamed() {
+        return !getName().equals(getRawName());
     }
 
     public TypeInfo getReturnType() {

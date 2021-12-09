@@ -8,6 +8,7 @@ import java.lang.annotation.Retention;
 
 import javax.enterprise.inject.Stereotype;
 
+import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
@@ -396,7 +397,7 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .hasMessage("can't resolve header method expression 'f' in " + FailingMethodHeadersApi.class.getName())
+                .hasMessage("can't resolve header value from method " + FailingMethodHeadersApi.class.getName() + "#f")
                 .hasRootCauseExactlyInstanceOf(RuntimeException.class)
                 .hasRootCauseMessage("dummy");
     }
@@ -439,7 +440,8 @@ class HeaderBehavior {
         Throwable thrown = catchThrowable(api::greeting);
 
         then(thrown)
-                .hasMessageContaining("can't resolve header method expression");
+                .hasMessage("can't resolve header value from method "
+                        + ExceptionFailingMethodHeadersApi.class.getName() + "#f");
     }
 
     @GraphQLClientApi
@@ -635,7 +637,68 @@ class HeaderBehavior {
 
         api.greeting();
 
-        then(fixture.sentHeader("foo")).isEqualTo("bar");
+        then(fixture.sentHeader("Foo")).isEqualTo("bar");
+    }
+
+    @GraphQLClientApi
+    @Header(method = "foo")
+    interface MethodRenameHeaderApi {
+        String greeting();
+
+        @Name("Custom-Header")
+        static String foo() {
+            return "bar";
+        }
+    }
+
+    @Test
+    void shouldAddMethodRenameHeader() {
+        fixture.returnsData("'greeting':'dummy'");
+        MethodRenameHeaderApi api = fixture.build(MethodRenameHeaderApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("Custom-Header")).isEqualTo("bar");
+    }
+
+    @GraphQLClientApi
+    @Header(method = "customHeader")
+    interface MethodCamelNameHeaderApi {
+        String greeting();
+
+        static String customHeader() {
+            return "bar";
+        }
+    }
+
+    @Test
+    void shouldAddMethodCamelNameHeader() {
+        fixture.returnsData("'greeting':'dummy'");
+        MethodCamelNameHeaderApi api = fixture.build(MethodCamelNameHeaderApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("Custom-Header")).isEqualTo("bar");
+    }
+
+    @GraphQLClientApi
+    @Header(method = "getCustomHeader")
+    interface MethodCamelGetterNameHeaderApi {
+        String greeting();
+
+        static String getCustomHeader() {
+            return "bar";
+        }
+    }
+
+    @Test
+    void shouldAddMethodCamelGetterNameHeader() {
+        fixture.returnsData("'greeting':'dummy'");
+        MethodCamelGetterNameHeaderApi api = fixture.build(MethodCamelGetterNameHeaderApi.class);
+
+        api.greeting();
+
+        then(fixture.sentHeader("Custom-Header")).isEqualTo("bar");
     }
 
     @GraphQLClientApi
@@ -668,5 +731,20 @@ class HeaderBehavior {
         api.greeting(123L);
 
         then(fixture.sentHeader("foo")).isEqualTo("123");
+    }
+
+    @GraphQLClientApi
+    interface ParameterCamelNameHeaderApi {
+        String greeting(@Header Long customHeader);
+    }
+
+    @Test
+    void shouldAddParameterCamelNameHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        ParameterCamelNameHeaderApi api = fixture.build(ParameterCamelNameHeaderApi.class);
+
+        api.greeting(123L);
+
+        then(fixture.sentHeader("Custom-Header")).isEqualTo("123");
     }
 }
