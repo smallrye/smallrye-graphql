@@ -134,6 +134,10 @@ public class ParameterInfo {
         return parameter.getName();
     }
 
+    public boolean isRenamed() {
+        return !getName().equals(getRawName());
+    }
+
     public <A extends Annotation> A[] getAnnotations(Class<A> type) {
         return parameter.getAnnotationsByType(type);
     }
