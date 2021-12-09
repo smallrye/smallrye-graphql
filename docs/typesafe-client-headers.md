@@ -12,8 +12,7 @@ interface SuperHeroesApi {
 }
 ```
 
-The `name` has to be fixed, but the value can be specified with a
-`constant` or the name of a `method` for dynamic values, e.g.:
+The value can be specified with a `constant` or the name of a `method` for dynamic values, e.g.:
 
 ``` java
 @GraphQLClientApi
@@ -46,7 +45,9 @@ interface SuperHeroesApi {
 }
 ```
 
-The `@Header` parameter will not part of the GraphQL query.
+The `@Header` parameter will not be part of the GraphQL query.
+
+The `name` of the header is always static, but can optionally be derived from the name of the parameter or method, i.e. if it has a `@Name` annotation, that annotation value is used. If it's not annotated, the method name (eventually stripped off a leading `get`) or the parameter name (if it's enabled in the compiler settings) is converted from camel case to kebab case, i.e. a parameter `@Header String requestIdentifier` will result in a header named `Request-Identifier`.
 
 `@Header` annotations can also be defined via `@Stereotype`.
 
