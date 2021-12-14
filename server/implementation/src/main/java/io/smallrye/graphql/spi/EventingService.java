@@ -1,5 +1,10 @@
 package io.smallrye.graphql.spi;
 
+import java.util.Collections;
+import java.util.Map;
+
+import javax.json.bind.Jsonb;
+
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
@@ -13,7 +18,10 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public interface EventingService {
 
-    // Config key
+    /**
+     * Configuration key that controls whether this EventingService should be enabled.
+     * If this is null, then this service will be active always when it's detected.
+     */
     public String getConfigKey();
 
     // Schema bootstrap
@@ -23,6 +31,10 @@ public interface EventingService {
 
     default Operation createOperation(Operation operation) {
         return operation;
+    }
+
+    default Map<String, Jsonb> overrideJsonbConfig() {
+        return Collections.emptyMap();
     }
 
     // Execution

@@ -2,11 +2,14 @@ package io.smallrye.graphql.execution.event;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import javax.annotation.Priority;
+import javax.json.bind.Jsonb;
 
 import org.jboss.logging.Logger;
 
@@ -49,7 +52,12 @@ public class EventEmitter {
             try {
                 EventingService eventingService = it.next();
                 String configKey = eventingService.getConfigKey();
-                boolean enabled = config.getConfigValue(configKey, boolean.class, false);
+                boolean enabled;
+                if (configKey != null) {
+                    enabled = config.getConfigValue(configKey, boolean.class, false);
+                } else { // if there's no config key, enable by default
+                    enabled = true;
+                }
                 if (enabled) {
                     enabledServices.add(eventingService);
                 }
@@ -163,5 +171,13 @@ public class EventEmitter {
             operation = extensionService.createOperation(operation);
         }
         return operation;
+    }
+
+    public Map<String, Jsonb> fireOverrideJsonbConfig() {
+        Map<String, Jsonb> overrides = new HashMap<>();
+        for (EventingService extensionService : enabledServices) {
+            overrides.putAll(extensionService.overrideJsonbConfig());
+        }
+        return overrides;
     }
 }
