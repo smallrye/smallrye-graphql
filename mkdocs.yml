@@ -4,6 +4,8 @@ edit_uri: edit/main/docs/
 
 nav:
   - Overview: 'index.md'
+  - Server side features:
+      - Customizing JSON deserializers: 'custom-json-deserializers.md'
 #  - Power annotations: # Power annotations are unused right now
 #      - Power annotations: 'power-annotations.md'
   - Typesafe client:

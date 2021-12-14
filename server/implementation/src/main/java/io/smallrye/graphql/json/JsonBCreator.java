@@ -47,6 +47,10 @@ public class JsonBCreator {
         }
     }
 
+    protected static void override(Map<String, Jsonb> overrides) {
+        jsonMap.putAll(overrides);
+    }
+
     public static Jsonb getJsonB(String className) {
         if (jsonMap.containsKey(className)) {
             return jsonMap.get(className);

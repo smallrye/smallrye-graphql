@@ -180,6 +180,9 @@ public class Bootstrap {
         // Allow custom extension
         schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
+        Map<String, Jsonb> overrides = eventEmitter.fireOverrideJsonbConfig();
+        JsonInputRegistry.override(overrides);
+
         this.graphQLSchema = schemaBuilder.build();
     }
 
