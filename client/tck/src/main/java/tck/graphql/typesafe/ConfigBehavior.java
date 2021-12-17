@@ -2,34 +2,33 @@ package tck.graphql.typesafe;
 
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.BASIC_AUTH;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.withBasicAuth;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.withConfig;
 
 import java.net.URI;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class ConfigBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
 
+    private final String dummyEndpoint = "http://" + UUID.randomUUID() + ".dummy";
+    private final URI dummyEndpointUri = URI.create(dummyEndpoint);
+
+    @BeforeEach
+    void setup() {
+        GraphQLClientsConfiguration.clear();
+    }
+
     @GraphQLClientApi
     interface Api {
-        @SuppressWarnings("UnusedReturnValue")
-        boolean foo();
-    }
-
-    // Can't reuse the Api interface for multiple tests with different configurations, because the property-based configuration for
-    // clients is read only once per JVM/process
-    @GraphQLClientApi
-    interface Api2 {
-        @SuppressWarnings("UnusedReturnValue")
-        boolean foo();
-    }
-
-    @GraphQLClientApi
-    interface Api3 {
         @SuppressWarnings("UnusedReturnValue")
         boolean foo();
     }
@@ -41,42 +40,33 @@ class ConfigBehavior {
 
         then(thrown)
                 .hasMessageContaining("SRGQLDC035001")
-                .hasMessageContaining(API_URL_CONFIG_KEY);
+                .hasMessageContaining(Api.class.getName() + "/mp-graphql/url");
     }
 
     @Test
     void shouldLoadEndpointConfig() {
-        System.setProperty(API2_URL_CONFIG_KEY, DUMMY_ENDPOINT);
-        try {
+        withConfig(Api.class.getName() + "/mp-graphql/url", dummyEndpoint, () -> {
             fixture.returnsData("'foo':true");
-            Api2 api = fixture.builderWithoutEndpointConfig().build(Api2.class);
+            Api api = fixture.builderWithoutEndpointConfig().build(Api.class);
 
             api.foo();
 
-            then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
-        } finally {
-            System.clearProperty(API2_URL_CONFIG_KEY);
-        }
+            then(fixture.endpointUsed()).isEqualTo(dummyEndpointUri);
+        });
     }
 
-    // Disabled - client configuration using config keys is currently read only once at startup, thus this won't be discovered
-    // if added so late
-    @Disabled
     @Test
     void shouldLoadEndpointFromKeyConfig() {
-        System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
-        try {
+        withConfig("dummy-config-key/mp-graphql/url", dummyEndpoint, () -> {
             fixture.returnsData("'foo':true");
-            Api3 api = fixture.builderWithoutEndpointConfig()
+            Api api = fixture.builderWithoutEndpointConfig()
                     .configKey("dummy-config-key")
-                    .build(Api3.class);
+                    .build(Api.class);
 
             api.foo();
 
-            then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
-        } finally {
-            System.clearProperty("dummy-config-key/mp-graphql/url");
-        }
+            then(fixture.endpointUsed()).isEqualTo(dummyEndpointUri);
+        });
     }
 
     @GraphQLClientApi(endpoint = DUMMY_ENDPOINT)
@@ -86,7 +76,7 @@ class ConfigBehavior {
     }
 
     @Test
-    void shouldLoadAnnotatedEndpointConfig() {
+    void shouldLoadAnnotatedEndpoint() {
         fixture.returnsData("'foo':true");
         ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
 
@@ -95,28 +85,63 @@ class ConfigBehavior {
         then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
     }
 
+    @Test
+    void shouldLoadAnnotatedEndpointAndCredentialsConfig() {
+        withBasicAuth(ConfiguredEndpointApi.class.getName() + "/mp-graphql/", () -> {
+            fixture.returnsData("'foo':true");
+            ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
+
+            api.foo();
+
+            then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
+            then(fixture.sentHeader("Authorization")).isEqualTo(BASIC_AUTH);
+        });
+    }
+
+    @Test
+    void shouldLoadAnnotatedEndpointAndHeaderConfig() {
+        withConfig(ConfiguredEndpointApi.class.getName() + "/mp-graphql/header/Custom-Header", "some-value", () -> {
+            fixture.returnsData("'foo':true");
+            ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
+
+            api.foo();
+
+            then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
+            then(fixture.sentHeader("Custom-Header")).isEqualTo("some-value");
+        });
+    }
+
+    @Test
+    void shouldOverrideDefaultHeadersWithConfig() {
+        withConfig(ConfiguredEndpointApi.class.getName() + "/mp-graphql/header/Content-Type", "text/foo",
+                () -> withConfig(ConfiguredEndpointApi.class.getName() + "/mp-graphql/header/Accept", "text/bar", () -> {
+                    fixture.returnsData("'foo':true");
+                    ConfiguredEndpointApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredEndpointApi.class);
+
+                    api.foo();
+
+                    then(fixture.sentHeader("Content-Type")).hasToString("text/foo");
+                    then(fixture.sentHeader("Accept")).hasToString("text/bar");
+                }));
+    }
+
     @GraphQLClientApi(configKey = "dummy-config-key")
     interface ConfiguredKeyApi {
         boolean foo();
     }
 
     @Test
-    void shouldLoadAnnotatedKeyConfig() {
-        System.setProperty("dummy-config-key/mp-graphql/url", DUMMY_ENDPOINT);
-        try {
+    void shouldLoadWithAnnotatedConfigKey() {
+        withConfig("dummy-config-key/mp-graphql/url", dummyEndpoint, () -> {
             fixture.returnsData("'foo':true");
             ConfiguredKeyApi api = fixture.builderWithoutEndpointConfig().build(ConfiguredKeyApi.class);
 
             api.foo();
 
-            then(fixture.endpointUsed()).isEqualTo(DUMMY_ENDPOINT_URI);
-        } finally {
-            System.clearProperty("dummy-config-key/mp-graphql/url");
-        }
+            then(fixture.endpointUsed()).isEqualTo(dummyEndpointUri);
+        });
     }
 
-    private static final String API_URL_CONFIG_KEY = Api.class.getName() + "/mp-graphql/url";
-    private static final String API2_URL_CONFIG_KEY = Api2.class.getName() + "/mp-graphql/url";
     private static final String DUMMY_ENDPOINT = "http://dummy-configured-endpoint";
     private static final URI DUMMY_ENDPOINT_URI = URI.create(DUMMY_ENDPOINT);
 }

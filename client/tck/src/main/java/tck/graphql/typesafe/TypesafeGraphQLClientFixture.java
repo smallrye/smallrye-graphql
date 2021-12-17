@@ -48,4 +48,24 @@ public interface TypesafeGraphQLClientFixture {
     URI endpointUsed();
 
     void verifyClosed();
+
+    String BASIC_AUTH = "Basic Zm9vOmJhcg==";
+    String BEARER_AUTH = "Bearer foobar";
+
+    static void withBasicAuth(String configKey, Runnable runnable) {
+        withConfig(configKey + "username", "foo", () -> withConfig(configKey + "password", "bar", runnable));
+    }
+
+    static void withTokenAuth(String configKey, Runnable runnable) {
+        withConfig(configKey + "bearer", "foobar", runnable);
+    }
+
+    static void withConfig(String key, String value, Runnable runnable) {
+        System.setProperty(key, value);
+        try {
+            runnable.run();
+        } finally {
+            System.clearProperty(key);
+        }
+    }
 }

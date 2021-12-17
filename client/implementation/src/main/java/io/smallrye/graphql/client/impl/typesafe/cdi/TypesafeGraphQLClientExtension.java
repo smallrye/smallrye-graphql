@@ -32,9 +32,10 @@ public class TypesafeGraphQLClientExtension implements Extension {
     }
 
     public void createProxies(@Observes AfterBeanDiscovery afterBeanDiscovery) {
+        GraphQLClientsConfiguration clientsConfiguration = GraphQLClientsConfiguration.getInstance();
         for (Class<?> api : apis) {
             afterBeanDiscovery.addBean(new TypesafeGraphQLClientBean<>(api));
+            clientsConfiguration.initTypesafeClientApi(api);
         }
-        GraphQLClientsConfiguration.getInstance().addTypesafeClientApis(apis);
     }
 }

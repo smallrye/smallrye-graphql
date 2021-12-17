@@ -1,9 +1,13 @@
-package io.smallrye.graphql.client.vertx.typesafe;
+package io.smallrye.graphql.client.impl.typesafe;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -16,39 +20,58 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.Header;
-import io.vertx.core.MultiMap;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 
 public class HeaderBuilder {
+    private static final String APPLICATION_JSON_UTF8 = "application/json;charset=utf-8";
+
     private final Class<?> api;
     private final MethodInvocation method;
     private final Map<String, String> additionalHeaders;
+
+    private final String configKey;
+    private final Config config = ConfigProvider.getConfig();
 
     public HeaderBuilder(Class<?> api, MethodInvocation method, Map<String, String> additionalHeaders) {
         this.api = api;
         this.method = method;
         this.additionalHeaders = additionalHeaders;
+
+        this.configKey = configKey();
     }
 
-    public MultiMap build() {
-        MultiMap headers = new HeadersMultiMap();
-        // getResolvedAnnotations returns class-level annotations first
-        // so if there is something on class level, it will be overwritten
-        // by a header on the method
+    private String configKey() {
+        GraphQLClientApi annotation = api.getAnnotation(GraphQLClientApi.class);
+        if (annotation == null || annotation.configKey().isEmpty())
+            return api.getName();
+        return annotation.configKey();
+    }
+
+    public Map<String, String> build() {
+        Map<String, String> headers = new LinkedHashMap<>();
+        addDefaultHeaders(headers);
         method.getResolvedAnnotations(api, Header.class)
+                // getResolvedAnnotations returns class-level annotations first
+                // so if there is something on class level, it will be overwritten
+                // by a header on the method
                 .forEach(annotation -> resolve(annotation).apply(headers));
         method.headerParameters().forEach(parameter -> resolve(parameter).apply(headers));
         method.getResolvedAnnotations(api, AuthorizationHeader.class)
-                // getResolvedAnnotations returns class-level annotations first, then method-level annotations
+                // getResolvedAnnotations returns class-level annotations first, then method-level annotations,
                 // so we need to take the last element of this stream.
-                // This reduce operation is basically 'find the last element'
+                // This `reduce` operation is basically 'find the last element'
                 .reduce((first, second) -> second)
-                .map(header -> resolveAuthHeader(method.getDeclaringType(), header))
-                .ifPresent(auth -> headers.set("Authorization", auth));
+                .map(this::resolveAuthHeader)
+                .ifPresent(auth -> headers.put("Authorization", auth));
         if (additionalHeaders != null) {
-            additionalHeaders.forEach(headers::set);
+            headers.putAll(additionalHeaders);
         }
+        headers.putAll(configuredCredentials());
         return headers;
+    }
+
+    private void addDefaultHeaders(Map<String, String> headers) {
+        headers.put("Accept", APPLICATION_JSON_UTF8);
+        headers.put("Content-Type", APPLICATION_JSON_UTF8);
     }
 
     private HeaderDescriptor resolve(Header header) {
@@ -113,37 +136,16 @@ public class HeaderBuilder {
             this.name = (name.isEmpty()) ? fallbackName : name;
         }
 
-        public void apply(MultiMap headers) {
+        public void apply(Map<String, String> headers) {
             if (value != null) {
-                headers.set(name, value);
+                headers.put(name, value);
             }
         }
     }
 
-    private String resolveAuthHeader(TypeInfo declaringType, AuthorizationHeader header) {
-        if (header.confPrefix().isEmpty())
-            return auth(header.type(), declaringType.getRawType());
-        return auth(header.type(), header.confPrefix());
-    }
-
-    private static String auth(AuthorizationHeader.Type type, Class<?> api) {
-        return auth(type, configKey(api));
-    }
-
-    private static String configKey(Class<?> api) {
-        GraphQLClientApi annotation = api.getAnnotation(GraphQLClientApi.class);
-        if (annotation == null || annotation.configKey().isEmpty())
-            return api.getName();
-        return annotation.configKey();
-    }
-
-    private static String auth(AuthorizationHeader.Type type, String configKey) {
-        String prefix;
-        if (configKey.endsWith("*"))
-            prefix = configKey.substring(0, configKey.length() - 1);
-        else
-            prefix = configKey + "/mp-graphql/";
-        switch (type) {
+    private String resolveAuthHeader(AuthorizationHeader header) {
+        String prefix = prefix(header);
+        switch (header.type()) {
             case BASIC:
                 return basic(prefix);
             case BEARER:
@@ -152,16 +154,34 @@ public class HeaderBuilder {
         throw new UnsupportedOperationException("unreachable");
     }
 
-    private static String basic(String prefix) {
-        String username = CONFIG.getValue(prefix + "username", String.class);
-        String password = CONFIG.getValue(prefix + "password", String.class);
+    private String prefix(AuthorizationHeader header) {
+        String key = header.confPrefix().isEmpty() ? this.configKey : header.confPrefix();
+        if (key.endsWith("*"))
+            return key.substring(0, key.length() - 1);
+        else
+            return key + "/mp-graphql/";
+    }
+
+    private String basic(String prefix) {
+        String username = config.getValue(prefix + "username", String.class);
+        String password = config.getValue(prefix + "password", String.class);
+        return basic(username, password);
+    }
+
+    private String basic(String username, String password) {
         String token = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(token.getBytes(UTF_8));
     }
 
-    private static String bearer(String prefix) {
-        return "Bearer " + CONFIG.getValue(prefix + "bearer", String.class);
+    private String bearer(String prefix) {
+        return "Bearer " + config.getValue(prefix + "bearer", String.class);
     }
 
-    private static final Config CONFIG = ConfigProvider.getConfig();
+    private Map<String, String> configuredCredentials() {
+        Optional<String> username = config.getOptionalValue(this.configKey + "/mp-graphql/username", String.class);
+        Optional<String> password = config.getOptionalValue(this.configKey + "/mp-graphql/password", String.class);
+        return username.isPresent() && password.isPresent()
+                ? singletonMap("Authorization", basic(username.get(), password.get()))
+                : emptyMap();
+    }
 }

@@ -3,6 +3,10 @@ package tck.graphql.typesafe;
 import static io.smallrye.graphql.client.typesafe.api.AuthorizationHeader.Type.BEARER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.BDDAssertions.then;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.BASIC_AUTH;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.BEARER_AUTH;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.withBasicAuth;
+import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.withTokenAuth;
 
 import java.lang.annotation.Retention;
 
@@ -37,7 +41,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddApiPrefixAuthorizationHeader() {
-        withCredentials(AuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
+        withBasicAuth(AuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
             fixture.returnsData("'apiGreeting':'dummy-greeting'");
             AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
@@ -49,7 +53,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddNoPrefixAuthorizationHeader() {
-        withCredentials("", () -> {
+        withBasicAuth("", () -> {
             fixture.returnsData("'plainGreeting':'dummy-greeting'");
             AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
@@ -61,7 +65,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddPlainPrefixAuthorizationHeader() {
-        withCredentials("prefix.", () -> {
+        withBasicAuth("prefix.", () -> {
             fixture.returnsData("'plainPrefixedGreeting':'dummy-greeting'");
             AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
@@ -73,7 +77,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddPrefixAuthorizationHeader() {
-        withCredentials("pre/mp-graphql/", () -> {
+        withBasicAuth("pre/mp-graphql/", () -> {
             fixture.returnsData("'preGreeting':'dummy-greeting'");
             AuthorizationHeadersApi api = fixture.build(AuthorizationHeadersApi.class);
 
@@ -95,7 +99,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddInheritedAuthorizationHeader() {
-        withCredentials("", () -> {
+        withBasicAuth("", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             InheritedAuthorizationHeadersApi api = fixture.build(InheritedAuthorizationHeadersApi.class);
 
@@ -114,7 +118,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddInheritedConfigKeyAuthorizationHeader() {
-        withCredentials("foo/mp-graphql/", () -> {
+        withBasicAuth("foo/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             ConfigKeyAuthorizationHeadersApi api = fixture.builder()
                     .build(ConfigKeyAuthorizationHeadersApi.class);
@@ -133,6 +137,7 @@ class AuthorizationHeaderBehavior {
 
     @GraphQLClientApi
     @Authenticated
+    @SuppressWarnings("CdiManagedBeanInconsistencyInspection")
     interface AuthenticatedHeaderApi {
         @SuppressWarnings("UnusedReturnValue")
         String greeting();
@@ -140,7 +145,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddStereotypedHeader() {
-        withCredentials("", () -> {
+        withBasicAuth("", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             AuthenticatedHeaderApi api = fixture.build(AuthenticatedHeaderApi.class);
 
@@ -148,17 +153,6 @@ class AuthorizationHeaderBehavior {
 
             then(fixture.sentHeader("Authorization")).isEqualTo(BASIC_AUTH);
         });
-    }
-
-    private void withCredentials(String configKey, Runnable runnable) {
-        System.setProperty(configKey + "username", "foo");
-        System.setProperty(configKey + "password", "bar");
-        try {
-            runnable.run();
-        } finally {
-            System.clearProperty(configKey + "username");
-            System.clearProperty(configKey + "password");
-        }
     }
 
     @GraphQLClientApi
@@ -174,7 +168,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddTokenAuthorizationHeader() {
-        withToken(TokenAuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
+        withTokenAuth(TokenAuthorizationHeadersApi.class.getName() + "/mp-graphql/", () -> {
             fixture.returnsData("'greeting':'dummy-greeting'");
             TokenAuthorizationHeadersApi api = fixture.build(TokenAuthorizationHeadersApi.class);
 
@@ -186,7 +180,7 @@ class AuthorizationHeaderBehavior {
 
     @Test
     void shouldAddPlainTokenAuthorizationHeader() {
-        withToken("", () -> {
+        withTokenAuth("", () -> {
             fixture.returnsData("'plainGreeting':'dummy-greeting'");
             TokenAuthorizationHeadersApi api = fixture.build(TokenAuthorizationHeadersApi.class);
 
@@ -196,15 +190,4 @@ class AuthorizationHeaderBehavior {
         });
     }
 
-    private void withToken(String configKey, Runnable runnable) {
-        System.setProperty(configKey + "bearer", "foobar");
-        try {
-            runnable.run();
-        } finally {
-            System.clearProperty(configKey + "bearer");
-        }
-    }
-
-    private static final String BASIC_AUTH = "Basic Zm9vOmJhcg==";
-    private static final String BEARER_AUTH = "Bearer foobar";
 }
