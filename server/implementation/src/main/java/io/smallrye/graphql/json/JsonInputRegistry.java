@@ -1,5 +1,9 @@
 package io.smallrye.graphql.json;
 
+import java.util.Map;
+
+import javax.json.bind.Jsonb;
+
 import io.smallrye.graphql.schema.model.InputType;
 
 /**
@@ -7,7 +11,7 @@ import io.smallrye.graphql.schema.model.InputType;
  * 
  * For now we need to
  * - hold a custom JsonB map for custom name mapping and
- * - hold a map og all fields in input types that needs transforming
+ * - hold a map of all fields in input types that needs transforming
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -19,5 +23,13 @@ public class JsonInputRegistry {
     public static void register(InputType inputType) {
         JsonBCreator.register(inputType);
         InputFieldsInfo.register(inputType);
+    }
+
+    /**
+     * Override Jsonb config for particular classes by the Jsonb instances
+     * supplied by the user via an EventingService
+     */
+    public static void override(Map<String, Jsonb> overrides) {
+        JsonBCreator.override(overrides);
     }
 }
