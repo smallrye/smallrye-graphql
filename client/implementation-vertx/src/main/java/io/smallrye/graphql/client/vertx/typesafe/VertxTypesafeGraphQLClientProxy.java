@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +24,7 @@ import javax.json.JsonValue;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.GraphQLClientException;
-import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
+import io.smallrye.graphql.client.impl.typesafe.HeaderBuilder;
 import io.smallrye.graphql.client.impl.typesafe.QueryBuilder;
 import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
@@ -33,34 +32,37 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.subscription.MultiEmitter;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebsocketVersion;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
 class VertxTypesafeGraphQLClientProxy {
 
     private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientProxy.class);
-    private static final String APPLICATION_JSON_UTF8 = "application/json;charset=utf-8";
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
 
     private final Map<String, String> queryCache = new HashMap<>();
-    private final GraphQLClientConfiguration configuration;
+
+    private final Map<String, String> additionalHeaders;
     private final URI endpoint;
     private final HttpClient httpClient;
     private final WebClient webClient;
 
     VertxTypesafeGraphQLClientProxy(
-            GraphQLClientConfiguration config,
+            Map<String, String> additionalHeaders,
             URI endpoint,
             HttpClient httpClient,
             WebClient webClient) {
-        this.configuration = config;
+        this.additionalHeaders = additionalHeaders;
         this.endpoint = endpoint;
         this.httpClient = httpClient;
         this.webClient = webClient;
@@ -70,11 +72,8 @@ class VertxTypesafeGraphQLClientProxy {
         if (method.isDeclaredInObject())
             return method.invoke(this);
 
-        MultiMap headers = new HeaderBuilder(api,
-                method,
-                configuration != null ? configuration.getHeaders() : Collections.emptyMap())
-                        .build();
-        headers.set("Accept", APPLICATION_JSON_UTF8);
+        MultiMap headers = HeadersMultiMap.headers()
+                .addAll(new HeaderBuilder(api, method, additionalHeaders).build());
         String request = request(method);
 
         if (method.getReturnType().isUni()) {
@@ -84,50 +83,8 @@ class VertxTypesafeGraphQLClientProxy {
         } else if (method.getReturnType().isMulti()) {
             String WSURL = endpoint.toString().replaceFirst("http", "ws");
             return Multi.createFrom()
-                    .emitter(e -> {
-                        httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
-                            if (result.succeeded()) {
-                                WebSocket socket = result.result();
-                                socket.writeTextMessage(request);
-                                socket.handler(message -> {
-                                    if (!e.isCancelled()) {
-                                        try {
-                                            Object item = new ResultBuilder(method, message.toString()).read();
-                                            if (item != null) {
-                                                e.emit(item);
-                                            } else {
-                                                e.complete();
-                                            }
-                                        } catch (GraphQLClientException ex) {
-                                            // this means there were errors returned from the service, and we couldn't build a result object
-                                            // (there was no `ErrorOr` on the failing field, etc.)
-                                            // so we propagate this exception to the subscribers. Unfortunately this causes the subscription
-                                            // to end even though the server might still be sending more events. This can be avoided by using the ErrorOr
-                                            // wrapper on the client side.
-                                            if (!e.isCancelled()) {
-                                                e.fail(ex);
-                                            }
-                                        }
-                                    } else {
-                                        // We still received some more messages after the Emitter got cancelled. This can happen
-                                        // if the server is sending events very quickly and one of them contains an error that can't be applied
-                                        // (and thus fails the client-side Multi with a GraphQLClientException), in which case we close the websocket
-                                        // immediately, but if the server was fast enough, we might have received more messages before actually closing the websocket.
-                                        // But because the Multi has already received a failure, we can't propagate this to the client application anymore.
-                                        // Let's just log it.
-                                        log.warn(
-                                                "Received an additional item for a subscription that has already ended with a failure, dropping it.");
-                                    }
-                                });
-                                socket.closeHandler((v) -> {
-                                    e.complete();
-                                });
-                                e.onTermination(socket::close);
-                            } else {
-                                e.fail(result.cause());
-                            }
-                        });
-                    });
+                    .emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(),
+                            result -> handleMultiResult(method, request, emitter, result)));
         } else {
             String response = postSync(request, headers);
             log.debugf("response graphql: %s", response);
@@ -230,15 +187,55 @@ class VertxTypesafeGraphQLClientProxy {
 
     private CompletionStage<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {
         return webClient.postAbs(endpoint.toString())
-                .putHeader("Content-Type", APPLICATION_JSON_UTF8)
                 .putHeaders(headers)
                 .sendBuffer(Buffer.buffer(request))
                 .toCompletionStage();
     }
 
+    private void handleMultiResult(MethodInvocation method, String request, MultiEmitter<? super Object> emitter,
+            AsyncResult<WebSocket> result) {
+        if (result.succeeded()) {
+            WebSocket socket = result.result();
+            socket.writeTextMessage(request);
+            socket.handler(message -> {
+                if (!emitter.isCancelled()) {
+                    try {
+                        Object item = new ResultBuilder(method, message.toString()).read();
+                        if (item != null) {
+                            emitter.emit(item);
+                        } else {
+                            emitter.complete();
+                        }
+                    } catch (GraphQLClientException ex) {
+                        // this means there were errors returned from the service, and we couldn't build a result object
+                        // (there was no `ErrorOr` on the failing field, etc.)
+                        // so we propagate this exception to the subscribers. Unfortunately this causes the subscription
+                        // to end even though the server might still be sending more events. This can be avoided by using the ErrorOr
+                        // wrapper on the client side.
+                        if (!emitter.isCancelled()) {
+                            emitter.fail(ex);
+                        }
+                    }
+                } else {
+                    // We still received some more messages after the Emitter got cancelled. This can happen
+                    // if the server is sending events very quickly and one of them contains an error that can't be applied
+                    // (and thus fails the client-side Multi with a GraphQLClientException), in which case we close the websocket
+                    // immediately, but if the server was fast enough, we might have received more messages before actually closing the websocket.
+                    // But because the Multi has already received a failure, we can't propagate this to the client application anymore.
+                    // Let's just log it.
+                    log.warn(
+                            "Received an additional item for a subscription that has already ended with a failure, dropping it.");
+                }
+            });
+            socket.closeHandler((v) -> emitter.complete());
+            emitter.onTermination(socket::close);
+        } else {
+            emitter.fail(result.cause());
+        }
+    }
+
     private String postSync(String request, MultiMap headers) {
         Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.toString())
-                .putHeader("Content-Type", APPLICATION_JSON_UTF8)
                 .putHeaders(headers)
                 .sendBuffer(Buffer.buffer(request));
         try {

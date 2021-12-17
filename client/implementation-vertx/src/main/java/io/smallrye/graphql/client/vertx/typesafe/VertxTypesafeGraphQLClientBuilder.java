@@ -4,7 +4,8 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
@@ -23,6 +24,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
 
     private String configKey = null;
     private URI endpoint;
+    private Map<String, String> headers;
     private Vertx vertx;
     private HttpClientOptions options;
     private WebClient webClient;
@@ -44,6 +46,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TypesafeGraphQLClientBuilder options(HttpClientOptions options) {
         this.options = options;
         return this;
@@ -56,36 +59,44 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
+    public TypesafeGraphQLClientBuilder header(String name, String value) {
+        if (this.headers == null) {
+            this.headers = new LinkedHashMap<>();
+        }
+        this.headers.put(name, value);
+        return this;
+    }
+
+    @Override
     public <T> T build(Class<T> apiClass) {
         if (configKey == null) {
             configKey = configKey(apiClass);
         }
 
-        GraphQLClientsConfiguration configs = GraphQLClientsConfiguration.getInstance();
-        GraphQLClientConfiguration persistentConfig = configs
-                .getClient(configKey);
-        if (persistentConfig == null) {
-            // in case that we're running in a plain Java SE application, it is possible that the client configuration
-            // hasn't been added yet, because there is no CDI extension or Jandex processor that scans for @GraphQLClientApi annotations
-            // at startup => try adding a configuration entry dynamically for this client interface in particular.
-            // Then try again.
-            configs.addTypesafeClientApis(Collections.singletonList(apiClass));
-            persistentConfig = configs
-                    .getClient(configKey);
-        }
-        if (persistentConfig != null) {
-            applyConfig(persistentConfig);
-        }
+        applyConfigFor(apiClass);
 
         if (endpoint == null) {
             throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
         }
 
         initClients();
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(persistentConfig,
-                endpoint, httpClient, webClient);
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
+                webClient);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
+    }
+
+    private void applyConfigFor(Class<?> apiClass) {
+        GraphQLClientsConfiguration configs = GraphQLClientsConfiguration.getInstance();
+        // In case that we're running in a plain Java SE application, it is possible that the client configuration
+        // hasn't been added yet, because there is no CDI extension or Jandex processor that scans for @GraphQLClientApi annotations
+        // at startup => try adding a configuration entry dynamically for this client interface in particular.
+        configs.initTypesafeClientApi(apiClass);
+
+        GraphQLClientConfiguration persistentConfig = configs.getClient(configKey);
+        if (persistentConfig != null) {
+            applyConfig(persistentConfig);
+        }
     }
 
     private void initClients() {
@@ -140,6 +151,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private void applyConfig(GraphQLClientConfiguration configuration) {
         if (this.endpoint == null && configuration.getUrl() != null) {
             this.endpoint = URI.create(configuration.getUrl());
+        }
+        if (this.headers == null && configuration.getHeaders() != null) {
+            this.headers = configuration.getHeaders();
         }
     }
 

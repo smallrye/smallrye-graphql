@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.typesafe.api;
 
 import java.net.URI;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
@@ -39,6 +40,30 @@ public interface TypesafeGraphQLClientBuilder {
      */
     TypesafeGraphQLClientBuilder endpoint(URI endpoint);
 
+    /**
+     * Static headers to send with all methods in this client.
+     *
+     * @see Header
+     * @see AuthorizationHeader
+     */
+    default TypesafeGraphQLClientBuilder headers(Map<String, String> headers) {
+        if (headers != null) {
+            headers.forEach(this::header);
+        }
+        return this;
+    }
+
+    /**
+     * Static header to send with all methods in this client.
+     *
+     * @see Header
+     * @see AuthorizationHeader
+     */
+    TypesafeGraphQLClientBuilder header(String name, String value);
+
+    /**
+     * Build the proxy for that api interface.
+     */
     <T> T build(Class<T> apiClass);
 
 }

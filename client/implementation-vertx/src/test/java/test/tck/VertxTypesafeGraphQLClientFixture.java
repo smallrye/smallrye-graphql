@@ -26,8 +26,8 @@ import tck.graphql.typesafe.TypesafeGraphQLClientFixture;
 
 public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientFixture {
     private final WebClient mockWebClient = Mockito.mock(WebClient.class);
+    @SuppressWarnings("unchecked")
     private final HttpRequest<Buffer> mockHttpRequest = (HttpRequest<Buffer>) Mockito.mock(HttpRequest.class);
-    private final HttpResponse<Buffer> mockHttpResponse = (HttpResponse<Buffer>) Mockito.mock(HttpResponse.class);
 
     private Integer statusCode;
     private String statusMessage;
@@ -38,6 +38,8 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
         given(mockWebClient.postAbs(any(String.class))).willReturn(mockHttpRequest);
         given(mockHttpRequest.putHeader(any(String.class), any(String.class))).willReturn(mockHttpRequest);
         given(mockHttpRequest.putHeaders(any(MultiMap.class))).willReturn(mockHttpRequest);
+        @SuppressWarnings("unchecked")
+        HttpResponse<Buffer> mockHttpResponse = (HttpResponse<Buffer>) Mockito.mock(HttpResponse.class);
         given(mockHttpRequest.sendBuffer(any(Buffer.class))).willReturn(new SucceededFuture<>(mockHttpResponse));
         given(mockHttpResponse.bodyAsString()).will(i -> response);
         given(mockHttpResponse.statusCode()).will(i -> statusCode);
@@ -107,7 +109,6 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
 
     private JsonObject requestSent() {
         if (requestSent == null) {
-            @SuppressWarnings("unchecked")
             ArgumentCaptor<Buffer> captor = ArgumentCaptor.forClass(Buffer.class);
             then(mockHttpRequest).should().sendBuffer(captor.capture());
             String requestString = captor.getValue().toString();
@@ -130,23 +131,9 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
     }
 
     private MultiMap sentHeaders() {
-        MultiMap map = captureExplicitHeaders();
-        map.set("Accept", captureAcceptHeader());
-        map.set("Content-Type", "application/json;charset=utf-8");
-        return map;
-    }
-
-    private MultiMap captureExplicitHeaders() {
-        @SuppressWarnings("unchecked")
         ArgumentCaptor<MultiMap> captor = ArgumentCaptor.forClass(MultiMap.class);
         then(mockHttpRequest).should().putHeaders(captor.capture());
         return captor.getValue();
-    }
-
-    private String captureAcceptHeader() {
-        ArgumentCaptor<MultiMap> captor = ArgumentCaptor.forClass(MultiMap.class);
-        then(mockHttpRequest).should().putHeaders(captor.capture());
-        return captor.getValue().get("Accept");
     }
 
     @Override

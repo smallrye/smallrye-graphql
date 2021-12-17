@@ -1,6 +1,7 @@
 package tck.graphql.typesafe;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -583,7 +584,7 @@ class HeaderBehavior {
     }
 
     @Test
-    void shouldAddCharsetRequestAndResponseHeaders() {
+    void shouldAddDefaultHeaders() {
         fixture.returnsData("'greeting':'dummy-greeting'");
         SimpleApi api = fixture.build(SimpleApi.class);
 
@@ -593,6 +594,46 @@ class HeaderBehavior {
         then(fixture.variables()).isEqualTo("{'target':'foo'}");
         then(fixture.sentHeader("Content-Type")).hasToString("application/json;charset=utf-8");
         then(fixture.sentHeader("Accept")).hasToString("application/json;charset=utf-8");
+    }
+
+    @Test
+    void shouldAddManuallyBuildDefaultHeader() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        SimpleApi api = fixture.builder().header("Custom-Header", "Custom-Header-Value").build(SimpleApi.class);
+
+        api.greeting("foo");
+
+        then(fixture.query()).isEqualTo("query greeting($target: String) { greeting(target: $target) }");
+        then(fixture.variables()).isEqualTo("{'target':'foo'}");
+        then(fixture.sentHeader("Custom-Header")).hasToString("Custom-Header-Value");
+    }
+
+    @Test
+    void shouldManuallyOverrideDefaultHeaders() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        SimpleApi api = fixture.builder()
+                .header("Content-Type", "application/xxx")
+                .header("Accept", "application/yyy")
+                .build(SimpleApi.class);
+
+        api.greeting("foo");
+
+        then(fixture.query()).isEqualTo("query greeting($target: String) { greeting(target: $target) }");
+        then(fixture.variables()).isEqualTo("{'target':'foo'}");
+        then(fixture.sentHeader("Content-Type")).hasToString("application/xxx");
+        then(fixture.sentHeader("Accept")).hasToString("application/yyy");
+    }
+
+    @Test
+    void shouldAddManuallyBuildDefaultHeaders() {
+        fixture.returnsData("'greeting':'dummy-greeting'");
+        SimpleApi api = fixture.builder().headers(singletonMap("Custom-Header", "Custom-Header-Value")).build(SimpleApi.class);
+
+        api.greeting("foo");
+
+        then(fixture.query()).isEqualTo("query greeting($target: String) { greeting(target: $target) }");
+        then(fixture.variables()).isEqualTo("{'target':'foo'}");
+        then(fixture.sentHeader("Custom-Header")).hasToString("Custom-Header-Value");
     }
 
     @GraphQLClientApi

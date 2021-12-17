@@ -17,7 +17,6 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -72,7 +71,7 @@ public class DynamicClientInjectionTest {
         Field field = VertxDynamicGraphQLClient.class.getDeclaredField("headers");
         field.setAccessible(true);
         MultiMap headers = (MultiMap) field.get(client);
-        Assert.assertEquals("Header-Value", headers.get("My-Custom-Header"));
-    }
 
+        assertEquals("Header-Value", headers.get("My-Custom-Header"));
+    }
 }
