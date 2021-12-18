@@ -60,7 +60,7 @@ public class ResponseReaderTest {
 
     enum Gender {
         MALE,
-        FEMALE;
+        FEMALE
     }
 
     static class Person {
@@ -113,7 +113,7 @@ public class ResponseReaderTest {
     public void testGetListWhenResponseContainsObject() {
         ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
         try {
-            List<Person> list = response.getList(Person.class, "people");
+            response.getList(Person.class, "people");
             fail("Exception expected");
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("SRGQLDC035006"));
@@ -131,7 +131,7 @@ public class ResponseReaderTest {
     public void testGetObjectWhenResponseContainsList() {
         ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
         try {
-            Person person = response.getObject(Person.class, "people");
+            response.getObject(Person.class, "people");
             fail("Exception expected");
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("SRGQLDC035007"));
@@ -166,7 +166,14 @@ public class ResponseReaderTest {
                 "\"path\": [1, 2, 3, \"asd\"]," +
                 "\"locations\": [{\"line\":1,\"column\":30}]," +
                 "\"somethingExtra\": 123456," +
-                "\"extensions\": {\"code\":\"GRAPHQL_VALIDATION_FAILED\"}}]}";
+                "\"extensions\": {" +
+                "\"exception\":\"EXCEPTION_EXT\"," +
+                "\"classification\":\"CLASSIFICATION_EXT\"," +
+                "\"code\":\"CODE_EXT\"," +
+                "\"description\":\"DESCRIPTION_EXT\"," +
+                "\"validationErrorType\":\"VALIDATION_ERROR_TYPE_EXT\"," +
+                "\"queryPath\":\"QUERYPATH_EXT\"" +
+                "}}]}";
 
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("Cookie", Collections.singletonList("myCookie"));
@@ -175,7 +182,12 @@ public class ResponseReaderTest {
         GraphQLError theError = response.getErrors().get(0);
         assertEquals("blabla", theError.getMessage());
         assertEquals(123456L, theError.getOtherFields().get("somethingExtra"));
-        assertEquals("GRAPHQL_VALIDATION_FAILED", theError.getExtensions().get("code"));
+        assertEquals("EXCEPTION_EXT", theError.getException());
+        assertEquals("CLASSIFICATION_EXT", theError.getClassification());
+        assertEquals("CODE_EXT", theError.getCode());
+        assertEquals("DESCRIPTION_EXT", theError.getDescription());
+        assertEquals("VALIDATION_ERROR_TYPE_EXT", theError.getValidationErrorType());
+        assertEquals("QUERYPATH_EXT", theError.getQueryPath());
         assertEquals(1, theError.getLocations().get(0).get("line"));
         assertEquals(30, theError.getLocations().get(0).get("column"));
         assertArrayEquals(new Object[] { 1, 2, 3, "asd" }, theError.getPath());
