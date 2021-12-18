@@ -26,7 +26,7 @@ interface SuperHeroesApi {
 }
 ```
 
--   This value is an enum, but it can be any Object; the GraphQL client
+-   This example uses an enum, but it can be any Object; the GraphQL client
     calls `toString()` to convert it.
 
 The method must be `static` and accessible by the interface, i.e. in the
@@ -50,6 +50,16 @@ The `@Header` parameter will not be part of the GraphQL query.
 The `name` of the header is always static, but can optionally be derived from the name of the parameter or method, i.e. if it has a `@Name` annotation, that annotation value is used. If it's not annotated, the method name (eventually stripped off a leading `get`) or the parameter name (if it's enabled in the compiler settings) is converted from camel case to kebab case, i.e. a parameter `@Header String requestIdentifier` will result in a header named `Request-Identifier`.
 
 `@Header` annotations can also be defined via `@Stereotype`.
+
+When instantiating the API with the builder, you can set (or overwrite)
+one or more headers there:
+
+``` java
+SuperHeroesApi api = TypesafeGraphQLClientBuilder.newBuilder()
+    .header("S.H.I.E.L.D.-Clearance", "TOP-SECRET")
+    .build(SuperHeroesApi.class);
+```
+
 
 Authorization headers
 ====================
