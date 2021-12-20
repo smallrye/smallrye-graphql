@@ -32,4 +32,49 @@ public interface GraphQLError {
      * but if a GraphQL service adds them, they will appear in this map.
      */
     Map<String, Object> getOtherFields();
+
+    /**
+     * Contents of one of the `extensions` fields, converted to a String.
+     * This is used by GraphQL services to pass extra information about the error.
+     */
+    default String getStringExtension(String name) {
+        if (getExtensions() == null) {
+            return null;
+        }
+        Object value = getExtensions().get(name);
+        return (value == null) ? null : value.toString();
+    }
+
+    /**
+     * The name of the exception thrown in the service.
+     * This may not be stable, so it's generally better to use the {@link #getCode()}
+     */
+    default String getException() {
+        return getStringExtension("exception");
+    }
+
+    /** The general type of failure */
+    default String getClassification() {
+        return getStringExtension("classification");
+    }
+
+    /** A stable error code */
+    default String getCode() {
+        return getStringExtension("code");
+    }
+
+    /** A human-readable description of the failure */
+    default String getDescription() {
+        return getStringExtension("description");
+    }
+
+    /** The type of mistake leading to the rejection of the GraphQL query */
+    default String getValidationErrorType() {
+        return getStringExtension("validationErrorType");
+    }
+
+    /** The path within the GraphQL query that was rejected */
+    default String getQueryPath() {
+        return getStringExtension("queryPath");
+    }
 }
