@@ -1,7 +1,9 @@
 package io.smallrye.graphql.client.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -65,6 +67,22 @@ public class GraphQLClientsConfiguration {
             configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
             clients.put(clientName, configuration);
         }
+    }
+
+    /**
+     * Scan the passed Java interfaces for `@GraphQLClientApi` annotations and create and register
+     * client configuration objects for them. This needs to be called by the runtime some time during initialization,
+     * before clients are actually created.
+     *
+     * @deprecated use {@link #initTypesafeClientApi(Class)}
+     */
+    @Deprecated
+    public void addTypesafeClientApis(List<Class<?>> apis) {
+        if (apis == null) {
+            SmallRyeGraphQLClientLogging.log.apisNotSet();
+            return;
+        }
+        apis.forEach(this::initTypesafeClientApi);
     }
 
     /**
