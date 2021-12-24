@@ -98,6 +98,11 @@ public class GraphQLClientsConfiguration {
         return clients.get(key);
     }
 
+    /** this method is required by Quarkus */
+    public void addClient(String key, GraphQLClientConfiguration config) {
+        clients.put(key, config);
+    }
+
     /** All headers that where configured via MP Config, e.g. <code>xxx/mp-graphql/header/yyy = zzz</code> */
     public static Map<String, String> getConfiguredHeaders(String configKey, Config config) {
         Map<String, String> map = new HashMap<>();
