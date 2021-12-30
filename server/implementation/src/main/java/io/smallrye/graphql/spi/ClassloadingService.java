@@ -28,14 +28,14 @@ public interface ClassloadingService {
     }
 
     static ClassloadingService load() {
-        ClassloadingService classloadingService;
+        ClassloadingService cls;
         try {
-            classloadingService = classloadingServices.iterator().next();
+            cls = classloadingServices.iterator().next();
         } catch (Exception ex) {
-            classloadingService = new DefaultClassloadingService();
+            cls = new DefaultClassloadingService();
         }
-        log.usingClassLoadingService(classloadingService.getName());
-        return classloadingService;
+        log.usingClassLoadingService(cls.getName());
+        return cls;
     }
 
     String getName();
