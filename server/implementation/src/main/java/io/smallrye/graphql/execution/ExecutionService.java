@@ -172,7 +172,8 @@ public class ExecutionService {
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 
                 if (hasSubscription) {
-                    graphqlBuilder = graphqlBuilder.subscriptionExecutionStrategy(new SubscriptionExecutionStrategy());
+                    graphqlBuilder = graphqlBuilder
+                            .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy(new ExceptionHandler()));
                 }
 
                 // Allow custom extension
