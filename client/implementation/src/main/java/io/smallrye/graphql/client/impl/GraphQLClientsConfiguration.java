@@ -91,7 +91,7 @@ public class GraphQLClientsConfiguration {
      */
     public void initTypesafeClientApi(Class<?> api) {
         TypesafeClientConfigurationReader reader = new TypesafeClientConfigurationReader(api);
-        clients.put(reader.getConfigKey(), reader.getClientConfiguration());
+        clients.putIfAbsent(reader.getConfigKey(), reader.getClientConfiguration());
     }
 
     public GraphQLClientConfiguration getClient(String key) {
