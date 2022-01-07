@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.impl;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,6 +18,12 @@ public class GraphQLClientConfiguration {
      */
     private Map<String, String> headers;
 
+    /**
+     * Names of websocket subprotocols that this client will understand. The actual subprotocol to be used
+     * will be subject to negotiation with the server.
+     */
+    private List<String> websocketSubprotocols;
+
     public String getUrl() {
         return url;
     }
@@ -33,6 +40,14 @@ public class GraphQLClientConfiguration {
         this.headers = headers;
     }
 
+    public List<String> getWebsocketSubprotocols() {
+        return websocketSubprotocols;
+    }
+
+    public void setWebsocketSubprotocols(List<String> websocketSubprotocols) {
+        this.websocketSubprotocols = websocketSubprotocols;
+    }
+
     GraphQLClientConfiguration merge(GraphQLClientConfiguration other) {
         if (this.url == null) {
             this.url = other.url;
@@ -41,6 +56,11 @@ public class GraphQLClientConfiguration {
             this.headers = other.headers;
         } else if (other.headers != null) {
             other.headers.forEach((key, value) -> this.headers.putIfAbsent(key, value));
+        }
+        if (this.websocketSubprotocols == null) {
+            this.websocketSubprotocols = other.websocketSubprotocols;
+        } else if (other.websocketSubprotocols != null) {
+            this.websocketSubprotocols.addAll(other.websocketSubprotocols);
         }
         return this;
     }

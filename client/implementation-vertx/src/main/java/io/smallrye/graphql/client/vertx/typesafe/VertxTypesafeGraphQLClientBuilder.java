@@ -4,8 +4,13 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
@@ -13,6 +18,7 @@ import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
+import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -22,13 +28,20 @@ import io.vertx.ext.web.client.WebClient;
 public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
     private static Vertx VERTX;
 
+    private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientBuilder.class);
+
     private String configKey = null;
     private URI endpoint;
     private Map<String, String> headers;
+    private List<WebsocketSubprotocol> subprotocols;
     private Vertx vertx;
     private HttpClientOptions options;
     private WebClient webClient;
     private HttpClient httpClient;
+
+    public VertxTypesafeGraphQLClientBuilder() {
+        this.subprotocols = new ArrayList<>();
+    }
 
     @Override
     public TypesafeGraphQLClientBuilder configKey(String configKey) {
@@ -67,6 +80,11 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    public TypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
+        this.subprotocols.addAll(Arrays.asList(subprotocols));
+        return this;
+    }
+
     @Override
     public <T> T build(Class<T> apiClass) {
         if (configKey == null) {
@@ -80,8 +98,13 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
 
         initClients();
+        // TODO: what should be the default subprotocols? If I add any, then connection to a smallrye-graphql-based service won't work
+        // because the server will choose a 'null' subprotocol, and the underlying websocket client library reacts to that as a failure
+        //        if (subprotocols == null || subprotocols.isEmpty()) {
+        //            subprotocols = new ArrayList<>(EnumSet.allOf(WebsocketSubprotocol.class));
+        //        }
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
-                webClient);
+                webClient, subprotocols);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
@@ -154,6 +177,16 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
+        }
+        if (configuration.getWebsocketSubprotocols() != null) {
+            configuration.getWebsocketSubprotocols().forEach(protocol -> {
+                try {
+                    WebsocketSubprotocol e = WebsocketSubprotocol.fromString(protocol);
+                    this.subprotocols.add(e);
+                } catch (IllegalArgumentException e) {
+                    log.warn(e);
+                }
+            });
         }
     }
 

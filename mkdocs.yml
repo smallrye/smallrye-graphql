@@ -24,7 +24,7 @@ nav:
       - Gradle plugin: 'gradle-plugin.md'
   - Reference material:
       - Server-side configuration: 'server_configuration.md'
-#      - Client-side configuration: 'client_configuration.md'
+      - Client-side configuration: 'client_configuration.md'
 
 copyright: >-
   Sponsored by <a href="https://www.redhat.com"><img style="vertical-align: middle; height: 2.5em;" alt="Red Hat" src="./images/redhat_reversed.svg"/></a> <br/>
