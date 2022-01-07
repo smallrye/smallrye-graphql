@@ -2,6 +2,8 @@ package io.smallrye.graphql.client;
 
 import java.util.Map;
 
+import javax.json.JsonObject;
+
 public interface Request {
     String getDocument();
 
@@ -16,4 +18,7 @@ public interface Request {
     Request resetVariables();
 
     String toJson();
+
+    JsonObject toJsonObject();
+
 }

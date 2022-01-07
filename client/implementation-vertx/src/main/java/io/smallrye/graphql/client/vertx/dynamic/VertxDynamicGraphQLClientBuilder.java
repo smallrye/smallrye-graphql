@@ -1,11 +1,18 @@
 package io.smallrye.graphql.client.vertx.dynamic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.jboss.logging.Logger;
+
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
+import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -17,15 +24,19 @@ import io.vertx.ext.web.client.WebClientOptions;
  */
 public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBuilder {
 
+    private static final Logger log = Logger.getLogger(VertxDynamicGraphQLClientBuilder.class);
+
     private Vertx vertx;
     private String url;
     private String configKey;
     private final MultiMap headersMap;
     private WebClientOptions options;
+    private List<WebsocketSubprotocol> subprotocols;
 
     public VertxDynamicGraphQLClientBuilder() {
         headersMap = new HeadersMultiMap();
         headersMap.set("Content-Type", "application/json");
+        subprotocols = new ArrayList<>();
     }
 
     public VertxDynamicGraphQLClientBuilder vertx(Vertx vertx) {
@@ -40,6 +51,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder options(WebClientOptions options) {
         this.options = options;
+        return this;
+    }
+
+    public DynamicGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
+        this.subprotocols.addAll(Arrays.asList(subprotocols));
         return this;
     }
 
@@ -82,7 +98,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 toUseVertx = Vertx.vertx();
             }
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options);
+        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols);
     }
 
     /**
@@ -98,6 +114,16 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 this.headersMap.set(k, v);
             }
         });
+        if (configuration.getWebsocketSubprotocols() != null) {
+            configuration.getWebsocketSubprotocols().forEach(protocol -> {
+                try {
+                    WebsocketSubprotocol e = WebsocketSubprotocol.fromString(protocol);
+                    this.subprotocols.add(e);
+                } catch (IllegalArgumentException e) {
+                    log.warn(e);
+                }
+            });
+        }
     }
 
 }

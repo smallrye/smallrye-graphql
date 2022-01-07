@@ -1,11 +1,17 @@
 package io.smallrye.graphql.client.vertx.dynamic;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import javax.json.JsonObject;
+
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
@@ -13,6 +19,9 @@ import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.impl.RequestImpl;
 import io.smallrye.graphql.client.impl.ResponseReader;
+import io.smallrye.graphql.client.vertx.websocket.BuiltinWebsocketSubprotocolHandlers;
+import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
+import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
@@ -27,12 +36,16 @@ import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
+    private static final Logger log = Logger.getLogger(VertxDynamicGraphQLClient.class);
+
     private final WebClient webClient;
     private final HttpClient httpClient;
     private final String url;
     private final MultiMap headers;
+    private final List<WebsocketSubprotocol> subprotocols;
 
-    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options) {
+    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options,
+            List<WebsocketSubprotocol> subprotocols) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
         } else {
@@ -41,6 +54,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         this.webClient = WebClient.wrap(httpClient);
         this.headers = headers;
         this.url = url;
+        this.subprotocols = subprotocols;
     }
 
     @Override
@@ -166,68 +180,82 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Multi<Response> subscription(Document document) {
-        return subscription0(buildRequest(document, null, null).toJson());
+        return subscription0(buildRequest(document, null, null).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(Document document, Map<String, Object> variables) {
-        return subscription0(buildRequest(document, variables, null).toJson());
+        return subscription0(buildRequest(document, variables, null).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(Document document, String operationName) {
-        return subscription0(buildRequest(document, null, operationName).toJson());
+        return subscription0(buildRequest(document, null, operationName).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(Document document, Map<String, Object> variables, String operationName) {
-        return subscription0(buildRequest(document, variables, operationName).toJson());
+        return subscription0(buildRequest(document, variables, operationName).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(Request request) {
-        return subscription0(request.toJson());
+        return subscription0(request.toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(String query) {
-        return subscription0(buildRequest(query, null, null).toJson());
+        return subscription0(buildRequest(query, null, null).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(String query, Map<String, Object> variables) {
-        return subscription0(buildRequest(query, variables, null).toJson());
+        return subscription0(buildRequest(query, variables, null).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(String query, String operationName) {
-        return subscription0(buildRequest(query, null, operationName).toJson());
+        return subscription0(buildRequest(query, null, operationName).toJsonObject());
     }
 
     @Override
     public Multi<Response> subscription(String query, Map<String, Object> variables, String operationName) {
-        return subscription0(buildRequest(query, variables, operationName).toJson());
+        return subscription0(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Multi<Response> subscription0(String requestJson) {
+    private Multi<Response> subscription0(JsonObject requestJson) {
         String WSURL = url.replaceFirst("http", "ws");
+        List<String> subprotocolIds = subprotocols == null ? Collections.emptyList()
+                : subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+        AtomicReference<WebSocketSubprotocolHandler> handlerReference = new AtomicReference<>();
         return Multi.createFrom()
-                .emitter(e -> {
-                    httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, new ArrayList<>(), result -> {
-                        if (result.succeeded()) {
-                            WebSocket socket = result.result();
-                            socket.writeTextMessage(requestJson);
-                            socket.handler(message -> {
-                                e.emit(ResponseReader.readFrom(message.toString(), Collections.emptyMap()));
-                            });
-                            socket.closeHandler((v) -> {
-                                e.complete();
-                            });
-                            e.onTermination(socket::close);
-                        } else {
-                            e.fail(result.cause());
-                        }
-                    });
+                .<Response> emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
+                        result -> {
+                            if (result.succeeded()) {
+                                WebSocket webSocket = result.result();
+                                WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                        .createHandlerFor(webSocket.subProtocol());
+                                handlerReference.set(handler);
+                                log.debug("Using websocket subprotocol handler: " + handler);
+                                Multi<String> rawData = Multi.createFrom().emitter(rawEmitter -> {
+                                    handler.handleWebSocketStart(requestJson, rawEmitter, webSocket);
+                                });
+                                rawData.subscribe().with(data -> {
+                                    emitter.emit(ResponseReader.readFrom(data, Collections.emptyMap()));
+                                }, failure -> {
+                                    emitter.fail(failure);
+                                }, () -> {
+                                    emitter.complete();
+                                });
+                            } else {
+                                emitter.fail(result.cause());
+                            }
+                        }))
+                .onTermination().invoke(() -> {
+                    WebSocketSubprotocolHandler handler = handlerReference.get();
+                    if (handler != null) {
+                        handler.handleCancel();
+                    }
                 });
     }
 

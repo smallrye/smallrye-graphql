@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
+import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
+
 /**
  * Use this builder, when you are not in a CDI context, i.e. when working with Java SE.
  */
@@ -60,6 +62,8 @@ public interface TypesafeGraphQLClientBuilder {
      * @see AuthorizationHeader
      */
     TypesafeGraphQLClientBuilder header(String name, String value);
+
+    TypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols);
 
     /**
      * Build the proxy for that api interface.

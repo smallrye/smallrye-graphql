@@ -1,9 +1,12 @@
 package io.smallrye.graphql.client.impl;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -64,6 +67,13 @@ public class GraphQLClientsConfiguration {
             mpConfig.getOptionalValue(clientName + "/mp-graphql/url", String.class)
                     .ifPresent(configuration::setUrl);
             configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
+            Optional<String[]> subprotocolList = mpConfig.getOptionalValue(clientName + "/mp-graphql/subprotocols",
+                    String[].class);
+            if (subprotocolList.isPresent()) {
+                configuration.setWebsocketSubprotocols(Arrays.asList(subprotocolList.get()));
+            } else {
+                configuration.setWebsocketSubprotocols(Collections.emptyList());
+            }
             clients.put(clientName, configuration);
         }
     }

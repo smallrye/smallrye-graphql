@@ -34,6 +34,17 @@ public class RequestImpl implements Request {
         return queryBuilder.build().toString();
     }
 
+    public JsonObject toJsonObject() {
+        JsonObjectBuilder queryBuilder = Json.createObjectBuilder().add("query", document);
+        if (!variables.isEmpty()) {
+            queryBuilder.add("variables", _formatJsonVariables());
+        }
+        if (operationName != null && !operationName.isEmpty()) {
+            queryBuilder.add("operationName", operationName);
+        }
+        return queryBuilder.build();
+    }
+
     private JsonObject _formatJsonVariables() {
         JsonObjectBuilder varBuilder = Json.createObjectBuilder();
 
