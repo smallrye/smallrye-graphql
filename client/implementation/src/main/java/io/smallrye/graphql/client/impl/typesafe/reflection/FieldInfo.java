@@ -68,7 +68,7 @@ public class FieldInfo {
 
     private String getNonEmptyValue(Annotation jsonbProperty) {
         try {
-            Method method = jsonbProperty.getClass().getMethod("value");
+            Method method = jsonbProperty.annotationType().getMethod("value");
             String value = (String) method.invoke(jsonbProperty);
             return (value == null || value.isEmpty()) ? null : value;
         } catch (Exception e) {
