@@ -92,6 +92,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         name: checkout
+        with:
+          path: smallrye-graphql
 
       - name: checkout Quarkus repository
         uses: actions/checkout@v2
@@ -114,14 +116,14 @@ jobs:
           java-version: ${{matrix.java}}
 
       - name: build with maven
-        run: mvn -B install -DskipTests --file pom.xml
+        run: mvn -B install -DskipTests --file smallrye-graphql/pom.xml
 
       - name: Install xmllint
         run: sudo apt-get install libxml2-utils
 
       - name: run Quarkus tests
         run: |
-          SMALLRYE_VERSION=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' pom.xml) && \
+          SMALLRYE_VERSION=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' smallrye-graphql/pom.xml) && \
           echo "SMALLRYE_VERSION=$SMALLRYE_VERSION" && \
           cd quarkus && \
           mvn install -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dquickly && \
