@@ -24,6 +24,36 @@ public class GraphQLClientConfiguration {
      */
     private List<String> websocketSubprotocols;
 
+    /**
+     * Path to the trust store. Can point to either a classpath resource or a file.
+     */
+    private String trustStore;
+
+    /**
+     * The trust store password.
+     */
+    private String trustStorePassword;
+
+    /**
+     * The type of the trust store. Defaults to "JKS".
+     */
+    private String trustStoreType;
+
+    /**
+     * Path to the key store. Can point to either a classpath resource or a file.
+     */
+    private String keyStore;
+
+    /**
+     * The key store password.
+     */
+    private String keyStorePassword;
+
+    /**
+     * The type of the key store. Defaults to "JKS".
+     */
+    private String keyStoreType;
+
     public String getUrl() {
         return url;
     }
@@ -48,19 +78,93 @@ public class GraphQLClientConfiguration {
         this.websocketSubprotocols = websocketSubprotocols;
     }
 
-    GraphQLClientConfiguration merge(GraphQLClientConfiguration other) {
-        if (this.url == null) {
+    public String getTrustStore() {
+        return trustStore;
+    }
+
+    public void setTrustStore(String trustStore) {
+        this.trustStore = trustStore;
+    }
+
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
+    }
+
+    public String getKeyStore() {
+        return keyStore;
+    }
+
+    public void setKeyStore(String keyStore) {
+        this.keyStore = keyStore;
+    }
+
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
+    public void setKeyStoreType(String keyStoreType) {
+        this.keyStoreType = keyStoreType;
+    }
+
+    /**
+     * Merge the `other` configuration into this one. Values in `other` take precedence.
+     * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
+     */
+    public GraphQLClientConfiguration merge(GraphQLClientConfiguration other) {
+        if (other.url != null) {
             this.url = other.url;
         }
         if (this.headers == null) {
             this.headers = other.headers;
         } else if (other.headers != null) {
-            other.headers.forEach((key, value) -> this.headers.putIfAbsent(key, value));
+            other.headers.forEach((key, value) -> this.headers.put(key, value));
         }
         if (this.websocketSubprotocols == null) {
             this.websocketSubprotocols = other.websocketSubprotocols;
         } else if (other.websocketSubprotocols != null) {
-            this.websocketSubprotocols.addAll(other.websocketSubprotocols);
+            for (String subprotocol : other.websocketSubprotocols) {
+                if (!this.websocketSubprotocols.contains(subprotocol)) {
+                    this.websocketSubprotocols.add(subprotocol);
+                }
+            }
+        }
+        if (other.trustStore != null) {
+            this.trustStore = other.trustStore;
+        }
+        if (other.trustStorePassword != null) {
+            this.trustStorePassword = other.trustStorePassword;
+        }
+        if (other.trustStoreType != null) {
+            this.trustStoreType = other.trustStoreType;
+        }
+        if (other.keyStore != null) {
+            this.keyStore = other.keyStore;
+        }
+        if (other.keyStorePassword != null) {
+            this.keyStorePassword = other.keyStorePassword;
+        }
+        if (other.keyStoreType != null) {
+            this.keyStoreType = other.keyStoreType;
         }
         return this;
     }

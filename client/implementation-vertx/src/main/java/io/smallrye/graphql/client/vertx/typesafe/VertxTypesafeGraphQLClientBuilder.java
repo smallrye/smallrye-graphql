@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.vertx.typesafe;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.security.AccessController;
+import java.security.KeyStore;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,12 +19,15 @@ import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.ssl.SSLTools;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
     private static Vertx VERTX;
@@ -44,35 +48,35 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
-    public TypesafeGraphQLClientBuilder configKey(String configKey) {
+    public VertxTypesafeGraphQLClientBuilder configKey(String configKey) {
         this.configKey = configKey;
         return this;
     }
 
-    public TypesafeGraphQLClientBuilder vertx(Vertx vertx) {
+    public VertxTypesafeGraphQLClientBuilder vertx(Vertx vertx) {
         this.vertx = vertx;
         return this;
     }
 
-    public TypesafeGraphQLClientBuilder client(WebClient webClient) {
+    public VertxTypesafeGraphQLClientBuilder client(WebClient webClient) {
         this.webClient = webClient;
         return this;
     }
 
     @SuppressWarnings("unused")
-    public TypesafeGraphQLClientBuilder options(HttpClientOptions options) {
+    public VertxTypesafeGraphQLClientBuilder options(HttpClientOptions options) {
         this.options = options;
         return this;
     }
 
     @Override
-    public TypesafeGraphQLClientBuilder endpoint(URI endpoint) {
+    public VertxTypesafeGraphQLClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;
         return this;
     }
 
     @Override
-    public TypesafeGraphQLClientBuilder header(String name, String value) {
+    public VertxTypesafeGraphQLClientBuilder header(String name, String value) {
         if (this.headers == null) {
             this.headers = new LinkedHashMap<>();
         }
@@ -80,13 +84,16 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
-    public TypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
+    public VertxTypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
         this.subprotocols.addAll(Arrays.asList(subprotocols));
         return this;
     }
 
     @Override
     public <T> T build(Class<T> apiClass) {
+        if (this.options == null) {
+            this.options = new WebClientOptions();
+        }
         if (configKey == null) {
             configKey = configKey(apiClass);
         }
@@ -187,6 +194,33 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
                     log.warn(e);
                 }
             });
+        }
+
+        if (options.getTrustStoreOptions() == null && configuration.getTrustStore() != null) {
+            options.setSsl(true);
+            JksOptions trustStoreOptions = new JksOptions();
+            KeyStore trustStore = SSLTools.createKeyStore(configuration.getTrustStore(),
+                    configuration.getTrustStoreType(),
+                    configuration.getTrustStorePassword());
+            trustStoreOptions.setValue(SSLTools.asBuffer(trustStore, configuration.getTrustStorePassword().toCharArray()));
+            trustStoreOptions.setPassword(new String(configuration.getTrustStorePassword()));
+            options.setTrustStoreOptions(trustStoreOptions);
+        }
+
+        if (options.getKeyStoreOptions() == null && configuration.getKeyStore() != null) {
+            options.setSsl(true);
+            JksOptions keyStoreOptions = new JksOptions();
+            KeyStore keyStore = SSLTools.createKeyStore(configuration.getKeyStore(),
+                    configuration.getKeyStoreType(),
+                    configuration.getKeyStorePassword());
+            keyStoreOptions.setValue(SSLTools.asBuffer(keyStore, configuration.getKeyStorePassword().toCharArray()));
+            keyStoreOptions.setPassword(new String(configuration.getKeyStorePassword()));
+            options.setKeyStoreOptions(keyStoreOptions);
+        }
+
+        if (options.isSsl()) {
+            // TODO: this is not supported yet
+            options.setVerifyHost(false);
         }
     }
 
