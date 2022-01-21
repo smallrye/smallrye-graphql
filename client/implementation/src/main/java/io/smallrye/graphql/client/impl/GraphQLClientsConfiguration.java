@@ -20,6 +20,7 @@ public class GraphQLClientsConfiguration {
 
     private static final Map<ClassLoader, GraphQLClientsConfiguration> INSTANCES = new WeakHashMap<>();
     private static volatile boolean singleApplication = false;
+    Config mpConfig = ConfigProvider.getConfig();
 
     /**
      * This needs to be set to true if the runtime only supports a single deployment.
@@ -51,7 +52,6 @@ public class GraphQLClientsConfiguration {
     public GraphQLClientsConfiguration() {
         // Store configuration found in config properties
         Set<String> detectedClientNames = new HashSet<>();
-        Config mpConfig = ConfigProvider.getConfig();
         for (String propertyName : mpConfig.getPropertyNames()) {
             // assume that the name of a configured client can consist of
             // uppercase and lowercase letters, numbers, dashes and underscores
@@ -63,19 +63,50 @@ public class GraphQLClientsConfiguration {
             }
         }
         for (String clientName : detectedClientNames) {
-            GraphQLClientConfiguration configuration = new GraphQLClientConfiguration();
-            mpConfig.getOptionalValue(clientName + "/mp-graphql/url", String.class)
-                    .ifPresent(configuration::setUrl);
-            configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
-            Optional<String[]> subprotocolList = mpConfig.getOptionalValue(clientName + "/mp-graphql/subprotocols",
-                    String[].class);
-            if (subprotocolList.isPresent()) {
-                configuration.setWebsocketSubprotocols(Arrays.asList(subprotocolList.get()));
-            } else {
-                configuration.setWebsocketSubprotocols(Collections.emptyList());
-            }
-            clients.put(clientName, configuration);
+            clients.put(clientName, readConfigurationByKey(clientName));
         }
+    }
+
+    private GraphQLClientConfiguration readConfigurationByKey(String clientName) {
+        GraphQLClientConfiguration configuration = new GraphQLClientConfiguration();
+
+        // URL
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/url", String.class)
+                .ifPresent(configuration::setUrl);
+
+        // HTTP headers
+        configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
+
+        // websocket subprotocols
+        Optional<String[]> subprotocolList = mpConfig.getOptionalValue(clientName + "/mp-graphql/subprotocols",
+                String[].class);
+        if (subprotocolList.isPresent()) {
+            configuration.setWebsocketSubprotocols(Arrays.asList(subprotocolList.get()));
+        } else {
+            configuration.setWebsocketSubprotocols(Collections.emptyList());
+        }
+
+        // truststore configuration
+        Optional<String> truststore = mpConfig.getOptionalValue(clientName + "/mp-graphql/truststore", String.class);
+        if (truststore.isPresent()) {
+            configuration.setTrustStore(truststore.get());
+            configuration.setTrustStorePassword(
+                    mpConfig.getOptionalValue(clientName + "/mp-graphql/truststorePassword", String.class).orElse(null));
+            configuration.setTrustStoreType(
+                    mpConfig.getOptionalValue(clientName + "/mp-graphql/truststoreType", String.class).orElse(null));
+        }
+
+        // keystore configuration
+        Optional<String> keystore = mpConfig.getOptionalValue(clientName + "/mp-graphql/keystore", String.class);
+        if (keystore.isPresent()) {
+            configuration.setKeyStore(keystore.get());
+            configuration.setKeyStorePassword(
+                    mpConfig.getOptionalValue(clientName + "/mp-graphql/keystorePassword", String.class).orElse(null));
+            configuration.setKeyStoreType(
+                    mpConfig.getOptionalValue(clientName + "/mp-graphql/keystoreType", String.class).orElse(null));
+        }
+
+        return configuration;
     }
 
     /**
@@ -105,7 +136,7 @@ public class GraphQLClientsConfiguration {
     }
 
     public GraphQLClientConfiguration getClient(String key) {
-        return clients.get(key);
+        return clients.computeIfAbsent(key, this::readConfigurationByKey);
     }
 
     /** this method is required by Quarkus */
