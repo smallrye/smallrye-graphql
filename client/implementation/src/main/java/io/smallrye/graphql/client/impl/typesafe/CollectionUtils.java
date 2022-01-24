@@ -17,8 +17,8 @@ public final class CollectionUtils {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static <T> Collector<T, List<T>, T[]> toArray(Class<T> componentType) {
-        return new Collector<T, List<T>, T[]>() {
+    public static <T> Collector<T, List<T>, ?> toArray(Class<T> componentType) {
+        return new Collector<T, List<T>, Object>() {
             @Override
             public Supplier<List<T>> supplier() {
                 return ArrayList::new;
@@ -38,11 +38,14 @@ public final class CollectionUtils {
             }
 
             @Override
-            public Function<List<T>, T[]> finisher() {
+            public Function<List<T>, Object> finisher() {
                 return list -> {
-                    @SuppressWarnings("unchecked")
-                    T[] array = (T[]) Array.newInstance(componentType, 0);
-                    return list.toArray(array);
+                    int size = list.size();
+                    Object array = Array.newInstance(componentType, size);
+                    for (int i = 0; i < size; i++) {
+                        Array.set(array, i, list.get(i));
+                    }
+                    return array;
                 };
             }
 
@@ -51,9 +54,5 @@ public final class CollectionUtils {
                 return emptySet();
             }
         };
-    }
-
-    public static boolean nonEmpty(String name) {
-        return !name.isEmpty();
     }
 }

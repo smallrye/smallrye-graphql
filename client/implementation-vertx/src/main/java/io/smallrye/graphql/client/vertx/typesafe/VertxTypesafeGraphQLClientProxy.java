@@ -2,9 +2,11 @@ package io.smallrye.graphql.client.vertx.typesafe;
 
 import static java.util.stream.Collectors.toList;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -237,7 +239,22 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private Collection<?> values(Object value) {
-        return value.getClass().isArray() ? Arrays.asList((Object[]) value) : (Collection<?>) value;
+        return value.getClass().isArray() ? array(value) : (Collection<?>) value;
+    }
+
+    private List<Object> array(Object value) {
+        if (value.getClass().getComponentType().isPrimitive())
+            return primitiveArray(value);
+        return Arrays.asList((Object[]) value);
+    }
+
+    private List<Object> primitiveArray(Object value) {
+        int length = Array.getLength(value);
+        List<Object> out = new ArrayList<>(length);
+        for (int i = 0; i < length; i++) {
+            out.add(Array.get(value, i));
+        }
+        return out;
     }
 
     private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
