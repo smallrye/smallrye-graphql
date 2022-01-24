@@ -1,6 +1,5 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static io.smallrye.graphql.client.impl.typesafe.json.JsonReader.readJson;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
