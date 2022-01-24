@@ -35,7 +35,7 @@
         <version.vertx>4.2.4</version.vertx>
 
         <!-- Test -->
-        <version.arquillian.jetty>1.0.0.CR3</version.arquillian.jetty>
+        <version.arquillian.jetty>1.0.0.CR4</version.arquillian.jetty>
         <version.jetty>9.4.44.v20210927</version.jetty>
         <version.smallrye-opentracing>2.0.1</version.smallrye-opentracing>
         <version.hibernate-validator>6.2.0.Final</version.hibernate-validator>
