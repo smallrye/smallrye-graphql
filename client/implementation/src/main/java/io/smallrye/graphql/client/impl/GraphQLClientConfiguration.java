@@ -54,6 +54,26 @@ public class GraphQLClientConfiguration {
      */
     private String keyStoreType;
 
+    /**
+     * Hostname of the proxy to use.
+     */
+    private String proxyHost;
+
+    /**
+     * Port number of the proxy to use.
+     */
+    private Integer proxyPort;
+
+    /**
+     * Username for the proxy to use.
+     */
+    private String proxyUsername;
+
+    /**
+     * Password for the proxy to use.
+     */
+    private String proxyPassword;
+
     public String getUrl() {
         return url;
     }
@@ -126,6 +146,38 @@ public class GraphQLClientConfiguration {
         this.keyStoreType = keyStoreType;
     }
 
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public String getProxyUsername() {
+        return proxyUsername;
+    }
+
+    public void setProxyUsername(String proxyUsername) {
+        this.proxyUsername = proxyUsername;
+    }
+
+    public String getProxyPassword() {
+        return proxyPassword;
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
+    }
+
     /**
      * Merge the `other` configuration into this one. Values in `other` take precedence.
      * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
@@ -165,6 +217,18 @@ public class GraphQLClientConfiguration {
         }
         if (other.keyStoreType != null) {
             this.keyStoreType = other.keyStoreType;
+        }
+        if (other.proxyHost != null) {
+            this.proxyHost = other.proxyHost;
+        }
+        if (other.proxyPort != null && other.proxyPort != 0) {
+            this.proxyPort = other.proxyPort;
+        }
+        if (other.proxyUsername != null) {
+            this.proxyUsername = other.proxyUsername;
+        }
+        if (other.proxyPassword != null) {
+            this.proxyPassword = other.proxyPassword;
         }
         return this;
     }
