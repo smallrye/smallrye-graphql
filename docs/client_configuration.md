@@ -15,3 +15,7 @@ See [Quarkus Documentation](https://quarkus.io/guides/all-config#quarkus-smallry
 | `CLIENT_NAME/mp-graphql/truststore` | none  | Path to client's truststore (for example `file:/path/to/truststore` or `classpath:path/to/truststore`) |
 | `CLIENT_NAME/mp-graphql/truststoreType` | `JKS` | Truststore type |
 | `CLIENT_NAME/mp-graphql/truststorePassword` | none | Truststore password |
+| `CLIENT_NAME/mp-graphql/proxyHost` | none  | Hostname of the proxy to use |
+| `CLIENT_NAME/mp-graphql/proxyPort` | none  | Port of the proxy to use |
+| `CLIENT_NAME/mp-graphql/proxyUsername` | none  | Username for the proxy to use |
+| `CLIENT_NAME/mp-graphql/proxyPassword` | none  | Password for the proxy to use |

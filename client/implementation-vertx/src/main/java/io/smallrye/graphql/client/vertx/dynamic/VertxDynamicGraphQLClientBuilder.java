@@ -1,6 +1,5 @@
 package io.smallrye.graphql.client.vertx.dynamic;
 
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,13 +12,12 @@ import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
-import io.smallrye.graphql.client.vertx.ssl.SSLTools;
+import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 
 /**
@@ -131,32 +129,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
             });
         }
 
-        if (options.getTrustStoreOptions() == null && configuration.getTrustStore() != null) {
-            options.setSsl(true);
-            JksOptions trustStoreOptions = new JksOptions();
-            KeyStore trustStore = SSLTools.createKeyStore(configuration.getTrustStore(),
-                    configuration.getTrustStoreType(),
-                    configuration.getTrustStorePassword());
-            trustStoreOptions.setValue(SSLTools.asBuffer(trustStore, configuration.getTrustStorePassword().toCharArray()));
-            trustStoreOptions.setPassword(new String(configuration.getTrustStorePassword()));
-            options.setTrustStoreOptions(trustStoreOptions);
-        }
-
-        if (options.getKeyStoreOptions() == null && configuration.getKeyStore() != null) {
-            options.setSsl(true);
-            JksOptions keyStoreOptions = new JksOptions();
-            KeyStore keyStore = SSLTools.createKeyStore(configuration.getKeyStore(),
-                    configuration.getKeyStoreType(),
-                    configuration.getKeyStorePassword());
-            keyStoreOptions.setValue(SSLTools.asBuffer(keyStore, configuration.getKeyStorePassword().toCharArray()));
-            keyStoreOptions.setPassword(new String(configuration.getKeyStorePassword()));
-            options.setKeyStoreOptions(keyStoreOptions);
-        }
-
-        if (options.isSsl()) {
-            // TODO: this is not supported yet
-            options.setVerifyHost(false);
-        }
+        VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);
     }
 
 }

@@ -106,6 +106,14 @@ public class GraphQLClientsConfiguration {
                     mpConfig.getOptionalValue(clientName + "/mp-graphql/keystoreType", String.class).orElse(null));
         }
 
+        // proxy settings
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/proxyHost", String.class).ifPresent(configuration::setProxyHost);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/proxyPort", Integer.class).ifPresent(configuration::setProxyPort);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/proxyUsername", String.class)
+                .ifPresent(configuration::setProxyUsername);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/proxyPassword", String.class)
+                .ifPresent(configuration::setProxyPassword);
+
         return configuration;
     }
 

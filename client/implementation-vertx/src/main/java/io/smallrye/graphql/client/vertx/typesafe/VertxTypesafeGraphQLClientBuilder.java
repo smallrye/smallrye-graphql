@@ -3,7 +3,6 @@ package io.smallrye.graphql.client.vertx.typesafe;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.security.AccessController;
-import java.security.KeyStore;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,13 +18,12 @@ import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
-import io.smallrye.graphql.client.vertx.ssl.SSLTools;
+import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
@@ -196,32 +194,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             });
         }
 
-        if (options.getTrustStoreOptions() == null && configuration.getTrustStore() != null) {
-            options.setSsl(true);
-            JksOptions trustStoreOptions = new JksOptions();
-            KeyStore trustStore = SSLTools.createKeyStore(configuration.getTrustStore(),
-                    configuration.getTrustStoreType(),
-                    configuration.getTrustStorePassword());
-            trustStoreOptions.setValue(SSLTools.asBuffer(trustStore, configuration.getTrustStorePassword().toCharArray()));
-            trustStoreOptions.setPassword(new String(configuration.getTrustStorePassword()));
-            options.setTrustStoreOptions(trustStoreOptions);
-        }
-
-        if (options.getKeyStoreOptions() == null && configuration.getKeyStore() != null) {
-            options.setSsl(true);
-            JksOptions keyStoreOptions = new JksOptions();
-            KeyStore keyStore = SSLTools.createKeyStore(configuration.getKeyStore(),
-                    configuration.getKeyStoreType(),
-                    configuration.getKeyStorePassword());
-            keyStoreOptions.setValue(SSLTools.asBuffer(keyStore, configuration.getKeyStorePassword().toCharArray()));
-            keyStoreOptions.setPassword(new String(configuration.getKeyStorePassword()));
-            options.setKeyStoreOptions(keyStoreOptions);
-        }
-
-        if (options.isSsl()) {
-            // TODO: this is not supported yet
-            options.setVerifyHost(false);
-        }
+        VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);
     }
 
     private String configKey(Class<?> apiClass) {
