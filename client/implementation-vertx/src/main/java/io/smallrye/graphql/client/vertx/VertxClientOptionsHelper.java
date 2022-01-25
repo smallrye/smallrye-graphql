@@ -42,6 +42,10 @@ public class VertxClientOptionsHelper {
             options.setProxyOptions(proxyOptions);
         }
 
+        if (configuration.getMaxRedirects() != null) {
+            options.setMaxRedirects(configuration.getMaxRedirects());
+        }
+
         if (options.isSsl()) {
             // TODO: this is not supported yet
             options.setVerifyHost(false);

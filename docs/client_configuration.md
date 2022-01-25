@@ -19,3 +19,4 @@ See [Quarkus Documentation](https://quarkus.io/guides/all-config#quarkus-smallry
 | `CLIENT_NAME/mp-graphql/proxyPort` | none  | Port of the proxy to use |
 | `CLIENT_NAME/mp-graphql/proxyUsername` | none  | Username for the proxy to use |
 | `CLIENT_NAME/mp-graphql/proxyPassword` | none  | Password for the proxy to use |
+| `CLIENT_NAME/mp-graphql/maxRedirects` | 16  | Max number of redirects to follow. Set to 0 to disable redirects. |
