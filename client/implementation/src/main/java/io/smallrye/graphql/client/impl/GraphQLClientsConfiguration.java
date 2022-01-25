@@ -114,6 +114,9 @@ public class GraphQLClientsConfiguration {
         mpConfig.getOptionalValue(clientName + "/mp-graphql/proxyPassword", String.class)
                 .ifPresent(configuration::setProxyPassword);
 
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/maxRedirects", Integer.class)
+                .ifPresent(configuration::setMaxRedirects);
+
         return configuration;
     }
 

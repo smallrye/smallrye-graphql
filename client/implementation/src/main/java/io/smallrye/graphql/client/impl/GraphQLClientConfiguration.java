@@ -74,6 +74,11 @@ public class GraphQLClientConfiguration {
      */
     private String proxyPassword;
 
+    /**
+     * Maximum number of redirects to follow.
+     */
+    private Integer maxRedirects;
+
     public String getUrl() {
         return url;
     }
@@ -178,6 +183,14 @@ public class GraphQLClientConfiguration {
         this.proxyPassword = proxyPassword;
     }
 
+    public Integer getMaxRedirects() {
+        return maxRedirects;
+    }
+
+    public void setMaxRedirects(Integer maxRedirects) {
+        this.maxRedirects = maxRedirects;
+    }
+
     /**
      * Merge the `other` configuration into this one. Values in `other` take precedence.
      * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
@@ -229,6 +242,9 @@ public class GraphQLClientConfiguration {
         }
         if (other.proxyPassword != null) {
             this.proxyPassword = other.proxyPassword;
+        }
+        if (other.maxRedirects != null) {
+            this.maxRedirects = other.maxRedirects;
         }
         return this;
     }
