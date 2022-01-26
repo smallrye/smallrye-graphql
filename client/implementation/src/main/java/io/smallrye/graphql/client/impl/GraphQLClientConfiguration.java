@@ -79,6 +79,11 @@ public class GraphQLClientConfiguration {
      */
     private Integer maxRedirects;
 
+    /**
+     * Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a subscription start.
+     */
+    private Integer subscriptionInitializationTimeout;
+
     public String getUrl() {
         return url;
     }
@@ -191,6 +196,14 @@ public class GraphQLClientConfiguration {
         this.maxRedirects = maxRedirects;
     }
 
+    public Integer getSubscriptionInitializationTimeout() {
+        return subscriptionInitializationTimeout;
+    }
+
+    public void setSubscriptionInitializationTimeout(Integer subscriptionInitializationTimeout) {
+        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+    }
+
     /**
      * Merge the `other` configuration into this one. Values in `other` take precedence.
      * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
@@ -245,6 +258,9 @@ public class GraphQLClientConfiguration {
         }
         if (other.maxRedirects != null) {
             this.maxRedirects = other.maxRedirects;
+        }
+        if (other.subscriptionInitializationTimeout != null) {
+            this.subscriptionInitializationTimeout = other.subscriptionInitializationTimeout;
         }
         return this;
     }

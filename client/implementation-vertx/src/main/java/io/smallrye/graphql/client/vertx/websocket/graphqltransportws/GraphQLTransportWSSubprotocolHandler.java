@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.vertx.websocket.graphqltransportws;
 import java.io.StringReader;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -36,10 +37,21 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     private static final String SUBSCRIPTION_ID = "1";
 
     private final AtomicReference<WebSocket> webSocketReference = new AtomicReference<>();
+    private final AtomicBoolean subscriptionIsActive = new AtomicBoolean(false);
+
+    private final Integer subscriptionInitializationTimeout;
 
     // messages that don't change over time can be initialized once at startup
     private JsonObject connectionInitMessage;
     private JsonObject pongMessage;
+
+    public GraphQLTransportWSSubprotocolHandler() {
+        this.subscriptionInitializationTimeout = null;
+    }
+
+    public GraphQLTransportWSSubprotocolHandler(Integer subscriptionInitializationTimeout) {
+        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+    }
 
     @Override
     public void handleWebSocketStart(JsonObject request, MultiEmitter<? super String> dataEmitter, WebSocket webSocket) {
@@ -68,14 +80,19 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
         dataEmitter.onTermination(webSocket::close);
 
         send(webSocket, connectionInitMessage);
-        // If the server does not send a connection_ack message within 30 seconds, disconnect
-        // TODO: Make the timeout configurable?
-        Cancellable timeoutWaitingForConnectionAckMessage = Uni.createFrom().item(1).onItem().delayIt()
-                .by(Duration.ofSeconds(30))
-                .subscribe().with(timeout -> {
-                    dataEmitter.fail(new InvalidResponseException("Sever did not send a connection_ack message"));
-                    webSocket.close((short) 1002, "Timeout waiting for a connection_ack message");
-                });
+
+        // set up a timeout for subscription initialization
+        Cancellable timeoutWaitingForConnectionAckMessage = null;
+        if (subscriptionInitializationTimeout != null) {
+            timeoutWaitingForConnectionAckMessage = Uni.createFrom().item(1).onItem().delayIt()
+                    .by(Duration.ofMillis(subscriptionInitializationTimeout))
+                    .subscribe().with(timeout -> {
+                        dataEmitter.fail(new InvalidResponseException("Server did not send a connection_ack message"));
+                        webSocket.close((short) 1002, "Timeout waiting for a connection_ack message");
+                    });
+        }
+        // make an effectively final copy of this value to use it in a lambda expression
+        Cancellable finalTimeoutWaitingForConnectionAckMessage = timeoutWaitingForConnectionAckMessage;
 
         webSocket.handler(text -> {
             if (!dataEmitter.isCancelled()) {
@@ -89,8 +106,13 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                         send(webSocket, pongMessage);
                         break;
                     case CONNECTION_ACK:
-                        timeoutWaitingForConnectionAckMessage.cancel();
-                        send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                        if (!subscriptionIsActive.get()) {
+                            if (finalTimeoutWaitingForConnectionAckMessage != null) {
+                                finalTimeoutWaitingForConnectionAckMessage.cancel();
+                                subscriptionIsActive.set(true);
+                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                            }
+                        }
                         break;
                     case NEXT:
                         String id = message.getString("id");
@@ -125,7 +147,9 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     public void handleCancel() {
         WebSocket webSocket = this.webSocketReference.get();
         if (webSocket != null && !webSocket.isClosed()) {
-            send(webSocket, createCompleteMessage(SUBSCRIPTION_ID));
+            if (subscriptionIsActive.getAndSet(false)) {
+                send(webSocket, createCompleteMessage(SUBSCRIPTION_ID));
+            }
             webSocket.close((short) 1000);
         }
     }

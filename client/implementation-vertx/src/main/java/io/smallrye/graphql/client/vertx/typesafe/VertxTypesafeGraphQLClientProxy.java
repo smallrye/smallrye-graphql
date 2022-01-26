@@ -64,18 +64,21 @@ class VertxTypesafeGraphQLClientProxy {
     private final HttpClient httpClient;
     private final WebClient webClient;
     private final List<WebsocketSubprotocol> subprotocols;
+    private final Integer subscriptionInitializationTimeout;
 
     VertxTypesafeGraphQLClientProxy(
             Map<String, String> additionalHeaders,
             URI endpoint,
             HttpClient httpClient,
             WebClient webClient,
-            List<WebsocketSubprotocol> subprotocols) {
+            List<WebsocketSubprotocol> subprotocols,
+            Integer subscriptionInitializationTimeout) {
         this.additionalHeaders = additionalHeaders;
         this.endpoint = endpoint;
         this.httpClient = httpClient;
         this.webClient = webClient;
         this.subprotocols = subprotocols;
+        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
     }
 
     Object invoke(Class<?> api, MethodInvocation method) {
@@ -102,7 +105,7 @@ class VertxTypesafeGraphQLClientProxy {
                                 if (result.succeeded()) {
                                     WebSocket webSocket = result.result();
                                     WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                            .createHandlerFor(webSocket.subProtocol());
+                                            .createHandlerFor(webSocket.subProtocol(), subscriptionInitializationTimeout);
                                     handlerReference.set(handler);
                                     log.debug("Using websocket subprotocol handler: " + handler);
                                     Multi<String> rawData = Multi.createFrom().emitter(rawEmitter -> {

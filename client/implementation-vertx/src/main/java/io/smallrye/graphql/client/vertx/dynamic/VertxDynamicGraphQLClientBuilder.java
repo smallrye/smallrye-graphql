@@ -33,6 +33,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private final MultiMap headersMap;
     private WebClientOptions options;
     private List<WebsocketSubprotocol> subprotocols;
+    private Integer subscriptionInitializationTimeout;
 
     public VertxDynamicGraphQLClientBuilder() {
         headersMap = new HeadersMultiMap();
@@ -57,6 +58,12 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
         this.subprotocols.addAll(Arrays.asList(subprotocols));
+        return this;
+    }
+
+    @Override
+    public DynamicGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
+        this.subscriptionInitializationTimeout = timeoutInMilliseconds;
         return this;
     }
 
@@ -102,7 +109,8 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 toUseVertx = Vertx.vertx();
             }
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols);
+        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols,
+                subscriptionInitializationTimeout);
     }
 
     /**
@@ -127,6 +135,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                     log.warn(e);
                 }
             });
+        }
+        if (subscriptionInitializationTimeout == null && configuration.getSubscriptionInitializationTimeout() != null) {
+            this.subscriptionInitializationTimeout = configuration.getSubscriptionInitializationTimeout();
         }
 
         VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);

@@ -5,15 +5,15 @@ import io.smallrye.graphql.client.vertx.websocket.graphqlws.GraphQLWSSubprotocol
 
 public class BuiltinWebsocketSubprotocolHandlers {
 
-    public static WebSocketSubprotocolHandler createHandlerFor(String protocolName) {
+    public static WebSocketSubprotocolHandler createHandlerFor(String protocolName, Integer subscriptionInitializationTimeout) {
         switch (protocolName) {
             case "smallrye-graphql":
             case "":
                 return new BasicSmallRyeGraphQLWebSocketSubprotocolHandler();
             case "graphql-ws":
-                return new GraphQLWSSubprotocolHandler();
+                return new GraphQLWSSubprotocolHandler(subscriptionInitializationTimeout);
             case "graphql-transport-ws":
-                return new GraphQLTransportWSSubprotocolHandler();
+                return new GraphQLTransportWSSubprotocolHandler(subscriptionInitializationTimeout);
             default:
                 throw new IllegalArgumentException("Unknown subprotocol: " + protocolName);
         }

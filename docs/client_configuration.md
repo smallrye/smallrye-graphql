@@ -20,3 +20,4 @@ See [Quarkus Documentation](https://quarkus.io/guides/all-config#quarkus-smallry
 | `CLIENT_NAME/mp-graphql/proxyUsername` | none  | Username for the proxy to use |
 | `CLIENT_NAME/mp-graphql/proxyPassword` | none  | Password for the proxy to use |
 | `CLIENT_NAME/mp-graphql/maxRedirects` | 16  | Max number of redirects to follow. Set to 0 to disable redirects. |
+| `CLIENT_NAME/mp-graphql/subscriptiontigInitializationTimeout` | none  |  Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a subscription start. |
