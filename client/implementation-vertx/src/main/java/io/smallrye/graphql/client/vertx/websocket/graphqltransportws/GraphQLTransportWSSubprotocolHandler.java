@@ -12,6 +12,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.stream.JsonParsingException;
 
 import org.jboss.logging.Logger;
 
@@ -99,42 +100,48 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                 if (log.isTraceEnabled()) {
                     log.trace("<<< " + text);
                 }
-                JsonObject message = parseIncomingMessage(text.toString());
-                MessageType messageType = getMessageType(message);
-                switch (messageType) {
-                    case PING:
-                        send(webSocket, pongMessage);
-                        break;
-                    case CONNECTION_ACK:
-                        if (!subscriptionIsActive.get()) {
-                            if (finalTimeoutWaitingForConnectionAckMessage != null) {
-                                finalTimeoutWaitingForConnectionAckMessage.cancel();
-                                subscriptionIsActive.set(true);
-                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                try {
+                    JsonObject message = parseIncomingMessage(text.toString());
+                    MessageType messageType = getMessageType(message);
+                    switch (messageType) {
+                        case PING:
+                            send(webSocket, pongMessage);
+                            break;
+                        case CONNECTION_ACK:
+                            if (!subscriptionIsActive.get()) {
+                                if (finalTimeoutWaitingForConnectionAckMessage != null) {
+                                    finalTimeoutWaitingForConnectionAckMessage.cancel();
+                                    subscriptionIsActive.set(true);
+                                    send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                                }
                             }
-                        }
-                        break;
-                    case NEXT:
-                        String id = message.getString("id");
-                        if (!id.equals(SUBSCRIPTION_ID)) {
-                            dataEmitter.fail(
-                                    new InvalidResponseException("Received event for an unexpected subscription ID: " + id));
-                        }
-                        JsonObject data = message.getJsonObject("payload");
-                        dataEmitter.emit(data.toString());
-                        break;
-                    case ERROR:
-                        List<GraphQLError> errors = message.getJsonArray("payload")
-                                .stream().map(ResponseReader::readError).collect(Collectors.toList());
-                        dataEmitter.fail(new GraphQLClientException("Received an error", errors));
-                        break;
-                    case COMPLETE:
-                        dataEmitter.complete();
-                        break;
-                    case CONNECTION_INIT:
-                    case PONG:
-                    case SUBSCRIBE:
-                        break;
+                            break;
+                        case NEXT:
+                            String id = message.getString("id");
+                            if (!id.equals(SUBSCRIPTION_ID)) {
+                                dataEmitter.fail(
+                                        new InvalidResponseException(
+                                                "Received event for an unexpected subscription ID: " + id));
+                            }
+                            JsonObject data = message.getJsonObject("payload");
+                            dataEmitter.emit(data.toString());
+                            break;
+                        case ERROR:
+                            List<GraphQLError> errors = message.getJsonArray("payload")
+                                    .stream().map(ResponseReader::readError).collect(Collectors.toList());
+                            dataEmitter.fail(new GraphQLClientException("Received an error", errors));
+                            break;
+                        case COMPLETE:
+                            dataEmitter.complete();
+                            break;
+                        case CONNECTION_INIT:
+                        case PONG:
+                        case SUBSCRIBE:
+                            break;
+                    }
+                } catch (JsonParsingException | IllegalArgumentException e) {
+                    log.error("Unexpected message from server: " + text);
+                    dataEmitter.fail(new InvalidResponseException("Unexpected message from server", e));
                 }
             } else {
                 log.warn(
