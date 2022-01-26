@@ -1,7 +1,6 @@
 package io.smallrye.graphql.client.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,10 +79,11 @@ public class GraphQLClientsConfiguration {
         // websocket subprotocols
         Optional<String[]> subprotocolList = mpConfig.getOptionalValue(clientName + "/mp-graphql/subprotocols",
                 String[].class);
+        configuration.setWebsocketSubprotocols(new ArrayList<>());
         if (subprotocolList.isPresent()) {
-            configuration.setWebsocketSubprotocols(Arrays.asList(subprotocolList.get()));
-        } else {
-            configuration.setWebsocketSubprotocols(Collections.emptyList());
+            for (String s : subprotocolList.get()) {
+                configuration.getWebsocketSubprotocols().add(s);
+            }
         }
 
         // truststore configuration
