@@ -117,6 +117,9 @@ public class GraphQLClientsConfiguration {
         mpConfig.getOptionalValue(clientName + "/mp-graphql/maxRedirects", Integer.class)
                 .ifPresent(configuration::setMaxRedirects);
 
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/subscriptionInitializationTimeout", Integer.class)
+                .ifPresent(configuration::setSubscriptionInitializationTimeout);
+
         return configuration;
     }
 

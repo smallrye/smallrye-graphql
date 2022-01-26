@@ -43,9 +43,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final String url;
     private final MultiMap headers;
     private final List<WebsocketSubprotocol> subprotocols;
+    private final Integer subscriptionInitializationTimeout;
 
     VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options,
-            List<WebsocketSubprotocol> subprotocols) {
+            List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
         } else {
@@ -55,6 +56,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         this.headers = headers;
         this.url = url;
         this.subprotocols = subprotocols;
+        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
     }
 
     @Override
@@ -234,7 +236,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                             if (result.succeeded()) {
                                 WebSocket webSocket = result.result();
                                 WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                        .createHandlerFor(webSocket.subProtocol());
+                                        .createHandlerFor(webSocket.subProtocol(), subscriptionInitializationTimeout);
                                 handlerReference.set(handler);
                                 log.debug("Using websocket subprotocol handler: " + handler);
                                 Multi<String> rawData = Multi.createFrom().emitter(rawEmitter -> {

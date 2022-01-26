@@ -40,6 +40,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private HttpClientOptions options;
     private WebClient webClient;
     private HttpClient httpClient;
+    private Integer subscriptionInitialiationTimeout;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -88,6 +89,12 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
+    public VertxTypesafeGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
+        this.subscriptionInitialiationTimeout = timeoutInMilliseconds;
+        return this;
+    }
+
+    @Override
     public <T> T build(Class<T> apiClass) {
         if (this.options == null) {
             this.options = new WebClientOptions();
@@ -109,7 +116,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         //            subprotocols = new ArrayList<>(EnumSet.allOf(WebsocketSubprotocol.class));
         //        }
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
-                webClient, subprotocols);
+                webClient, subprotocols, subscriptionInitialiationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
     }
