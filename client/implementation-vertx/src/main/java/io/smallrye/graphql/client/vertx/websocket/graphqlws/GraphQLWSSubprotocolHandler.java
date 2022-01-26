@@ -13,6 +13,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.stream.JsonParsingException;
 
 import org.jboss.logging.Logger;
 
@@ -92,46 +93,51 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                 if (log.isTraceEnabled()) {
                     log.trace("<<< " + text);
                 }
-                JsonObject message = parseIncomingMessage(text.toString());
-                MessageType messageType = getMessageType(message);
-                switch (messageType) {
-                    case GQL_CONNECTION_ERROR:
-                        dataEmitter.fail(new InvalidResponseException("Error from server: " + message.get("payload")));
-                        break;
-                    case GQL_CONNECTION_ACK:
-                        if (!subscriptionIsActive.get()) {
-                            if (finalTimeoutWaitingForConnectionAckMessage != null) {
-                                finalTimeoutWaitingForConnectionAckMessage.cancel();
-                                subscriptionIsActive.set(true);
-                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
-                            }
-                        }
-                        break;
-                    case GQL_DATA:
-                        String id = message.getString("id");
-                        if (!id.equals(SUBSCRIPTION_ID)) {
-                            dataEmitter.fail(
-                                    new InvalidResponseException("Received event for an unexpected subscription ID: " + id));
+                try {
+                    JsonObject message = parseIncomingMessage(text.toString());
+                    MessageType messageType = getMessageType(message);
+                    switch (messageType) {
+                        case GQL_CONNECTION_ERROR:
+                            dataEmitter.fail(new InvalidResponseException("Error from server: " + message.get("payload")));
                             break;
-                        }
-                        JsonObject data = message.getJsonObject("payload");
-                        dataEmitter.emit(data.toString());
-                        break;
-                    case GQL_ERROR:
-                        GraphQLError error = ResponseReader.readError(message.getJsonObject("payload"));
-                        dataEmitter.fail(new GraphQLClientException("Received an error", Collections.singletonList(error)));
-                        break;
-                    case GQL_COMPLETE:
-                        dataEmitter.complete();
-                        break;
-                    case GQL_START:
-                    case GQL_STOP:
-                    case GQL_CONNECTION_KEEP_ALIVE:
-                    case GQL_CONNECTION_INIT:
-                    case GQL_CONNECTION_TERMINATE:
-                        break;
+                        case GQL_CONNECTION_ACK:
+                            if (!subscriptionIsActive.get()) {
+                                if (finalTimeoutWaitingForConnectionAckMessage != null) {
+                                    finalTimeoutWaitingForConnectionAckMessage.cancel();
+                                    subscriptionIsActive.set(true);
+                                    send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                                }
+                            }
+                            break;
+                        case GQL_DATA:
+                            String id = message.getString("id");
+                            if (!id.equals(SUBSCRIPTION_ID)) {
+                                dataEmitter.fail(
+                                        new InvalidResponseException(
+                                                "Received event for an unexpected subscription ID: " + id));
+                                break;
+                            }
+                            JsonObject data = message.getJsonObject("payload");
+                            dataEmitter.emit(data.toString());
+                            break;
+                        case GQL_ERROR:
+                            GraphQLError error = ResponseReader.readError(message.getJsonObject("payload"));
+                            dataEmitter.fail(new GraphQLClientException("Received an error", Collections.singletonList(error)));
+                            break;
+                        case GQL_COMPLETE:
+                            dataEmitter.complete();
+                            break;
+                        case GQL_START:
+                        case GQL_STOP:
+                        case GQL_CONNECTION_KEEP_ALIVE:
+                        case GQL_CONNECTION_INIT:
+                        case GQL_CONNECTION_TERMINATE:
+                            break;
+                    }
+                } catch (JsonParsingException | IllegalArgumentException e) {
+                    log.error("Unexpected message from server: " + text);
+                    dataEmitter.fail(new InvalidResponseException("Unexpected message from server", e));
                 }
-
             } else {
                 log.warn(
                         "Received an additional item for a subscription that has already ended with a failure, dropping it.");
