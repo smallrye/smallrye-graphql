@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.json.bind.annotation.JsonbProperty;
 
+import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
@@ -69,11 +70,11 @@ class AnnotationBehavior {
     }
 
     @GraphQLClientApi
-    interface ObjectApi {
-        Greeting greeting();
+    interface RenamedGreetingApi {
+        RenamedGreeting greeting();
     }
 
-    private static class Greeting {
+    private static class RenamedGreeting {
         @Name("foo")
         String text;
         @Name("key")
@@ -83,13 +84,45 @@ class AnnotationBehavior {
     @Test
     void shouldQueryObjectWithRenamedFields() {
         fixture.returnsData("'greeting':{'text':'foo','code':5}");
-        ObjectApi api = fixture.build(ObjectApi.class);
+        RenamedGreetingApi api = fixture.build(RenamedGreetingApi.class);
 
-        Greeting greeting = api.greeting();
+        RenamedGreeting greeting = api.greeting();
 
         then(fixture.query()).isEqualTo("query greeting { greeting {text:foo code:key} }");
         then(greeting.text).isEqualTo("foo");
         then(greeting.code).isEqualTo(5);
+    }
+
+    @GraphQLClientApi
+    interface GreetingWithIgnoreApi {
+        GreetingWithIgnore greeting(GreetingWithIgnore in);
+    }
+
+    private static class GreetingWithIgnore {
+        String text;
+        @Ignore
+        String ignore;
+
+        @SuppressWarnings("unused")
+        GreetingWithIgnore() {
+        }
+
+        GreetingWithIgnore(String text, String ignore) {
+            this.text = text;
+            this.ignore = ignore;
+        }
+    }
+
+    @Test
+    void shouldQueryObjectWithFieldsWithIgnore() {
+        fixture.returnsData("'greeting':{'text':'foo'}");
+        GreetingWithIgnoreApi api = fixture.build(GreetingWithIgnoreApi.class);
+
+        GreetingWithIgnore greeting = api.greeting(new GreetingWithIgnore("foo", "the-code"));
+
+        then(fixture.query()).isEqualTo("query greeting($in: GreetingWithIgnoreInput) { greeting(in: $in) {text} }");
+        then(greeting.text).isEqualTo("foo");
+        then(greeting.ignore).isNull();
     }
 
     @GraphQLClientApi
@@ -187,6 +220,7 @@ class AnnotationBehavior {
             this.integer = integer;
         }
 
+        @SuppressWarnings("DefaultAnnotationParam")
         @JsonbProperty(nillable = false)
         String string;
 
@@ -199,12 +233,13 @@ class AnnotationBehavior {
     void nillableFields() {
         fixture.returnsData("'query': 'blabla'");
         NillableFieldsApi client = fixture.build(NillableFieldsApi.class);
-
         NillableFields param = new NillableFields(null, null);
+
         String res = client.query(param);
 
         then(fixture.variables()).doesNotContain("'string'");
         then(fixture.variables()).contains("'integer':null");
+        then(res).isEqualTo("blabla");
     }
 
     @GraphQLClientApi
@@ -231,11 +266,12 @@ class AnnotationBehavior {
     void fieldsRenamedByJsonbAnnotation() {
         fixture.returnsData("'query': 'blabla'");
         JsonbPropertyApi client = fixture.build(JsonbPropertyApi.class);
-
         JsonbPropertyAnnotatedFields param = new JsonbPropertyAnnotatedFields("123", "456");
+
         String res = client.query(param);
 
         then(fixture.variables()).contains("'xxx':'123'");
         then(fixture.variables()).contains("'yyy':'456'");
+        then(res).isEqualTo("blabla");
     }
 }
