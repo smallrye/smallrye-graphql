@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import javax.json.bind.annotation.JsonbProperty;
 
+import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -116,5 +117,9 @@ public class FieldInfo {
 
     public boolean isIncludeNull() {
         return includeIfNull;
+    }
+
+    public boolean isOutput() {
+        return !field.isAnnotationPresent(Ignore.class);
     }
 }
