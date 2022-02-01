@@ -34,8 +34,13 @@ public class ResponseImpl implements Response {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
         }
         JsonValue value = data.get(rootField);
-        if (value == null || value.getValueType().equals(JsonValue.ValueType.NULL)) {
+        if (value == null) {
+            // field is missing in the response completely
             throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
+        }
+        if (value.getValueType().equals(JsonValue.ValueType.NULL)) {
+            // field is present in the response, but is null
+            return null;
         }
         if (value.getValueType().equals(JsonValue.ValueType.OBJECT)) {
             return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), value.asJsonObject(), null);
@@ -57,6 +62,10 @@ public class ResponseImpl implements Response {
         JsonValue item = data.get(rootField);
         if (item == null) {
             throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
+        }
+        if (item.getValueType().equals(JsonValue.ValueType.NULL)) {
+            // field is present in the response, but is null
+            return null;
         }
         if (item instanceof JsonObject) {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsSingleObject(rootField);

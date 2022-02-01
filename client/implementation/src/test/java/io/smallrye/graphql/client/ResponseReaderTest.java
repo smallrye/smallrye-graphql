@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,6 +42,12 @@ public class ResponseReaderTest {
             "        \"gender\": \"FEMALE\"\n" +
             "      }\n" +
             "    ]\n" +
+            "  }\n" +
+            "}";
+
+    private static final String EXAMPLE_RESPONSE_NULL_DATA = "{\n" +
+            "  \"data\": {\n" +
+            "    \"people\": null" +
             "  }\n" +
             "}";
 
@@ -136,6 +143,18 @@ public class ResponseReaderTest {
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("SRGQLDC035007"));
         }
+    }
+
+    @Test
+    public void testGetObjectWhenDataIsNull() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_NULL_DATA, null);
+        assertNull(response.getObject(Person.class, "people"));
+    }
+
+    @Test
+    public void testGetListWhenDataIsNull() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_NULL_DATA, null);
+        assertNull(response.getList(Person.class, "people"));
     }
 
     @Test
