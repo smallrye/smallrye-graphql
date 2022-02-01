@@ -88,7 +88,6 @@ public class QueryBuilder {
             return "{ key " + keyFields + " value " + valueFields + "}";
         }
         return type.fields()
-                .filter(FieldInfo::isOutput)
                 .map(this::field)
                 .collect(joining(" ", " {", "}"));
     }

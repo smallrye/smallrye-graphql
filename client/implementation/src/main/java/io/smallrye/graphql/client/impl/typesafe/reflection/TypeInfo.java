@@ -27,6 +27,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
@@ -38,7 +39,7 @@ public class TypeInfo {
     private final Type type; // TODO only use annotatedType
     private final AnnotatedType annotatedType;
     private final Type genericType; // we need this for GraalVM native mode because the other Type
-                                    // does not contain annotation metadata for some reason
+    // does not contain annotation metadata for some reason
 
     private TypeInfo itemType; // if `this` represents a collection, this field denotes the type of items included
     private TypeInfo keyType; // if `this` represents a map, this field denotes the type of the map's keys
@@ -141,10 +142,10 @@ public class TypeInfo {
     private Stream<FieldInfo> fields(Class<?> rawType) {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
-                        fields(rawType.getSuperclass()),
-                        Stream.of(getDeclaredFields(rawType))
-                                .filter(this::isGraphQlField)
-                                .map(field -> new FieldInfo(this, field)));
+                fields(rawType.getSuperclass()),
+                Stream.of(getDeclaredFields(rawType))
+                        .filter(this::isGraphQlField)
+                        .map(field -> new FieldInfo(this, field)));
     }
 
     private Field[] getDeclaredFields(Class<?> type) {
@@ -154,7 +155,8 @@ public class TypeInfo {
     }
 
     private boolean isGraphQlField(Field field) {
-        return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers());
+        return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers())
+                && !field.isAnnotationPresent(Ignore.class);
     }
 
     /** Modifier.isSynthetic is package private */
