@@ -142,10 +142,10 @@ public class TypeInfo {
     private Stream<FieldInfo> fields(Class<?> rawType) {
         return (rawType == null) ? Stream.of()
                 : Stream.concat(
-                fields(rawType.getSuperclass()),
-                Stream.of(getDeclaredFields(rawType))
-                        .filter(this::isGraphQlField)
-                        .map(field -> new FieldInfo(this, field)));
+                        fields(rawType.getSuperclass()),
+                        Stream.of(getDeclaredFields(rawType))
+                                .filter(this::isGraphQlField)
+                                .map(field -> new FieldInfo(this, field)));
     }
 
     private Field[] getDeclaredFields(Class<?> type) {
