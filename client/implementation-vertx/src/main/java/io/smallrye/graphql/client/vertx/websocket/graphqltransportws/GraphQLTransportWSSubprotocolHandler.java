@@ -111,9 +111,9 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                             if (!subscriptionIsActive.get()) {
                                 if (finalTimeoutWaitingForConnectionAckMessage != null) {
                                     finalTimeoutWaitingForConnectionAckMessage.cancel();
-                                    subscriptionIsActive.set(true);
-                                    send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
                                 }
+                                subscriptionIsActive.set(true);
+                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
                             }
                             break;
                         case NEXT:
