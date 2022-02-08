@@ -227,8 +227,12 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private Multi<Response> subscription0(JsonObject requestJson) {
         String WSURL = url.replaceFirst("http", "ws");
-        List<String> subprotocolIds = subprotocols == null ? Collections.emptyList()
-                : subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+        List<String> subprotocolIds =
+                // if requesting the legacy smallrye-graphql protocol, we actually need to present an empty list for the server
+                // to understand what we want
+                subprotocols == null || Collections.singletonList(WebsocketSubprotocol.SMALLRYE_GRAPHQL).equals(subprotocols)
+                        ? Collections.emptyList()
+                        : subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
         AtomicReference<WebSocketSubprotocolHandler> handlerReference = new AtomicReference<>();
         return Multi.createFrom()
                 .<Response> emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
