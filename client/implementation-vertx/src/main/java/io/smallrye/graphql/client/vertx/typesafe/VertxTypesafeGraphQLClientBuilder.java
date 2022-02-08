@@ -6,6 +6,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,11 +111,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
 
         initClients();
-        // TODO: what should be the default subprotocols? If I add any, then connection to a smallrye-graphql-based service won't work
-        // because the server will choose a 'null' subprotocol, and the underlying websocket client library reacts to that as a failure
-        //        if (subprotocols == null || subprotocols.isEmpty()) {
-        //            subprotocols = new ArrayList<>(EnumSet.allOf(WebsocketSubprotocol.class));
-        //        }
+        if (subprotocols == null || subprotocols.isEmpty()) {
+            subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
+        }
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
                 webClient, subprotocols, subscriptionInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },

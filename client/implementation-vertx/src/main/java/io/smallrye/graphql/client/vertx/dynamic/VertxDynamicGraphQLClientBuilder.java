@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.vertx.dynamic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.jboss.logging.Logger;
@@ -108,6 +109,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 // create a new vertx instance if there is none
                 toUseVertx = Vertx.vertx();
             }
+        }
+        if (subprotocols == null || subprotocols.isEmpty()) {
+            subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
         return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols,
                 subscriptionInitializationTimeout);
