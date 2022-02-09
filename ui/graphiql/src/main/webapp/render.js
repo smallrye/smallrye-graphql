@@ -119,14 +119,36 @@ function graphQLFetcher(graphQLParams) {
     
     if(query.startsWith("subscription ")){
         var new_uri = getWsUrl();
+        var initialized = false;
         observable = new rxjs.Observable((observer) => {
-            webSocket = new WebSocket(new_uri);
+            webSocket = new WebSocket(url = new_uri, protocols = "graphql-transport-ws");
             webSocket.onopen = function() {
-                observer.next("Connection established.... waiting for data");
-                webSocket.send(JSON.stringify(graphQLParams));
+                observer.next("Initializing a connection to the server...");
+                webSocket.send(JSON.stringify({type: "connection_init"}));
             };
             webSocket.onmessage = function (event) {
-                observer.next(JSON.parse(event.data));
+                let data = JSON.parse(event.data);
+                switch(data["type"]) {
+                    case 'connection_ack':
+                        initialized = true;
+                        let startMessage = {
+                            id: "1",
+                            type: "subscribe",
+                            payload: graphQLParams
+                        };
+                        webSocket.send(JSON.stringify(startMessage));
+                        observer.next("Connection initialized, requested a subscription...")
+                        break;
+                    case 'next':
+                        observer.next(data.payload);
+                        break;
+                    case 'complete':
+                        webSocket.close();
+                        break;
+                    default:
+                        observer.next(data);
+                        break;
+                }
             };
             webSocket.onerror = function(err) {
                 observer.error(JSON.stringify(err, null, 4));
@@ -137,6 +159,12 @@ function graphQLFetcher(graphQLParams) {
             };
             return {
                 unsubscribe() {
+                    if(initialized) {
+                        webSocket.send(JSON.stringify({
+                            id: "1",
+                            type: "complete"
+                        }));
+                    }
                     webSocket.close();
                     webSocket = null;
                     observable = null;
