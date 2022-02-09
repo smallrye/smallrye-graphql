@@ -1,7 +1,5 @@
 package io.smallrye.graphql.client.vertx.websocket.graphqlws;
 
-import static io.smallrye.graphql.client.vertx.websocket.graphqlws.MessageType.GQL_CONNECTION_INIT;
-
 import java.io.StringReader;
 import java.time.Duration;
 import java.util.Collections;
@@ -41,7 +39,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     private final Integer subscriptionInitializationTimeout;
 
     private AtomicReference<WebSocket> webSocketReference = new AtomicReference<>();
-    private final AtomicBoolean subscriptionIsActive = new AtomicBoolean(false);
+    private final AtomicBoolean connectionIsActive = new AtomicBoolean(false);
 
     public GraphQLWSSubprotocolHandler() {
         subscriptionInitializationTimeout = null;
@@ -101,12 +99,12 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                             dataEmitter.fail(new InvalidResponseException("Error from server: " + message.get("payload")));
                             break;
                         case GQL_CONNECTION_ACK:
-                            if (!subscriptionIsActive.get()) {
+                            if (!connectionIsActive.get()) {
                                 if (finalTimeoutWaitingForConnectionAckMessage != null) {
                                     finalTimeoutWaitingForConnectionAckMessage.cancel();
-                                    subscriptionIsActive.set(true);
-                                    send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
                                 }
+                                connectionIsActive.set(true);
+                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
                             }
                             break;
                         case GQL_DATA:
@@ -150,7 +148,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     public void handleCancel() {
         WebSocket webSocket = this.webSocketReference.get();
         if (webSocket != null && !webSocket.isClosed()) {
-            if (subscriptionIsActive.getAndSet(false)) {
+            if (connectionIsActive.getAndSet(false)) {
                 send(webSocket, createStopMessage(SUBSCRIPTION_ID));
             }
             send(webSocket, createConnectionTerminateMessage());
