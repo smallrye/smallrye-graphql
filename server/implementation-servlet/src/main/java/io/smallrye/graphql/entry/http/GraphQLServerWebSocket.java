@@ -19,13 +19,14 @@ import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
 import io.smallrye.graphql.websocket.graphqltransportws.GraphQLTransportWSSubprotocolHandler;
+import io.smallrye.graphql.websocket.graphqlws.GraphQLWSSubprotocolHandler;
 
 /**
  * Executing GraphQL operations over a websocket.
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ServerEndpoint(value = "/graphql", subprotocols = "graphql-transport-ws")
+@ServerEndpoint(value = "/graphql", subprotocols = { "graphql-transport-ws", "graphql-ws" })
 public class GraphQLServerWebSocket {
 
     private final Logger log = Logger.getLogger(GraphQLServerWebSocket.class.getName());
@@ -37,10 +38,29 @@ public class GraphQLServerWebSocket {
 
     @OnOpen
     public void onOpen(Session session) {
-        GraphQLWebsocketHandler handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session),
-                executionService);
+        GraphQLWebsocketHandler handler = null;
+        String subprotocol = session.getNegotiatedSubprotocol();
+        switch (subprotocol) {
+            case "graphql-transport-ws":
+                handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session),
+                        executionService);
+                break;
+            case "graphql-ws":
+                handler = new GraphQLWSSubprotocolHandler(new SmallRyeWebSocketSession(session),
+                        executionService);
+                break;
+            default:
+                log.warn("Unknown subprotocol: " + subprotocol);
+                try {
+                    session.close(
+                            new CloseReason(CloseReason.CloseCodes.PROTOCOL_ERROR, "Unknown subprotocol: " + subprotocol));
+                } catch (IOException e) {
+                    log.warn(e);
+                }
+                return;
+        }
         sessionsToHandlers.put(session, handler);
-        log.debug("Opened graphql-over-websocket session on " + session);
+        log.debug("Opened graphql-over-websocket session on " + session + " with subprotocol=" + subprotocol);
     }
 
     @OnClose
