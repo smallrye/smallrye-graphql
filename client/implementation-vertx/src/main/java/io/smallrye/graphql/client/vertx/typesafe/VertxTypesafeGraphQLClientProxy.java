@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -96,13 +95,7 @@ class VertxTypesafeGraphQLClientProxy {
                     .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
         } else if (method.getReturnType().isMulti()) {
             String WSURL = endpoint.toString().replaceFirst("http", "ws");
-            List<String> subprotocolIds =
-                    // if requesting the legacy smallrye-graphql protocol, we actually need to present an empty list for the server
-                    // to understand what we want
-                    subprotocols == null
-                            || Collections.singletonList(WebsocketSubprotocol.SMALLRYE_GRAPHQL).equals(subprotocols)
-                                    ? Collections.emptyList()
-                                    : subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+            List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
             AtomicReference<WebSocketSubprotocolHandler> handlerReference = new AtomicReference<>();
             return Multi.createFrom()
                     .emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,

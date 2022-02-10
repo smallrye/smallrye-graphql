@@ -7,9 +7,6 @@ public class BuiltinWebsocketSubprotocolHandlers {
 
     public static WebSocketSubprotocolHandler createHandlerFor(String protocolName, Integer subscriptionInitializationTimeout) {
         switch (protocolName) {
-            case "smallrye-graphql":
-            case "":
-                return new BasicSmallRyeGraphQLWebSocketSubprotocolHandler();
             case "graphql-ws":
                 return new GraphQLWSSubprotocolHandler(subscriptionInitializationTimeout);
             case "graphql-transport-ws":
