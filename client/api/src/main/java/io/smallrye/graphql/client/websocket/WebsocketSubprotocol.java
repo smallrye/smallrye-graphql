@@ -2,7 +2,6 @@ package io.smallrye.graphql.client.websocket;
 
 public enum WebsocketSubprotocol {
 
-    SMALLRYE_GRAPHQL("smallrye-graphql"),
     GRAPHQL_WS("graphql-ws"),
     GRAPHQL_TRANSPORT_WS("graphql-transport-ws");
 
