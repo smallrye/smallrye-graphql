@@ -13,24 +13,17 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.client.GraphQLClientException;
-import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 import io.smallrye.mutiny.Multi;
 
-@RunWith(Arquillian.class)
-@RunAsClient
-public class TypesafeClientSubscriptionTest {
+public abstract class AbstractTypesafeClientSubscriptionTest {
 
     @Deployment
     public static WebArchive deployment() {
@@ -42,14 +35,7 @@ public class TypesafeClientSubscriptionTest {
     @ArquillianResource
     URL testingURL;
 
-    private SubscriptionClientApi client;
-
-    @Before
-    public void prepare() {
-        client = new VertxTypesafeGraphQLClientBuilder()
-                .endpoint(testingURL + "graphql")
-                .build(SubscriptionClientApi.class);
-    }
+    protected SubscriptionClientApi client;
 
     @After
     public void cleanup() {
