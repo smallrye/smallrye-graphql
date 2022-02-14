@@ -8,7 +8,7 @@ See [Quarkus Documentation](https://quarkus.io/guides/all-config#quarkus-smallry
 | ------------ | ------------- | ------------ |
 | `CLIENT_NAME/mp-graphql/url` | none  | Denotes URL to connect to |
 | `CLIENT_NAME/mp-graphql/header/KEY` | none  | Adds a HTTP header named `KEY` to all HTTP requests performed by the client |
-| `CLIENT_NAME/mp-graphql/subprotocols` | none  | Comma-separated list of websocket subprotocols supported by this client. We currently support `graphql-ws`, `graphql-transport-ws` and the dummy protocol used by server-side SmallRye GraphQL 1.4.x. To use the dummy protocol, leave this blank.
+| `CLIENT_NAME/mp-graphql/subprotocols` | `graphql-ws,graphql-transport-ws`  | Comma-separated list of websocket subprotocols supported by this client. We currently support `graphql-ws` and `graphql-transport-ws`. If multiple subprotocols are provided, choosing the actual subprotocol will be subject to negotiation with the server.
 | `CLIENT_NAME/mp-graphql/keystore` | none  | Path to client's keystore (for example `file:/path/to/keystore` or `classpath:path/to/keystore`) |
 | `CLIENT_NAME/mp-graphql/keystoreType` | `JKS` | Keystore type |
 | `CLIENT_NAME/mp-graphql/keystorePassword` | none | Keystore password |
