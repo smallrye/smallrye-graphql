@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.ServerWebSocket;
 
+// TODO: the same for `graphql-ws` protocol
 public class SubscriptionInitializationTimeoutTest {
 
     static Vertx vertx = Vertx.vertx();
@@ -29,7 +30,7 @@ public class SubscriptionInitializationTimeoutTest {
         HttpServer server = runMockServer();
         try {
             DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
-                    .subprotocols(WebsocketSubprotocol.GRAPHQL_WS)
+                    .subprotocols(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS)
                     .subscriptionInitializationTimeout(100)
                     .url("http://localhost:" + server.actualPort())
                     .build();
@@ -43,7 +44,8 @@ public class SubscriptionInitializationTimeoutTest {
             });
             Throwable testResult = testFinish.await().atMost(Duration.ofSeconds(3));
             Assertions.assertNotNull(testResult);
-            Assertions.assertTrue(testResult.getMessage().contains("Server did not send a connection_ack message"));
+            Assertions.assertTrue(testResult.getMessage().contains("Server did not send a connection_ack message"),
+                    testResult.getMessage());
         } finally {
             server.close();
         }
@@ -54,7 +56,7 @@ public class SubscriptionInitializationTimeoutTest {
     private HttpServer runMockServer() throws ExecutionException, InterruptedException, TimeoutException {
         HttpServerOptions options = new HttpServerOptions();
         options.setHost("localhost");
-        options.addWebSocketSubProtocol("graphql-ws");
+        options.addWebSocketSubProtocol("graphql-transport-ws");
         HttpServer server = vertx.createHttpServer(options);
         server.webSocketHandler(new Handler<ServerWebSocket>() {
             @Override

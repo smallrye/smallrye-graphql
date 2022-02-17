@@ -2,8 +2,9 @@ package io.smallrye.graphql.client.vertx.websocket;
 
 import javax.json.JsonObject;
 
+import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.MultiEmitter;
-import io.vertx.core.http.WebSocket;
+import io.smallrye.mutiny.subscription.UniEmitter;
 
 /**
  * An implementation of this interface is responsible for handling a particular subscription websocket protocol.
@@ -18,14 +19,20 @@ import io.vertx.core.http.WebSocket;
 public interface WebSocketSubprotocolHandler {
 
     /**
-     * Called after the websocket channel is successfully initialized. This should register a handler that handles
-     * the communication over the websocket and also relay received data through the `dataEmitter`.
+     * This is called to initialize the websocket connection and prepare it for executing operations.
+     * The returned Uni is completed when the websocket is fully initialized (including necessary server ACKs specific to the
+     * protocol).
+     * If the handler is already fully initialized, this returns a completed Uni.
      */
-    void handleWebSocketStart(JsonObject request, MultiEmitter<? super String> dataEmitter, WebSocket webSocket);
+    Uni<Void> ensureInitialized();
+
+    void executeUni(JsonObject request, UniEmitter<? super String> emitter);
+
+    void executeMulti(JsonObject request, MultiEmitter<? super String> emitter);
 
     /**
-     * Called when the subscription is cancelled on the client side (by the user).
+     * Called when the websocket should be closed (for example, when the GraphQL client is being closed).
      */
-    void handleCancel();
+    void close();
 
 }

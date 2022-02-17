@@ -114,10 +114,11 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, endpoint,
+                httpClient,
                 webClient, subprotocols, subscriptionInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
+                (proxy, method, args) -> invoke(graphQlClient, method, args)));
     }
 
     private void applyConfigFor(Class<?> apiClass) {
@@ -162,14 +163,14 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return vertx;
     }
 
-    private Object invoke(Class<?> apiClass, VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
+    private Object invoke(VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
             Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             graphQlClient.close();
             return null; // void
         }
-        return graphQlClient.invoke(apiClass, methodInvocation);
+        return graphQlClient.invoke(methodInvocation);
     }
 
     private ClassLoader getClassLoader(Class<?> apiClass) {

@@ -3,6 +3,7 @@ package io.smallrye.graphql.client;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,6 +14,11 @@ import java.util.List;
  */
 public class GraphQLClientException extends RuntimeException {
     private final List<GraphQLError> errors;
+
+    public GraphQLClientException(String message, GraphQLError error) {
+        super(message);
+        this.errors = Collections.singletonList(requireNonNull(error));
+    }
 
     public GraphQLClientException(String message, List<GraphQLError> errors) {
         super(message);

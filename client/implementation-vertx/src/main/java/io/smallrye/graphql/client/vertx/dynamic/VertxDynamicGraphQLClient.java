@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.json.JsonObject;
@@ -44,6 +43,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final MultiMap headers;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
+
+    private Uni<WebSocketSubprotocolHandler> webSocketHandler;
 
     VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
@@ -226,38 +227,11 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     }
 
     private Multi<Response> subscription0(JsonObject requestJson) {
-        String WSURL = url.replaceFirst("http", "ws");
-        List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-        AtomicReference<WebSocketSubprotocolHandler> handlerReference = new AtomicReference<>();
-        return Multi.createFrom()
-                .<Response> emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
-                        result -> {
-                            if (result.succeeded()) {
-                                WebSocket webSocket = result.result();
-                                WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                        .createHandlerFor(webSocket.subProtocol(), subscriptionInitializationTimeout);
-                                handlerReference.set(handler);
-                                log.debug("Using websocket subprotocol handler: " + handler);
-                                Multi<String> rawData = Multi.createFrom().emitter(rawEmitter -> {
-                                    handler.handleWebSocketStart(requestJson, rawEmitter, webSocket);
-                                });
-                                rawData.subscribe().with(data -> {
-                                    emitter.emit(ResponseReader.readFrom(data, Collections.emptyMap()));
-                                }, failure -> {
-                                    emitter.fail(failure);
-                                }, () -> {
-                                    emitter.complete();
-                                });
-                            } else {
-                                emitter.fail(result.cause());
-                            }
-                        }))
-                .onTermination().invoke(() -> {
-                    WebSocketSubprotocolHandler handler = handlerReference.get();
-                    if (handler != null) {
-                        handler.handleCancel();
-                    }
-                });
+        Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> handler.executeMulti(requestJson, rawEmitter));
+        });
+        return rawMulti
+                .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
     }
 
     private Request buildRequest(Document document, Map<String, Object> variables, String operationName) {
@@ -278,6 +252,31 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     @Override
     public void close() {
         httpClient.close();
+    }
+
+    private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
+        if (webSocketHandler == null) {
+            webSocketHandler = Uni.createFrom().emitter(handlerEmitter -> {
+                String WSURL = url.replaceFirst("http", "ws");
+                List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+                httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
+                        result -> {
+                            if (result.succeeded()) {
+                                WebSocket webSocket = result.result();
+                                WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                        .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                subscriptionInitializationTimeout);
+                                handlerEmitter.complete(handler);
+                                log.debug("Using websocket subprotocol handler: " + handler);
+                            } else {
+                                handlerEmitter.fail(result.cause());
+                            }
+                        });
+            });
+            return webSocketHandler;
+        } else {
+            return webSocketHandler;
+        }
     }
 
 }
