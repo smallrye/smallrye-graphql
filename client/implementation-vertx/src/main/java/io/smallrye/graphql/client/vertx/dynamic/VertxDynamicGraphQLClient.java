@@ -41,13 +41,15 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final HttpClient httpClient;
     private final String url;
     private final String websocketUrl;
+    private final boolean executeSingleOperationsOverWebsocket;
     private final MultiMap headers;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
 
     private Uni<WebSocketSubprotocolHandler> webSocketHandler;
 
-    VertxDynamicGraphQLClient(Vertx vertx, String url, String websocketUrl, MultiMap headers, WebClientOptions options,
+    VertxDynamicGraphQLClient(Vertx vertx, String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
+            MultiMap headers, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
@@ -58,66 +60,76 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         this.headers = headers;
         this.url = url;
         this.websocketUrl = websocketUrl;
+        this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
     }
 
     @Override
     public Response executeSync(Document document) throws ExecutionException, InterruptedException {
-        return executeSync(buildRequest(document, null, null));
+        return executeSync(buildRequest(document, null, null).toJsonObject());
     }
 
     @Override
     public Response executeSync(Document document, Map<String, Object> variables)
             throws ExecutionException, InterruptedException {
-        return executeSync(buildRequest(document, variables, null));
+        return executeSync(buildRequest(document, variables, null).toJsonObject());
     }
 
     @Override
     public Response executeSync(Document document, String operationName) throws ExecutionException, InterruptedException {
-        return executeSync(buildRequest(document, null, operationName));
+        return executeSync(buildRequest(document, null, operationName).toJsonObject());
     }
 
     @Override
     public Response executeSync(Document document, Map<String, Object> variables, String operationName)
             throws ExecutionException, InterruptedException {
-        return executeSync(buildRequest(document, variables, operationName));
+        return executeSync(buildRequest(document, variables, operationName).toJsonObject());
     }
 
     @Override
     public Response executeSync(Request request) throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(request.toJson()));
+        return executeSync(request.toJsonObject());
     }
 
     @Override
     public Response executeSync(String query) throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(buildRequest(query, null, null).toJson()));
+        return executeSync(buildRequest(query, null, null).toJsonObject());
     }
 
     @Override
     public Response executeSync(String query, Map<String, Object> variables) throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(buildRequest(query, variables, null).toJson()));
+        return executeSync(buildRequest(query, variables, null).toJsonObject());
     }
 
     @Override
     public Response executeSync(String query, String operationName) throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(buildRequest(query, null, operationName).toJson()));
+        return executeSync(buildRequest(query, null, operationName).toJsonObject());
     }
 
     @Override
     public Response executeSync(String query, Map<String, Object> variables, String operationName)
             throws ExecutionException, InterruptedException {
-        return executeSync(Buffer.buffer(buildRequest(query, variables, operationName).toJson()));
+        return executeSync(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Response executeSync(Buffer buffer) throws ExecutionException, InterruptedException {
-        HttpResponse<Buffer> result = webClient.postAbs(url)
-                .putHeaders(headers)
-                .sendBuffer(buffer)
-                .toCompletionStage()
-                .toCompletableFuture()
-                .get();
-        return ResponseReader.readFrom(result.bodyAsString(), convertHeaders(result.headers()));
+    private Response executeSync(JsonObject json) throws ExecutionException, InterruptedException {
+        if (executeSingleOperationsOverWebsocket) {
+            Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
+                webSocketHandler().subscribe().with(handler -> handler.executeUni(json, rawEmitter));
+            });
+            return rawUni
+                    .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()))
+                    .await().indefinitely();
+        } else {
+            HttpResponse<Buffer> result = webClient.postAbs(url)
+                    .putHeaders(headers)
+                    .sendBuffer(Buffer.buffer(json.toString()))
+                    .toCompletionStage()
+                    .toCompletableFuture()
+                    .get();
+            return ResponseReader.readFrom(result.bodyAsString(), convertHeaders(result.headers()));
+        }
     }
 
     // converts the list of HTTP headers from a `MultiMap`
@@ -150,37 +162,45 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public Uni<Response> executeAsync(Request request) {
-        return executeAsync(Buffer.buffer(request.toJson()));
+        return executeAsync(request.toJsonObject());
     }
 
     @Override
     public Uni<Response> executeAsync(String query) {
-        return executeAsync(Buffer.buffer(buildRequest(query, null, null).toJson()));
+        return executeAsync(buildRequest(query, null, null).toJsonObject());
     }
 
     @Override
     public Uni<Response> executeAsync(String query, Map<String, Object> variables) {
-        return executeAsync(Buffer.buffer(buildRequest(query, variables, null).toJson()));
+        return executeAsync(buildRequest(query, variables, null).toJsonObject());
     }
 
     @Override
     public Uni<Response> executeAsync(String query, String operationName) {
-        return executeAsync(Buffer.buffer(buildRequest(query, null, operationName).toJson()));
+        return executeAsync(buildRequest(query, null, operationName).toJsonObject());
     }
 
     @Override
     public Uni<Response> executeAsync(String query, Map<String, Object> variables, String operationName) {
-        return executeAsync(Buffer.buffer(buildRequest(query, variables, operationName).toJson()));
+        return executeAsync(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Uni<Response> executeAsync(Buffer buffer) {
-        return Uni.createFrom().completionStage(
-                webClient.postAbs(url)
-                        .putHeaders(headers)
-                        .sendBuffer(buffer)
-                        .toCompletionStage())
-                .map(response -> ResponseReader.readFrom(response.bodyAsString(),
-                        convertHeaders(response.headers())));
+    private Uni<Response> executeAsync(JsonObject json) {
+        if (executeSingleOperationsOverWebsocket) {
+            Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
+                webSocketHandler().subscribe().with(handler -> handler.executeUni(json, rawEmitter));
+            });
+            return rawUni
+                    .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
+        } else {
+            return Uni.createFrom().completionStage(
+                    webClient.postAbs(url)
+                            .putHeaders(headers)
+                            .sendBuffer(Buffer.buffer(json.toString()))
+                            .toCompletionStage())
+                    .map(response -> ResponseReader.readFrom(response.bodyAsString(),
+                            convertHeaders(response.headers())));
+        }
     }
 
     @Override

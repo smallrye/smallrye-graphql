@@ -30,6 +30,12 @@ public class GraphQLClientConfiguration {
     private List<String> websocketSubprotocols;
 
     /**
+     * If this is true, then queries and mutations will also be executed over a websocket connection rather than over pure HTTP.
+     * As this comes with higher overhead, it is false by default.
+     */
+    private Boolean executeSingleOperationsOverWebsocket;
+
+    /**
      * Path to the trust store. Can point to either a classpath resource or a file.
      */
     private String trustStore;
@@ -119,6 +125,14 @@ public class GraphQLClientConfiguration {
 
     public void setWebsocketSubprotocols(List<String> websocketSubprotocols) {
         this.websocketSubprotocols = websocketSubprotocols;
+    }
+
+    public Boolean getExecuteSingleOperationsOverWebsocket() {
+        return executeSingleOperationsOverWebsocket;
+    }
+
+    public void setExecuteSingleOperationsOverWebsocket(Boolean executeSingleOperationsOverWebsocket) {
+        this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
     }
 
     public String getTrustStore() {
@@ -241,6 +255,9 @@ public class GraphQLClientConfiguration {
                     this.websocketSubprotocols.add(subprotocol);
                 }
             }
+        }
+        if (this.executeSingleOperationsOverWebsocket == null) {
+            this.executeSingleOperationsOverWebsocket = other.executeSingleOperationsOverWebsocket;
         }
         if (other.trustStore != null) {
             this.trustStore = other.trustStore;

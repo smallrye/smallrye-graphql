@@ -48,6 +48,12 @@ public interface TypesafeGraphQLClientBuilder {
     TypesafeGraphQLClientBuilder websocketUrl(String url);
 
     /**
+     * If this is true, then queries and mutations will also be executed over a websocket connection rather than over pure HTTP.
+     * As this comes with higher overhead, it is false by default.
+     */
+    TypesafeGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value);
+
+    /**
      * Static headers to send with all methods in this client.
      *
      * @see Header

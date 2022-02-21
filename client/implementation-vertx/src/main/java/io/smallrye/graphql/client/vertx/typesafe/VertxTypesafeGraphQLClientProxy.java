@@ -65,6 +65,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
     private final Class<?> api;
+    private final boolean executeSingleOperationsOverWebsocket;
 
     private Uni<WebSocketSubprotocolHandler> webSocketHandler;
 
@@ -73,6 +74,7 @@ class VertxTypesafeGraphQLClientProxy {
             Map<String, String> additionalHeaders,
             URI endpoint,
             String websocketUrl,
+            boolean executeSingleOperationsOverWebsocket,
             HttpClient httpClient,
             WebClient webClient,
             List<WebsocketSubprotocol> subprotocols,
@@ -80,6 +82,7 @@ class VertxTypesafeGraphQLClientProxy {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
         this.endpoint = endpoint;
+        this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
         this.websocketUrl = websocketUrl;
         this.httpClient = httpClient;
         this.webClient = webClient;
@@ -97,9 +100,13 @@ class VertxTypesafeGraphQLClientProxy {
         JsonObject request = request(method);
 
         if (method.getReturnType().isUni()) {
-            return Uni.createFrom()
-                    .completionStage(postAsync(request.toString(), headers))
-                    .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+            if (executeSingleOperationsOverWebsocket) {
+                return executeSingleOperationOverWebsocket(method, request);
+            } else {
+                return Uni.createFrom()
+                        .completionStage(postAsync(request.toString(), headers))
+                        .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+            }
         } else if (method.getReturnType().isMulti()) {
             Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
                 webSocketHandler().subscribe().with(handler -> handler.executeMulti(request, rawEmitter));
@@ -115,10 +122,30 @@ class VertxTypesafeGraphQLClientProxy {
                         }
                     });
         } else {
-            String response = postSync(request.toString(), headers);
-            log.debugf("response graphql: %s", response);
-            return new ResultBuilder(method, response).read();
+            if (executeSingleOperationsOverWebsocket) {
+                return executeSingleOperationOverWebsocket(method, request).await().indefinitely();
+            } else {
+                String response = postSync(request.toString(), headers);
+                log.debugf("response graphql: %s", response);
+                return new ResultBuilder(method, response).read();
+            }
         }
+    }
+
+    private Uni<Object> executeSingleOperationOverWebsocket(MethodInvocation method, JsonObject request) {
+        Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> handler.executeUni(request, rawEmitter));
+        });
+        return rawUni
+                .onItem().transform(data -> {
+                    Object object = new ResultBuilder(method, data).read();
+                    if (object != null) {
+                        return object;
+                    } else {
+                        throw new InvalidResponseException(
+                                "Couldn't find neither data nor errors in the response: " + data);
+                    }
+                });
     }
 
     private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
