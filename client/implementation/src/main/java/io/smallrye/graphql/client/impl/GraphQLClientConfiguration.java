@@ -80,9 +80,9 @@ public class GraphQLClientConfiguration {
     private Integer maxRedirects;
 
     /**
-     * Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a subscription start.
+     * Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a websocket connection.
      */
-    private Integer subscriptionInitializationTimeout;
+    private Integer websocketInitializationTimeout;
 
     public String getUrl() {
         return url;
@@ -196,12 +196,12 @@ public class GraphQLClientConfiguration {
         this.maxRedirects = maxRedirects;
     }
 
-    public Integer getSubscriptionInitializationTimeout() {
-        return subscriptionInitializationTimeout;
+    public Integer getWebsocketInitializationTimeout() {
+        return websocketInitializationTimeout;
     }
 
-    public void setSubscriptionInitializationTimeout(Integer subscriptionInitializationTimeout) {
-        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+    public void setWebsocketInitializationTimeout(Integer websocketInitializationTimeout) {
+        this.websocketInitializationTimeout = websocketInitializationTimeout;
     }
 
     /**
@@ -259,8 +259,8 @@ public class GraphQLClientConfiguration {
         if (other.maxRedirects != null) {
             this.maxRedirects = other.maxRedirects;
         }
-        if (other.subscriptionInitializationTimeout != null) {
-            this.subscriptionInitializationTimeout = other.subscriptionInitializationTimeout;
+        if (other.websocketInitializationTimeout != null) {
+            this.websocketInitializationTimeout = other.websocketInitializationTimeout;
         }
         return this;
     }

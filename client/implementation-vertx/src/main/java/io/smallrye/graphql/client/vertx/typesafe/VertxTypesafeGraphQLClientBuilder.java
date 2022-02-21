@@ -41,7 +41,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private HttpClientOptions options;
     private WebClient webClient;
     private HttpClient httpClient;
-    private Integer subscriptionInitializationTimeout;
+    private Integer websocketInitializationTimeout;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -90,8 +90,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
-    public VertxTypesafeGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
-        this.subscriptionInitializationTimeout = timeoutInMilliseconds;
+    public VertxTypesafeGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds) {
+        this.websocketInitializationTimeout = timeoutInMilliseconds;
         return this;
     }
 
@@ -116,7 +116,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, endpoint,
                 httpClient,
-                webClient, subprotocols, subscriptionInitializationTimeout);
+                webClient, subprotocols, websocketInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(graphQlClient, method, args)));
     }
@@ -190,8 +190,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
         }
-        if (this.subscriptionInitializationTimeout == null && configuration.getSubscriptionInitializationTimeout() != null) {
-            this.subscriptionInitializationTimeout = configuration.getSubscriptionInitializationTimeout();
+        if (this.websocketInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
+            this.websocketInitializationTimeout = configuration.getWebsocketInitializationTimeout();
         }
         if (configuration.getWebsocketSubprotocols() != null) {
             configuration.getWebsocketSubprotocols().forEach(protocol -> {

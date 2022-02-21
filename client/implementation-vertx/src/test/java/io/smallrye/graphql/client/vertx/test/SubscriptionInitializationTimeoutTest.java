@@ -31,7 +31,7 @@ public class SubscriptionInitializationTimeoutTest {
         try {
             DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                     .subprotocols(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS)
-                    .subscriptionInitializationTimeout(100)
+                    .websocketInitializationTimeout(100)
                     .url("http://localhost:" + server.actualPort())
                     .build();
             Uni<Throwable> testFinish = Uni.createFrom().emitter(emitter -> {

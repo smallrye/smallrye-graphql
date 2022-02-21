@@ -20,7 +20,7 @@ public interface DynamicGraphQLClientBuilder {
      * Maximum time (in milliseconds) allowed between initializing a subscription websocket and receiving
      * a subscription start acknowledgement from the server.
      */
-    DynamicGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds);
+    DynamicGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds);
 
     DynamicGraphQLClient build();
 

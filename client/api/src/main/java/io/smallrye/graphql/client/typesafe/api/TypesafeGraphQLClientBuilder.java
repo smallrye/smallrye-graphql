@@ -69,7 +69,7 @@ public interface TypesafeGraphQLClientBuilder {
      * Maximum time (in milliseconds) allowed between initializing a subscription websocket and receiving
      * a subscription start acknowledgement from the server.
      */
-    TypesafeGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds);
+    TypesafeGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds);
 
     /**
      * Build the proxy for that api interface.
