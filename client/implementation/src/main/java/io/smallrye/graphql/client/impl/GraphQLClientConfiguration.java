@@ -14,6 +14,11 @@ public class GraphQLClientConfiguration {
     private String url;
 
     /**
+     * The WebSocket URL that the client connects to. By default, this is the HTTP url with the protocol part changed to `ws`.
+     */
+    private String websocketUrl;
+
+    /**
      * HTTP headers to be appended to each HTTP request.
      */
     private Map<String, String> headers;
@@ -90,6 +95,14 @@ public class GraphQLClientConfiguration {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getWebsocketUrl() {
+        return websocketUrl;
+    }
+
+    public void setWebsocketUrl(String websocketUrl) {
+        this.websocketUrl = websocketUrl;
     }
 
     public Map<String, String> getHeaders() {
@@ -211,6 +224,9 @@ public class GraphQLClientConfiguration {
     public GraphQLClientConfiguration merge(GraphQLClientConfiguration other) {
         if (other.url != null) {
             this.url = other.url;
+        }
+        if (other.websocketUrl != null) {
+            this.websocketUrl = other.websocketUrl;
         }
         if (this.headers == null) {
             this.headers = other.headers;

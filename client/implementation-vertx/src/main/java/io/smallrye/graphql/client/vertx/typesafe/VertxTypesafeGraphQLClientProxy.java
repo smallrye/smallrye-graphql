@@ -59,6 +59,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     private final Map<String, String> additionalHeaders;
     private final URI endpoint;
+    private final String websocketUrl;
     private final HttpClient httpClient;
     private final WebClient webClient;
     private final List<WebsocketSubprotocol> subprotocols;
@@ -71,6 +72,7 @@ class VertxTypesafeGraphQLClientProxy {
             Class<?> api,
             Map<String, String> additionalHeaders,
             URI endpoint,
+            String websocketUrl,
             HttpClient httpClient,
             WebClient webClient,
             List<WebsocketSubprotocol> subprotocols,
@@ -78,6 +80,7 @@ class VertxTypesafeGraphQLClientProxy {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
         this.endpoint = endpoint;
+        this.websocketUrl = websocketUrl;
         this.httpClient = httpClient;
         this.webClient = webClient;
         this.subprotocols = subprotocols;
@@ -121,11 +124,10 @@ class VertxTypesafeGraphQLClientProxy {
     private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
         if (webSocketHandler == null) {
             webSocketHandler = Uni.createFrom().emitter(handlerEmitter -> {
-                String WSURL = endpoint.toString().replaceFirst("http", "ws");
                 List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
                 MultiMap headers = HeadersMultiMap.headers()
                         .addAll(new HeaderBuilder(api, null, additionalHeaders).build());
-                httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
+                httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
                         result -> {
                             if (result.succeeded()) {
                                 WebSocket webSocket = result.result();

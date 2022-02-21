@@ -119,6 +119,8 @@ public class GraphQLClientsConfiguration {
 
         mpConfig.getOptionalValue(clientName + "/mp-graphql/websocketInitializationTimeout", Integer.class)
                 .ifPresent(configuration::setWebsocketInitializationTimeout);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/runSingleOperationsOnWebsocket", Integer.class)
+                .ifPresent(configuration::setWebsocketInitializationTimeout);
 
         return configuration;
     }

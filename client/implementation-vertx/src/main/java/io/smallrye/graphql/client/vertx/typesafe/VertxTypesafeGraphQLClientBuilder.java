@@ -35,6 +35,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
 
     private String configKey = null;
     private URI endpoint;
+    private String websocketUrl;
     private Map<String, String> headers;
     private List<WebsocketSubprotocol> subprotocols;
     private Vertx vertx;
@@ -72,6 +73,12 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     @Override
     public VertxTypesafeGraphQLClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;
+        return this;
+    }
+
+    @Override
+    public TypesafeGraphQLClientBuilder websocketUrl(String url) {
+        this.websocketUrl = url;
         return this;
     }
 
@@ -114,9 +121,11 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
+        if (websocketUrl == null) {
+            websocketUrl = endpoint.toString().replaceFirst("http", "ws");
+        }
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, endpoint,
-                httpClient,
-                webClient, subprotocols, websocketInitializationTimeout);
+                websocketUrl, httpClient, webClient, subprotocols, websocketInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(graphQlClient, method, args)));
     }
@@ -186,6 +195,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private void applyConfig(GraphQLClientConfiguration configuration) {
         if (this.endpoint == null && configuration.getUrl() != null) {
             this.endpoint = URI.create(configuration.getUrl());
+        }
+        if (this.websocketUrl == null && configuration.getWebsocketUrl() != null) {
+            this.websocketUrl = configuration.getWebsocketUrl();
         }
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
