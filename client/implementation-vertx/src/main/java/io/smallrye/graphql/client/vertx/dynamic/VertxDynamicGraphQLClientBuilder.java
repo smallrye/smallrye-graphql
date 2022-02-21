@@ -63,7 +63,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     }
 
     @Override
-    public DynamicGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
+    public DynamicGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds) {
         this.subscriptionInitializationTimeout = timeoutInMilliseconds;
         return this;
     }
@@ -140,8 +140,8 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 }
             });
         }
-        if (subscriptionInitializationTimeout == null && configuration.getSubscriptionInitializationTimeout() != null) {
-            this.subscriptionInitializationTimeout = configuration.getSubscriptionInitializationTimeout();
+        if (subscriptionInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
+            this.subscriptionInitializationTimeout = configuration.getWebsocketInitializationTimeout();
         }
 
         VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);
