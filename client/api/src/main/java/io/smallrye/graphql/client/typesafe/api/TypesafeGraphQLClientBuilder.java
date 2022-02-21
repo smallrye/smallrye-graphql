@@ -43,6 +43,11 @@ public interface TypesafeGraphQLClientBuilder {
     TypesafeGraphQLClientBuilder endpoint(URI endpoint);
 
     /**
+     * Path to the websocket endpoint. By default this is the regular HTTP endpoint with the protocol changed to `ws`.
+     */
+    TypesafeGraphQLClientBuilder websocketUrl(String url);
+
+    /**
      * Static headers to send with all methods in this client.
      *
      * @see Header

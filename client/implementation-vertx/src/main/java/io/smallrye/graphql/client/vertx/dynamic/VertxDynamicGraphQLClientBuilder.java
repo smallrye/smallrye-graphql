@@ -30,6 +30,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     private Vertx vertx;
     private String url;
+    private String websocketUrl;
     private String configKey;
     private final MultiMap headersMap;
     private WebClientOptions options;
@@ -75,6 +76,12 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     }
 
     @Override
+    public DynamicGraphQLClientBuilder websocketUrl(String url) {
+        this.websocketUrl = url;
+        return this;
+    }
+
+    @Override
     public VertxDynamicGraphQLClientBuilder configKey(String configKey) {
         this.configKey = configKey;
         return this;
@@ -113,7 +120,10 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols,
+        if (websocketUrl == null) {
+            websocketUrl = url.replaceFirst("http", "ws");
+        }
+        return new VertxDynamicGraphQLClient(toUseVertx, url, websocketUrl, headersMap, options, subprotocols,
                 subscriptionInitializationTimeout);
     }
 
@@ -124,6 +134,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private void applyConfig(GraphQLClientConfiguration configuration) {
         if (this.url == null && configuration.getUrl() != null) {
             this.url = configuration.getUrl();
+        }
+        if (this.websocketUrl == null && configuration.getWebsocketUrl() != null) {
+            this.websocketUrl = configuration.getWebsocketUrl();
         }
         configuration.getHeaders().forEach((k, v) -> {
             if (!this.headersMap.contains(k)) {

@@ -40,13 +40,14 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final WebClient webClient;
     private final HttpClient httpClient;
     private final String url;
+    private final String websocketUrl;
     private final MultiMap headers;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
 
     private Uni<WebSocketSubprotocolHandler> webSocketHandler;
 
-    VertxDynamicGraphQLClient(Vertx vertx, String url, MultiMap headers, WebClientOptions options,
+    VertxDynamicGraphQLClient(Vertx vertx, String url, String websocketUrl, MultiMap headers, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
@@ -56,6 +57,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         this.webClient = WebClient.wrap(httpClient);
         this.headers = headers;
         this.url = url;
+        this.websocketUrl = websocketUrl;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
     }
@@ -257,9 +259,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
         if (webSocketHandler == null) {
             webSocketHandler = Uni.createFrom().emitter(handlerEmitter -> {
-                String WSURL = url.replaceFirst("http", "ws");
                 List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-                httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
+                httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
                         result -> {
                             if (result.succeeded()) {
                                 WebSocket webSocket = result.result();
