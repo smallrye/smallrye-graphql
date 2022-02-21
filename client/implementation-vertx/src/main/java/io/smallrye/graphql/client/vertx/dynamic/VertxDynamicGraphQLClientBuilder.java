@@ -31,6 +31,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private Vertx vertx;
     private String url;
     private String websocketUrl;
+    private Boolean executeSingleOperationsOverWebsocket;
     private String configKey;
     private final MultiMap headersMap;
     private WebClientOptions options;
@@ -82,6 +83,12 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     }
 
     @Override
+    public DynamicGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value) {
+        this.executeSingleOperationsOverWebsocket = value;
+        return this;
+    }
+
+    @Override
     public VertxDynamicGraphQLClientBuilder configKey(String configKey) {
         this.configKey = configKey;
         return this;
@@ -123,7 +130,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         if (websocketUrl == null) {
             websocketUrl = url.replaceFirst("http", "ws");
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, websocketUrl, headersMap, options, subprotocols,
+        if (executeSingleOperationsOverWebsocket == null) {
+            executeSingleOperationsOverWebsocket = false;
+        }
+        return new VertxDynamicGraphQLClient(toUseVertx, url, websocketUrl, executeSingleOperationsOverWebsocket, headersMap,
+                options, subprotocols,
                 subscriptionInitializationTimeout);
     }
 
@@ -155,6 +166,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         }
         if (subscriptionInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
             this.subscriptionInitializationTimeout = configuration.getWebsocketInitializationTimeout();
+        }
+        if (executeSingleOperationsOverWebsocket == null && configuration.getExecuteSingleOperationsOverWebsocket() != null) {
+            this.executeSingleOperationsOverWebsocket = configuration.getExecuteSingleOperationsOverWebsocket();
         }
 
         VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);

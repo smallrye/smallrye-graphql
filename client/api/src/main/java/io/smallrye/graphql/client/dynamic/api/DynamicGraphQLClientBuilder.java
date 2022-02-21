@@ -12,6 +12,8 @@ public interface DynamicGraphQLClientBuilder {
 
     DynamicGraphQLClientBuilder websocketUrl(String url);
 
+    DynamicGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value);
+
     DynamicGraphQLClientBuilder configKey(String configKey);
 
     DynamicGraphQLClientBuilder header(String key, String value);
