@@ -44,12 +44,15 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     private final Map<String, UniEmitter<? super String>> uniOperations;
     private final Map<String, MultiEmitter<? super String>> multiOperations;
 
-    public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout) {
+    private final Runnable onClose;
+
+    public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout, Runnable onClose) {
         this.webSocket = webSocket;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
         this.uniOperations = new ConcurrentHashMap<>();
         this.multiOperations = new ConcurrentHashMap<>();
         this.initialization = initialize().subscribeAsCompletionStage();
+        this.onClose = onClose;
     }
 
     private Uni<Void> initialize() {
@@ -59,6 +62,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
             }
 
             webSocket.closeHandler((v) -> {
+                onClose.run();
                 if (webSocket.closeStatusCode() != null) {
                     if (webSocket.closeStatusCode() == 1000) {
                         log.debug("WebSocket closed with status code 1000");

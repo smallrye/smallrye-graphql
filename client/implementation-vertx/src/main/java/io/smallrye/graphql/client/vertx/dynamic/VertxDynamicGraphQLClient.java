@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.json.JsonObject;
@@ -46,7 +47,14 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
 
-    private Uni<WebSocketSubprotocolHandler> webSocketHandler;
+    // Do NOT use this field directly, always retrieve by calling `webSocketHandler()`.
+    // When a websocket connection is required, then this is populated with a Uni
+    // holding the websocket subprotocol handler (the Uni will be completed
+    // when the websocket connection and the handler are ready to use).
+    // In case that the websocket connection is lost, this AtomicReference will be set to null,
+    // so when another operation requiring a websocket is invoked, the reference will be populated again
+    // and a new websocket connection attempted.
+    private final AtomicReference<Uni<WebSocketSubprotocolHandler>> webSocketHandler = new AtomicReference<>();
 
     VertxDynamicGraphQLClient(Vertx vertx, String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
             MultiMap headers, WebClientOptions options,
@@ -273,31 +281,43 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     @Override
     public void close() {
-        httpClient.close();
+        try {
+            httpClient.close();
+        } catch (Throwable t) {
+            log.warn(t);
+        }
+        try {
+            webClient.close();
+        } catch (Throwable t) {
+            log.warn(t);
+        }
     }
 
     private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
-        if (webSocketHandler == null) {
-            webSocketHandler = Uni.createFrom().emitter(handlerEmitter -> {
-                List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-                httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
-                        result -> {
-                            if (result.succeeded()) {
-                                WebSocket webSocket = result.result();
-                                WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                        .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                subscriptionInitializationTimeout);
-                                handlerEmitter.complete(handler);
-                                log.debug("Using websocket subprotocol handler: " + handler);
-                            } else {
-                                handlerEmitter.fail(result.cause());
-                            }
-                        });
-            });
-            return webSocketHandler;
-        } else {
-            return webSocketHandler;
-        }
+        return webSocketHandler.updateAndGet(currentValue -> {
+            if (currentValue == null) {
+                return Uni.createFrom().<WebSocketSubprotocolHandler> emitter(handlerEmitter -> {
+                    List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+                    httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
+                            result -> {
+                                if (result.succeeded()) {
+                                    WebSocket webSocket = result.result();
+                                    WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                            .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                    subscriptionInitializationTimeout, () -> {
+                                                        webSocketHandler.set(null);
+                                                    });
+                                    handlerEmitter.complete(handler);
+                                    log.debug("Using websocket subprotocol handler: " + handler);
+                                } else {
+                                    handlerEmitter.fail(result.cause());
+                                }
+                            });
+                }).memoize().indefinitely();
+            } else {
+                return currentValue;
+            }
+        });
     }
 
 }
