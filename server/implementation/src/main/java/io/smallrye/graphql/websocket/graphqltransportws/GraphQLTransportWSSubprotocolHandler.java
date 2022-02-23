@@ -22,6 +22,7 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 /**
  * Websocket subprotocol handler that implements the `graphql-transport-ws` subprotocol.
@@ -52,102 +53,105 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
 
     @Override
     public void onMessage(String text) {
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("<<< " + text);
-        }
+        Infrastructure.getDefaultExecutor().execute(() -> {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("<<< " + text);
+            }
 
-        JsonObject message = null;
-        MessageType messageType = null;
-        try {
-            message = parseIncomingMessage(text);
-            messageType = getMessageType(message);
-        } catch (JsonParsingException ex) {
-            session.close((short) 4400, ex.getMessage());
-            return;
-        } catch (NullPointerException | IllegalArgumentException ex) {
-            session.close((short) 4400, "Unknown message type");
-            return;
-        }
-        try {
-            switch (messageType) {
-                case CONNECTION_INIT:
-                    if (connectionInitialized.getAndSet(true)) {
-                        session.close((short) 4429, "Too many initialisation requests");
-                    } else {
-                        session.sendMessage(CONNECTION_ACK_MESSAGE);
-                    }
-                    break;
-                case PING:
-                    session.sendMessage(PONG_MESSAGE);
-                    break;
-                case PONG:
-                    break;
-                case SUBSCRIBE:
-                    if (!connectionInitialized.get()) {
-                        session.close((short) 4401, "Unauthorized");
-                        return;
-                    }
-                    String operationId = message.getString("id");
-                    if (activeOperations.containsKey(operationId)) {
-                        session.close((short) 4409, "Subscriber for " + operationId + " already exists");
-                        return;
-                    }
-                    JsonObject payload = message.getJsonObject("payload");
-                    ExecutionResponse executionResponse = executionService.execute(payload);
-                    ExecutionResult executionResult = executionResponse.getExecutionResult();
-                    if (executionResult != null) {
-                        if (!executionResult.isDataPresent()) {
-                            // this means a validation error
-                            session.sendMessage(createErrorMessage(operationId,
-                                    executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors")).toString());
+            JsonObject message = null;
+            MessageType messageType = null;
+            try {
+                message = parseIncomingMessage(text);
+                messageType = getMessageType(message);
+            } catch (JsonParsingException ex) {
+                session.close((short) 4400, ex.getMessage());
+                return;
+            } catch (NullPointerException | IllegalArgumentException ex) {
+                session.close((short) 4400, "Unknown message type");
+                return;
+            }
+            try {
+                switch (messageType) {
+                    case CONNECTION_INIT:
+                        if (connectionInitialized.getAndSet(true)) {
+                            session.close((short) 4429, "Too many initialisation requests");
                         } else {
-                            Object data = executionResponse.getExecutionResult().getData();
-                            if (data instanceof Map) {
-                                // this means the operation is a query or mutation
-                                session.sendMessage(
-                                        createNextMessage(operationId, executionResponse.getExecutionResultAsJsonObject())
-                                                .toString());
-                                session.sendMessage(createCompleteMessage(operationId).toString());
-                            } else if (data instanceof Publisher) {
-                                // this means the operation is a subscription
-                                SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
-                                Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
-                                        .getData();
-                                if (stream != null) {
-                                    activeOperations.put(operationId, subscriber);
-                                    stream.subscribe(subscriber);
-                                }
+                            session.sendMessage(CONNECTION_ACK_MESSAGE);
+                        }
+                        break;
+                    case PING:
+                        session.sendMessage(PONG_MESSAGE);
+                        break;
+                    case PONG:
+                        break;
+                    case SUBSCRIBE:
+                        if (!connectionInitialized.get()) {
+                            session.close((short) 4401, "Unauthorized");
+                            return;
+                        }
+                        String operationId = message.getString("id");
+                        if (activeOperations.containsKey(operationId)) {
+                            session.close((short) 4409, "Subscriber for " + operationId + " already exists");
+                            return;
+                        }
+                        JsonObject payload = message.getJsonObject("payload");
+                        ExecutionResponse executionResponse = executionService.execute(payload);
+                        ExecutionResult executionResult = executionResponse.getExecutionResult();
+                        if (executionResult != null) {
+                            if (!executionResult.isDataPresent()) {
+                                // this means a validation error
+                                session.sendMessage(createErrorMessage(operationId,
+                                        executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors")).toString());
                             } else {
-                                LOG.warn("Unknown execution result of type "
-                                        + executionResponse.getExecutionResult().getData().getClass());
+                                Object data = executionResponse.getExecutionResult().getData();
+                                if (data instanceof Map) {
+                                    // this means the operation is a query or mutation
+                                    session.sendMessage(
+                                            createNextMessage(operationId, executionResponse.getExecutionResultAsJsonObject())
+                                                    .toString());
+                                    session.sendMessage(createCompleteMessage(operationId).toString());
+                                } else if (data instanceof Publisher) {
+                                    // this means the operation is a subscription
+                                    SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
+                                    Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
+                                            .getData();
+                                    if (stream != null) {
+                                        activeOperations.put(operationId, subscriber);
+                                        stream.subscribe(subscriber);
+                                    }
+                                } else {
+                                    LOG.warn("Unknown execution result of type "
+                                            + executionResponse.getExecutionResult().getData().getClass());
+                                }
                             }
                         }
-                    }
-                    break;
-                case COMPLETE:
-                    String opId = message.getString("id");
-                    SubscriptionSubscriber subscriber = activeOperations.get(opId);
-                    if (subscriber != null) {
-                        subscriber.cancel();
-                        activeOperations.remove(opId);
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Completed operation id " + opId + " per client's request");
+                        break;
+                    case COMPLETE:
+                        String opId = message.getString("id");
+                        SubscriptionSubscriber subscriber = activeOperations.get(opId);
+                        if (subscriber != null) {
+                            subscriber.cancel();
+                            activeOperations.remove(opId);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Completed operation id " + opId + " per client's request");
+                            }
+                        } else {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug(
+                                        "Client requested to complete operation id " + opId
+                                                + ", but no such operation is active");
+                            }
                         }
-                    } else {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(
-                                    "Client requested to complete operation id " + opId + ", but no such operation is active");
-                        }
-                    }
-                    break;
-                case CONNECTION_ACK:
-                case NEXT:
-                case ERROR:
-                    break;
+                        break;
+                    case CONNECTION_ACK:
+                    case NEXT:
+                    case ERROR:
+                        break;
+                }
+            } catch (IOException e) {
+                LOG.warn(e);
             }
-        } catch (IOException e) {
-            LOG.warn(e);
-        }
+        });
     }
 
     @Override
