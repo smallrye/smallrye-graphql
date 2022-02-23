@@ -30,7 +30,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebsocketVersion;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
@@ -121,22 +120,11 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return executeSync(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Response executeSync(JsonObject json) throws ExecutionException, InterruptedException {
+    private Response executeSync(JsonObject json) {
         if (executeSingleOperationsOverWebsocket) {
-            Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
-                webSocketHandler().subscribe().with(handler -> handler.executeUni(json, rawEmitter));
-            });
-            return rawUni
-                    .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()))
-                    .await().indefinitely();
+            return executeSingleResultOperationOverWebsocket(json).await().indefinitely();
         } else {
-            HttpResponse<Buffer> result = webClient.postAbs(url)
-                    .putHeaders(headers)
-                    .sendBuffer(Buffer.buffer(json.toString()))
-                    .toCompletionStage()
-                    .toCompletableFuture()
-                    .get();
-            return ResponseReader.readFrom(result.bodyAsString(), convertHeaders(result.headers()));
+            return executeSingleResultOperationOverHttp(json).await().indefinitely();
         }
     }
 
@@ -195,19 +183,9 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private Uni<Response> executeAsync(JsonObject json) {
         if (executeSingleOperationsOverWebsocket) {
-            Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
-                webSocketHandler().subscribe().with(handler -> handler.executeUni(json, rawEmitter));
-            });
-            return rawUni
-                    .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
+            return executeSingleResultOperationOverWebsocket(json);
         } else {
-            return Uni.createFrom().completionStage(
-                    webClient.postAbs(url)
-                            .putHeaders(headers)
-                            .sendBuffer(Buffer.buffer(json.toString()))
-                            .toCompletionStage())
-                    .map(response -> ResponseReader.readFrom(response.bodyAsString(),
-                            convertHeaders(response.headers())));
+            return executeSingleResultOperationOverHttp(json);
         }
     }
 
@@ -256,12 +234,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return subscription0(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Multi<Response> subscription0(JsonObject requestJson) {
-        Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
-            webSocketHandler().subscribe().with(handler -> handler.executeMulti(requestJson, rawEmitter));
-        });
-        return rawMulti
-                .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
+    private Multi<Response> subscription0(JsonObject json) {
+        return executeSubscriptionOverWebsocket(json);
     }
 
     private Request buildRequest(Document document, Map<String, Object> variables, String operationName) {
@@ -296,6 +270,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
         return webSocketHandler.updateAndGet(currentValue -> {
             if (currentValue == null) {
+                // if we don't have a handler, create a new one
                 return Uni.createFrom().<WebSocketSubprotocolHandler> emitter(handlerEmitter -> {
                     List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
                     httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
@@ -305,6 +280,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                                     WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
                                             .createHandlerFor(webSocket.subProtocol(), webSocket,
                                                     subscriptionInitializationTimeout, () -> {
+                                                        // if the websocket disconnects, remove the handler so we can try
+                                                        // connecting again with a new websocket and handler
                                                         webSocketHandler.set(null);
                                                     });
                                     handlerEmitter.complete(handler);
@@ -318,6 +295,60 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 return currentValue;
             }
         });
+    }
+
+    private Uni<Response> executeSingleResultOperationOverHttp(JsonObject json) {
+        return Uni.createFrom().completionStage(
+                webClient.postAbs(url)
+                        .putHeaders(headers)
+                        .sendBuffer(Buffer.buffer(json.toString()))
+                        .toCompletionStage())
+                .map(response -> ResponseReader.readFrom(response.bodyAsString(),
+                        convertHeaders(response.headers())));
+    }
+
+    private Uni<Response> executeSingleResultOperationOverWebsocket(JsonObject json) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
+        Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeUni(json, rawEmitter));
+            });
+        });
+        return rawUni
+                .onCancellation().invoke(() -> {
+                    String id = operationId.get();
+                    log.trace("Received onCancellation on operation ID " + id);
+                    if (id != null) {
+                        handlerRef.get().cancelUni(id);
+                    } else {
+                        log.trace("Received onCancellation on an operation that does not have an ID yet");
+                    }
+                })
+                .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
+    }
+
+    private Multi<Response> executeSubscriptionOverWebsocket(JsonObject json) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
+        Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeMulti(json, rawEmitter));
+            });
+        });
+        return rawMulti
+                .onCancellation().invoke(() -> {
+                    String id = operationId.get();
+                    log.trace("Received onCancellation on operation ID " + id);
+                    if (id != null) {
+                        handlerRef.get().cancelMulti(id);
+                    } else {
+                        log.trace("Received onCancellation on an operation that does not have an ID yet");
+                    }
+                })
+                .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
     }
 
 }

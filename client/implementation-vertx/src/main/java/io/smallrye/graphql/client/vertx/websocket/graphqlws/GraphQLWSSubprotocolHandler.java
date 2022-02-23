@@ -25,7 +25,6 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.Cancellable;
 import io.smallrye.mutiny.subscription.MultiEmitter;
 import io.smallrye.mutiny.subscription.UniEmitter;
-import io.vertx.core.Future;
 import io.vertx.core.http.WebSocket;
 
 /**
@@ -150,45 +149,43 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     }
 
     @Override
-    public void executeUni(JsonObject request, UniEmitter<? super String> emitter) {
+    public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
         String id = UUID.randomUUID().toString();
         ensureInitialized().subscribe().with(ready -> {
             uniOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
-        emitter.onTermination(() -> {
-            cancelUni(id);
-        });
+        return id;
     }
 
     @Override
-    public void executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
+    public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
         String id = UUID.randomUUID().toString();
         ensureInitialized().subscribe().with(ready -> {
             multiOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
-        emitter.onTermination(() -> {
-            cancelMulti(id);
-        });
+        return id;
     }
 
-    private void cancelUni(String id) {
-        send(webSocket, createStopMessage(id));
+    @Override
+    public void cancelUni(String id) {
         uniOperations.remove(id);
+        send(webSocket, createStopMessage(id));
     }
 
-    private void cancelMulti(String id) {
-        send(webSocket, createStopMessage(id));
+    @Override
+    public void cancelMulti(String id) {
         multiOperations.remove(id);
+        send(webSocket, createStopMessage(id));
     }
 
     @Override
     public void close() {
         if (webSocket != null && !webSocket.isClosed()) {
-            send(webSocket, createConnectionTerminateMessage()).onComplete(complete -> {
+            send(webSocket, createConnectionTerminateMessage()).subscribe().with(complete -> {
                 webSocket.close((short) 1000);
             });
         }
@@ -202,12 +199,12 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         return MessageType.fromString(message.getString("type"));
     }
 
-    private Future<Void> send(WebSocket webSocket, JsonObject message) {
+    private Uni<Void> send(WebSocket webSocket, JsonObject message) {
         String string = message.toString();
         if (log.isTraceEnabled()) {
             log.trace(">>> " + string);
         }
-        return webSocket.writeTextMessage(string);
+        return Uni.createFrom().completionStage(webSocket.writeTextMessage(string).toCompletionStage());
     }
 
     private JsonObject createConnectionInitMessage() {

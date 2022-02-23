@@ -109,42 +109,78 @@ class VertxTypesafeGraphQLClientProxy {
 
         if (method.getReturnType().isUni()) {
             if (executeSingleOperationsOverWebsocket) {
-                return executeSingleOperationOverWebsocket(method, request);
+                return executeSingleResultOperationOverWebsocket(method, request);
             } else {
-                return Uni.createFrom()
-                        .completionStage(postAsync(request.toString(), headers))
-                        .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+                return executeSingleResultOperationOverHttpAsync(method, request, headers);
             }
         } else if (method.getReturnType().isMulti()) {
-            Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
-                webSocketHandler().subscribe().with(handler -> handler.executeMulti(request, rawEmitter));
-            });
-            return rawMulti
-                    .onItem().transform(data -> {
-                        Object object = new ResultBuilder(method, data).read();
-                        if (object != null) {
-                            return object;
-                        } else {
-                            throw new InvalidResponseException(
-                                    "Couldn't find neither data nor errors in the response: " + data);
-                        }
-                    });
+            return executeSubscriptionOverWebsocket(method, request);
         } else {
             if (executeSingleOperationsOverWebsocket) {
-                return executeSingleOperationOverWebsocket(method, request).await().indefinitely();
+                return executeSingleResultOperationOverWebsocket(method, request).await().indefinitely();
             } else {
-                String response = postSync(request.toString(), headers);
-                log.debugf("response graphql: %s", response);
-                return new ResultBuilder(method, response).read();
+                return executeSingleResultOperationOverHttpSync(method, request, headers);
             }
         }
     }
 
-    private Uni<Object> executeSingleOperationOverWebsocket(MethodInvocation method, JsonObject request) {
+    private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
+        String response = postSync(request.toString(), headers);
+        log.debugf("response graphql: %s", response);
+        return new ResultBuilder(method, response).read();
+    }
+
+    private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
+            MultiMap headers) {
+        return Uni.createFrom()
+                .completionStage(postAsync(request.toString(), headers))
+                .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+    }
+
+    private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
         Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
-            webSocketHandler().subscribe().with((handler) -> handler.executeUni(request, rawEmitter));
+            webSocketHandler().subscribe().with((handler) -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeUni(request, rawEmitter));
+            });
         });
         return rawUni
+                .onCancellation().invoke(() -> {
+                    String id = operationId.get();
+                    log.trace("Received onCancellation on operation ID " + id);
+                    if (id != null) {
+                        handlerRef.get().cancelMulti(id);
+                    } else {
+                        log.trace("Received onCancellation on an operation that does not have an ID yet");
+                    }
+                })
+                .onItem().transform(data -> {
+                    Object object = new ResultBuilder(method, data).read();
+                    if (object != null) {
+                        return object;
+                    } else {
+                        throw new InvalidResponseException(
+                                "Couldn't find neither data nor errors in the response: " + data);
+                    }
+                });
+
+    }
+
+    private Multi<Object> executeSubscriptionOverWebsocket(MethodInvocation method, JsonObject request) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
+        Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeMulti(request, rawEmitter));
+            });
+        });
+        return rawMulti
+                .onCancellation().invoke(() -> {
+                    handlerRef.get().cancelMulti(operationId.get());
+                })
                 .onItem().transform(data -> {
                     Object object = new ResultBuilder(method, data).read();
                     if (object != null) {
