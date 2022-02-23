@@ -211,16 +211,6 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
         }
     }
 
-    private void cancelUni(String id) {
-        send(webSocket, createCompleteMessage(id));
-        uniOperations.remove(id);
-    }
-
-    private void cancelMulti(String id) {
-        send(webSocket, createCompleteMessage(id));
-        multiOperations.remove(id);
-    }
-
     private void failAllActiveOperationsWith(Throwable throwable) {
         log.debug("Failing all active operations");
         for (String s : uniOperations.keySet()) {
@@ -238,29 +228,37 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     }
 
     @Override
-    public void executeUni(JsonObject request, UniEmitter<? super String> emitter) {
+    public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
         String id = UUID.randomUUID().toString();
         ensureInitialized().subscribe().with(ready -> {
             uniOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
-        emitter.onTermination(() -> {
-            cancelUni(id);
-        });
+        return id;
     }
 
     @Override
-    public void executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
+    public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
         String id = UUID.randomUUID().toString();
         ensureInitialized().subscribe().with(ready -> {
             multiOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
-        emitter.onTermination(() -> {
-            cancelMulti(id);
-        });
+        return id;
+    }
+
+    @Override
+    public void cancelUni(String id) {
+        uniOperations.remove(id);
+        send(webSocket, createCompleteMessage(id));
+    }
+
+    @Override
+    public void cancelMulti(String id) {
+        multiOperations.remove(id);
+        send(webSocket, createCompleteMessage(id));
     }
 
     @Override
@@ -304,12 +302,12 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                 .build();
     }
 
-    private void send(WebSocket webSocket, JsonObject message) {
+    private Uni<Void> send(WebSocket webSocket, JsonObject message) {
         String string = message.toString();
         if (log.isTraceEnabled()) {
             log.trace(">>> " + string);
         }
-        webSocket.writeTextMessage(string);
+        return Uni.createFrom().completionStage(webSocket.writeTextMessage(string).toCompletionStage());
     }
 
 }

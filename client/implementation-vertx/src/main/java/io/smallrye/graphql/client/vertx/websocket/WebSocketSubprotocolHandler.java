@@ -9,13 +9,10 @@ import io.smallrye.mutiny.subscription.UniEmitter;
 /**
  * An implementation of this interface is responsible for handling a particular subscription websocket protocol.
  * It is responsible for registering a handler to listen for messages on the websocket, and then use the provided
- * `MultiEmitter` to emit individual responses with raw GraphQL data.
- *
- * The implementation is responsible for closing the websocket if it encounters an error or the subscription ends,
- * but it must also always be ready for the case that the websocket gets closed from somewhere else.
- * If the websocket is closed, the data emitter must be closed, and vice versa.
- *
+ * `MultiEmitter` and `UniEmitter` objects to emit individual responses (or failures).
  */
+// TODO: formalize if/when the handler should close the websocket on errors. In some cases, a disconnect
+// could be mitigated by reestablishing the websocket connection
 public interface WebSocketSubprotocolHandler {
 
     /**
@@ -26,9 +23,42 @@ public interface WebSocketSubprotocolHandler {
      */
     Uni<Void> ensureInitialized();
 
-    void executeUni(JsonObject request, UniEmitter<? super String> emitter);
+    /**
+     * Requests an execution of a single-result operation over the websocket.
+     * 
+     * @param request Request in full JSON format describing the operation to be executed.
+     * @param emitter Emitter that should receive the completion event (or an error) when the operation finishes.
+     * @return The generated internal ID of this operation.
+     */
+    String executeUni(JsonObject request, UniEmitter<? super String> emitter);
 
-    void executeMulti(JsonObject request, MultiEmitter<? super String> emitter);
+    /**
+     * Requests an execution of a subscription operation over the websocket.
+     * 
+     * @param request Request in full JSON format describing the operation to be executed.
+     * @param emitter Emitter that should receive the completion events (or an error) from the subscription.
+     * @return The generated internal ID of this operation.
+     */
+    String executeMulti(JsonObject request, MultiEmitter<? super String> emitter);
+
+    /**
+     * Cancels an active single-result operation with the given ID. This does not do anything with the Emitter for this
+     * operation,
+     * it only sends a cancellation message to the server (if applicable depending on the protocol), and marks this
+     * operation as finished.
+     * 
+     * @param operationId ID of the operation (returned from calling `executeUni`)
+     */
+    void cancelUni(String operationId);
+
+    /**
+     * Cancels an active subscription with the given ID. This does not do anything with the Emitter for this operation,
+     * it only sends a cancellation message to the server (if applicable depending on the protocol), and marks this
+     * operation as finished.
+     * 
+     * @param operationId ID of the operation (returned from calling `executeMulti`)
+     */
+    void cancelMulti(String operationId);
 
     /**
      * Called when the websocket should be closed (for example, when the GraphQL client is being closed).
