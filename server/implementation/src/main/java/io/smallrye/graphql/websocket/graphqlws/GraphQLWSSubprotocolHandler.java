@@ -21,7 +21,7 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Websocket subprotocol handler that implements the `graphql-ws` subprotocol.
@@ -50,103 +50,108 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
 
     @Override
     public void onMessage(String text) {
-        Infrastructure.getDefaultExecutor().execute(() -> {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("<<< " + text);
-            }
+        // this is ugly, but needed to run the handling asynchronously (we must not block `onMessage`) with the
+        // necessary context propagation... perhaps there's a nicer way?
+        Uni.createFrom().item(() -> handle(text)).subscribe().asCompletionStage();
+    }
 
-            JsonObject message = null;
-            MessageType messageType = null;
-            try {
-                message = parseIncomingMessage(text);
-                messageType = getMessageType(message);
-            } catch (JsonParsingException ex) {
-                session.close((short) 4400, ex.getMessage());
-                return;
-            } catch (NullPointerException | IllegalArgumentException ex) {
-                session.close((short) 4400, "Unknown message type");
-                return;
-            }
-            try {
-                switch (messageType) {
-                    case GQL_CONNECTION_INIT:
-                        if (connectionInitialized.getAndSet(true)) {
-                            session.close((short) 4429, "Too many initialization requests");
+    Void handle(String text) {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("<<< " + text);
+        }
+
+        JsonObject message = null;
+        MessageType messageType = null;
+        try {
+            message = parseIncomingMessage(text);
+            messageType = getMessageType(message);
+        } catch (JsonParsingException ex) {
+            session.close((short) 4400, ex.getMessage());
+            return null;
+        } catch (NullPointerException | IllegalArgumentException ex) {
+            session.close((short) 4400, "Unknown message type");
+            return null;
+        }
+        try {
+            switch (messageType) {
+                case GQL_CONNECTION_INIT:
+                    if (connectionInitialized.getAndSet(true)) {
+                        session.close((short) 4429, "Too many initialization requests");
+                    } else {
+                        session.sendMessage(CONNECTION_ACK_MESSAGE);
+                    }
+                    break;
+                case GQL_START:
+                    if (!connectionInitialized.get()) {
+                        session.close((short) 4429, "Connection not initialized");
+                        return null;
+                    }
+                    String operationId = message.getString("id");
+                    if (activeOperations.putIfAbsent(operationId, SINGLE_RESULT_MARKER) != null) {
+                        session.close((short) 4409, "Subscriber for " + operationId + " already exists");
+                        return null;
+                    }
+                    JsonObject payload = message.getJsonObject("payload");
+                    ExecutionResponse executionResponse = executionService.execute(payload);
+                    ExecutionResult executionResult = executionResponse.getExecutionResult();
+                    if (executionResult != null) {
+                        if (!executionResult.isDataPresent()) {
+                            // this means a validation error
+                            session.sendMessage(createErrorMessage(operationId,
+                                    // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
+                                    executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors").get(0)
+                                            .asJsonObject()).toString());
                         } else {
-                            session.sendMessage(CONNECTION_ACK_MESSAGE);
-                        }
-                        break;
-                    case GQL_START:
-                        if (!connectionInitialized.get()) {
-                            session.close((short) 4429, "Connection not initialized");
-                            return;
-                        }
-                        String operationId = message.getString("id");
-                        if (activeOperations.putIfAbsent(operationId, SINGLE_RESULT_MARKER) != null) {
-                            session.close((short) 4409, "Subscriber for " + operationId + " already exists");
-                            return;
-                        }
-                        JsonObject payload = message.getJsonObject("payload");
-                        ExecutionResponse executionResponse = executionService.execute(payload);
-                        ExecutionResult executionResult = executionResponse.getExecutionResult();
-                        if (executionResult != null) {
-                            if (!executionResult.isDataPresent()) {
-                                // this means a validation error
-                                session.sendMessage(createErrorMessage(operationId,
-                                        // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
-                                        executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors").get(0)
-                                                .asJsonObject()).toString());
-                            } else {
-                                Object data = executionResponse.getExecutionResult().getData();
-                                if (data instanceof Map) {
-                                    // this means the operation is a query or mutation
-                                    // only send the response if the operation hasn't been cancelled
-                                    if (activeOperations.remove(operationId) != null) {
-                                        session.sendMessage(
-                                                createDataMessage(operationId,
-                                                        executionResponse.getExecutionResultAsJsonObject())
-                                                                .toString());
-                                        session.sendMessage(createCompleteMessage(operationId).toString());
-                                    }
-                                } else if (data instanceof Publisher) {
-                                    // this means the operation is a subscription
-                                    SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
-                                    Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
-                                            .getData();
-                                    if (stream != null) {
-                                        activeOperations.put(operationId, subscriber);
-                                        stream.subscribe(subscriber);
-                                    }
-                                } else {
-                                    LOG.warn("Unknown execution result of type "
-                                            + executionResponse.getExecutionResult().getData().getClass());
+                            Object data = executionResponse.getExecutionResult().getData();
+                            if (data instanceof Map) {
+                                // this means the operation is a query or mutation
+                                // only send the response if the operation hasn't been cancelled
+                                if (activeOperations.remove(operationId) != null) {
+                                    session.sendMessage(
+                                            createDataMessage(operationId,
+                                                    executionResponse.getExecutionResultAsJsonObject())
+                                                            .toString());
+                                    session.sendMessage(createCompleteMessage(operationId).toString());
                                 }
+                            } else if (data instanceof Publisher) {
+                                // this means the operation is a subscription
+                                SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
+                                Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
+                                        .getData();
+                                if (stream != null) {
+                                    activeOperations.put(operationId, subscriber);
+                                    stream.subscribe(subscriber);
+                                }
+                            } else {
+                                LOG.warn("Unknown execution result of type "
+                                        + executionResponse.getExecutionResult().getData().getClass());
                             }
                         }
-                        break;
-                    case GQL_STOP:
-                        String opId = message.getString("id");
-                        Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
-                        if (subscriber != null) {
-                            if (subscriber instanceof SubscriptionSubscriber) {
-                                ((SubscriptionSubscriber) subscriber).cancel();
-                            }
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("Completed operation id " + opId + " per client's request");
-                            }
-                        } else {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug(
-                                        "Client requested to complete operation id " + opId
-                                                + ", but no such operation is active");
-                            }
+                    }
+                    break;
+                case GQL_STOP:
+                    String opId = message.getString("id");
+                    Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
+                    if (subscriber != null) {
+                        if (subscriber instanceof SubscriptionSubscriber) {
+                            ((SubscriptionSubscriber) subscriber).cancel();
                         }
-                        break;
-                }
-            } catch (IOException e) {
-                LOG.warn(e);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Completed operation id " + opId + " per client's request");
+                        }
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(
+                                    "Client requested to complete operation id " + opId
+                                            + ", but no such operation is active");
+                        }
+                    }
+                    break;
             }
-        });
+        } catch (IOException e) {
+            LOG.warn(e);
+        }
+        return null;
     }
 
     @Override
