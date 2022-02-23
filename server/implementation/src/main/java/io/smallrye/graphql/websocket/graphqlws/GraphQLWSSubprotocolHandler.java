@@ -11,9 +11,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.stream.JsonParsingException;
 
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
-import org.graalvm.compiler.hotspot.nodes.aot.PluginFactory_ResolveMethodAndLoadCountersStubCall;
 import org.jboss.logging.Logger;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -24,6 +21,7 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 /**
  * Websocket subprotocol handler that implements the `graphql-ws` subprotocol.
@@ -40,7 +38,7 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
 
     private final String CONNECTION_ACK_MESSAGE;
 
-    private final Map<String, SubscriptionSubscriber> activeOperations;
+    private final Map<String, Subscriber<ExecutionResult>> activeOperations;
 
     public GraphQLWSSubprotocolHandler(GraphQLWebSocketSession session, ExecutionService executionService) {
         this.session = session;
@@ -84,7 +82,7 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
                             return;
                         }
                         String operationId = message.getString("id");
-                        if (activeOperations.containsKey(operationId)) {
+                        if (activeOperations.putIfAbsent(operationId, SINGLE_RESULT_MARKER) != null) {
                             session.close((short) 4409, "Subscriber for " + operationId + " already exists");
                             return;
                         }
@@ -95,46 +93,52 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
                             if (!executionResult.isDataPresent()) {
                                 // this means a validation error
                                 session.sendMessage(createErrorMessage(operationId,
-                                    // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
-                                    executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors").get(0)
-                                        .asJsonObject()).toString());
+                                        // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
+                                        executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors").get(0)
+                                                .asJsonObject()).toString());
                             } else {
                                 Object data = executionResponse.getExecutionResult().getData();
                                 if (data instanceof Map) {
                                     // this means the operation is a query or mutation
-                                    session.sendMessage(
-                                        createDataMessage(operationId, executionResponse.getExecutionResultAsJsonObject())
-                                            .toString());
-                                    session.sendMessage(createCompleteMessage(operationId).toString());
+                                    // only send the response if the operation hasn't been cancelled
+                                    if (activeOperations.remove(operationId) != null) {
+                                        session.sendMessage(
+                                                createDataMessage(operationId,
+                                                        executionResponse.getExecutionResultAsJsonObject())
+                                                                .toString());
+                                        session.sendMessage(createCompleteMessage(operationId).toString());
+                                    }
                                 } else if (data instanceof Publisher) {
                                     // this means the operation is a subscription
                                     SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
                                     Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
-                                        .getData();
+                                            .getData();
                                     if (stream != null) {
                                         activeOperations.put(operationId, subscriber);
                                         stream.subscribe(subscriber);
                                     }
                                 } else {
                                     LOG.warn("Unknown execution result of type "
-                                        + executionResponse.getExecutionResult().getData().getClass());
+                                            + executionResponse.getExecutionResult().getData().getClass());
                                 }
                             }
                         }
                         break;
                     case GQL_STOP:
                         String opId = message.getString("id");
-                        SubscriptionSubscriber subscriber = activeOperations.get(opId);
+                        Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
                         if (subscriber != null) {
-                            subscriber.cancel();
-                            activeOperations.remove(opId);
+                            if (subscriber instanceof SubscriptionSubscriber) {
+                                ((SubscriptionSubscriber) subscriber).cancel();
+                            }
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("Completed operation id " + opId + " per client's request");
                             }
                         } else {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug(
-                                    "Client requested to complete operation id " + opId + ", but no such operation is active");
+                                        "Client requested to complete operation id " + opId
+                                                + ", but no such operation is active");
                             }
                         }
                         break;
@@ -259,5 +263,24 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
             subscription.get().cancel();
         }
     }
+
+    // dummy value to put into the `activeOperations` map for single-result operations
+    private static final Subscriber<ExecutionResult> SINGLE_RESULT_MARKER = new Subscriber<ExecutionResult>() {
+        @Override
+        public void onSubscribe(Subscription s) {
+        }
+
+        @Override
+        public void onNext(ExecutionResult executionResult) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+
+        @Override
+        public void onComplete() {
+        }
+    };
 
 }
