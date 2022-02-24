@@ -96,11 +96,14 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
         Multi<Dummy> items = client.countToFive(true);
         CountDownLatch end = new CountDownLatch(1);
         items.subscribe().with(item -> {
-        }, () -> {
+            System.out.println("onItem callback received");
+        }, failure -> {
             end.countDown();
+        }, () -> {
+            System.out.println("onComplete callback received");
         });
         boolean ended = end.await(10, TimeUnit.SECONDS);
-        assertTrue("The client-side multi should receive onComplete after the subscription fails due" +
+        assertTrue("The client-side multi should receive onFailure after the subscription fails due" +
                 " to an exception in server-side processing", ended);
     }
 

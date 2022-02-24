@@ -35,13 +35,15 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
 
     private String configKey = null;
     private URI endpoint;
+    private String websocketUrl;
+    private Boolean executeSingleOperationsOverWebsocket;
     private Map<String, String> headers;
     private List<WebsocketSubprotocol> subprotocols;
     private Vertx vertx;
     private HttpClientOptions options;
     private WebClient webClient;
     private HttpClient httpClient;
-    private Integer subscriptionInitializationTimeout;
+    private Integer websocketInitializationTimeout;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -76,6 +78,18 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
+    public TypesafeGraphQLClientBuilder websocketUrl(String url) {
+        this.websocketUrl = url;
+        return this;
+    }
+
+    @Override
+    public TypesafeGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value) {
+        this.executeSingleOperationsOverWebsocket = value;
+        return this;
+    }
+
+    @Override
     public VertxTypesafeGraphQLClientBuilder header(String name, String value) {
         if (this.headers == null) {
             this.headers = new LinkedHashMap<>();
@@ -90,8 +104,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
-    public VertxTypesafeGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
-        this.subscriptionInitializationTimeout = timeoutInMilliseconds;
+    public VertxTypesafeGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds) {
+        this.websocketInitializationTimeout = timeoutInMilliseconds;
         return this;
     }
 
@@ -114,10 +128,17 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(headers, endpoint, httpClient,
-                webClient, subprotocols, subscriptionInitializationTimeout);
+        if (websocketUrl == null) {
+            websocketUrl = endpoint.toString().replaceFirst("http", "ws");
+        }
+        if (executeSingleOperationsOverWebsocket == null) {
+            executeSingleOperationsOverWebsocket = false;
+        }
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, endpoint,
+                websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
+                websocketInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> invoke(apiClass, graphQlClient, method, args)));
+                (proxy, method, args) -> invoke(graphQlClient, method, args)));
     }
 
     private void applyConfigFor(Class<?> apiClass) {
@@ -162,14 +183,14 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return vertx;
     }
 
-    private Object invoke(Class<?> apiClass, VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
+    private Object invoke(VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
             Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             graphQlClient.close();
             return null; // void
         }
-        return graphQlClient.invoke(apiClass, methodInvocation);
+        return graphQlClient.invoke(methodInvocation);
     }
 
     private ClassLoader getClassLoader(Class<?> apiClass) {
@@ -186,11 +207,17 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (this.endpoint == null && configuration.getUrl() != null) {
             this.endpoint = URI.create(configuration.getUrl());
         }
+        if (this.websocketUrl == null && configuration.getWebsocketUrl() != null) {
+            this.websocketUrl = configuration.getWebsocketUrl();
+        }
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
         }
-        if (this.subscriptionInitializationTimeout == null && configuration.getSubscriptionInitializationTimeout() != null) {
-            this.subscriptionInitializationTimeout = configuration.getSubscriptionInitializationTimeout();
+        if (this.websocketInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
+            this.websocketInitializationTimeout = configuration.getWebsocketInitializationTimeout();
+        }
+        if (executeSingleOperationsOverWebsocket == null && configuration.getExecuteSingleOperationsOverWebsocket() != null) {
+            this.executeSingleOperationsOverWebsocket = configuration.getExecuteSingleOperationsOverWebsocket();
         }
         if (configuration.getWebsocketSubprotocols() != null) {
             configuration.getWebsocketSubprotocols().forEach(protocol -> {

@@ -3,11 +3,14 @@ package io.smallrye.graphql.client.vertx.websocket.graphqltransportws;
 import java.io.StringReader;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
@@ -24,6 +27,7 @@ import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.Cancellable;
 import io.smallrye.mutiny.subscription.MultiEmitter;
+import io.smallrye.mutiny.subscription.UniEmitter;
 import io.vertx.core.http.WebSocket;
 
 /**
@@ -34,69 +38,85 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
 
     private static final Logger log = Logger.getLogger(GraphQLTransportWSSubprotocolHandler.class);
 
-    // right now we only use one subscription per connection, so we always name it "1"
-    private static final String SUBSCRIPTION_ID = "1";
+    private final Integer connectionInitializationTimeout;
 
-    private final AtomicReference<WebSocket> webSocketReference = new AtomicReference<>();
-    private final AtomicBoolean subscriptionIsActive = new AtomicBoolean(false);
-
-    private final Integer subscriptionInitializationTimeout;
-
-    // messages that don't change over time can be initialized once at startup
     private JsonObject connectionInitMessage;
     private JsonObject pongMessage;
 
-    public GraphQLTransportWSSubprotocolHandler() {
-        this.subscriptionInitializationTimeout = null;
-    }
+    private final WebSocket webSocket;
+    private final CompletableFuture<Void> initialization;
 
-    public GraphQLTransportWSSubprotocolHandler(Integer subscriptionInitializationTimeout) {
-        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+    private final Map<String, UniEmitter<? super String>> uniOperations;
+    private final Map<String, MultiEmitter<? super String>> multiOperations;
+
+    private final Runnable onClose;
+
+    public GraphQLTransportWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout,
+            Runnable onClose) {
+        this.webSocket = webSocket;
+        this.connectionInitializationTimeout = subscriptionInitializationTimeout;
+        this.uniOperations = new ConcurrentHashMap<>();
+        this.multiOperations = new ConcurrentHashMap<>();
+        this.initialization = initialize().subscribeAsCompletionStage();
+        this.onClose = onClose;
     }
 
     @Override
-    public void handleWebSocketStart(JsonObject request, MultiEmitter<? super String> dataEmitter, WebSocket webSocket) {
-        log.trace("Initializing subscription over graphql-transport-ws protocol with request: " + request.toString());
-        this.webSocketReference.set(webSocket);
+    public Uni<Void> ensureInitialized() {
+        return Uni.createFrom().completionStage(initialization);
+    }
 
-        connectionInitMessage = Json.createObjectBuilder().add("type", "connection_init").build();
-        pongMessage = Json.createObjectBuilder().add("type", "pong")
-                .add("payload", Json.createObjectBuilder().add("message", "keepalive")).build();
-
-        webSocket.closeHandler((v) -> {
-            if (webSocket.closeStatusCode() != null) {
-                if (webSocket.closeStatusCode() == 1000) {
-                    log.debug("Subscription finished successfully, the server closed the connection with status code 1000");
-                    dataEmitter.complete();
-                } else {
-                    dataEmitter.fail(
-                            new InvalidResponseException("Server closed the websocket connection with code: "
-                                    + webSocket.closeStatusCode() + " and reason: " + webSocket.closeReason()));
-                }
-            } else {
-                dataEmitter.complete();
+    private Uni<Void> initialize() {
+        return Uni.createFrom().emitter(initializationEmitter -> {
+            if (log.isTraceEnabled()) {
+                log.trace("Initializing websocket with graphql-transport-ws protocol");
             }
-        });
-        webSocket.exceptionHandler(dataEmitter::fail);
-        dataEmitter.onTermination(webSocket::close);
+            connectionInitMessage = Json.createObjectBuilder().add("type", "connection_init").build();
+            pongMessage = Json.createObjectBuilder().add("type", "pong")
+                    .add("payload", Json.createObjectBuilder().add("message", "keepalive")).build();
 
-        send(webSocket, connectionInitMessage);
+            webSocket.closeHandler((v) -> {
+                onClose.run();
+                if (webSocket.closeStatusCode() != null) {
+                    if (webSocket.closeStatusCode() == 1000) {
+                        log.debug("WebSocket closed with status code 1000");
+                        // even if the status code is OK, any unfinished single-result operation
+                        // should be marked as failed
+                        uniOperations.forEach((id, emitter) -> emitter.fail(
+                                new InvalidResponseException("Connection closed before data was received")));
+                        multiOperations.forEach((id, emitter) -> emitter.complete());
+                    } else {
+                        InvalidResponseException exception = new InvalidResponseException(
+                                "Server closed the websocket connection with code: "
+                                        + webSocket.closeStatusCode() + " and reason: " + webSocket.closeReason());
+                        uniOperations.forEach((id, emitter) -> emitter.fail(exception));
+                        multiOperations.forEach((id, emitter) -> emitter.fail(exception));
+                    }
+                } else {
+                    InvalidResponseException exception = new InvalidResponseException("Connection closed");
+                    uniOperations.forEach((id, emitter) -> emitter.fail(exception));
+                    multiOperations.forEach((id, emitter) -> emitter.fail(exception));
+                }
+            });
+            webSocket.exceptionHandler(this::failAllActiveOperationsWith);
 
-        // set up a timeout for subscription initialization
-        Cancellable timeoutWaitingForConnectionAckMessage = null;
-        if (subscriptionInitializationTimeout != null) {
-            timeoutWaitingForConnectionAckMessage = Uni.createFrom().item(1).onItem().delayIt()
-                    .by(Duration.ofMillis(subscriptionInitializationTimeout))
-                    .subscribe().with(timeout -> {
-                        dataEmitter.fail(new InvalidResponseException("Server did not send a connection_ack message"));
-                        webSocket.close((short) 1002, "Timeout waiting for a connection_ack message");
-                    });
-        }
-        // make an effectively final copy of this value to use it in a lambda expression
-        Cancellable finalTimeoutWaitingForConnectionAckMessage = timeoutWaitingForConnectionAckMessage;
+            send(webSocket, connectionInitMessage);
 
-        webSocket.handler(text -> {
-            if (!dataEmitter.isCancelled()) {
+            // set up a timeout for subscription initialization
+            Cancellable timeoutWaitingForConnectionAckMessage = null;
+            if (connectionInitializationTimeout != null) {
+                timeoutWaitingForConnectionAckMessage = Uni.createFrom().item(1).onItem().delayIt()
+                        .by(Duration.ofMillis(connectionInitializationTimeout))
+                        .subscribe().with(timeout -> {
+                            initializationEmitter
+                                    .fail(new InvalidResponseException("Server did not send a connection_ack message"));
+                            webSocket.close((short) 1002, "Timeout waiting for a connection_ack message");
+                        });
+            }
+            // make an effectively final copy of this value to use it in a lambda expression
+            Cancellable finalTimeoutWaitingForConnectionAckMessage = timeoutWaitingForConnectionAckMessage;
+
+            webSocket.handler(text -> {
                 if (log.isTraceEnabled()) {
                     log.trace("<<< " + text);
                 }
@@ -108,31 +128,20 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                             send(webSocket, pongMessage);
                             break;
                         case CONNECTION_ACK:
-                            if (!subscriptionIsActive.get()) {
-                                if (finalTimeoutWaitingForConnectionAckMessage != null) {
-                                    finalTimeoutWaitingForConnectionAckMessage.cancel();
-                                }
-                                subscriptionIsActive.set(true);
-                                send(webSocket, createSubscribeMessage(request, SUBSCRIPTION_ID));
+                            // TODO: somehow protect against this being invoked multiple times?
+                            if (finalTimeoutWaitingForConnectionAckMessage != null) {
+                                finalTimeoutWaitingForConnectionAckMessage.cancel();
                             }
+                            initializationEmitter.complete(null);
                             break;
                         case NEXT:
-                            String id = message.getString("id");
-                            if (!id.equals(SUBSCRIPTION_ID)) {
-                                dataEmitter.fail(
-                                        new InvalidResponseException(
-                                                "Received event for an unexpected subscription ID: " + id));
-                            }
-                            JsonObject data = message.getJsonObject("payload");
-                            dataEmitter.emit(data.toString());
+                            handleData(message.getString("id"), message.getJsonObject("payload"));
                             break;
                         case ERROR:
-                            List<GraphQLError> errors = message.getJsonArray("payload")
-                                    .stream().map(ResponseReader::readError).collect(Collectors.toList());
-                            dataEmitter.fail(new GraphQLClientException("Received an error", errors));
+                            handleOperationError(message.getString("id"), message.getJsonArray("payload"));
                             break;
                         case COMPLETE:
-                            dataEmitter.complete();
+                            handleComplete(message.getString("id"));
                             break;
                         case CONNECTION_INIT:
                         case PONG:
@@ -141,22 +150,120 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                     }
                 } catch (JsonParsingException | IllegalArgumentException e) {
                     log.error("Unexpected message from server: " + text);
-                    dataEmitter.fail(new InvalidResponseException("Unexpected message from server", e));
+                    // should we fail the operations here?
                 }
-            } else {
-                log.warn(
-                        "Received an additional item for a subscription that has already ended with a failure, dropping it.");
-            }
+            });
         });
     }
 
-    @Override
-    public void handleCancel() {
-        WebSocket webSocket = this.webSocketReference.get();
-        if (webSocket != null && !webSocket.isClosed()) {
-            if (subscriptionIsActive.getAndSet(false)) {
-                send(webSocket, createCompleteMessage(SUBSCRIPTION_ID));
+    private void handleData(String operationId, JsonObject data) {
+        // If this is a uni operation, we remove it right away from the active operation map,
+        // even though we still should receive a 'complete' message later - we don't wait for it.
+        // This is to prevent a potential memory leak in case that the server doesn't actually send it.
+        UniEmitter<? super String> uniEmitter = uniOperations.remove(operationId);
+        if (uniEmitter != null) {
+            if (log.isTraceEnabled()) {
+                log.trace("Received data for single-result operation " + operationId);
             }
+            uniEmitter.complete(data.toString());
+        } else {
+            MultiEmitter<? super String> multiEmitter = multiOperations.get(operationId);
+            if (multiEmitter != null) {
+                if (multiEmitter.isCancelled()) {
+                    log.warn("Received data for already cancelled operation " + operationId);
+                } else {
+                    multiEmitter.emit(data.toString());
+                }
+            } else {
+                log.warn("Received event for an unknown subscription ID: " + operationId);
+            }
+        }
+    }
+
+    private void handleOperationError(String operationId, JsonArray errors) {
+        List<GraphQLError> parsedErrors = errors.stream().map(ResponseReader::readError).collect(Collectors.toList());
+        GraphQLClientException exception = new GraphQLClientException("Received an error", parsedErrors);
+        UniEmitter<? super String> emitter = uniOperations.remove(operationId);
+        if (emitter != null) {
+            emitter.fail(exception);
+        } else {
+            MultiEmitter<? super String> multiEmitter = multiOperations.remove(operationId);
+            if (multiEmitter != null) {
+                multiEmitter.fail(exception);
+            }
+        }
+    }
+
+    private void handleComplete(String operationId) {
+        UniEmitter<? super String> emitter = uniOperations.remove(operationId);
+        if (emitter != null) {
+            // For a uni operation, we should have received a 'next' message before the 'complete' message.
+            // If that happened, the emitter was already completed and operation removed from the map.
+            // If that didn't happen, then this is an issue with the server, let's fail the operation then.
+            emitter.fail(new InvalidResponseException("Protocol error: received a 'complete' message for" +
+                    " this operation before the actual data"));
+        } else {
+            MultiEmitter<? super String> multiEmitter = multiOperations.remove(operationId);
+            if (multiEmitter != null) {
+                log.debug("Completed operation " + operationId);
+                multiEmitter.complete();
+            }
+        }
+    }
+
+    private void failAllActiveOperationsWith(Throwable throwable) {
+        log.debug("Failing all active operations");
+        for (String s : uniOperations.keySet()) {
+            UniEmitter<? super String> emitter = uniOperations.remove(s);
+            if (emitter != null) {
+                emitter.fail(throwable);
+            }
+        }
+        for (String s : multiOperations.keySet()) {
+            MultiEmitter<? super String> emitter = multiOperations.remove(s);
+            if (emitter != null) {
+                emitter.fail(throwable);
+            }
+        }
+    }
+
+    @Override
+    public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
+        String id = UUID.randomUUID().toString();
+        ensureInitialized().subscribe().with(ready -> {
+            uniOperations.put(id, emitter);
+            JsonObject subscribe = createSubscribeMessage(request, id);
+            send(webSocket, subscribe);
+        }, emitter::fail);
+        return id;
+    }
+
+    @Override
+    public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
+        String id = UUID.randomUUID().toString();
+        ensureInitialized().subscribe().with(ready -> {
+            multiOperations.put(id, emitter);
+            JsonObject subscribe = createSubscribeMessage(request, id);
+            send(webSocket, subscribe);
+        }, emitter::fail);
+        return id;
+    }
+
+    @Override
+    public void cancelUni(String id) {
+        uniOperations.remove(id);
+        send(webSocket, createCompleteMessage(id));
+    }
+
+    @Override
+    public void cancelMulti(String id) {
+        multiOperations.remove(id);
+        send(webSocket, createCompleteMessage(id));
+    }
+
+    @Override
+    public void close() {
+        if (webSocket != null && !webSocket.isClosed()) {
             webSocket.close((short) 1000);
         }
     }
@@ -195,12 +302,12 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                 .build();
     }
 
-    private void send(WebSocket webSocket, JsonObject message) {
+    private Uni<Void> send(WebSocket webSocket, JsonObject message) {
         String string = message.toString();
         if (log.isTraceEnabled()) {
             log.trace(">>> " + string);
         }
-        webSocket.writeTextMessage(string);
+        return Uni.createFrom().completionStage(webSocket.writeTextMessage(string).toCompletionStage());
     }
 
 }

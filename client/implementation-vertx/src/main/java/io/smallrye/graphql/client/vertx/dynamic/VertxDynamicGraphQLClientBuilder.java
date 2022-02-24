@@ -30,6 +30,8 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     private Vertx vertx;
     private String url;
+    private String websocketUrl;
+    private Boolean executeSingleOperationsOverWebsocket;
     private String configKey;
     private final MultiMap headersMap;
     private WebClientOptions options;
@@ -63,7 +65,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     }
 
     @Override
-    public DynamicGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds) {
+    public DynamicGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds) {
         this.subscriptionInitializationTimeout = timeoutInMilliseconds;
         return this;
     }
@@ -71,6 +73,18 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     @Override
     public VertxDynamicGraphQLClientBuilder url(String url) {
         this.url = url;
+        return this;
+    }
+
+    @Override
+    public DynamicGraphQLClientBuilder websocketUrl(String url) {
+        this.websocketUrl = url;
+        return this;
+    }
+
+    @Override
+    public DynamicGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value) {
+        this.executeSingleOperationsOverWebsocket = value;
         return this;
     }
 
@@ -113,7 +127,14 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, headersMap, options, subprotocols,
+        if (websocketUrl == null) {
+            websocketUrl = url.replaceFirst("http", "ws");
+        }
+        if (executeSingleOperationsOverWebsocket == null) {
+            executeSingleOperationsOverWebsocket = false;
+        }
+        return new VertxDynamicGraphQLClient(toUseVertx, url, websocketUrl, executeSingleOperationsOverWebsocket, headersMap,
+                options, subprotocols,
                 subscriptionInitializationTimeout);
     }
 
@@ -124,6 +145,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private void applyConfig(GraphQLClientConfiguration configuration) {
         if (this.url == null && configuration.getUrl() != null) {
             this.url = configuration.getUrl();
+        }
+        if (this.websocketUrl == null && configuration.getWebsocketUrl() != null) {
+            this.websocketUrl = configuration.getWebsocketUrl();
         }
         configuration.getHeaders().forEach((k, v) -> {
             if (!this.headersMap.contains(k)) {
@@ -140,8 +164,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 }
             });
         }
-        if (subscriptionInitializationTimeout == null && configuration.getSubscriptionInitializationTimeout() != null) {
-            this.subscriptionInitializationTimeout = configuration.getSubscriptionInitializationTimeout();
+        if (subscriptionInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
+            this.subscriptionInitializationTimeout = configuration.getWebsocketInitializationTimeout();
+        }
+        if (executeSingleOperationsOverWebsocket == null && configuration.getExecuteSingleOperationsOverWebsocket() != null) {
+            this.executeSingleOperationsOverWebsocket = configuration.getExecuteSingleOperationsOverWebsocket();
         }
 
         VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);

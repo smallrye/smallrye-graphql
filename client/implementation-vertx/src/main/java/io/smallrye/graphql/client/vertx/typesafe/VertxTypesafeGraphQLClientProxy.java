@@ -28,7 +28,7 @@ import javax.json.JsonValue;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.client.GraphQLClientException;
+import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.HeaderBuilder;
 import io.smallrye.graphql.client.impl.typesafe.QueryBuilder;
 import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
@@ -60,27 +60,45 @@ class VertxTypesafeGraphQLClientProxy {
 
     private final Map<String, String> additionalHeaders;
     private final URI endpoint;
+    private final String websocketUrl;
     private final HttpClient httpClient;
     private final WebClient webClient;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
+    private final Class<?> api;
+    private final boolean executeSingleOperationsOverWebsocket;
+
+    // Do NOT use this field directly, always retrieve by calling `webSocketHandler()`.
+    // When a websocket connection is required, then this is populated with a Uni
+    // holding the websocket subprotocol handler (the Uni will be completed
+    // when the websocket connection and the handler are ready to use).
+    // In case that the websocket connection is lost, this AtomicReference will be set to null,
+    // so when another operation requiring a websocket is invoked, the reference will be populated again
+    // and a new websocket connection attempted.
+    private final AtomicReference<Uni<WebSocketSubprotocolHandler>> webSocketHandler = new AtomicReference<>();
 
     VertxTypesafeGraphQLClientProxy(
+            Class<?> api,
             Map<String, String> additionalHeaders,
             URI endpoint,
+            String websocketUrl,
+            boolean executeSingleOperationsOverWebsocket,
             HttpClient httpClient,
             WebClient webClient,
             List<WebsocketSubprotocol> subprotocols,
             Integer subscriptionInitializationTimeout) {
+        this.api = api;
         this.additionalHeaders = additionalHeaders;
         this.endpoint = endpoint;
+        this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
+        this.websocketUrl = websocketUrl;
         this.httpClient = httpClient;
         this.webClient = webClient;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
     }
 
-    Object invoke(Class<?> api, MethodInvocation method) {
+    Object invoke(MethodInvocation method) {
         if (method.isDeclaredInObject()) {
             return method.invoke(this);
         }
@@ -90,58 +108,117 @@ class VertxTypesafeGraphQLClientProxy {
         JsonObject request = request(method);
 
         if (method.getReturnType().isUni()) {
-            return Uni.createFrom()
-                    .completionStage(postAsync(request.toString(), headers))
-                    .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+            if (executeSingleOperationsOverWebsocket) {
+                return executeSingleResultOperationOverWebsocket(method, request);
+            } else {
+                return executeSingleResultOperationOverHttpAsync(method, request, headers);
+            }
         } else if (method.getReturnType().isMulti()) {
-            String WSURL = endpoint.toString().replaceFirst("http", "ws");
-            List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-            AtomicReference<WebSocketSubprotocolHandler> handlerReference = new AtomicReference<>();
-            return Multi.createFrom()
-                    .emitter(emitter -> httpClient.webSocketAbs(WSURL, headers, WebsocketVersion.V13, subprotocolIds,
+            return executeSubscriptionOverWebsocket(method, request);
+        } else {
+            if (executeSingleOperationsOverWebsocket) {
+                return executeSingleResultOperationOverWebsocket(method, request).await().indefinitely();
+            } else {
+                return executeSingleResultOperationOverHttpSync(method, request, headers);
+            }
+        }
+    }
+
+    private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
+        String response = postSync(request.toString(), headers);
+        log.debugf("response graphql: %s", response);
+        return new ResultBuilder(method, response).read();
+    }
+
+    private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
+            MultiMap headers) {
+        return Uni.createFrom()
+                .completionStage(postAsync(request.toString(), headers))
+                .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+    }
+
+    private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
+        Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with((handler) -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeUni(request, rawEmitter));
+            });
+        });
+        return rawUni
+                .onCancellation().invoke(() -> {
+                    String id = operationId.get();
+                    log.trace("Received onCancellation on operation ID " + id);
+                    if (id != null) {
+                        handlerRef.get().cancelMulti(id);
+                    } else {
+                        log.trace("Received onCancellation on an operation that does not have an ID yet");
+                    }
+                })
+                .onItem().transform(data -> {
+                    Object object = new ResultBuilder(method, data).read();
+                    if (object != null) {
+                        return object;
+                    } else {
+                        throw new InvalidResponseException(
+                                "Couldn't find neither data nor errors in the response: " + data);
+                    }
+                });
+
+    }
+
+    private Multi<Object> executeSubscriptionOverWebsocket(MethodInvocation method, JsonObject request) {
+        AtomicReference<String> operationId = new AtomicReference<>();
+        AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
+        Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
+            webSocketHandler().subscribe().with(handler -> {
+                handlerRef.set(handler);
+                operationId.set(handler.executeMulti(request, rawEmitter));
+            });
+        });
+        return rawMulti
+                .onCancellation().invoke(() -> {
+                    handlerRef.get().cancelMulti(operationId.get());
+                })
+                .onItem().transform(data -> {
+                    Object object = new ResultBuilder(method, data).read();
+                    if (object != null) {
+                        return object;
+                    } else {
+                        throw new InvalidResponseException(
+                                "Couldn't find neither data nor errors in the response: " + data);
+                    }
+                });
+    }
+
+    private Uni<WebSocketSubprotocolHandler> webSocketHandler() {
+        return webSocketHandler.updateAndGet(currentValue -> {
+            if (currentValue == null) {
+                return Uni.createFrom().<WebSocketSubprotocolHandler> emitter(handlerEmitter -> {
+                    List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
+                    MultiMap headers = HeadersMultiMap.headers()
+                            .addAll(new HeaderBuilder(api, null, additionalHeaders).build());
+                    httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
                             result -> {
                                 if (result.succeeded()) {
                                     WebSocket webSocket = result.result();
                                     WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                            .createHandlerFor(webSocket.subProtocol(), subscriptionInitializationTimeout);
-                                    handlerReference.set(handler);
+                                            .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                    subscriptionInitializationTimeout, () -> {
+                                                        webSocketHandler.set(null);
+                                                    });
+                                    handlerEmitter.complete(handler);
                                     log.debug("Using websocket subprotocol handler: " + handler);
-                                    Multi<String> rawData = Multi.createFrom().emitter(rawEmitter -> {
-                                        handler.handleWebSocketStart(request, rawEmitter, webSocket);
-                                    });
-                                    rawData.subscribe().with(data -> {
-                                        try {
-                                            Object item = new ResultBuilder(method, data).read();
-                                            if (item != null) {
-                                                emitter.emit(item);
-                                            } else {
-                                                emitter.complete();
-                                            }
-                                        } catch (GraphQLClientException ex) {
-                                            if (!emitter.isCancelled()) {
-                                                emitter.fail(ex);
-                                            }
-                                        }
-                                    }, failure -> {
-                                        emitter.fail(failure);
-                                    }, () -> {
-                                        emitter.complete();
-                                    });
                                 } else {
-                                    emitter.fail(result.cause());
+                                    handlerEmitter.fail(result.cause());
                                 }
-                            }))
-                    .onTermination().invoke(() -> {
-                        WebSocketSubprotocolHandler handler = handlerReference.get();
-                        if (handler != null) {
-                            handler.handleCancel();
-                        }
-                    });
-        } else {
-            String response = postSync(request.toString(), headers);
-            log.debugf("response graphql: %s", response);
-            return new ResultBuilder(method, response).read();
-        }
+                            });
+                }).memoize().indefinitely();
+            } else {
+                return currentValue;
+            }
+        });
     }
 
     private JsonObject request(MethodInvocation method) {
@@ -244,8 +321,9 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private List<Object> array(Object value) {
-        if (value.getClass().getComponentType().isPrimitive())
+        if (value.getClass().getComponentType().isPrimitive()) {
             return primitiveArray(value);
+        }
         return Arrays.asList((Object[]) value);
     }
 
@@ -296,12 +374,12 @@ class VertxTypesafeGraphQLClientProxy {
         try {
             httpClient.close();
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.warn(t);
         }
         try {
             webClient.close();
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.warn(t);
         }
     }
 }
