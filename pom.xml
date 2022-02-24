@@ -31,7 +31,7 @@
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.jakarta-annotation>1.3.5</version.jakarta-annotation>
         <version.graphql-java>17.3</version.graphql-java>
-        <verison.io.micrometer>1.8.2</verison.io.micrometer>
+        <verison.io.micrometer>1.8.3</verison.io.micrometer>
         <version.vertx>4.2.5</version.vertx>
 
         <!-- Test -->
