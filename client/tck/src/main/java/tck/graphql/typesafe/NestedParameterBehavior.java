@@ -4,6 +4,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.util.List;
 
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;
 
@@ -144,5 +145,46 @@ class NestedParameterBehavior {
         then(pair.left.good).isTrue();
         then(pair.right.name).isEqualTo("Venom");
         then(pair.right.good).isFalse();
+    }
+
+    @GraphQLClientApi
+    private interface MultiUpdateAPI {
+        @Mutation
+        MultiUpdate multiUpdate(
+                @NestedParameter("updateLocation") String location,
+                @NestedParameter("addTeam") String teamName,
+                @NestedParameter("updateName") String name);
+    }
+
+    @Multiple
+    static class MultiUpdate {
+        String updateLocation;
+
+        List<String> addTeam;
+
+        Hero updateName;
+    }
+
+    @Test
+    void shouldCallMultipleMutations() {
+        fixture.returnsData("" +
+                "'updateLocation':'loc-updated'," +
+                "'addTeam':['team1', 'team2', 'new-team']," +
+                "'updateName':{'name':'name-updated','good':false}");
+        MultiUpdateAPI api = fixture.build(MultiUpdateAPI.class);
+
+        MultiUpdate result = api.multiUpdate("new-loc", "new-team", "new-name");
+
+        then(fixture.query()).isEqualTo("" +
+                "mutation multiUpdate($location: String, $teamName: String, $name: String) {" +
+                "updateLocation(location: $location) " +
+                "addTeam(teamName: $teamName) " +
+                "updateName(name: $name) {name good}" +
+                "}");
+        then(fixture.variables()).isEqualTo("{'location':'new-loc','teamName':'new-team','name':'new-name'}");
+        then(result.updateLocation).isEqualTo("loc-updated");
+        then(result.addTeam).containsExactly("team1", "team2", "new-team");
+        then(result.updateName.name).isEqualTo("name-updated");
+        then(result.updateName.good).isFalse();
     }
 }

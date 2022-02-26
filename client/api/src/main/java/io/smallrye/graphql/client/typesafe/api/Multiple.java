@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * The nested fields can optionally be parameterized with {@link NestedParameter} annotations.
  * <p>
  * E.g.
- * 
+ *
  * <pre>
  * &#64;GraphQlClientApi
  * interface FooAndBarApi {
@@ -25,9 +25,9 @@ import java.lang.annotation.Target;
  *     Bar bar;
  * }
  * </pre>
- *
+ * <p>
  * Creates a query for the two fields <code>foo</code> and <code>bar</code>:
- * 
+ *
  * <pre>
  * query fooAndBar($id: String!) {
  *   foo {
@@ -38,6 +38,8 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
+ * <p>
+ * In this way, you can also issue multiple mutations with a single request.
  */
 @Retention(RUNTIME)
 @Target(TYPE)
