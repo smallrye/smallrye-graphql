@@ -97,17 +97,18 @@ public class QueryBuilder {
         StringBuilder expression = new StringBuilder();
         field.getAlias().ifPresent(alias -> expression.append(alias).append(":"));
         expression.append(field.getName());
-        if (!type.isScalar() && (!type.isCollection() || !type.getItemType().isScalar())) {
-            String path = nestedExpressionPrefix() + field.getRawName();
-            List<ParameterInfo> nestedParameters = method.nestedParameters(path);
-            if (!nestedParameters.isEmpty())
-                expression.append(nestedParameters.stream()
-                        .map(this::bind)
-                        .collect(joining(", ", "(", ")")));
-            expressionStack.push(path);
-            expression.append(fields(type));
-            expressionStack.pop();
-        }
+
+        String path = nestedExpressionPrefix() + field.getRawName();
+        List<ParameterInfo> nestedParameters = method.nestedParameters(path);
+        if (!nestedParameters.isEmpty())
+            expression.append(nestedParameters.stream()
+                    .map(this::bind)
+                    .collect(joining(", ", "(", ")")));
+
+        expressionStack.push(path);
+        expression.append(fields(type)); // appends the empty string, if the type is scalar, etc.
+        expressionStack.pop();
+
         return expression.toString();
     }
 
