@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  *     Bar bar;
  * }
  * </pre>
- * <p>
+ *
  * Creates a query for the two fields <code>foo</code> and <code>bar</code>:
  *
  * <pre>
@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
- * <p>
+ *
  * In this way, you can also issue multiple mutations with a single request.
  */
 @Retention(RUNTIME)
