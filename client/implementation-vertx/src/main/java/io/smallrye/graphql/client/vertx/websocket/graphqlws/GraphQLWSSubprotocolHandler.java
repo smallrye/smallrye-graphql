@@ -3,7 +3,6 @@ package io.smallrye.graphql.client.vertx.websocket.graphqlws;
 import java.io.StringReader;
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +20,8 @@ import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
+import io.smallrye.graphql.client.vertx.websocket.opid.IncrementingNumberOperationIDGenerator;
+import io.smallrye.graphql.client.vertx.websocket.opid.OperationIDGenerator;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.Cancellable;
 import io.smallrye.mutiny.subscription.MultiEmitter;
@@ -45,6 +46,8 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
 
     private final Runnable onClose;
 
+    private final OperationIDGenerator operationIdGenerator;
+
     public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout, Runnable onClose) {
         this.webSocket = webSocket;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
@@ -52,6 +55,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         this.multiOperations = new ConcurrentHashMap<>();
         this.initialization = initialize().subscribeAsCompletionStage();
         this.onClose = onClose;
+        this.operationIdGenerator = new IncrementingNumberOperationIDGenerator();
     }
 
     private Uni<Void> initialize() {
@@ -150,7 +154,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
 
     @Override
     public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
-        String id = UUID.randomUUID().toString();
+        String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             uniOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
@@ -161,7 +165,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
 
     @Override
     public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
-        String id = UUID.randomUUID().toString();
+        String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             multiOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);

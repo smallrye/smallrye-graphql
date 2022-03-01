@@ -4,7 +4,6 @@ import java.io.StringReader;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -24,6 +23,8 @@ import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
+import io.smallrye.graphql.client.vertx.websocket.opid.IncrementingNumberOperationIDGenerator;
+import io.smallrye.graphql.client.vertx.websocket.opid.OperationIDGenerator;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.Cancellable;
 import io.smallrye.mutiny.subscription.MultiEmitter;
@@ -51,6 +52,8 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
 
     private final Runnable onClose;
 
+    private final OperationIDGenerator operationIdGenerator;
+
     public GraphQLTransportWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout,
             Runnable onClose) {
         this.webSocket = webSocket;
@@ -59,6 +62,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
         this.multiOperations = new ConcurrentHashMap<>();
         this.initialization = initialize().subscribeAsCompletionStage();
         this.onClose = onClose;
+        this.operationIdGenerator = new IncrementingNumberOperationIDGenerator();
     }
 
     @Override
@@ -229,7 +233,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
 
     @Override
     public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
-        String id = UUID.randomUUID().toString();
+        String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             uniOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
@@ -240,7 +244,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
 
     @Override
     public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
-        String id = UUID.randomUUID().toString();
+        String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             multiOperations.put(id, emitter);
             JsonObject subscribe = createSubscribeMessage(request, id);
