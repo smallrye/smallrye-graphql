@@ -10,7 +10,7 @@ public interface Field extends FieldOrFragment {
     /*
      * Static factory methods
      */
-    static List<Field> fields(Field... fields) {
+    static List<FieldOrFragment> fields(FieldOrFragment... fields) {
         return asList(fields);
     }
 
@@ -48,7 +48,7 @@ public interface Field extends FieldOrFragment {
     }
 
     // (name, args, subfields)
-    static Field field(String name, List<Argument> args, Field... fields) {
+    static Field field(String name, List<Argument> args, FieldOrFragment... fields) {
         Field field = getNewInstanceOf(Field.class);
 
         field.setName(name);
