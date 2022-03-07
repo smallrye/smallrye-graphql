@@ -7,7 +7,6 @@ import java.util.function.Function;
 import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
@@ -36,7 +35,7 @@ public class MultiDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
+        SmallRyeContext context = getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Multi<?> multi = operationInvoker.invoke(transformedArguments);

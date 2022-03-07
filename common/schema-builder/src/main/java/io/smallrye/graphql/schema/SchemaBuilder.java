@@ -126,6 +126,9 @@ public class SchemaBuilder {
         // Add all annotated errors (Exceptions)
         addErrors(schema);
 
+        // Add all custom datafetchers
+        addDataFetchers(schema);
+
         // Reset the maps. 
         referenceCreator.clear();
 
@@ -206,6 +209,35 @@ public class SchemaBuilder {
                 } else {
                     LOG.warn("Ignoring @ErrorCode on " + annotationTarget + " - Wrong target, only apply to CLASS ["
                             + annotationTarget.kind().toString() + "]");
+                }
+            }
+        }
+    }
+
+    private void addDataFetchers(Schema schema) {
+        Collection<AnnotationInstance> datafetcherAnnotations = ScanningContext.getIndex()
+                .getAnnotations(Annotations.DATAFETCHER);
+        if (datafetcherAnnotations != null && !datafetcherAnnotations.isEmpty()) {
+            for (AnnotationInstance datafetcherAnnotation : datafetcherAnnotations) {
+                AnnotationTarget annotationTarget = datafetcherAnnotation.target();
+                if (annotationTarget.kind().equals(AnnotationTarget.Kind.CLASS)) {
+                    ClassInfo datafetcherClass = annotationTarget.asClass();
+
+                    AnnotationValue forClass = datafetcherAnnotation.value("forClass");
+
+                    AnnotationValue isWrapped = datafetcherAnnotation.value("isWrapped");
+
+                    LOG.info("Adding custom datafetcher for " + forClass.asClass().name().toString() + " ["
+                            + datafetcherClass.simpleName() + "]");
+
+                    if (isWrapped != null && isWrapped.asBoolean()) {
+                        // Wrapped
+                        schema.addWrappedDataFetcher(forClass.asClass().name().toString(), datafetcherClass.simpleName());
+                    } else {
+                        // Field
+                        schema.addFieldDataFetcher(forClass.asClass().name().toString(), datafetcherClass.simpleName());
+                    }
+
                 }
             }
         }

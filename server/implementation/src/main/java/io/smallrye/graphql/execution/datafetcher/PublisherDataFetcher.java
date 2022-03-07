@@ -8,7 +8,6 @@ import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 import org.reactivestreams.Publisher;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
@@ -38,7 +37,7 @@ public class PublisherDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
+        SmallRyeContext context = getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Publisher<?> publisher = operationInvoker.invoke(transformedArguments);
@@ -61,6 +60,7 @@ public class PublisherDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
                     })
 
                     .onFailure().recoverWithItem(new Function<Throwable, O>() {
+                        @Override
                         public O apply(Throwable throwable) {
                             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
                             if (throwable instanceof GraphQLException) {

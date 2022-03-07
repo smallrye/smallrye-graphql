@@ -181,7 +181,8 @@ public class TracingService implements EventingService {
     }
 
     private static String getOperationName(ExecutionInput executionInput) {
-        if (executionInput.getOperationName() != null && !executionInput.getOperationName().isEmpty()) {
+        if (executionInput != null && executionInput.getOperationName() != null
+                && !executionInput.getOperationName().isEmpty()) {
             return PREFIX + ":" + executionInput.getOperationName();
         }
         return PREFIX;

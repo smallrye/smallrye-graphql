@@ -6,7 +6,6 @@ import java.util.concurrent.CompletionStage;
 import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
@@ -35,7 +34,7 @@ public class UniDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
+        SmallRyeContext context = getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Uni<?> uni = operationInvoker.invoke(transformedArguments);

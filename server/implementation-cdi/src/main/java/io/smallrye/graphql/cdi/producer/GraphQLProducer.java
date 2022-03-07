@@ -3,6 +3,7 @@ package io.smallrye.graphql.cdi.producer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
+import graphql.execution.ExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.ExecutionService;
@@ -21,20 +22,39 @@ public class GraphQLProducer {
     }
 
     public GraphQLSchema initialize(Schema schema) {
-        return initialize(schema, false);
+        return initialize(schema, null, null);
+    }
+
+    public GraphQLSchema initialize(Schema schema, ExecutionStrategy queryExecutionStrategy,
+            ExecutionStrategy mutationExecutionStrategy) {
+        return initialize(schema, false, queryExecutionStrategy, mutationExecutionStrategy);
     }
 
     public GraphQLSchema initialize(Schema schema, boolean allowMultipleDeployments) {
+        return initialize(schema, allowMultipleDeployments, null, null);
+    }
+
+    public GraphQLSchema initialize(Schema schema, boolean allowMultipleDeployments, ExecutionStrategy queryExecutionStrategy,
+            ExecutionStrategy mutationExecutionStrategy) {
         this.schema = schema;
-        return initialize(allowMultipleDeployments);
+        return initialize(allowMultipleDeployments, queryExecutionStrategy, mutationExecutionStrategy);
     }
 
     public GraphQLSchema initialize(boolean allowMultipleDeployments) {
+        return initialize(allowMultipleDeployments, null, null);
+    }
+
+    public GraphQLSchema initialize(boolean allowMultipleDeployments, ExecutionStrategy queryExecutionStrategy,
+            ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = Bootstrap.bootstrap(schema, allowMultipleDeployments);
         this.executionService = new ExecutionService(graphQLSchema, this.schema.getBatchOperations(),
-                schema.hasSubscriptions());
+                schema.hasSubscriptions(), queryExecutionStrategy, mutationExecutionStrategy);
         return this.graphQLSchema;
+    }
+
+    public GraphQLSchema initialize(ExecutionStrategy queryExecutionStrategy, ExecutionStrategy mutationExecutionStrategy) {
+        return initialize(false, queryExecutionStrategy, mutationExecutionStrategy);
     }
 
     public GraphQLSchema initialize() {

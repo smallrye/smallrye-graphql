@@ -10,15 +10,11 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.spi.config.Config;
 
@@ -32,7 +28,6 @@ public class ExecutionServlet extends HttpServlet {
     private static final long serialVersionUID = -2859915918802356120L;
 
     private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
-    private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
 
     @Inject
     ExecutionService executionService;
@@ -51,7 +46,7 @@ public class ExecutionServlet extends HttpServlet {
         try {
             if (config.isAllowGet()) {
                 JsonObject jsonObject = getJsonObjectFromQueryParameters(request);
-                handleInput(jsonObject, response);
+                executionService.executeSync(jsonObject, new HttpServletResponseWriter(response));
             } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
             }
@@ -70,9 +65,9 @@ public class ExecutionServlet extends HttpServlet {
                 JsonObject jsonObjectFromQueryParameters = getJsonObjectFromQueryParameters(request);
                 JsonObject mergedJsonObject = Json.createMergePatch(jsonObjectFromQueryParameters).apply(jsonObjectFromBody)
                         .asJsonObject();
-                handleInput(mergedJsonObject, response);
+                executionService.executeSync(mergedJsonObject, new HttpServletResponseWriter(response));
             } else {
-                handleInput(jsonObjectFromBody, response);
+                executionService.executeSync(jsonObjectFromBody, new HttpServletResponseWriter(response));
             }
         } catch (IOException ex) {
             SmallRyeGraphQLServletLogging.log.ioException(ex);
@@ -129,20 +124,6 @@ public class ExecutionServlet extends HttpServlet {
         }
     }
 
-    private void handleInput(JsonObject jsonInput, HttpServletResponse response) throws IOException {
-        ExecutionResponse executionResponse = executionService.execute(jsonInput);
-
-        if (executionResponse != null) {
-            ServletOutputStream out = response.getOutputStream();
-            response.setContentType(APPLICATION_JSON_UTF8);
-
-            try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(out)) {
-                jsonWriter.writeObject(executionResponse.getExecutionResultAsJsonObject());
-                out.flush();
-            }
-        }
-    }
-
     private static JsonObject toJsonObject(String jsonString) {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
@@ -151,8 +132,6 @@ public class ExecutionServlet extends HttpServlet {
             return jsonReader.readObject();
         }
     }
-
-    private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
