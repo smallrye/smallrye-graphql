@@ -55,7 +55,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     // and a new websocket connection attempted.
     private final AtomicReference<Uni<WebSocketSubprotocolHandler>> webSocketHandler = new AtomicReference<>();
 
-    VertxDynamicGraphQLClient(Vertx vertx, String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
+    VertxDynamicGraphQLClient(Vertx vertx, WebClient webClient,
+            String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
             MultiMap headers, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
         if (options != null) {
@@ -63,7 +64,11 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         } else {
             this.httpClient = vertx.createHttpClient();
         }
-        this.webClient = WebClient.wrap(httpClient);
+        if (webClient == null) {
+            this.webClient = WebClient.wrap(httpClient);
+        } else {
+            this.webClient = webClient;
+        }
         this.headers = headers;
         this.url = url;
         this.websocketUrl = websocketUrl;

@@ -19,6 +19,7 @@ import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
 /**
@@ -29,6 +30,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private static final Logger log = Logger.getLogger(VertxDynamicGraphQLClientBuilder.class);
 
     private Vertx vertx;
+    private WebClient webClient;
     private String url;
     private String websocketUrl;
     private Boolean executeSingleOperationsOverWebsocket;
@@ -46,6 +48,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder vertx(Vertx vertx) {
         this.vertx = vertx;
+        return this;
+    }
+
+    public VertxDynamicGraphQLClientBuilder webClient(WebClient client) {
+        this.webClient = client;
         return this;
     }
 
@@ -133,8 +140,8 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         if (executeSingleOperationsOverWebsocket == null) {
             executeSingleOperationsOverWebsocket = false;
         }
-        return new VertxDynamicGraphQLClient(toUseVertx, url, websocketUrl, executeSingleOperationsOverWebsocket, headersMap,
-                options, subprotocols,
+        return new VertxDynamicGraphQLClient(toUseVertx, webClient, url, websocketUrl,
+                executeSingleOperationsOverWebsocket, headersMap, options, subprotocols,
                 subscriptionInitializationTimeout);
     }
 
