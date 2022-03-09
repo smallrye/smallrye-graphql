@@ -32,6 +32,7 @@ import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
@@ -170,7 +171,7 @@ public class ExecutionService {
                 smallRyeContext = smallRyeContext.withDataFromExecution(executionInput, queryCache);
 
                 // Context
-                context.put("context", smallRyeContext);
+                context.put(ContextHelper.CONTEXT, smallRyeContext);
                 executionInput.getGraphQLContext().putAll(context);
 
                 // Notify before
@@ -204,7 +205,7 @@ public class ExecutionService {
         executionResult.whenComplete((t, u) -> {
             executionInput.getGraphQLContext().putAll(context);
 
-            SmallRyeContext smallryeContext = (SmallRyeContext) context.get("context");
+            SmallRyeContext smallryeContext = (SmallRyeContext) context.get(ContextHelper.CONTEXT);
             SmallRyeContext.setContext(smallryeContext);
 
             // Notify after
@@ -229,7 +230,7 @@ public class ExecutionService {
         try {
             ExecutionResult executionResult = g.execute(executionInput);
             // Notify after
-            eventEmitter.fireAfterExecute((Context) context.get("context"));
+            eventEmitter.fireAfterExecute((Context) context.get(ContextHelper.CONTEXT));
 
             ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
             if (!payloadOption.equals(LogPayloadOption.off)) {

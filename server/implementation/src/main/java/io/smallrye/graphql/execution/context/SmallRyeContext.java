@@ -100,10 +100,6 @@ public class SmallRyeContext implements Context {
         return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field);
     }
 
-    public SmallRyeContext withDataFromFetcher(Field field) {
-        return withDataFromFetcher(this.dfe, field);
-    }
-
     public static void remove() {
         current.remove();
     }

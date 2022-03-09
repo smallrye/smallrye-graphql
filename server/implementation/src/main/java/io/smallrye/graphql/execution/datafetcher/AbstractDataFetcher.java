@@ -7,6 +7,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
+import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ErrorResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.OperationInvoker;
@@ -21,7 +22,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * @param <K>
  * @param <T>
  */
-public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K, T>, ContextAware {
+public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K, T> {
 
     protected Operation operation;
     protected FieldHelper fieldHelper;
@@ -30,6 +31,7 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter = EventEmitter.getInstance();
     protected BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
+    protected ContextHelper contextHelper = new ContextHelper();
 
     public AbstractDataFetcher(Operation operation) {
         this.operation = operation;
@@ -68,7 +70,7 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
 
     private SmallRyeContext initSmallRyeContext(final DataFetchingEnvironment dfe) {
         // update the context
-        SmallRyeContext context = updateSmallRyeContext(dfe, operation);
+        SmallRyeContext context = contextHelper.updateSmallRyeContextWithField(dfe, operation);
         eventEmitter.fireBeforeDataFetch(context);
         return context;
     }
