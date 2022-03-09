@@ -14,6 +14,11 @@ public class GraphQLClientConfiguration {
     private String url;
 
     /**
+     * The WebSocket URL that the client connects to. By default, this is the HTTP url with the protocol part changed to `ws`.
+     */
+    private String websocketUrl;
+
+    /**
      * HTTP headers to be appended to each HTTP request.
      */
     private Map<String, String> headers;
@@ -23,6 +28,12 @@ public class GraphQLClientConfiguration {
      * will be subject to negotiation with the server.
      */
     private List<String> websocketSubprotocols;
+
+    /**
+     * If this is true, then queries and mutations will also be executed over a websocket connection rather than over pure HTTP.
+     * As this comes with higher overhead, it is false by default.
+     */
+    private Boolean executeSingleOperationsOverWebsocket;
 
     /**
      * Path to the trust store. Can point to either a classpath resource or a file.
@@ -80,9 +91,9 @@ public class GraphQLClientConfiguration {
     private Integer maxRedirects;
 
     /**
-     * Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a subscription start.
+     * Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a websocket connection.
      */
-    private Integer subscriptionInitializationTimeout;
+    private Integer websocketInitializationTimeout;
 
     public String getUrl() {
         return url;
@@ -90,6 +101,14 @@ public class GraphQLClientConfiguration {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getWebsocketUrl() {
+        return websocketUrl;
+    }
+
+    public void setWebsocketUrl(String websocketUrl) {
+        this.websocketUrl = websocketUrl;
     }
 
     public Map<String, String> getHeaders() {
@@ -106,6 +125,14 @@ public class GraphQLClientConfiguration {
 
     public void setWebsocketSubprotocols(List<String> websocketSubprotocols) {
         this.websocketSubprotocols = websocketSubprotocols;
+    }
+
+    public Boolean getExecuteSingleOperationsOverWebsocket() {
+        return executeSingleOperationsOverWebsocket;
+    }
+
+    public void setExecuteSingleOperationsOverWebsocket(Boolean executeSingleOperationsOverWebsocket) {
+        this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
     }
 
     public String getTrustStore() {
@@ -196,12 +223,12 @@ public class GraphQLClientConfiguration {
         this.maxRedirects = maxRedirects;
     }
 
-    public Integer getSubscriptionInitializationTimeout() {
-        return subscriptionInitializationTimeout;
+    public Integer getWebsocketInitializationTimeout() {
+        return websocketInitializationTimeout;
     }
 
-    public void setSubscriptionInitializationTimeout(Integer subscriptionInitializationTimeout) {
-        this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+    public void setWebsocketInitializationTimeout(Integer websocketInitializationTimeout) {
+        this.websocketInitializationTimeout = websocketInitializationTimeout;
     }
 
     /**
@@ -211,6 +238,9 @@ public class GraphQLClientConfiguration {
     public GraphQLClientConfiguration merge(GraphQLClientConfiguration other) {
         if (other.url != null) {
             this.url = other.url;
+        }
+        if (other.websocketUrl != null) {
+            this.websocketUrl = other.websocketUrl;
         }
         if (this.headers == null) {
             this.headers = other.headers;
@@ -225,6 +255,9 @@ public class GraphQLClientConfiguration {
                     this.websocketSubprotocols.add(subprotocol);
                 }
             }
+        }
+        if (this.executeSingleOperationsOverWebsocket == null) {
+            this.executeSingleOperationsOverWebsocket = other.executeSingleOperationsOverWebsocket;
         }
         if (other.trustStore != null) {
             this.trustStore = other.trustStore;
@@ -259,8 +292,8 @@ public class GraphQLClientConfiguration {
         if (other.maxRedirects != null) {
             this.maxRedirects = other.maxRedirects;
         }
-        if (other.subscriptionInitializationTimeout != null) {
-            this.subscriptionInitializationTimeout = other.subscriptionInitializationTimeout;
+        if (other.websocketInitializationTimeout != null) {
+            this.websocketInitializationTimeout = other.websocketInitializationTimeout;
         }
         return this;
     }

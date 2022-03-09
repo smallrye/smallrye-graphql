@@ -21,6 +21,7 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Websocket subprotocol handler that implements the `graphql-ws` subprotocol.
@@ -37,7 +38,7 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
 
     private final String CONNECTION_ACK_MESSAGE;
 
-    private final Map<String, SubscriptionSubscriber> activeOperations;
+    private final Map<String, Subscriber<ExecutionResult>> activeOperations;
 
     public GraphQLWSSubprotocolHandler(GraphQLWebSocketSession session, ExecutionService executionService) {
         this.session = session;
@@ -49,6 +50,12 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
 
     @Override
     public void onMessage(String text) {
+        // this is ugly, but needed to run the handling asynchronously (we must not block `onMessage`) with the
+        // necessary context propagation... perhaps there's a nicer way?
+        Uni.createFrom().item(() -> handle(text)).subscribe().asCompletionStage();
+    }
+
+    Void handle(String text) {
         if (LOG.isTraceEnabled()) {
             LOG.trace("<<< " + text);
         }
@@ -60,10 +67,10 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
             messageType = getMessageType(message);
         } catch (JsonParsingException ex) {
             session.close((short) 4400, ex.getMessage());
-            return;
+            return null;
         } catch (NullPointerException | IllegalArgumentException ex) {
             session.close((short) 4400, "Unknown message type");
-            return;
+            return null;
         }
         try {
             switch (messageType) {
@@ -77,12 +84,12 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
                 case GQL_START:
                     if (!connectionInitialized.get()) {
                         session.close((short) 4429, "Connection not initialized");
-                        return;
+                        return null;
                     }
                     String operationId = message.getString("id");
-                    if (activeOperations.containsKey(operationId)) {
+                    if (activeOperations.putIfAbsent(operationId, SINGLE_RESULT_MARKER) != null) {
                         session.close((short) 4409, "Subscriber for " + operationId + " already exists");
-                        return;
+                        return null;
                     }
                     JsonObject payload = message.getJsonObject("payload");
                     ExecutionResponse executionResponse = executionService.execute(payload);
@@ -98,10 +105,14 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
                             Object data = executionResponse.getExecutionResult().getData();
                             if (data instanceof Map) {
                                 // this means the operation is a query or mutation
-                                session.sendMessage(
-                                        createDataMessage(operationId, executionResponse.getExecutionResultAsJsonObject())
-                                                .toString());
-                                session.sendMessage(createCompleteMessage(operationId).toString());
+                                // only send the response if the operation hasn't been cancelled
+                                if (activeOperations.remove(operationId) != null) {
+                                    session.sendMessage(
+                                            createDataMessage(operationId,
+                                                    executionResponse.getExecutionResultAsJsonObject())
+                                                            .toString());
+                                    session.sendMessage(createCompleteMessage(operationId).toString());
+                                }
                             } else if (data instanceof Publisher) {
                                 // this means the operation is a subscription
                                 SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
@@ -120,17 +131,19 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
                     break;
                 case GQL_STOP:
                     String opId = message.getString("id");
-                    SubscriptionSubscriber subscriber = activeOperations.get(opId);
+                    Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
                     if (subscriber != null) {
-                        subscriber.cancel();
-                        activeOperations.remove(opId);
+                        if (subscriber instanceof SubscriptionSubscriber) {
+                            ((SubscriptionSubscriber) subscriber).cancel();
+                        }
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Completed operation id " + opId + " per client's request");
                         }
                     } else {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(
-                                    "Client requested to complete operation id " + opId + ", but no such operation is active");
+                                    "Client requested to complete operation id " + opId
+                                            + ", but no such operation is active");
                         }
                     }
                     break;
@@ -138,6 +151,7 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
         } catch (IOException e) {
             LOG.warn(e);
         }
+        return null;
     }
 
     @Override
@@ -254,5 +268,24 @@ public class GraphQLWSSubprotocolHandler implements GraphQLWebsocketHandler {
             subscription.get().cancel();
         }
     }
+
+    // dummy value to put into the `activeOperations` map for single-result operations
+    private static final Subscriber<ExecutionResult> SINGLE_RESULT_MARKER = new Subscriber<ExecutionResult>() {
+        @Override
+        public void onSubscribe(Subscription s) {
+        }
+
+        @Override
+        public void onNext(ExecutionResult executionResult) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+
+        @Override
+        public void onComplete() {
+        }
+    };
 
 }

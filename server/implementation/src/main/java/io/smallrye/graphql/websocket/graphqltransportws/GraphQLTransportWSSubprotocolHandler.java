@@ -22,6 +22,7 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Websocket subprotocol handler that implements the `graphql-transport-ws` subprotocol.
@@ -39,7 +40,7 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
     private final String CONNECTION_ACK_MESSAGE;
     private final String PONG_MESSAGE;
 
-    private final Map<String, SubscriptionSubscriber> activeOperations;
+    private final Map<String, Subscriber<ExecutionResult>> activeOperations;
 
     public GraphQLTransportWSSubprotocolHandler(GraphQLWebSocketSession session, ExecutionService executionService) {
         this.session = session;
@@ -52,6 +53,12 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
 
     @Override
     public void onMessage(String text) {
+        // this is ugly, but needed to run the handling asynchronously (we must not block `onMessage`) with the
+        // necessary context propagation... perhaps there's a nicer way?
+        Uni.createFrom().item(() -> handle(text)).subscribe().asCompletionStage();
+    }
+
+    Void handle(String text) {
         if (LOG.isTraceEnabled()) {
             LOG.trace("<<< " + text);
         }
@@ -63,10 +70,10 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
             messageType = getMessageType(message);
         } catch (JsonParsingException ex) {
             session.close((short) 4400, ex.getMessage());
-            return;
+            return null;
         } catch (NullPointerException | IllegalArgumentException ex) {
             session.close((short) 4400, "Unknown message type");
-            return;
+            return null;
         }
         try {
             switch (messageType) {
@@ -85,12 +92,12 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
                 case SUBSCRIBE:
                     if (!connectionInitialized.get()) {
                         session.close((short) 4401, "Unauthorized");
-                        return;
+                        return null;
                     }
                     String operationId = message.getString("id");
-                    if (activeOperations.containsKey(operationId)) {
+                    if (activeOperations.putIfAbsent(operationId, SINGLE_RESULT_MARKER) != null) {
                         session.close((short) 4409, "Subscriber for " + operationId + " already exists");
-                        return;
+                        return null;
                     }
                     JsonObject payload = message.getJsonObject("payload");
                     ExecutionResponse executionResponse = executionService.execute(payload);
@@ -104,16 +111,22 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
                             Object data = executionResponse.getExecutionResult().getData();
                             if (data instanceof Map) {
                                 // this means the operation is a query or mutation
-                                session.sendMessage(
-                                        createNextMessage(operationId, executionResponse.getExecutionResultAsJsonObject())
-                                                .toString());
-                                session.sendMessage(createCompleteMessage(operationId).toString());
+                                // only send the response if the operation hasn't been cancelled
+                                if (activeOperations.remove(operationId) != null) {
+                                    session.sendMessage(
+                                            createNextMessage(operationId,
+                                                    executionResponse.getExecutionResultAsJsonObject())
+                                                            .toString());
+                                    session.sendMessage(createCompleteMessage(operationId).toString());
+                                }
                             } else if (data instanceof Publisher) {
                                 // this means the operation is a subscription
                                 SubscriptionSubscriber subscriber = new SubscriptionSubscriber(session, operationId);
                                 Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
                                         .getData();
                                 if (stream != null) {
+                                    // this is actually a subscription, so replace the `activeOperation` entry
+                                    // with the actual subscriber
                                     activeOperations.put(operationId, subscriber);
                                     stream.subscribe(subscriber);
                                 }
@@ -126,17 +139,19 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
                     break;
                 case COMPLETE:
                     String opId = message.getString("id");
-                    SubscriptionSubscriber subscriber = activeOperations.get(opId);
+                    Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
                     if (subscriber != null) {
-                        subscriber.cancel();
-                        activeOperations.remove(opId);
+                        if (subscriber instanceof SubscriptionSubscriber) {
+                            ((SubscriptionSubscriber) subscriber).cancel();
+                        }
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Completed operation id " + opId + " per client's request");
                         }
                     } else {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(
-                                    "Client requested to complete operation id " + opId + ", but no such operation is active");
+                                    "Client requested to complete operation id " + opId
+                                            + ", but no such operation is active");
                         }
                     }
                     break;
@@ -148,6 +163,7 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
         } catch (IOException e) {
             LOG.warn(e);
         }
+        return null;
     }
 
     @Override
@@ -270,5 +286,24 @@ public class GraphQLTransportWSSubprotocolHandler implements GraphQLWebsocketHan
             subscription.get().cancel();
         }
     }
+
+    // dummy value to put into the `activeOperations` map for single-result operations
+    private static final Subscriber<ExecutionResult> SINGLE_RESULT_MARKER = new Subscriber<ExecutionResult>() {
+        @Override
+        public void onSubscribe(Subscription s) {
+        }
+
+        @Override
+        public void onNext(ExecutionResult executionResult) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+
+        @Override
+        public void onComplete() {
+        }
+    };
 
 }

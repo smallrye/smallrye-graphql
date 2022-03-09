@@ -43,6 +43,17 @@ public interface TypesafeGraphQLClientBuilder {
     TypesafeGraphQLClientBuilder endpoint(URI endpoint);
 
     /**
+     * Path to the websocket endpoint. By default this is the regular HTTP endpoint with the protocol changed to `ws`.
+     */
+    TypesafeGraphQLClientBuilder websocketUrl(String url);
+
+    /**
+     * If this is true, then queries and mutations will also be executed over a websocket connection rather than over pure HTTP.
+     * As this comes with higher overhead, it is false by default.
+     */
+    TypesafeGraphQLClientBuilder executeSingleOperationsOverWebsocket(boolean value);
+
+    /**
      * Static headers to send with all methods in this client.
      *
      * @see Header
@@ -69,7 +80,7 @@ public interface TypesafeGraphQLClientBuilder {
      * Maximum time (in milliseconds) allowed between initializing a subscription websocket and receiving
      * a subscription start acknowledgement from the server.
      */
-    TypesafeGraphQLClientBuilder subscriptionInitializationTimeout(Integer timeoutInMilliseconds);
+    TypesafeGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds);
 
     /**
      * Build the proxy for that api interface.

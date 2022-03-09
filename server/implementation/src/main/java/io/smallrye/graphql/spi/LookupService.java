@@ -38,7 +38,11 @@ public interface LookupService {
 
     Class<?> getClass(Class<?> declaringClass);
 
-    Object getInstance(Class<?> declaringClass);
+    /**
+     * Obtain an instance of the requested class. Don't forget to call `destroyIfNecessary()` on it after use
+     * to avoid leaks!
+     */
+    <T> ManagedInstance<T> getInstance(Class<T> declaringClass);
 
     boolean isResolvable(Class<?> declaringClass);
 
@@ -59,9 +63,9 @@ public interface LookupService {
         }
 
         @Override
-        public Object getInstance(Class<?> declaringClass) {
+        public <T> ManagedInstance<T> getInstance(Class<T> declaringClass) {
             try {
-                return declaringClass.getConstructor().newInstance();
+                return new DefaultManagedInstance<T>(declaringClass.getConstructor().newInstance());
             } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw msg.countNotGetInstance(ex);
@@ -71,6 +75,24 @@ public interface LookupService {
         @Override
         public boolean isResolvable(Class<?> declaringClass) {
             return true;
+        }
+    }
+
+    class DefaultManagedInstance<T> implements ManagedInstance<T> {
+        private final T instance;
+
+        public DefaultManagedInstance(T instance) {
+            this.instance = instance;
+        }
+
+        @Override
+        public T get() {
+            return instance;
+        }
+
+        @Override
+        public void destroyIfNecessary() {
+            // nothing
         }
     }
 }

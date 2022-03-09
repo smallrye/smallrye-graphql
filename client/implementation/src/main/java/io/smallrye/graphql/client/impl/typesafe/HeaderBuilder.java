@@ -49,19 +49,21 @@ public class HeaderBuilder {
     public Map<String, String> build() {
         Map<String, String> headers = new LinkedHashMap<>();
         addDefaultHeaders(headers);
-        method.getResolvedAnnotations(api, Header.class)
-                // getResolvedAnnotations returns class-level annotations first
-                // so if there is something on class level, it will be overwritten
-                // by a header on the method
-                .forEach(annotation -> resolve(annotation).apply(headers));
-        method.headerParameters().forEach(parameter -> resolve(parameter).apply(headers));
-        method.getResolvedAnnotations(api, AuthorizationHeader.class)
-                // getResolvedAnnotations returns class-level annotations first, then method-level annotations,
-                // so we need to take the last element of this stream.
-                // This `reduce` operation is basically 'find the last element'
-                .reduce((first, second) -> second)
-                .map(this::resolveAuthHeader)
-                .ifPresent(auth -> headers.put("Authorization", auth));
+        if (method != null) {
+            method.getResolvedAnnotations(api, Header.class)
+                    // getResolvedAnnotations returns class-level annotations first
+                    // so if there is something on class level, it will be overwritten
+                    // by a header on the method
+                    .forEach(annotation -> resolve(annotation).apply(headers));
+            method.headerParameters().forEach(parameter -> resolve(parameter).apply(headers));
+            method.getResolvedAnnotations(api, AuthorizationHeader.class)
+                    // getResolvedAnnotations returns class-level annotations first, then method-level annotations,
+                    // so we need to take the last element of this stream.
+                    // This `reduce` operation is basically 'find the last element'
+                    .reduce((first, second) -> second)
+                    .map(this::resolveAuthHeader)
+                    .ifPresent(auth -> headers.put("Authorization", auth));
+        }
         if (additionalHeaders != null) {
             headers.putAll(additionalHeaders);
         }
