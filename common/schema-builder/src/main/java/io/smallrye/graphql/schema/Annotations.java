@@ -546,11 +546,16 @@ public class Annotations {
 
     private static final short ZERO = 0;
 
+    // SmallRye Common Annotations
+    public static final DotName BLOCKING = DotName.createSimple("io.smallrye.common.annotation.Blocking");
+    public static final DotName NON_BLOCKING = DotName.createSimple("io.smallrye.common.annotation.NonBlocking");
+
     // SmallRye GraphQL Annotations (Experimental)
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
     public static final DotName ADAPT_TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.AdaptToScalar");
     public static final DotName ADAPT_WITH = DotName.createSimple("io.smallrye.graphql.api.AdaptWith");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
+    public static final DotName DATAFETCHER = DotName.createSimple("io.smallrye.graphql.api.DataFetcher");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
     public static final DotName DEFAULT_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.DefaultNonNull");

@@ -1,11 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import org.dataloader.BatchLoaderWithContext;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
@@ -24,7 +21,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * @param <K>
  * @param <T>
  */
-public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, BatchLoaderWithContext<K, T> {
+public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K, T>, ContextAware {
 
     protected Operation operation;
     protected FieldHelper fieldHelper;
@@ -44,8 +41,9 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
         // update the context
-        SmallRyeContext context = getSmallRyeContext(dfe);
-        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult().localContext(dfe.getContext());
+        SmallRyeContext context = initSmallRyeContext(dfe);
+        final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult()
+                .localContext(dfe.getGraphQlContext());
 
         try {
             Object[] transformedArguments = argumentHelper.getArguments(dfe);
@@ -68,17 +66,10 @@ public abstract class AbstractDataFetcher<K, T> implements DataFetcher<T>, Batch
         return invokeFailure(resultBuilder);
     }
 
-    protected SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
+    private SmallRyeContext initSmallRyeContext(final DataFetchingEnvironment dfe) {
         // update the context
-        GraphQLContext graphQLContext = dfe.getContext();
-        SmallRyeContext context = graphQLContext.get("context");
-        if (context != null) {
-            context = context.withDataFromFetcher(dfe, operation);
-            graphQLContext.put("context", context);
-        }
-
+        SmallRyeContext context = updateSmallRyeContext(dfe, operation);
         eventEmitter.fireBeforeDataFetch(context);
-
         return context;
     }
 

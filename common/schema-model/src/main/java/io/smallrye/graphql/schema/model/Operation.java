@@ -34,14 +34,22 @@ public final class Operation extends Field {
      */
     private Reference sourceFieldOn = null;
 
+    /**
+     * If this should be executed blocking. By default all normal object returns will be blocking, except if marked
+     * with @NonBlocking
+     * And all Uni and CompletionStage will be non blocking by default, except if marked with @Blocking
+     */
+    private Execute execute;
+
     public Operation() {
     }
 
     public Operation(String className, String methodName, String propertyName, String name, Reference reference,
-            final OperationType operationType) {
+            final OperationType operationType, Execute execute) {
         super(methodName, propertyName, name, reference);
         this.className = className;
         this.operationType = operationType;
+        this.execute = execute;
     }
 
     public void setClassName(String className) {
@@ -86,6 +94,14 @@ public final class Operation extends Field {
 
     public boolean isSourceField() {
         return this.sourceFieldOn != null;
+    }
+
+    public Execute getExecute() {
+        return execute;
+    }
+
+    public void setExecute(Execute execute) {
+        this.execute = execute;
     }
 
     @Override

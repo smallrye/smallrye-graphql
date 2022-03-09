@@ -13,6 +13,7 @@ import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -51,6 +52,7 @@ public class OperationCreator extends ModelCreator {
         }
 
         Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+        Annotations annotationsForClass = Annotations.getAnnotationsForClass(methodInfo.declaringClass());
 
         Type fieldType = getReturnType(methodInfo);
 
@@ -61,12 +63,15 @@ public class OperationCreator extends ModelCreator {
         validateFieldType(methodInfo, operationType);
         Reference reference = referenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
 
+        // Execution
+        Execute execute = getExecution(annotationsForMethod, annotationsForClass, reference);
         Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
                 methodInfo.name(),
                 MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
                 name,
                 reference,
-                operationType);
+                operationType,
+                execute);
         if (type != null) {
             operation.setSourceFieldOn(new Reference(type));
         }
@@ -136,6 +141,25 @@ public class OperationCreator extends ModelCreator {
             methodName = MethodHelper.getPropertyName(Direction.IN, methodName);
         }
         return methodName;
+    }
+
+    private Execute getExecution(Annotations annotationsForMethod, Annotations annotationsForClass, Reference reference) {
+        // first check annotation on method
+        if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.BLOCKING)) {
+            return Execute.BLOCKING;
+        } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.NON_BLOCKING)) {
+            return Execute.NON_BLOCKING;
+        }
+
+        // then check annotation on class
+        if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.BLOCKING)) {
+            return Execute.BLOCKING;
+        } else if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.NON_BLOCKING)) {
+            return Execute.NON_BLOCKING;
+        }
+
+        // lastly use default based on return type
+        return Execute.DEFAULT;
     }
 
 }

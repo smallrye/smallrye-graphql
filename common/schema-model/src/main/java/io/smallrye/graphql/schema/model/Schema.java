@@ -33,6 +33,9 @@ public final class Schema implements Serializable {
 
     private Map<String, ErrorInfo> errors = new HashMap<>();
 
+    private Map<String, String> wrappedDataFetchers = new HashMap<>();
+    private Map<String, String> fieldDataFetchers = new HashMap<>();
+
     public Schema() {
     }
 
@@ -236,6 +239,38 @@ public final class Schema implements Serializable {
 
     public boolean hasErrors() {
         return !this.errors.isEmpty();
+    }
+
+    public Map<String, String> getWrappedDataFetchers() {
+        return this.wrappedDataFetchers;
+    }
+
+    public void setWrappedDataFetchers(Map<String, String> wrappedDataFetchers) {
+        this.wrappedDataFetchers = wrappedDataFetchers;
+    }
+
+    public void addWrappedDataFetcher(String forReturn, String className) {
+        this.wrappedDataFetchers.put(forReturn, className);
+    }
+
+    public boolean hasWrappedDataFetchers() {
+        return !this.wrappedDataFetchers.isEmpty();
+    }
+
+    public Map<String, String> getFieldDataFetchers() {
+        return this.fieldDataFetchers;
+    }
+
+    public void setFieldDataFetchers(Map<String, String> fieldDataFetchers) {
+        this.fieldDataFetchers = fieldDataFetchers;
+    }
+
+    public void addFieldDataFetcher(String forReturn, String className) {
+        this.fieldDataFetchers.put(forReturn, className);
+    }
+
+    public boolean hasFieldDataFetchers() {
+        return !this.fieldDataFetchers.isEmpty();
     }
 
     public List<Operation> getBatchOperations() {

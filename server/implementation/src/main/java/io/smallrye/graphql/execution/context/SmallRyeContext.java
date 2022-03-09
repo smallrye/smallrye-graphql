@@ -89,7 +89,7 @@ public class SmallRyeContext implements Context {
     }
 
     public SmallRyeContext withDataFromExecution(ExecutionInput executionInput) {
-        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, this.queryCache, this.field);
+        return withDataFromExecution(executionInput, this.queryCache);
     }
 
     public SmallRyeContext withDataFromExecution(ExecutionInput executionInput, QueryCache queryCache) {
@@ -98,6 +98,10 @@ public class SmallRyeContext implements Context {
 
     public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
         return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field);
+    }
+
+    public SmallRyeContext withDataFromFetcher(Field field) {
+        return withDataFromFetcher(this.dfe, field);
     }
 
     public static void remove() {
@@ -166,6 +170,11 @@ public class SmallRyeContext implements Context {
 
     @Override
     public String getFieldName() {
+
+        if (field != null) {
+            return field.getName();
+        }
+
         if (dfe != null) {
             return dfe.getField().getName();
         }

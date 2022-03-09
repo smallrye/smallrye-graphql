@@ -9,7 +9,6 @@ import java.util.concurrent.CompletionStage;
 import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.context.ThreadContext;
 
-import graphql.GraphQLContext;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
@@ -31,7 +30,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     @Override
     public <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = ((GraphQLContext) dfe.getContext()).get("context");
+        SmallRyeContext context = getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Object resultFromMethodCall = operationInvoker.invoke(transformedArguments);
@@ -52,11 +51,11 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final SmallRyeContext context = ble.getContext();
+        final SmallRyeContext smallRyeContext = getSmallRyeContext(ble);
 
         ThreadContext threadContext = ThreadContext.builder().build();
         try {
-            SmallRyeContext.setContext(context);
+            SmallRyeContext.setContext(smallRyeContext);
 
             CompletableFuture<List<T>> reflectionSupplier = CompletableFuture.supplyAsync(() -> {
                 try {

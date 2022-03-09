@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +13,6 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
@@ -333,18 +329,23 @@ public class CdiExecutionTest {
     }
 
     private JsonObject executeAndGetData(String graphQL) {
-        ExecutionResponse result = executionService.execute(toJsonObject(graphQL));
+        JsonObjectResponseWriter jor = new JsonObjectResponseWriter(graphQL);
+        executionService.executeSync(toJsonObject(graphQL), jor);
 
-        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
+        ExecutionResponse result = jor.getExecutionResponse();
+
+        String prettyData = result.getExecutionResultAsString();
         LOG.info(prettyData);
 
         return result.getExecutionResultAsJsonObject().getJsonObject(DATA);
     }
 
     private JsonArray executeAndGetError(String graphQL) {
-        ExecutionResponse result = executionService.execute(toJsonObject(graphQL));
+        JsonObjectResponseWriter jor = new JsonObjectResponseWriter(graphQL);
+        executionService.executeSync(toJsonObject(graphQL), jor);
+        ExecutionResponse result = jor.getExecutionResponse();
 
-        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
+        String prettyData = result.getExecutionResultAsString();
         LOG.info(prettyData);
 
         return result.getExecutionResultAsJsonObject().getJsonArray(ERRORS);
@@ -354,20 +355,6 @@ public class CdiExecutionTest {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         builder.add("query", graphQL);
         return builder.build();
-    }
-
-    private String getPrettyJson(JsonObject jsonObject) {
-
-        JsonWriterFactory writerFactory = Json.createWriterFactory(JSON_PROPERTIES);
-
-        try (StringWriter sw = new StringWriter();
-                JsonWriter jsonWriter = writerFactory.createWriter(sw)) {
-            jsonWriter.writeObject(jsonObject);
-            return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-
     }
 
     private static final String DATA = "data";

@@ -4,12 +4,10 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.lang.reflect.InvocationTargetException;
 
-import graphql.GraphQLContext;
 import graphql.GraphQLException;
 import graphql.TrivialDataFetcher;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
@@ -28,7 +26,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  *           different
  *           subtype of the owner class for each call).
  */
-public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T> {
+public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T>, ContextAware {
 
     private final FieldHelper fieldHelper;
 
@@ -52,10 +50,8 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
 
     @Override
     public T get(DataFetchingEnvironment dfe) throws Exception {
-        if (dfe.getContext() != null) {
-            GraphQLContext graphQLContext = dfe.getContext();
-            graphQLContext.put("context", ((SmallRyeContext) graphQLContext.get("context")).withDataFromFetcher(dfe, field));
-        }
+
+        updateSmallRyeContext(dfe, field);
 
         if (this.propertyAccessor == null) {
             // lazy initialize method handle, does not have to be threadsafe

@@ -1,18 +1,8 @@
 package io.smallrye.graphql.execution;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
@@ -57,7 +47,7 @@ public abstract class ExecutionTestBase {
         if (value != null) {
             return result.getJsonObject(DATA);
         }
-        return null;
+        return JsonObject.EMPTY_JSON_OBJECT;
     }
 
     protected JsonArray executeAndGetErrors(String graphQL) {
@@ -70,45 +60,15 @@ public abstract class ExecutionTestBase {
     }
 
     protected JsonObject executeAndGetResult(String graphQL) {
+        JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
+        jsonObjectResponseWriter.logInput();
+        executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
+        jsonObjectResponseWriter.logOutput();
 
-        JsonObject input = toJsonObject(graphQL);
-        String prettyInput = getPrettyJson(input);
-        LOG.info(prettyInput);
-        ExecutionResponse result = executionService.execute(input);
-
-        String prettyData = getPrettyJson(result.getExecutionResultAsJsonObject());
-        LOG.info(prettyData);
-
-        return result.getExecutionResultAsJsonObject();
-    }
-
-    private JsonObject toJsonObject(String graphQL) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        builder.add("query", graphQL);
-        return builder.build();
-    }
-
-    private String getPrettyJson(JsonObject jsonObject) {
-
-        JsonWriterFactory writerFactory = Json.createWriterFactory(JSON_PROPERTIES);
-
-        try (StringWriter sw = new StringWriter();
-                JsonWriter jsonWriter = writerFactory.createWriter(sw)) {
-            jsonWriter.writeObject(jsonObject);
-            return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-
+        return jsonObjectResponseWriter.getOutput();
     }
 
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
-
-    private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
-
-    static {
-        JSON_PROPERTIES.put(JsonGenerator.PRETTY_PRINTING, true);
-    }
 
 }
