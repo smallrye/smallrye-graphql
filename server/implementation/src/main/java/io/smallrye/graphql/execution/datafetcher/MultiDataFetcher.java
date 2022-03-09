@@ -35,7 +35,7 @@ public class MultiDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = getSmallRyeContext(dfe);
+        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Multi<?> multi = operationInvoker.invoke(transformedArguments);

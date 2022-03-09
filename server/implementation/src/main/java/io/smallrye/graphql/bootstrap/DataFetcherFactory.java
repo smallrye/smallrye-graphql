@@ -164,14 +164,6 @@ public class DataFetcherFactory {
     }
 
     public PlugableDataFetcher getDefaultDataFetcher(Operation operation) {
-
-        //        for (DataFetcherService dfe : dataFetcherServices) {
-        //            PlugableDataFetcher df = dfe.getOtherFieldDataFetcher(operation);
-        //            if (df != null) {
-        //                return df;
-        //            }
-        //        }
-
         return getOtherFieldDataFetcher(operation);
     }
 

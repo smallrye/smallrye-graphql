@@ -81,6 +81,9 @@ public class ReflectionInvoker {
     }
 
     public <T> T invoke(Object... arguments) throws Exception {
+
+        // TODO: Context propagation ?
+
         if (this.injectContextAt > -1) {
             arguments = injectContext(arguments);
         }

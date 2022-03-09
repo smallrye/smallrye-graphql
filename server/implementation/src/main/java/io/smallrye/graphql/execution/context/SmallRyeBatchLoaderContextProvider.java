@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.dataloader.BatchLoaderContextProvider;
 import org.dataloader.DataLoader;
 
-import graphql.GraphQLContext;
+import graphql.schema.DataFetchingEnvironment;
 
 // hacky way to pass the GraphQL Context from data from data fetchers to BatchLoaderEnvironment
 public class SmallRyeBatchLoaderContextProvider implements BatchLoaderContextProvider {
@@ -28,14 +28,14 @@ public class SmallRyeBatchLoaderContextProvider implements BatchLoaderContextPro
         return INSTANCES.get(dataLoader);
     }
 
-    private AtomicReference<GraphQLContext> current = new AtomicReference<>();
+    private AtomicReference<DataFetchingEnvironment> current = new AtomicReference<>();
 
-    public void set(GraphQLContext context) {
-        current.set(context);
+    public void set(DataFetchingEnvironment dfe) {
+        current.set(dfe);
     }
 
     @Override
-    public GraphQLContext getContext() {
+    public DataFetchingEnvironment getContext() {
         return current.getAndSet(null);
     }
 }

@@ -30,7 +30,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     @Override
     public <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = getSmallRyeContext(dfe);
+        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
         try {
             SmallRyeContext.setContext(context);
             Object resultFromMethodCall = operationInvoker.invoke(transformedArguments);
@@ -49,9 +49,10 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
     @Override
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
-        Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
+        final Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
+        final DataFetchingEnvironment dfe = batchLoaderHelper.getDataFetchingEnvironment(ble);
+        final SmallRyeContext smallRyeContext = contextHelper.getSmallRyeContext(dfe);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final SmallRyeContext smallRyeContext = getSmallRyeContext(ble);
 
         ThreadContext threadContext = ThreadContext.builder().build();
         try {

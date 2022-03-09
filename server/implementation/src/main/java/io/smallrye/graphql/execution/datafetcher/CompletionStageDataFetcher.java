@@ -32,7 +32,7 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
     protected <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception {
 
-        SmallRyeContext context = getSmallRyeContext(dfe);
+        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
         ThreadContext threadContext = ThreadContext.builder().build();
         SmallRyeContext.setContext(context);
         try {
@@ -75,7 +75,7 @@ public class CompletionStageDataFetcher<K, T> extends AbstractDataFetcher<K, T> 
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final SmallRyeContext smallRyeContext = getSmallRyeContext(ble);
+        final SmallRyeContext smallRyeContext = contextHelper.getSmallRyeContext(ble);
 
         final ThreadContext threadContext = ThreadContext.builder().build();
         try {
