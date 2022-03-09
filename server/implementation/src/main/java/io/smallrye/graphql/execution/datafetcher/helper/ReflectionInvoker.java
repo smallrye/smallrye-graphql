@@ -20,6 +20,9 @@ import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.graphql.spi.ManagedInstance;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Invoke methods using reflection
@@ -82,10 +85,22 @@ public class ReflectionInvoker {
             arguments = injectContext(arguments);
         }
         try {
-            Object operationInstance = lookupService.getInstance(operationClass);
-            eventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance, method, arguments));
-
-            return (T) this.method.invoke(operationInstance, arguments);
+            ManagedInstance<?> operationInstance = lookupService.getInstance(operationClass);
+            Object operationInstance1 = operationInstance.get();
+            eventEmitter.fireBeforeMethodInvoke(new InvokeInfo(operationInstance1, method, arguments));
+            T result = (T) method.invoke(operationInstance1, arguments);
+            if (result instanceof Uni) {
+                return (T) ((Uni) result).onTermination().invoke(() -> {
+                    operationInstance.destroyIfNecessary();
+                });
+            } else if (result instanceof Multi) {
+                return (T) ((Multi) result).onTermination().invoke(() -> {
+                    operationInstance.destroyIfNecessary();
+                });
+            } else {
+                operationInstance.destroyIfNecessary();
+                return result;
+            }
         } catch (InvocationTargetException ex) {
             //Invoked method has thrown something, unwrap
             Throwable throwable = ex.getCause();
