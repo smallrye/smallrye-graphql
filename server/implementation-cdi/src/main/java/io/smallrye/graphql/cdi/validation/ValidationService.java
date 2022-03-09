@@ -48,8 +48,7 @@ public class ValidationService implements EventingService {
 
     private ValidatorFactory getValidatorFactory() {
         try {
-            ValidatorFactory validatorFactory = (ValidatorFactory) lookupService.getInstance(ValidatorFactory.class);
-            return validatorFactory;
+            return lookupService.getInstance(ValidatorFactory.class).get();
         } catch (Exception t) {
             return Validation.buildDefaultValidatorFactory();
         }
