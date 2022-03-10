@@ -20,6 +20,9 @@ import io.smallrye.graphql.client.GraphQLError;
 public class ResponseReader {
 
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
+        if (input == null) {
+            throw SmallRyeGraphQLClientMessages.msg.nullResponseBody();
+        }
         JsonReader jsonReader = Json.createReader(new StringReader(input));
         JsonObject jsonResponse;
         try {

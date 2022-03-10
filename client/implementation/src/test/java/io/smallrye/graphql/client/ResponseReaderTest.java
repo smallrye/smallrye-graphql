@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.impl.ResponseImpl;
@@ -219,6 +220,17 @@ public class ResponseReaderTest {
                 "\"path\": null}]}";
         ResponseImpl response = ResponseReader.readFrom(responseString, Collections.emptyMap());
         assertNull(response.getErrors().get(0).getPath());
+    }
+
+    @Test
+    public void nullResponse() {
+        ResponseImpl response;
+        try {
+            response = ResponseReader.readFrom(null, Collections.emptyMap());
+            Assertions.fail();
+        } catch (InvalidResponseException ire) {
+            Assertions.assertTrue(ire.getMessage().contains("Response body was null"));
+        }
     }
 
 }
