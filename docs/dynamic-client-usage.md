@@ -13,6 +13,36 @@ documents and model classes when necessary.
 In the current implementation, Vert.x HTTP client is used for handling
 the underlying traffic.
 
+Creating a client instance
+==========================
+
+Generally there are two ways to obtain a client instance.
+
+First, using CDI injection where the configuration values are defined in system
+properties:
+
+```java
+@Inject
+@GraphQLClient("superheroes")
+DynamicGraphQLClient client;
+
+// assuming that this system property exists:
+// superheroes/mp-graphql/url=https://superheroes.org/graphql
+```
+
+The above example assumes that configuration for the client is present in system properties. For a full list of
+supported configuration properties, see [Client configuration reference](/client_configuration)
+
+The other way to build a client is programmatically using a builder:
+
+```java
+DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
+    .url("https://superheroes.org/graphql")
+    .build();
+```
+
+The usage examples in the following sections will assume using the first approach - injection.
+
 Basic Usage
 ===========
 
@@ -50,41 +80,24 @@ Such service can be queried this way:
 
 -   <4> Obtaining the resulting list of heroes as instances of the model
     class. This is optional, you can continue working with the data as a `JsonArray` if you prefer.
+    
+Using plain strings instead of the DSL
+======================================
 
-Initializing the client instance
-================================
+If you don't like the DSL for some reason and want to use plain strings for your queries, these two examples
+will serve you:
 
-There are two ways to obtain a client instance.
-
-Using CDI injection where the configuration values are defined in system
-properties:
-            
-```java
-@Inject
-@NamedClient("superheroes")
-DynamicGraphQLClient client;
-
-// assuming that this system property exists:
-// superheroes/mp-graphql/url=https://superheroes.org/graphql
+``` java
+--8<-- "docs/snippets/examples/dynamicclient/MyClientUsageString.java"
 ```
 
-Programmatically using a builder:
+-   <1>: In this variant, we inline values for query arguments directly into the query string.
 
-```java
-DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
-    .url("https://superheroes.org/graphql")
-    .build();
-```
+-   <2>: In this variant, argument values are extracted into variables. The `location` argument of the `allHeroesIn` query is 
+    declared to be using the variable `loc` (the variable can also be named `location` same as the argument, if
+    you prefer).
 
-Configuration properties
-========================
+-   <3>: Here we create a map that defines the values for each variable. Values of this map are `Object`s,
+    so you can put in strings, numbers, booleans, or any object that corresponds to a GraphQL type and can be
+    serialized to JSON. Inserting a `JsonObject` directly is also supported.
 
-These properties apply when you’re using CDI to inject named client
-instances (the first example in the previous section).
-
--   `CLIENT_NAME/mp-graphql/url` - defines the URL where the client
-    should connect
-
--   `CLIENT_NAME/mp-graphql/header/KEY` - this property declares that
-    the client will add a HTTP header named `KEY` to all requests (with
-    a value being the value of this property)

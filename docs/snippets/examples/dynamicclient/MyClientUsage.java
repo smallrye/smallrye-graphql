@@ -1,6 +1,7 @@
 package examples.dynamicclient;
 
 import examples.typesafeclient.SuperHero;
+import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
@@ -19,6 +20,7 @@ import static io.smallrye.graphql.client.core.Operation.operation;
 public class MyClientUsage {
 
     @Inject
+    @GraphQLClient("superHeroes")
     DynamicGraphQLClient client;
 
     public void execute() throws ExecutionException, InterruptedException {
