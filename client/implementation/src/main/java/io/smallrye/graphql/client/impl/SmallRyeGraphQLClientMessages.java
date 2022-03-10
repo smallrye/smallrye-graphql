@@ -8,6 +8,8 @@ import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageBundle;
 
+import io.smallrye.graphql.client.InvalidResponseException;
+
 @MessageBundle(projectCode = "SRGQLDC")
 public interface SmallRyeGraphQLClientMessages {
 
@@ -48,5 +50,8 @@ public interface SmallRyeGraphQLClientMessages {
 
     @Message(id = 35011, value = "The response does not contain any data for operation %s")
     RuntimeException missingDataForOperation(String operation);
+
+    @Message(id = 35012, value = "Response body was null")
+    InvalidResponseException nullResponseBody();
 
 }
