@@ -16,6 +16,7 @@ import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.NamedNode;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
 public class BeanValidationException extends AbstractDataFetcherException {
@@ -77,9 +78,16 @@ public class BeanValidationException extends AbstractDataFetcherException {
 
         private int parameterIndex(String name) {
             Parameter[] parameters = method.getParameters();
-            for (int i = 0; i < parameters.length; i++)
-                if (name.equals(parameters[i].getName()))
-                    return i;
+            int index = 0;
+            for (int i = 0; i < parameters.length; i++) {
+                if (name.equals(parameters[i].getName())) {
+                    return index;
+                }
+                // parameters of type Context are not stored as arguments in the FieldDefinition, so don't increment the index on them
+                if (!parameters[i].getType().isAssignableFrom(Context.class)) {
+                    index++;
+                }
+            }
             throw new AssertionError("expected parameter " + name + " in " + method);
         }
     }
