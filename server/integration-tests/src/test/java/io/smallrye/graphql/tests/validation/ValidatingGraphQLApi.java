@@ -7,6 +7,8 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 
+import io.smallrye.graphql.api.Context;
+
 @GraphQLApi
 @ApplicationScoped
 public class ValidatingGraphQLApi {
@@ -16,8 +18,9 @@ public class ValidatingGraphQLApi {
         return new Person();
     }
 
+    // we inject a Context to make sure that it doesn't break the validation, see https://github.com/quarkusio/quarkus/issues/24183
     @Mutation("update")
-    public Person update(@Valid Person person) {
+    public Person update(Context context, @Valid Person person) {
         return person;
     }
 }
