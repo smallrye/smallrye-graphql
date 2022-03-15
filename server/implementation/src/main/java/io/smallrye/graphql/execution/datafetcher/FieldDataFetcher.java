@@ -20,6 +20,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * intercept the result for some manipulation.
  * <p>
  *
+ * @param <T>
  * @implNote If the (graphql-) field has no methodName, a {@link FieldAccessor} for the (java-) field is is created.
  *           Otherwise, a {@link MethodAccessor} is created for the accessor method.
  *           <p>

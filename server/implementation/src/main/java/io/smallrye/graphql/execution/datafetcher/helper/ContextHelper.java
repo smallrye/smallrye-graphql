@@ -17,18 +17,13 @@ public class ContextHelper {
     public static final String CONTEXT = "context";
 
     public SmallRyeContext getSmallRyeContext(final BatchLoaderEnvironment ble) {
-        DataFetchingEnvironment dfe = ble.getContext();
-        return getSmallRyeContext(dfe);
+        SmallRyeContext smallRyeContext = ble.getContext();
+        return smallRyeContext;
     }
 
     public SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
         GraphQLContext graphQLContext = dfe.getGraphQlContext();
         return graphQLContext.get(CONTEXT);
-    }
-
-    public GraphQLContext getGraphQLContext(final BatchLoaderEnvironment ble) {
-        DataFetchingEnvironment dfe = ble.getContext();
-        return getGraphQLContext(dfe);
     }
 
     public GraphQLContext getGraphQLContext(final DataFetchingEnvironment dfe) {
@@ -47,8 +42,4 @@ public class ContextHelper {
         return smallRyeContext;
     }
 
-    public SmallRyeContext updateSmallRyeContextWithField(final BatchLoaderEnvironment ble, final Field field) {
-        DataFetchingEnvironment dfe = ble.getContext();
-        return updateSmallRyeContextWithField(dfe, field);
-    }
 }

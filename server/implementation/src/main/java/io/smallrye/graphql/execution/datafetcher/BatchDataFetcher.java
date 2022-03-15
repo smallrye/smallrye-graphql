@@ -4,6 +4,7 @@ import org.dataloader.DataLoader;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
@@ -40,9 +41,17 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
         Object source = dfe.getSource();
 
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
-        batchLoaderHelper.setDataFetchingEnvironment(dataLoader, dfe);
+        // FIXME: this is potentially brittle because it assumes that the batch loader will execute and
+        //  consume the context before we call this again for a different operation, but I don't know
+        //  how else to pass this context to the matching BatchLoaderEnvironment instance
+        SmallRyeBatchLoaderContextProvider.getForDataLoader(dataLoader).set(smallryeContext);
 
-        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, transformedArguments)).subscribe()
-                .asCompletionStage();
+        try {
+            SmallRyeContext.setContext(smallryeContext);
+            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, transformedArguments)).subscribe()
+                    .asCompletionStage();
+        } finally {
+            SmallRyeContext.remove();
+        }
     }
 }
