@@ -1,7 +1,6 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import org.dataloader.DataLoader;
-import org.eclipse.microprofile.context.ThreadContext;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -11,6 +10,7 @@ import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Fetch data using using a batchloader
@@ -34,7 +34,6 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-
         SmallRyeContext smallryeContext = contextHelper.updateSmallRyeContextWithField(dfe, operation);
         eventEmitter.fireBeforeDataFetch(smallryeContext);
         Object[] transformedArguments = argumentHelper.getArguments(dfe, true);
@@ -43,12 +42,7 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
         batchLoaderHelper.setDataFetchingEnvironment(dataLoader, dfe);
 
-        try {
-            SmallRyeContext.setContext(smallryeContext);
-            ThreadContext threadContext = ThreadContext.builder().build();
-            return (T) threadContext.withContextCapture(dataLoader.load(source, transformedArguments));
-        } finally {
-            SmallRyeContext.remove();
-        }
+        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, transformedArguments)).subscribe()
+                .asCompletionStage();
     }
 }

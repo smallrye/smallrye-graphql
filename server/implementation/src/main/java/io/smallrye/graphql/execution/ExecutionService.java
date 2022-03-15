@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
@@ -17,7 +16,6 @@ import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
-import org.eclipse.microprofile.context.ThreadContext;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
@@ -27,7 +25,6 @@ import graphql.execution.ExecutionId;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
@@ -38,6 +35,7 @@ import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Executing the GraphQL request
@@ -159,6 +157,10 @@ public class ExecutionService {
                 // Operation name
                 smallRyeContext.getOperationName().ifPresent(executionBuilder::operationName);
 
+                // Context
+                context.put(ContextHelper.CONTEXT, smallRyeContext);
+                executionBuilder.graphQLContext(context);
+
                 // DataLoaders
                 if (batchOperations != null && !batchOperations.isEmpty()) {
                     DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
@@ -169,19 +171,16 @@ public class ExecutionService {
 
                 // Update context with execution data
                 smallRyeContext = smallRyeContext.withDataFromExecution(executionInput, queryCache);
-
-                // Context
-                context.put(ContextHelper.CONTEXT, smallRyeContext);
-                executionInput.getGraphQLContext().putAll(context);
+                executionInput.getGraphQLContext().put(ContextHelper.CONTEXT, smallRyeContext);
 
                 // Notify before
                 eventEmitter.fireBeforeExecute(smallRyeContext);
 
                 // Execute
                 if (async) {
-                    writeAsync(g, executionInput, context, writer);
+                    writeAsync(g, executionInput, context, smallRyeContext, writer);
                 } else {
-                    writeSync(g, executionInput, context, writer);
+                    writeSync(g, executionInput, context, smallRyeContext, writer);
                 }
             } else {
                 log.noGraphQLMethodsFound();
@@ -195,42 +194,41 @@ public class ExecutionService {
     private void writeAsync(GraphQL graphQL,
             ExecutionInput executionInput,
             Map<String, Object> context,
+            SmallRyeContext smallRyeContext,
             ExecutionResponseWriter writer) {
 
-        // Execute
-        ThreadContext threadContext = ThreadContext.builder().build();
-        CompletionStage<ExecutionResult> executionResult = threadContext
-                .withContextCapture(graphQL.executeAsync(executionInput));
+        Uni.createFrom().completionStage(() -> graphQL.executeAsync(executionInput))
 
-        executionResult.whenComplete((t, u) -> {
-            executionInput.getGraphQLContext().putAll(context);
+                .subscribe().with(executionResult -> {
+                    executionInput.getGraphQLContext().putAll(context);
 
-            SmallRyeContext smallryeContext = (SmallRyeContext) context.get(ContextHelper.CONTEXT);
-            SmallRyeContext.setContext(smallryeContext);
+                    SmallRyeContext.setContext(smallRyeContext);
 
-            // Notify after
-            eventEmitter.fireAfterExecute(smallryeContext);
+                    // Notify after
+                    eventEmitter.fireAfterExecute(smallRyeContext);
 
-            ExecutionResponse executionResponse = new ExecutionResponse(t);
-            if (!payloadOption.equals(LogPayloadOption.off)) {
-                log.payloadOut(executionResponse.toString());
-            }
-            writer.write(executionResponse);
+                    ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+                    if (!payloadOption.equals(LogPayloadOption.off)) {
+                        log.payloadOut(executionResponse.toString());
+                    }
+                    writer.write(executionResponse);
 
-            if (u != null) {
-                writer.fail(u);
-            }
-        });
+                }, failure -> {
+                    if (failure != null) {
+                        writer.fail(failure);
+                    }
+                });
     }
 
     private void writeSync(GraphQL g,
             ExecutionInput executionInput,
             Map<String, Object> context,
+            SmallRyeContext smallRyeContext,
             ExecutionResponseWriter writer) {
         try {
             ExecutionResult executionResult = g.execute(executionInput);
             // Notify after
-            eventEmitter.fireAfterExecute((Context) context.get(ContextHelper.CONTEXT));
+            eventEmitter.fireAfterExecute(smallRyeContext);
 
             ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
             if (!payloadOption.equals(LogPayloadOption.off)) {

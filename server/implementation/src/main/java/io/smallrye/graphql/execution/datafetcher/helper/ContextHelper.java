@@ -26,6 +26,15 @@ public class ContextHelper {
         return graphQLContext.get(CONTEXT);
     }
 
+    public GraphQLContext getGraphQLContext(final BatchLoaderEnvironment ble) {
+        DataFetchingEnvironment dfe = ble.getContext();
+        return getGraphQLContext(dfe);
+    }
+
+    public GraphQLContext getGraphQLContext(final DataFetchingEnvironment dfe) {
+        return dfe.getGraphQlContext();
+    }
+
     public void setSmallRyeContext(final DataFetchingEnvironment dfe, SmallRyeContext smallRyeContext) {
         GraphQLContext graphQLContext = dfe.getGraphQlContext();
         graphQLContext.put(CONTEXT, smallRyeContext);

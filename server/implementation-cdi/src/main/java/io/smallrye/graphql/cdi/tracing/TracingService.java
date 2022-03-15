@@ -12,13 +12,6 @@ import java.util.concurrent.CompletionException;
 import javax.annotation.Priority;
 import javax.enterprise.inject.spi.CDI;
 
-import graphql.ExecutionInput;
-import graphql.GraphQLContext;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLNonNull;
-import graphql.schema.GraphQLType;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -54,9 +47,8 @@ public class TracingService implements EventingService {
 
     @Override
     public void beforeExecute(Context context) {
-        ExecutionInput executionInput = context.unwrap(ExecutionInput.class);
         // FIXME: if operationName is not set in the request explicitly, this is empty
-        String operationName = getOperationName(executionInput);
+        String operationName = getOperationName(context);
 
         Span span = getTracer().buildSpan(operationName)
                 .asChildOf(getTracer().activeSpan())
@@ -92,10 +84,9 @@ public class TracingService implements EventingService {
 
     @Override
     public void beforeDataFetch(Context context) {
-        final DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
-        Span parentSpan = getParentSpan(getTracer(), env);
+        Span parentSpan = getParentSpan(getTracer(), context);
 
-        Span span = getTracer().buildSpan(getOperationName(env))
+        Span span = getTracer().buildSpan(getOperationNameForParentType(context))
                 .asChildOf(parentSpan)
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
@@ -106,9 +97,8 @@ public class TracingService implements EventingService {
                 .start();
         Scope scope = tracer.activateSpan(span);
 
-        GraphQLContext graphQLContext = env.getContext();
-        graphQLContext.put(SPAN_CLASS, parentSpan);
-        graphQLContext.put(SCOPE_CLASS, scope);
+        context.putMetaData(SPAN_CLASS, parentSpan);
+        context.putMetaData(SCOPE_CLASS, scope);
     }
 
     // FIXME: is the fetcher is asynchronous, this typically ends its span before
@@ -118,7 +108,7 @@ public class TracingService implements EventingService {
     @Override
     public void afterDataFetch(Context context) {
         Span span = tracer.activeSpan();
-        Scope scope = ((GraphQLContext) context.unwrap(DataFetchingEnvironment.class).getContext()).get(SCOPE_CLASS);
+        Scope scope = context.getMetaData(SCOPE_CLASS);
         scope.close();
         span.finish();
     }
@@ -143,15 +133,11 @@ public class TracingService implements EventingService {
         return tracer;
     }
 
-    private Span getParentSpan(Tracer tracer, final DataFetchingEnvironment env) {
-        final GraphQLContext localContext = env.getLocalContext();
-        if (localContext != null && localContext.hasKey(SPAN_CLASS)) {
-            return localContext.get(SPAN_CLASS);
-        }
-
-        final GraphQLContext rootContext = env.getContext();
-        if (rootContext != null && rootContext.hasKey(SPAN_CLASS)) {
-            return rootContext.get(SPAN_CLASS);
+    private Span getParentSpan(Tracer tracer, final Context context) {
+        if (context != null && context.hasLocalMetaData(SPAN_CLASS)) {
+            return context.getLocalMetaData(SPAN_CLASS);
+        } else if (context != null && context.hasMetaData(SPAN_CLASS)) {
+            return context.getMetaData(SPAN_CLASS);
         }
 
         return tracer.activeSpan();
@@ -172,31 +158,17 @@ public class TracingService implements EventingService {
         span.setTag("error", true);
     }
 
-    private String getOperationName(final DataFetchingEnvironment env) {
-        String parent = getName(env.getParentType());
-
-        String name = PREFIX + ":" + parent + "." + env.getField().getName();
-
+    private String getOperationNameForParentType(Context context) {
+        String parent = context.getParentTypeName().orElse(EMPTY);
+        String name = PREFIX + ":" + parent + "." + context.getFieldName();
         return name;
     }
 
-    private static String getOperationName(ExecutionInput executionInput) {
-        if (executionInput != null && executionInput.getOperationName() != null
-                && !executionInput.getOperationName().isEmpty()) {
-            return PREFIX + ":" + executionInput.getOperationName();
+    private static String getOperationName(Context context) {
+        if (context.getOperationName().isPresent()) {
+            return PREFIX + ":" + context.getOperationName().get();
         }
         return PREFIX;
-    }
-
-    private String getName(GraphQLType graphQLType) {
-        if (graphQLType instanceof GraphQLNamedType) {
-            return ((GraphQLNamedType) graphQLType).getName();
-        } else if (graphQLType instanceof GraphQLNonNull) {
-            return getName(((GraphQLNonNull) graphQLType).getWrappedType());
-        } else if (graphQLType instanceof GraphQLList) {
-            return getName(((GraphQLList) graphQLType).getWrappedType());
-        }
-        return EMPTY;
     }
 
     private String getOperationNameString(List<String> types) {
