@@ -5,10 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.dataloader.BatchLoaderEnvironment;
-import org.dataloader.DataLoader;
 
-import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
@@ -34,16 +31,5 @@ public class BatchLoaderHelper {
         }
 
         return arguments.toArray();
-    }
-
-    public DataFetchingEnvironment getDataFetchingEnvironment(BatchLoaderEnvironment ble) {
-        return ble.getContext();
-    }
-
-    public void setDataFetchingEnvironment(final DataLoader<Object, Object> dataLoader, final DataFetchingEnvironment dfe) {
-        // FIXME: this is potentially brittle because it assumes that the batch loader will execute and
-        //  consume the context before we call this again for a different operation, but I don't know
-        //  how else to pass this context to the matching BatchLoaderEnvironment instance
-        SmallRyeBatchLoaderContextProvider.getForDataLoader(dataLoader).set(dfe);
     }
 }

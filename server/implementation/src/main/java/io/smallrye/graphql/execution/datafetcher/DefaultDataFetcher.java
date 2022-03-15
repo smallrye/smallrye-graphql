@@ -50,8 +50,7 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     @Override
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         final Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
-        final DataFetchingEnvironment dfe = batchLoaderHelper.getDataFetchingEnvironment(ble);
-        final SmallRyeContext smallRyeContext = contextHelper.getSmallRyeContext(dfe);
+        final SmallRyeContext smallRyeContext = contextHelper.getSmallRyeContext(ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
         ThreadContext threadContext = ThreadContext.builder().build();

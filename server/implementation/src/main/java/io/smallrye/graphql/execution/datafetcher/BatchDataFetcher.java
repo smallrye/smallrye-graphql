@@ -1,16 +1,17 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import org.dataloader.DataLoader;
-import org.eclipse.microprofile.context.ThreadContext;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Fetch data using using a batchloader
@@ -34,19 +35,21 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-
         SmallRyeContext smallryeContext = contextHelper.updateSmallRyeContextWithField(dfe, operation);
         eventEmitter.fireBeforeDataFetch(smallryeContext);
         Object[] transformedArguments = argumentHelper.getArguments(dfe, true);
         Object source = dfe.getSource();
 
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
-        batchLoaderHelper.setDataFetchingEnvironment(dataLoader, dfe);
+        // FIXME: this is potentially brittle because it assumes that the batch loader will execute and
+        //  consume the context before we call this again for a different operation, but I don't know
+        //  how else to pass this context to the matching BatchLoaderEnvironment instance
+        SmallRyeBatchLoaderContextProvider.getForDataLoader(dataLoader).set(smallryeContext);
 
         try {
             SmallRyeContext.setContext(smallryeContext);
-            ThreadContext threadContext = ThreadContext.builder().build();
-            return (T) threadContext.withContextCapture(dataLoader.load(source, transformedArguments));
+            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, transformedArguments)).subscribe()
+                    .asCompletionStage();
         } finally {
             SmallRyeContext.remove();
         }

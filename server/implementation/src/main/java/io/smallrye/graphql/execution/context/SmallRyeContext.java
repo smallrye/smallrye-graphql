@@ -20,6 +20,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import graphql.ExecutionInput;
+import graphql.GraphQLContext;
 import graphql.ParseAndValidate;
 import graphql.ParseAndValidateResult;
 import graphql.execution.preparsed.PreparsedDocumentEntry;
@@ -227,6 +228,82 @@ public class SmallRyeContext implements Context {
             return getName(dfe.getParentType());
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getOperationName() {
+        // Check if it's set in the request
+        if (hasOperationName()) {
+            String fromRequest = jsonObject.getString(OPERATION_NAME);
+            if (fromRequest != null && !fromRequest.isEmpty()) {
+                return Optional.of(fromRequest);
+            }
+        }
+
+        // Else try the input
+        if (executionInput != null && executionInput.getOperationName() != null
+                && !executionInput.getOperationName().isEmpty()) {
+            return Optional.of(executionInput.getOperationName());
+        }
+
+        // Else try DataFetchingEnvironment
+        if (dfe != null && dfe.getOperationDefinition() != null && dfe.getOperationDefinition().getName() != null
+                && !dfe.getOperationDefinition().getName().isEmpty()) {
+            return Optional.of(dfe.getOperationDefinition().getName());
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public <K> boolean hasMetaData(K key) {
+        if (dfe != null) {
+            return dfe.getGraphQlContext().hasKey(key);
+        }
+        return false;
+    }
+
+    @Override
+    public <K, V> V getMetaData(K key) {
+        if (dfe != null) {
+            return dfe.getGraphQlContext().get(key);
+        }
+        return null;
+    }
+
+    @Override
+    public <K, V> void putMetaData(K key, V value) {
+        if (dfe != null) {
+            dfe.getGraphQlContext().put(key, value);
+        }
+    }
+
+    @Override
+    public <K> boolean hasLocalMetaData(K key) {
+        if (dfe != null) {
+            GraphQLContext localContext = dfe.getLocalContext();
+            return localContext != null && localContext.hasKey(key);
+        }
+        return false;
+    }
+
+    @Override
+    public <K, V> V getLocalMetaData(K key) {
+        if (dfe != null) {
+            GraphQLContext localContext = dfe.getLocalContext();
+            if (localContext != null && localContext.hasKey(key)) {
+                return localContext.get(key);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public <K, V> void putLocalMetaData(K key, V value) {
+        if (dfe != null && dfe.getLocalContext() != null) {
+            GraphQLContext localContext = dfe.getLocalContext();
+            localContext.put(key, value);
+        }
     }
 
     private Optional<String> getName(GraphQLType graphQLType) {

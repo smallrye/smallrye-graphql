@@ -158,6 +158,64 @@ public interface Context {
      */
     public Map<String, Object> getArguments();
 
+    /**
+     * Check if a certain meta data is available
+     * 
+     * @param <K>
+     * @param key
+     * @return
+     */
+    public <K> boolean hasMetaData(K key);
+
+    /**
+     * Allow getting custom user values.
+     * 
+     * @param <K> the key
+     * @param <V> the value
+     * @param key
+     * @return
+     */
+    public <K, V> V getMetaData(K key);
+
+    /**
+     * Allow setting custom user values
+     * 
+     * @param <K>
+     * @param <V>
+     * @param key
+     * @param value
+     */
+    public <K, V> void putMetaData(K key, V value);
+
+    /**
+     * Check if a certain local meta data is available
+     * 
+     * @param <K>
+     * @param key
+     * @return
+     */
+    public <K> boolean hasLocalMetaData(K key);
+
+    /**
+     * Allow getting custom local user values.
+     * 
+     * @param <K> the key
+     * @param <V> the value
+     * @param key
+     * @return
+     */
+    public <K, V> V getLocalMetaData(K key);
+
+    /**
+     * Allow setting custom local user values
+     * 
+     * @param <K>
+     * @param <V>
+     * @param key
+     * @param value
+     */
+    public <K, V> void putLocalMetaData(K key, V value);
+
     default boolean hasSource() {
         Object o = getSource();
         return o != null;
