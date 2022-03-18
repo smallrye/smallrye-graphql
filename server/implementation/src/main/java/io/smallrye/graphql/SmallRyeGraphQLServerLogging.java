@@ -94,4 +94,7 @@ public interface SmallRyeGraphQLServerLogging {
     @Message(id = 15000, value = "Using %s service for context propagation")
     void usingContextPropagationService(String name);
 
+    @LogMessage(level = Logger.Level.DEBUG)
+    @Message(id = 16000, value = "Enable GraphQL Federation")
+    void enableFederation();
 }

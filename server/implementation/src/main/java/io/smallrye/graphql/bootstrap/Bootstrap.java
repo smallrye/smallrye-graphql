@@ -188,6 +188,7 @@ public class Bootstrap {
         JsonInputRegistry.override(overrides);
 
         if (Config.get().isFederationEnabled()) {
+            log.enableFederation();
             GraphQLSchema rawSchema = schemaBuilder.build();
             this.graphQLSchema = Federation.transform(rawSchema)
                     .fetchEntities(new FederationDataFetcher(rawSchema.getQueryType(), rawSchema.getCodeRegistry()))
