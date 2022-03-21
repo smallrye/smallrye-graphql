@@ -382,18 +382,8 @@ public class ArgumentHelper extends AbstractHelper {
             }
         }
 
-        // make sure, all fields required by creator-method are set
-        for (final Field f : InputFieldsInfo.getCreatorParameters(className)) {
-            String s = f.getName();
-            if (m.containsKey(s)) {
-                if (m.get(s) instanceof Map) {
-                    m.put(s, includeNullCreatorParameters((Map) m.get(s), f));
-                }
-            } else {
-                // null should be safe, since primitive fields are already set (since marked as non null)
-                m.put(s, null);
-            }
-        }
+        // make sure all fields required by creator-method are set
+        m = includeNullCreatorParameters(m, field);
 
         // Create a valid jsonString from a map
         String jsonString = JsonBCreator.getJsonB().toJson(m);
@@ -415,12 +405,27 @@ public class ArgumentHelper extends AbstractHelper {
             if (result.containsKey(s)) {
                 Object fieldValue = result.get(s);
                 if (fieldValue instanceof Map) {
-                    result.put(s, includeNullCreatorParameters(result, f));
+                    result.put(s, includeNullCreatorParameters((Map) result.get(s), f));
+                } else if (fieldValue instanceof List) {
+                    result.put(s, handleList((List) fieldValue, f));
+
                 }
             } else {
                 result.put(s, null);
             }
         }
+        return result;
+    }
+
+    private List handleList(List list, Field field) {
+        List result = new ArrayList();
+        list.forEach(item -> {
+            if (item instanceof Map) {
+                result.add(includeNullCreatorParameters((Map) item, field));
+            } else {
+                // can this ever happen?
+            }
+        });
         return result;
     }
 
