@@ -2,6 +2,7 @@ package io.smallrye.graphql.tests.records;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
+import io.smallrye.graphql.client.core.InputObject;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -16,9 +17,12 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.json.bind.annotation.JsonbCreator;
 import java.net.URL;
+import java.util.List;
 
 import static io.smallrye.graphql.client.core.Argument.arg;
 import static io.smallrye.graphql.client.core.Argument.args;
@@ -38,7 +42,7 @@ public class NestedRecordsTest {
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-                .addClasses(Parent.class, TestRecord.class);
+                .addClasses(ParentRecord.class, ParentRecordWithList.class, TestRecord.class);
     }
 
     @ArquillianResource
@@ -66,6 +70,32 @@ public class NestedRecordsTest {
     }
 
     @Test
+    public void testNestedRecordWithListWithMissingFieldInQuery() throws Exception {
+        try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
+                .url(testingURL.toString() + "graphql").build()) {
+            Document query = document(operation(
+                    field("testParentWithList",
+                            args(arg("parent",
+                                    inputObject(
+                                            prop("testRecords",
+                                                    new InputObject[] {
+                                                            inputObject(prop("needed", "bla")),
+                                                            inputObject(prop("needed", "bla2"))
+                                                    })))),
+                            field("testRecords",
+                                    field("needed"),
+                                    field("notNeeded")))));
+            Response response = client.executeSync(query);
+            JsonArray echoedRecords = response.getData().getJsonObject("testParentWithList").getJsonArray("testRecords");
+
+            assertEquals("bla", echoedRecords.get(0).asJsonObject().getString("needed"));
+            assertEquals(JsonValue.NULL, echoedRecords.get(0).asJsonObject().get("notNeeded"));
+            assertEquals("bla2", echoedRecords.get(1).asJsonObject().getString("needed"));
+            assertEquals(JsonValue.NULL, echoedRecords.get(1).asJsonObject().get("notNeeded"));
+        }
+    }
+
+    @Test
     public void testSimpleRecordWithMissingFieldInQuery() throws Exception {
         try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql").build()) {
@@ -86,7 +116,12 @@ public class NestedRecordsTest {
     public static class Api {
 
         @Query
-        public Parent testParent(Parent parent) {
+        public ParentRecord testParent(ParentRecord parent) {
+            return parent;
+        }
+
+        @Query
+        public ParentRecordWithList testParentWithList(ParentRecordWithList parent) {
             return parent;
         }
 
@@ -97,10 +132,17 @@ public class NestedRecordsTest {
 
     }
 
-    public record Parent(String s,
+    public record ParentRecord(String s,
             TestRecord testRecord) {
         @JsonbCreator
-        public Parent {
+        public ParentRecord {
+        }
+    }
+
+    public record ParentRecordWithList(String s,
+            List<TestRecord> testRecords) {
+        @JsonbCreator
+        public ParentRecordWithList {
         }
     }
 
