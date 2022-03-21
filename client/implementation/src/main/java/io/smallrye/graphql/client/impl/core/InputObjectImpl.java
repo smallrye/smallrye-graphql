@@ -13,7 +13,7 @@ public class InputObjectImpl extends AbstractInputObject {
             InputObjectFieldImpl inputObjectField = inputObjectFields[i];
             builder.append(inputObjectField.build());
             if (i < inputObjectFields.length - 1) {
-                builder.append(" ");
+                builder.append(", ");
             }
         }
         builder.append("}");
