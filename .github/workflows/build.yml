@@ -74,7 +74,7 @@ jobs:
         run: mvn -B install -DskipTests --file pom.xml
 
       - name: Install xmllint
-        run: sudo apt-get install libxml2-utils
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
 
       - name: run WildFly feature pack tests
         run: |
@@ -119,7 +119,7 @@ jobs:
         run: mvn -B install -DskipTests --file smallrye-graphql/pom.xml
 
       - name: Install xmllint
-        run: sudo apt-get install libxml2-utils
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
 
       - name: run Quarkus tests
         run: |
