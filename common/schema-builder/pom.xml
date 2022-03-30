@@ -19,6 +19,14 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-schema-model</artifactId>
         </dependency>
+
+        <!-- Bean validation annotations are scanned via jandex so we don't need the validation API to run,
+         but there is a test that actually declares those annotations -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
         
         <!-- Jandex indexer -->
         <dependency>

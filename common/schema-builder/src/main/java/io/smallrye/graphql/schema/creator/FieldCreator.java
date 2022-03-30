@@ -1,18 +1,22 @@
 package io.smallrye.graphql.schema.creator;
 
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Optional;
 
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
 
@@ -23,8 +27,13 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class FieldCreator extends ModelCreator {
 
+    private Logger logger = Logger.getLogger(FieldCreator.class.getName());
+
+    private BeanValidationDirectivesHelper validationHelper;
+
     public FieldCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
+        validationHelper = new BeanValidationDirectivesHelper();
     }
 
     /**
@@ -86,6 +95,9 @@ public class FieldCreator extends ModelCreator {
 
             Field field = new Field(methodInfo.name(), MethodHelper.getPropertyName(direction, methodInfo.name()), name,
                     reference);
+            if (direction == Direction.IN) {
+                addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
+            }
 
             populateField(direction, field, fieldType, methodType, annotationsForPojo);
 
@@ -109,7 +121,7 @@ public class FieldCreator extends ModelCreator {
 
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
-
+        addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
         populateField(Direction.IN, field, fieldType, method.parameters().get(position), annotationsForPojo);
 
         return Optional.of(field);
@@ -141,12 +153,27 @@ public class FieldCreator extends ModelCreator {
                     fieldInfo.name(),
                     name,
                     reference);
-
+            if (direction == Direction.IN) {
+                addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
+            }
             populateField(direction, field, fieldType, annotationsForPojo);
 
             return Optional.of(field);
         }
         return Optional.empty();
+    }
+
+    private void addDirectivesForBeanValidationConstraints(Annotations annotationsForPojo, Field field,
+            Reference parentObjectReference) {
+        if (validationHelper != null) {
+            List<DirectiveInstance> constraintDirectives = validationHelper
+                    .transformBeanValidationConstraintsToDirectives(annotationsForPojo);
+            if (!constraintDirectives.isEmpty()) {
+                logger.debug("Adding constraint directives " + constraintDirectives + " to field '" + field.getName()
+                        + "' of parent type '" + parentObjectReference.getName() + "'");
+                field.addDirectiveInstances(constraintDirectives);
+            }
+        }
     }
 
     /**

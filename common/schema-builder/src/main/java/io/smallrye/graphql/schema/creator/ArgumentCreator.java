@@ -1,17 +1,21 @@
 package io.smallrye.graphql.schema.creator;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -23,8 +27,13 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  */
 public class ArgumentCreator extends ModelCreator {
 
+    private BeanValidationDirectivesHelper validationHelper;
+
+    private Logger logger = Logger.getLogger(ArgumentCreator.class.getName());
+
     public ArgumentCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
+        validationHelper = new BeanValidationDirectivesHelper();
     }
 
     /**
@@ -74,6 +83,16 @@ public class ArgumentCreator extends ModelCreator {
 
         if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
             argument.setSourceArgument(true);
+        }
+
+        if (validationHelper != null) {
+            List<DirectiveInstance> constraintDirectives = validationHelper
+                    .transformBeanValidationConstraintsToDirectives(annotationsForThisArgument);
+            if (!constraintDirectives.isEmpty()) {
+                logger.debug("Adding constraint directives " + constraintDirectives + " to argument '" + argument.getName()
+                        + "' of method '" + argument.getMethodName() + "'");
+                argument.addDirectiveInstances(constraintDirectives);
+            }
         }
 
         populateField(Direction.IN, argument, argumentType, annotationsForThisArgument);
