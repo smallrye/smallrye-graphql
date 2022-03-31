@@ -268,7 +268,7 @@ public class ExecutionService {
                 }
 
                 if (mutationExecutionStrategy != null) {
-                    graphqlBuilder = graphqlBuilder.queryExecutionStrategy(mutationExecutionStrategy);
+                    graphqlBuilder = graphqlBuilder.mutationExecutionStrategy(mutationExecutionStrategy);
                 }
                 if (hasSubscription) {
                     graphqlBuilder = graphqlBuilder
