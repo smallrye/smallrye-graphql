@@ -36,7 +36,7 @@ public abstract class DynamicClientSingleOperationsTestBase {
 
     @Deployment
     public static WebArchive deployment() {
-        return ShrinkWrap.create(WebArchive.class, "validation-test.war")
+        return ShrinkWrap.create(WebArchive.class, "integration-test.war")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addClasses(DynamicClientApi.class, DummyObject.class, Dummy.class);
     }
