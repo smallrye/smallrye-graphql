@@ -74,7 +74,7 @@ public class TestInterceptor extends TestListenerAdapter {
             }
 
         } catch (IOException ex) {
-            ex.printStackTrace();
+            LOG.info("No overrides found [" + ex.getMessage() + "]");
         }
     }
 
@@ -85,7 +85,7 @@ public class TestInterceptor extends TestListenerAdapter {
             Set<Path> overrideFolders = toListOfPathsForExecution(overrides);
             executionTestDataMap.putAll(toMapOfTestDataForExecution(overrideFolders));
         } catch (IOException ex) {
-            ex.printStackTrace();
+            LOG.info("No overrides found [" + ex.getMessage() + "]");
         }
     }
 
