@@ -29,7 +29,6 @@ import javax.json.bind.JsonbConfig;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
-import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +47,6 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilderTest {
-    private static final Logger LOG = Logger.getLogger(SchemaBuilderTest.class.getName());
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
 
     @Test
@@ -56,7 +54,6 @@ public class SchemaBuilderTest {
 
         IndexView index = getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
-        LOG.info(JSONB.toJson(schema));
         assertNotNull(schema);
     }
 
@@ -90,7 +87,6 @@ public class SchemaBuilderTest {
         assertNotNull(movieSchema);
 
         String basicSchemaString = JSONB.toJson(basicSchema);
-        LOG.info(basicSchemaString);
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInterface"));
@@ -99,7 +95,6 @@ public class SchemaBuilderTest {
         assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
 
         String heroSchemaString = JSONB.toJson(heroSchema);
-        LOG.info(heroSchemaString);
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Team"));
@@ -108,7 +103,6 @@ public class SchemaBuilderTest {
         assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
 
         String movieSchemaString = JSONB.toJson(movieSchema);
-        LOG.info(movieSchemaString);
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
         assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
@@ -146,14 +140,12 @@ public class SchemaBuilderTest {
         Index index = indexer.complete();
 
         Schema schema = SchemaBuilder.build(index);
-        LOG.info(JSONB.toJson(schema));
 
         // check directive types
         assertTrue(schema.hasDirectiveTypes());
         DirectiveType someDirective = schema.getDirectiveTypes().stream()
                 .filter(d -> d.getName().equals("someDirective"))
                 .findFirst().orElseThrow(NoSuchElementException::new);
-        LOG.info(JSONB.toJson(someDirective));
         assertNotNull(someDirective);
         assertEquals("someDirective", someDirective.getName());
         assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
