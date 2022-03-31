@@ -2,17 +2,17 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.dataloader.BatchLoaderEnvironment;
-import org.eclipse.microprofile.context.ThreadContext;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.mutiny.Uni;
 
 /**
  * The default, built in data fetcher
@@ -53,28 +53,30 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
         final SmallRyeContext smallRyeContext = contextHelper.getSmallRyeContext(ble);
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
-        ThreadContext threadContext = ThreadContext.builder().build();
         try {
             SmallRyeContext.setContext(smallRyeContext);
 
-            CompletableFuture<List<T>> reflectionSupplier = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return (List<T>) operationInvoker.invokePrivileged(tccl, arguments);
-                } catch (Exception e) {
-                    if (e instanceof RuntimeException && e.getCause() != null && !(e.getCause() instanceof RuntimeException)) {
-                        throw msg.dataFetcherException(operation, e.getCause());
-                    } else if (e instanceof RuntimeException) {
-                        throw (RuntimeException) e;
-                    } else {
-                        throw msg.dataFetcherException(operation, e);
-                    }
-                }
-            }, threadContext.currentContextExecutor());
-
-            return threadContext
-                    .withContextCapture(reflectionSupplier);
+            List<T> resultFromUserCode = callUserMethod(arguments);
+            if (resultFromUserCode == null) {
+                resultFromUserCode = Collections.EMPTY_LIST;
+            }
+            return Uni.createFrom().item(resultFromUserCode).subscribeAsCompletionStage();
         } finally {
             SmallRyeContext.remove();
+        }
+    }
+
+    private List<T> callUserMethod(final Object[] arguments) {
+        try {
+            return (List<T>) operationInvoker.invoke(arguments);
+        } catch (Exception e) {
+            if (e instanceof RuntimeException && e.getCause() != null && !(e.getCause() instanceof RuntimeException)) {
+                throw msg.dataFetcherException(operation, e.getCause());
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                throw msg.dataFetcherException(operation, e);
+            }
         }
     }
 }

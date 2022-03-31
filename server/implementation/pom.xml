@@ -37,12 +37,7 @@
             <artifactId>jakarta.json-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.context-propagation</groupId>
-            <artifactId>microprofile-context-propagation-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
+        
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
@@ -59,8 +54,6 @@
         <dependency>
             <groupId>io.smallrye.reactive</groupId>
             <artifactId>mutiny</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
         </dependency>
         
         <!-- Logging -->
