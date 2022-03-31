@@ -4,6 +4,8 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
@@ -36,7 +38,9 @@ public interface LookupService {
 
     String getName();
 
-    Class<?> getClass(Class<?> declaringClass);
+    default Class<?> getClass(Class<?> declaringClass) {
+        return declaringClass;
+    }
 
     /**
      * Obtain an instance of the requested class. Don't forget to call `destroyIfNecessary()` on it after use
@@ -44,37 +48,42 @@ public interface LookupService {
      */
     <T> ManagedInstance<T> getInstance(Class<T> declaringClass);
 
-    boolean isResolvable(Class<?> declaringClass);
+    default boolean isResolvable(Class<?> declaringClass) {
+        return true;
+    }
 
     /**
      * Default Lookup service that gets used when none is provided with SPI.
      * This use reflection
      */
     class DefaultLookupService implements LookupService {
+        private final Map<Class, InheritableThreadLocal<ManagedInstance>> instanceMap = new HashMap<>();
 
         @Override
         public String getName() {
-            return "Reflection (default)";
-        }
-
-        @Override
-        public Class<?> getClass(Class<?> declaringClass) {
-            return declaringClass;
+            return "Thread Local and reflection";
         }
 
         @Override
         public <T> ManagedInstance<T> getInstance(Class<T> declaringClass) {
+            if (instanceMap.containsKey(declaringClass)) {
+                return (ManagedInstance<T>) instanceMap.get(declaringClass).get();
+            } else {
+                ManagedInstance<T> newManagedInstance = getNewManagedInstance(declaringClass);
+                InheritableThreadLocal<ManagedInstance> threadLocal = new InheritableThreadLocal<>();
+                threadLocal.set(newManagedInstance);
+                instanceMap.put(declaringClass, threadLocal);
+                return getInstance(declaringClass);
+            }
+        }
+
+        private <T> ManagedInstance<T> getNewManagedInstance(Class<T> declaringClass) {
             try {
                 return new DefaultManagedInstance<T>(declaringClass.getConstructor().newInstance());
             } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw msg.countNotGetInstance(ex);
             }
-        }
-
-        @Override
-        public boolean isResolvable(Class<?> declaringClass) {
-            return true;
         }
     }
 
@@ -88,11 +97,6 @@ public interface LookupService {
         @Override
         public T get() {
             return instance;
-        }
-
-        @Override
-        public void destroyIfNecessary() {
-            // nothing
         }
     }
 }
