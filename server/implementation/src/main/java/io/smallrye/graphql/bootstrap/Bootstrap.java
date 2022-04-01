@@ -201,11 +201,12 @@ public class Bootstrap {
         for (String location : directiveType.getLocations()) {
             directiveBuilder.validLocation(DirectiveLocation.valueOf(location));
         }
-        for (String argumentName : directiveType.getArgumentNames()) {
-            GraphQLInputType argumentType = argumentType(directiveType.getArgumentType(argumentName));
+        for (String argumentName : directiveType.argumentNames()) {
+            GraphQLInputType argumentType = argumentType(directiveType.argumentType(argumentName));
             directiveBuilder = directiveBuilder
                     .argument(GraphQLArgument.newArgument().type(argumentType).name(argumentName).build());
         }
+        directiveBuilder.repeatable(directiveType.isRepeatable());
         directiveTypes.add(directiveBuilder.build());
     }
 
@@ -512,9 +513,16 @@ public class Bootstrap {
         DirectiveType directiveType = directiveInstance.getType();
         GraphQLDirective.Builder directive = GraphQLDirective.newDirective();
         directive.name(directiveType.getName());
+        directive.repeatable(directiveType.isRepeatable());
         for (Entry<String, Object> entry : directiveInstance.getValues().entrySet()) {
             String argumentName = entry.getKey();
-            DirectiveArgument argumentType = directiveType.getArgumentType(argumentName);
+            DirectiveArgument argumentType = directiveType.argumentType(argumentName);
+            if (argumentType == null) {
+                throw new IllegalArgumentException(
+                        "Definition of directive type @" + directiveType.getName() + " does not contain" +
+                                " an argument named " + argumentName + ", but directive instance " + directiveInstance
+                                + " does contain a value for it");
+            }
             directive.argument(GraphQLArgument.newArgument().type(argumentType(argumentType)).name(argumentName)
                     .value(entry.getValue()).build());
         }
@@ -667,6 +675,12 @@ public class Bootstrap {
 
         // Type
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
+
+        if (field.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
+                inputFieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
 
         // Default value (on method)
         if (field.hasDefaultValue()) {
@@ -835,6 +849,12 @@ public class Bootstrap {
         }
 
         argumentBuilder = argumentBuilder.type(graphQLInputType);
+
+        if (argument.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : argument.getDirectiveInstances()) {
+                argumentBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
 
         return argumentBuilder.build();
 

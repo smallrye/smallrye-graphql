@@ -28,6 +28,7 @@ import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
@@ -136,10 +137,13 @@ public class SchemaBuilder {
     }
 
     private void addDirectiveTypes(Schema schema) {
+        // custom directives from annotations
         for (AnnotationInstance annotationInstance : ScanningContext.getIndex().getAnnotations(DIRECTIVE)) {
             ClassInfo classInfo = annotationInstance.target().asClass();
             schema.addDirectiveType(directiveTypeCreator.create(classInfo));
         }
+        // bean validation directives
+        schema.addDirectiveType(BeanValidationDirectivesHelper.CONSTRAINT_DIRECTIVE_TYPE);
     }
 
     private void setupDirectives(Directives directives) {

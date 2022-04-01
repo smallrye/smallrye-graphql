@@ -16,18 +16,31 @@ import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
 public class Directives {
+
+    // Directives generated from application annotations that have a `@Directive` on them.
+    // These directive types are expected to have the `className` field defined
     private final Map<DotName, DirectiveType> directiveTypes;
+
+    // Other directive types - for example, directives from bean validation constraints.
+    private final List<DirectiveType> directiveTypesOther;
 
     public Directives(List<DirectiveType> directiveTypes) {
         // not with streams/collector, so duplicate keys are allowed and overwritten
         this.directiveTypes = new HashMap<>();
+        this.directiveTypesOther = new ArrayList<>();
         for (DirectiveType directiveType : directiveTypes) {
-            this.directiveTypes.put(DotName.createSimple(directiveType.getClassName()), directiveType);
+            if (directiveType.getClassName() != null) {
+                this.directiveTypes.put(DotName.createSimple(directiveType.getClassName()), directiveType);
+            } else {
+                this.directiveTypesOther.add(directiveType);
+            }
         }
     }
 
     public List<DirectiveInstance> buildDirectiveInstances(Function<DotName, AnnotationInstance> getAnnotation) {
         List<DirectiveInstance> result = null;
+        // only build directive instances from `@Directive` annotations here (that means the `directiveTypes` map),
+        // because `directiveTypesOther` directives get their instances added on-the-go by classes that extend `ModelCreator`
         for (DotName directiveTypeName : directiveTypes.keySet()) {
             AnnotationInstance annotationInstance = getAnnotation.apply(directiveTypeName);
             if (annotationInstance == null) {

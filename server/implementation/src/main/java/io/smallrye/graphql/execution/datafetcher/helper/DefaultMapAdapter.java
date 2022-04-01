@@ -111,7 +111,7 @@ public class DefaultMapAdapter<K, V> {
         adaptedField.setAdaptTo(original.getAdaptTo());
         adaptedField.setDefaultValue(original.getDefaultValue());
         adaptedField.setDescription(original.getDescription());
-        adaptedField.setDirectiveInstances(original.getDirectiveInstances());
+        adaptedField.addDirectiveInstances(original.getDirectiveInstances());
         adaptedField.setNotNull(original.isNotNull());
         adaptedField.setTransformation(original.getTransformation());
 

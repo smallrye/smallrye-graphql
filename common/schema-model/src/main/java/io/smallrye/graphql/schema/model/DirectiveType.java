@@ -1,9 +1,11 @@
 package io.smallrye.graphql.schema.model;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A custom directive in the Schema, i.e. the thing that gets declared in the SDL.
@@ -11,15 +13,13 @@ import java.util.Set;
  *
  * @see <a href="https://spec.graphql.org/draft/#sec-Type-System.Directives.Custom-Directives">Custom Directive</a>
  */
-public final class DirectiveType {
+public class DirectiveType {
     private String className;
     private String name;
     private String description;
     private Set<String> locations = new LinkedHashSet<>();
-    private final Map<String, DirectiveArgument> argumentTypes = new LinkedHashMap<>();
-
-    public DirectiveType() {
-    }
+    private List<DirectiveArgument> argumentTypes = new ArrayList<>();
+    private boolean repeatable;
 
     public void setClassName(String className) {
         this.className = className;
@@ -53,16 +53,41 @@ public final class DirectiveType {
         return this.locations;
     }
 
-    public Set<String> getArgumentNames() {
-        return this.argumentTypes.keySet();
+    public List<DirectiveArgument> getArgumentTypes() {
+        return argumentTypes;
     }
 
-    public DirectiveArgument getArgumentType(String name) {
-        return this.argumentTypes.get(name);
+    public void setArgumentTypes(List<DirectiveArgument> argumentTypes) {
+        this.argumentTypes = argumentTypes;
+    }
+
+    public boolean isRepeatable() {
+        return repeatable;
+    }
+
+    public void setRepeatable(boolean repeatable) {
+        this.repeatable = repeatable;
+    }
+
+    /**
+     * Helper 'getter' methods, but DON'T add 'get' into their names, otherwise it breaks Quarkus bytecode recording,
+     * because they would be detected as actual property getters while they are actually not
+     */
+
+    public Map<String, DirectiveArgument> argumentTypesAsMap() {
+        return argumentTypes.stream().collect(Collectors.toMap(Field::getName, arg -> arg));
+    }
+
+    public Set<String> argumentNames() {
+        return this.argumentTypesAsMap().keySet();
+    }
+
+    public DirectiveArgument argumentType(String name) {
+        return this.argumentTypesAsMap().get(name);
     }
 
     public void addArgumentType(DirectiveArgument type) {
-        this.argumentTypes.put(type.getName(), type);
+        this.argumentTypes.add(type);
     }
 
     @Override
@@ -75,4 +100,5 @@ public final class DirectiveType {
                 ((argumentTypes.isEmpty()) ? "" : ", argumentTypes=" + argumentTypes) +
                 ")";
     }
+
 }

@@ -157,7 +157,7 @@ public class SchemaBuilderTest {
         assertNotNull(someDirective);
         assertEquals("someDirective", someDirective.getName());
         assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
-        assertEquals(singleton("value"), someDirective.getArgumentNames());
+        assertEquals(singleton("value"), someDirective.argumentNames());
         assertEquals(new HashSet<>(asList("INTERFACE", "FIELD", "OBJECT")), someDirective.getLocations());
 
         // check directive instances on type

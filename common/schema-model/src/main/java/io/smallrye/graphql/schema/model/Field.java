@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -67,6 +68,7 @@ public class Field implements Serializable {
     private List<DirectiveInstance> directiveInstances;
 
     public Field() {
+        this.directiveInstances = new ArrayList<>();
     }
 
     public Field(String methodName, String propertyName, String name, Reference reference) {
@@ -74,6 +76,7 @@ public class Field implements Serializable {
         this.propertyName = propertyName;
         this.name = name;
         this.reference = reference;
+        this.directiveInstances = new ArrayList<>();
     }
 
     public String getMethodName() {
@@ -194,6 +197,12 @@ public class Field implements Serializable {
 
     public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
         this.directiveInstances = directiveInstances;
+    }
+
+    public void addDirectiveInstances(List<DirectiveInstance> directiveInstances) {
+        if (directiveInstances != null) {
+            this.directiveInstances.addAll(directiveInstances);
+        }
     }
 
     @Override

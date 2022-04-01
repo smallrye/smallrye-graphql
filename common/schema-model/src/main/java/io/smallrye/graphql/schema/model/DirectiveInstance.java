@@ -38,6 +38,6 @@ public class DirectiveInstance {
 
     @Override
     public String toString() {
-        return "DirectiveInstance{" + "type=" + type + ", values=" + values + '}';
+        return "DirectiveInstance{" + "type=" + type.getName() + ", values=" + values + '}';
     }
 }
