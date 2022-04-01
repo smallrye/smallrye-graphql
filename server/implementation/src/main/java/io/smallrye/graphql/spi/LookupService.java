@@ -26,14 +26,14 @@ public interface LookupService {
     }
 
     static LookupService load() {
-        LookupService lookupService;
+        LookupService ls;
         try {
-            lookupService = lookupServices.iterator().next();
+            ls = lookupServices.iterator().next();
         } catch (Exception ex) {
-            lookupService = new DefaultLookupService();
+            ls = new DefaultLookupService();
         }
-        log.usingLookupService(lookupService.getName());
-        return lookupService;
+        log.usingLookupService(ls.getName());
+        return ls;
     }
 
     String getName();

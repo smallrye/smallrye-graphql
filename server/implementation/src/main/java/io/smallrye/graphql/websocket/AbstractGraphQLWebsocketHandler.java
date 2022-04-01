@@ -98,7 +98,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                                     // this means the operation is a subscription
                                     sendStreamingMessage(operationId, executionResponse);
                                 } else {
-                                    logUnknownResult(executionResponse);
+                                    logUnknownResult(executionResult);
                                 }
                             }
                         } catch (IOException ioe) {
@@ -148,9 +148,9 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                 .build();
     }
 
-    private void logUnknownResult(ExecutionResponse executionResponse) {
+    private void logUnknownResult(ExecutionResult executionResult) {
         LOG.warn("Unknown execution result of type "
-                + executionResponse.getExecutionResult().getData().getClass());
+                + executionResult.getClass());
     }
 
     private void sendSingleMessage(String operationId, ExecutionResponse executionResponse) throws IOException {

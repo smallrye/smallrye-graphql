@@ -6,53 +6,44 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.stream.JsonGenerator;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
-import org.jboss.weld.junit5.WeldInitiator;
-import org.jboss.weld.junit5.WeldJunit5Extension;
-import org.jboss.weld.junit5.WeldSetup;
+import org.jboss.weld.junit5.auto.ActivateScopes;
+import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import graphql.schema.GraphQLSchema;
-import io.smallrye.graphql.bootstrap.Bootstrap;
-import io.smallrye.graphql.cdi.CdiLookupService;
-import io.smallrye.graphql.cdi.event.EventsService;
+import io.smallrye.graphql.cdi.producer.GraphQLProducer;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Test a basic query
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-@ExtendWith(WeldJunit5Extension.class)
+@EnableAutoWeld
+@ActivateScopes({ RequestScoped.class, ApplicationScoped.class })
 public class CdiExecutionTest {
     private static final Logger LOG = Logger.getLogger(CdiExecutionTest.class.getName());
 
-    private ExecutionService executionService;
-
-    @WeldSetup
-    public WeldInitiator weld = WeldInitiator.of(heroFinder, heroDatabase, sidekickDatabase, heroLocator, scalarTestApi,
-            EventsService.class, CdiLookupService.class);
+    @Inject
+    GraphQLProducer graphQLProducer;
 
     @BeforeEach
     public void init() {
         IndexView index = Indexer.getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema);
-        this.executionService = new ExecutionService(graphQLSchema, schema.getBatchOperations(),
-                schema.hasSubscriptions());
+        graphQLProducer.initialize(schema);
     }
 
     @Test
@@ -330,6 +321,7 @@ public class CdiExecutionTest {
 
     private JsonObject executeAndGetData(String graphQL) {
         JsonObjectResponseWriter jor = new JsonObjectResponseWriter(graphQL);
+        ExecutionService executionService = LookupService.get().getInstance(ExecutionService.class).get();
         executionService.executeSync(toJsonObject(graphQL), jor);
 
         ExecutionResponse result = jor.getExecutionResponse();
@@ -342,6 +334,7 @@ public class CdiExecutionTest {
 
     private JsonArray executeAndGetError(String graphQL) {
         JsonObjectResponseWriter jor = new JsonObjectResponseWriter(graphQL);
+        ExecutionService executionService = LookupService.get().getInstance(ExecutionService.class).get();
         executionService.executeSync(toJsonObject(graphQL), jor);
         ExecutionResponse result = jor.getExecutionResponse();
 
@@ -580,28 +573,5 @@ public class CdiExecutionTest {
             "    }\n" +
             "  }\n" +
             "}";
-
-    // Create the CDI Beans in the TCK Tests app
-    private static final Class<?> heroFinder;
-    private static final Class<?> heroDatabase;
-    private static final Class<?> sidekickDatabase;
-    private static final Class<?> heroLocator;
-    private static final Class<?> scalarTestApi;
-
-    private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
-
-    static {
-        try {
-            heroFinder = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.api.HeroFinder");
-            heroDatabase = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.HeroDatabase");
-            sidekickDatabase = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.SidekickDatabase");
-            heroLocator = Class.forName("org.eclipse.microprofile.graphql.tck.apps.superhero.db.HeroLocator");
-            scalarTestApi = Class.forName("org.eclipse.microprofile.graphql.tck.apps.basic.api.ScalarTestApi");
-        } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        JSON_PROPERTIES.put(JsonGenerator.PRETTY_PRINTING, true);
-    }
 
 }
