@@ -14,7 +14,6 @@ import javax.json.JsonObject;
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 
 import graphql.ExecutionInput;
@@ -26,7 +25,6 @@ import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
-import io.smallrye.graphql.execution.context.SmallRyeBatchLoaderContextProvider;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
@@ -245,11 +243,8 @@ public class ExecutionService {
         DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
         for (Operation operation : operations) {
             BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
-            SmallRyeBatchLoaderContextProvider ctxProvider = new SmallRyeBatchLoaderContextProvider();
-            DataLoaderOptions options = DataLoaderOptions.newOptions()
-                    .setBatchLoaderContextProvider(ctxProvider);
-            DataLoader<K, T> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
-            ctxProvider.setDataLoader(dataLoader);
+
+            DataLoader<K, T> dataLoader = DataLoaderFactory.newDataLoader(batchLoader);
             dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
         }
         return dataLoaderRegistry;
@@ -268,7 +263,7 @@ public class ExecutionService {
                 }
 
                 if (mutationExecutionStrategy != null) {
-                    graphqlBuilder = graphqlBuilder.queryExecutionStrategy(mutationExecutionStrategy);
+                    graphqlBuilder = graphqlBuilder.mutationExecutionStrategy(mutationExecutionStrategy);
                 }
                 if (hasSubscription) {
                     graphqlBuilder = graphqlBuilder

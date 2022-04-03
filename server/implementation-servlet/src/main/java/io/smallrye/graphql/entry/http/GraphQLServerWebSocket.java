@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -15,7 +14,6 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 import io.smallrye.graphql.websocket.GraphQLWebsocketHandler;
 import io.smallrye.graphql.websocket.graphqltransportws.GraphQLTransportWSSubprotocolHandler;
@@ -31,10 +29,7 @@ public class GraphQLServerWebSocket {
 
     private final Logger log = Logger.getLogger(GraphQLServerWebSocket.class.getName());
 
-    private Map<Session, GraphQLWebsocketHandler> sessionsToHandlers = new ConcurrentHashMap<>();
-
-    @Inject
-    ExecutionService executionService;
+    private final Map<Session, GraphQLWebsocketHandler> sessionsToHandlers = new ConcurrentHashMap<>();
 
     @OnOpen
     public void onOpen(Session session) {
@@ -42,12 +37,10 @@ public class GraphQLServerWebSocket {
         String subprotocol = session.getNegotiatedSubprotocol();
         switch (subprotocol) {
             case "graphql-transport-ws":
-                handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session),
-                        executionService);
+                handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session));
                 break;
             case "graphql-ws":
-                handler = new GraphQLWSSubprotocolHandler(new SmallRyeWebSocketSession(session),
-                        executionService);
+                handler = new GraphQLWSSubprotocolHandler(new SmallRyeWebSocketSession(session));
                 break;
             default:
                 log.warn("Unknown subprotocol: " + subprotocol);

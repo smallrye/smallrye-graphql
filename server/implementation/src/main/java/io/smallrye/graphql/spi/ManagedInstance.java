@@ -4,6 +4,8 @@ public interface ManagedInstance<T> {
 
     T get();
 
-    void destroyIfNecessary();
+    default void destroyIfNecessary() {
+        // nothing
+    }
 
 }
