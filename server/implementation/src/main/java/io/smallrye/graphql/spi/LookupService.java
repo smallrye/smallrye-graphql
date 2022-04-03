@@ -19,13 +19,13 @@ public interface LookupService {
 
     ServiceLoader<LookupService> lookupServices = ServiceLoader.load(LookupService.class);
 
-    LookupService lookupService = load();
+    LookupService lookupService = _load();
 
     static LookupService get() {
         return lookupService;
     }
 
-    static LookupService load() {
+    static LookupService _load() {
         LookupService ls;
         try {
             ls = lookupServices.iterator().next();

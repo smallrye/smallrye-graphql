@@ -10,7 +10,6 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.mutiny.Multi;
@@ -35,45 +34,39 @@ public abstract class AbstractStreamingDataFetcher<K, T> extends AbstractDataFet
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
-        try {
-            SmallRyeContext.setContext(context);
-            Multi<?> multi = handleUserMethodCall(transformedArguments);
 
-            return (O) multi
-                    .onItem().transform((t) -> {
-                        try {
-                            Object resultFromTransform = fieldHelper.transformOrAdaptResponse(t, dfe);
-                            resultBuilder.data(resultFromTransform);
-                            return (O) resultBuilder.build();
-                        } catch (AbstractDataFetcherException abstractDataFetcherException) {
-                            //Arguments or result couldn't be transformed
-                            abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-                            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
-                            return (O) resultBuilder.build();
-                        }
-                    })
-                    .onFailure().recoverWithItem(new Function<Throwable, O>() {
-                        @Override
-                        public O apply(Throwable throwable) {
-                            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
-                            if (throwable instanceof GraphQLException) {
-                                GraphQLException graphQLException = (GraphQLException) throwable;
-                                errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
-                            } else if (throwable instanceof Exception) {
-                                DataFetcherException dataFetcherException = SmallRyeGraphQLServerMessages.msg
-                                        .dataFetcherException(operation, throwable);
-                                errorResultHelper.appendException(resultBuilder, dfe, dataFetcherException);
-                            } else if (throwable instanceof Error) {
-                                errorResultHelper.appendException(resultBuilder, dfe, throwable);
-                            }
-                            return (O) resultBuilder.build();
-                        }
-                    });
+        Multi<?> multi = handleUserMethodCall(transformedArguments);
 
-        } finally {
-            SmallRyeContext.remove();
-        }
+        return (O) multi
+                .onItem().transform((t) -> {
+                    try {
+                        Object resultFromTransform = fieldHelper.transformOrAdaptResponse(t, dfe);
+                        resultBuilder.data(resultFromTransform);
+                        return (O) resultBuilder.build();
+                    } catch (AbstractDataFetcherException abstractDataFetcherException) {
+                        //Arguments or result couldn't be transformed
+                        abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
+                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
+                        return (O) resultBuilder.build();
+                    }
+                })
+                .onFailure().recoverWithItem(new Function<Throwable, O>() {
+                    @Override
+                    public O apply(Throwable throwable) {
+                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                        if (throwable instanceof GraphQLException) {
+                            GraphQLException graphQLException = (GraphQLException) throwable;
+                            errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
+                        } else if (throwable instanceof Exception) {
+                            DataFetcherException dataFetcherException = SmallRyeGraphQLServerMessages.msg
+                                    .dataFetcherException(operation, throwable);
+                            errorResultHelper.appendException(resultBuilder, dfe, dataFetcherException);
+                        } else if (throwable instanceof Error) {
+                            errorResultHelper.appendException(resultBuilder, dfe, throwable);
+                        }
+                        return (O) resultBuilder.build();
+                    }
+                });
     }
 
     protected abstract Multi<?> handleUserMethodCall(Object[] transformedArguments) throws Exception;

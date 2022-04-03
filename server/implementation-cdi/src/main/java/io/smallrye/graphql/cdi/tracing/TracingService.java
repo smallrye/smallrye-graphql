@@ -54,7 +54,7 @@ public class TracingService implements EventingService {
                 .asChildOf(getTracer().activeSpan())
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getRequestedOperationTypes()))
-                .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
+                .withTag("graphql.operationName", (String) context.getOperationName().orElse(EMPTY))
                 .start();
         Scope scope = tracer.activateSpan(span);
         spans.put(context.getExecutionId(), span);
@@ -90,8 +90,8 @@ public class TracingService implements EventingService {
                 .asChildOf(parentSpan)
                 .withTag("graphql.executionId", context.getExecutionId())
                 .withTag("graphql.operationType", getOperationNameString(context.getOperationType()))
-                .withTag("graphql.operationName", context.getOperationName().orElse(EMPTY))
-                .withTag("graphql.parent", context.getParentTypeName().orElse(EMPTY))
+                .withTag("graphql.operationName", (String) context.getOperationName().orElse(EMPTY))
+                .withTag("graphql.parent", (String) context.getParentTypeName().orElse(EMPTY))
                 .withTag("graphql.field", context.getFieldName())
                 .withTag("graphql.path", context.getPath())
                 .start();
@@ -108,7 +108,7 @@ public class TracingService implements EventingService {
     @Override
     public void afterDataFetch(Context context) {
         Span span = tracer.activeSpan();
-        Scope scope = context.getMetaData(SCOPE_CLASS);
+        Scope scope = (Scope) context.getMetaData(SCOPE_CLASS);
         scope.close();
         span.finish();
     }
@@ -135,9 +135,9 @@ public class TracingService implements EventingService {
 
     private Span getParentSpan(Tracer tracer, final Context context) {
         if (context != null && context.hasLocalMetaData(SPAN_CLASS)) {
-            return context.getLocalMetaData(SPAN_CLASS);
+            return (Span) context.getLocalMetaData(SPAN_CLASS);
         } else if (context != null && context.hasMetaData(SPAN_CLASS)) {
-            return context.getMetaData(SPAN_CLASS);
+            return (Span) context.getMetaData(SPAN_CLASS);
         }
 
         return tracer.activeSpan();
@@ -159,7 +159,7 @@ public class TracingService implements EventingService {
     }
 
     private String getOperationNameForParentType(Context context) {
-        String parent = context.getParentTypeName().orElse(EMPTY);
+        String parent = (String) context.getParentTypeName().orElse(EMPTY);
         String name = PREFIX + ":" + parent + "." + context.getFieldName();
         return name;
     }

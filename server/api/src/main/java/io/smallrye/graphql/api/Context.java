@@ -33,13 +33,17 @@ import io.smallrye.common.annotation.Experimental;
 
 /**
  * Holing context for the current request
- * There are two parts to this. The initial request, that can be a aggregation of requests, and the current execution context.
+ * There are two parts to this.The initial request, that can be a aggregation of requests, and the current execution context.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * @param <KEY> Key
+ * @param <VAL> Value
+ * @param <ARG> Argument
+ * @param <SRC> Source
  */
 @Experimental("Request context to allow downstream operations to get insight into the request. Not covered by the specification. "
         + "Subject to change.")
-public interface Context {
+public interface Context<KEY, VAL, ARG, SRC> {
     public static final String QUERY = "query";
     public static final String OPERATION_NAME = "operationName";
     public static final String VARIABLES = "variables";
@@ -51,6 +55,16 @@ public interface Context {
      * @return JsonObject
      */
     public JsonObject getRequest();
+
+    /**
+     * Check if there is a request set
+     * 
+     * @return
+     */
+    default boolean hasRequest() {
+        JsonObject request = getRequest();
+        return request != null;
+    }
 
     /**
      * Get the query part of the request.
@@ -69,7 +83,14 @@ public interface Context {
      * @return the operation name if set
      */
     default Optional<String> getOperationName() {
-        return Optional.ofNullable(hasOperationName() ? getRequest().getString(OPERATION_NAME) : null);
+
+        if (getRequest().containsKey(OPERATION_NAME)
+                && getRequest().get(OPERATION_NAME) != null
+                && !getRequest().get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL)) {
+
+            return Optional.ofNullable(getRequest().getString(OPERATION_NAME));
+        }
+        return Optional.empty();
     }
 
     /**
@@ -78,9 +99,7 @@ public interface Context {
      * @return true if it does
      */
     default boolean hasOperationName() {
-        return getRequest().containsKey(OPERATION_NAME)
-                && getRequest().get(OPERATION_NAME) != null
-                && !getRequest().get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL);
+        return getOperationName().isPresent();
     }
 
     /**
@@ -90,7 +109,9 @@ public interface Context {
      * @return
      */
     default Optional<Map<String, Object>> getVariables() {
-        if (hasVariables()) {
+        if (getRequest().containsKey(VARIABLES)
+                && getRequest().get(VARIABLES) != null
+                && !getRequest().get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL)) {
             JsonValue jsonValue = getRequest().get(VARIABLES);
             return VariablesParser.toMap(jsonValue);
         }
@@ -103,9 +124,7 @@ public interface Context {
      * @return true if it does
      */
     default boolean hasVariables() {
-        return (getRequest().containsKey(VARIABLES)
-                && getRequest().get(VARIABLES) != null
-                && !getRequest().get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL));
+        return getVariables().isPresent();
     }
 
     /**
@@ -128,27 +147,41 @@ public interface Context {
      * @param name the argument name
      * @return true if there
      */
-    public Boolean hasArgument(String name);
+    default Boolean hasArgument(String name) {
+        Map<String, ARG> arguments = getArguments();
+        if (arguments != null) {
+            return arguments.containsKey(name);
+        }
+        return null;
+    }
 
     /**
      * Get the argument using a name
      * This return the argument instance if it exists
+     * 
+     * @param name key
+     * @return argument value
      */
-    public <T> T getArgument(String name);
+    default ARG getArgument(String name) {
+        Map<String, ARG> arguments = getArguments();
+        if (arguments != null) {
+            return arguments.get(name);
+        }
+        return null;
+    }
 
     /**
      * Same as above but with the option to do a default value
      * 
-     * @param <T>
      * @param name
      * @param defaultValue
      * @return the argument instance if it exists, else the provided default
      */
-    default <T> T getArgumentOrDefault(String name, T defaultValue) {
-        T t = getArgument(name);
-        if (t == null)
+    default ARG getArgumentOrDefault(String name, ARG defaultValue) {
+        ARG arg = getArgument(name);
+        if (arg == null)
             return defaultValue;
-        return t;
+        return arg;
     }
 
     /**
@@ -156,72 +189,110 @@ public interface Context {
      * 
      * @return a map with name and instance of the argument
      */
-    public Map<String, Object> getArguments();
+    public Map<String, ARG> getArguments();
+
+    /**
+     * Get all the metadata
+     * 
+     * @return Map with Key value pair
+     */
+    public Map<KEY, VAL> getMetaDatas();
 
     /**
      * Check if a certain meta data is available
      * 
-     * @param <K>
      * @param key
      * @return
      */
-    public <K> boolean hasMetaData(K key);
+    default boolean hasMetaData(KEY key) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getMetaDatas();
+        if (metaData != null) {
+            return metaData.containsKey(key);
+        }
+        return false;
+    }
 
     /**
      * Allow getting custom user values.
      * 
-     * @param <K> the key
-     * @param <V> the value
      * @param key
      * @return
      */
-    public <K, V> V getMetaData(K key);
+    default VAL getMetaData(KEY key) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getMetaDatas();
+        if (metaData != null) {
+            return metaData.get(key);
+        }
+        return null;
+    }
 
     /**
      * Allow setting custom user values
      * 
-     * @param <K>
-     * @param <V>
      * @param key
      * @param value
      */
-    public <K, V> void putMetaData(K key, V value);
+    default void putMetaData(KEY key, VAL value) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getMetaDatas();
+        if (metaData != null) {
+            metaData.put(key, value);
+        }
+    }
+
+    /**
+     * Get all the local metadata
+     * 
+     * @return Map with Key value pair
+     */
+    public Map<KEY, VAL> getLocalMetaDatas();
 
     /**
      * Check if a certain local meta data is available
      * 
-     * @param <K>
+     * @param key
+     * @return if it exist
+     */
+    default boolean hasLocalMetaData(KEY key) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getLocalMetaDatas();
+        if (metaData != null) {
+            return metaData.containsKey(key);
+        }
+        return false;
+    }
+
+    /**
+     * Allow getting local custom user values.
+     * 
      * @param key
      * @return
      */
-    public <K> boolean hasLocalMetaData(K key);
+    default VAL getLocalMetaData(KEY key) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getLocalMetaDatas();
+        if (metaData != null) {
+            return metaData.get(key);
+        }
+        return null;
+    }
 
     /**
-     * Allow getting custom local user values.
+     * Allow setting local custom user values
      * 
-     * @param <K> the key
-     * @param <V> the value
-     * @param key
-     * @return
-     */
-    public <K, V> V getLocalMetaData(K key);
-
-    /**
-     * Allow setting custom local user values
-     * 
-     * @param <K>
-     * @param <V>
      * @param key
      * @param value
      */
-    public <K, V> void putLocalMetaData(K key, V value);
+    default void putLocalMetaData(KEY key, VAL value) {
+        Map<KEY, VAL> metaData = (Map<KEY, VAL>) getLocalMetaDatas();
+        if (metaData != null) {
+            metaData.put(key, value);
+        }
+    }
 
     default boolean hasSource() {
         Object o = getSource();
         return o != null;
     }
 
-    public <T> T getSource();
+    public SRC getSource();
 
     /**
      * Return the current path
@@ -235,17 +306,14 @@ public interface Context {
      * 
      * @return JsonArray of fields selected
      */
-    default JsonArray getSelectedFields() {
-        return getSelectedFields(false);
-    }
+    public JsonArray getSelectedFields();
 
     /**
-     * Return the fields in the request
+     * Return the fields and source fields in the request
      * 
-     * @param includeSourceFields should we include source fields ?
      * @return JsonArray of fields selected
      */
-    public JsonArray getSelectedFields(boolean includeSourceFields);
+    public JsonArray getSelectedAndSourceFields();
 
     /**
      * Return the current type (Query, Mutation ext)
@@ -278,6 +346,8 @@ public interface Context {
      * @param <T> the implementation class
      * @param wrappedType the class type of T
      * @return instance of the implementation class
+     * 
+     *         TODO: Move to another (injectable) class ? Or make the gifts injectable ?
      */
     public <T> T unwrap(Class<T> wrappedType);
 

@@ -10,6 +10,7 @@ import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.mutiny.Uni;
@@ -34,44 +35,46 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
-        try {
-            SmallRyeContext.setContext(context);
-            Uni<?> uni = handleUserMethodCall(transformedArguments);
-            return (O) uni
-                    .onItemOrFailure()
-                    .transformToUni((result, throwable, emitter) -> {
-                        if (throwable != null) {
-                            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
-                            if (throwable instanceof GraphQLException) {
-                                GraphQLException graphQLException = (GraphQLException) throwable;
-                                errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
-                            } else if (throwable instanceof Exception) {
-                                emitter.fail(SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable));
-                                return;
-                            } else if (throwable instanceof Error) {
-                                emitter.fail(throwable);
-                                return;
-                            }
-                        } else {
-                            try {
-                                resultBuilder.data(fieldHelper.transformOrAdaptResponse(result, dfe));
-                            } catch (AbstractDataFetcherException te) {
-                                te.appendDataFetcherResult(resultBuilder, dfe);
-                            }
-                        }
 
-                        emitter.complete(resultBuilder.build());
-                    })
-                    .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                    .subscribe()
-                    .asCompletionStage();
-        } finally {
-            SmallRyeContext.remove();
-        }
+        SmallRyeContext smallRyeContext = SmallRyeContextManager.getCurrentSmallRyeContext();
+
+        Uni<?> uni = handleUserMethodCall(transformedArguments);
+
+        return (O) uni
+                .onSubscription().invoke(() -> {
+                    SmallRyeContextManager.setCurrentSmallRyeContext(smallRyeContext);
+                })
+                .onItemOrFailure()
+                .transformToUni((result, throwable, emitter) -> {
+                    if (throwable != null) {
+                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                        if (throwable instanceof GraphQLException) {
+                            GraphQLException graphQLException = (GraphQLException) throwable;
+                            errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
+                        } else if (throwable instanceof Exception) {
+                            emitter.fail(SmallRyeGraphQLServerMessages.msg.dataFetcherException(operation, throwable));
+                            return;
+                        } else if (throwable instanceof Error) {
+                            emitter.fail(throwable);
+                            return;
+                        }
+                    } else {
+                        try {
+                            resultBuilder.data(fieldHelper.transformOrAdaptResponse(result, dfe));
+                        } catch (AbstractDataFetcherException te) {
+                            te.appendDataFetcherResult(resultBuilder, dfe);
+                        }
+                    }
+
+                    emitter.complete(resultBuilder.build());
+                })
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .subscribe()
+                .asCompletionStage();
     }
 
-    protected abstract Uni<?> handleUserMethodCall(Object[] transformedArguments) throws Exception;
+    protected abstract Uni<?> handleUserMethodCall(Object[] transformedArguments)
+            throws Exception;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -87,8 +90,12 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
     @SuppressWarnings("unchecked")
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         try {
+            SmallRyeContext smallRyeContext = SmallRyeContextManager.getCurrentSmallRyeContext();
             Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
             return handleUserBatchLoad(arguments)
+                    .onSubscription().invoke(() -> {
+                        SmallRyeContextManager.setCurrentSmallRyeContext(smallRyeContext);
+                    })
                     .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                     .subscribe().asCompletionStage();
         } catch (Exception ex) {

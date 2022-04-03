@@ -47,7 +47,6 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.FieldDataFetcher;
@@ -55,6 +54,7 @@ import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
+import io.smallrye.graphql.execution.schema.SchemaManager;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
@@ -85,7 +85,6 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class Bootstrap {
 
-    private final Schema schema;
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
     private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final Set<GraphQLDirective> directiveTypes = new LinkedHashSet<>();
@@ -119,8 +118,7 @@ public class Bootstrap {
     }
 
     private Bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
-        this.schema = schema;
-        SmallRyeContext.setSchema(schema, allowMultipleDeployments);
+        SchemaManager.setSchema(schema, allowMultipleDeployments);
         // setting `skipInjectionValidation` through a system property is not recommended,
         // but kept for backward compatibility for now
         if (!Boolean.getBoolean("test.skip.injection.validation") && !skipInjectionValidation) {
@@ -138,6 +136,7 @@ public class Bootstrap {
         ClassloadingService classloadingService = ClassloadingService.get();
         // This crazy stream operation basically collects all class names where we need to verify that
         // it belongs to an injectable bean
+        Schema schema = SchemaManager.getSchema();
         Stream.of(
                 schema.getQueries().stream().map(Operation::getClassName),
                 schema.getMutations().stream().map(Operation::getClassName),
@@ -153,6 +152,7 @@ public class Bootstrap {
     }
 
     private void generateGraphQLSchema() {
+        Schema schema = SchemaManager.getSchema();
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
         createGraphQLDirectiveTypes();
@@ -187,6 +187,7 @@ public class Bootstrap {
     }
 
     private void createGraphQLDirectiveTypes() {
+        Schema schema = SchemaManager.getSchema();
         if (schema.hasDirectiveTypes()) {
             for (DirectiveType directiveType : schema.getDirectiveTypes()) {
                 createGraphQLDirectiveType(directiveType);
@@ -219,6 +220,7 @@ public class Bootstrap {
     }
 
     private void addQueries(GraphQLSchema.Builder schemaBuilder) {
+        Schema schema = SchemaManager.getSchema();
         GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
                 .name(QUERY)
                 .description(QUERY_DESCRIPTION);
@@ -235,6 +237,7 @@ public class Bootstrap {
     }
 
     private void addMutations(GraphQLSchema.Builder schemaBuilder) {
+        Schema schema = SchemaManager.getSchema();
         GraphQLObjectType.Builder mutationBuilder = GraphQLObjectType.newObject()
                 .name(MUTATION)
                 .description(MUTATION_DESCRIPTION);
@@ -253,6 +256,7 @@ public class Bootstrap {
     }
 
     private void addSubscriptions(GraphQLSchema.Builder schemaBuilder) {
+        Schema schema = SchemaManager.getSchema();
         GraphQLObjectType.Builder subscriptionBuilder = GraphQLObjectType.newObject()
                 .name(SUBSCRIPTION)
                 .description(SUBSCRIPTION_DESCRIPTION);
@@ -328,6 +332,7 @@ public class Bootstrap {
 
     // Create all enums and map them
     private void createGraphQLEnumTypes() {
+        Schema schema = SchemaManager.getSchema();
         if (schema.hasEnums()) {
             for (EnumType enumType : schema.getEnums().values()) {
                 createGraphQLEnumType(enumType);
@@ -348,6 +353,7 @@ public class Bootstrap {
     }
 
     private void createGraphQLInterfaceTypes() {
+        Schema schema = SchemaManager.getSchema();
         if (schema.hasInterfaces()) {
             for (Type interfaceType : schema.getInterfaces().values()) {
                 createGraphQLInterfaceType(interfaceType);
@@ -411,6 +417,7 @@ public class Bootstrap {
     }
 
     private void createGraphQLInputObjectTypes() {
+        Schema schema = SchemaManager.getSchema();
         if (schema.hasInputs()) {
             for (InputType inputType : schema.getInputs().values()) {
                 createGraphQLInputObjectType(inputType);
@@ -439,6 +446,7 @@ public class Bootstrap {
     }
 
     private void createGraphQLObjectTypes() {
+        Schema schema = SchemaManager.getSchema();
         if (schema.hasTypes()) {
             for (Type type : schema.getTypes().values()) {
                 createGraphQLObjectType(type);
@@ -622,6 +630,7 @@ public class Bootstrap {
     }
 
     private Optional<GraphQLArgument> getAutoMapArgument(Field field) {
+        Schema schema = SchemaManager.getSchema();
         // Auto Map argument
         if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
             Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();

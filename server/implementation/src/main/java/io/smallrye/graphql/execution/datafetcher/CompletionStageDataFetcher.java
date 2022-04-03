@@ -20,7 +20,8 @@ public class CompletionStageDataFetcher<K, T> extends AbstractAsyncDataFetcher<K
     }
 
     @Override
-    protected Uni<?> handleUserMethodCall(final Object[] transformedArguments) throws Exception {
+    protected Uni<?> handleUserMethodCall(final Object[] transformedArguments)
+            throws Exception {
         return Uni.createFrom().completionStage((CompletionStage<?>) operationInvoker.invoke(transformedArguments));
     }
 

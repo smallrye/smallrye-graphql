@@ -39,7 +39,7 @@ public class ContextTest extends ExecutionTestBase {
         TestEventingService.reset();
 
         JsonObject data = executeAndGetData(TEST_QUERY);
-        Document document = TestEventingService.beforeExecuteContext.unwrap(Document.class);
+        Document document = (Document) TestEventingService.beforeExecuteContext.unwrap(Document.class);
         assertNotNull(document, "unwrapped document was null");
 
         TestEventingService.reset();

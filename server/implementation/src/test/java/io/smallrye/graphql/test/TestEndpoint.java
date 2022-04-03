@@ -12,7 +12,7 @@ import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 
 /**
  * Basic test endpoint
@@ -75,7 +75,7 @@ public class TestEndpoint {
 
     @Query
     public ContextInfo testContext() {
-        Context context = SmallRyeContext.getContext();
+        Context context = SmallRyeContextManager.getCurrentSmallRyeContext();
 
         System.out.println(context.toString());
 

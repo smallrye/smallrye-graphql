@@ -34,7 +34,7 @@ public class ContextApi {
 
     @Query("contextMethodInjectedAnotherIndex")
     public String getArgumentFromContext(@DefaultValue("p1") String p1, Context c, @DefaultValue("p2") String p2) {
-        return c.getArgument(p2);
+        return (String) c.getArgument(p2);
     }
 
     @Query("contextFromAnotherService")

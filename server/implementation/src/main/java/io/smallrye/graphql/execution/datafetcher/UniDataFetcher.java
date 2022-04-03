@@ -19,12 +19,13 @@ public class UniDataFetcher<K, T> extends AbstractAsyncDataFetcher<K, T> {
     }
 
     @Override
-    protected Uni<?> handleUserMethodCall(Object[] transformedArguments) throws Exception {
+    protected Uni<?> handleUserMethodCall(final Object[] transformedArguments)
+            throws Exception {
         return (Uni<?>) operationInvoker.invoke(transformedArguments);
     }
 
     @Override
-    public Uni<List<T>> handleUserBatchLoad(Object[] arguments) throws Exception {
+    public Uni<List<T>> handleUserBatchLoad(final Object[] arguments) throws Exception {
         return ((Uni<List<T>>) operationInvoker.invoke(arguments));
     }
 }
