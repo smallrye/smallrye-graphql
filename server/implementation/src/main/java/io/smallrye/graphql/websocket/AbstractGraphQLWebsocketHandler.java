@@ -2,6 +2,7 @@ package io.smallrye.graphql.websocket;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,6 +22,8 @@ import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionResponseWriter;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.spi.LookupService;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.subscription.Cancellable;
 
 public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocketHandler {
     // TODO: Replace with prepared log messages
@@ -31,6 +34,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     protected final AtomicBoolean connectionInitialized;
     protected final String connectionAckMessage;
     protected final Map<String, Subscriber<ExecutionResult>> activeOperations;
+    protected final Cancellable keepAliveSender;
     private final String dataMessageTypeName;
 
     public AbstractGraphQLWebsocketHandler(GraphQLWebSocketSession session, String dataMessageTypeName) {
@@ -39,6 +43,10 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         this.connectionInitialized = new AtomicBoolean(false);
         this.connectionAckMessage = createConnectionAckMessage().toString();
         this.activeOperations = new ConcurrentHashMap<>();
+        this.keepAliveSender = Multi.createFrom().ticks()
+                .startingAfter(Duration.ofSeconds(10))
+                .every(Duration.ofSeconds(10))
+                .subscribe().with(tick -> sendKeepAlive());
     }
 
     @Override
@@ -52,6 +60,9 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     @Override
     public void onThrowable(Throwable t) {
         LOG.warn("Error in websocket", t);
+        if (keepAliveSender != null) {
+            keepAliveSender.cancel();
+        }
     }
 
     @Override
@@ -59,6 +70,9 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         LOG.debug("GraphQL-over-websocket session " + session + " closed");
         if (!session.isClosed()) {
             session.close((short) 1000, "");
+        }
+        if (keepAliveSender != null) {
+            keepAliveSender.cancel();
         }
     }
 
@@ -176,6 +190,14 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
 
     }
 
+    private void sendKeepAlive() {
+        try {
+            session.sendMessage(getPingMessage());
+        } catch (IOException e) {
+            LOG.warn(e);
+        }
+    }
+
     protected void sendCancelMessage(JsonObject message) {
         String opId = message.getString("id");
         Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
@@ -212,6 +234,8 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     protected abstract void sendErrorMessage(String operationId, ExecutionResponse executionResponse) throws IOException;
 
     protected abstract void closeDueToConnectionNotInitialized();
+
+    protected abstract String getPingMessage();
 
     /**
      * The middleman that subscribes to an execution result and forwards its events to the websocket channel.

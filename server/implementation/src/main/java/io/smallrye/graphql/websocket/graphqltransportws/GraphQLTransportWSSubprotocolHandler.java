@@ -15,11 +15,13 @@ import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
  */
 public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler {
 
+    private final String pingMessage;
     private final String pongMessage;
 
     public GraphQLTransportWSSubprotocolHandler(GraphQLWebSocketSession session) {
         super(session, "next");
         this.pongMessage = createPongMessage().toString();
+        this.pingMessage = createPingMessage().toString();
     }
 
     @Override
@@ -80,9 +82,20 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
         session.sendMessage(pongMessage);
     }
 
+    @Override
+    protected String getPingMessage() {
+        return pingMessage;
+    }
+
     private JsonObject createPongMessage() {
         return Json.createObjectBuilder()
                 .add("type", "pong")
+                .build();
+    }
+
+    private JsonObject createPingMessage() {
+        return Json.createObjectBuilder()
+                .add("type", "ping")
                 .build();
     }
 
