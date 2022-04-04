@@ -14,8 +14,11 @@ import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
  */
 public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler {
 
+    private final String pingMessage;
+
     public GraphQLWSSubprotocolHandler(GraphQLWebSocketSession session) {
         super(session, MessageType.GQL_DATA.asString());
+        pingMessage = createPingMessage().toString();
     }
 
     @Override
@@ -50,6 +53,11 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
     }
 
     @Override
+    protected String getPingMessage() {
+        return pingMessage;
+    }
+
+    @Override
     protected void sendErrorMessage(String operationId, ExecutionResponse executionResponse) throws IOException {
         session.sendMessage(createErrorMessage(operationId,
                 // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
@@ -62,6 +70,12 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
                 .add("id", operationId)
                 .add("type", MessageType.GQL_ERROR.asString())
                 .add("payload", error)
+                .build();
+    }
+
+    private JsonObject createPingMessage() {
+        return Json.createObjectBuilder()
+                .add("type", MessageType.GQL_CONNECTION_KEEP_ALIVE.asString())
                 .build();
     }
 
