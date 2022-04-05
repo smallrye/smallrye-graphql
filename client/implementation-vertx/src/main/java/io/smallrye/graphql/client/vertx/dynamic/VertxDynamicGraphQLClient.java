@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.vertx.dynamic;
 
 import static java.util.stream.Collectors.toList;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,9 @@ import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.impl.RequestImpl;
 import io.smallrye.graphql.client.impl.ResponseReader;
+import io.smallrye.graphql.client.impl.discovery.ServiceURLSupplier;
+import io.smallrye.graphql.client.impl.discovery.StaticURLSupplier;
+import io.smallrye.graphql.client.impl.discovery.StorkServiceURLSupplier;
 import io.smallrye.graphql.client.vertx.websocket.BuiltinWebsocketSubprotocolHandlers;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
@@ -39,8 +43,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private final WebClient webClient;
     private final HttpClient httpClient;
-    private final String url;
-    private final String websocketUrl;
+
+    private final ServiceURLSupplier url;
+    private final ServiceURLSupplier websocketUrl;
+
     private final boolean executeSingleOperationsOverWebsocket;
     private final MultiMap headers;
     private final List<WebsocketSubprotocol> subprotocols;
@@ -70,8 +76,26 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             this.webClient = webClient;
         }
         this.headers = headers;
-        this.url = url;
-        this.websocketUrl = websocketUrl;
+
+        if (url != null) {
+            if (url.startsWith("stork")) {
+                this.url = new StorkServiceURLSupplier(URI.create(url), false);
+            } else {
+                this.url = new StaticURLSupplier(url);
+            }
+        } else {
+            this.url = null;
+        }
+        if (websocketUrl != null) {
+            if (websocketUrl.startsWith("stork")) {
+                this.websocketUrl = new StorkServiceURLSupplier(URI.create(websocketUrl), true);
+            } else {
+                this.websocketUrl = new StaticURLSupplier(websocketUrl);
+            }
+        } else {
+            this.websocketUrl = null;
+        }
+
         this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
@@ -278,23 +302,25 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 // if we don't have a handler, create a new one
                 return Uni.createFrom().<WebSocketSubprotocolHandler> emitter(handlerEmitter -> {
                     List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-                    httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
-                            result -> {
-                                if (result.succeeded()) {
-                                    WebSocket webSocket = result.result();
-                                    WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                            .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                    subscriptionInitializationTimeout, () -> {
-                                                        // if the websocket disconnects, remove the handler so we can try
-                                                        // connecting again with a new websocket and handler
-                                                        webSocketHandler.set(null);
-                                                    });
-                                    handlerEmitter.complete(handler);
-                                    log.debug("Using websocket subprotocol handler: " + handler);
-                                } else {
-                                    handlerEmitter.fail(result.cause());
-                                }
-                            });
+                    websocketUrl.get().subscribe().with(websocketUrl -> {
+                        httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
+                                result -> {
+                                    if (result.succeeded()) {
+                                        WebSocket webSocket = result.result();
+                                        WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                                .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                        subscriptionInitializationTimeout, () -> {
+                                                            // if the websocket disconnects, remove the handler so we can try
+                                                            // connecting again with a new websocket and handler
+                                                            webSocketHandler.set(null);
+                                                        });
+                                        handlerEmitter.complete(handler);
+                                        log.debug("Using websocket subprotocol handler: " + handler);
+                                    } else {
+                                        handlerEmitter.fail(result.cause());
+                                    }
+                                });
+                    });
                 }).memoize().indefinitely();
             } else {
                 return currentValue;
@@ -304,10 +330,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private Uni<Response> executeSingleResultOperationOverHttp(JsonObject json) {
         return Uni.createFrom().completionStage(
-                webClient.postAbs(url)
+                url.get().subscribeAsCompletionStage().thenCompose(instanceUrl -> webClient.postAbs(instanceUrl)
                         .putHeaders(headers)
                         .sendBuffer(Buffer.buffer(json.toString()))
-                        .toCompletionStage())
+                        .toCompletionStage()))
                 .map(response -> ResponseReader.readFrom(response.bodyAsString(),
                         convertHeaders(response.headers())));
     }
