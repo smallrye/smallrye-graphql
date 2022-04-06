@@ -44,6 +44,15 @@
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
+
+        <!-- JDK stuff -->
+        <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
+        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+
+        <!-- For maven plugins in this project -->
+        <version.maven-plugin-plugin>3.6.1</version.maven-plugin-plugin>
     </properties>
 
     <licenses>
@@ -370,7 +379,20 @@
                         <arg>loopback</arg>
                     </gpgArguments>
                 </configuration>
-            </plugin>         
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>nl.talsmasoftware</groupId>
+                        <artifactId>umldoclet</artifactId>
+                        <version>2.0.12</version>
+                    </docletArtifact>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -408,34 +430,5 @@
                 <module>release</module>
             </modules>
         </profile>
-        
-        <profile>
-            <id>jdk11plus</id>
-            <activation>
-                <jdk>[11,)</jdk>
-            </activation>
-            <properties>
-                <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
-                <maven.compiler.release>8</maven.compiler.release>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.3.2</version>
-                        <configuration>
-                            <doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
-                            <docletArtifact>
-                                <groupId>nl.talsmasoftware</groupId>
-                                <artifactId>umldoclet</artifactId>
-                                <version>2.0.12</version>
-                            </docletArtifact>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
     </profiles>
 </project>
