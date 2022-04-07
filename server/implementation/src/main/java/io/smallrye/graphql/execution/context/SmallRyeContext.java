@@ -3,13 +3,11 @@ package io.smallrye.graphql.execution.context;
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -38,8 +36,7 @@ import graphql.schema.SelectedField;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.ReferenceType;
-import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 
 /**
@@ -49,36 +46,11 @@ import io.smallrye.graphql.schema.model.Type;
  */
 public class SmallRyeContext implements Context {
 
-    // If support for multiple deployments is enabled, schemas stored in this map are keyed by
-    // each application's context class loader. If there is only a single app in this process,
-    // the map will contain only one entry and it will be under a null key
-    // One of the reasons is that Quarkus initializes this class at build time, so keying by
-    // class loader is not possible, because class loader at runtime will be different.
-    // allowMultipleDeployments MUST always be false in native mode.
-    // FIXME: this approach could use some improvements, perhaps we could instead use an application-scoped bean
-    // to separate things belonging to different apps?
-    private static final Map<ClassLoader, Schema> schemas = Collections.synchronizedMap(new WeakHashMap<>());
-    private static volatile boolean allowMultipleDeployments = false;
-
     private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {
         SmallRyeContext registry = new SmallRyeContext(jsonInput);
         current.set(registry);
-    }
-
-    public static void setSchema(Schema schema, boolean allowMultipleDeployments) {
-        if (allowMultipleDeployments) {
-            SmallRyeContext.allowMultipleDeployments = true;
-            schemas.put(Thread.currentThread().getContextClassLoader(), schema);
-        } else {
-            schemas.put(null, schema);
-        }
-    }
-
-    public static Schema getSchema() {
-        ClassLoader key = allowMultipleDeployments ? Thread.currentThread().getContextClassLoader() : null;
-        return schemas.get(key);
     }
 
     public static SmallRyeContext getContext() {
@@ -94,11 +66,11 @@ public class SmallRyeContext implements Context {
     }
 
     public SmallRyeContext withDataFromExecution(ExecutionInput executionInput, QueryCache queryCache) {
-        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, queryCache, this.field);
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, queryCache, this.field, this.type);
     }
 
-    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field);
+    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field, Type type) {
+        return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field, type);
     }
 
     public static void remove() {
@@ -190,7 +162,6 @@ public class SmallRyeContext implements Context {
     public JsonArray getSelectedFields(boolean includeSourceFields) {
         if (dfe != null) {
             DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
-            //Related to #713 - java-graphql #2275 repectively
             Set<SelectedField> fields = new LinkedHashSet<>(selectionSet.getFields());
             return toJsonArrayBuilder(fields, includeSourceFields).build();
         }
@@ -326,6 +297,7 @@ public class SmallRyeContext implements Context {
     private final ExecutionInput executionInput;
     private final Supplier<Document> documentSupplier;
     private final Field field;
+    private final Type type;
     private final QueryCache queryCache;
 
     public SmallRyeContext(final JsonObject jsonObject) {
@@ -335,16 +307,19 @@ public class SmallRyeContext implements Context {
         this.queryCache = null;
         this.documentSupplier = null;
         this.field = null;
+        this.type = null;
     }
 
     public SmallRyeContext(JsonObject jsonObject,
             DataFetchingEnvironment dfe,
             ExecutionInput executionInput,
             QueryCache queryCache,
-            Field field) {
+            Field field,
+            Type type) {
         this.jsonObject = jsonObject;
         this.dfe = dfe;
         this.field = field;
+        this.type = type;
         this.executionInput = executionInput;
         this.queryCache = queryCache;
         this.documentSupplier = new DocumentSupplier(executionInput, queryCache);
@@ -370,7 +345,6 @@ public class SmallRyeContext implements Context {
 
     private JsonObjectBuilder toJsonObjectBuilder(SelectedField selectedField, boolean includeSourceFields) {
         JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
-        //Related to #713 - java-graphql #2275 repectively
         Set<SelectedField> fields = new LinkedHashSet<>(selectedField.getSelectionSet().getFields());
         builder = builder.add(selectedField.getName(),
                 toJsonArrayBuilder(fields, includeSourceFields));
@@ -378,11 +352,16 @@ public class SmallRyeContext implements Context {
     }
 
     private boolean isSourceField(SelectedField selectedField) {
-        if (field.getReference().getType().equals(ReferenceType.TYPE)) {
-            Type type = getSchema().getTypes().get(field.getReference().getName());
-            return type.hasOperation(selectedField.getName());
+        // A source field is an operation
+        if (type.hasOperations()) {
+            Map<String, Operation> sourceFields = type.getOperations();
+            String fieldName = selectedField.getName();
+            if (sourceFields.containsKey(fieldName)) {
+                Operation o = sourceFields.get(fieldName);
+                return o.isSourceField();
+            }
         }
-        return false; // Only Type has source field (for now)
+        return false;
     }
 
     private boolean isScalar(SelectedField field) {

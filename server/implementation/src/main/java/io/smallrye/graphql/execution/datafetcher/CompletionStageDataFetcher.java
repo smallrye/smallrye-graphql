@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Uni;
 
 /**
@@ -15,8 +16,8 @@ import io.smallrye.mutiny.Uni;
  */
 public class CompletionStageDataFetcher<K, T> extends AbstractAsyncDataFetcher<K, T> {
 
-    public CompletionStageDataFetcher(Operation operation) {
-        super(operation);
+    public CompletionStageDataFetcher(Operation operation, Type type) {
+        super(operation, type);
     }
 
     @Override

@@ -12,6 +12,7 @@ import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Uni;
 
 /**
@@ -23,8 +24,8 @@ import io.smallrye.mutiny.Uni;
  */
 public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public DefaultDataFetcher(Operation operation) {
-        super(operation);
+    public DefaultDataFetcher(Operation operation, Type type) {
+        super(operation, type);
     }
 
     @Override

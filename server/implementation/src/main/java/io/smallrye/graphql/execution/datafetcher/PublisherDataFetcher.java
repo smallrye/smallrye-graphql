@@ -5,6 +5,7 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Multi;
 
 /**
@@ -16,8 +17,8 @@ import io.smallrye.mutiny.Multi;
  */
 public class PublisherDataFetcher<K, T> extends AbstractStreamingDataFetcher<K, T> {
 
-    public PublisherDataFetcher(Operation operation) {
-        super(operation);
+    public PublisherDataFetcher(Operation operation, Type type) {
+        super(operation, type);
     }
 
     @Override

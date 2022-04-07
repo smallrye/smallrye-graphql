@@ -1,0 +1,15 @@
+{
+  "data": {
+    "konteks": {
+      "fieldName": "konteks",
+      "operationType": "QUERY",
+      "path": "/konteks",
+      "requestedOperationTypes": [
+        "QUERY"
+      ],
+      "selectedFieldIncludingSource": "[\"fieldName\",\"operationType\",\"path\",\"requestedOperationTypes\",\"selectedFieldIncludingSource\",\"selectedFields\",\"sourceOnKonteks\"]",
+      "selectedFields": "[\"fieldName\",\"operationType\",\"path\",\"requestedOperationTypes\",\"selectedFieldIncludingSource\",\"selectedFields\"]",
+      "sourceOnKonteks": "source"
+    }
+  }
+}

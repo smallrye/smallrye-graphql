@@ -1,0 +1,11 @@
+{
+  konteks{
+    fieldName
+    operationType
+    path
+    requestedOperationTypes
+    selectedFieldIncludingSource
+    selectedFields
+    sourceOnKonteks
+  }
+}

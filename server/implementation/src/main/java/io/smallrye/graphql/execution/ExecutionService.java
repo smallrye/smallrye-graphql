@@ -31,6 +31,8 @@ import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 import io.smallrye.mutiny.Uni;
@@ -49,32 +51,29 @@ public class ExecutionService {
 
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
     private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
-    private final List<Operation> batchOperations;
+    private final Schema schema;
 
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
 
     private GraphQL graphQL;
 
-    private final boolean hasSubscription;
     private final QueryCache queryCache;
     private final LogPayloadOption payloadOption;
 
     private final ExecutionStrategy queryExecutionStrategy;
     private final ExecutionStrategy mutationExecutionStrategy;
 
-    public ExecutionService(GraphQLSchema graphQLSchema, List<Operation> batchOperations,
-            boolean hasSubscription) {
-        this(graphQLSchema, batchOperations, hasSubscription, null, null);
+    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema) {
+        this(graphQLSchema, schema, null, null);
     }
 
-    public ExecutionService(GraphQLSchema graphQLSchema, List<Operation> batchOperations,
-            boolean hasSubscription, ExecutionStrategy queryExecutionStrategy, ExecutionStrategy mutationExecutionStrategy) {
+    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, ExecutionStrategy queryExecutionStrategy,
+            ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = graphQLSchema;
-        this.batchOperations = batchOperations;
+        this.schema = schema;
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
-        this.hasSubscription = hasSubscription;
         this.queryCache = new QueryCache();
 
         this.queryExecutionStrategy = queryExecutionStrategy;
@@ -82,24 +81,6 @@ public class ExecutionService {
 
         Config config = Config.get();
         this.payloadOption = config.logPayload();
-    }
-
-    /**
-     * @deprecated - use one on the void method providing a writer.
-     */
-    @Deprecated
-    public ExecutionResponse execute(JsonObject jsonInput) {
-        try {
-            JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(jsonInput);
-            executeSync(jsonInput, jsonObjectResponseWriter);
-            return jsonObjectResponseWriter.getExecutionResponse();
-        } catch (Throwable t) {
-            if (t.getClass().isAssignableFrom(RuntimeException.class)) {
-                throw (RuntimeException) t;
-            } else {
-                throw new RuntimeException(t);
-            }
-        }
     }
 
     public void executeSync(JsonObject jsonInput, ExecutionResponseWriter writer) {
@@ -160,6 +141,7 @@ public class ExecutionService {
                 executionBuilder.graphQLContext(context);
 
                 // DataLoaders
+                List<Operation> batchOperations = schema.getBatchOperations();
                 if (batchOperations != null && !batchOperations.isEmpty()) {
                     DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
                     executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
@@ -242,8 +224,9 @@ public class ExecutionService {
     private <K, T> DataLoaderRegistry getDataLoaderRegistry(List<Operation> operations) {
         DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
         for (Operation operation : operations) {
-            BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation);
-
+            Map<String, Type> types = schema.getTypes();
+            BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation,
+                    types.get(operation.getName()));
             DataLoader<K, T> dataLoader = DataLoaderFactory.newDataLoader(batchLoader);
             dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
         }
@@ -265,7 +248,7 @@ public class ExecutionService {
                 if (mutationExecutionStrategy != null) {
                     graphqlBuilder = graphqlBuilder.mutationExecutionStrategy(mutationExecutionStrategy);
                 }
-                if (hasSubscription) {
+                if (schema.hasSubscriptions()) {
                     graphqlBuilder = graphqlBuilder
                             .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy(new ExceptionHandler()));
                 }

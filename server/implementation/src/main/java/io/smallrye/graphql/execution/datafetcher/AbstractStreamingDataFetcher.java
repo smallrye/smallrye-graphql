@@ -12,6 +12,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -25,8 +26,8 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
  */
 public abstract class AbstractStreamingDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
 
-    public AbstractStreamingDataFetcher(Operation operation) {
-        super(operation);
+    public AbstractStreamingDataFetcher(Operation operation, Type type) {
+        super(operation, type);
     }
 
     @Override

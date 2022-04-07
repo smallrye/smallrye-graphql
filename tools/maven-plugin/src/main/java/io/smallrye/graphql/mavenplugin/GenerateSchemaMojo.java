@@ -194,7 +194,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
     private String generateSchema(IndexView index) {
         Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, false, true);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, true);
         if (graphQLSchema != null) {
             return new SchemaPrinter().print(graphQLSchema);
         }
