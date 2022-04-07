@@ -29,6 +29,9 @@ import javax.json.JsonValue;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.impl.discovery.ServiceURLSupplier;
+import io.smallrye.graphql.client.impl.discovery.StaticURLSupplier;
+import io.smallrye.graphql.client.impl.discovery.StorkServiceURLSupplier;
 import io.smallrye.graphql.client.impl.typesafe.HeaderBuilder;
 import io.smallrye.graphql.client.impl.typesafe.QueryBuilder;
 import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
@@ -59,8 +62,8 @@ class VertxTypesafeGraphQLClientProxy {
     private final Map<String, String> queryCache = new HashMap<>();
 
     private final Map<String, String> additionalHeaders;
-    private final URI endpoint;
-    private final String websocketUrl;
+    private final ServiceURLSupplier endpoint;
+    private final ServiceURLSupplier websocketUrl;
     private final HttpClient httpClient;
     private final WebClient webClient;
     private final List<WebsocketSubprotocol> subprotocols;
@@ -89,9 +92,25 @@ class VertxTypesafeGraphQLClientProxy {
             Integer subscriptionInitializationTimeout) {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
-        this.endpoint = endpoint;
+        if (endpoint != null) {
+            if (endpoint.getScheme().startsWith("stork")) {
+                this.endpoint = new StorkServiceURLSupplier(endpoint, false);
+            } else {
+                this.endpoint = new StaticURLSupplier(endpoint.toString());
+            }
+        } else {
+            this.endpoint = null;
+        }
+        if (websocketUrl != null) {
+            if (websocketUrl.startsWith("stork")) {
+                this.websocketUrl = new StorkServiceURLSupplier(URI.create(websocketUrl), true);
+            } else {
+                this.websocketUrl = new StaticURLSupplier(websocketUrl);
+            }
+        } else {
+            this.websocketUrl = null;
+        }
         this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
-        this.websocketUrl = websocketUrl;
         this.httpClient = httpClient;
         this.webClient = webClient;
         this.subprotocols = subprotocols;
@@ -199,21 +218,23 @@ class VertxTypesafeGraphQLClientProxy {
                     List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
                     MultiMap headers = HeadersMultiMap.headers()
                             .addAll(new HeaderBuilder(api, null, additionalHeaders).build());
-                    httpClient.webSocketAbs(websocketUrl, headers, WebsocketVersion.V13, subprotocolIds,
-                            result -> {
-                                if (result.succeeded()) {
-                                    WebSocket webSocket = result.result();
-                                    WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                            .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                    subscriptionInitializationTimeout, () -> {
-                                                        webSocketHandler.set(null);
-                                                    });
-                                    handlerEmitter.complete(handler);
-                                    log.debug("Using websocket subprotocol handler: " + handler);
-                                } else {
-                                    handlerEmitter.fail(result.cause());
-                                }
-                            });
+                    websocketUrl.get().subscribe().with(wsUrl -> {
+                        httpClient.webSocketAbs(wsUrl, headers, WebsocketVersion.V13, subprotocolIds,
+                                result -> {
+                                    if (result.succeeded()) {
+                                        WebSocket webSocket = result.result();
+                                        WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                                .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                        subscriptionInitializationTimeout, () -> {
+                                                            webSocketHandler.set(null);
+                                                        });
+                                        handlerEmitter.complete(handler);
+                                        log.debug("Using websocket subprotocol handler: " + handler);
+                                    } else {
+                                        handlerEmitter.fail(result.cause());
+                                    }
+                                });
+                    });
                 }).memoize().indefinitely();
             } else {
                 return currentValue;
@@ -347,14 +368,15 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private CompletionStage<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {
-        return webClient.postAbs(endpoint.toString())
-                .putHeaders(headers)
-                .sendBuffer(Buffer.buffer(request))
-                .toCompletionStage();
+        return endpoint.get().subscribeAsCompletionStage()
+                .thenCompose(url -> webClient.postAbs(url)
+                        .putHeaders(headers)
+                        .sendBuffer(Buffer.buffer(request))
+                        .toCompletionStage());
     }
 
     private String postSync(String request, MultiMap headers) {
-        Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.toString())
+        Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.get().await().indefinitely())
                 .putHeaders(headers)
                 .sendBuffer(Buffer.buffer(request));
         try {

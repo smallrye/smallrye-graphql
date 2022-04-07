@@ -167,6 +167,24 @@
             <artifactId>smallrye-graphql-servlet</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.smallrye.stork</groupId>
+            <artifactId>stork-api</artifactId>
+            <version>${version.smallrye-stork}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.stork</groupId>
+            <artifactId>stork-service-discovery-static-list</artifactId>
+            <version>${version.smallrye-stork}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.stork</groupId>
+            <artifactId>stork-microprofile-config</artifactId>
+            <version>${version.smallrye-stork}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
