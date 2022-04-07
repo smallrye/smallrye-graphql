@@ -2,7 +2,7 @@
 
 SmallRye GraphQL client (both dynamic and typesafe) supports SmallRye Stork for 
 service discovery and load balancing. If your client is configured to connect to a URI
-with the `stork://` or `stork://` scheme, then Stork will be used to determine the
+with the `stork://` or `storks://` scheme, then Stork will be used to determine the
 actual endpoints to connect to. Load balancing, if configured, will be applied in a way that
 each HTTP request can be routed to a different service instance. For WebSocket traffic,
 once a WebSocket connection is established, the client will keep using that connection
