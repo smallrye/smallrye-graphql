@@ -20,6 +20,8 @@ nav:
   - Dynamic client:
       - Basic usage: 'dynamic-client-usage.md'
       - Error handling: 'dynamic-client-error-handling.md'
+  - Clients in general:
+      - Using SmallRye Stork: 'using-smallrye-stork.md'
   - Developer tools:
       - Maven plugin: 'maven-plugin.md'
       - Gradle plugin: 'gradle-plugin.md'
