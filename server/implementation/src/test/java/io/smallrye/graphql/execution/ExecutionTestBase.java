@@ -34,7 +34,7 @@ public abstract class ExecutionTestBase {
         LOG.info("================== Testing against: ====================");
         LOG.info(schemaString);
         LOG.info("========================================================");
-        this.executionService = new ExecutionService(graphQLSchema, schema.getBatchOperations(), true);
+        this.executionService = new ExecutionService(graphQLSchema, schema);
     }
 
     protected IndexView getIndex() {

@@ -6,6 +6,7 @@ import graphql.GraphQLContext;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Helping with context
@@ -35,9 +36,10 @@ public class ContextHelper {
         graphQLContext.put(CONTEXT, smallRyeContext);
     }
 
-    public SmallRyeContext updateSmallRyeContextWithField(final DataFetchingEnvironment dfe, final Field field) {
+    public SmallRyeContext updateSmallRyeContextWithField(final DataFetchingEnvironment dfe, final Field field,
+            final Type type) {
         SmallRyeContext smallRyeContext = getSmallRyeContext(dfe);
-        smallRyeContext = smallRyeContext.withDataFromFetcher(dfe, field);
+        smallRyeContext = smallRyeContext.withDataFromFetcher(dfe, field, type);
         setSmallRyeContext(dfe, smallRyeContext);
         return smallRyeContext;
     }

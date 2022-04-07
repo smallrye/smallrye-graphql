@@ -13,6 +13,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Class that serves as a proxy decorator for obtaining the current SmallRyeContext. It always calls
@@ -42,8 +43,8 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     }
 
     @Override
-    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        return SmallRyeContext.getContext().withDataFromFetcher(dfe, field);
+    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field, Type type) {
+        return SmallRyeContext.getContext().withDataFromFetcher(dfe, field, type);
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.smallrye.graphql.execution.datafetcher;
 import java.util.List;
 
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Uni;
 
 /**
@@ -14,8 +15,8 @@ import io.smallrye.mutiny.Uni;
  */
 public class UniDataFetcher<K, T> extends AbstractAsyncDataFetcher<K, T> {
 
-    public UniDataFetcher(Operation operation) {
-        super(operation);
+    public UniDataFetcher(Operation operation, Type type) {
+        super(operation, type);
     }
 
     @Override

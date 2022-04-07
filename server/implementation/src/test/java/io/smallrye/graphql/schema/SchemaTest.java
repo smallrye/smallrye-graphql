@@ -34,7 +34,7 @@ class SchemaTest {
                 .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
                         TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, false, true);
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
         assertNotNull(graphQLSchema);
 
         GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");

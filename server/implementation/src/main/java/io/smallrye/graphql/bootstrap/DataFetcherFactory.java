@@ -20,6 +20,7 @@ import io.smallrye.graphql.execution.datafetcher.PublisherDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.UniDataFetcher;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.DataFetcherService;
 
@@ -46,12 +47,12 @@ public class DataFetcherFactory {
         });
     }
 
-    public <T> DataFetcher<T> getDataFetcher(Operation operation) {
-        return (DataFetcher<T>) get(operation);
+    public <T> DataFetcher<T> getDataFetcher(Operation operation, Type type) {
+        return (DataFetcher<T>) get(operation, type);
     }
 
-    public <K, T> BatchLoaderWithContext<K, T> getSourceBatchLoader(Operation operation) {
-        return (BatchLoaderWithContext<K, T>) get(operation);
+    public <K, T> BatchLoaderWithContext<K, T> getSourceBatchLoader(Operation operation, Type type) {
+        return (BatchLoaderWithContext<K, T>) get(operation, type);
     }
 
     public Wrapper unwrap(Field field, boolean isBatch) {
@@ -69,102 +70,102 @@ public class DataFetcherFactory {
         return null;
     }
 
-    private <V> V get(Operation operation) {
+    private <V> V get(Operation operation, Type type) {
         if (isCompletionStage(operation)) {
-            return (V) getCompletionStageDataFetcher(operation);
+            return (V) getCompletionStageDataFetcher(operation, type);
         } else if (isMutinyUni(operation)) {
-            return (V) getUniDataFetcher(operation);
+            return (V) getUniDataFetcher(operation, type);
         } else if (isPublisher(operation)) {
-            return (V) getPublisherDataFetcher(operation);
+            return (V) getPublisherDataFetcher(operation, type);
         } else if (isMutinyMulti(operation)) {
-            return (V) getMultiDataFetcher(operation);
+            return (V) getMultiDataFetcher(operation, type);
         } else if (isWrapped(operation)) {
-            return (V) getOtherWrappedDataFetcher(operation);
+            return (V) getOtherWrappedDataFetcher(operation, type);
         }
-        return (V) getOtherFieldDataFetcher(operation);
+        return (V) getOtherFieldDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getCompletionStageDataFetcher(Operation operation) {
+    public PlugableDataFetcher getCompletionStageDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getCompletionStageDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getCompletionStageDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return new CompletionStageDataFetcher(operation);
+        return new CompletionStageDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getUniDataFetcher(Operation operation) {
+    public PlugableDataFetcher getUniDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getUniDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getUniDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return new UniDataFetcher(operation);
+        return new UniDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getPublisherDataFetcher(Operation operation) {
+    public PlugableDataFetcher getPublisherDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getPublisherDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getPublisherDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return new PublisherDataFetcher(operation);
+        return new PublisherDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getMultiDataFetcher(Operation operation) {
+    public PlugableDataFetcher getMultiDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getMultiDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getMultiDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return new MultiDataFetcher(operation);
+        return new MultiDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getOtherWrappedDataFetcher(Operation operation) {
+    public PlugableDataFetcher getOtherWrappedDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getOtherWrappedDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getOtherWrappedDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return getDefaultDataFetcher(operation);
+        return getDefaultDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getOtherFieldDataFetcher(Operation operation) {
+    public PlugableDataFetcher getOtherFieldDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getOtherFieldDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getOtherFieldDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getDefaultDataFetcher(operation);
+            PlugableDataFetcher df = dfe.getDefaultDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
-        return new DefaultDataFetcher(operation);
+        return new DefaultDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getDefaultDataFetcher(Operation operation) {
-        return getOtherFieldDataFetcher(operation);
+    public PlugableDataFetcher getDefaultDataFetcher(Operation operation, Type type) {
+        return getOtherFieldDataFetcher(operation, type);
     }
 
     private boolean isAsync(Field field) {

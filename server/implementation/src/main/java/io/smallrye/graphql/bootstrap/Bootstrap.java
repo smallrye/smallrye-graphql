@@ -47,7 +47,6 @@ import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
 import io.smallrye.graphql.execution.datafetcher.FieldDataFetcher;
@@ -100,16 +99,12 @@ public class Bootstrap {
     private final ClassloadingService classloadingService = ClassloadingService.get();
 
     public static GraphQLSchema bootstrap(Schema schema) {
-        return bootstrap(schema, false, false);
+        return bootstrap(schema, false);
     }
 
-    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments) {
-        return bootstrap(schema, allowMultipleDeployments, false);
-    }
-
-    public static GraphQLSchema bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
+    public static GraphQLSchema bootstrap(Schema schema, boolean skipInjectionValidation) {
         if (schema != null && (schema.hasOperations())) {
-            Bootstrap bootstrap = new Bootstrap(schema, allowMultipleDeployments, skipInjectionValidation);
+            Bootstrap bootstrap = new Bootstrap(schema, skipInjectionValidation);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
         } else {
@@ -118,9 +113,8 @@ public class Bootstrap {
         }
     }
 
-    private Bootstrap(Schema schema, boolean allowMultipleDeployments, boolean skipInjectionValidation) {
+    private Bootstrap(Schema schema, boolean skipInjectionValidation) {
         this.schema = schema;
-        SmallRyeContext.setSchema(schema, allowMultipleDeployments);
         // setting `skipInjectionValidation` through a system property is not recommended,
         // but kept for backward compatibility for now
         if (!Boolean.getBoolean("test.skip.injection.validation") && !skipInjectionValidation) {
@@ -544,7 +538,7 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation);
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, getTypeForField(operation));
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
@@ -575,7 +569,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        DataFetcher<?> datafetcher = dataFetcherFactory.getDataFetcher(operation);
+        DataFetcher<?> datafetcher = dataFetcherFactory.getDataFetcher(operation, getTypeForField(operation));
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
                 datafetcher);
@@ -614,7 +608,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, owner);
+        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, getTypeForField(field), owner);
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(owner.getName(), graphQLFieldDefinition.getName()),
                 datafetcher);
 
@@ -939,6 +933,11 @@ public class Bootstrap {
             }
         }
         return DEFAULT_FIELD_VISIBILITY;
+    }
+
+    private Type getTypeForField(Field field) {
+        Map<String, Type> types = schema.getTypes();
+        return types.get(field.getReference().getName());
     }
 
     private static final String QUERY = "Query";

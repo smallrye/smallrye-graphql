@@ -48,8 +48,8 @@ public class GraphQLProducer {
             ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = Bootstrap.bootstrap(schema, allowMultipleDeployments);
-        this.executionService = new ExecutionService(graphQLSchema, this.schema.getBatchOperations(),
-                schema.hasSubscriptions(), queryExecutionStrategy, mutationExecutionStrategy);
+        this.executionService = new ExecutionService(graphQLSchema, this.schema, queryExecutionStrategy,
+                mutationExecutionStrategy);
         return this.graphQLSchema;
     }
 
