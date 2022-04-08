@@ -1,6 +1,7 @@
 package io.smallrye.graphql.test.apps.adapt.to.api;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
@@ -45,6 +46,19 @@ public class AdaptToResource {
     @Mutation
     public AdaptToData updateAdaptToData(AdaptToData adaptToData) {
         return adaptToData;
+    }
+
+    @Mutation
+    public Dummy addDummy(Dummy dummy) {
+        return dummy;
+    }
+
+    @Query
+    public Dummy getDummy() {
+        Dummy d = new Dummy();
+        d.id = new DummyId(new Date());
+        d.name = "foo";
+        return d;
     }
 
     public static class AdaptToData {

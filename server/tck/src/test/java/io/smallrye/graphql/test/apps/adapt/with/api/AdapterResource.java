@@ -2,6 +2,7 @@ package io.smallrye.graphql.test.apps.adapt.with.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,19 @@ public class AdapterResource {
     @Mutation
     public Map<ISO6391, Language> mapMutationEnum(Map<ISO6391, Language> in) {
         return in;
+    }
+
+    @Mutation
+    public Dommie addDommie(Dommie dommie) {
+        return dommie;
+    }
+
+    @Query
+    public Dommie getDommie() {
+        Dommie d = new Dommie();
+        d.id = new DommieId(new Date());
+        d.name = "foo";
+        return d;
     }
 
     public Map<String, String> mapSourceBasic(@Source AdapterData adapterData) {

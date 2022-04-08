@@ -247,23 +247,19 @@ public class ReferenceCreator {
         Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences,
                 addParametrizedTypeNameExtension);
 
-        // Adapt to Scalar
-        boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotationsForClass);
+        // Adaptation
         Optional<AdaptTo> adaptTo = AdaptToHelper.getAdaptTo(reference, annotationsForClass);
         reference.setAdaptTo(adaptTo.orElse(null));
 
-        // Now add it to the correct map
-        if (shouldCreateAdapedToType && createAdapedToType) {
-            putIfAbsent(name, reference, referenceType);
-        }
-
-        // Adapt with adapter
-        boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotationsForClass);
         Optional<AdaptWith> adaptWith = AdaptWithHelper.getAdaptWith(direction, this, reference, annotationsForClass);
         reference.setAdaptWith(adaptWith.orElse(null));
 
         // Now add it to the correct map
-        if (shouldCreateAdapedWithType && createAdapedWithType) {
+        boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotationsForClass);
+        boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotationsForClass);
+
+        // We ignore the field that is being adapted
+        if (shouldCreateAdapedToType && createAdapedToType && shouldCreateAdapedWithType && createAdapedWithType) {
             putIfAbsent(name, reference, referenceType);
         }
         return reference;
@@ -298,7 +294,7 @@ public class ReferenceCreator {
             Annotations annotations,
             Reference parentObjectReference) {
 
-        // In some case, like operations and interfaces, there is not fieldType
+        // In some case, like operations and interfaces, there is no fieldType
         if (fieldType == null) {
             fieldType = methodType;
         }
@@ -315,7 +311,7 @@ public class ReferenceCreator {
             }
             return Scalars.getScalar(fieldTypeName);
         } else if (fieldType.kind().equals(Type.Kind.ARRAY)) {
-            // java Array
+            // Java Array
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
             return getReference(direction, typeInArray, typeInMethodArray, annotations, parentObjectReference);

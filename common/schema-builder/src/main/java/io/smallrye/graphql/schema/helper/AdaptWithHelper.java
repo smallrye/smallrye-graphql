@@ -82,7 +82,12 @@ public class AdaptWithHelper {
                             if (Scalars.isScalar(to.name().toString())) {
                                 adaptWith.setToReference(Scalars.getScalar(to.name().toString()));
                             } else {
-                                Reference toRef = referenceCreator.createReferenceForAdapter(direction, to, annotations);
+                                Annotations annotationsAplicableToMe = annotations.removeAnnotations(Annotations.ADAPT_WITH,
+                                        Annotations.JSONB_TYPE_ADAPTER);
+
+                                // Remove the adaption annotation, as this is the type being adapted to
+                                Reference toRef = referenceCreator.createReferenceForAdapter(direction, to,
+                                        annotationsAplicableToMe);
                                 toRef.setWrapper(WrapperCreator.createWrapper(to).orElse(null));
 
                                 adaptWith.setToReference(toRef);
