@@ -129,7 +129,6 @@ public class Bootstrap {
      */
     private void verifyInjectionIsAvailable() {
         LookupService lookupService = LookupService.get();
-        ClassloadingService classloadingService = ClassloadingService.get();
         // This crazy stream operation basically collects all class names where we need to verify that
         // it belongs to an injectable bean
         Stream.of(

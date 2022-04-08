@@ -261,6 +261,14 @@ public class Annotations {
         return annotationsMap.keySet();
     }
 
+    public Annotations removeAnnotations(DotName... annotations) {
+        Map<DotName, AnnotationInstance> newAnnotationsMap = new HashMap<>(annotationsMap);
+        for (DotName annotation : annotations) {
+            newAnnotationsMap.remove(annotation);
+        }
+        return new Annotations(newAnnotationsMap, this.parentAnnotations);
+    }
+
     /**
      * Get a specific annotation
      *
