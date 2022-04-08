@@ -3,6 +3,7 @@
     url
     uri
     uuid
+    objectId
     urlInput(url:"https://example.com")
     uriInput(uri:"https://example.com")
     uuidInput(uuid:"037f4ba2-6d74-4686-a4ea-90cbd86007c3")

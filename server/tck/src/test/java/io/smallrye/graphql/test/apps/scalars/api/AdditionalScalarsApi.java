@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
+import org.bson.types.ObjectId;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -27,6 +28,10 @@ public class AdditionalScalarsApi {
 
     public UUID uuidInput(@Source AdditionalScalars additionalScalars, UUID uuid) {
         return uuid;
+    }
+
+    public ObjectId objectIdInput(@Source AdditionalScalars additionalScalars, ObjectId objectId) {
+        return objectId;
     }
 
     public URL urlDefault(@Source AdditionalScalars additionalScalars, @DefaultValue("https://example.com") URL url) {

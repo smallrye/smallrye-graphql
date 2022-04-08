@@ -62,6 +62,11 @@
             <artifactId>rxjava</artifactId>
             <version>2.2.21</version>
         </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>4.5.1</version>
+        </dependency>
         <!-- The UI -->
         <dependency>
             <groupId>${project.groupId}</groupId>
