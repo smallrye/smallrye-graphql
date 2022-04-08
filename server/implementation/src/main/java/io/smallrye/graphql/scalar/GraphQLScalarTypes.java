@@ -65,6 +65,7 @@ public class GraphQLScalarTypes {
 
         SCALAR_MAP.put(String.class.getName(), Scalars.GraphQLString);
         SCALAR_MAP.put(UUID.class.getName(), Scalars.GraphQLString);
+        SCALAR_MAP.put("org.bson.types.ObjectId", Scalars.GraphQLString);
         SCALAR_MAP.put(URL.class.getName(), Scalars.GraphQLString);
         SCALAR_MAP.put(URI.class.getName(), Scalars.GraphQLString);
 

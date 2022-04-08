@@ -81,6 +81,7 @@ public class Scalars {
         populateScalar(UUID.class.getName(), STRING, String.class.getName());
         populateScalar(URL.class.getName(), STRING, String.class.getName());
         populateScalar(URI.class.getName(), STRING, String.class.getName());
+        populateScalar("org.bson.types.ObjectId", STRING, String.class.getName());
         populateScalar("javax.json.JsonObject", STRING, String.class.getName());
         populateScalar("javax.json.JsonArray", STRING, String.class.getName());
 
