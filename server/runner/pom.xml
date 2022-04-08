@@ -134,7 +134,7 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>2.1.0.Final</version>    
+                <version>3.0.0.Final</version>    
                 <configuration>
                     <version>${version.wildfly}</version> 
                     <server-config>standalone-microprofile.xml</server-config>
