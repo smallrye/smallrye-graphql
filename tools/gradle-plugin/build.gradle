@@ -1,7 +1,10 @@
 plugins {
-    id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'com.gradle.plugin-publish' version '0.18.0'
     id 'java-gradle-plugin'
 }
+
+group "io.smallrye"
+
 if (JavaVersion.current().isJava9Compatible()) {
     compileJava.options.compilerArgs.addAll(['--release', '8'])
 }
@@ -49,9 +52,13 @@ javadoc {
 }
 
 pluginBundle {
+    group = 'io.smallrye.graphql'
     website = 'http://github.com/smallrye/smallrye-graphql/'
     vcsUrl = 'https://github.com/smallrye/smallrye-graphql'
     tags = ['smallrye', 'graphql', 'microprofile']
+    mavenCoordinates {
+        groupId = project.group
+    }
 }
 
 gradlePlugin {
