@@ -15,9 +15,12 @@ import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
+import org.jboss.logging.Logger;
+
 import io.smallrye.graphql.client.GraphQLError;
 
 public class ResponseReader {
+    private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
 
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
         if (input == null) {
@@ -55,72 +58,95 @@ public class ResponseReader {
         JsonObject errorObject = errorJson.asJsonObject();
         GraphQLErrorImpl decodedError = new GraphQLErrorImpl();
 
-        JsonValue message = errorObject.get("message");
-        if (message instanceof JsonString) {
-            decodedError.setMessage(errorObject.getString("message"));
-        }
-
-        if (errorObject.containsKey("locations")) {
-            JsonArray locations = errorObject.getJsonArray("locations");
-            List<Map<String, Integer>> locationList = new ArrayList<>();
-            for (JsonValue jsonValue : locations) {
-                JsonObject location = jsonValue.asJsonObject();
-                Map<String, Integer> map = new HashMap<>();
-                location.forEach((key, value) -> {
-                    // TODO: how to handle non-numeric location segments?
-                    if (value instanceof JsonNumber) {
-                        map.put(key, ((JsonNumber) value).intValue());
-                    }
-                });
-                locationList.add(map);
+        try {
+            JsonValue message = errorObject.get("message");
+            if (message instanceof JsonString) {
+                decodedError.setMessage(errorObject.getString("message"));
             }
-            decodedError.setLocations(locationList);
+        } catch (RuntimeException e) {
+            LOG.warn(e);
         }
 
-        if (errorObject.containsKey("path")
-                && errorObject.get("path").getValueType().equals(JsonValue.ValueType.ARRAY)) {
-            Object[] path = new Object[errorObject.getJsonArray("path").size()];
-            int i = 0;
-            for (JsonValue segment : errorObject.getJsonArray("path")) {
-                switch (segment.getValueType()) {
-                    case STRING:
-                        path[i] = ((JsonString) segment).getString();
-                        break;
-                    case NUMBER:
-                        path[i] = ((JsonNumber) segment).intValue();
-                        break;
-                    default:
-                        SmallRyeGraphQLClientLogging.log.unknownPathSegmentType(segment.getValueType());
+        try {
+            if (errorObject.containsKey("locations")
+                    && errorObject.get("locations").getValueType().equals(JsonValue.ValueType.ARRAY)) {
+                JsonArray locations = errorObject.getJsonArray("locations");
+                List<Map<String, Integer>> locationList = new ArrayList<>();
+                for (JsonValue jsonValue : locations) {
+                    JsonObject location = jsonValue.asJsonObject();
+                    Map<String, Integer> map = new HashMap<>();
+                    location.forEach((key, value) -> {
+                        // TODO: how to handle non-numeric location segments?
+                        if (value instanceof JsonNumber) {
+                            map.put(key, ((JsonNumber) value).intValue());
+                        }
+                    });
+                    locationList.add(map);
                 }
-                i++;
+                decodedError.setLocations(locationList);
             }
-            decodedError.setPath(path);
+        } catch (RuntimeException e) {
+            LOG.warn(e);
         }
 
-        if (errorObject.containsKey("extensions")) {
-            JsonObject extensions = errorObject.getJsonObject("extensions");
-            Map<String, Object> extensionMap = new HashMap<>();
-            extensions.forEach((key, value) -> {
-                extensionMap.put(key, decode(value));
-            });
-            decodedError.setExtensions(extensionMap);
-        } else {
-            decodedError.setExtensions(Collections.emptyMap());
+        try {
+            if (errorObject.containsKey("path")
+                    && errorObject.get("path").getValueType().equals(JsonValue.ValueType.ARRAY)) {
+                Object[] path = new Object[errorObject.getJsonArray("path").size()];
+                int i = 0;
+                for (JsonValue segment : errorObject.getJsonArray("path")) {
+                    switch (segment.getValueType()) {
+                        case STRING:
+                            path[i] = ((JsonString) segment).getString();
+                            break;
+                        case NUMBER:
+                            path[i] = ((JsonNumber) segment).intValue();
+                            break;
+                        default:
+                            SmallRyeGraphQLClientLogging.log.unknownPathSegmentType(segment.getValueType());
+                    }
+                    i++;
+                }
+                decodedError.setPath(path);
+            }
+        } catch (RuntimeException e) {
+            LOG.warn(e);
         }
 
-        // check if there are any other fields beyond the ones described by the specification
-        Map<String, Object> otherFields = new HashMap<>();
-        for (String key : errorObject.keySet()) {
-            if (!key.equals("extensions") &&
-                    !key.equals("locations") &&
-                    !key.equals("message") &&
-                    !key.equals("path")) {
-                otherFields.put(key, decode(errorObject.get(key)));
+        try {
+            if (errorObject.containsKey("extensions")
+                    && errorObject.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
+                JsonObject extensions = errorObject.getJsonObject("extensions");
+                Map<String, Object> extensionMap = new HashMap<>();
+                extensions.forEach((key, value) -> {
+                    extensionMap.put(key, decode(value));
+                });
+                decodedError.setExtensions(extensionMap);
+            } else {
+                decodedError.setExtensions(Collections.emptyMap());
             }
+        } catch (RuntimeException e) {
+            LOG.warn(e);
         }
-        if (!otherFields.isEmpty()) {
-            decodedError.setOtherFields(otherFields);
+
+        try {
+            // check if there are any other fields beyond the ones described by the specification
+            Map<String, Object> otherFields = new HashMap<>();
+            for (String key : errorObject.keySet()) {
+                if (!key.equals("extensions") &&
+                        !key.equals("locations") &&
+                        !key.equals("message") &&
+                        !key.equals("path")) {
+                    otherFields.put(key, decode(errorObject.get(key)));
+                }
+            }
+            if (!otherFields.isEmpty()) {
+                decodedError.setOtherFields(otherFields);
+            }
+        } catch (RuntimeException e) {
+            LOG.warn(e);
         }
+
         return decodedError;
     }
 
