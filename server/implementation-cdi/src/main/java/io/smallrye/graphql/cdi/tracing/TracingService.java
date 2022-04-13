@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionException;
 import javax.annotation.Priority;
 import javax.enterprise.inject.spi.CDI;
 
+import graphql.schema.DataFetchingEnvironment;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -97,8 +98,9 @@ public class TracingService implements EventingService {
                 .start();
         Scope scope = tracer.activateSpan(span);
 
-        context.putMetaData(SPAN_CLASS, parentSpan);
-        context.putMetaData(SCOPE_CLASS, scope);
+        DataFetchingEnvironment dfe = context.unwrap(DataFetchingEnvironment.class);
+        dfe.getGraphQlContext().put(SPAN_CLASS, parentSpan);
+        dfe.getGraphQlContext().put(SCOPE_CLASS, scope);
     }
 
     // FIXME: is the fetcher is asynchronous, this typically ends its span before
@@ -108,7 +110,8 @@ public class TracingService implements EventingService {
     @Override
     public void afterDataFetch(Context context) {
         Span span = tracer.activeSpan();
-        Scope scope = context.getMetaData(SCOPE_CLASS);
+        DataFetchingEnvironment dfe = context.unwrap(DataFetchingEnvironment.class);
+        Scope scope = dfe.getGraphQlContext().get(SCOPE_CLASS);
         scope.close();
         span.finish();
     }
@@ -134,12 +137,10 @@ public class TracingService implements EventingService {
     }
 
     private Span getParentSpan(Tracer tracer, final Context context) {
-        if (context != null && context.hasLocalMetaData(SPAN_CLASS)) {
-            return context.getLocalMetaData(SPAN_CLASS);
-        } else if (context != null && context.hasMetaData(SPAN_CLASS)) {
-            return context.getMetaData(SPAN_CLASS);
+        DataFetchingEnvironment dfe = context.unwrap(DataFetchingEnvironment.class);
+        if (dfe.getGraphQlContext().hasKey(SPAN_CLASS)) {
+            return dfe.getGraphQlContext().get(SPAN_CLASS);
         }
-
         return tracer.activeSpan();
     }
 

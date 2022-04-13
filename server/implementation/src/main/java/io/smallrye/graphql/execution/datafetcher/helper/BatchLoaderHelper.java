@@ -1,11 +1,12 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.dataloader.BatchLoaderEnvironment;
 
+import io.smallrye.graphql.execution.context.BatchKeyContext;
+import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
@@ -19,17 +20,25 @@ public class BatchLoaderHelper {
         return operation.getSourceFieldOn().getName() + "_" + operation.getName();
     }
 
-    public <K> Object[] getArguments(List<K> keys, BatchLoaderEnvironment ble) {
-
+    public <K> ArgumentsAndContext getArgumentsAndContext(List<K> keys, BatchLoaderEnvironment ble) {
+        ArgumentsAndContext argumentsAndContext = new ArgumentsAndContext();
         List<Object> arguments = new ArrayList<>();
         arguments.add(keys);
 
         List<Object> keyContextsList = ble.getKeyContextsList();
         if (keyContextsList != null && !keyContextsList.isEmpty()) {
-            Object[] otherArguments = (Object[]) keyContextsList.get(0);
-            arguments.addAll(Arrays.asList(otherArguments));
+            BatchKeyContext batchKeyContext = (BatchKeyContext) keyContextsList.get(0);
+            arguments.addAll(batchKeyContext.getTransformedArguments());
+            argumentsAndContext.smallRyeContext = batchKeyContext.getSmallRyeContext();
         }
 
-        return arguments.toArray();
+        argumentsAndContext.arguments = arguments.toArray();
+
+        return argumentsAndContext;
+    }
+
+    public class ArgumentsAndContext {
+        public Object[] arguments;
+        public SmallRyeContext smallRyeContext;
     }
 }

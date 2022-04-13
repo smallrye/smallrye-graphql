@@ -66,11 +66,11 @@ public class ArgumentHelper extends AbstractHelper {
      * @return a (ordered) List of all argument values
      * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
-    public Object[] getArguments(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
+    public List<Object> getArguments(DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
         return getArguments(dfe, false);
     }
 
-    public Object[] getArguments(DataFetchingEnvironment dfe, boolean excludeSource) throws AbstractDataFetcherException {
+    public List<Object> getArguments(DataFetchingEnvironment dfe, boolean excludeSource) throws AbstractDataFetcherException {
         List<Object> argumentObjects = new LinkedList<>();
         for (Argument argument : arguments) {
             if (!argument.isSourceArgument() || !excludeSource) {
@@ -78,7 +78,7 @@ public class ArgumentHelper extends AbstractHelper {
                 argumentObjects.add(argumentValue);
             }
         }
-        return argumentObjects.toArray();
+        return argumentObjects;
     }
 
     /**

@@ -69,7 +69,7 @@ public class ContextApi {
         k.setFieldName(context.getFieldName());
         k.setOperationType(context.getOperationType());
         k.setSelectedFields(toString(context.getSelectedFields()));
-        k.setSelectedFieldIncludingSource(toString(context.getSelectedFields(true)));
+        k.setSelectedFieldIncludingSource(toString(context.getSelectedAndSourceFields()));
         k.setRequestedOperationTypes(context.getRequestedOperationTypes());
         return k;
     }

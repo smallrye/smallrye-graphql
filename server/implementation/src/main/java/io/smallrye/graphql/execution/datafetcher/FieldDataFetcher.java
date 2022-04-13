@@ -8,7 +8,7 @@ import graphql.GraphQLException;
 import graphql.TrivialDataFetcher;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Reference;
@@ -32,7 +32,6 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T> {
 
     private final FieldHelper fieldHelper;
-    private final ContextHelper contextHelper = new ContextHelper();
     private final Field field;
     private final Type type;
 
@@ -56,7 +55,7 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
     @Override
     public T get(DataFetchingEnvironment dfe) throws Exception {
 
-        contextHelper.updateSmallRyeContextWithField(dfe, field, type);
+        SmallRyeContextManager.populateFromDataFetchingEnvironment(type, field, dfe);
 
         if (this.propertyAccessor == null) {
             // lazy initialize method handle, does not have to be threadsafe

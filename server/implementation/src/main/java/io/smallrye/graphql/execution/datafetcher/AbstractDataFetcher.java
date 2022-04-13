@@ -1,13 +1,15 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import java.util.List;
+
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.ErrorResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.OperationInvoker;
@@ -33,7 +35,6 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter = EventEmitter.getInstance();
     protected BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
-    protected ContextHelper contextHelper = new ContextHelper();
 
     public AbstractDataFetcher(Operation operation, Type type) {
         this.operation = operation;
@@ -46,14 +47,16 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
         // update the context
-        SmallRyeContext context = initSmallRyeContext(dfe);
+        SmallRyeContext smallRyeContext = SmallRyeContextManager.populateFromDataFetchingEnvironment(type, operation, dfe);
+        eventEmitter.fireBeforeDataFetch(smallRyeContext);
+
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult()
                 .localContext(dfe.getGraphQlContext());
 
         try {
-            Object[] transformedArguments = argumentHelper.getArguments(dfe);
+            List<Object> transformedArguments = argumentHelper.getArguments(dfe);
 
-            return invokeAndTransform(dfe, resultBuilder, transformedArguments);
+            return invokeAndTransform(dfe, resultBuilder, transformedArguments.toArray());
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
@@ -65,17 +68,10 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
             eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
             throw ex;
         } finally {
-            eventEmitter.fireAfterDataFetch(context);
+            eventEmitter.fireAfterDataFetch(smallRyeContext);
         }
 
         return invokeFailure(resultBuilder);
-    }
-
-    private SmallRyeContext initSmallRyeContext(final DataFetchingEnvironment dfe) {
-        // update the context
-        SmallRyeContext context = contextHelper.updateSmallRyeContextWithField(dfe, operation, type);
-        eventEmitter.fireBeforeDataFetch(context);
-        return context;
     }
 
     protected abstract <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,

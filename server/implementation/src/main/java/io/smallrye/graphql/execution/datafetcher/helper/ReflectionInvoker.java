@@ -15,7 +15,7 @@ import java.util.List;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.spi.ClassloadingService;
@@ -145,7 +145,7 @@ public class ReflectionInvoker {
 
     private Object[] injectContext(Object[] arguments) {
         ArrayList list = new ArrayList(Arrays.asList(arguments));
-        list.set(injectContextAt, SmallRyeContext.getContext());
+        list.set(injectContextAt, SmallRyeContextManager.getCurrentSmallRyeContext());
         return list.toArray();
     }
 
