@@ -33,7 +33,7 @@ import io.smallrye.common.annotation.Experimental;
 
 /**
  * Holing context for the current request
- * There are two parts to this. The initial request, that can be a aggregation of requests, and the current execution context.
+ * There are two parts to this.The initial request, that can be a aggregation of requests, and the current execution context.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -53,6 +53,16 @@ public interface Context {
     public JsonObject getRequest();
 
     /**
+     * Check if there is a request set
+     * 
+     * @return
+     */
+    default boolean hasRequest() {
+        JsonObject request = getRequest();
+        return request != null;
+    }
+
+    /**
      * Get the query part of the request.
      * TODO: Consider creating a domain object for this (rather than String).
      * 
@@ -68,9 +78,7 @@ public interface Context {
      * 
      * @return the operation name if set
      */
-    default Optional<String> getOperationName() {
-        return Optional.ofNullable(hasOperationName() ? getRequest().getString(OPERATION_NAME) : null);
-    }
+    public Optional<String> getOperationName();
 
     /**
      * Check if the request contains an operation name
@@ -78,9 +86,7 @@ public interface Context {
      * @return true if it does
      */
     default boolean hasOperationName() {
-        return getRequest().containsKey(OPERATION_NAME)
-                && getRequest().get(OPERATION_NAME) != null
-                && !getRequest().get(OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL);
+        return getOperationName().isPresent();
     }
 
     /**
@@ -90,7 +96,9 @@ public interface Context {
      * @return
      */
     default Optional<Map<String, Object>> getVariables() {
-        if (hasVariables()) {
+        if (getRequest().containsKey(VARIABLES)
+                && getRequest().get(VARIABLES) != null
+                && !getRequest().get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL)) {
             JsonValue jsonValue = getRequest().get(VARIABLES);
             return VariablesParser.toMap(jsonValue);
         }
@@ -103,9 +111,7 @@ public interface Context {
      * @return true if it does
      */
     default boolean hasVariables() {
-        return (getRequest().containsKey(VARIABLES)
-                && getRequest().get(VARIABLES) != null
-                && !getRequest().get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL));
+        return getVariables().isPresent();
     }
 
     /**
@@ -128,27 +134,41 @@ public interface Context {
      * @param name the argument name
      * @return true if there
      */
-    public Boolean hasArgument(String name);
+    default <ARG> Boolean hasArgument(String name) {
+        Map<String, ARG> arguments = getArguments();
+        if (arguments != null) {
+            return arguments.containsKey(name);
+        }
+        return null;
+    }
 
     /**
      * Get the argument using a name
      * This return the argument instance if it exists
+     * 
+     * @param name key
+     * @return argument value
      */
-    public <T> T getArgument(String name);
+    default <ARG> ARG getArgument(String name) {
+        Map<String, ARG> arguments = getArguments();
+        if (arguments != null) {
+            return arguments.get(name);
+        }
+        return null;
+    }
 
     /**
      * Same as above but with the option to do a default value
      * 
-     * @param <T>
      * @param name
      * @param defaultValue
      * @return the argument instance if it exists, else the provided default
      */
-    default <T> T getArgumentOrDefault(String name, T defaultValue) {
-        T t = getArgument(name);
-        if (t == null)
+    default <ARG> ARG getArgumentOrDefault(String name, ARG defaultValue) {
+        ARG arg = getArgument(name);
+        if (arg == null)
             return defaultValue;
-        return t;
+        return arg;
     }
 
     /**
@@ -156,72 +176,14 @@ public interface Context {
      * 
      * @return a map with name and instance of the argument
      */
-    public Map<String, Object> getArguments();
-
-    /**
-     * Check if a certain meta data is available
-     * 
-     * @param <K>
-     * @param key
-     * @return
-     */
-    public <K> boolean hasMetaData(K key);
-
-    /**
-     * Allow getting custom user values.
-     * 
-     * @param <K> the key
-     * @param <V> the value
-     * @param key
-     * @return
-     */
-    public <K, V> V getMetaData(K key);
-
-    /**
-     * Allow setting custom user values
-     * 
-     * @param <K>
-     * @param <V>
-     * @param key
-     * @param value
-     */
-    public <K, V> void putMetaData(K key, V value);
-
-    /**
-     * Check if a certain local meta data is available
-     * 
-     * @param <K>
-     * @param key
-     * @return
-     */
-    public <K> boolean hasLocalMetaData(K key);
-
-    /**
-     * Allow getting custom local user values.
-     * 
-     * @param <K> the key
-     * @param <V> the value
-     * @param key
-     * @return
-     */
-    public <K, V> V getLocalMetaData(K key);
-
-    /**
-     * Allow setting custom local user values
-     * 
-     * @param <K>
-     * @param <V>
-     * @param key
-     * @param value
-     */
-    public <K, V> void putLocalMetaData(K key, V value);
+    public <ARG> Map<String, ARG> getArguments();
 
     default boolean hasSource() {
         Object o = getSource();
         return o != null;
     }
 
-    public <T> T getSource();
+    public <SRC> SRC getSource();
 
     /**
      * Return the current path
@@ -235,17 +197,14 @@ public interface Context {
      * 
      * @return JsonArray of fields selected
      */
-    default JsonArray getSelectedFields() {
-        return getSelectedFields(false);
-    }
+    public JsonArray getSelectedFields();
 
     /**
-     * Return the fields in the request
+     * Return the fields and source fields in the request
      * 
-     * @param includeSourceFields should we include source fields ?
      * @return JsonArray of fields selected
      */
-    public JsonArray getSelectedFields(boolean includeSourceFields);
+    public JsonArray getSelectedAndSourceFields();
 
     /**
      * Return the current type (Query, Mutation ext)

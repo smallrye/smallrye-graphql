@@ -10,6 +10,8 @@ import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
+import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -35,9 +37,9 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
-        SmallRyeContext context = contextHelper.getSmallRyeContext(dfe);
+        SmallRyeContext context = SmallRyeContextManager.getSmallRyeContext(dfe);
         try {
-            SmallRyeContext.setContext(context);
+            SmallRyeContextManager.setCurrentSmallRyeContext(context);
             Uni<?> uni = handleUserMethodCall(transformedArguments);
             return (O) uni
                     .onItemOrFailure()
@@ -68,7 +70,7 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
                     .subscribe()
                     .asCompletionStage();
         } finally {
-            SmallRyeContext.remove();
+            SmallRyeContextManager.clearCurrentSmallRyeContext();
         }
     }
 
@@ -88,12 +90,15 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
     @SuppressWarnings("unchecked")
     public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
         try {
-            Object[] arguments = batchLoaderHelper.getArguments(keys, ble);
-            return handleUserBatchLoad(arguments)
+            BatchLoaderHelper.ArgumentsAndContext argumentsAndContext = batchLoaderHelper.getArgumentsAndContext(keys, ble);
+            SmallRyeContextManager.setCurrentSmallRyeContext(argumentsAndContext.smallRyeContext);
+            return handleUserBatchLoad(argumentsAndContext.arguments)
                     .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                     .subscribe().asCompletionStage();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        } finally {
+            SmallRyeContextManager.clearCurrentSmallRyeContext();
         }
     }
 

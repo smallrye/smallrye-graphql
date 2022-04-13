@@ -1,13 +1,16 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import java.util.List;
+
 import org.dataloader.DataLoader;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.context.BatchKeyContext;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
@@ -25,7 +28,6 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
     private final ArgumentHelper argumentHelper;
     private final String batchLoaderName;
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
-    private final ContextHelper contextHelper = new ContextHelper();
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
 
     public BatchDataFetcher(Operation operation, Type type) {
@@ -37,19 +39,22 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
     @Override
     public T get(final DataFetchingEnvironment dfe) throws Exception {
-        SmallRyeContext smallryeContext = contextHelper.updateSmallRyeContextWithField(dfe, operation, type);
+
+        SmallRyeContext smallryeContext = SmallRyeContextManager.populateFromDataFetchingEnvironment(type, operation, dfe);
         eventEmitter.fireBeforeDataFetch(smallryeContext);
-        Object[] transformedArguments = argumentHelper.getArguments(dfe, true);
+        List<Object> transformedArguments = argumentHelper.getArguments(dfe, true);
         Object source = dfe.getSource();
 
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
 
+        BatchKeyContext batchKeyContext = new BatchKeyContext(transformedArguments, smallryeContext);
+
         try {
-            SmallRyeContext.setContext(smallryeContext);
-            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, transformedArguments)).subscribe()
+            SmallRyeContextManager.setCurrentSmallRyeContext(smallryeContext);
+            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchKeyContext)).subscribe()
                     .asCompletionStage();
         } finally {
-            SmallRyeContext.remove();
+            SmallRyeContextManager.clearCurrentSmallRyeContext();
         }
     }
 }

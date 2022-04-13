@@ -26,8 +26,8 @@ import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
-import io.smallrye.graphql.execution.datafetcher.helper.ContextHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
@@ -104,7 +104,7 @@ public class ExecutionService {
     }
 
     public void execute(JsonObject jsonInput, Map<String, Object> context, ExecutionResponseWriter writer, boolean async) {
-        SmallRyeContext smallRyeContext = new SmallRyeContext(jsonInput);
+        SmallRyeContext smallRyeContext = SmallRyeContextManager.fromInitialRequest(jsonInput);
 
         // ExecutionId
         ExecutionId finalExecutionId = ExecutionId.from(executionIdPrefix + executionId.getAndIncrement());
@@ -137,7 +137,7 @@ public class ExecutionService {
                 smallRyeContext.getOperationName().ifPresent(executionBuilder::operationName);
 
                 // Context
-                context.put(ContextHelper.CONTEXT, smallRyeContext);
+                context.put(SmallRyeContextManager.CONTEXT, smallRyeContext);
                 executionBuilder.graphQLContext(context);
 
                 // DataLoaders
@@ -150,8 +150,8 @@ public class ExecutionService {
                 ExecutionInput executionInput = executionBuilder.build();
 
                 // Update context with execution data
-                smallRyeContext = smallRyeContext.withDataFromExecution(executionInput, queryCache);
-                executionInput.getGraphQLContext().put(ContextHelper.CONTEXT, smallRyeContext);
+                smallRyeContext = SmallRyeContextManager.populateFromExecutionInput(executionInput, queryCache);
+                executionInput.getGraphQLContext().put(SmallRyeContextManager.CONTEXT, smallRyeContext);
 
                 // Notify before
                 eventEmitter.fireBeforeExecute(smallRyeContext);
@@ -182,7 +182,7 @@ public class ExecutionService {
                 .subscribe().with(executionResult -> {
                     executionInput.getGraphQLContext().putAll(context);
 
-                    SmallRyeContext.setContext(smallRyeContext);
+                    SmallRyeContextManager.setCurrentSmallRyeContext(smallRyeContext);
 
                     // Notify after
                     eventEmitter.fireAfterExecute(smallRyeContext);
