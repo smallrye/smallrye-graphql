@@ -41,7 +41,7 @@
         <version.smallrye-opentracing>2.1.0</version.smallrye-opentracing>
         <version.hibernate-validator>6.2.3.Final</version.hibernate-validator>
         <version.glasfish-el>3.0.3</version.glasfish-el>
-        <version.mockito>4.4.0</version.mockito>
+        <version.mockito>4.5.0</version.mockito>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
