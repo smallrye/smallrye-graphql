@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -56,7 +57,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
 
-    private final Map<String, String> queryCache = new HashMap<>();
+    private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
 
     private final Map<String, String> additionalHeaders;
     private final URI endpoint;
