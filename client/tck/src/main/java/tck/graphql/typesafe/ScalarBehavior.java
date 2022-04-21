@@ -1,6 +1,7 @@
 package tck.graphql.typesafe;
 
 import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -15,6 +16,7 @@ import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.microprofile.graphql.Id;
@@ -584,9 +586,14 @@ class ScalarBehavior {
         @Id
         String idea(
                 @Id String stringId,
+                @Id List<String> stringListId,
+                @Id List<@NonNull String> stringListInnerNonNullId,
+                @Id @NonNull List<String> stringListOuterNonNullId,
+                @Id @NonNull List<@NonNull String> stringListBothNonNullId,
                 @Id long primitiveLongId,
                 @Id int primitiveIntId,
                 @Id Long longId,
+                @Id List<Long> longListId,
                 @Id Integer intId,
                 @Id UUID uuidId);
     }
@@ -719,20 +726,31 @@ class ScalarBehavior {
             fixture.returnsData("'idea':'out'");
             IdApi api = fixture.builder().build(IdApi.class);
 
-            String out = api.idea("stringId", 1L, 2, 3L, 4, UUID.randomUUID());
+            String out = api.idea("stringId", singletonList("x"), singletonList("x"), singletonList("x"), singletonList("x"),
+                    1L, 2, 3L, singletonList(5L), 4, UUID.randomUUID());
 
             then(fixture.query()).isEqualTo("query idea(" +
                     "$stringId: ID, " +
+                    "$stringListId: [ID], " +
+                    "$stringListInnerNonNullId: [ID!], " +
+                    "$stringListOuterNonNullId: [ID]!, " +
+                    "$stringListBothNonNullId: [ID!]!, " +
                     "$primitiveLongId: ID!, " +
                     "$primitiveIntId: ID!, " +
                     "$longId: ID, " +
+                    "$longListId: [ID], " +
                     "$intId: ID, " +
                     "$uuidId: ID) " +
                     "{ idea(" +
                     "stringId: $stringId, " +
+                    "stringListId: $stringListId, " +
+                    "stringListInnerNonNullId: $stringListInnerNonNullId, " +
+                    "stringListOuterNonNullId: $stringListOuterNonNullId, " +
+                    "stringListBothNonNullId: $stringListBothNonNullId, " +
                     "primitiveLongId: $primitiveLongId, " +
                     "primitiveIntId: $primitiveIntId, " +
                     "longId: $longId, " +
+                    "longListId: $longListId, " +
                     "intId: $intId, " +
                     "uuidId: $uuidId) }");
             then(out).isEqualTo("out");
