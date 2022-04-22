@@ -36,7 +36,11 @@ public class ParameterInfo {
 
     public String graphQlInputTypeName() {
         if (parameter.isAnnotationPresent(Id.class)) {
-            return "ID" + optionalExclamationMark(type);
+            if (type.isCollection()) {
+                return "[ID" + optionalExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
+            } else {
+                return "ID" + optionalExclamationMark(type);
+            }
         } else if (type.isCollection()) {
             return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
         } else if (type.isMap()) {
