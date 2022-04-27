@@ -81,20 +81,20 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public <ARG> Map<String, ARG> getArguments() {
-        return (Map<String, ARG>) this.arguments;
+    public <A> Map<String, A> getArguments() {
+        return (Map<String, A>) this.arguments;
     }
 
-    public <ARG> void setArguments(Map<String, ARG> arguments) {
+    public <A> void setArguments(Map<String, A> arguments) {
         this.arguments = arguments;
     }
 
     @Override
-    public <SRC> SRC getSource() {
-        return (SRC) this.source;
+    public <S> S getSource() {
+        return (S) this.source;
     }
 
-    public <SRC> void setSource(SRC source) {
+    public <S> void setSource(S source) {
         this.source = source;
     }
 

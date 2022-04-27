@@ -134,8 +134,8 @@ public interface Context {
      * @param name the argument name
      * @return true if there
      */
-    default <ARG> Boolean hasArgument(String name) {
-        Map<String, ARG> arguments = getArguments();
+    default <A> Boolean hasArgument(String name) {
+        Map<String, A> arguments = getArguments();
         if (arguments != null) {
             return arguments.containsKey(name);
         }
@@ -149,8 +149,8 @@ public interface Context {
      * @param name key
      * @return argument value
      */
-    default <ARG> ARG getArgument(String name) {
-        Map<String, ARG> arguments = getArguments();
+    default <A> A getArgument(String name) {
+        Map<String, A> arguments = getArguments();
         if (arguments != null) {
             return arguments.get(name);
         }
@@ -164,8 +164,8 @@ public interface Context {
      * @param defaultValue
      * @return the argument instance if it exists, else the provided default
      */
-    default <ARG> ARG getArgumentOrDefault(String name, ARG defaultValue) {
-        ARG arg = getArgument(name);
+    default <A> A getArgumentOrDefault(String name, A defaultValue) {
+        A arg = getArgument(name);
         if (arg == null)
             return defaultValue;
         return arg;
@@ -176,14 +176,14 @@ public interface Context {
      * 
      * @return a map with name and instance of the argument
      */
-    public <ARG> Map<String, ARG> getArguments();
+    public <A> Map<String, A> getArguments();
 
     default boolean hasSource() {
         Object o = getSource();
         return o != null;
     }
 
-    public <SRC> SRC getSource();
+    public <S> S getSource();
 
     /**
      * Return the current path

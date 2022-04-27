@@ -139,22 +139,22 @@ public class CDISmallRyeContext extends SmallRyeContext {
     }
 
     @Override
-    public <SRC> void setSource(SRC source) {
+    public <S> void setSource(S source) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setSource(source);
     }
 
     @Override
-    public <SRC> SRC getSource() {
+    public <S> S getSource() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getSource();
     }
 
     @Override
-    public <ARG> void setArguments(Map<String, ARG> arguments) {
+    public <A> void setArguments(Map<String, A> arguments) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setArguments(arguments);
     }
 
     @Override
-    public <ARG> Map<String, ARG> getArguments() {
+    public <A> Map<String, A> getArguments() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArguments();
     }
 
@@ -204,17 +204,17 @@ public class CDISmallRyeContext extends SmallRyeContext {
     }
 
     @Override
-    public <ARG> ARG getArgumentOrDefault(String name, ARG defaultValue) {
+    public <A> A getArgumentOrDefault(String name, A defaultValue) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArgumentOrDefault(name, defaultValue);
     }
 
     @Override
-    public <ARG> ARG getArgument(String name) {
+    public <A> A getArgument(String name) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArgument(name);
     }
 
     @Override
-    public <ARG> Boolean hasArgument(String name) {
+    public <A> Boolean hasArgument(String name) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().hasArgument(name);
     }
 
