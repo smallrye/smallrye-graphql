@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-client-parent</artifactId>
-        <version>1.4.5-SNAPSHOT</version>
+        <version>1.5.0</version>
     </parent>
 
     <artifactId>smallrye-graphql-client-generator</artifactId>
