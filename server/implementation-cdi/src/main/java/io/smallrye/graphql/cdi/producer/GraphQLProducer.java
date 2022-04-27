@@ -1,11 +1,13 @@
 package io.smallrye.graphql.cdi.producer;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 
 import graphql.execution.ExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.cdi.context.CDISmallRyeContext;
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.schema.model.Schema;
 
@@ -69,4 +71,10 @@ public class GraphQLProducer {
 
     @Produces
     Schema schema;
+
+    @Produces
+    @Dependent
+    public CDISmallRyeContext produceSmallRyeContext() {
+        return new CDISmallRyeContext(GraphQLProducer.class.getName());
+    }
 }

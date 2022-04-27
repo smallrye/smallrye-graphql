@@ -22,14 +22,12 @@ import io.smallrye.graphql.schema.model.Field;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContext implements Context {
-
+    private final String createdBy;
     private JsonObject request;
     private String executionId;
     private Field field;
     private String fieldName;
     private Map<String, ?> arguments;
-    private Map<?, ?> metaDatas;
-    private Map<?, ?> localMetaDatas;
     private Object source;
     private String path;
     private JsonArray selectedFields;
@@ -42,6 +40,10 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
+
+    public SmallRyeContext(String createdBy) {
+        this.createdBy = createdBy;
+    }
 
     @Override
     public JsonObject getRequest() {
@@ -79,20 +81,20 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public <ARG> Map<String, ARG> getArguments() {
-        return (Map<String, ARG>) this.arguments;
+    public <A> Map<String, A> getArguments() {
+        return (Map<String, A>) this.arguments;
     }
 
-    public <ARG> void setArguments(Map<String, ARG> arguments) {
+    public <A> void setArguments(Map<String, A> arguments) {
         this.arguments = arguments;
     }
 
     @Override
-    public <SRC> SRC getSource() {
-        return (SRC) this.source;
+    public <S> S getSource() {
+        return (S) this.source;
     }
 
-    public <SRC> void setSource(SRC source) {
+    public <S> void setSource(S source) {
         this.source = source;
     }
 
@@ -212,5 +214,30 @@ public class SmallRyeContext implements Context {
             return null;
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
+    }
+
+    @Override
+    public String toString() {
+        String f = "";
+        if (this.dataFetchingEnvironment != null) {
+            f = this.dataFetchingEnvironment.getExecutionStepInfo().getField().getName();
+        }
+
+        return "SmallRyeContext{\n"
+                + "\t createdBy=" + createdBy + ",\n"
+                + "\t request=" + request + ",\n"
+                + "\t executionId=" + executionId + ",\n"
+                + "\t field=" + field + ",\n"
+                + "\t fieldName=" + fieldName + " (" + f + "),\n"
+                + "\t arguments=" + arguments + ",\n"
+                + "\t source=" + source + ",\n"
+                + "\t path=" + path + ",\n"
+                + "\t selectedFields=" + selectedFields + ",\n"
+                + "\t selectedAndSourceFields=" + selectedAndSourceFields + ",\n"
+                + "\t operationType=" + operationType + ",\n"
+                + "\t requestedOperationTypes=" + requestedOperationTypes + ",\n"
+                + "\t parentTypeName=" + parentTypeName + ",\n"
+                + "\t operationName=" + operationName + ",\n"
+                + "}";
     }
 }

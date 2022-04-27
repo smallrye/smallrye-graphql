@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Priority;
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Specializes;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -26,10 +25,13 @@ import io.smallrye.graphql.schema.model.Field;
  * This way, we make sure that an @Inject-ed SmallRyeContext is never cached and calls to it always check
  * if there is a new context instance assigned to the current thread.
  */
-@ApplicationScoped
 @Specializes
 @Priority(Integer.MAX_VALUE)
-public class SmallRyeContextAccessorProxy extends SmallRyeContext {
+public class CDISmallRyeContext extends SmallRyeContext {
+
+    public CDISmallRyeContext(String createdBy) {
+        super(createdBy);
+    }
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
@@ -137,22 +139,22 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     }
 
     @Override
-    public <SRC> void setSource(SRC source) {
+    public <S> void setSource(S source) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setSource(source);
     }
 
     @Override
-    public <SRC> SRC getSource() {
+    public <S> S getSource() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getSource();
     }
 
     @Override
-    public <ARG> void setArguments(Map<String, ARG> arguments) {
+    public <A> void setArguments(Map<String, A> arguments) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setArguments(arguments);
     }
 
     @Override
-    public <ARG> Map<String, ARG> getArguments() {
+    public <A> Map<String, A> getArguments() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArguments();
     }
 
@@ -202,17 +204,17 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     }
 
     @Override
-    public <ARG> ARG getArgumentOrDefault(String name, ARG defaultValue) {
+    public <A> A getArgumentOrDefault(String name, A defaultValue) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArgumentOrDefault(name, defaultValue);
     }
 
     @Override
-    public <ARG> ARG getArgument(String name) {
+    public <A> A getArgument(String name) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getArgument(name);
     }
 
     @Override
-    public <ARG> Boolean hasArgument(String name) {
+    public <A> Boolean hasArgument(String name) {
         return SmallRyeContextManager.getCurrentSmallRyeContext().hasArgument(name);
     }
 
@@ -248,5 +250,10 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     @Override
     public boolean hasRequest() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().hasRequest();
+    }
+
+    @Override
+    public String toString() {
+        return SmallRyeContextManager.getCurrentSmallRyeContext().toString();
     }
 }
