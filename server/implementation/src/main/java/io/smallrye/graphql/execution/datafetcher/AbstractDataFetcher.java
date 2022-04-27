@@ -1,7 +1,10 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
+import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
@@ -74,9 +77,25 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K
         return invokeFailure(resultBuilder);
     }
 
+    @Override
+    public CompletionStage<List<T>> load(List<K> keys, BatchLoaderEnvironment ble) {
+        Map<String, Object> batchContext = batchLoaderHelper.getBatchContext(keys, ble);
+        Object[] arguments = batchLoaderHelper.getArguments(batchContext);
+        DataFetchingEnvironment dataFetchingEnvironment = batchLoaderHelper.getDataFetchingEnvironment(batchContext);
+
+        try {
+            SmallRyeContext smallRyeContext = SmallRyeContextManager.populateFromDataFetchingEnvironment(type, operation,
+                    dataFetchingEnvironment);
+            return invokeBatch(dataFetchingEnvironment, arguments);
+        } finally {
+            SmallRyeContextManager.clearCurrentSmallRyeContext();
+        }
+    }
+
     protected abstract <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception;
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);
 
+    protected abstract CompletionStage<List<T>> invokeBatch(DataFetchingEnvironment dfe, Object[] arguments);
 }

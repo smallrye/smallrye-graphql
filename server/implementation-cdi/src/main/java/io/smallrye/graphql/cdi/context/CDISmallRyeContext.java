@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Priority;
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Specializes;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -26,10 +25,13 @@ import io.smallrye.graphql.schema.model.Field;
  * This way, we make sure that an @Inject-ed SmallRyeContext is never cached and calls to it always check
  * if there is a new context instance assigned to the current thread.
  */
-@ApplicationScoped
 @Specializes
 @Priority(Integer.MAX_VALUE)
-public class SmallRyeContextAccessorProxy extends SmallRyeContext {
+public class CDISmallRyeContext extends SmallRyeContext {
+
+    public CDISmallRyeContext(String createdBy) {
+        super(createdBy);
+    }
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
@@ -248,5 +250,10 @@ public class SmallRyeContextAccessorProxy extends SmallRyeContext {
     @Override
     public boolean hasRequest() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().hasRequest();
+    }
+
+    @Override
+    public String toString() {
+        return SmallRyeContextManager.getCurrentSmallRyeContext().toString();
     }
 }

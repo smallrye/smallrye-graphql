@@ -1,12 +1,13 @@
 package io.smallrye.graphql.execution.datafetcher;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.dataloader.DataLoader;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.smallrye.graphql.execution.context.BatchKeyContext;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
@@ -47,14 +48,13 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
         DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
 
-        BatchKeyContext batchKeyContext = new BatchKeyContext(transformedArguments, smallryeContext);
+        Map<String, Object> batchContext = new HashMap<>();
+        batchContext.put(BatchLoaderHelper.ARGUMENTS, transformedArguments);
+        batchContext.put(BatchLoaderHelper.DATA_FETCHING_ENVIRONMENT, dfe);
 
-        try {
-            SmallRyeContextManager.setCurrentSmallRyeContext(smallryeContext);
-            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchKeyContext)).subscribe()
-                    .asCompletionStage();
-        } finally {
-            SmallRyeContextManager.clearCurrentSmallRyeContext();
-        }
+        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchContext))
+                .subscribe()
+                .asCompletionStage();
+
     }
 }

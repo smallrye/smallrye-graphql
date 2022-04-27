@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution.datafetcher;
 
 import java.util.List;
 
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Multi;
@@ -20,12 +21,13 @@ public class MultiDataFetcher<K, T> extends AbstractStreamingDataFetcher<K, T> {
     }
 
     @Override
-    protected Multi<?> handleUserMethodCall(Object[] transformedArguments) throws Exception {
+    protected Multi<?> handleUserMethodCall(DataFetchingEnvironment dfe, final Object[] transformedArguments)
+            throws Exception {
         return (Multi<?>) operationInvoker.invoke(transformedArguments);
     }
 
     @Override
-    protected Multi<List<T>> handleUserBatchLoad(Object[] arguments) throws Exception {
+    protected Multi<List<T>> handleUserBatchLoad(DataFetchingEnvironment dfe, final Object[] arguments) throws Exception {
         return (Multi<List<T>>) operationInvoker.invoke(arguments);
     }
 }

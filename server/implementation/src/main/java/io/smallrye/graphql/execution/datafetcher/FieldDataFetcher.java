@@ -55,16 +55,15 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
     @Override
     public T get(DataFetchingEnvironment dfe) throws Exception {
 
-        SmallRyeContextManager.populateFromDataFetchingEnvironment(type, field, dfe);
-
         if (this.propertyAccessor == null) {
             // lazy initialize method handle, does not have to be threadsafe
             this.propertyAccessor = buildPropertyAccessor();
         }
-
-        Object source = dfe.getSource();
-        Object resultFromMethodCall = propertyAccessor.get(source);
+        Object resultFromMethodCall = null;
         try {
+            Object source = dfe.getSource();
+            SmallRyeContextManager.populateFromDataFetchingEnvironment(type, field, dfe);
+            resultFromMethodCall = propertyAccessor.get(source);
             // See if we need to transform
             @SuppressWarnings("unchecked")
             T transformResponse = (T) fieldHelper.transformOrAdaptResponse(resultFromMethodCall, dfe);
@@ -77,6 +76,8 @@ public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T
             // resultFromMethodCall would most likely have the wrong type,
             // so this would just produce another error. Better just throw GraphQLException?
             return result;
+        } finally {
+            SmallRyeContextManager.clearCurrentSmallRyeContext();
         }
     }
 

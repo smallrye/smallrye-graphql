@@ -38,6 +38,11 @@
             <artifactId>microprofile-config-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.context-propagation</groupId>
+            <artifactId>microprofile-context-propagation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         
         <!-- Logging -->
         <dependency>

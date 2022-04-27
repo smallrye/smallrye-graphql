@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.reactivestreams.Publisher;
 
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Multi;
@@ -22,13 +23,14 @@ public class PublisherDataFetcher<K, T> extends AbstractStreamingDataFetcher<K, 
     }
 
     @Override
-    protected Multi<?> handleUserMethodCall(Object[] transformedArguments) throws Exception {
+    protected Multi<?> handleUserMethodCall(DataFetchingEnvironment dfe, final Object[] transformedArguments)
+            throws Exception {
         Publisher<?> publisher = operationInvoker.invoke(transformedArguments);
         return (Multi<?>) Multi.createFrom().publisher(publisher);
     }
 
     @Override
-    protected Multi<List<T>> handleUserBatchLoad(Object[] arguments) throws Exception {
+    protected Multi<List<T>> handleUserBatchLoad(DataFetchingEnvironment dfe, final Object[] arguments) throws Exception {
         Publisher<List<T>> publisher = operationInvoker.invoke(arguments);
         return (Multi<List<T>>) Multi.createFrom().publisher(publisher);
     }

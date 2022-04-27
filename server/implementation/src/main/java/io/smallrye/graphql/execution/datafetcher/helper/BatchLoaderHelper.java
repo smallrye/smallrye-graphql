@@ -1,12 +1,13 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.dataloader.BatchLoaderEnvironment;
 
-import io.smallrye.graphql.execution.context.BatchKeyContext;
-import io.smallrye.graphql.execution.context.SmallRyeContext;
+import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.Operation;
 
 /**
@@ -16,29 +17,36 @@ import io.smallrye.graphql.schema.model.Operation;
  */
 public class BatchLoaderHelper {
 
+    public static final String ARGUMENTS = "arguments";
+    public static final String DATA_FETCHING_ENVIRONMENT = "dataFetchingEnvironment";
+
     public String getName(Operation operation) {
         return operation.getSourceFieldOn().getName() + "_" + operation.getName();
     }
 
-    public <K> ArgumentsAndContext getArgumentsAndContext(List<K> keys, BatchLoaderEnvironment ble) {
-        ArgumentsAndContext argumentsAndContext = new ArgumentsAndContext();
-        List<Object> arguments = new ArrayList<>();
-        arguments.add(keys);
-
+    public <K> Map<String, Object> getBatchContext(List<K> keys, BatchLoaderEnvironment ble) {
+        Map<String, Object> batchContext = new HashMap<>();
         List<Object> keyContextsList = ble.getKeyContextsList();
+        List<Object> finalArguments = new ArrayList<>();
+        finalArguments.add(keys);
+
         if (keyContextsList != null && !keyContextsList.isEmpty()) {
-            BatchKeyContext batchKeyContext = (BatchKeyContext) keyContextsList.get(0);
-            arguments.addAll(batchKeyContext.getTransformedArguments());
-            argumentsAndContext.smallRyeContext = batchKeyContext.getSmallRyeContext();
+            Map<String, Object> keyContexts = (Map<String, Object>) keyContextsList.get(0);
+            List<Object> otherarguments = (List<Object>) keyContexts.get(ARGUMENTS);
+            finalArguments.addAll(otherarguments);
+            batchContext.putAll(keyContexts);
+            batchContext.put(ARGUMENTS, finalArguments);
         }
 
-        argumentsAndContext.arguments = arguments.toArray();
-
-        return argumentsAndContext;
+        return batchContext;
     }
 
-    public class ArgumentsAndContext {
-        public Object[] arguments;
-        public SmallRyeContext smallRyeContext;
+    public Object[] getArguments(Map<String, Object> batchContext) {
+        List<Object> arguments = (List<Object>) batchContext.get(ARGUMENTS);
+        return arguments.toArray();
+    }
+
+    public DataFetchingEnvironment getDataFetchingEnvironment(Map<String, Object> batchContext) {
+        return (DataFetchingEnvironment) batchContext.get(DATA_FETCHING_ENVIRONMENT);
     }
 }

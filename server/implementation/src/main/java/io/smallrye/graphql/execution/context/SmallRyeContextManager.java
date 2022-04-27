@@ -44,16 +44,18 @@ public class SmallRyeContextManager {
     private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
     public static final String CONTEXT = "context";
 
-    public static SmallRyeContext getSmallRyeContext(final DataFetchingEnvironment dfe) {
+    public static SmallRyeContext restoreSmallRyeContext(final DataFetchingEnvironment dfe) {
         GraphQLContext graphQLContext = dfe.getGraphQlContext();
-        return graphQLContext.get(CONTEXT);
+        SmallRyeContext restored = graphQLContext.get(CONTEXT);
+        current.set(restored);
+        return restored;
     }
 
     public static SmallRyeContext getCurrentSmallRyeContext() {
         return current.get();
     }
 
-    public static void setCurrentSmallRyeContext(SmallRyeContext smallRyeContext) {
+    public static void restore(SmallRyeContext smallRyeContext) {
         current.set(smallRyeContext);
     }
 
@@ -71,12 +73,12 @@ public class SmallRyeContextManager {
 
         SmallRyeContext smallRyeContext = getCurrentSmallRyeContext();
         if (smallRyeContext == null) {
-            smallRyeContext = new SmallRyeContext();
+            smallRyeContext = new SmallRyeContext(SmallRyeContextManager.class.getName());
         }
 
         smallRyeContext.setRequest(request);
         smallRyeContext.setOperationName(getOperationName(request));
-        setCurrentSmallRyeContext(smallRyeContext);
+        current.set(smallRyeContext);
         return smallRyeContext;
     }
 
@@ -99,9 +101,9 @@ public class SmallRyeContextManager {
         smallRyeContext.setDocumentSupplier(documentSupplier);
         smallRyeContext.setRequestedOperationTypes(getRequestedOperationTypes(documentSupplier));
         smallRyeContext.setExecutionId(executionInput.getExecutionId().toString());
-        setCurrentSmallRyeContext(smallRyeContext);
+        current.set(smallRyeContext);
 
-        return getCurrentSmallRyeContext();
+        return smallRyeContext;
     }
 
     /**
@@ -119,7 +121,7 @@ public class SmallRyeContextManager {
 
         SmallRyeContext smallRyeContext = getCurrentSmallRyeContext();
         if (smallRyeContext == null)
-            smallRyeContext = getSmallRyeContext(dataFetchingEnvironment);
+            smallRyeContext = restoreSmallRyeContext(dataFetchingEnvironment);
         if (!smallRyeContext.hasRequest())
             throw new RuntimeException("Invalid context provided, can not populate data from Data Fetching Environment");
         smallRyeContext.setDataFetchingEnvironment(dataFetchingEnvironment);
@@ -139,8 +141,8 @@ public class SmallRyeContextManager {
         GraphQLContext graphQLContext = dataFetchingEnvironment.getGraphQlContext();
         graphQLContext.put(CONTEXT, smallRyeContext);
 
-        setCurrentSmallRyeContext(smallRyeContext);
-        return getCurrentSmallRyeContext();
+        current.set(smallRyeContext);
+        return smallRyeContext;
     }
 
     private static Optional<String> getGraphQLTypeName(GraphQLType graphQLType) {
