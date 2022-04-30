@@ -2,8 +2,8 @@ package io.smallrye.graphql.websocket.graphqlws;
 
 import java.io.IOException;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.websocket.AbstractGraphQLWebsocketHandler;

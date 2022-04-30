@@ -14,11 +14,6 @@
     <name>SmallRye: GraphQL Server</name>
     <description>Server side of the GraphQL Implementation</description>
     
-    <properties>
-        <!-- We use WF to run the TCK and do IT and run the runner project -->
-        <version.wildfly>23.0.1.Final</version.wildfly>
-    </properties>
-    
     <modules>
         <module>api</module>
         <module>implementation</module>

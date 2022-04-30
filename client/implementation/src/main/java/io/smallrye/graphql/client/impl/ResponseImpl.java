@@ -5,11 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
@@ -29,6 +29,7 @@ public class ResponseImpl implements Response {
         this.headers = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
     }
 
+    @Override
     public <T> T getObject(Class<T> dataType, String rootField) {
         if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
@@ -55,6 +56,7 @@ public class ResponseImpl implements Response {
         }
     }
 
+    @Override
     public <T> List<T> getList(Class<T> dataType, String rootField) {
         if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
@@ -71,7 +73,7 @@ public class ResponseImpl implements Response {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsSingleObject(rootField);
         }
         if (item instanceof JsonArray) {
-            List<T> result = new ArrayList<T>();
+            List<T> result = new ArrayList<>();
             JsonArray jsonArray = (JsonArray) item;
             TypeInfo type = TypeInfo.of(dataType);
             jsonArray.forEach(o -> {
@@ -101,10 +103,12 @@ public class ResponseImpl implements Response {
         }
     }
 
+    @Override
     public JsonObject getData() {
         return data;
     }
 
+    @Override
     public List<GraphQLError> getErrors() {
         return errors;
     }
@@ -120,14 +124,17 @@ public class ResponseImpl implements Response {
         }
     }
 
+    @Override
     public boolean hasData() {
         return data != null;
     }
 
+    @Override
     public boolean hasError() {
         return errors != null;
     }
 
+    @Override
     public String toString() {
         return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + '}';
     }
@@ -136,6 +143,7 @@ public class ResponseImpl implements Response {
         return headers;
     }
 
+    @Override
     public Map<String, List<String>> getTransportMeta() {
         return headers;
     }

@@ -4,7 +4,7 @@
 
     <parent>
         <groupId>io.smallrye</groupId>
-        <artifactId>smallrye-parent</artifactId>
+        <artifactId>smallrye-jakarta-parent</artifactId>
         <version>35</version>
     </parent>
 
@@ -16,44 +16,48 @@
     <url>http://smallrye.io</url>
 
     <properties>
-        <version.eclipse.microprofile.config>2.0</version.eclipse.microprofile.config>
-        <version.eclipse.microprofile.graphql>1.1.0</version.eclipse.microprofile.graphql>
-<!--        <version.eclipse.microprofile.graphql-client>1.1-SNAPSHOT</version.eclipse.microprofile.graphql-client>-->
-        <version.eclipse.microprofile.metrics>3.0</version.eclipse.microprofile.metrics>
+        <version.eclipse.microprofile.config>3.0.1</version.eclipse.microprofile.config>
+        <version.eclipse.microprofile.graphql>2.0</version.eclipse.microprofile.graphql>
+        <!--        <version.eclipse.microprofile.graphql-client>2.1-SNAPSHOT</version.eclipse.microprofile.graphql-client>-->
+        <version.eclipse.microprofile.metrics>4.0.1</version.eclipse.microprofile.metrics>
         <version.eclipse.microprofile.context-propagation>1.3</version.eclipse.microprofile.context-propagation>
-        <version.smallrye-config>2.10.0</version.smallrye-config>
-        <version.smallrye.metrics>3.0.4</version.smallrye.metrics>
-        <version.smallrye-common>1.11.0</version.smallrye-common>
+        <version.smallrye-config>3.0.0-RC2</version.smallrye-config>
+        <version.smallrye.metrics>4.0.0-RC1</version.smallrye.metrics>
+        <version.smallrye-common>2.0.0-RC2</version.smallrye-common>
         <version.smallrye-mutiny>1.4.0</version.smallrye-mutiny>
-        <version.smallrye-context-propagation>1.2.2</version.smallrye-context-propagation>
+        <version.smallrye-context-propagation>2.0.0-RC1</version.smallrye-context-propagation>
         <version.smallrye-stork>1.1.0</version.smallrye-stork>
         <version.opentracing>0.33.0</version.opentracing>
-        <version.yasson>1.0.8</version.yasson>
-        <version.jakarta-validation>2.0.2</version.jakarta-validation>
-        <version.jakarta-annotation>1.3.5</version.jakarta-annotation>
+        <version.yasson>2.0.4</version.yasson>
+        <version.jakarta-validation>3.0.1</version.jakarta-validation>
+        <version.jakarta-annotation>2.1.0</version.jakarta-annotation>
+        <version.jakarta.servlet>5.0.0</version.jakarta.servlet>
+        <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
+        
         <version.graphql-java>18.0</version.graphql-java>
         <verison.io.micrometer>1.8.5</verison.io.micrometer>
         <version.vertx>4.2.7</version.vertx>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR4</version.arquillian.jetty>
-        <version.jetty>9.4.46.v20220331</version.jetty>
-        <version.smallrye-opentracing>2.1.0</version.smallrye-opentracing>
-        <version.hibernate-validator>6.2.3.Final</version.hibernate-validator>
-        <version.glasfish-el>3.0.3</version.glasfish-el>
+        <version.jetty>11.0.9</version.jetty>
+        <version.smallrye-opentracing>3.0.0-RC1</version.smallrye-opentracing>
+        <version.hibernate-validator>8.0.0.Alpha3</version.hibernate-validator>
+        <version.glasfish-el>4.0.2</version.glasfish-el>
+        <version.weld-junit5>4.0.0.CR1</version.weld-junit5>
+        <version.rxjava>2.2.21</version.rxjava>
+        <version.jackson>2.13.2</version.jackson>
+        <version.mongo-bson>4.6.0</version.mongo-bson>
         <version.mockito>4.5.1</version.mockito>
-
+        
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <slf4j-jboss-logging.version>1.2.1.Final</slf4j-jboss-logging.version>
-
+        
         <!-- JDK stuff -->
         <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
         <maven.compiler.release>11</maven.compiler.release>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
 
-        <!-- For maven plugins in this project -->
-        <version.maven-plugin-plugin>3.6.1</version.maven-plugin-plugin>
     </properties>
 
     <licenses>
@@ -100,7 +104,7 @@
             </dependency>
 
             <!-- Client API is copied into SmallRye for now -->
-           <!-- <dependency>
+            <!-- <dependency>
                 <groupId>org.eclipse.microprofile.graphql</groupId>
                 <artifactId>microprofile-graphql-client-api</artifactId>
                 <version>${version.eclipse.microprofile.graphql-client}</version>
@@ -219,6 +223,18 @@
                 <version>${version.jakarta-annotation}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${version.jakarta.servlet}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.websocket</groupId>
+                <artifactId>jakarta.websocket-api</artifactId>
+                <version>${version.jakarta.websocket}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <dependency>
                 <groupId>com.graphql-java</groupId>
@@ -296,14 +312,8 @@
 
             <!-- Tests -->
             <dependency>
-                <groupId>org.jboss.slf4j</groupId>
-                <artifactId>slf4j-jboss-logging</artifactId>
-                <version>${slf4j-jboss-logging.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.jboss.arquillian.container</groupId>
-                <artifactId>arquillian-jetty-embedded-9</artifactId>
+                <artifactId>arquillian-jetty-embedded-11</artifactId>
                 <version>${version.arquillian.jetty}</version>
                 <scope>test</scope>
             </dependency>
@@ -316,13 +326,13 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>javax-websocket-client-impl</artifactId>
+                <artifactId>websocket-jakarta-client</artifactId>
                 <version>${version.jetty}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>javax-websocket-server-impl</artifactId>
+                <artifactId>websocket-jakarta-server</artifactId>
                 <version>${version.jetty}</version>
                 <scope>test</scope>
             </dependency>
@@ -356,11 +366,71 @@
                 <version>${version.glasfish-el}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.jboss.weld</groupId>
+                <artifactId>weld-junit5</artifactId>
+                <version>${version.weld-junit5}</version>
+                <scope>test</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${version.rxjava}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${version.jackson}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${version.jackson}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>bson</artifactId>
+                <version>${version.mongo-bson}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${version.mockito}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>javax.*</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -405,9 +475,9 @@
 
     <profiles>
         <!-- !!! make sure this profile appears before the 'release' module - we need the release module
-        to be the last one in the reactor to make sure it does its job. If integration-tests-jdk16 becomes the
-         last module, release pipeline will break, because nexus-staging-maven-plugin performs the upload
-         in the last module, so the last module can't have staging disabled (which the JDK16 module does have). -->
+       to be the last one in the reactor to make sure it does its job. If integration-tests-jdk16 becomes the
+        last module, release pipeline will break, because nexus-staging-maven-plugin performs the upload
+        in the last module, so the last module can't have staging disabled (which the JDK16 module does have). -->
         <profile>
             <id>jdk16plus</id>
             <activation>
@@ -421,7 +491,7 @@
                 <!-- FIXME: hack to allow powerannotations TCK to pass on JDK 16 -->
                 <powerannotations.tck.argLine>--add-opens java.base/java.util=ALL-UNNAMED</powerannotations.tck.argLine>
                 <!-- FIXME: find out why Gradle build doesn't work on JDK 16 in GH actions,
-                        but seems to work locally -->
+                but seems to work locally -->
                 <skip.gradle.build>true</skip.gradle.build>
             </properties>
         </profile>

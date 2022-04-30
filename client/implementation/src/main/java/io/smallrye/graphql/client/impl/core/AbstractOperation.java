@@ -22,34 +22,42 @@ public abstract class AbstractOperation implements Operation {
     /*
      * Getter/Setter
      */
+    @Override
     public OperationType getType() {
         return type;
     }
 
+    @Override
     public void setType(OperationType type) {
         this.type = type;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public List<Variable> getVariables() {
         return variables;
     }
 
+    @Override
     public void setVariables(List<Variable> vars) {
         this.variables = vars;
     }
 
+    @Override
     public List<FieldOrFragment> getFields() {
         return fields;
     }
 
+    @Override
     public void setFields(List<FieldOrFragment> fields) {
         this.fields = fields;
     }

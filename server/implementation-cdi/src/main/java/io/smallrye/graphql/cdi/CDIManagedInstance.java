@@ -1,6 +1,6 @@
 package io.smallrye.graphql.cdi;
 
-import javax.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Instance;
 
 import io.smallrye.graphql.spi.ManagedInstance;
 

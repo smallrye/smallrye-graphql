@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbException;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbException;
 
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.json.JsonBCreator;

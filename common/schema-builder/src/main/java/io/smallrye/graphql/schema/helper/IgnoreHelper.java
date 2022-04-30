@@ -41,7 +41,9 @@ public class IgnoreHelper {
 
     private static boolean checkAnnotations(Annotations annotations) {
         return annotations.containsOneOfTheseAnnotations(Annotations.IGNORE,
-                Annotations.JSONB_TRANSIENT, Annotations.JACKSON_IGNORE);
+                Annotations.JAKARTA_JSONB_TRANSIENT,
+                Annotations.JAVAX_JSONB_TRANSIENT,
+                Annotations.JACKSON_IGNORE);
     }
 
     private static boolean checkTransient(FieldInfo fieldInfo) {

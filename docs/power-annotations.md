@@ -72,7 +72,7 @@ all JPA `@Id` annotations to be recognized as synonyms for GraphQL `@Id`
 annotations. We could create a simple mixin for the JPA annotation:
 
 ``` java
-@MixinFor(javax.persistence.Id.class)
+@MixinFor(jakarta.persistence.Id.class)
 @org.eclipse.microprofile.graphql.Id
 public class PersistenceIdMixin {}
 ```

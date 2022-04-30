@@ -2,7 +2,7 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import javax.json.bind.Jsonb;
+import jakarta.json.bind.Jsonb;
 
 import io.smallrye.graphql.schema.model.InputType;
 

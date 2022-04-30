@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>smallrye-power-annotations-utils-jandex</artifactId>
-    <name>Power Annotations Utils Impl for Jandex</name>
+    <name>Power Annotations: Utils :: Jandex</name>
     <description>Implementation of the utils for working with annotations base od Jandex.</description>
 
     <dependencies>

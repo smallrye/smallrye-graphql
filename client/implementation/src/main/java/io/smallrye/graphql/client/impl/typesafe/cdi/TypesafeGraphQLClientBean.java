@@ -1,14 +1,13 @@
 package io.smallrye.graphql.client.impl.typesafe.cdi;
 
-import javax.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.context.spi.CreationalContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 
 public class TypesafeGraphQLClientBean<T> extends AbstractBean<T> {
-    private static final Logger log = LoggerFactory.getLogger(TypesafeGraphQLClientBean.class);
+    private static final Logger log = Logger.getLogger(TypesafeGraphQLClientBean.class);
 
     public TypesafeGraphQLClientBean(Class<T> apiClass) {
         super(apiClass);
@@ -16,7 +15,7 @@ public class TypesafeGraphQLClientBean<T> extends AbstractBean<T> {
 
     @Override
     public T create(CreationalContext<T> creationalContext) {
-        log.debug("create GraphQL Client proxy: {}", type);
+        log.debugf("create GraphQL Client proxy: %s", type);
         return TypesafeGraphQLClientBuilder.newBuilder().build(type);
     }
 }

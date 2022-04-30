@@ -10,7 +10,7 @@
     
     <artifactId>smallrye-power-annotations-utils-parent</artifactId>
     <packaging>pom</packaging>
-    <name>Power Annotations Utils Parent POM</name>
+    <name>Power Annotations: Utils</name>
     <description>Utils for working with annotations, i.e. currently an abstraction of the Jandex API. Used by the TCK.</description>
 
     <modules>

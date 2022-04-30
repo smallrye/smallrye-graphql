@@ -27,9 +27,9 @@ import io.smallrye.graphql.schema.model.Reference;
  */
 public class FieldCreator extends ModelCreator {
 
-    private Logger logger = Logger.getLogger(FieldCreator.class.getName());
+    private final Logger logger = Logger.getLogger(FieldCreator.class.getName());
 
-    private BeanValidationDirectivesHelper validationHelper;
+    private final BeanValidationDirectivesHelper validationHelper;
 
     public FieldCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
@@ -291,12 +291,14 @@ public class FieldCreator extends ModelCreator {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
                 Annotations.QUERY,
-                Annotations.JSONB_PROPERTY,
+                Annotations.JAKARTA_JSONB_PROPERTY,
+                Annotations.JAVAX_JSONB_PROPERTY,
                 Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
                         Annotations.QUERY,
-                        Annotations.JSONB_PROPERTY,
+                        Annotations.JAKARTA_JSONB_PROPERTY,
+                        Annotations.JAVAX_JSONB_PROPERTY,
                         Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.OUT, fieldName)));
     }
@@ -304,11 +306,13 @@ public class FieldCreator extends ModelCreator {
     private static String getInputNameForField(Annotations annotationsForThisField, String fieldName) {
         return annotationsForThisField.getOneOfTheseMethodAnnotationsValue(
                 Annotations.NAME,
-                Annotations.JSONB_PROPERTY,
+                Annotations.JAKARTA_JSONB_PROPERTY,
+                Annotations.JAVAX_JSONB_PROPERTY,
                 Annotations.JACKSON_PROPERTY)
                 .orElse(annotationsForThisField.getOneOfTheseAnnotationsValue(
                         Annotations.NAME,
-                        Annotations.JSONB_PROPERTY,
+                        Annotations.JAKARTA_JSONB_PROPERTY,
+                        Annotations.JAVAX_JSONB_PROPERTY,
                         Annotations.JACKSON_PROPERTY)
                         .orElse(MethodHelper.getPropertyName(Direction.IN, fieldName)));
     }

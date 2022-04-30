@@ -1,8 +1,8 @@
 package io.smallrye.graphql.cdi.producer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Produces;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Produces;
 
 import graphql.execution.ExecutionStrategy;
 import graphql.schema.GraphQLSchema;

@@ -20,10 +20,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.json.Json;
-import javax.json.JsonReader;
-import javax.json.JsonReaderFactory;
-import javax.json.bind.Jsonb;
+import jakarta.json.Json;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
+import jakarta.json.bind.Jsonb;
 
 import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.schema.DataFetcher;

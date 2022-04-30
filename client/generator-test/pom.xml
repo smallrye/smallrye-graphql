@@ -39,12 +39,10 @@
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-client-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

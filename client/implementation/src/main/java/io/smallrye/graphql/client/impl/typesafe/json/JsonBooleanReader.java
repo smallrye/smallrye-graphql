@@ -1,9 +1,9 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static javax.json.JsonValue.ValueType.FALSE;
-import static javax.json.JsonValue.ValueType.TRUE;
+import static jakarta.json.JsonValue.ValueType.FALSE;
+import static jakarta.json.JsonValue.ValueType.TRUE;
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;

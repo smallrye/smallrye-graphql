@@ -4,7 +4,7 @@ import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

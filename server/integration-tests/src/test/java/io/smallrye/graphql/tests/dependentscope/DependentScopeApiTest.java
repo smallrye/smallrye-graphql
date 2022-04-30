@@ -1,12 +1,12 @@
-package io.smallrye.graphql.tests.issue1307;
+package io.smallrye.graphql.tests.dependentscope;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.PreDestroy;
-import javax.enterprise.context.Dependent;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.Dependent;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;

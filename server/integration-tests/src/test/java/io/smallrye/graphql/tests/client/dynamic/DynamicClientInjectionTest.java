@@ -8,8 +8,8 @@ import static org.junit.Assert.assertEquals;
 import java.lang.reflect.Field;
 import java.util.concurrent.ExecutionException;
 
-import javax.inject.Inject;
-import javax.json.JsonObject;
+import jakarta.inject.Inject;
+import jakarta.json.JsonObject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;

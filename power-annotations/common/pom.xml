@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>power-annotations-jandex-common</artifactId>
-    <name>Power Annotations Jandex Common</name>
+    <name>Power Annotations: Jandex Common</name>
     <description>Common Jandex specific Power Annotations code used by build plugins and the runtime scanner.</description>
 
     <dependencies>

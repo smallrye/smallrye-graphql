@@ -2,7 +2,7 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;

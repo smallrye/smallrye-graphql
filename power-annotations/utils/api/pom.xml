@@ -8,6 +8,6 @@
     </parent>
 
     <artifactId>smallrye-power-annotations-utils-api</artifactId>
-    <name>Power Annotations Utils API</name>
+    <name>Power Annotations: Utils :: API</name>
     <description>The Utils API for working with annotations. Used by the TCK.</description>
 </project>

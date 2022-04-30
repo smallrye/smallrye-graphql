@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-documentation</artifactId>
-    <name>SmallRye GraphQL : Documentation</name>
+    <name>SmallRye: GraphQL Documentation</name>
 
     <properties>
         <sonar.skip>true</sonar.skip>

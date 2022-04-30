@@ -9,6 +9,6 @@
     </parent>
 
     <artifactId>power-annotations</artifactId>
-    <name>Power Annotations Annotations</name>
+    <name>Power Annotations: Annotations</name>
     <description>The Annotations resolved by Power Annotations</description>
 </project>

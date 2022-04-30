@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-federation-api</artifactId>
+    <name>SmallRye: GraphQL Federation :: API</name>
 
     <dependencies>
         <dependency>
