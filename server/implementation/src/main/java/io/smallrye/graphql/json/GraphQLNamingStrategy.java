@@ -2,7 +2,7 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import javax.json.bind.config.PropertyNamingStrategy;
+import jakarta.json.bind.config.PropertyNamingStrategy;
 
 /**
  * Naming strategy that take GraphQL annotations into account

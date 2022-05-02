@@ -1,5 +1,7 @@
 :microprofile-graphql: https://github.com/eclipse/microprofile-graphql/
 :graphql-over-http: https://github.com/graphql/graphql-over-http
+:subscriptions-transport-ws: https://github.com/apollographql/subscriptions-transport-ws
+:graphql-ws: https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md
 
 image:https://github.com/smallrye/smallrye-graphql/workflows/SmallRye%20Build/badge.svg?branch=main[link=https://github.com/smallrye/smallrye-graphql/actions?query=workflow%3A%22SmallRye+Build%22]
 image:https://sonarcloud.io/api/project_badges/measure?project=smallrye_smallrye-graphql&metric=alert_status["Quality Gate Status", link="https://sonarcloud.io/dashboard?id=smallrye_smallrye-graphql"]
@@ -12,23 +14,25 @@ SmallRye GraphQL is an implementation of
 
 - {microprofile-graphql}[Eclipse MicroProfile GraphQL].
 - {graphql-over-http}[GraphQL over HTTP].
+- {graphql-ws}[GraphQL over WebSocket].
+- {subscriptions-transport-ws}[Subscriptions transport ws] (old).
 
 == Instructions
 
-=== Testing against the released v 1.1.0 of MicroProfile GraphQL
+=== Testing against the released v 2.0 of MicroProfile GraphQL
 
 [source,bash]
 ----
 mvn clean install
 ----
 
-=== Testing against the unreleased v 2.0-SNAPSHOT of MicroProfile GraphQL
+=== Testing against the unreleased v 2.1-SNAPSHOT of MicroProfile GraphQL
 
 (You need to build that version of MicroProfile GraphQL locally first to make the snapshot versions available in your repository)
 
 [source,bash]
 ----
-mvn clean install -Dversion.eclipse.microprofile.graphql=2.0-SNAPSHOT
+mvn clean install -Dversion.eclipse.microprofile.graphql=2.1-SNAPSHOT
 ----
 
 === Documentation
@@ -36,6 +40,10 @@ mvn clean install -Dversion.eclipse.microprofile.graphql=2.0-SNAPSHOT
 The live documentation is available at link:https://smallrye.io/smallrye-graphql[this link].
 
 Info about how to build and manage the documentation is in `docs/README.adoc`.
+
+=== Javax/Jakarta
+
+The 1.5.x branch will be maintained for the `javax` namespace, and the main (2.x) branch for `jakarta`.
 
 === Project structure
 

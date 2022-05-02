@@ -7,9 +7,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 
-import javax.json.JsonString;
-import javax.json.bind.annotation.JsonbDateFormat;
-import javax.json.bind.annotation.JsonbNumberFormat;
+import jakarta.json.JsonString;
+import jakarta.json.bind.annotation.JsonbDateFormat;
+import jakarta.json.bind.annotation.JsonbNumberFormat;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NumberFormat;
@@ -80,10 +80,10 @@ class JsonStringReader extends Reader<JsonString> {
 
             java.text.DateFormat df;
             if (format != null) {
-                if (!locale.isEmpty()) {
-                    df = new SimpleDateFormat(format, Locale.forLanguageTag(locale));
-                } else {
+                if (locale == null || locale.isEmpty()) {
                     df = new SimpleDateFormat(format);
+                } else {
+                    df = new SimpleDateFormat(format, Locale.forLanguageTag(locale));
                 }
             } else {
                 df = new SimpleDateFormat();

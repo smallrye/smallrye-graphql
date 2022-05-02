@@ -4,9 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.json.*;
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonStructure;
+import jakarta.json.JsonValue;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 
 import org.eclipse.yasson.internal.JsonBinding;
 
@@ -23,6 +27,7 @@ public class RequestImpl implements Request {
         this.variables = new HashMap<>();
     }
 
+    @Override
     public String toJson() {
         JsonObjectBuilder queryBuilder = Json.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
@@ -34,6 +39,7 @@ public class RequestImpl implements Request {
         return queryBuilder.build().toString();
     }
 
+    @Override
     public JsonObject toJsonObject() {
         JsonObjectBuilder queryBuilder = Json.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
@@ -68,22 +74,27 @@ public class RequestImpl implements Request {
         return varBuilder.build();
     }
 
+    @Override
     public String getDocument() {
         return document;
     }
 
+    @Override
     public Map<String, Object> getVariables() {
         return variables;
     }
 
+    @Override
     public void setVariables(Map<String, Object> variables) {
         this.variables = variables;
     }
 
+    @Override
     public Object getVariable(String key) {
         return variables.get(key);
     }
 
+    @Override
     public Request setVariable(String key, Object value) {
         variables.put(key, value);
         return this;
@@ -97,15 +108,18 @@ public class RequestImpl implements Request {
         this.operationName = operationName;
     }
 
+    @Override
     public Request resetVariables() {
         variables.clear();
         return this;
     }
 
+    @Override
     public String toString() {
         return "GraphQLRequest{" + "document=" + document + ", variables=" + variables + '}';
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -121,10 +135,6 @@ public class RequestImpl implements Request {
         if (!Objects.equals(this.document, other.document)) {
             return false;
         }
-        if (!Objects.equals(this.variables, other.variables)) {
-            return false;
-        }
-
-        return true;
+        return Objects.equals(this.variables, other.variables);
     }
 }

@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;

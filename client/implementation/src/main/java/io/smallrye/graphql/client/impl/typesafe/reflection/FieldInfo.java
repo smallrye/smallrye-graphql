@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -17,7 +17,7 @@ public class FieldInfo {
     private final boolean includeIfNull;
     private final String name;
 
-    private static final String JSONB_PROPERTY = "javax.json.bind.annotation.JsonbProperty";
+    private static final String JSONB_PROPERTY = "jakarta.json.bind.annotation.JsonbProperty";
     private static final String JACKSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
 
     FieldInfo(TypeInfo container, Field field) {

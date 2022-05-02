@@ -342,8 +342,26 @@ public class Classes {
     private static final DotName FLOAT_PRIMATIVE = DotName.createSimple(float.class.getName());
 
     // Adapters
-    public static final DotName JSONB_ADAPTER = DotName.createSimple("javax.json.bind.adapter.JsonbAdapter");
+    public static final DotName JAVAX_JSONB_ADAPTER = DotName.createSimple("javax.json.bind.adapter.JsonbAdapter");
+    public static final DotName JAKARTA_JSONB_ADAPTER = DotName.createSimple("jakarta.json.bind.adapter.JsonbAdapter");
     public static final DotName ADAPTER = DotName.createSimple("io.smallrye.graphql.api.Adapter");
+
+    // Validation
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_EMAIL = DotName.createSimple("javax.validation.constraints.Email");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_MAX = DotName.createSimple("javax.validation.constraints.Max");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_MIN = DotName.createSimple("javax.validation.constraints.Min");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_PATTERN = DotName
+            .createSimple("javax.validation.constraints.Pattern");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_SIZE = DotName.createSimple("javax.validation.constraints.Size");
+
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_EMAIL = DotName
+            .createSimple("jakarta.validation.constraints.Email");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_MAX = DotName.createSimple("jakarta.validation.constraints.Max");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_MIN = DotName.createSimple("jakarta.validation.constraints.Min");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_PATTERN = DotName
+            .createSimple("jakarta.validation.constraints.Pattern");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_SIZE = DotName
+            .createSimple("jakarta.validation.constraints.Size");
 
     private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
     private static final List<DotName> KNOWN_MAPS = new ArrayList<>();

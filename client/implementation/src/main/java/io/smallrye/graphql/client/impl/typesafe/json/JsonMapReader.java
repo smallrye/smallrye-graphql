@@ -3,8 +3,8 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.json.JsonArray;
-import javax.json.JsonValue;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;

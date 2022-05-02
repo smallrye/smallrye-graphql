@@ -113,7 +113,8 @@ public class OperationCreator extends ModelCreator {
         return annotations.getOneOfTheseMethodAnnotationsValue(
                 operationAnnotation,
                 Annotations.NAME,
-                Annotations.JSONB_PROPERTY,
+                Annotations.JAKARTA_JSONB_PROPERTY,
+                Annotations.JAVAX_JSONB_PROPERTY,
                 Annotations.JACKSON_PROPERTY)
                 .orElse(getDefaultExecutionTypeName(methodInfo, operationType));
 

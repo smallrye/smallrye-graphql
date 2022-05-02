@@ -3,7 +3,7 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import javax.json.JsonNumber;
+import jakarta.json.JsonNumber;
 
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;

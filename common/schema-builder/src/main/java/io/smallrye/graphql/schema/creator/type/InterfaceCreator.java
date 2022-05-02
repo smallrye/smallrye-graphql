@@ -33,6 +33,7 @@ public class InterfaceCreator extends AbstractCreator {
         this.fieldCreator = fieldCreator;
     }
 
+    @Override
     protected void addFields(Type interfaceType, ClassInfo classInfo, Reference reference) {
 
         // Add all fields from interface itself

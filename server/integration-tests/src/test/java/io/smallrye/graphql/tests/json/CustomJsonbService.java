@@ -3,9 +3,9 @@ package io.smallrye.graphql.tests.json;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 
 import io.smallrye.graphql.spi.EventingService;
 

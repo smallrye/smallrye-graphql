@@ -5,10 +5,10 @@ import java.io.StringWriter;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonWriter;
+import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonWriter;
 
 import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.graphql.DefaultValue;

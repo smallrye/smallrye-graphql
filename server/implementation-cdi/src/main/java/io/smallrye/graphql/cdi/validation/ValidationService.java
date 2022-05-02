@@ -3,9 +3,9 @@ package io.smallrye.graphql.cdi.validation;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 
 import io.smallrye.graphql.cdi.config.ConfigKey;
 import io.smallrye.graphql.execution.event.InvokeInfo;

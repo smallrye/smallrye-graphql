@@ -1,7 +1,7 @@
 package io.smallrye.graphql.test.jsonbCreator;
 
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.NumberFormat;
 

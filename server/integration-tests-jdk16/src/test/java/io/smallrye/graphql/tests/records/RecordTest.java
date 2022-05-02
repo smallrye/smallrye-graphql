@@ -16,7 +16,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbCreator;
 import java.net.URL;
 
 import static io.smallrye.graphql.client.core.Argument.arg;

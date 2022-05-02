@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
-import javax.annotation.Priority;
-import javax.enterprise.inject.spi.CDI;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.inject.spi.CDI;
 
 import graphql.schema.DataFetchingEnvironment;
 import io.opentracing.Scope;

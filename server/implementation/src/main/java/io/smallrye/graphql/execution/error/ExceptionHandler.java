@@ -17,7 +17,7 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class ExceptionHandler implements DataFetcherExceptionHandler {
 
-    private Config config = Config.get();
+    private final Config config = Config.get();
 
     @Override
     public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {

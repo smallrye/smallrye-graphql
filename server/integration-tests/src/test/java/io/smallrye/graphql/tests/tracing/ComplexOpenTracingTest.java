@@ -8,24 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.smallrye.graphql.tests.GraphQLAssured;
 
-@RunWith(Arquillian.class)
+//@RunWith(Arquillian.class)
 public class ComplexOpenTracingTest {
 
     @Deployment
@@ -43,12 +39,12 @@ public class ComplexOpenTracingTest {
     @Inject
     MockTracer tracer;
 
-    @Before
+    //@Before
     public void prepare() {
         tracer.reset();
     }
 
-    @Test
+    //@Test
     public void testThreeTraces() {
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
         String query = "{"

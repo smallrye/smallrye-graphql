@@ -6,8 +6,8 @@ import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.toMap;
 
 import java.util.Map;
 
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
