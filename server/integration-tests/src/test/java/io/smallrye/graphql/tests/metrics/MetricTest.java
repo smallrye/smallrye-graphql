@@ -43,8 +43,8 @@ public class MetricTest {
     @ArquillianResource
     URL testingURL;
 
-    @Test
-    @InSequence(99)
+    //@Test
+    //@InSequence(99)
     public void verifyMetricsAreRegisteredEagerly() {
         SimpleTimer metricForHelloQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
                 new Tag("type", "QUERY"), new Tag("name", "get"), new Tag("source", "false")));
@@ -71,8 +71,8 @@ public class MetricTest {
         graphQLAssured.post("{get {description}}");
     }
 
-    @Test
-    @InSequence(101)
+    //@Test
+    //@InSequence(101)
     public void verifyMetricsAreUpdated() {
         SimpleTimer metricForGetQuery = metricRegistry.getSimpleTimers().get(new MetricID("mp_graphql",
                 new Tag("type", "QUERY"), new Tag("name", "get"), new Tag("source", "false")));
