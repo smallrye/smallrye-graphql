@@ -42,6 +42,10 @@ jobs:
           git config --global user.name "SmallRye CI"
           git config --global user.email "smallrye@googlegroups.com"
           git checkout -b release
+          # update gradle version plugin
+          echo "version=${{steps.metadata.outputs.current-version}}" > tools/gradle-plugin/gradle.properties
+          git add tools/gradle-plugin/gradle.properties
+          git commit -m "Update Gradle plugin version"
           # make sure the server/integration-tests-jdk16 gets its version updated too: include the jdk16plus profile
           mvn -X -e -B release:prepare -Prelease -Pjdk16plus -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
           git checkout ${{github.base_ref}}
@@ -49,6 +53,11 @@ jobs:
           mvn -X -e -B release:perform -Prelease -Pjdk16plus -s maven-settings.xml
           git push
           git push --tags
+
+      - name: Gradle plugin release ${{steps.metadata.outputs.current-version}}
+        run:
+          echo -e "gradle.publish.key=${{secrets.GRADLE_PUBLISH_KEY}}\ngradle.publish.secret=${{secrets.GRADLE_PUBLISH_SECRET}}" > ~/.gradle/gradle.properties
+          cd tools/gradle-plugin && gradle publishPlugins
 
       - uses: radcortez/milestone-release-action@main
         name: milestone release
