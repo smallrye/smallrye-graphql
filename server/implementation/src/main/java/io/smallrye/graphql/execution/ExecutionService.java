@@ -83,6 +83,21 @@ public class ExecutionService {
         this.payloadOption = config.logPayload();
     }
 
+    @Deprecated
+    public ExecutionResponse execute(JsonObject jsonInput) {
+        try {
+            JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(jsonInput);
+            executeSync(jsonInput, jsonObjectResponseWriter);
+            return jsonObjectResponseWriter.getExecutionResponse();
+        } catch (Throwable t) {
+            if (t.getClass().isAssignableFrom(RuntimeException.class)) {
+                throw (RuntimeException) t;
+            } else {
+                throw new RuntimeException(t);
+            }
+        }
+    }
+
     public void executeSync(JsonObject jsonInput, ExecutionResponseWriter writer) {
         executeSync(jsonInput, new HashMap<>(), writer);
     }
