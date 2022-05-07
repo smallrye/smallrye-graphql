@@ -423,7 +423,7 @@ public class ArgumentHelper extends AbstractHelper {
             if (item instanceof Map) {
                 result.add(includeNullCreatorParameters((Map) item, field));
             } else {
-                // can this ever happen?
+                result.add(item);
             }
         });
         return result;
