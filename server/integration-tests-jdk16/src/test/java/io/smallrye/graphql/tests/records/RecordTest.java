@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 
 import jakarta.json.bind.annotation.JsonbCreator;
 import java.net.URL;
+import java.util.Set;
 
 import static io.smallrye.graphql.client.core.Argument.arg;
 import static io.smallrye.graphql.client.core.Argument.args;
@@ -68,14 +69,23 @@ public class RecordTest {
             Document query = document(operation(
                     field("simpleWithFactory",
                             args(arg("input",
-                                    inputObject(prop("a", "a"), prop("b", "b")))),
+                                    inputObject(prop("a", "a"),
+                                            prop("b", "b"),
+                                            prop("c", new String[] { "c", "cc" }),
+                                            prop("d", new String[] { "d", "dd" })))),
                             field("a"),
-                            field("b"))));
+                            field("b"),
+                            field("c"),
+                            field("d"))));
             Response response = client.executeSync(query);
             System.out.println(response);
             System.out.println("query.build() = " + query.build());
             assertEquals("a", response.getData().getJsonObject("simpleWithFactory").getString("a"));
             assertEquals("b", response.getData().getJsonObject("simpleWithFactory").getString("b"));
+            assertEquals("c", response.getData().getJsonObject("simpleWithFactory").getJsonArray("c").getString(0));
+            assertEquals("cc", response.getData().getJsonObject("simpleWithFactory").getJsonArray("c").getString(1));
+            assertEquals("dd", response.getData().getJsonObject("simpleWithFactory").getJsonArray("d").getString(0));
+            assertEquals("d", response.getData().getJsonObject("simpleWithFactory").getJsonArray("d").getString(1));
         }
     }
 
@@ -106,11 +116,11 @@ public class RecordTest {
 
     }
 
-    public record SimpleRecordWithFactory(String a, String b) {
+    public record SimpleRecordWithFactory(String a, String b, String[] c, Set<String> d) {
 
         @JsonbCreator
-        public static SimpleRecordWithFactory build(String a, String b) {
-            return new SimpleRecordWithFactory(a, b);
+        public static SimpleRecordWithFactory build(String a, String b, String[] c, Set<String> d) {
+            return new SimpleRecordWithFactory(a, b, c, d);
         }
 
     }
