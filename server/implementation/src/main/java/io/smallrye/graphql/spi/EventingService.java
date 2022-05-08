@@ -3,7 +3,7 @@ package io.smallrye.graphql.spi;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.json.bind.Jsonb;
+import jakarta.json.bind.Jsonb;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;

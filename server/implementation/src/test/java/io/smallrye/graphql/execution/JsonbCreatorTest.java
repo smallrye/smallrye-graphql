@@ -2,8 +2,8 @@ package io.smallrye.graphql.execution;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;

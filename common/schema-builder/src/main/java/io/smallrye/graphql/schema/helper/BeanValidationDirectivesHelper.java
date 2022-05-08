@@ -9,6 +9,7 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
@@ -16,12 +17,6 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
 public class BeanValidationDirectivesHelper {
-
-    private static final DotName VALIDATION_ANNOTATION_EMAIL = DotName.createSimple("javax.validation.constraints.Email");
-    private static final DotName VALIDATION_ANNOTATION_MAX = DotName.createSimple("javax.validation.constraints.Max");
-    private static final DotName VALIDATION_ANNOTATION_MIN = DotName.createSimple("javax.validation.constraints.Min");
-    private static final DotName VALIDATION_ANNOTATION_PATTERN = DotName.createSimple("javax.validation.constraints.Pattern");
-    private static final DotName VALIDATION_ANNOTATION_SIZE = DotName.createSimple("javax.validation.constraints.Size");
 
     public final static DirectiveType CONSTRAINT_DIRECTIVE_TYPE;
 
@@ -76,7 +71,8 @@ public class BeanValidationDirectivesHelper {
         List<DirectiveInstance> result = new ArrayList<>();
         Set<DotName> annotationNames = annotations.getAnnotationNames();
         for (DotName annotationName : annotationNames) {
-            if (annotationName.equals(VALIDATION_ANNOTATION_SIZE)) {
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_SIZE)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_SIZE)) {
                 DirectiveInstance directive = new DirectiveInstance();
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
 
@@ -91,25 +87,29 @@ public class BeanValidationDirectivesHelper {
                 }
                 result.add(directive);
             }
-            if (annotationName.equals(VALIDATION_ANNOTATION_EMAIL)) {
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_EMAIL)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_EMAIL)) {
                 DirectiveInstance directive = new DirectiveInstance();
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
                 directive.setValue("format", "email");
                 result.add(directive);
             }
-            if (annotationName.equals(VALIDATION_ANNOTATION_MAX)) {
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_MAX)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_MAX)) {
                 DirectiveInstance directive = new DirectiveInstance();
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
                 directive.setValue("max", getLongValue(annotations, annotationName, "value"));
                 result.add(directive);
             }
-            if (annotationName.equals(VALIDATION_ANNOTATION_MIN)) {
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_MIN)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_MIN)) {
                 DirectiveInstance directive = new DirectiveInstance();
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
                 directive.setValue("min", getLongValue(annotations, annotationName, "value"));
                 result.add(directive);
             }
-            if (annotationName.equals(VALIDATION_ANNOTATION_PATTERN)) {
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_PATTERN)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_PATTERN)) {
                 DirectiveInstance directive = new DirectiveInstance();
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
                 directive.setValue("pattern", getStringValue(annotations, annotationName, "regexp"));

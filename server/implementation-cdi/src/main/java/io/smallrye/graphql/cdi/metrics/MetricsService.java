@@ -1,6 +1,6 @@
 package io.smallrye.graphql.cdi.metrics;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.cdi.config.ConfigKey;

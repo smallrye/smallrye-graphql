@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbException;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbException;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
@@ -423,7 +423,7 @@ public class ArgumentHelper extends AbstractHelper {
             if (item instanceof Map) {
                 result.add(includeNullCreatorParameters((Map) item, field));
             } else {
-                // can this ever happen?
+                result.add(item);
             }
         });
         return result;

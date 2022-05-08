@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-parent</artifactId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     
     <artifactId>smallrye-graphql-server-parent</artifactId>
@@ -13,11 +13,6 @@
     
     <name>SmallRye: GraphQL Server</name>
     <description>Server side of the GraphQL Implementation</description>
-    
-    <properties>
-        <!-- We use WF to run the TCK and do IT and run the runner project -->
-        <version.wildfly>23.0.1.Final</version.wildfly>
-    </properties>
     
     <modules>
         <module>api</module>

@@ -6,8 +6,8 @@ import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 
-import javax.inject.Inject;
-import javax.json.JsonArray;
+import jakarta.inject.Inject;
+import jakarta.json.JsonArray;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

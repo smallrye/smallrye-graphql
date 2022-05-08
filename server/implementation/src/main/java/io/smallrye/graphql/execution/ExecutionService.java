@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
@@ -81,6 +81,21 @@ public class ExecutionService {
 
         Config config = Config.get();
         this.payloadOption = config.logPayload();
+    }
+
+    @Deprecated
+    public ExecutionResponse execute(JsonObject jsonInput) {
+        try {
+            JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(jsonInput);
+            executeSync(jsonInput, jsonObjectResponseWriter);
+            return jsonObjectResponseWriter.getExecutionResponse();
+        } catch (Throwable t) {
+            if (t.getClass().isAssignableFrom(RuntimeException.class)) {
+                throw (RuntimeException) t;
+            } else {
+                throw new RuntimeException(t);
+            }
+        }
     }
 
     public void executeSync(JsonObject jsonInput, ExecutionResponseWriter writer) {

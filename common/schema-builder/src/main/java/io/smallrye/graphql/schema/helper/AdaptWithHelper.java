@@ -83,7 +83,7 @@ public class AdaptWithHelper {
                                 adaptWith.setToReference(Scalars.getScalar(to.name().toString()));
                             } else {
                                 Annotations annotationsAplicableToMe = annotations.removeAnnotations(Annotations.ADAPT_WITH,
-                                        Annotations.JSONB_TYPE_ADAPTER);
+                                        Annotations.JAKARTA_JSONB_TYPE_ADAPTER, Annotations.JAVAX_JSONB_TYPE_ADAPTER);
 
                                 // Remove the adaption annotation, as this is the type being adapted to
                                 Reference toRef = referenceCreator.createReferenceForAdapter(direction, to,
@@ -131,10 +131,19 @@ public class AdaptWithHelper {
             }
 
             // Also add support for JsonB
-            if (annotations.containsOneOfTheseAnnotations(Annotations.JSONB_TYPE_ADAPTER)) {
-                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.JSONB_TYPE_ADAPTER);
+            if (annotations.containsOneOfTheseAnnotations(Annotations.JAKARTA_JSONB_TYPE_ADAPTER)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.JAKARTA_JSONB_TYPE_ADAPTER);
                 if (annotationValue != null) {
-                    AdaptWith adaptWith = new AdaptWith(Classes.JSONB_ADAPTER.toString(),
+                    AdaptWith adaptWith = new AdaptWith(Classes.JAKARTA_JSONB_ADAPTER.toString(),
+                            "adaptFromJson", "adaptToJson");
+                    Type type = annotationValue.asClass();
+                    return new AdapterType(type, adaptWith);
+                }
+            }
+            if (annotations.containsOneOfTheseAnnotations(Annotations.JAVAX_JSONB_TYPE_ADAPTER)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.JAVAX_JSONB_TYPE_ADAPTER);
+                if (annotationValue != null) {
+                    AdaptWith adaptWith = new AdaptWith(Classes.JAVAX_JSONB_ADAPTER.toString(),
                             "adaptFromJson", "adaptToJson");
                     Type type = annotationValue.asClass();
                     return new AdapterType(type, adaptWith);

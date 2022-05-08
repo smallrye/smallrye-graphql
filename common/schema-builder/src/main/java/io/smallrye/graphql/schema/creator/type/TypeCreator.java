@@ -39,6 +39,7 @@ public class TypeCreator extends AbstractCreator {
         this.fieldCreator = fieldCreator;
     }
 
+    @Override
     protected void addFields(Type type, ClassInfo classInfo, Reference reference) {
         // Fields
         List<MethodInfo> allMethods = new ArrayList<>();

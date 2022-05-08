@@ -3,7 +3,7 @@ package io.smallrye.graphql.schema.creator.fieldnameapp;
 import java.util.Date;
 import java.util.List;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;

@@ -7,7 +7,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 import java.lang.annotation.Retention;
 
-import javax.enterprise.inject.Stereotype;
+import jakarta.enterprise.inject.Stereotype;
 
 import org.eclipse.microprofile.graphql.Name;
 import org.junit.jupiter.api.Test;

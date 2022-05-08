@@ -18,10 +18,10 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.CDI;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.jboss.jandex.AnnotationInstance;

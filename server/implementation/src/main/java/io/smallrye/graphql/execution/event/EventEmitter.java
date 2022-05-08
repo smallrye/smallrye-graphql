@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import javax.annotation.Priority;
-import javax.json.bind.Jsonb;
+import jakarta.annotation.Priority;
+import jakarta.json.bind.Jsonb;
 
 import org.jboss.logging.Logger;
 

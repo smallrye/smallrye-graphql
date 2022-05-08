@@ -3,7 +3,7 @@ package io.smallrye.graphql.execution;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;

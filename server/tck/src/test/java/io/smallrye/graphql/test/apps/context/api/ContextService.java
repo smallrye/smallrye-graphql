@@ -1,7 +1,7 @@
 package io.smallrye.graphql.test.apps.context.api;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 
 import io.smallrye.graphql.api.Context;
 

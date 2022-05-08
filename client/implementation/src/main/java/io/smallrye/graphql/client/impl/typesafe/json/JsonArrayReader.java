@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
 
-import javax.json.JsonArray;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
@@ -35,23 +35,23 @@ class JsonArrayReader extends Reader<JsonArray> {
 
     private Object readItem(IndexedLocationBuilder locationBuilder, JsonValue itemValue) {
         Location itemLocation = locationBuilder.nextLocation();
-        TypeInfo itemType = getItemType();
-        if (itemValue.getValueType() == ValueType.NULL && itemType.isNonNull())
+        TypeInfo it = getItemType();
+        if (itemValue.getValueType() == ValueType.NULL && it.isNonNull())
             throw new InvalidResponseException("invalid null " + itemLocation);
-        return JsonReader.readJson(itemLocation, itemType, itemValue, field);
+        return JsonReader.readJson(itemLocation, it, itemValue, field);
     }
 
     private Collector<Object, ?, ?> collector() {
-        Class<?> collectionType = getCollectionType();
-        if (collectionType.isArray()) {
+        Class<?> ct = getCollectionType();
+        if (ct.isArray()) {
             @SuppressWarnings("unchecked")
             Class<Object> rawItemType = (Class<Object>) getItemType().getRawType();
             return CollectionUtils.toArray(rawItemType);
         }
-        if (Set.class.isAssignableFrom(collectionType))
+        if (Set.class.isAssignableFrom(ct))
             return toSet();
-        assert List.class.isAssignableFrom(collectionType) || collectionType.equals(Collection.class)
-                : "collection type " + collectionType.getName() + " not supported";
+        assert List.class.isAssignableFrom(ct) || ct.equals(Collection.class)
+                : "collection type " + ct.getName() + " not supported";
         return toList();
     }
 

@@ -1,6 +1,5 @@
 package io.smallrye.graphql.client;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -224,9 +223,8 @@ public class ResponseReaderTest {
 
     @Test
     public void nullResponse() {
-        ResponseImpl response;
         try {
-            response = ResponseReader.readFrom(null, Collections.emptyMap());
+            ResponseImpl response = ResponseReader.readFrom(null, Collections.emptyMap());
             Assertions.fail();
         } catch (InvalidResponseException ire) {
             Assertions.assertTrue(ire.getMessage().contains("Response body was null"));

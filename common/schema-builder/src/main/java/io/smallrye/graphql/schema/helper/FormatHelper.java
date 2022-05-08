@@ -104,7 +104,7 @@ public class FormatHelper {
                     Transformation.Type.NUMBER,
                     format,
                     locale,
-                    isJsonB(annotationInstance)));
+                    Annotations.isJsonBAnnotation(annotationInstance)));
         }
         return Optional.empty();
     }
@@ -130,22 +130,22 @@ public class FormatHelper {
                     Transformation.Type.DATE,
                     format,
                     locale,
-                    isJsonB(annotationInstance)));
+                    Annotations.isJsonBAnnotation(annotationInstance)));
         }
         return Optional.empty();
     }
 
-    private static boolean isJsonB(AnnotationInstance instance) {
-        return instance.name().toString().startsWith("javax.json.bind.annotation.");
-    }
-
     private static Optional<AnnotationInstance> getDateFormatAnnotation(Annotations annotations) {
-        return annotations.getOneOfTheseAnnotations(Annotations.DATE_FORMAT, Annotations.JSONB_DATE_FORMAT,
+        return annotations.getOneOfTheseAnnotations(Annotations.DATE_FORMAT,
+                Annotations.JAKARTA_JSONB_DATE_FORMAT,
+                Annotations.JAVAX_JSONB_DATE_FORMAT,
                 Annotations.JACKSON_FORMAT);
     }
 
     private static Optional<AnnotationInstance> getNumberFormatAnnotation(Annotations annotations) {
-        return annotations.getOneOfTheseAnnotations(Annotations.NUMBER_FORMAT, Annotations.JSONB_NUMBER_FORMAT);
+        return annotations.getOneOfTheseAnnotations(Annotations.NUMBER_FORMAT,
+                Annotations.JAKARTA_JSONB_NUMBER_FORMAT,
+                Annotations.JAVAX_JSONB_NUMBER_FORMAT);
     }
 
     private static Optional<String> getFormat(AnnotationInstance annotationInstance) {

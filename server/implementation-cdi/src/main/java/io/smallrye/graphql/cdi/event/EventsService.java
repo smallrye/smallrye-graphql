@@ -2,9 +2,9 @@ package io.smallrye.graphql.cdi.event;
 
 import java.lang.annotation.Annotation;
 
-import javax.annotation.Priority;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.CDI;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.CDI;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;

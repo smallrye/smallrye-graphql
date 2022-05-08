@@ -241,6 +241,10 @@ public class Annotations {
         return new Annotations(annotationMap, parentAnnotations);
     }
 
+    public static boolean isJsonBAnnotation(AnnotationInstance instance) {
+        return instance.name().toString().startsWith(JAKARTA_JSONB) || instance.name().toString().startsWith(JAVAX_JSONB);
+    }
+
     // ------- All static creators done, now the actual class --------
 
     private Annotations(Map<DotName, AnnotationInstance> annotations) {
@@ -588,12 +592,21 @@ public class Annotations {
     public static final DotName SOURCE = DotName.createSimple("org.eclipse.microprofile.graphql.Source");
 
     // Json-B Annotations
-    public static final DotName JSONB_DATE_FORMAT = DotName.createSimple("javax.json.bind.annotation.JsonbDateFormat");
-    public static final DotName JSONB_NUMBER_FORMAT = DotName.createSimple("javax.json.bind.annotation.JsonbNumberFormat");
-    public static final DotName JSONB_PROPERTY = DotName.createSimple("javax.json.bind.annotation.JsonbProperty");
-    public static final DotName JSONB_TRANSIENT = DotName.createSimple("javax.json.bind.annotation.JsonbTransient");
-    public static final DotName JSONB_CREATOR = DotName.createSimple("javax.json.bind.annotation.JsonbCreator");
-    public static final DotName JSONB_TYPE_ADAPTER = DotName.createSimple("javax.json.bind.annotation.JsonbTypeAdapter");
+    public static final String JAVAX_JSONB = "javax.json.bind.annotation.";
+    public static final DotName JAVAX_JSONB_DATE_FORMAT = DotName.createSimple(JAVAX_JSONB + "JsonbDateFormat");
+    public static final DotName JAVAX_JSONB_NUMBER_FORMAT = DotName.createSimple(JAVAX_JSONB + "JsonbNumberFormat");
+    public static final DotName JAVAX_JSONB_PROPERTY = DotName.createSimple(JAVAX_JSONB + "JsonbProperty");
+    public static final DotName JAVAX_JSONB_TRANSIENT = DotName.createSimple(JAVAX_JSONB + "JsonbTransient");
+    public static final DotName JAVAX_JSONB_CREATOR = DotName.createSimple(JAVAX_JSONB + "JsonbCreator");
+    public static final DotName JAVAX_JSONB_TYPE_ADAPTER = DotName.createSimple(JAVAX_JSONB + "JsonbTypeAdapter");
+
+    public static final String JAKARTA_JSONB = "jakarta.json.bind.annotation.";
+    public static final DotName JAKARTA_JSONB_DATE_FORMAT = DotName.createSimple(JAKARTA_JSONB + "JsonbDateFormat");
+    public static final DotName JAKARTA_JSONB_NUMBER_FORMAT = DotName.createSimple(JAKARTA_JSONB + "JsonbNumberFormat");
+    public static final DotName JAKARTA_JSONB_PROPERTY = DotName.createSimple(JAKARTA_JSONB + "JsonbProperty");
+    public static final DotName JAKARTA_JSONB_TRANSIENT = DotName.createSimple(JAKARTA_JSONB + "JsonbTransient");
+    public static final DotName JAKARTA_JSONB_CREATOR = DotName.createSimple(JAKARTA_JSONB + "JsonbCreator");
+    public static final DotName JAKARTA_JSONB_TYPE_ADAPTER = DotName.createSimple(JAKARTA_JSONB + "JsonbTypeAdapter");
 
     // Jackson Annotations
     public static final DotName JACKSON_IGNORE = DotName.createSimple("com.fasterxml.jackson.annotation.JsonIgnore");
@@ -602,9 +615,16 @@ public class Annotations {
     public static final DotName JACKSON_FORMAT = DotName.createSimple("com.fasterxml.jackson.annotation.JsonFormat");
 
     // Bean Validation Annotations (SmallRye extra, not part of the spec)
-    public static final DotName BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");
-    public static final DotName BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
-    public static final DotName BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
+    public static final DotName JAVAX_BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");
+    public static final DotName JAVAX_BEAN_VALIDATION_NOT_EMPTY = DotName.createSimple("javax.validation.constraints.NotEmpty");
+    public static final DotName JAVAX_BEAN_VALIDATION_NOT_BLANK = DotName.createSimple("javax.validation.constraints.NotBlank");
+
+    public static final DotName JAKARTA_BEAN_VALIDATION_NOT_NULL = DotName
+            .createSimple("jakarta.validation.constraints.NotNull");
+    public static final DotName JAKARTA_BEAN_VALIDATION_NOT_EMPTY = DotName
+            .createSimple("jakarta.validation.constraints.NotEmpty");
+    public static final DotName JAKARTA_BEAN_VALIDATION_NOT_BLANK = DotName
+            .createSimple("jakarta.validation.constraints.NotBlank");
 
     //Kotlin NotNull
     public static final DotName KOTLIN_NOT_NULL = DotName.createSimple("org.jetbrains.annotations.NotNull");

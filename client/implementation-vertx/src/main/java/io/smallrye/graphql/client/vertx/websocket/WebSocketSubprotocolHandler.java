@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.vertx.websocket;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.MultiEmitter;

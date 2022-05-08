@@ -3,27 +3,26 @@ package io.smallrye.graphql.client.impl.typesafe.cdi;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
+import jakarta.enterprise.inject.spi.WithAnnotations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 public class TypesafeGraphQLClientExtension implements Extension {
-    private static final Logger log = LoggerFactory.getLogger(TypesafeGraphQLClientExtension.class);
+    private static final Logger log = Logger.getLogger(TypesafeGraphQLClientExtension.class);
 
     private final List<Class<?>> apis = new ArrayList<>();
 
     public void registerGraphQLClientApis(@Observes @WithAnnotations(GraphQLClientApi.class) ProcessAnnotatedType<?> type) {
         Class<?> javaClass = type.getAnnotatedType().getJavaClass();
         if (javaClass.isInterface()) {
-            log.info("register {}", javaClass.getName());
+            log.infof("register %s", javaClass.getName());
             apis.add(javaClass);
         } else {
             log.error("failed to register", new IllegalArgumentException(

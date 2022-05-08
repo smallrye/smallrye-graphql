@@ -2,7 +2,7 @@ package io.smallrye.graphql.index.app;
 
 import java.util.Currency;
 
-import javax.json.bind.annotation.JsonbTypeAdapter;
+import jakarta.json.bind.annotation.JsonbTypeAdapter;
 
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;

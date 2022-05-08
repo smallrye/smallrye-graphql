@@ -1,7 +1,7 @@
 package io.smallrye.graphql.tests.validation;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.validation.Valid;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.validation.Valid;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
