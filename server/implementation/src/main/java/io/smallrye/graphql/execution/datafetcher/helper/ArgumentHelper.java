@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbException;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbException;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;

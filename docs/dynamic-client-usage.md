@@ -4,7 +4,7 @@ Dynamic client introduction and basic usage
 A Java GraphQL client. The main difference from the typesafe client is
 that while the typesafe client behaves like a typesafe proxy very
 similar to the MicroProfile REST Client, the dynamic client is more like
-the JAX-RS client from the `javax.ws.rs.client` package. Instead of
+the JAX-RS client from the `jakarta.ws.rs.client` package. Instead of
 working with model classes directly, the dynamic client focuses on
 programmatically working with GraphQL documents representing GraphQL
 requests and responses. It still offers the option to convert between

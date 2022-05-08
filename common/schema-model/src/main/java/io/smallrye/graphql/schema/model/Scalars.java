@@ -84,6 +84,8 @@ public class Scalars {
         populateScalar("org.bson.types.ObjectId", STRING, String.class.getName());
         populateScalar("javax.json.JsonObject", STRING, String.class.getName());
         populateScalar("javax.json.JsonArray", STRING, String.class.getName());
+        populateScalar("jakarta.json.JsonObject", STRING, String.class.getName());
+        populateScalar("jakarta.json.JsonArray", STRING, String.class.getName());
 
         // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);

@@ -1,6 +1,6 @@
 package examples.typesafeclient;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.List;
 
 public class MyClientUsage {

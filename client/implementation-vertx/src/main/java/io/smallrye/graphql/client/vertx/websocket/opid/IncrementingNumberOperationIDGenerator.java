@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class IncrementingNumberOperationIDGenerator implements OperationIDGenerator {
 
-    private AtomicLong generator = new AtomicLong(1);
+    private final AtomicLong generator = new AtomicLong(1);
 
     @Override
     public String generate() {

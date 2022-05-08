@@ -2,11 +2,12 @@ package io.smallrye.graphql.websocket.graphqltransportws;
 
 import java.io.IOException;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 
 import io.smallrye.graphql.execution.ExecutionResponse;
+import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.websocket.AbstractGraphQLWebsocketHandler;
 import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
 
@@ -22,6 +23,11 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
         super(session, "next");
         this.pongMessage = createPongMessage().toString();
         this.pingMessage = createPingMessage().toString();
+    }
+
+    @Deprecated
+    public GraphQLTransportWSSubprotocolHandler(GraphQLWebSocketSession session, ExecutionService executionService) {
+        this(session);
     }
 
     @Override

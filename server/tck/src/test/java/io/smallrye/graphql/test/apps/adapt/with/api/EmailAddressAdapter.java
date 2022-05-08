@@ -1,6 +1,6 @@
 package io.smallrye.graphql.test.apps.adapt.with.api;
 
-import javax.json.bind.adapter.JsonbAdapter;
+import jakarta.json.bind.adapter.JsonbAdapter;
 
 /**
  * Using an adapter

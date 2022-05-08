@@ -2,7 +2,7 @@ package io.smallrye.graphql.client;
 
 import java.util.Map;
 
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 public interface Request {
     String getDocument();

@@ -9,8 +9,8 @@ import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.URI;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

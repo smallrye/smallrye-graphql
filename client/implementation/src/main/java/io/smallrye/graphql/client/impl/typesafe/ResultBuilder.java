@@ -1,21 +1,21 @@
 package io.smallrye.graphql.client.impl.typesafe;
 
 import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.stream.Collectors.joining;
-import static javax.json.stream.JsonCollectors.toJsonArray;
 
 import java.io.StringReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonException;
-import javax.json.JsonObject;
-import javax.json.JsonPatch;
-import javax.json.JsonPointer;
-import javax.json.JsonValue;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonException;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonPatch;
+import jakarta.json.JsonPointer;
+import jakarta.json.JsonValue;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.InvalidResponseException;

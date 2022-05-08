@@ -2,10 +2,10 @@ package io.smallrye.graphql.entry.http;
 
 import java.io.IOException;
 
-import javax.json.Json;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.json.Json;
+import jakarta.json.JsonWriter;
+import jakarta.json.JsonWriterFactory;
+import jakarta.servlet.http.HttpServletResponse;
 
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionResponseWriter;
@@ -19,7 +19,7 @@ public class HttpServletResponseWriter implements ExecutionResponseWriter {
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
     private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
 
-    private HttpServletResponse response;
+    private final HttpServletResponse response;
 
     public HttpServletResponseWriter(HttpServletResponse response) {
         this.response = response;

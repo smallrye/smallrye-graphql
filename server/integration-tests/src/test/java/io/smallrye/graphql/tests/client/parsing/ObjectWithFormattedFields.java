@@ -2,7 +2,7 @@ package io.smallrye.graphql.tests.client.parsing;
 
 import java.util.Date;
 
-import javax.json.bind.annotation.JsonbDateFormat;
+import jakarta.json.bind.annotation.JsonbDateFormat;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NumberFormat;

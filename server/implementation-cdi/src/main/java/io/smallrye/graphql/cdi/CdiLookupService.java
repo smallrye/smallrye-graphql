@@ -2,11 +2,11 @@ package io.smallrye.graphql.cdi;
 
 import java.util.Set;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.AmbiguousResolutionException;
-import javax.enterprise.inject.UnsatisfiedResolutionException;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.AmbiguousResolutionException;
+import jakarta.enterprise.inject.UnsatisfiedResolutionException;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.CDI;
 
 import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.graphql.spi.ManagedInstance;

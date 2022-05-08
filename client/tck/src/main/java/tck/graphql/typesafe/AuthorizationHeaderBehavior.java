@@ -10,7 +10,7 @@ import static tck.graphql.typesafe.TypesafeGraphQLClientFixture.withTokenAuth;
 
 import java.lang.annotation.Retention;
 
-import javax.enterprise.inject.Stereotype;
+import jakarta.enterprise.inject.Stereotype;
 
 import org.junit.jupiter.api.Test;
 

@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.Priority;
-import javax.enterprise.inject.Specializes;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.inject.Specializes;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 
 import graphql.ExecutionInput;
 import graphql.schema.DataFetchingEnvironment;

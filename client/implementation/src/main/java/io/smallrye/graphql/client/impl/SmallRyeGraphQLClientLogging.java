@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.impl;
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 
 import org.jboss.logging.Logger;
 import org.jboss.logging.annotations.LogMessage;
