@@ -91,13 +91,28 @@ will serve you:
 --8<-- "docs/snippets/examples/dynamicclient/MyClientUsageString.java"
 ```
 
--   <1>: In this variant, we inline values for query arguments directly into the query string.
+- <1>: In this variant, we inline values for query arguments directly into the query string.
 
--   <2>: In this variant, argument values are extracted into variables. The `location` argument of the `allHeroesIn` query is 
+- <2>: In this variant, argument values are extracted into variables. The `location` argument of the `allHeroesIn` query is 
     declared to be using the variable `loc` (the variable can also be named `location` same as the argument, if
     you prefer).
 
--   <3>: Here we create a map that defines the values for each variable. Values of this map are `Object`s,
+- <3>: Here we create a map that defines the values for each variable. Values of this map are `Object`s,
     so you can put in strings, numbers, booleans, or any object that corresponds to a GraphQL type and can be
     serialized to JSON. Inserting a `JsonObject` directly is also supported.
+
+Accessing HTTP headers and response codes
+=========================================
+
+To access HTTP transport metadata that was passed by the server, you can inspect the `Response` object.
+
+`Response.getTransportMeta("HEADER-NAME")` returns a `List<String>` containing (potentially multiple) values of the requested header.
+
+To get the HTTP status code or status message, these are stored inside the `transportMeta` map too. `ResponseImpl` 
+contains convenience methods to retrieve them: `ResponseImpl.getStatusCode()` and `ResponseImpl.getStatusMessage()`.
+It's also possible to retrieve them directly without casting to `ResponseImpl` by calling
+`Integer.valueOf(response.getTransportMeta().get("<status-code>").get(0))` and  
+`response.getTransportMeta().get("<status-message>").get(0)`.
+
+HTTP headers, status codes and messages are only available for operations executed over pure HTTP, not via websockets!
 

@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,14 +20,34 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
 public class ResponseImpl implements Response {
 
+    public static final String STATUS_CODE = "<status-code>";
+    public static final String STATUS_MESSAGE = "<status-message>";
+
     private final JsonObject data;
     private final List<GraphQLError> errors;
-    private final Map<String, List<String>> headers;
+    private final Map<String, List<String>> metadata;
 
     public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers) {
         this.data = data;
         this.errors = errors;
-        this.headers = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
+        this.metadata = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
+    }
+
+    public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers,
+            Integer statusCode, String statusMessage) {
+        this.data = data;
+        this.errors = errors;
+        Map<String, List<String>> meta = new HashMap<>();
+        if (headers != null) {
+            meta.putAll(headers);
+        }
+        if (statusCode != null) {
+            meta.put(STATUS_CODE, List.of(String.valueOf(statusCode)));
+        }
+        if (statusMessage != null) {
+            meta.put(STATUS_MESSAGE, List.of(statusMessage));
+        }
+        this.metadata = Collections.unmodifiableMap(meta);
     }
 
     public <T> T getObject(Class<T> dataType, String rootField) {
@@ -133,10 +154,34 @@ public class ResponseImpl implements Response {
     }
 
     public Map<String, List<String>> getHeaders() {
-        return headers;
+        return metadata;
     }
 
     public Map<String, List<String>> getTransportMeta() {
-        return headers;
+        return metadata;
+    }
+
+    /**
+     * Returns the HTTP status code. Returns null if no HTTP status code is known, for example
+     * when this response corresponds to an operation executed over a websocket rather than a simple HTTP exchange.
+     */
+    public Integer getStatusCode() {
+        if (metadata.containsKey(STATUS_CODE)) {
+            return Integer.valueOf(metadata.get(STATUS_CODE).get(0));
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the HTTP status message. Returns null if no HTTP status message is known, for example
+     * when this response corresponds to an operation executed over a websocket rather than a simple HTTP exchange.
+     */
+    public String getStatusMessage() {
+        if (metadata.containsKey(STATUS_MESSAGE)) {
+            return metadata.get(STATUS_MESSAGE).get(0);
+        } else {
+            return null;
+        }
     }
 }
