@@ -335,7 +335,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                         .sendBuffer(Buffer.buffer(json.toString()))
                         .toCompletionStage()))
                 .map(response -> ResponseReader.readFrom(response.bodyAsString(),
-                        convertHeaders(response.headers())));
+                        convertHeaders(response.headers()), response.statusCode(), response.statusMessage()));
     }
 
     private Uni<Response> executeSingleResultOperationOverWebsocket(JsonObject json) {

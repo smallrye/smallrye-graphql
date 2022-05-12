@@ -22,7 +22,8 @@ import io.smallrye.graphql.client.GraphQLError;
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
 
-    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
+    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
+            String statusMessage) {
         if (input == null) {
             throw SmallRyeGraphQLClientMessages.msg.nullResponseBody();
         }
@@ -51,7 +52,11 @@ public class ResponseReader {
             }
         }
 
-        return new ResponseImpl(data, errors, headers);
+        return new ResponseImpl(data, errors, headers, statusCode, statusMessage);
+    }
+
+    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
+        return readFrom(input, headers, null, null);
     }
 
     public static GraphQLError readError(JsonValue errorJson) {
