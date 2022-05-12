@@ -36,7 +36,7 @@
         
         <version.graphql-java>18.1</version.graphql-java>
         <verison.io.micrometer>1.8.6</verison.io.micrometer>
-        <version.vertx>4.2.7</version.vertx>
+        <version.vertx>4.3.0</version.vertx>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR4</version.arquillian.jetty>
