@@ -86,6 +86,15 @@ public class ReferenceCreator {
     }
 
     /**
+     * Get the Type auto name strategy
+     * 
+     * @return the strategy as supplied
+     */
+    public TypeAutoNameStrategy getTypeAutoNameStrategy() {
+        return this.autoNameStrategy;
+    }
+
+    /**
      * Get a reference to a field type for an adapter on a field
      * 
      * @param direction the direction
@@ -93,8 +102,10 @@ public class ReferenceCreator {
      * @param annotations annotation on this operations method
      * @return a reference to the type
      */
-    public Reference createReferenceForAdapter(Direction direction, Type fieldType, Annotations annotations) {
-        return getReference(direction, null, fieldType, annotations);
+    public Reference createReferenceForAdapter(Type fieldType,
+            Annotations annotations,
+            Direction direction) {
+        return getReference(direction, null, fieldType, annotations, null);
     }
 
     /**
@@ -106,7 +117,7 @@ public class ReferenceCreator {
      * @return a reference to the type
      */
     public Reference createReferenceForOperationField(Type fieldType, Annotations annotationsForMethod) {
-        return getReference(Direction.OUT, null, fieldType, annotationsForMethod);
+        return getReference(Direction.OUT, null, fieldType, annotationsForMethod, null);
     }
 
     /**
@@ -118,7 +129,7 @@ public class ReferenceCreator {
      * @return a reference to the argument
      */
     public Reference createReferenceForOperationArgument(Type argumentType, Annotations annotationsForThisArgument) {
-        return getReference(Direction.IN, null, argumentType, annotationsForThisArgument);
+        return getReference(Direction.IN, null, argumentType, annotationsForThisArgument, null);
     }
 
     /**
@@ -129,7 +140,7 @@ public class ReferenceCreator {
      * @return a reference to the argument
      */
     public Reference createReferenceForSourceArgument(Type argumentType, Annotations annotationsForThisArgument) {
-        return getReference(Direction.OUT, null, argumentType, annotationsForThisArgument);
+        return getReference(Direction.OUT, null, argumentType, annotationsForThisArgument, null);
     }
 
     /**
@@ -158,21 +169,12 @@ public class ReferenceCreator {
      * @param parentObjectReference Reference of the parent PoJo use so we can evaluate generics types
      * @return a reference to the type
      */
-    public Reference createReferenceForPojoField(Direction direction, Type fieldType, Type methodType, Annotations annotations,
+    public Reference createReferenceForPojoField(Type fieldType,
+            Type methodType,
+            Annotations annotations,
+            Direction direction,
             Reference parentObjectReference) {
         return getReference(direction, fieldType, methodType, annotations, parentObjectReference);
-    }
-
-    /**
-     * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
-     * already know about it.
-     * 
-     * @param direction the direction (in or out)
-     * @param classInfo the Java class
-     * @return a reference
-     */
-    public Reference createReference(Direction direction, ClassInfo classInfo) {
-        return createReference(direction, classInfo, true, true, null, null, true);
     }
 
     /**
@@ -184,9 +186,11 @@ public class ReferenceCreator {
      * @param createAdapedToType create the type in the schema
      * @return a reference
      */
-    public Reference createReference(Direction direction, ClassInfo classInfo, boolean createAdapedToType,
+    private Reference createReference(Direction direction,
+            ClassInfo classInfo,
+            boolean createAdapedToType,
             boolean createAdapedWithType,
-            Reference parentObjectReference, Map<String, Reference> parametrizedTypeArgumentsReferences,
+            Map<String, Reference> classParametrizedTypes,
             boolean addParametrizedTypeNameExtension) {
         // Get the initial reference type. It's either Type or Input depending on the direction. This might change as
         // we figure out this is actually an enum or interface
@@ -219,13 +223,13 @@ public class ReferenceCreator {
                         if (type.kind() == Type.Kind.TYPE_VARIABLE) {
                             parametrizedTypeArgumentsReferencesImpl.put(
                                     type.asTypeVariable().identifier(),
-                                    parametrizedTypeArgumentsReferences.get(tp.identifier()));
+                                    classParametrizedTypes.get(tp.identifier()));
                         }
                     }
 
                 }
 
-                createReference(direction, impl, createAdapedToType, createAdapedWithType, parentObjectReference,
+                createReference(direction, impl, createAdapedToType, createAdapedWithType,
                         parametrizedTypeArgumentsReferencesImpl,
                         true);
             }
@@ -241,10 +245,15 @@ public class ReferenceCreator {
                 annotationsForClass,
                 this.autoNameStrategy,
                 referenceType,
-                parametrizedTypeArgumentsReferences);
+                classParametrizedTypes);
 
-        Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences,
-                addParametrizedTypeNameExtension);
+        Reference reference = new Reference.Builder()
+                .className(className)
+                .name(name)
+                .type(referenceType)
+                .classParametrizedTypes(classParametrizedTypes)
+                .addParametrizedTypeNameExtension(addParametrizedTypeNameExtension)
+                .build();
 
         // Adaptation
         Optional<AdaptTo> adaptTo = AdaptToHelper.getAdaptTo(reference, annotationsForClass);
@@ -264,10 +273,6 @@ public class ReferenceCreator {
         return reference;
     }
 
-    public TypeAutoNameStrategy getTypeAutoNameStrategy() {
-        return this.autoNameStrategy;
-    }
-
     private boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
         boolean isJavaInterface = Classes.isInterface(classInfo);
         if (isJavaInterface) {
@@ -278,13 +283,6 @@ public class ReferenceCreator {
             return true;
         }
         return false;
-    }
-
-    private Reference getReference(Direction direction,
-            Type fieldType,
-            Type methodType,
-            Annotations annotations) {
-        return getReference(direction, fieldType, methodType, annotations, null);
     }
 
     private Reference getReference(Direction direction,
@@ -322,7 +320,7 @@ public class ReferenceCreator {
         } else if (Classes.isMap(fieldType)) {
             ParameterizedType parameterizedFieldType = fieldType.asParameterizedType();
             List<Type> fieldArguments = parameterizedFieldType.arguments();
-            ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(new Type[] {}), null);
+            ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(Type[]::new), null);
             return getReference(direction, entryType, entryType, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
@@ -345,7 +343,6 @@ public class ReferenceCreator {
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        parentObjectReference,
                         parametrizedTypeArgumentsReferences, false);
             } else {
                 return getNonIndexedReference(direction, fieldType);
@@ -365,13 +362,12 @@ public class ReferenceCreator {
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        parentObjectReference,
                         parametrizedTypeArgumentsReferences, true);
             } else {
                 return getNonIndexedReference(direction, fieldType);
             }
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
-            if (parentObjectReference == null || parentObjectReference.getParametrizedTypeArguments() == null) {
+            if (parentObjectReference == null || parentObjectReference.getClassParametrizedTypes() == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
                         + "] as parent object reference is missing or incomplete: " + parentObjectReference);
             }
@@ -379,7 +375,7 @@ public class ReferenceCreator {
             LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: "
                     + fieldType.asTypeVariable().identifier());
 
-            Reference ret = parentObjectReference.getParametrizedTypeArguments().get(fieldType.asTypeVariable().identifier());
+            Reference ret = parentObjectReference.getClassParametrizedTypes().get(fieldType.asTypeVariable().identifier());
 
             if (ret == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
@@ -512,7 +508,7 @@ public class ReferenceCreator {
 
         Reference r = new Reference();
         r.setClassName(fieldType.name().toString());
-        r.setGraphQlClassName(fieldType.name().toString());
+        r.setGraphQLClassName(fieldType.name().toString());
         r.setName(fieldType.name().local());
 
         boolean isNumber = Classes.isNumberLikeTypeOrContainedIn(fieldType);

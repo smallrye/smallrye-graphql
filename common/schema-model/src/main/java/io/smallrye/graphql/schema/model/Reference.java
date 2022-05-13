@@ -16,10 +16,10 @@ public class Reference implements Serializable {
     private String className;
     private String name;
     private ReferenceType type;
-    private String graphQlClassName;
+    private String graphQLClassName;
     private AdaptTo adaptTo = null; // If the type is mapped to a scalar
     private AdaptWith adaptWith = null; // If the type is mapped to another type with an adapter
-    private Map<String, Reference> parametrizedTypeArguments;
+    private Map<String, Reference> classParametrizedTypes;
     private boolean addParametrizedTypeNameExtension;
     private List<DirectiveInstance> directiveInstances;
 
@@ -32,44 +32,23 @@ public class Reference implements Serializable {
     public Reference() {
     }
 
-    public Reference(String className, String name, ReferenceType type, String graphQlClassName,
-            Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension) {
-        this(className, name, type, graphQlClassName, parametrizedTypeArguments, addParametrizedTypeNameExtension, null, null,
-                null);
-    }
-
-    public Reference(String className, String name, ReferenceType type, String graphQlClassName) {
-        this(className, name, type, graphQlClassName, null, false, null, null, null);
-    }
-
-    public Reference(String className, String name, ReferenceType type, String graphQlClassName,
-            Map<String, Reference> parametrizedTypeArguments, boolean addParametrizedTypeNameExtension,
-            AdaptTo adaptTo, AdaptWith adaptWith, List<DirectiveInstance> directiveInstances) {
+    protected Reference(String className, String name, ReferenceType type) {
         this.className = className;
         this.name = name;
         this.type = type;
-        this.graphQlClassName = graphQlClassName;
-        this.parametrizedTypeArguments = parametrizedTypeArguments;
-        this.adaptTo = adaptTo;
-        this.adaptWith = adaptWith;
-        this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
-        this.directiveInstances = directiveInstances;
     }
 
-    public Reference(String className, String name, ReferenceType type) {
-        this(className, name, type, className, null, false, null, null, null);
-    }
-
-    public Reference(String className, String name, ReferenceType type, Map<String, Reference> parametrizedTypeArguments,
-            boolean addParametrizedTypeNameExtension) {
-        this(className, name, type, className, parametrizedTypeArguments, addParametrizedTypeNameExtension, null, null, null);
-    }
-
-    public Reference(final Reference reference) {
-        this(reference.className, reference.name, reference.type, reference.graphQlClassName,
-                reference.parametrizedTypeArguments, reference.addParametrizedTypeNameExtension, reference.adaptTo,
-                reference.adaptWith,
-                reference.directiveInstances);
+    private Reference(Builder builder) {
+        this.className = builder.className;
+        this.name = builder.name;
+        this.type = builder.type;
+        this.graphQLClassName = builder.graphQLClassName;
+        this.adaptTo = builder.adaptTo;
+        this.adaptWith = builder.adaptWith;
+        this.classParametrizedTypes = builder.classParametrizedTypes;
+        this.addParametrizedTypeNameExtension = builder.addParametrizedTypeNameExtension;
+        this.directiveInstances = builder.directiveInstances;
+        this.wrapper = builder.wrapper;
     }
 
     /**
@@ -100,6 +79,8 @@ public class Reference implements Serializable {
 
     /**
      * This represent the GraphQL Type
+     * 
+     * @return the type
      */
     public ReferenceType getType() {
         return type;
@@ -118,12 +99,15 @@ public class Reference implements Serializable {
      *
      * @return full class name
      */
-    public String getGraphQlClassName() {
-        return graphQlClassName;
+    public String getGraphQLClassName() {
+        if (this.graphQLClassName != null) {
+            return graphQLClassName;
+        }
+        return className;
     }
 
-    public void setGraphQlClassName(String graphQlClassName) {
-        this.graphQlClassName = graphQlClassName;
+    public void setGraphQLClassName(String graphQLClassName) {
+        this.graphQLClassName = graphQLClassName;
     }
 
     public AdaptTo getAdaptTo() {
@@ -150,12 +134,24 @@ public class Reference implements Serializable {
         return this.adaptWith != null;
     }
 
-    public Map<String, Reference> getParametrizedTypeArguments() {
-        return parametrizedTypeArguments;
+    public Map<String, Reference> getClassParametrizedTypes() {
+        return classParametrizedTypes;
     }
 
-    public void setParametrizedTypeArguments(Map<String, Reference> parametrizedTypeArguments) {
-        this.parametrizedTypeArguments = parametrizedTypeArguments;
+    public void setClassParametrizedTypes(Map<String, Reference> classParametrizedTypes) {
+        this.classParametrizedTypes = classParametrizedTypes;
+    }
+
+    public boolean hasClassParameterizedTypes() {
+        return classParametrizedTypes != null
+                && !classParametrizedTypes.isEmpty();
+    }
+
+    public Reference getClassParametrizedType(String name) {
+        if (hasClassParameterizedTypes()) {
+            return classParametrizedTypes.get(name);
+        }
+        return null;
     }
 
     public boolean isAddParametrizedTypeNameExtension() {
@@ -196,10 +192,16 @@ public class Reference implements Serializable {
 
     @Override
     public String toString() {
-        return "Reference{" + "className=" + className + ", name=" + name + ", type=" + type + ", graphQlClassName="
-                + graphQlClassName + ", adaptTo=" + adaptTo + ", adaptWith=" + adaptWith + ", parametrizedTypeArguments="
-                + parametrizedTypeArguments + ", addParametrizedTypeNameExtension=" + addParametrizedTypeNameExtension
-                + ", directiveInstances=" + directiveInstances + ", wrapper=" + wrapper + '}';
+        return "Reference{" +
+                "className=" + className +
+                ", name=" + name +
+                ", type=" + type +
+                ", graphQLClassName=" + graphQLClassName +
+                ", adaptTo=" + adaptTo +
+                ", adaptWith=" + adaptWith +
+                ", directiveInstances=" + directiveInstances +
+                ", wrapper=" + wrapper
+                + '}';
     }
 
     @Override
@@ -208,11 +210,9 @@ public class Reference implements Serializable {
         hash = 97 * hash + Objects.hashCode(this.className);
         hash = 97 * hash + Objects.hashCode(this.name);
         hash = 97 * hash + Objects.hashCode(this.type);
-        hash = 97 * hash + Objects.hashCode(this.graphQlClassName);
+        hash = 97 * hash + Objects.hashCode(this.graphQLClassName);
         hash = 97 * hash + Objects.hashCode(this.adaptTo);
         hash = 97 * hash + Objects.hashCode(this.adaptWith);
-        hash = 97 * hash + Objects.hashCode(this.parametrizedTypeArguments);
-        hash = 97 * hash + (this.addParametrizedTypeNameExtension ? 1 : 0);
         hash = 97 * hash + Objects.hashCode(this.directiveInstances);
         hash = 97 * hash + Objects.hashCode(this.wrapper);
         return hash;
@@ -230,16 +230,13 @@ public class Reference implements Serializable {
             return false;
         }
         final Reference other = (Reference) obj;
-        if (this.addParametrizedTypeNameExtension != other.addParametrizedTypeNameExtension) {
-            return false;
-        }
         if (!Objects.equals(this.className, other.className)) {
             return false;
         }
         if (!Objects.equals(this.name, other.name)) {
             return false;
         }
-        if (!Objects.equals(this.graphQlClassName, other.graphQlClassName)) {
+        if (!Objects.equals(this.graphQLClassName, other.graphQLClassName)) {
             return false;
         }
         if (this.type != other.type) {
@@ -251,16 +248,92 @@ public class Reference implements Serializable {
         if (!Objects.equals(this.adaptWith, other.adaptWith)) {
             return false;
         }
-        if (!Objects.equals(this.parametrizedTypeArguments, other.parametrizedTypeArguments)) {
-            return false;
-        }
         if (!Objects.equals(this.directiveInstances, other.directiveInstances)) {
             return false;
         }
-        if (!Objects.equals(this.wrapper, other.wrapper)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.wrapper, other.wrapper);
     }
 
+    public static class Builder {
+
+        private String className;
+        private String name;
+        private ReferenceType type;
+        private String graphQLClassName;
+        private AdaptTo adaptTo = null;
+        private AdaptWith adaptWith = null;
+        private Map<String, Reference> classParametrizedTypes;
+        private boolean addParametrizedTypeNameExtension;
+        private List<DirectiveInstance> directiveInstances;
+        private Wrapper wrapper;
+
+        public Builder className(String className) {
+            this.className = className;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder type(ReferenceType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder graphQLClassName(String graphQLClassName) {
+            this.graphQLClassName = graphQLClassName;
+            return this;
+        }
+
+        public Builder adaptTo(AdaptTo adaptTo) {
+            this.adaptTo = adaptTo;
+            return this;
+        }
+
+        public Builder adaptWith(AdaptWith adaptWith) {
+            this.adaptWith = adaptWith;
+            return this;
+        }
+
+        public Builder classParametrizedTypes(Map<String, Reference> classParametrizedTypes) {
+            this.classParametrizedTypes = classParametrizedTypes;
+            return this;
+        }
+
+        public Builder addParametrizedTypeNameExtension(boolean addParametrizedTypeNameExtension) {
+            this.addParametrizedTypeNameExtension = addParametrizedTypeNameExtension;
+            return this;
+        }
+
+        public Builder directiveInstances(List<DirectiveInstance> directiveInstances) {
+            this.directiveInstances = directiveInstances;
+            return this;
+        }
+
+        public Builder wrapper(Wrapper wrapper) {
+            this.wrapper = wrapper;
+            return this;
+        }
+
+        public Builder reference(Reference reference) {
+            this.className(reference.getClassName());
+            this.name(reference.getName());
+            this.type(reference.getType());
+            this.graphQLClassName(reference.getGraphQLClassName());
+            this.adaptTo(reference.getAdaptTo());
+            this.adaptWith(reference.getAdaptWith());
+            this.classParametrizedTypes(reference.getClassParametrizedTypes());
+            this.addParametrizedTypeNameExtension(reference.isAddParametrizedTypeNameExtension());
+            this.directiveInstances(reference.getDirectiveInstances());
+            this.wrapper(reference.getWrapper());
+
+            return this;
+        }
+
+        public Reference build() {
+            return new Reference(this);
+        }
+    }
 }

@@ -46,10 +46,10 @@ public class ReferenceCreatorTest {
             assertEquals("io_smallrye_graphql_schema_creator_ReferenceCreatorTestGenericInterface_String", reference.getName());
             assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface", reference.getClassName());
             assertEquals("io.smallrye.graphql.schema.creator.ReferenceCreatorTest$GenericInterface",
-                    reference.getGraphQlClassName());
+                    reference.getGraphQLClassName());
             assertEquals(ReferenceType.INTERFACE, reference.getType());
             assertNull(reference.getAdaptTo());
-            assertFalse(reference.getParametrizedTypeArguments().isEmpty());
+            assertFalse(reference.getClassParametrizedTypes().isEmpty());
             assertTrue(reference.isAddParametrizedTypeNameExtension());
         } finally {
             ScanningContext.remove();

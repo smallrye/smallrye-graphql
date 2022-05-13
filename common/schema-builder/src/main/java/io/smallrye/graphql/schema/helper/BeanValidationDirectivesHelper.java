@@ -13,7 +13,7 @@ import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Reference;
-import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.schema.model.Scalars;
 
 public class BeanValidationDirectivesHelper {
 
@@ -35,30 +35,12 @@ public class BeanValidationDirectivesHelper {
         CONSTRAINT_DIRECTIVE_TYPE.setDescription("Indicates a Bean Validation constraint");
         CONSTRAINT_DIRECTIVE_TYPE.setRepeatable(true);
 
-        Reference INTEGER = new Reference();
-        INTEGER.setType(ReferenceType.SCALAR);
-        INTEGER.setClassName("java.lang.Integer");
-        INTEGER.setGraphQlClassName("Int");
-        INTEGER.setName("Int");
-
-        Reference LONG = new Reference();
-        LONG.setType(ReferenceType.SCALAR);
-        LONG.setClassName("java.lang.Long");
-        LONG.setGraphQlClassName("BigInteger");
-        LONG.setName("BigInteger");
-
-        Reference STRING = new Reference();
-        STRING.setType(ReferenceType.SCALAR);
-        STRING.setClassName("java.lang.String");
-        STRING.setGraphQlClassName("String");
-        STRING.setName("String");
-
-        addArgument("minLength", INTEGER);
-        addArgument("maxLength", INTEGER);
-        addArgument("format", STRING);
-        addArgument("min", LONG);
-        addArgument("max", LONG);
-        addArgument("pattern", STRING);
+        addArgument("minLength", Scalars.getIntScalar());
+        addArgument("maxLength", Scalars.getIntScalar());
+        addArgument("format", Scalars.getStringScalar());
+        addArgument("min", Scalars.getBigIntegerScalar());
+        addArgument("max", Scalars.getBigIntegerScalar());
+        addArgument("pattern", Scalars.getStringScalar());
     }
 
     private static void addArgument(String name, Reference reference) {

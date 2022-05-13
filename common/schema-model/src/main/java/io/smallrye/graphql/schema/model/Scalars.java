@@ -63,12 +63,28 @@ public class Scalars {
         }
     }
 
+    public static Reference getIntScalar() {
+        return getScalar(INTEGER);
+    }
+
+    public static Reference getStringScalar() {
+        return getScalar(STRING);
+    }
+
+    public static Reference getBigIntegerScalar() {
+        return getScalar(BIGINTEGER);
+    }
+
     public static Reference getFormattedScalar(String className) {
         return formattedScalarMap.get(className);
     }
 
     public static Reference getIDScalar(String className) {
-        return new Reference(className, ID, ReferenceType.SCALAR);
+        return new Reference.Builder()
+                .className(className)
+                .name(ID)
+                .type(ReferenceType.SCALAR)
+                .build();
     }
 
     static {
@@ -111,11 +127,11 @@ public class Scalars {
         populateScalar(BigInteger.class.getName(), BIGINTEGER, BigInteger.class.getName());
         populateScalar(Long.class.getName(), BIGINTEGER, BigInteger.class.getName());
         populateScalar(long.class.getName(), BIGINTEGER, BigInteger.class.getName());
+        populateScalar(OptionalLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
+        populateScalar(AtomicLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
 
         // BigDecimal
         populateScalar(BigDecimal.class.getName(), BIGDECIMAL, BigDecimal.class.getName());
-        populateScalar(OptionalLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
-        populateScalar(AtomicLong.class.getName(), BIGINTEGER, BigInteger.class.getName());
 
         // Date
         populateScalar(LocalDate.class.getName(), DATE, String.class.getName());
@@ -145,14 +161,24 @@ public class Scalars {
     }
 
     private static void populateScalar(String className, String scalarName, String externalClassName) {
-        Reference reference = new Reference(className, scalarName, ReferenceType.SCALAR, externalClassName);
+        Reference reference = new Reference.Builder()
+                .className(className)
+                .name(scalarName)
+                .type(ReferenceType.SCALAR)
+                .graphQLClassName(externalClassName)
+                .build();
         scalarMap.put(className, reference);
 
         // looking up by name
         scalarNameMap.putIfAbsent(scalarName, reference);
 
         //Currently, each scalar is formatted as String
-        formattedScalarMap.put(className, new Reference(className, STRING, ReferenceType.SCALAR, String.class.getName()));
+        formattedScalarMap.put(className, new Reference.Builder()
+                .className(className)
+                .name(STRING)
+                .type(ReferenceType.SCALAR)
+                .graphQLClassName(String.class.getName())
+                .build());
     }
 
 }
