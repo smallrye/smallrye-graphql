@@ -48,7 +48,7 @@ public abstract class AbstractHelper {
      */
     protected boolean shouldTransform(Field field) {
         return (field.getReference().getType() == ReferenceType.SCALAR
-                && !field.getReference().getClassName().equals(field.getReference().getGraphQlClassName()));
+                && !field.getReference().getClassName().equals(field.getReference().getGraphQLClassName()));
     }
 
     /**

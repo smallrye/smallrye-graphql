@@ -61,10 +61,11 @@ public class OperationCreator extends ModelCreator {
 
         // Field Type
         validateFieldType(methodInfo, operationType);
-        Reference reference = referenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
 
         // Execution
-        Execute execute = getExecution(annotationsForMethod, annotationsForClass, reference);
+        Execute execute = getExecution(annotationsForMethod, annotationsForClass);
+
+        Reference reference = referenceCreator.createReferenceForOperationField(fieldType, annotationsForMethod);
         Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
                 methodInfo.name(),
                 MethodHelper.getPropertyName(Direction.OUT, methodInfo.name()),
@@ -73,7 +74,7 @@ public class OperationCreator extends ModelCreator {
                 operationType,
                 execute);
         if (type != null) {
-            operation.setSourceFieldOn(new Reference(type));
+            operation.setSourceFieldOn(new Reference.Builder().reference(type).build());
         }
 
         // Arguments
@@ -143,7 +144,7 @@ public class OperationCreator extends ModelCreator {
         return methodName;
     }
 
-    private Execute getExecution(Annotations annotationsForMethod, Annotations annotationsForClass, Reference reference) {
+    private Execute getExecution(Annotations annotationsForMethod, Annotations annotationsForClass) {
         // first check annotation on method
         if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.BLOCKING)) {
             return Execute.BLOCKING;

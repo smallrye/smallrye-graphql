@@ -15,7 +15,6 @@ import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
-import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.SourceOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
@@ -57,7 +56,7 @@ abstract class AbstractCreator implements Creator<Type> {
                 annotations,
                 referenceCreator.getTypeAutoNameStrategy(),
                 referenceType(),
-                reference.getParametrizedTypeArguments());
+                reference.getClassParametrizedTypes());
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
@@ -93,16 +92,9 @@ abstract class AbstractCreator implements Creator<Type> {
             if (InterfaceCreator.canAddInterfaceIntoScheme(interfaceType.name().toString())) {
                 ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceType.name());
                 if (interfaceInfo != null) {
-
-                    Map<String, Reference> parametrizedTypeArgumentsReferences = null;
-
-                    if (interfaceType.kind().equals(org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE))
-                        parametrizedTypeArgumentsReferences = referenceCreator.collectParametrizedTypes(interfaceInfo,
-                                interfaceType.asParameterizedType().arguments(), Direction.OUT, reference);
-
-                    Reference interfaceRef = referenceCreator.createReference(Direction.OUT, interfaceInfo, true, true,
-                            reference,
-                            parametrizedTypeArgumentsReferences, true);
+                    Annotations annotationsForInterface = Annotations.getAnnotationsForClass(interfaceInfo);
+                    Reference interfaceRef = referenceCreator.createReferenceForInterfaceField(interfaceType,
+                            annotationsForInterface, reference);
                     type.addInterface(interfaceRef);
                     // add all parent interfaces recursively as GraphQL schema requires it
                     addInterfaces(type, interfaceInfo, reference);
