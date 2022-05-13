@@ -37,10 +37,10 @@ public class FieldCreator extends ModelCreator {
     }
 
     /**
-     * Creates a field from a method only.
-     * This is used in the case of an interface
+     * Creates a field from a method only.This is used in the case of an interface
      *
      * @param methodInfo the java method
+     * @param parentObjectReference
      * @return a Field model object
      */
     public Optional<Field> createFieldForInterface(MethodInfo methodInfo, Reference parentObjectReference) {
@@ -90,8 +90,8 @@ public class FieldCreator extends ModelCreator {
             validateFieldType(direction, methodInfo);
             Type fieldType = getFieldType(fieldInfo, methodType);
 
-            Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, methodType,
-                    annotationsForPojo, parentObjectReference);
+            Reference reference = referenceCreator.createReferenceForPojoField(fieldType, methodType,
+                    annotationsForPojo, direction, parentObjectReference);
 
             Field field = new Field(methodInfo.name(), MethodHelper.getPropertyName(direction, methodInfo.name()), name,
                     reference);
@@ -116,8 +116,8 @@ public class FieldCreator extends ModelCreator {
         // Field Type
         Type fieldType = getFieldType(fieldInfo, method.parameters().get(position));
 
-        Reference reference = referenceCreator.createReferenceForPojoField(Direction.IN, fieldType,
-                method.parameters().get(position), annotationsForPojo, parentObjectReference);
+        Reference reference = referenceCreator.createReferenceForPojoField(fieldType,
+                method.parameters().get(position), annotationsForPojo, Direction.IN, parentObjectReference);
 
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
@@ -146,8 +146,8 @@ public class FieldCreator extends ModelCreator {
             // Field Type
             Type fieldType = getFieldType(fieldInfo);
 
-            Reference reference = referenceCreator.createReferenceForPojoField(direction, fieldType, fieldType,
-                    annotationsForPojo, parentObjectReference);
+            Reference reference = referenceCreator.createReferenceForPojoField(fieldType, fieldType,
+                    annotationsForPojo, direction, parentObjectReference);
 
             Field field = new Field(null,
                     fieldInfo.name(),

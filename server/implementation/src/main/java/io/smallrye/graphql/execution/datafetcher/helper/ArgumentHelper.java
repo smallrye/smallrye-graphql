@@ -270,6 +270,7 @@ public class ArgumentHelper extends AbstractHelper {
      *
      * @param fieldValue the input from graphql-java, potentially transformed
      * @param field the field as created while scanning
+     * @param dfe DataFetchingEnvironment from graphql-java
      * @return the value to use in the method call
      * @throws io.smallrye.graphql.transformation.AbstractDataFetcherException
      */
@@ -463,14 +464,14 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Type getType(Reference reference) {
         Class<?> ownerClass = classloadingService.loadClass(reference.getClassName());
-        if (reference.getParametrizedTypeArguments() == null
-                || reference.getParametrizedTypeArguments().isEmpty()) {
+        if (reference.getClassParametrizedTypes() == null
+                || reference.getClassParametrizedTypes().isEmpty()) {
             return ownerClass;
         }
 
         List<Type> typeParameters = new ArrayList<>();
         for (final TypeVariable<?> typeParameter : ownerClass.getTypeParameters()) {
-            final Reference typeRef = reference.getParametrizedTypeArguments().get(typeParameter.getName());
+            final Reference typeRef = reference.getClassParametrizedType(typeParameter.getName());
             typeParameters.add(getType(typeRef));
         }
         final Type[] types = typeParameters.toArray(new Type[0]);

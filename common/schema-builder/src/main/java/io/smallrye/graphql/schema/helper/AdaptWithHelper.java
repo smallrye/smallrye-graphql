@@ -54,6 +54,7 @@ public class AdaptWithHelper {
      * @param referenceCreator
      * @param r
      * @param annotations the annotations
+     * @param adapterType
      * @return Potentially a AdaptWith model
      */
     public static Optional<AdaptWith> getAdaptWith(Direction direction, ReferenceCreator referenceCreator, Reference r,
@@ -86,8 +87,8 @@ public class AdaptWithHelper {
                                         Annotations.JAKARTA_JSONB_TYPE_ADAPTER, Annotations.JAVAX_JSONB_TYPE_ADAPTER);
 
                                 // Remove the adaption annotation, as this is the type being adapted to
-                                Reference toRef = referenceCreator.createReferenceForAdapter(direction, to,
-                                        annotationsAplicableToMe);
+                                Reference toRef = referenceCreator.createReferenceForAdapter(to,
+                                        annotationsAplicableToMe, direction);
                                 toRef.setWrapper(WrapperCreator.createWrapper(to).orElse(null));
 
                                 adaptWith.setToReference(toRef);

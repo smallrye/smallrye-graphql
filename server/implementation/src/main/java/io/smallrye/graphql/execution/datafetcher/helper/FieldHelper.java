@@ -101,7 +101,7 @@ public class FieldHelper extends AbstractHelper {
 
     @Override
     protected Class<?> getArrayType(final Field field) {
-        return classloadingService.loadClass(field.getReference().getGraphQlClassName());
+        return classloadingService.loadClass(field.getReference().getGraphQLClassName());
     }
 
     private Object transformOutput(Field field, Object object) throws AbstractDataFetcherException {

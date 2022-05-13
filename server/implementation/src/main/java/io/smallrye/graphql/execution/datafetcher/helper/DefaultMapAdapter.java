@@ -19,9 +19,11 @@ import io.smallrye.graphql.schema.model.WrapperType;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
- * The adapter to change map to Entry Set. Users can also supply their own adapter.
+ * The adapter to change map to Entry Set.Users can also supply their own adapter.
  * 
  * @author Phillip Kruger (phillip.kruger@redhat.com)
+ * @param <K> Key
+ * @param <V> Value
  */
 public class DefaultMapAdapter<K, V> {
 
@@ -34,7 +36,7 @@ public class DefaultMapAdapter<K, V> {
         for (Object e : entries) {
             Map<K, V> graphQLJavaMap = (Map<K, V>) e; // The entry complex type comes from graphql-java as an Map
 
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getClassParametrizedTypes();
 
             Reference keyReference = parametrizedTypeArguments.get("K");
             Reference valueReference = parametrizedTypeArguments.get("V");
@@ -56,11 +58,9 @@ public class DefaultMapAdapter<K, V> {
             }
         } else {
 
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getClassParametrizedTypes();
             Reference keyReference = parametrizedTypeArguments.get("K");
 
-            ReferenceType type = keyReference.getType();
-            String keyClassName = keyReference.getClassName();
             for (K k : key) {
 
                 k = toObject(keyReference, k);

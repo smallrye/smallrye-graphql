@@ -617,7 +617,7 @@ public class Bootstrap {
     private Optional<GraphQLArgument> getAutoMapArgument(Field field) {
         // Auto Map argument
         if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getParametrizedTypeArguments();
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getClassParametrizedTypes();
             Reference keyReference = parametrizedTypeArguments.get(AUTOMAP_KEY_KEY);
 
             ReferenceType type = keyReference.getType();
@@ -884,11 +884,11 @@ public class Bootstrap {
             return jsonB.fromJson(jsonString, deserType);
         }
 
-        if (Classes.isNumberLikeType(field.getReference().getGraphQlClassName())) {
+        if (Classes.isNumberLikeType(field.getReference().getGraphQLClassName())) {
             return new BigDecimal(jsonString);
         }
 
-        if (Classes.isBoolean(field.getReference().getGraphQlClassName())) {
+        if (Classes.isBoolean(field.getReference().getGraphQLClassName())) {
             return Boolean.parseBoolean(jsonString);
         }
 

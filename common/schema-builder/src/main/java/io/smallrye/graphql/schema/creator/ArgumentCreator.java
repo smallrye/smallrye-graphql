@@ -27,9 +27,9 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  */
 public class ArgumentCreator extends ModelCreator {
 
-    private BeanValidationDirectivesHelper validationHelper;
+    private final BeanValidationDirectivesHelper validationHelper;
 
-    private Logger logger = Logger.getLogger(ArgumentCreator.class.getName());
+    private final Logger logger = Logger.getLogger(ArgumentCreator.class.getName());
 
     public ArgumentCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
@@ -110,5 +110,10 @@ public class ArgumentCreator extends ModelCreator {
     }
 
     private static final DotName CONTEXT = DotName.createSimple("io.smallrye.graphql.api.Context");
-    private static final Reference CONTEXT_REF = new Reference(CONTEXT.toString(), CONTEXT.toString(), ReferenceType.TYPE);
+    private static final Reference CONTEXT_REF = new Reference.Builder()
+            .className(CONTEXT.toString())
+            .name(CONTEXT.toString())
+            .type(ReferenceType.TYPE)
+            .build();
+
 }
