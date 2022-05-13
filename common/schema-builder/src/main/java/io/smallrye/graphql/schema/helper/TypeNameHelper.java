@@ -23,15 +23,37 @@ public class TypeNameHelper {
     private TypeNameHelper() {
     }
 
-    public static String getAnyTypeName(Reference reference, ReferenceType referenceType, ClassInfo classInfo,
-            Annotations annotationsForThisClass, TypeAutoNameStrategy autoNameStrategy) {
-        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(reference);
-        return getAnyTypeName(parametrizedTypeNameExtension, referenceType, classInfo, annotationsForThisClass,
-                autoNameStrategy);
+    public static String getAnyTypeName(ClassInfo classInfo,
+            Annotations annotationsForThisClass,
+            TypeAutoNameStrategy autoNameStrategy) {
+
+        return getAnyTypeName(classInfo,
+                annotationsForThisClass,
+                autoNameStrategy,
+                null, // referenceType
+                null); //classParametrizedTypes
     }
 
-    public static String getAnyTypeName(String parametrizedTypeNameExtension, ReferenceType referenceType, ClassInfo classInfo,
-            Annotations annotationsForThisClass, TypeAutoNameStrategy autoNameStrategy) {
+    public static String getAnyTypeName(ClassInfo classInfo,
+            Annotations annotationsForThisClass,
+            TypeAutoNameStrategy autoNameStrategy,
+            ReferenceType referenceType) {
+
+        return getAnyTypeName(classInfo,
+                annotationsForThisClass,
+                autoNameStrategy,
+                referenceType,
+                null); //classParametrizedTypes
+    }
+
+    public static String getAnyTypeName(ClassInfo classInfo,
+            Annotations annotationsForThisClass,
+            TypeAutoNameStrategy autoNameStrategy,
+            ReferenceType referenceType,
+            Map<String, Reference> classParametrizedTypes) {
+
+        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(classParametrizedTypes);
+
         if (Classes.isEnum(classInfo)) {
             return getNameForClassType(classInfo, annotationsForThisClass, Annotations.ENUM, parametrizedTypeNameExtension,
                     autoNameStrategy);
@@ -50,6 +72,17 @@ public class TypeNameHelper {
             LOG.warn("Using default name for " + classInfo.simpleName() + " [" + referenceType.name() + "]");
             return classInfo.name().withoutPackagePrefix();
         }
+    }
+
+    public static String createParametrizedTypeNameExtension(Map<String, Reference> classParametrizedTypes) {
+        if (classParametrizedTypes == null || classParametrizedTypes.isEmpty())
+            return null;
+        StringBuilder sb = new StringBuilder();
+        for (Reference gp : classParametrizedTypes.values()) {
+            sb.append(UNDERSCORE);
+            sb.append(gp.getName());
+        }
+        return sb.toString();
     }
 
     private static String getNameForClassType(ClassInfo classInfo, Annotations annotations, DotName typeName,
@@ -83,33 +116,6 @@ public class TypeNameHelper {
             }
         }
 
-        return sb.toString();
-    }
-
-    public static String createParametrizedTypeNameExtension(Map<String, Reference> parametrizedTypeArgumentsReferences) {
-        if (parametrizedTypeArgumentsReferences == null || parametrizedTypeArgumentsReferences.isEmpty())
-            return null;
-        StringBuilder sb = new StringBuilder();
-        for (Reference gp : parametrizedTypeArgumentsReferences.values()) {
-            appendParametrizedArgumet(sb, gp);
-        }
-        return sb.toString();
-    }
-
-    private static final void appendParametrizedArgumet(StringBuilder sb, Reference gp) {
-        sb.append(UNDERSCORE);
-        sb.append(gp.getName());
-    }
-
-    public static String createParametrizedTypeNameExtension(Reference reference) {
-        if (!reference.isAddParametrizedTypeNameExtension() || reference.getParametrizedTypeArguments() == null
-                || reference.getParametrizedTypeArguments().isEmpty())
-            return null;
-        StringBuilder sb = new StringBuilder();
-        for (Reference gp : reference.getParametrizedTypeArguments().values()) {
-            sb.append("_");
-            sb.append(gp.getName());
-        }
         return sb.toString();
     }
 

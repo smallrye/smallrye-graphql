@@ -40,7 +40,11 @@ public class EnumCreator implements Creator<EnumType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.ENUM, classInfo, annotations, autoNameStrategy);
+        String name = TypeNameHelper.getAnyTypeName(classInfo,
+                annotations,
+                autoNameStrategy,
+                ReferenceType.ENUM,
+                reference.getParametrizedTypeArguments());
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);

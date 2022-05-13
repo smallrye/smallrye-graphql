@@ -56,8 +56,11 @@ public class InputTypeCreator implements Creator<InputType> {
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
         // Name
-        String name = TypeNameHelper.getAnyTypeName(reference, ReferenceType.INPUT, classInfo, annotations,
-                fieldCreator.getTypeAutoNameStrategy());
+        String name = TypeNameHelper.getAnyTypeName(classInfo,
+                annotations,
+                fieldCreator.getTypeAutoNameStrategy(),
+                ReferenceType.INPUT,
+                reference.getParametrizedTypeArguments());
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
