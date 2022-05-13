@@ -21,11 +21,12 @@ public class MutinyBookGraphQLApi {
     }
 
     @Query("failedBook")
-    public Uni<Book> failedBook(String name) {
+    public Uni<Book> failedBook(@SuppressWarnings("unused") String name) {
         return Uni.createFrom().failure(new CustomException());
     }
 
-    private static Map<String, Book> BOOKS = new HashMap<>();
+    private static final Map<String, Book> BOOKS = new HashMap<>();
+
     static {
         Book book1 = new Book("0-571-05686-5", "Lord of the Flies", LocalDate.of(1954, Month.SEPTEMBER, 17), "William Golding");
         BOOKS.put(book1.title, book1);

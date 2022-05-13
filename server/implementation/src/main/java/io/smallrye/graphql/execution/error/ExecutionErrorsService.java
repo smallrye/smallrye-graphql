@@ -1,11 +1,10 @@
 package io.smallrye.graphql.execution.error;
 
-import static java.util.Locale.UK;
-
 import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -15,6 +14,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonReaderFactory;
+import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
@@ -22,7 +22,7 @@ import jakarta.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.schema.model.ErrorInfo;
+import io.smallrye.graphql.api.ErrorExtensionProvider;
 import io.smallrye.graphql.spi.config.Config;
 
 /**
@@ -38,7 +38,7 @@ public class ExecutionErrorsService {
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
 
-    private Config config = Config.get();
+    private final Config config = Config.get();
 
     public JsonArray toJsonErrors(List<GraphQLError> errors) {
         JsonArrayBuilder arrayBuilder = jsonBuilderFactory.createArrayBuilder();
@@ -71,7 +71,6 @@ public class ExecutionErrorsService {
     }
 
     private Optional<JsonObject> getValidationExtensions(ValidationError error) {
-
         if (config.getErrorExtensionFields().isPresent()) {
             JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
             addKeyValue(objectBuilder, Config.ERROR_EXTENSION_DESCRIPTION, error.getDescription());
@@ -90,9 +89,8 @@ public class ExecutionErrorsService {
             Throwable exception = error.getException();
 
             JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder();
-            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_EXCEPTION, exception.getClass().getName());
             addKeyValue(objectBuilder, Config.ERROR_EXTENSION_CLASSIFICATION, error.getErrorType().toString());
-            addKeyValue(objectBuilder, Config.ERROR_EXTENSION_CODE, toErrorCode(exception));
+            addErrorExtensions(objectBuilder, exception);
             Map<String, Object> extensions = error.getExtensions();
             populateCustomExtensions(objectBuilder, extensions);
 
@@ -101,24 +99,15 @@ public class ExecutionErrorsService {
         return Optional.empty();
     }
 
-    private String toErrorCode(Throwable exception) {
-        String exceptionClassName = exception.getClass().getName();
-        if (ErrorInfoMap.hasErrorInfo(exceptionClassName)) {
-            ErrorInfo errorInfo = ErrorInfoMap.getErrorInfo(exceptionClassName);
-            return errorInfo.getErrorCode();
-        }
-        return camelToKebab(exception.getClass().getSimpleName().replaceAll("Exception$", ""));
-    }
-
-    private static String camelToKebab(String input) {
-        return String.join("-", input.split("(?=\\p{javaUpperCase})"))
-                .toLowerCase(UK);
+    private void addErrorExtensions(JsonObjectBuilder objectBuilder, Throwable exception) {
+        ServiceLoader.load(ErrorExtensionProvider.class)
+                .forEach(provider -> addKeyValue(objectBuilder, provider.getKey(), provider.mapValueFrom(exception)));
     }
 
     private void populateCustomExtensions(JsonObjectBuilder objectBuilder, Map<String, Object> extensions) {
         if (extensions != null) {
             for (Map.Entry<String, Object> entry : extensions.entrySet()) {
-                if (!config.getErrorExtensionFields().isPresent()
+                if (config.getErrorExtensionFields().isEmpty()
                         || (config.getErrorExtensionFields().isPresent()
                                 && config.getErrorExtensionFields().get().contains(entry.getKey()))) {
                     addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
@@ -139,7 +128,10 @@ public class ExecutionErrorsService {
     }
 
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, String value) {
+        addKeyValue(objectBuilder, key, Json.createValue(value));
+    }
 
+    private void addKeyValue(JsonObjectBuilder objectBuilder, String key, JsonValue value) {
         if (config.getErrorExtensionFields().isPresent()) {
             List<String> fieldsThatShouldBeIncluded = config.getErrorExtensionFields().get();
             if (fieldsThatShouldBeIncluded.contains(key)) {

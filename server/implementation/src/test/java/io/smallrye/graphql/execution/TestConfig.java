@@ -10,7 +10,7 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Implements the config for testing
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TestConfig implements Config {
@@ -32,9 +32,9 @@ public class TestConfig implements Config {
 
     @Override
     public Optional<List<String>> getErrorExtensionFields() {
-        return Optional
-                .of(Arrays.asList(new String[] { "exception", "classification", "code", "description",
-                        "validationErrorType", "queryPath" }));
+        return Optional.of(Arrays.asList(
+                "exception", "classification", "code", "description",
+                "validationErrorType", "queryPath", "test-extension"));
     }
 
     @Override
@@ -45,6 +45,7 @@ public class TestConfig implements Config {
     @Override
     public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
         if (key.equals(TestEventingService.KEY)) {
+            //noinspection unchecked
             return (T) Boolean.TRUE;
         }
         return defaultValue;
