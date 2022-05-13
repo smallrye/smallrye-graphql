@@ -237,12 +237,11 @@ public class ReferenceCreator {
         // Now we should have the correct reference type.
         String className = classInfo.name().toString();
 
-        String name = TypeNameHelper.getAnyTypeName(
-                addParametrizedTypeNameExtension
-                        ? TypeNameHelper.createParametrizedTypeNameExtension(parametrizedTypeArgumentsReferences)
-                        : null,
-                referenceType, classInfo, annotationsForClass,
-                this.autoNameStrategy);
+        String name = TypeNameHelper.getAnyTypeName(classInfo,
+                annotationsForClass,
+                this.autoNameStrategy,
+                referenceType,
+                parametrizedTypeArgumentsReferences);
 
         Reference reference = new Reference(className, name, referenceType, parametrizedTypeArgumentsReferences,
                 addParametrizedTypeNameExtension);
