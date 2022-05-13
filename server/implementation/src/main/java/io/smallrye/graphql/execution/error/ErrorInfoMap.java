@@ -7,7 +7,7 @@ import io.smallrye.graphql.schema.model.ErrorInfo;
 
 /**
  * Here we create a mapping of all error info that we know about
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ErrorInfoMap {
@@ -21,10 +21,6 @@ public class ErrorInfoMap {
         if (map != null && !map.isEmpty()) {
             errorInfoMap.putAll(map);
         }
-    }
-
-    public static boolean hasErrorInfo(String className) {
-        return errorInfoMap.containsKey(className);
     }
 
     public static ErrorInfo getErrorInfo(String className) {
