@@ -45,7 +45,7 @@ jobs:
     strategy:
       matrix:
         java: [8]
-    name: WildFly GraphQL feature pack tests
+    name: WildFly GraphQL feature pack (1.6.x) tests
 
     steps:
       - uses: actions/checkout@v2
@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: wildfly-extras/wildfly-graphql-feature-pack
-          ref: main
+          ref: 1.6.x
           path: wildfly-graphql-feature-pack
 
       - name: Cache local Maven repository
@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix:
         java: [11]
-    name: Quarkus tests
+    name: Quarkus tests (2.7 branch)
 
     steps:
       - uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: quarkusio/quarkus
-          ref: main
+          ref: 2.7
           path: quarkus
 
       - name: Cache local Maven repository
