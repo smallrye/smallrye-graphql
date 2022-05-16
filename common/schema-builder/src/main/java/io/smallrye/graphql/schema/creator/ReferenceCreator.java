@@ -192,14 +192,12 @@ public class ReferenceCreator {
             boolean createAdapedWithType,
             Map<String, Reference> classParametrizedTypes,
             boolean addParametrizedTypeNameExtension) {
-        // Get the initial reference type. It's either Type or Input depending on the direction. This might change as
-        // we figure out this is actually an enum or interface
-        ReferenceType referenceType = getCorrectReferenceType(direction);
 
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
 
-        // Now check if this is an interface or enum
-        if (isInterface(classInfo, annotationsForClass)) {
+        ReferenceType referenceType = getCorrectReferenceType(classInfo, annotationsForClass, direction);
+
+        if (referenceType.equals(ReferenceType.INTERFACE)) {
             // Also check that we create all implementations
             Collection<ClassInfo> knownDirectImplementors = ScanningContext.getIndex()
                     .getAllKnownImplementors(classInfo.name());
@@ -233,19 +231,21 @@ public class ReferenceCreator {
                         parametrizedTypeArgumentsReferencesImpl,
                         true);
             }
-            referenceType = ReferenceType.INTERFACE;
-        } else if (Classes.isEnum(classInfo)) {
-            referenceType = ReferenceType.ENUM;
         }
-
-        // Now we should have the correct reference type.
-        String className = classInfo.name().toString();
 
         String name = TypeNameHelper.getAnyTypeName(classInfo,
                 annotationsForClass,
                 this.autoNameStrategy,
                 referenceType,
                 classParametrizedTypes);
+
+        Reference existing = getIfExist(name, referenceType);
+
+        String className = classInfo.name().toString();
+
+        if (existing != null && existing.getClassName().equals(className)) {
+            return existing;
+        }
 
         Reference reference = new Reference.Builder()
                 .className(className)
@@ -268,12 +268,12 @@ public class ReferenceCreator {
 
         // We ignore the field that is being adapted
         if (shouldCreateAdapedToType && createAdapedToType && shouldCreateAdapedWithType && createAdapedWithType) {
-            putIfAbsent(name, reference, referenceType);
+            putIfAbsent(name, referenceType, reference);
         }
         return reference;
     }
 
-    private boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
+    private static boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
         boolean isJavaInterface = Classes.isInterface(classInfo);
         if (isJavaInterface) {
             if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.TYPE, Annotations.INPUT)) {
@@ -389,7 +389,7 @@ public class ReferenceCreator {
         }
     }
 
-    public Map<String, Reference> collectParametrizedTypes(ClassInfo classInfo, List<? extends Type> parametrizedTypeArguments,
+    private Map<String, Reference> collectParametrizedTypes(ClassInfo classInfo, List<? extends Type> parametrizedTypeArguments,
             Direction direction, Reference parentObjectReference) {
         Map<String, Reference> parametrizedTypeArgumentsReferences = null;
         if (parametrizedTypeArguments != null) {
@@ -421,7 +421,7 @@ public class ReferenceCreator {
         }
     }
 
-    public ParameterizedType findParametrizedParentType(ClassInfo classInfo) {
+    private ParameterizedType findParametrizedParentType(ClassInfo classInfo) {
         if (classInfo != null && classInfo.superClassType() != null && !Classes.isEnum(classInfo)) {
             if (classInfo.superClassType().kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
                 return classInfo.superClassType().asParameterizedType();
@@ -431,7 +431,7 @@ public class ReferenceCreator {
         return null;
     }
 
-    private void putIfAbsent(String key, Reference reference, ReferenceType referenceType) {
+    private void putIfAbsent(String key, ReferenceType referenceType, Reference reference) {
         Map<String, Reference> map = getReferenceMap(referenceType);
         Queue<Reference> queue = getReferenceQueue(referenceType);
         if (map != null && queue != null) {
@@ -448,6 +448,16 @@ public class ReferenceCreator {
                 }
             }
         }
+    }
+
+    private Reference getIfExist(String key, ReferenceType referenceType) {
+        Map<String, Reference> map = getReferenceMap(referenceType);
+        if (map != null && map.containsKey(key)) {
+            Reference existing = map.get(key);
+            return new Reference.Builder().reference(existing)
+                    .build();
+        }
+        return null;
     }
 
     private Map<String, Reference> getReferenceMap(ReferenceType referenceType) {
@@ -480,8 +490,12 @@ public class ReferenceCreator {
         }
     }
 
-    private static ReferenceType getCorrectReferenceType(Direction direction) {
-        if (direction.equals(Direction.IN)) {
+    private static ReferenceType getCorrectReferenceType(ClassInfo classInfo, Annotations annotations, Direction direction) {
+        if (isInterface(classInfo, annotations)) {
+            return ReferenceType.INTERFACE;
+        } else if (Classes.isEnum(classInfo)) {
+            return ReferenceType.ENUM;
+        } else if (direction.equals(Direction.IN)) {
             return ReferenceType.INPUT;
         } else {
             return ReferenceType.TYPE;
