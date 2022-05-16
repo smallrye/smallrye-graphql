@@ -59,9 +59,7 @@ public class ExecutionResponse {
         // Extensions
         returnObjectBuilder = addExtensionsToResponse(returnObjectBuilder, executionResult);
 
-        JsonObject jsonResponse = returnObjectBuilder.build();
-
-        return jsonResponse;
+        return returnObjectBuilder.build();
     }
 
     public String getExecutionResultAsString() {
@@ -75,10 +73,8 @@ public class ExecutionResponse {
             if (!jsonArray.isEmpty()) {
                 returnObjectBuilder = returnObjectBuilder.add(ERRORS, jsonArray);
             }
-            return returnObjectBuilder;
-        } else {
-            return returnObjectBuilder;
         }
+        return returnObjectBuilder;
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
@@ -123,7 +119,7 @@ public class ExecutionResponse {
      * GraphQL returns a limited set of values ({@code Collection}, {@code Map}, {@code Number}, {@code Boolean}, {@code Enum}),
      * so the json value is build by hand.
      * Additionally, {@code JsonB} is used as a fallback if an different type is encountered.
-     * 
+     *
      * @param pojo a java object, limited to {@code Collection}, {@code Map}, {@code Number}, {@code Boolean} and {@code Enum}
      * @return the json value
      */
