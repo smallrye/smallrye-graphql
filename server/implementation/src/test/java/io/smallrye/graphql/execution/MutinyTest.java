@@ -11,6 +11,8 @@ import javax.json.JsonValue;
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.test.mutiny.CustomException;
+
 public class MutinyTest extends ExecutionTestBase {
 
     protected IndexView getIndex() {
@@ -37,10 +39,11 @@ public class MutinyTest extends ExecutionTestBase {
 
         assertNotNull(errors);
         assertEquals(errors.size(), 1);
-
-        String code = errors.get(0).asJsonObject().getJsonObject("extensions").getString("code");
-
-        assertEquals(code, "custom-error", "expected error code: custom-error");
+        var extensions = errors.get(0).asJsonObject().getJsonObject("extensions");
+        assertEquals("custom-error", extensions.getString("code"), "error code");
+        assertEquals(CustomException.class.getName(), extensions.getString("exception"), "exception");
+        assertEquals("DataFetchingException", extensions.getString("classification"), "classification");
+        assertEquals(CustomException.class.getSimpleName().length(), extensions.getInt("test-extension"), "test extension");
     }
 
     private static final String TEST_QUERY = "{\n" +

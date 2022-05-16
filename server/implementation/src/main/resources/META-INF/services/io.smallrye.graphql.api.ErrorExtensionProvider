@@ -1,0 +1,2 @@
+io.smallrye.graphql.execution.error.ErrorCodeExtensionProvider
+io.smallrye.graphql.execution.error.ExceptionNameErrorExtensionProvider
