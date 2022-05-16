@@ -1,6 +1,6 @@
 package io.smallrye.graphql.api;
 
-import jakarta.json.JsonValue;
+import javax.json.JsonValue;
 
 /**
  * To add you own GraphQL error <code>extension</code> fields, you can add your own implementations

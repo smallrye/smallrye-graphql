@@ -2,8 +2,8 @@ package io.smallrye.graphql.execution.error;
 
 import static java.util.Locale.ROOT;
 
-import jakarta.json.Json;
-import jakarta.json.JsonValue;
+import javax.json.Json;
+import javax.json.JsonValue;
 
 import io.smallrye.graphql.api.ErrorExtensionProvider;
 import io.smallrye.graphql.schema.model.ErrorInfo;

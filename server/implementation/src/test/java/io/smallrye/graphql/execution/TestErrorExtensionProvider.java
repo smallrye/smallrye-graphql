@@ -1,7 +1,7 @@
 package io.smallrye.graphql.execution;
 
-import jakarta.json.Json;
-import jakarta.json.JsonNumber;
+import javax.json.Json;
+import javax.json.JsonNumber;
 
 import io.smallrye.graphql.api.ErrorExtensionProvider;
 
