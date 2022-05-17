@@ -49,7 +49,7 @@ public class DirectiveTypeCreator extends ModelCreator {
     }
 
     private String toDirectiveName(ClassInfo classInfo, Annotations annotations) {
-        String name = TypeNameHelper.getAnyTypeName(classInfo, annotations, referenceCreator.getTypeAutoNameStrategy());
+        String name = TypeNameHelper.getAnyTypeName(classInfo, annotations, getTypeAutoNameStrategy());
         if (Character.isUpperCase(name.charAt(0)))
             name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
         return name;
