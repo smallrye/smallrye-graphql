@@ -22,6 +22,7 @@ nav:
       - Basic usage: 'dynamic-client-usage.md'
       - Error handling: 'dynamic-client-error-handling.md'
   - Clients in general:
+      - Bootstrapping the client: 'client-standalone.md'
       - Using SmallRye Stork: 'using-smallrye-stork.md'
   - Developer tools:
       - Maven plugin: 'maven-plugin.md'
