@@ -56,9 +56,9 @@ public class DataFetcherFactory {
     }
 
     public Wrapper unwrap(Field field, boolean isBatch) {
-        if (isAsync(field) && isBatch) {
+        if (isFutureLike(field) && isBatch) {
             return field.getWrapper().getWrapper().getWrapper();
-        } else if (isAsync(field)) {
+        } else if (isFutureLike(field)) {
             return field.getWrapper().getWrapper();
         } else if (isBatch) {
             return field.getWrapper().getWrapper();
@@ -168,8 +168,8 @@ public class DataFetcherFactory {
         return getOtherFieldDataFetcher(operation, type);
     }
 
-    private boolean isAsync(Field field) {
-        return isCompletionStage(field) || isMutinyUni(field);
+    private boolean isFutureLike(Field field) {
+        return isCompletionStage(field) || isMutinyUni(field) || isMutinyMulti(field);
     }
 
     private boolean isWrapped(Field field) {

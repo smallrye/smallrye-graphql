@@ -35,6 +35,7 @@ import io.smallrye.graphql.test.apps.nonnull.api.nonnull_package.NonNullPackageC
 import io.smallrye.graphql.test.apps.optional.api.OptionalTestingApi;
 import io.smallrye.graphql.test.apps.profile.api.ProfileGraphQLApi;
 import io.smallrye.graphql.test.apps.scalars.api.AdditionalScalarsApi;
+import io.smallrye.graphql.test.apps.subscription.api.StocksApi;
 import io.smallrye.graphql.test.apps.variables.api.VariablesTestingApi;
 
 /**
@@ -114,6 +115,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(AdaptToResource.class.getPackage());
             war.addPackage(NonNullClass.class.getPackage());
             war.addPackage(NonNullPackageClass.class.getPackage());
+            war.addPackage(StocksApi.class.getPackage());
         }
     }
 }
