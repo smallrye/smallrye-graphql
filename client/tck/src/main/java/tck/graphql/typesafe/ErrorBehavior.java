@@ -219,7 +219,7 @@ class ErrorBehavior {
 
         RuntimeException thrown = catchThrowableOfType(api::greeting, RuntimeException.class);
 
-        then(thrown).hasMessage("expected successful status code but got 500 Internal Server Error:\nfailed");
+        then(thrown).hasMessage("Unexpected response. Code=500, message=\"Internal Server Error\", body=\"failed\"");
     }
 
     @Test
