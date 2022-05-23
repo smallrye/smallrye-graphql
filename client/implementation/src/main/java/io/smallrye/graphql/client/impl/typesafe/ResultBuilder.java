@@ -4,7 +4,6 @@ import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.stream.Collectors.joining;
 
-import java.io.StringReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,14 +27,29 @@ import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 public class ResultBuilder {
     private final MethodInvocation method;
     private final JsonObject response;
+    private final String responseString;
+    private final Integer statusCode;
+    private final String statusMessage;
     private JsonObject data;
 
     public ResultBuilder(MethodInvocation method, String responseString) {
+        this(method, responseString, null, null);
+    }
+
+    public ResultBuilder(MethodInvocation method, String responseString, Integer statusCode, String statusMessage) {
         this.method = method;
-        this.response = Json.createReader(new StringReader(responseString)).readObject();
+        this.statusCode = statusCode;
+        this.statusMessage = statusMessage;
+        this.responseString = responseString;
+        this.response = ResponseReader.parseGraphQLResponse(responseString);
     }
 
     public Object read() {
+        if (response == null) {
+            throw new InvalidResponseException(
+                    "Unexpected response. Code=" + statusCode + ", message=\"" + statusMessage + "\", " +
+                            "body=\"" + responseString + "\"");
+        }
         data = readData();
         readErrors();
         if (data == null)
