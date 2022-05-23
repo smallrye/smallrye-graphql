@@ -145,16 +145,18 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
-        String response = postSync(request.toString(), headers);
+        HttpResponse<Buffer> response = postSync(request.toString(), headers);
         log.debugf("response graphql: %s", response);
-        return new ResultBuilder(method, response).read();
+        return new ResultBuilder(method, response.bodyAsString(),
+                response.statusCode(), response.statusMessage()).read();
     }
 
     private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
             MultiMap headers) {
         return Uni.createFrom()
                 .completionStage(postAsync(request.toString(), headers))
-                .map(response -> new ResultBuilder(method, response.bodyAsString()).read());
+                .map(response -> new ResultBuilder(method, response.bodyAsString(),
+                        response.statusCode(), response.statusMessage()).read());
     }
 
     private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {
@@ -376,18 +378,12 @@ class VertxTypesafeGraphQLClientProxy {
                         .toCompletionStage());
     }
 
-    private String postSync(String request, MultiMap headers) {
+    private HttpResponse<Buffer> postSync(String request, MultiMap headers) {
         Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.get().await().indefinitely())
                 .putHeaders(headers)
                 .sendBuffer(Buffer.buffer(request));
         try {
-            HttpResponse<Buffer> result = future.toCompletionStage().toCompletableFuture().get();
-            if (result.statusCode() != 200) {
-                throw new RuntimeException("expected successful status code but got " +
-                        result.statusCode() + " " + result.statusMessage() + ":\n" +
-                        result.bodyAsString());
-            }
-            return result.bodyAsString();
+            return future.toCompletionStage().toCompletableFuture().get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Request failed", e);
         }

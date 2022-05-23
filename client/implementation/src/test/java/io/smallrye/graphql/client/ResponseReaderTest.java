@@ -229,7 +229,7 @@ public class ResponseReaderTest {
             response = ResponseReader.readFrom(null, Collections.emptyMap());
             Assertions.fail();
         } catch (InvalidResponseException ire) {
-            Assertions.assertTrue(ire.getMessage().contains("Response body was null"));
+            Assertions.assertTrue(ire.getMessage().contains("Unexpected response"));
         }
     }
 

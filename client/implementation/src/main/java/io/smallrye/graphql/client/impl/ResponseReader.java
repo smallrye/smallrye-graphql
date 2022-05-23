@@ -18,23 +18,53 @@ import javax.json.JsonValue;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.GraphQLError;
+import io.smallrye.graphql.client.InvalidResponseException;
 
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
 
-    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
-            String statusMessage) {
+    /**
+     * Parse a GraphQL response from the input string.
+     * Returns the JSON representation of the response if it is present, `null` if there is none.
+     * A GraphQL response is defined as a well-formed JSON document that, on the top level, contains
+     * at least one of the keys 'data', 'extensions' and 'errors', but NO OTHER key.
+     * (see https://spec.graphql.org/draft/#sec-Response-Format)
+     */
+    public static JsonObject parseGraphQLResponse(String input) {
         if (input == null) {
-            throw SmallRyeGraphQLClientMessages.msg.nullResponseBody();
+            return null;
         }
         JsonReader jsonReader = Json.createReader(new StringReader(input));
         JsonObject jsonResponse;
         try {
             jsonResponse = jsonReader.readObject();
         } catch (Exception e) {
-            throw SmallRyeGraphQLClientMessages.msg.cannotParseResponse(input, e);
+            return null;
         }
 
+        // validate that this is what we consider a GraphQL response - else return null
+        if (jsonResponse.size() >= 1) {
+            for (String key : jsonResponse.keySet()) {
+                if (!key.equalsIgnoreCase("data")
+                        && !key.equalsIgnoreCase("errors")
+                        && !key.equalsIgnoreCase("extensions")) {
+                    return null;
+                }
+            }
+            return jsonResponse;
+        } else {
+            return null;
+        }
+    }
+
+    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
+            String statusMessage) {
+        JsonObject jsonResponse = parseGraphQLResponse(input);
+        if (jsonResponse == null) {
+            throw new InvalidResponseException(
+                    "Unexpected response. Code=" + statusCode + ", message=\"" + statusMessage + "\", " +
+                            "body=\"" + input + "\"");
+        }
         JsonObject data = null;
         if (jsonResponse.containsKey("data")) {
             if (!jsonResponse.isNull("data")) {
