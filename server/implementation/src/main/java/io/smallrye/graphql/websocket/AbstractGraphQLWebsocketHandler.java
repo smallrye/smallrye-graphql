@@ -68,6 +68,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     @Override
     public void onClose() {
         LOG.debug("GraphQL-over-websocket session " + session + " closed");
+        activeOperations.forEach((id, operation) -> cancelOperation(id));
         if (!session.isClosed()) {
             session.close((short) 1000, "");
         }
@@ -200,11 +201,8 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
 
     protected void sendCancelMessage(JsonObject message) {
         String opId = message.getString("id");
-        Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
-        if (subscriber != null) {
-            if (subscriber instanceof SubscriptionSubscriber) {
-                ((SubscriptionSubscriber) subscriber).cancel();
-            }
+        boolean cancelled = cancelOperation(opId);
+        if (cancelled) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Completed operation id " + opId + " per client's request");
             }
@@ -214,6 +212,20 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                         "Client requested to complete operation id " + opId
                                 + ", but no such operation is active");
             }
+        }
+    }
+
+    // cancel the operation with this id, returns true if it actually cancels an operation,
+    // false if no such operation is active
+    private boolean cancelOperation(String opId) {
+        Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
+        if (subscriber != null) {
+            if (subscriber instanceof SubscriptionSubscriber) {
+                ((SubscriptionSubscriber) subscriber).cancel();
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -293,7 +305,10 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
 
         public void cancel() {
-            subscription.get().cancel();
+            Subscription sub = subscription.get();
+            if (sub != null) {
+                sub.cancel();
+            }
         }
     }
 
