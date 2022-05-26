@@ -36,10 +36,13 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     protected final Map<String, Subscriber<ExecutionResult>> activeOperations;
     protected final Cancellable keepAliveSender;
     private final String dataMessageTypeName;
+    private final Map<String, Object> context;
 
-    public AbstractGraphQLWebsocketHandler(GraphQLWebSocketSession session, String dataMessageTypeName) {
+    public AbstractGraphQLWebsocketHandler(GraphQLWebSocketSession session, String dataMessageTypeName,
+            Map<String, Object> context) {
         this.session = session;
         this.dataMessageTypeName = dataMessageTypeName;
+        this.context = context;
         this.connectionInitialized = new AtomicBoolean(false);
         this.connectionAckMessage = createConnectionAckMessage().toString();
         this.activeOperations = new ConcurrentHashMap<>();
@@ -94,7 +97,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         if (validSubscription(operationId)) {
             JsonObject payload = message.getJsonObject("payload");
 
-            executionService.executeAsync(payload, new ExecutionResponseWriter() {
+            executionService.executeAsync(payload, context, new ExecutionResponseWriter() {
                 @Override
                 public void write(ExecutionResponse executionResponse) {
                     ExecutionResult executionResult = executionResponse.getExecutionResult();

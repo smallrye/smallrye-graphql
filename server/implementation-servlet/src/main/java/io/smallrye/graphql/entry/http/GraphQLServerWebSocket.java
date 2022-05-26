@@ -1,6 +1,7 @@
 package io.smallrye.graphql.entry.http;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,10 +38,10 @@ public class GraphQLServerWebSocket {
         String subprotocol = session.getNegotiatedSubprotocol();
         switch (subprotocol) {
             case "graphql-transport-ws":
-                handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session));
+                handler = new GraphQLTransportWSSubprotocolHandler(new SmallRyeWebSocketSession(session), new HashMap<>());
                 break;
             case "graphql-ws":
-                handler = new GraphQLWSSubprotocolHandler(new SmallRyeWebSocketSession(session));
+                handler = new GraphQLWSSubprotocolHandler(new SmallRyeWebSocketSession(session), new HashMap<>());
                 break;
             default:
                 log.warn("Unknown subprotocol: " + subprotocol);
