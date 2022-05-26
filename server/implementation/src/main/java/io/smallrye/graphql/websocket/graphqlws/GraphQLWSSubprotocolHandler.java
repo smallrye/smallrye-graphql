@@ -1,6 +1,7 @@
 package io.smallrye.graphql.websocket.graphqlws;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -16,8 +17,8 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
 
     private final String pingMessage;
 
-    public GraphQLWSSubprotocolHandler(GraphQLWebSocketSession session) {
-        super(session, MessageType.GQL_DATA.asString());
+    public GraphQLWSSubprotocolHandler(GraphQLWebSocketSession session, Map<String, Object> context) {
+        super(session, MessageType.GQL_DATA.asString(), context);
         pingMessage = createPingMessage().toString();
     }
 
