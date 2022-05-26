@@ -29,7 +29,7 @@
         <version.smallrye-stork>1.1.0</version.smallrye-stork>
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>2.0.4</version.yasson>
-        <version.jakarta-validation>3.0.1</version.jakarta-validation>
+        <version.jakarta-validation>3.0.2</version.jakarta-validation>
         <version.jakarta-annotation>2.1.0</version.jakarta-annotation>
         <version.jakarta.servlet>5.0.0</version.jakarta.servlet>
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
