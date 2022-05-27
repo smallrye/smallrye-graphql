@@ -37,6 +37,7 @@ import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.GraphQLNamedOutputType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
@@ -692,7 +693,7 @@ public class Bootstrap {
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
-            if (wrapper.isNotEmpty()) {
+            if (wrapper.isNonNull()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth
@@ -719,10 +720,23 @@ public class Bootstrap {
 
         Wrapper wrapper = dataFetcherFactory.unwrap(field, isBatch);
 
+        if (wrapper != null && wrapper.isResult()) {
+            graphQLOutputType = new GraphQLObjectType.Builder()
+                    .name(((GraphQLNamedOutputType) graphQLOutputType).getName() + "Result")
+                    .field(GraphQLFieldDefinition.newFieldDefinition()
+                            .name(field.getMethodName())
+                            .type(graphQLOutputType)
+                            .build())
+                    // TODO add the declared exceptions as fields
+                    .build();
+            graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType); // the Result type is always non-null
+            wrapper = wrapper.getWrapper();
+        }
+
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
-            if (wrapper.isNotEmpty()) {
+            if (wrapper.isNonNull()) {
                 graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
             }
             // Collection depth
@@ -822,7 +836,7 @@ public class Bootstrap {
         // Collection
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
             // Mandatory in the collection
-            if (wrapper.isNotEmpty()) {
+            if (wrapper.isNonNull()) {
                 graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
             }
             // Collection depth

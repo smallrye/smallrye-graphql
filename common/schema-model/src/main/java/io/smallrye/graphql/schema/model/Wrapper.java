@@ -5,13 +5,13 @@ import java.util.Objects;
 
 /**
  * If the type is wrapped in a generics bucket or in an array, keep the info here.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Wrapper implements Serializable {
 
     private String wrapperClassName;
-    private boolean notEmpty = false; // Mark this to be not empty
+    private boolean nonNull = false; // Mark this to be non-null
     private WrapperType wrapperType = WrapperType.UNKNOWN;
 
     private Wrapper wrapper = null;
@@ -24,10 +24,10 @@ public class Wrapper implements Serializable {
         this.wrapperClassName = wrapperClassName;
     }
 
-    public Wrapper(WrapperType wrapperType, String wrapperClassName, boolean notEmpty) {
+    public Wrapper(WrapperType wrapperType, String wrapperClassName, boolean nonNull) {
         this.wrapperType = wrapperType;
         this.wrapperClassName = wrapperClassName;
-        this.notEmpty = notEmpty;
+        this.nonNull = nonNull;
     }
 
     public WrapperType getWrapperType() {
@@ -46,12 +46,12 @@ public class Wrapper implements Serializable {
         this.wrapperClassName = wrapperClassName;
     }
 
-    public void setNotEmpty(boolean notEmpty) {
-        this.notEmpty = notEmpty;
+    public void setNonNull(boolean nonNull) {
+        this.nonNull = nonNull;
     }
 
-    public boolean isNotEmpty() {
-        return this.notEmpty;
+    public boolean isNonNull() {
+        return this.nonNull;
     }
 
     public Wrapper getWrapper() {
@@ -86,13 +86,17 @@ public class Wrapper implements Serializable {
         return wrapperType.equals(WrapperType.OPTIONAL);
     }
 
+    public boolean isResult() {
+        return wrapperType.equals(WrapperType.RESULT);
+    }
+
     public boolean isUnknown() {
         return wrapperType.equals(WrapperType.UNKNOWN);
     }
 
     @Override
     public String toString() {
-        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", notEmpty=" + notEmpty + ", wrapperType=" + wrapperType
+        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", nonNull=" + nonNull + ", wrapperType=" + wrapperType
                 + ", wrapper=" + wrapper + '}';
     }
 
@@ -100,7 +104,7 @@ public class Wrapper implements Serializable {
     public int hashCode() {
         int hash = 7;
         hash = 59 * hash + Objects.hashCode(this.wrapperClassName);
-        hash = 59 * hash + (this.notEmpty ? 1 : 0);
+        hash = 59 * hash + (this.nonNull ? 1 : 0);
         hash = 59 * hash + Objects.hashCode(this.wrapperType);
         hash = 59 * hash + Objects.hashCode(this.wrapper);
         return hash;
@@ -118,7 +122,7 @@ public class Wrapper implements Serializable {
             return false;
         }
         final Wrapper other = (Wrapper) obj;
-        if (this.notEmpty != other.notEmpty) {
+        if (this.nonNull != other.nonNull) {
             return false;
         }
         if (!Objects.equals(this.wrapperClassName, other.wrapperClassName)) {

@@ -2,6 +2,8 @@ package io.smallrye.graphql.schema.creator;
 
 import java.util.Optional;
 
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -22,8 +24,8 @@ public class WrapperCreator {
     private WrapperCreator() {
     }
 
-    public static Optional<Wrapper> createWrapper(Type type) {
-        return createWrapper(null, type);
+    public static Optional<Wrapper> createWrapper(Type type, Annotations annotations) {
+        return createWrapper(null, type, annotations);
     }
 
     /**
@@ -33,15 +35,23 @@ public class WrapperCreator {
      * @param methodType the java method type
      * @return optional array
      */
-    public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType) {
+    public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType, Annotations annotations) {
+        Optional<AnnotationInstance> resultAnnotation = annotations.getOneOfTheseAnnotations(Annotations.RESULT);
+        if (resultAnnotation.isPresent()) {
+            AnnotationValue mode = resultAnnotation.get().value("mode");
+            if (mode == null /* default */ || "ERROR_FIELDS".equals(mode.name())) {
+                Wrapper wrapper = new Wrapper(WrapperType.RESULT, methodType.name().toString(), true);
+                return Optional.of(wrapper);
+            }
+        }
         if (Classes.isWrapper(methodType)) {
             Wrapper wrapper = new Wrapper(getWrapperType(methodType), methodType.name().toString());
             // NotNull
             if (markParameterizedTypeNonNull(fieldType, methodType)) {
-                wrapper.setNotEmpty(true);
+                wrapper.setNonNull(true);
             }
             // Wrapper of wrapper
-            Optional<Wrapper> wrapperOfWrapper = getWrapperOfWrapper(methodType);
+            Optional<Wrapper> wrapperOfWrapper = getWrapperOfWrapper(methodType, annotations);
             if (wrapperOfWrapper.isPresent()) {
                 wrapper.setWrapper(wrapperOfWrapper.get());
             }
@@ -66,13 +76,13 @@ public class WrapperCreator {
         return null;
     }
 
-    private static Optional<Wrapper> getWrapperOfWrapper(Type type) {
+    private static Optional<Wrapper> getWrapperOfWrapper(Type type, Annotations annotations) {
         if (Classes.isArray(type)) {
             Type typeInArray = type.asArrayType().component();
-            return createWrapper(typeInArray);
+            return createWrapper(typeInArray, annotations);
         } else if (Classes.isParameterized(type)) {
             Type typeInCollection = type.asParameterizedType().arguments().get(0);
-            return createWrapper(typeInCollection);
+            return createWrapper(typeInCollection, annotations);
         }
         return Optional.empty();
     }

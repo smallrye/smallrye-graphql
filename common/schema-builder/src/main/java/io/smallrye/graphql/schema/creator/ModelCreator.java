@@ -65,14 +65,14 @@ public abstract class ModelCreator {
 
     protected void populateField(Direction direction, Field field, Type type, Annotations annotations) {
         // Wrapper
-        field.setWrapper(WrapperCreator.createWrapper(type).orElse(null));
+        field.setWrapper(WrapperCreator.createWrapper(type, annotations).orElse(null));
 
         doPopulateField(direction, field, type, annotations);
     }
 
     protected void populateField(Direction direction, Field field, Type fieldType, Type methodType, Annotations annotations) {
         // Wrapper
-        field.setWrapper(WrapperCreator.createWrapper(fieldType, methodType).orElse(null));
+        field.setWrapper(WrapperCreator.createWrapper(fieldType, methodType, annotations).orElse(null));
 
         doPopulateField(direction, field, methodType, annotations);
     }
