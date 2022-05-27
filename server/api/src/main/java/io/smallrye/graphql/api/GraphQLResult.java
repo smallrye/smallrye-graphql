@@ -31,11 +31,11 @@ import io.smallrye.common.annotation.Experimental;
  * Instead of directly returning the data of the return type, this annotation wraps it in a <code>Result</code> type,
  * that also contains fields for all declared exceptions,
  * e.g. annotating a query like
- * <br/>
+ * <br>
  * <code>SuperHero findByName(String name) throws SuperHeroNotFoundException {...}</code>
- * <br/>
+ * <br>
  * results in a GraphQL Schema like this:
- * <br/>
+ * <br>
  * 
  * <pre>
  * <code>

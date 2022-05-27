@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -13,6 +14,7 @@ public class Wrapper implements Serializable {
     private String wrapperClassName;
     private boolean nonNull = false; // Mark this to be non-null
     private WrapperType wrapperType = WrapperType.UNKNOWN;
+    private List<String> declaredErrors;
 
     private Wrapper wrapper = null;
 
@@ -52,6 +54,14 @@ public class Wrapper implements Serializable {
 
     public boolean isNonNull() {
         return this.nonNull;
+    }
+
+    public List<String> getDeclaredErrors() {
+        return declaredErrors;
+    }
+
+    public void setDeclaredErrors(List<String> declaredErrors) {
+        this.declaredErrors = declaredErrors;
     }
 
     public Wrapper getWrapper() {
@@ -97,7 +107,7 @@ public class Wrapper implements Serializable {
     @Override
     public String toString() {
         return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", nonNull=" + nonNull + ", wrapperType=" + wrapperType
-                + ", wrapper=" + wrapper + '}';
+                + ", wrapper=" + wrapper + ", declaredErrors=" + declaredErrors + '}';
     }
 
     @Override
@@ -107,6 +117,7 @@ public class Wrapper implements Serializable {
         hash = 59 * hash + (this.nonNull ? 1 : 0);
         hash = 59 * hash + Objects.hashCode(this.wrapperType);
         hash = 59 * hash + Objects.hashCode(this.wrapper);
+        hash = 59 * hash + Objects.hashCode(this.declaredErrors);
         return hash;
     }
 
@@ -132,6 +143,9 @@ public class Wrapper implements Serializable {
             return false;
         }
         if (!Objects.equals(this.wrapper, other.wrapper)) {
+            return false;
+        }
+        if (!Objects.equals(this.declaredErrors, other.declaredErrors)) {
             return false;
         }
         return true;

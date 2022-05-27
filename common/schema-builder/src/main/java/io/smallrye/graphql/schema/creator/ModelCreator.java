@@ -1,5 +1,7 @@
 package io.smallrye.graphql.schema.creator;
 
+import java.util.List;
+
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
@@ -15,10 +17,11 @@ import io.smallrye.graphql.schema.helper.FormatHelper;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Abstract creator
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class ModelCreator {
@@ -43,29 +46,23 @@ public abstract class ModelCreator {
     }
 
     /**
-     * The the return type.This is usually the method return type, but can also be adapted to something else
-     * 
-     * @param methodInfo method
-     * @return the return type
+     * The return type. This is usually the method return type, but can also be adapted to something else
      */
     protected static Type getReturnType(MethodInfo methodInfo) {
         return methodInfo.returnType();
     }
 
     /**
-     * The the return type.This is usually the method return type, but can also be adapted to something else
-     * 
-     * @param fieldInfo
-     * @return the return type
+     * The return type. This is usually the method return type, but can also be adapted to something else
      */
     protected static Type getReturnType(FieldInfo fieldInfo) {
         return fieldInfo.type();
-
     }
 
     protected void populateField(Direction direction, Field field, Type type, Annotations annotations) {
         // Wrapper
-        field.setWrapper(WrapperCreator.createWrapper(type, annotations).orElse(null));
+        List<String> declaredErrors = (field instanceof Operation) ? ((Operation) field).getDeclaredErrors() : null;
+        field.setWrapper(WrapperCreator.createWrapper(null, type, annotations, declaredErrors).orElse(null));
 
         doPopulateField(direction, field, type, annotations);
     }

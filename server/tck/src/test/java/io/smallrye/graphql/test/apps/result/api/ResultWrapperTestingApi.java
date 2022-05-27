@@ -1,5 +1,7 @@
 package io.smallrye.graphql.test.apps.result.api;
 
+import static io.smallrye.graphql.test.apps.result.api.OrderBlockedReason.INVALID_ADDRESS;
+import static io.smallrye.graphql.test.apps.result.api.OrderBlockedReason.PAYMENT_FAILED;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -22,7 +24,11 @@ public class ResultWrapperTestingApi {
 
     @Query
     @GraphQLResult
-    public Order order(String id) {
+    public Order order(String id) throws OrderNotFoundException, OrderBlockedException {
+        if ("7".equals(id))
+            throw new OrderBlockedException(INVALID_ADDRESS);
+        if ("8".equals(id))
+            throw new OrderBlockedException(PAYMENT_FAILED);
         if ("9".equals(id))
             throw new RuntimeException("we have a (technical) problem");
         var order = ORDERS.get(id);

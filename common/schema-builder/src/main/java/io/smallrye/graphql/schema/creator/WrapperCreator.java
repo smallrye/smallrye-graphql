@@ -1,5 +1,8 @@
 package io.smallrye.graphql.schema.creator;
 
+import static java.util.Collections.emptyList;
+
+import java.util.List;
 import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -8,6 +11,7 @@ import org.jboss.jandex.Type;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.helper.NonNullHelper;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.schema.model.WrapperType;
@@ -28,19 +32,27 @@ public class WrapperCreator {
         return createWrapper(null, type, annotations);
     }
 
+    public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType, Annotations annotations) {
+        return createWrapper(fieldType, methodType, annotations, emptyList());
+    }
+
     /**
      * Create a Wrapper for a Field (that has properties and methods)
-     * 
+     *
      * @param fieldType the java field type
      * @param methodType the java method type
-     * @return optional array
+     * @param annotations the annotations on the method
+     * @param declaredErrors the errors that the method declares
+     * @return optional Wrapper
      */
-    public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType, Annotations annotations) {
+    public static Optional<Wrapper> createWrapper(Type fieldType, Type methodType, Annotations annotations,
+            List<String> declaredErrors) {
         Optional<AnnotationInstance> resultAnnotation = annotations.getOneOfTheseAnnotations(Annotations.RESULT);
         if (resultAnnotation.isPresent()) {
-            AnnotationValue mode = resultAnnotation.get().value("mode");
-            if (mode == null /* default */ || "ERROR_FIELDS".equals(mode.name())) {
+            AnnotationValue mode = resultAnnotation.get().valueWithDefault(ScanningContext.getIndex(), "mode");
+            if ("ERROR_FIELDS".equals(mode.asString())) {
                 Wrapper wrapper = new Wrapper(WrapperType.RESULT, methodType.name().toString(), true);
+                wrapper.setDeclaredErrors(declaredErrors);
                 return Optional.of(wrapper);
             }
         }
@@ -52,9 +64,7 @@ public class WrapperCreator {
             }
             // Wrapper of wrapper
             Optional<Wrapper> wrapperOfWrapper = getWrapperOfWrapper(methodType, annotations);
-            if (wrapperOfWrapper.isPresent()) {
-                wrapper.setWrapper(wrapperOfWrapper.get());
-            }
+            wrapperOfWrapper.ifPresent(wrapper::setWrapper);
 
             return Optional.of(wrapper);
         }
