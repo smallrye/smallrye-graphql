@@ -243,6 +243,6 @@ public class MethodInvocation {
 
     public boolean isDeclaredInCloseable() {
         return method.getDeclaringClass().equals(Closeable.class) ||
-            method.getDeclaringClass().equals(AutoCloseable.class);
+                method.getDeclaringClass().equals(AutoCloseable.class);
     }
 }

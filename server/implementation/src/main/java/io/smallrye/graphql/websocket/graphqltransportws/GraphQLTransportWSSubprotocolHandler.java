@@ -1,6 +1,7 @@
 package io.smallrye.graphql.websocket.graphqltransportws;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 import jakarta.json.Json;
@@ -28,7 +29,7 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
 
     @Deprecated
     public GraphQLTransportWSSubprotocolHandler(GraphQLWebSocketSession session, ExecutionService executionService) {
-        this(session);
+        this(session, Collections.emptyMap());
     }
 
     @Override
