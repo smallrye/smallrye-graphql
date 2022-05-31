@@ -146,6 +146,13 @@ function graphQLFetcher(graphQLParams) {
                             case 'complete':
                                 webSocket.close();
                                 break;
+                            case 'ping':
+                                webSocket.send(JSON.stringify({
+                                    type: "pong"
+                                }));
+                                break;
+                            case 'pong':
+                                break;
                             default:
                                 observer.next(data);
                                 break;
@@ -172,6 +179,8 @@ function graphQLFetcher(graphQLParams) {
                                 break;
                             case 'complete':
                                 webSocket.close();
+                                break;
+                            case 'ka':
                                 break;
                             default:
                                 observer.next(data);
