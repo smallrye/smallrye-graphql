@@ -146,7 +146,9 @@ class VertxTypesafeGraphQLClientProxy {
 
     private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
         HttpResponse<Buffer> response = postSync(request.toString(), headers);
-        log.debugf("response graphql: %s", response);
+        if (log.isTraceEnabled() && response != null) {
+            log.tracef("response graphql: %s", response.bodyAsString());
+        }
         return new ResultBuilder(method, response.bodyAsString(),
                 response.statusCode(), response.statusMessage()).read();
     }
@@ -251,9 +253,8 @@ class VertxTypesafeGraphQLClientProxy {
         request.add("query", query);
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
-        log.debugf("request graphql: %s", query);
         JsonObject result = request.build();
-        log.debugf("full graphql request: %s", result.toString());
+        log.tracef("full graphql request: %s", result.toString());
         return result;
     }
 
