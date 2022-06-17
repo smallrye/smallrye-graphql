@@ -75,6 +75,10 @@ public class Scalars {
         return getScalar(BIGINTEGER);
     }
 
+    public static Reference getBigDecimalScalar() {
+        return getScalar(BIGDECIMAL);
+    }
+
     public static Reference getFormattedScalar(String className) {
         return formattedScalarMap.get(className);
     }
