@@ -1,9 +1,6 @@
 package io.smallrye.graphql.client.vertx.dynamic;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 import org.jboss.logging.Logger;
 
@@ -58,6 +55,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder header(String name, String value) {
         headersMap.set(name, value);
+        return this;
+    }
+
+    public VertxDynamicGraphQLClientBuilder headers(Map<String, String> headers) {
+        headersMap.setAll(headers);
         return this;
     }
 
