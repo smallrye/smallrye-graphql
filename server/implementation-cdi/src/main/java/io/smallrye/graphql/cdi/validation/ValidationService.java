@@ -16,7 +16,7 @@ import io.smallrye.graphql.spi.LookupService;
  * Validate input before execution
  */
 public class ValidationService implements EventingService {
-    private static ValidatorFactory VALIDATOR_FACTORY = null;
+    private ValidatorFactory VALIDATOR_FACTORY = null;
     private final LookupService lookupService;
 
     public ValidationService() {
