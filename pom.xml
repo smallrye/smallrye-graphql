@@ -85,7 +85,6 @@
         <module>server</module>
         <module>client</module>
         <module>tools</module>
-        <module>power-annotations</module>
         <module>docs</module>
     </modules>
     
@@ -487,13 +486,6 @@
             <modules>
                 <module>server/integration-tests-jdk16</module>
             </modules>
-            <properties>
-                <!-- FIXME: hack to allow powerannotations TCK to pass on JDK 16 -->
-                <powerannotations.tck.argLine>--add-opens java.base/java.util=ALL-UNNAMED</powerannotations.tck.argLine>
-                <!-- FIXME: find out why Gradle build doesn't work on JDK 16 in GH actions,
-                but seems to work locally -->
-                <skip.gradle.build>true</skip.gradle.build>
-            </properties>
         </profile>
 
         <profile>
