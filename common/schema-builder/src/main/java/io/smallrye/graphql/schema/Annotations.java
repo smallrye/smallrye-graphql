@@ -217,12 +217,12 @@ public class Annotations {
      * @return annotation for this argument
      */
     public static Annotations getAnnotationsForArgument(MethodInfo methodInfo, short pos) {
-        if (pos >= methodInfo.parameters().size()) {
+        if (pos >= methodInfo.parametersCount()) {
             throw new IndexOutOfBoundsException(
                     "Parameter at position " + pos + " not found on method " + methodInfo.name());
         }
 
-        final org.jboss.jandex.Type parameterType = methodInfo.parameters().get(pos);
+        final org.jboss.jandex.Type parameterType = methodInfo.parameterType(pos);
 
         Map<DotName, AnnotationInstance> annotationMap = getAnnotations(parameterType);
 
@@ -451,7 +451,7 @@ public class Annotations {
             annotationsForField.putAll(getTypeUseAnnotations(fieldInfo.type()));
         }
         if (methodInfo != null) {
-            List<org.jboss.jandex.Type> parameters = methodInfo.parameters();
+            List<org.jboss.jandex.Type> parameters = methodInfo.parameterTypes();
             if (!parameters.isEmpty()) {
                 org.jboss.jandex.Type param = parameters.get(ZERO);
                 annotationsForField.putAll(getTypeUseAnnotations(param));
