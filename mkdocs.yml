@@ -8,8 +8,6 @@ nav:
       - Customizing JSON deserializers: 'custom-json-deserializers.md'
       - Directives: 'directives.md'
       - Custom error extensions: 'custom-error-extensions.md'
-#  - Power annotations: # Power annotations are unused right now
-#      - Power annotations: 'power-annotations.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'

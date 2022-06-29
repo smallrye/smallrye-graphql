@@ -45,11 +45,11 @@ public class ArgumentCreator extends ModelCreator {
      * @return an Argument
      */
     public Optional<Argument> createArgument(Operation operation, MethodInfo methodInfo, short position) {
-        if (position >= methodInfo.parameters().size()) {
+        if (position >= methodInfo.parametersCount()) {
             throw new SchemaBuilderException(
                     "Can not create argument for parameter [" + position + "] "
                             + "on method [" + methodInfo.declaringClass().name() + "#" + methodInfo.name() + "]: "
-                            + "method has only " + methodInfo.parameters().size() + " parameters");
+                            + "method has only " + methodInfo.parametersCount() + " parameters");
         }
 
         Annotations annotationsForThisArgument = Annotations.getAnnotationsForArgument(methodInfo, position);
@@ -59,7 +59,7 @@ public class ArgumentCreator extends ModelCreator {
         }
 
         // Argument Type
-        Type argumentType = methodInfo.parameters().get(position);
+        Type argumentType = methodInfo.parameterType(position);
 
         // Name
         String defaultName = methodInfo.parameterName(position);

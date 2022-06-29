@@ -80,7 +80,7 @@ public class MethodHelper {
      */
     private static boolean isSetter(MethodInfo method) {
         return method.returnType().kind() == Type.Kind.VOID
-                && method.parameters().size() == 1
+                && method.parametersCount() == 1
                 && isSetterName(method.name());
     }
 
@@ -102,7 +102,7 @@ public class MethodHelper {
      */
     private static boolean isPropertyAccessor(MethodInfo method) {
         return method.returnType().kind() != Type.Kind.VOID
-                && method.parameters().isEmpty()
+                && method.parameterTypes().isEmpty()
                 && (method.hasAnnotation(Annotations.QUERY)
                         || isGetterName(method.name()));
     }
