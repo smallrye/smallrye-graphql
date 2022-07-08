@@ -14,6 +14,31 @@ import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 class EnumBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
 
+    public static class DescribedValue<T> {
+
+        public DescribedValue() {
+        }
+
+        T value;
+        String description;
+
+        public T getValue() {
+            return value;
+        }
+
+        public void setValue(T value) {
+            this.value = value;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+    }
+
     enum Episode {
         NEWHOPE,
         EMPIRE,
@@ -67,5 +92,22 @@ class EnumBehavior {
         then(fixture.query()).isEqualTo("query characters($episode: Episode) { characters(episode: $episode) }");
         then(fixture.variables()).isEqualTo("{'episode':'JEDI'}");
         then(characters).containsExactly("Luke", "Darth");
+    }
+
+    @GraphQLClientApi
+    interface EpisodeGenericApi {
+        DescribedValue<Episode> describedEpisode();
+    }
+
+    @Test
+    void shouldCallGenericQuery() {
+        fixture.returnsData("'describedEpisode':{'value':'NEWHOPE','description':'Episode 4'}");
+        EpisodeGenericApi api = fixture.build(EpisodeGenericApi.class);
+
+        DescribedValue<Episode> episode = api.describedEpisode();
+
+        then(fixture.query()).isEqualTo("query describedEpisode { describedEpisode {value description} }");
+        then(episode.description).isEqualTo("Episode 4");
+        then(episode.value).isEqualTo(NEWHOPE);
     }
 }
