@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
+import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

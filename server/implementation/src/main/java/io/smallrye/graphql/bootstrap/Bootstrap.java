@@ -46,6 +46,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.GraphQLUnionType;
 import graphql.schema.TypeResolver;
 import graphql.schema.GraphQLUnionType;
 import graphql.schema.visibility.BlockedFields;
