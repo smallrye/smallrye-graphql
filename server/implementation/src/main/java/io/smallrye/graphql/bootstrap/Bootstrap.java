@@ -43,6 +43,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.GraphQLUnionType;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
@@ -54,6 +55,8 @@ import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
+import io.smallrye.graphql.execution.resolver.UnionOutputRegistry;
+import io.smallrye.graphql.execution.resolver.UnionResolver;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
@@ -71,6 +74,7 @@ import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
+import io.smallrye.graphql.schema.model.UnionType;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
@@ -90,6 +94,7 @@ public class Bootstrap {
     private final Set<GraphQLDirective> directiveTypes = new LinkedHashSet<>();
     private final Map<String, GraphQLEnumType> enumMap = new HashMap<>();
     private final Map<String, GraphQLInterfaceType> interfaceMap = new HashMap<>();
+    private final Map<String, GraphQLUnionType> unionMap = new HashMap<>();
     private final Map<String, GraphQLInputObjectType> inputMap = new HashMap<>();
     private final Map<String, GraphQLObjectType> typeMap = new HashMap<>();
 
@@ -151,6 +156,7 @@ public class Bootstrap {
         createGraphQLDirectiveTypes();
         createGraphQLEnumTypes();
         createGraphQLInterfaceTypes();
+        createGraphQLUnionTypes();
         createGraphQLObjectTypes();
         createGraphQLInputObjectTypes();
 
@@ -161,6 +167,7 @@ public class Bootstrap {
         schemaBuilder.additionalDirectives(directiveTypes);
         schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(interfaceMap.values()));
+        schemaBuilder.additionalTypes(new HashSet<>(unionMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(typeMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(inputMap.values()));
 
@@ -403,6 +410,33 @@ public class Bootstrap {
         this.interfaceMap.put(interfaceType.getName(), graphQLInterfaceType);
     }
 
+    private void createGraphQLUnionTypes() {
+        // We can't create unions if there are no types to be a member of them
+        if (schema.hasUnions() && schema.hasTypes()) {
+            for (UnionType unionType : schema.getUnions().values()) {
+                createGraphQLUnionType(unionType);
+            }
+        }
+    }
+
+    private void createGraphQLUnionType(UnionType unionType) {
+        GraphQLUnionType.Builder unionTypeBuilder = GraphQLUnionType.newUnionType()
+            .name(unionType.getName())
+            .description(unionType.getDescription());
+
+        // Members
+        for (Type type : schema.getTypes().values()) {
+            if (type.isMemberOfUnion(unionType)) {
+                unionTypeBuilder.possibleType(GraphQLTypeReference.typeRef(type.getName()));
+            }
+        }
+
+        GraphQLUnionType graphQLUnionType = unionTypeBuilder.build();
+        // To resolve the concrete class
+        this.codeRegistryBuilder.typeResolver(graphQLUnionType, new UnionResolver(unionType));
+        this.unionMap.put(unionType.getName(), graphQLUnionType);
+    }
+
     private void createGraphQLInputObjectTypes() {
         if (schema.hasInputs()) {
             for (InputType inputType : schema.getInputs().values()) {
@@ -498,8 +532,9 @@ public class Bootstrap {
         GraphQLObjectType graphQLObjectType = objectTypeBuilder.build();
         typeMap.put(type.getName(), graphQLObjectType);
 
-        // Register this output for interface type resolving
+        // Register this output for interface/union type resolving
         InterfaceOutputRegistry.register(type, graphQLObjectType);
+        UnionOutputRegistry.register(type, graphQLObjectType);
     }
 
     private GraphQLDirective createGraphQLDirectiveFrom(DirectiveInstance directiveInstance) {

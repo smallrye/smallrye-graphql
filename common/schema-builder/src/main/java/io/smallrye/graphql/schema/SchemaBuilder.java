@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
+import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,7 @@ public class SchemaBuilder {
     private final ReferenceCreator referenceCreator;
     private final OperationCreator operationCreator;
     private final DirectiveTypeCreator directiveTypeCreator;
+    private final UnionCreator unionCreator;
 
     /**
      * This builds the Schema from Jandex
@@ -98,6 +100,7 @@ public class SchemaBuilder {
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
         interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, operationCreator);
         directiveTypeCreator = new DirectiveTypeCreator(referenceCreator);
+        unionCreator = new UnionCreator(referenceCreator);
     }
 
     private Schema generateSchema() {
@@ -130,7 +133,7 @@ public class SchemaBuilder {
         // Add all custom datafetchers
         addDataFetchers(schema);
 
-        // Reset the maps. 
+        // Reset the maps.
         referenceCreator.clear();
 
         return schema;
@@ -162,6 +165,9 @@ public class SchemaBuilder {
         // Add the interface types
         createAndAddToSchema(ReferenceType.INTERFACE, interfaceCreator, schema::addInterface);
 
+        // Add the union types
+        createAndAddToSchema(ReferenceType.UNION, unionCreator, schema::addUnion);
+
         // Add the enum types
         createAndAddToSchema(ReferenceType.ENUM, enumCreator, schema::addEnum);
     }
@@ -182,6 +188,11 @@ public class SchemaBuilder {
         // See if there is any interfaces we missed
         if (findOutstandingAndAddToSchema(ReferenceType.INTERFACE, interfaceCreator, schema::containsInterface,
                 schema::addInterface)) {
+            keepGoing = true;
+        }
+
+        // See if there is any unions we missed
+        if (findOutstandingAndAddToSchema(ReferenceType.UNION, unionCreator, schema::containsUnion, schema::addUnion)) {
             keepGoing = true;
         }
 
