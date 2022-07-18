@@ -67,8 +67,8 @@ abstract class AbstractCreator implements Creator<Type> {
         // Fields
         addFields(type, classInfo, reference);
 
-        // Interfaces
-        addInterfaces(type, classInfo, reference);
+        // Interfaces/Unions
+        addPolymorphicTypes(type, classInfo, reference);
 
         // Operations
         addOperations(type, classInfo);
@@ -85,19 +85,25 @@ abstract class AbstractCreator implements Creator<Type> {
         type.setDirectiveInstances(directives.buildDirectiveInstances(classInfo::classAnnotation));
     }
 
-    private void addInterfaces(Type type, ClassInfo classInfo, Reference reference) {
+    private void addPolymorphicTypes(Type type, ClassInfo classInfo, Reference reference) {
         List<org.jboss.jandex.Type> interfaceNames = classInfo.interfaceTypes();
         for (org.jboss.jandex.Type interfaceType : interfaceNames) {
+            String interfaceFullName = interfaceType.name().toString();
             // Ignore java interfaces (like Serializable)
-            if (InterfaceCreator.canAddInterfaceIntoScheme(interfaceType.name().toString())) {
+            // TODO: should this check be renamed now that it is used for both union and interface checks?
+            if (InterfaceCreator.canAddInterfaceIntoScheme(interfaceFullName)) {
                 ClassInfo interfaceInfo = ScanningContext.getIndex().getClassByName(interfaceType.name());
                 if (interfaceInfo != null) {
                     Annotations annotationsForInterface = Annotations.getAnnotationsForClass(interfaceInfo);
                     Reference interfaceRef = referenceCreator.createReferenceForInterfaceField(interfaceType,
                             annotationsForInterface, reference);
-                    type.addInterface(interfaceRef);
-                    // add all parent interfaces recursively as GraphQL schema requires it
-                    addInterfaces(type, interfaceInfo, reference);
+                    if (annotationsForInterface.containsOneOfTheseAnnotations(Annotations.UNION)) {
+                        type.addUnion(interfaceRef);
+                    } else {
+                        type.addInterface(interfaceRef);
+                        // add all parent interfaces recursively as GraphQL schema requires it
+                        addPolymorphicTypes(type, interfaceInfo, reference);
+                    }
                 }
             }
         }
@@ -125,6 +131,17 @@ abstract class AbstractCreator implements Creator<Type> {
         }
         for (Reference anInterface : type.getInterfaces()) {
             final String className = anInterface.getClassName();
+            if (sourceFields.containsKey(DotName.createSimple(className))) {
+                List<MethodParameterInfo> methodParameterInfos = sourceFields.get(DotName.createSimple(className));
+                for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+                    MethodInfo methodInfo = methodParameterInfo.method();
+                    Operation o = operationCreator.createOperation(methodInfo, OperationType.QUERY, type);
+                    operations.put(o.getName(), o);
+                }
+            }
+        }
+        for (Reference u : type.getUnionMemberships()) {
+            String className = u.getClassName();
             if (sourceFields.containsKey(DotName.createSimple(className))) {
                 List<MethodParameterInfo> methodParameterInfos = sourceFields.get(DotName.createSimple(className));
                 for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {

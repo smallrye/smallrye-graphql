@@ -207,7 +207,7 @@ public class Annotations {
         return new Annotations(annotationMap);
     }
 
-    // 
+    //
 
     /**
      * Used when we are creating operation and arguments for these operations
@@ -576,6 +576,7 @@ public class Annotations {
     public static final DotName INPUT = DotName.createSimple("org.eclipse.microprofile.graphql.Input");
     public static final DotName TYPE = DotName.createSimple("org.eclipse.microprofile.graphql.Type");
     public static final DotName INTERFACE = DotName.createSimple("org.eclipse.microprofile.graphql.Interface");
+    public static final DotName UNION = DotName.createSimple("io.smallrye.graphql.api.Union");
     public static final DotName ENUM = DotName.createSimple("org.eclipse.microprofile.graphql.Enum");
     public static final DotName ID = DotName.createSimple("org.eclipse.microprofile.graphql.Id");
     public static final DotName DESCRIPTION = DotName.createSimple("org.eclipse.microprofile.graphql.Description");
