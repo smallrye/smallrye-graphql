@@ -1,5 +1,10 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import java.util.Optional;
+
+import org.jboss.jandex.ClassInfo;
+import org.jboss.logging.Logger;
+
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -7,10 +12,6 @@ import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.UnionType;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.logging.Logger;
-
-import java.util.Optional;
 
 public class UnionCreator implements Creator<UnionType> {
 

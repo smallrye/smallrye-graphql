@@ -2,7 +2,6 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
-import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +28,7 @@ import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
+import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;

@@ -1,13 +1,13 @@
 package io.smallrye.graphql.execution.resolver;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import graphql.schema.GraphQLObjectType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.UnionType;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 public class UnionOutputRegistry {
 

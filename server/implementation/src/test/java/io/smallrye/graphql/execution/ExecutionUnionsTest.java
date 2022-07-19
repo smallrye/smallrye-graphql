@@ -1,9 +1,10 @@
 package io.smallrye.graphql.execution;
 
-import jakarta.json.JsonObject;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import jakarta.json.JsonObject;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Test against unions

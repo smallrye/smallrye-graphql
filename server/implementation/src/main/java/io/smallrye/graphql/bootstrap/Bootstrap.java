@@ -421,8 +421,8 @@ public class Bootstrap {
 
     private void createGraphQLUnionType(UnionType unionType) {
         GraphQLUnionType.Builder unionTypeBuilder = GraphQLUnionType.newUnionType()
-            .name(unionType.getName())
-            .description(unionType.getDescription());
+                .name(unionType.getName())
+                .description(unionType.getDescription());
 
         // Members
         for (Type type : schema.getTypes().values()) {
