@@ -14,6 +14,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.jandex.TypeVariable;
+import org.jboss.jandex.WildcardType;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -338,6 +339,11 @@ public class ReferenceCreator {
             List<Type> fieldArguments = parameterizedFieldType.arguments();
             ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(Type[]::new), null);
             return getReference(direction, entryType, entryType, annotations, parentObjectReference);
+        } else if (fieldType.kind().equals(Type.Kind.WILDCARD_TYPE)) {
+            // <? extends Something>
+            WildcardType wildcardType = fieldType.asWildcardType();
+            Type extendsBound = wildcardType.extendsBound();
+            return getReference(direction, extendsBound, extendsBound, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {

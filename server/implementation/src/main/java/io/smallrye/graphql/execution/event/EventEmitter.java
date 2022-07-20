@@ -47,7 +47,7 @@ public class EventEmitter {
         Config config = Config.get();
         ServiceLoader<EventingService> eventingServices = ServiceLoader.load(EventingService.class);
         Iterator<EventingService> it = eventingServices.iterator();
-        List<EventingService> enabledServices = new ArrayList<>();
+        List<EventingService> es = new ArrayList<>();
         while (it.hasNext()) {
             try {
                 EventingService eventingService = it.next();
@@ -59,7 +59,7 @@ public class EventEmitter {
                     enabled = true;
                 }
                 if (enabled) {
-                    enabledServices.add(eventingService);
+                    es.add(eventingService);
                 }
             } catch (Throwable t) {
                 // Ignore that service...
@@ -68,9 +68,9 @@ public class EventEmitter {
                         + (cause != null ? "\n\tCaused by: " + cause.toString() : ""));
             }
         }
-        enabledServices.sort(Comparator.comparing(this::getPriority));
-        this.enabledServices = enabledServices;
-        LOG.debugf("Enabled Eventingservices: %s", enabledServices);
+        es.sort(Comparator.comparing(this::getPriority));
+        this.enabledServices = es;
+        LOG.debugf("Enabled Eventingservices: %s", es);
     }
 
     private int getPriority(EventingService es) {
