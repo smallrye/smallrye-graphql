@@ -4,6 +4,9 @@ public final class UnionType extends Reference {
 
     private String description;
 
+    public UnionType() {
+    }
+
     public UnionType(String className, String name, String description) {
         super(className, name, ReferenceType.UNION);
         this.description = description;
