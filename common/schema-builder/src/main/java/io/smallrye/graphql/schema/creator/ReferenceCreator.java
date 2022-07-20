@@ -312,6 +312,11 @@ public class ReferenceCreator {
             fieldType = methodType;
         }
 
+        // In some case, like public fields, there are not method
+        if (methodType == null) {
+            methodType = fieldType;
+        }
+
         String fieldTypeName = fieldType.name().toString();
 
         if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
