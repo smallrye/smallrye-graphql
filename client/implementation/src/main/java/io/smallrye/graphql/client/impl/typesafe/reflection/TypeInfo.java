@@ -195,7 +195,12 @@ public class TypeInfo {
     }
 
     public boolean isEnum() {
-        return ifClass(Class::isEnum);
+        if (type instanceof TypeVariable) {
+            Class<?> resolved = resolveTypeVariable();
+            return resolved.isEnum();
+        } else {
+            return ifClass(Class::isEnum);
+        }
     }
 
     public Optional<ConstructionInfo> scalarConstructor() {
