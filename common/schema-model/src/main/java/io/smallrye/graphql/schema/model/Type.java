@@ -7,19 +7,19 @@ import java.util.Set;
 
 /**
  * Represent a GraphQL Type.
- * 
+ *
  * A Type is one of the options for a response, it's a complex type that contains
  * fields that itself is of a certain type.
- * 
+ *
  * It's a Java Bean that we only care about the getter methods and properties.
- * 
+ *
  * A Type is a java bean with fields, but can optionally also have operations (queries)
  * that is done with the Source annotation.
- * 
+ *
  * A Type can also optionally implements interfaces.
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-Object">Object</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Type extends Reference {
@@ -33,6 +33,7 @@ public final class Type extends Reference {
     private Map<String, Operation> batchOperations = new LinkedHashMap<>();
 
     private Set<Reference> interfaces = new LinkedHashSet<>();
+    private Set<Reference> unionMemberships = new LinkedHashSet<>();
 
     public Type() {
     }
@@ -131,13 +132,37 @@ public final class Type extends Reference {
     }
 
     public void setIsInterface(boolean isInterface) {
-        isInterface = isInterface;
+        this.isInterface = isInterface;
+    }
+
+    public Set<Reference> getUnionMemberships() {
+        return unionMemberships;
+    }
+
+    public void addUnion(Reference unionType) {
+        this.unionMemberships.add(unionType);
+    }
+
+    public boolean hasUnionMemberships() {
+        return !this.unionMemberships.isEmpty();
+    }
+
+    public boolean isMemberOfUnion(Reference unionType) {
+        for (Reference u : unionMemberships) {
+            if (u.getName().equals(unionType.getName())
+                    && u.getClassName().equals(unionType.getClassName())
+                    && u.getGraphQLClassName().equals(unionType.getGraphQLClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public String toString() {
         return "Type{" + "description=" + description + ", isInterface=" + isInterface + ", fields=" + fields + ", operations="
-                + operations + ", batchOperations=" + batchOperations + ", interfaces=" + interfaces + '}';
+                + operations + ", batchOperations=" + batchOperations + ", interfaces=" + interfaces + ", unionMemberships="
+                + unionMemberships + '}';
     }
 
 }
