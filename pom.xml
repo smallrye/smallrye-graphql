@@ -31,11 +31,11 @@
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>2.0.4</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
-        <version.jakarta-annotation>2.1.0</version.jakarta-annotation>
+        <version.jakarta-annotation>2.1.1</version.jakarta-annotation>
         <version.jakarta.servlet>5.0.0</version.jakarta.servlet>
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
         
-        <version.graphql-java>18.1</version.graphql-java>
+        <version.graphql-java>19.0</version.graphql-java>
         <verison.io.micrometer>1.9.0</verison.io.micrometer>
         <version.vertx>4.3.1</version.vertx>
 
