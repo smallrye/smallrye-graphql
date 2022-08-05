@@ -41,7 +41,7 @@
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR4</version.arquillian.jetty>
-        <version.jetty>11.0.9</version.jetty>
+        <version.jetty>11.0.11</version.jetty>
         <version.smallrye-opentracing>3.0.0-RC1</version.smallrye-opentracing>
         <version.hibernate-validator>8.0.0.Alpha3</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
@@ -49,7 +49,7 @@
         <version.rxjava>2.2.21</version.rxjava>
         <version.jackson>2.13.3</version.jackson>
         <version.mongo-bson>4.6.0</version.mongo-bson>
-        <version.mockito>4.5.1</version.mockito>
+        <version.mockito>4.6.1</version.mockito>
         
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         
