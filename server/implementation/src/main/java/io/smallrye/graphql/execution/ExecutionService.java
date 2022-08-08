@@ -126,6 +126,8 @@ public class ExecutionService {
 
             GraphQL g = getGraphQL();
             if (g != null) {
+                setParserOptions();
+
                 // Query
                 Builder executionBuilder = ExecutionInput.newExecutionInput()
                         .query(query)
@@ -248,27 +250,6 @@ public class ExecutionService {
                             .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy(new ExceptionHandler()));
                 }
 
-                Config config = Config.get();
-                if (config.hasParserOptions()) {
-                    ParserOptions.Builder parserOptionsBuilder = ParserOptions.newParserOptions();
-                    if (config.isParserCaptureIgnoredChars().isPresent()) {
-                        parserOptionsBuilder = parserOptionsBuilder
-                                .captureIgnoredChars(config.isParserCaptureIgnoredChars().get());
-                    }
-                    if (config.isParserCaptureLineComments().isPresent()) {
-                        parserOptionsBuilder = parserOptionsBuilder
-                                .captureLineComments(config.isParserCaptureLineComments().get());
-                    }
-                    if (config.isParserCaptureSourceLocation().isPresent()) {
-                        parserOptionsBuilder = parserOptionsBuilder
-                                .captureSourceLocation(config.isParserCaptureSourceLocation().get());
-                    }
-                    if (config.getParserMaxTokens().isPresent()) {
-                        parserOptionsBuilder = parserOptionsBuilder.maxTokens(config.getParserMaxTokens().get());
-                    }
-                    ParserOptions.setDefaultParserOptions(parserOptionsBuilder.build());
-                }
-
                 // Allow custom extension
                 graphqlBuilder = eventEmitter.fireBeforeGraphQLBuild(graphqlBuilder);
 
@@ -279,5 +260,32 @@ public class ExecutionService {
         }
         return this.graphQL;
 
+    }
+
+    private void setParserOptions() {
+        Config config = Config.get();
+        if (config.hasParserOptions()) {
+            ParserOptions.Builder parserOptionsBuilder = ParserOptions.newParserOptions();
+            if (config.isParserCaptureIgnoredChars().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureIgnoredChars(config.isParserCaptureIgnoredChars().get());
+            }
+            if (config.isParserCaptureLineComments().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureLineComments(config.isParserCaptureLineComments().get());
+            }
+            if (config.isParserCaptureSourceLocation().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureSourceLocation(config.isParserCaptureSourceLocation().get());
+            }
+            if (config.getParserMaxTokens().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder.maxTokens(config.getParserMaxTokens().get());
+            }
+            if (config.getParserMaxWhitespaceTokens().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .maxWhitespaceTokens(config.getParserMaxWhitespaceTokens().get());
+            }
+            ParserOptions.setDefaultParserOptions(parserOptionsBuilder.build());
+        }
     }
 }

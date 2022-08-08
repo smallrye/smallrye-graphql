@@ -35,6 +35,7 @@ public class MicroProfileConfig implements Config {
     private Optional<List<String>> unwrapExceptions;
     private Optional<List<String>> errorExtensionFields;
     private Optional<Integer> parserMaxTokens;
+    private Optional<Integer> parserMaxWhitespaceTokens;
     private Optional<Boolean> parserCaptureSourceLocation;
     private Optional<Boolean> parserCaptureLineComments;
     private Optional<Boolean> parserCaptureIgnoredChars;
@@ -212,6 +213,16 @@ public class MicroProfileConfig implements Config {
     }
 
     @Override
+    public Optional<Integer> getParserMaxWhitespaceTokens() {
+        if (parserMaxWhitespaceTokens == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS,
+                    Integer.class);
+        }
+        return parserMaxWhitespaceTokens;
+    }
+
+    @Override
     public String getFieldVisibility() {
         if (fieldVisibility == null) {
             fieldVisibility = getStringConfigValue(ConfigKey.FIELD_VISIBILITY, Config.FIELD_VISIBILITY_DEFAULT);
@@ -309,6 +320,10 @@ public class MicroProfileConfig implements Config {
 
     public void setParserMaxTokens(Optional<Integer> parserMaxTokens) {
         this.parserMaxTokens = parserMaxTokens;
+    }
+
+    public void setParserMaxWhitespaceTokens(Optional<Integer> parserMaxWhitespaceTokens) {
+        this.parserMaxWhitespaceTokens = parserMaxWhitespaceTokens;
     }
 
     public void setFieldVisibility(String fieldVisibility) {

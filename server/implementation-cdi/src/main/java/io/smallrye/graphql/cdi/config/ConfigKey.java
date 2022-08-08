@@ -26,4 +26,5 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String PARSER_CAPTURE_LINE_COMMENTS = "smallrye.graphql.parser.capture.lineComments";
     public static final String PARSER_CAPTURE_SOURCE_LOCATION = "smallrye.graphql.parser.capture.sourceLocation";
     public static final String PARSER_MAX_TOKENS = "smallrye.graphql.parser.maxTokens";
+    public static final String PARSER_MAX_WHITESPACE_TOKENS = "smallrye.graphql.parser.maxWhitespaceTokens";
 }
