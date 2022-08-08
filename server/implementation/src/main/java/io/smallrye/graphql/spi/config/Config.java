@@ -179,11 +179,16 @@ public interface Config {
         return Optional.empty();
     }
 
+    default Optional<Integer> getParserMaxWhitespaceTokens() {
+        return Optional.empty();
+    }
+
     default boolean hasParserOptions() {
         return isParserCaptureIgnoredChars().isPresent()
                 || isParserCaptureLineComments().isPresent()
                 || isParserCaptureSourceLocation().isPresent()
-                || getParserMaxTokens().isPresent();
+                || getParserMaxTokens().isPresent()
+                || getParserMaxWhitespaceTokens().isPresent();
     }
 
     default String getFieldVisibility() {
