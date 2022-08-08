@@ -23,6 +23,7 @@ import graphql.GraphQL;
 import graphql.execution.ExecutionId;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
+import graphql.parser.ParserOptions;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
@@ -260,6 +261,27 @@ public class ExecutionService {
                 if (schema.hasSubscriptions()) {
                     graphqlBuilder = graphqlBuilder
                             .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy(new ExceptionHandler()));
+                }
+
+                Config config = Config.get();
+                if (config.hasParserOptions()) {
+                    ParserOptions.Builder parserOptionsBuilder = ParserOptions.newParserOptions();
+                    if (config.isParserCaptureIgnoredChars().isPresent()) {
+                        parserOptionsBuilder = parserOptionsBuilder
+                                .captureIgnoredChars(config.isParserCaptureIgnoredChars().get());
+                    }
+                    if (config.isParserCaptureLineComments().isPresent()) {
+                        parserOptionsBuilder = parserOptionsBuilder
+                                .captureLineComments(config.isParserCaptureLineComments().get());
+                    }
+                    if (config.isParserCaptureSourceLocation().isPresent()) {
+                        parserOptionsBuilder = parserOptionsBuilder
+                                .captureSourceLocation(config.isParserCaptureSourceLocation().get());
+                    }
+                    if (config.getParserMaxTokens().isPresent()) {
+                        parserOptionsBuilder = parserOptionsBuilder.maxTokens(config.getParserMaxTokens().get());
+                    }
+                    ParserOptions.setDefaultParserOptions(parserOptionsBuilder.build());
                 }
 
                 // Allow custom extension

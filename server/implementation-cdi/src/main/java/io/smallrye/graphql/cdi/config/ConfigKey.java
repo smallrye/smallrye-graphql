@@ -22,5 +22,8 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String ERROR_EXTENSION_FIELDS = "smallrye.graphql.errorExtensionFields";
     public static final String FIELD_VISIBILITY = "smallrye.graphql.fieldVisibility";
     public static final String UNWRAP_EXCEPTIONS = "smallrye.graphql.unwrapExceptions";
-
+    public static final String PARSER_CAPTURE_IGNORED_CHARS = "smallrye.graphql.parser.capture.ignoredChars";
+    public static final String PARSER_CAPTURE_LINE_COMMENTS = "smallrye.graphql.parser.capture.lineComments";
+    public static final String PARSER_CAPTURE_SOURCE_LOCATION = "smallrye.graphql.parser.capture.sourceLocation";
+    public static final String PARSER_MAX_TOKENS = "smallrye.graphql.parser.maxTokens";
 }
