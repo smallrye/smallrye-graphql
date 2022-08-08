@@ -34,6 +34,10 @@ public class MicroProfileConfig implements Config {
     private String fieldVisibility;
     private Optional<List<String>> unwrapExceptions;
     private Optional<List<String>> errorExtensionFields;
+    private Optional<Integer> parserMaxTokens;
+    private Optional<Boolean> parserCaptureSourceLocation;
+    private Optional<Boolean> parserCaptureLineComments;
+    private Optional<Boolean> parserCaptureIgnoredChars;
 
     @Override
     public String getName() {
@@ -169,6 +173,45 @@ public class MicroProfileConfig implements Config {
     }
 
     @Override
+    public Optional<Boolean> isParserCaptureIgnoredChars() {
+        if (parserCaptureIgnoredChars == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS,
+                    Boolean.class);
+        }
+        return parserCaptureIgnoredChars;
+    }
+
+    @Override
+    public Optional<Boolean> isParserCaptureLineComments() {
+        if (parserCaptureLineComments == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureLineComments = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS,
+                    Boolean.class);
+        }
+        return parserCaptureLineComments;
+    }
+
+    @Override
+    public Optional<Boolean> isParserCaptureSourceLocation() {
+        if (parserCaptureSourceLocation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION,
+                    Boolean.class);
+        }
+        return parserCaptureSourceLocation;
+    }
+
+    @Override
+    public Optional<Integer> getParserMaxTokens() {
+        if (parserMaxTokens == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class);
+        }
+        return parserMaxTokens;
+    }
+
+    @Override
     public String getFieldVisibility() {
         if (fieldVisibility == null) {
             fieldVisibility = getStringConfigValue(ConfigKey.FIELD_VISIBILITY, Config.FIELD_VISIBILITY_DEFAULT);
@@ -252,6 +295,22 @@ public class MicroProfileConfig implements Config {
         this.logPayload = logPayload;
     }
 
+    public void setParserCaptureIgnoredChars(Optional<Boolean> parserCaptureIgnoredChars) {
+        this.parserCaptureIgnoredChars = parserCaptureIgnoredChars;
+    }
+
+    public void setParserCaptureLineComments(Optional<Boolean> parserCaptureLineComments) {
+        this.parserCaptureLineComments = parserCaptureLineComments;
+    }
+
+    public void setParserCaptureSourceLocation(Optional<Boolean> parserCaptureSourceLocation) {
+        this.parserCaptureSourceLocation = parserCaptureSourceLocation;
+    }
+
+    public void setParserMaxTokens(Optional<Integer> parserMaxTokens) {
+        this.parserMaxTokens = parserMaxTokens;
+    }
+
     public void setFieldVisibility(String fieldVisibility) {
         this.fieldVisibility = fieldVisibility;
     }
@@ -331,10 +390,6 @@ public class MicroProfileConfig implements Config {
         } else {
             return Optional.empty();
         }
-    }
-
-    private String getStringConfigValue(String key) {
-        return getStringConfigValue(key, null);
     }
 
     private String getStringConfigValue(String key, String defaultValue) {
