@@ -303,7 +303,7 @@ public class Federation {
     private static Method toReflectionMethod(MethodInfo methodInfo) {
         try {
             Class<?> declaringClass = Class.forName(methodInfo.declaringClass().name().toString());
-            Class<?>[] parameterTypes = methodInfo.parameterTypes().stream()
+            Class<?>[] parameterTypes = methodInfo.parameters().stream()
                     .map(Type::asClassType)
                     .map(Type::name)
                     .map(DotName::toString)

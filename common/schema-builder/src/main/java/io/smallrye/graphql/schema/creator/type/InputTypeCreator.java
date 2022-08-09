@@ -102,7 +102,7 @@ public class InputTypeCreator implements Creator<InputType> {
         for (final MethodInfo constructor : classInfo.constructors()) {
             if (!Modifier.isPublic(constructor.flags()))
                 continue;
-            if (constructor.parameterTypes().isEmpty()) {
+            if (constructor.parameters().isEmpty()) {
                 return constructor;
             }
             if (constructor.hasAnnotation(Annotations.JSONB_CREATOR)
@@ -143,7 +143,7 @@ public class InputTypeCreator implements Creator<InputType> {
         }
 
         //Parameters of JsonbCreator
-        for (short i = 0; i < creator.parametersCount(); i++) {
+        for (short i = 0; i < creator.parameters().size(); i++) {
             String fieldName = creator.parameterName(i);
             FieldInfo fieldInfo = allFields.remove(fieldName);
             final Optional<Field> maybeField = fieldCreator.createFieldForParameter(creator, i, fieldInfo, reference);
