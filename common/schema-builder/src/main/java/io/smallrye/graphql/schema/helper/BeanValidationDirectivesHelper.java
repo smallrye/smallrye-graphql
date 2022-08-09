@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.helper;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Set;
 
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
@@ -19,6 +21,8 @@ import io.smallrye.graphql.schema.model.Scalars;
 public class BeanValidationDirectivesHelper {
 
     public final static DirectiveType CONSTRAINT_DIRECTIVE_TYPE;
+
+    private static Logger LOGGER = Logger.getLogger(BeanValidationDirectivesHelper.class);
 
     static {
         CONSTRAINT_DIRECTIVE_TYPE = new DirectiveType();
@@ -34,7 +38,9 @@ public class BeanValidationDirectivesHelper {
         addArgument("maxLength", Scalars.getIntScalar());
         addArgument("format", Scalars.getStringScalar());
         addArgument("min", Scalars.getBigIntegerScalar());
+        addArgument("minFloat", Scalars.getBigDecimalScalar());
         addArgument("max", Scalars.getBigIntegerScalar());
+        addArgument("maxFloat", Scalars.getBigDecimalScalar());
         addArgument("pattern", Scalars.getStringScalar());
     }
 
@@ -89,6 +95,34 @@ public class BeanValidationDirectivesHelper {
                 directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
                 directive.setValue("min", getLongValue(annotations, annotationName, "value"));
                 result.add(directive);
+            }
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_DECIMAL_MAX)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_DECIMAL_MAX)) {
+                DirectiveInstance directive = new DirectiveInstance();
+                directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
+                String value = getStringValue(annotations, annotationName, "value");
+                try {
+                    directive.setValue("maxFloat", new BigDecimal(value).doubleValue());
+                    result.add(directive);
+                } catch (NumberFormatException nfe) {
+                    LOGGER.warn(
+                            "Not generating a bean validation directive for " + annotations.getAnnotationValue(annotationName) +
+                                    " because the value can't be parsed as a BigDecimal");
+                }
+            }
+            if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_DECIMAL_MIN)
+                    || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_DECIMAL_MIN)) {
+                DirectiveInstance directive = new DirectiveInstance();
+                directive.setType(CONSTRAINT_DIRECTIVE_TYPE);
+                String value = getStringValue(annotations, annotationName, "value");
+                try {
+                    directive.setValue("minFloat", new BigDecimal(value).doubleValue());
+                    result.add(directive);
+                } catch (NumberFormatException nfe) {
+                    LOGGER.warn(
+                            "Not generating a bean validation directive for " + annotations.getAnnotationValue(annotationName) +
+                                    " because the value can't be parsed as a BigDecimal");
+                }
             }
             if (annotationName.equals(Classes.JAKARTA_VALIDATION_ANNOTATION_PATTERN)
                     || annotationName.equals(Classes.JAVAX_VALIDATION_ANNOTATION_PATTERN)) {

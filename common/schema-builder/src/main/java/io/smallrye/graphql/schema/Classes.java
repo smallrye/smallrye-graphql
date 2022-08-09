@@ -349,7 +349,11 @@ public class Classes {
     // Validation
     public static final DotName JAVAX_VALIDATION_ANNOTATION_EMAIL = DotName.createSimple("javax.validation.constraints.Email");
     public static final DotName JAVAX_VALIDATION_ANNOTATION_MAX = DotName.createSimple("javax.validation.constraints.Max");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_DECIMAL_MAX = DotName
+            .createSimple("javax.validation.constraints.DecimalMax");
     public static final DotName JAVAX_VALIDATION_ANNOTATION_MIN = DotName.createSimple("javax.validation.constraints.Min");
+    public static final DotName JAVAX_VALIDATION_ANNOTATION_DECIMAL_MIN = DotName
+            .createSimple("javax.validation.constraints.DecimalMin");
     public static final DotName JAVAX_VALIDATION_ANNOTATION_PATTERN = DotName
             .createSimple("javax.validation.constraints.Pattern");
     public static final DotName JAVAX_VALIDATION_ANNOTATION_SIZE = DotName.createSimple("javax.validation.constraints.Size");
@@ -357,7 +361,11 @@ public class Classes {
     public static final DotName JAKARTA_VALIDATION_ANNOTATION_EMAIL = DotName
             .createSimple("jakarta.validation.constraints.Email");
     public static final DotName JAKARTA_VALIDATION_ANNOTATION_MAX = DotName.createSimple("jakarta.validation.constraints.Max");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_DECIMAL_MAX = DotName
+            .createSimple("jakarta.validation.constraints.DecimalMax");
     public static final DotName JAKARTA_VALIDATION_ANNOTATION_MIN = DotName.createSimple("jakarta.validation.constraints.Min");
+    public static final DotName JAKARTA_VALIDATION_ANNOTATION_DECIMAL_MIN = DotName
+            .createSimple("jakarta.validation.constraints.DecimalMin");
     public static final DotName JAKARTA_VALIDATION_ANNOTATION_PATTERN = DotName
             .createSimple("jakarta.validation.constraints.Pattern");
     public static final DotName JAKARTA_VALIDATION_ANNOTATION_SIZE = DotName

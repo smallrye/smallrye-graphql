@@ -14,6 +14,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.jandex.TypeVariable;
+import org.jboss.jandex.WildcardType;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -34,9 +35,9 @@ import io.smallrye.graphql.schema.model.Scalars;
 
 /**
  * Here we create references to things that might not yet exist.
- * 
+ *
  * We store all references to be created later.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReferenceCreator {
@@ -46,12 +47,14 @@ public class ReferenceCreator {
     private final Queue<Reference> typeReferenceQueue = new ArrayDeque<>();
     private final Queue<Reference> enumReferenceQueue = new ArrayDeque<>();
     private final Queue<Reference> interfaceReferenceQueue = new ArrayDeque<>();
+    private final Queue<Reference> unionReferenceQueue = new ArrayDeque<>();
 
     // Some maps we populate during scanning
     private final Map<String, Reference> inputReferenceMap = new HashMap<>();
     private final Map<String, Reference> typeReferenceMap = new HashMap<>();
     private final Map<String, Reference> enumReferenceMap = new HashMap<>();
     private final Map<String, Reference> interfaceReferenceMap = new HashMap<>();
+    private final Map<String, Reference> unionReferenceMap = new HashMap<>();
 
     private final TypeAutoNameStrategy autoNameStrategy;
 
@@ -68,16 +71,18 @@ public class ReferenceCreator {
         typeReferenceMap.clear();
         enumReferenceMap.clear();
         interfaceReferenceMap.clear();
+        unionReferenceMap.clear();
 
         inputReferenceQueue.clear();
         typeReferenceQueue.clear();
         enumReferenceQueue.clear();
         interfaceReferenceQueue.clear();
+        unionReferenceQueue.clear();
     }
 
     /**
      * Get the values for a certain type
-     * 
+     *
      * @param referenceType the type
      * @return the references
      */
@@ -87,7 +92,7 @@ public class ReferenceCreator {
 
     /**
      * Get the Type auto name strategy
-     * 
+     *
      * @return the strategy as supplied
      */
     public TypeAutoNameStrategy getTypeAutoNameStrategy() {
@@ -96,7 +101,7 @@ public class ReferenceCreator {
 
     /**
      * Get a reference to a field type for an adapter on a field
-     * 
+     *
      * @param direction the direction
      * @param fieldType the java type
      * @param annotations annotation on this operations method
@@ -111,7 +116,7 @@ public class ReferenceCreator {
     /**
      * Get a reference to a field type for an operation Direction is OUT on a field (and IN on an argument) In the case
      * of operations, there is no fields (only methods)
-     * 
+     *
      * @param fieldType the java type
      * @param annotationsForMethod annotation on this operations method
      * @return a reference to the type
@@ -123,7 +128,7 @@ public class ReferenceCreator {
     /**
      * Get a reference to a argument type for an operation Direction is IN on an argument (and OUT on a field) In the
      * case of operation, there is no field (only methods)
-     * 
+     *
      * @param argumentType the java type
      * @param annotationsForThisArgument annotations on this argument
      * @return a reference to the argument
@@ -145,9 +150,9 @@ public class ReferenceCreator {
 
     /**
      * Get a reference to a field (method response) on an interface
-     * 
+     *
      * Interfaces is only usable on Type, so the direction in OUT.
-     * 
+     *
      * @param methodType the method response type
      * @param annotationsForThisMethod annotations on this method
      * @return a reference to the type
@@ -159,9 +164,9 @@ public class ReferenceCreator {
 
     /**
      * Get a reference to a Field Type for a InputType or Type.
-     * 
+     *
      * We need both the type and the getter/setter method as both is applicable.
-     * 
+     *
      * @param direction in or out
      * @param fieldType the field type
      * @param methodType the method type
@@ -180,7 +185,7 @@ public class ReferenceCreator {
     /**
      * This method create a reference to type that might not yet exist. It also store to be created later, if we do not
      * already know about it.
-     * 
+     *
      * @param direction the direction (in or out)
      * @param classInfo the Java class
      * @param createAdapedToType create the type in the schema
@@ -197,7 +202,7 @@ public class ReferenceCreator {
 
         ReferenceType referenceType = getCorrectReferenceType(classInfo, annotationsForClass, direction);
 
-        if (referenceType.equals(ReferenceType.INTERFACE)) {
+        if (referenceType.equals(ReferenceType.INTERFACE) || referenceType.equals(ReferenceType.UNION)) {
             // Also check that we create all implementations
             Collection<ClassInfo> knownDirectImplementors = ScanningContext.getIndex()
                     .getAllKnownImplementors(classInfo.name());
@@ -229,7 +234,7 @@ public class ReferenceCreator {
 
                 createReference(direction, impl, createAdapedToType, createAdapedWithType,
                         parametrizedTypeArgumentsReferencesImpl,
-                        true);
+                        referenceType.equals(ReferenceType.INTERFACE));
             }
         }
 
@@ -276,8 +281,20 @@ public class ReferenceCreator {
     private static boolean isInterface(ClassInfo classInfo, Annotations annotationsForClass) {
         boolean isJavaInterface = Classes.isInterface(classInfo);
         if (isJavaInterface) {
-            if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.TYPE, Annotations.INPUT)) {
-                // This should be mapped to a type/input and not an interface
+            if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.TYPE, Annotations.INPUT, Annotations.UNION)) {
+                // This should be mapped to a type/input/union and not an interface
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isUnion(ClassInfo classInfo, Annotations annotationsForClass) {
+        boolean isJavaInterface = Classes.isInterface(classInfo);
+        if (isJavaInterface) {
+            if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.TYPE, Annotations.INPUT, Annotations.INTERFACE)) {
+                // This should be mapped to a type/input/interface and not a union
                 return false;
             }
             return true;
@@ -294,6 +311,11 @@ public class ReferenceCreator {
         // In some case, like operations and interfaces, there is no fieldType
         if (fieldType == null) {
             fieldType = methodType;
+        }
+
+        // In some case, like public fields, there are not method
+        if (methodType == null) {
+            methodType = fieldType;
         }
 
         String fieldTypeName = fieldType.name().toString();
@@ -322,6 +344,11 @@ public class ReferenceCreator {
             List<Type> fieldArguments = parameterizedFieldType.arguments();
             ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(Type[]::new), null);
             return getReference(direction, entryType, entryType, annotations, parentObjectReference);
+        } else if (fieldType.kind().equals(Type.Kind.WILDCARD_TYPE)) {
+            // <? extends Something>
+            WildcardType wildcardType = fieldType.asWildcardType();
+            Type extendsBound = wildcardType.extendsBound();
+            return getReference(direction, extendsBound, extendsBound, annotations, parentObjectReference);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
@@ -468,6 +495,8 @@ public class ReferenceCreator {
                 return inputReferenceMap;
             case INTERFACE:
                 return interfaceReferenceMap;
+            case UNION:
+                return unionReferenceMap;
             case TYPE:
                 return typeReferenceMap;
             default:
@@ -483,6 +512,8 @@ public class ReferenceCreator {
                 return inputReferenceQueue;
             case INTERFACE:
                 return interfaceReferenceQueue;
+            case UNION:
+                return unionReferenceQueue;
             case TYPE:
                 return typeReferenceQueue;
             default:
@@ -493,6 +524,8 @@ public class ReferenceCreator {
     private static ReferenceType getCorrectReferenceType(ClassInfo classInfo, Annotations annotations, Direction direction) {
         if (isInterface(classInfo, annotations)) {
             return ReferenceType.INTERFACE;
+        } else if (isUnion(classInfo, annotations)) {
+            return ReferenceType.UNION;
         } else if (Classes.isEnum(classInfo)) {
             return ReferenceType.ENUM;
         } else if (direction.equals(Direction.IN)) {
