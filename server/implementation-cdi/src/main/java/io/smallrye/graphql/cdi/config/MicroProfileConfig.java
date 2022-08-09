@@ -39,6 +39,8 @@ public class MicroProfileConfig implements Config {
     private Optional<Boolean> parserCaptureSourceLocation;
     private Optional<Boolean> parserCaptureLineComments;
     private Optional<Boolean> parserCaptureIgnoredChars;
+    private Optional<Integer> queryComplexityInstrumentation;
+    private Optional<Integer> queryDepthInstrumentation;
 
     @Override
     public String getName() {
@@ -249,6 +251,26 @@ public class MicroProfileConfig implements Config {
     }
 
     @Override
+    public Optional<Integer> getQueryComplexityInstrumentation() {
+        if (queryComplexityInstrumentation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            queryComplexityInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY,
+                    Integer.class);
+        }
+        return queryComplexityInstrumentation;
+    }
+
+    @Override
+    public Optional<Integer> getQueryDepthInstrumentation() {
+        if (queryDepthInstrumentation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH,
+                    Integer.class);
+        }
+        return queryDepthInstrumentation;
+    }
+
+    @Override
     public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
         org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
         return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
@@ -388,6 +410,14 @@ public class MicroProfileConfig implements Config {
 
     public void setIncludeIntrospectionTypesInSchema(Boolean includeIntrospectionTypesInSchema) {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
+    }
+
+    public void setQueryComplexityInstrumentation(Optional<Integer> queryComplexityInstrumentation) {
+        this.queryComplexityInstrumentation = queryComplexityInstrumentation;
+    }
+
+    public void getQueryDepthInstrumentation(Optional<Integer> queryDepthInstrumentation) {
+        this.queryDepthInstrumentation = queryDepthInstrumentation;
     }
 
     private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {

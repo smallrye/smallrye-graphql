@@ -20,6 +20,8 @@ import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.analysis.MaxQueryComplexityInstrumentation;
+import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.execution.ExecutionId;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
@@ -141,8 +143,6 @@ public class ExecutionService {
 
             GraphQL g = getGraphQL();
             if (g != null) {
-                setParserOptions();
-
                 // Query
                 Builder executionBuilder = ExecutionInput.newExecutionInput()
                         .query(query)
@@ -248,9 +248,21 @@ public class ExecutionService {
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
             if (graphQLSchema != null) {
+                Config config = Config.get();
+                setParserOptions(config);
+
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
                 graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(new ExceptionHandler());
+                if (config.getQueryComplexityInstrumentation().isPresent()) {
+                    graphqlBuilder = graphqlBuilder.instrumentation(
+                            new MaxQueryComplexityInstrumentation(config.getQueryComplexityInstrumentation().get()));
+                }
+                if (config.getQueryDepthInstrumentation().isPresent()) {
+                    graphqlBuilder = graphqlBuilder
+                            .instrumentation(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
+                }
                 graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
+
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 
                 if (queryExecutionStrategy != null) {
@@ -277,8 +289,7 @@ public class ExecutionService {
 
     }
 
-    private void setParserOptions() {
-        Config config = Config.get();
+    private void setParserOptions(Config config) {
         if (config.hasParserOptions()) {
             ParserOptions.Builder parserOptionsBuilder = ParserOptions.newParserOptions();
             if (config.isParserCaptureIgnoredChars().isPresent()) {

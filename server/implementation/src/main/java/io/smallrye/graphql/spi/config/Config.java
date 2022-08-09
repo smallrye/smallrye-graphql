@@ -191,6 +191,14 @@ public interface Config {
                 || getParserMaxWhitespaceTokens().isPresent();
     }
 
+    default Optional<Integer> getQueryComplexityInstrumentation() {
+        return Optional.empty();
+    }
+
+    default Optional<Integer> getQueryDepthInstrumentation() {
+        return Optional.empty();
+    }
+
     default String getFieldVisibility() {
         return FIELD_VISIBILITY_DEFAULT;
     }
