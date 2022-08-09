@@ -24,7 +24,7 @@
         <version.org.jboss.jandex>2.4.3.Final</version.org.jboss.jandex> <!-- won't be needed with SmallRye Parent v36 -->
         <version.smallrye-config>3.0.0-RC2</version.smallrye-config>
         <version.smallrye.metrics>4.0.0-RC1</version.smallrye.metrics>
-        <version.smallrye-common>2.0.0-RC2</version.smallrye-common>
+        <version.smallrye-common>2.0.0-RC3</version.smallrye-common>
         <version.smallrye-mutiny>1.7.0</version.smallrye-mutiny>
         <version.smallrye-context-propagation>2.0.0-RC1</version.smallrye-context-propagation>
         <version.smallrye-stork>1.1.2</version.smallrye-stork>
