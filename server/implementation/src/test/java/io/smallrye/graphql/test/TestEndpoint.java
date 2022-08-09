@@ -16,7 +16,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 
 /**
  * Basic test endpoint
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @GraphQLApi
@@ -55,6 +55,26 @@ public class TestEndpoint {
     @Query
     public InterfaceWithOneGenericsParam<Integer> getGeneric2() {
         return new ClassWithOneGenericsParam<>(22, "my name");
+    }
+
+    @Query
+    public TestUnion basicUnion() {
+        return new UnionMember("my name");
+    }
+
+    @Query
+    public UnionOfInterfaces unionOfInterfacesDirectImplementor() {
+        return new MemberOfManyUnions("im in many unions");
+    }
+
+    @Query
+    public UnionOfInterfaces unionOfInterfacesNestedInterface1() {
+        return new ObjectWithName("my name");
+    }
+
+    @Query
+    public UnionOfInterfaces unionOfInterfacesNestedInterface2() {
+        return new ObjectWithColor("purple");
     }
 
     // This method will be ignored, with a WARN in the log, due to below duplicate

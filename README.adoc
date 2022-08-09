@@ -26,6 +26,10 @@ SmallRye GraphQL is an implementation of
 mvn clean install
 ----
 
+Note that some tests perform locale-sensitive assertions.
+If you use non-English locale, you need to adjust the command above.
+For example: `LANG=C mvn clean install`
+
 === Testing against the unreleased v 2.1-SNAPSHOT of MicroProfile GraphQL
 
 (You need to build that version of MicroProfile GraphQL locally first to make the snapshot versions available in your repository)

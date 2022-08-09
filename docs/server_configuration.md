@@ -27,7 +27,7 @@ From SmallRye GraphQL
 | `smallrye.graphql.allowGet` | `false`  | Allow HTTP GET Method |
 | `smallrye.graphql.metrics.enabled` | `false` | Enable metrics |
 | `smallrye.graphql.tracing.enabled` | `false` | Enable tracing |
-| `smallrye.graphql.validation.enabled` | `false` | Enable Bean Validation |
+| `smallrye.graphql.validation.enabled` | `true` if Bean Validation is present | Enable Bean Validation. This property is DEPRECATED, setting to `false` won't actually turn off validation. It will be removed in a future release. |
 | `smallrye.graphql.events.enabled`| `true` if one of metrics, tracing or bean validation is true | Enable eventing |
 | `smallrye.graphql.logPayload`| `false` | Log the payload in the log file |
 | `smallrye.graphql.fieldVisibility` |   | To control the field visibility on introspection |
