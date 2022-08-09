@@ -27,7 +27,7 @@
         <version.smallrye-common>2.0.0-RC2</version.smallrye-common>
         <version.smallrye-mutiny>1.4.0</version.smallrye-mutiny>
         <version.smallrye-context-propagation>2.0.0-RC1</version.smallrye-context-propagation>
-        <version.smallrye-stork>1.1.0</version.smallrye-stork>
+        <version.smallrye-stork>1.1.2</version.smallrye-stork>
         <version.opentracing>0.33.0</version.opentracing>
         <version.yasson>2.0.4</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
