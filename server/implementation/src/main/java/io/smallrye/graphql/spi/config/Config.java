@@ -163,6 +163,42 @@ public interface Config {
         return LogPayloadOption.off;
     }
 
+    default Optional<Boolean> isParserCaptureIgnoredChars() {
+        return Optional.empty();
+    }
+
+    default Optional<Boolean> isParserCaptureLineComments() {
+        return Optional.empty();
+    }
+
+    default Optional<Boolean> isParserCaptureSourceLocation() {
+        return Optional.empty();
+    }
+
+    default Optional<Integer> getParserMaxTokens() {
+        return Optional.empty();
+    }
+
+    default Optional<Integer> getParserMaxWhitespaceTokens() {
+        return Optional.empty();
+    }
+
+    default boolean hasParserOptions() {
+        return isParserCaptureIgnoredChars().isPresent()
+                || isParserCaptureLineComments().isPresent()
+                || isParserCaptureSourceLocation().isPresent()
+                || getParserMaxTokens().isPresent()
+                || getParserMaxWhitespaceTokens().isPresent();
+    }
+
+    default Optional<Integer> getQueryComplexityInstrumentation() {
+        return Optional.empty();
+    }
+
+    default Optional<Integer> getQueryDepthInstrumentation() {
+        return Optional.empty();
+    }
+
     default String getFieldVisibility() {
         return FIELD_VISIBILITY_DEFAULT;
     }
