@@ -78,7 +78,7 @@ public class OperationCreator extends ModelCreator {
         }
 
         // Arguments
-        List<Type> parameters = methodInfo.parameterTypes();
+        List<Type> parameters = methodInfo.parameters();
         for (short i = 0; i < parameters.size(); i++) {
             Optional<Argument> maybeArgument = argumentCreator.createArgument(operation, methodInfo, i);
             maybeArgument.ifPresent(operation::addArgument);

@@ -54,7 +54,7 @@ public class SourceOperationHelper {
             if (target.kind().equals(AnnotationTarget.Kind.METHOD_PARAMETER)) {
                 MethodParameterInfo methodParameter = target.asMethodParameter();
                 short position = methodParameter.position();
-                Type returnType = methodParameter.method().parameterType(position);
+                Type returnType = methodParameter.method().parameters().get(position);
                 if (forReturnType == null || Arrays.asList(forReturnType).contains(returnType.kind())) {
                     DotName name = getName(returnType);
                     sourceFields.computeIfAbsent(name, k -> new ArrayList<>()).add(methodParameter);

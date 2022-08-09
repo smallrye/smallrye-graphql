@@ -114,15 +114,15 @@ public class FieldCreator extends ModelCreator {
         String name = getFieldName(Direction.IN, annotationsForPojo, method.parameterName(position));
 
         // Field Type
-        Type fieldType = getFieldType(fieldInfo, method.parameterType(position));
+        Type fieldType = getFieldType(fieldInfo, method.parameters().get(position));
 
         Reference reference = referenceCreator.createReferenceForPojoField(fieldType,
-                method.parameterType(position), annotationsForPojo, Direction.IN, parentObjectReference);
+                method.parameters().get(position), annotationsForPojo, Direction.IN, parentObjectReference);
 
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
         addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
-        populateField(Direction.IN, field, fieldType, method.parameterType(position), annotationsForPojo);
+        populateField(Direction.IN, field, fieldType, method.parameters().get(position), annotationsForPojo);
 
         return Optional.of(field);
 
@@ -249,7 +249,7 @@ public class FieldCreator extends ModelCreator {
 
     private static Type getMethodType(MethodInfo method, Direction direction) {
         if (direction.equals(Direction.IN)) {
-            return method.parameterType(0);
+            return method.parameters().get(0);
         }
         return getReturnType(method);
     }
