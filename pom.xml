@@ -29,7 +29,7 @@
         <version.smallrye-context-propagation>2.0.0-RC1</version.smallrye-context-propagation>
         <version.smallrye-stork>1.1.0</version.smallrye-stork>
         <version.opentracing>0.33.0</version.opentracing>
-        <version.yasson>2.0.4</version.yasson>
+        <version.yasson>3.0.1</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
         <version.jakarta-annotation>2.1.1</version.jakarta-annotation>
         <version.jakarta.servlet>5.0.0</version.jakarta.servlet>
@@ -41,7 +41,7 @@
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.CR4</version.arquillian.jetty>
-        <version.jetty>11.0.9</version.jetty>
+        <version.jetty>11.0.11</version.jetty>
         <version.smallrye-opentracing>3.0.0-RC1</version.smallrye-opentracing>
         <version.hibernate-validator>8.0.0.Alpha3</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
