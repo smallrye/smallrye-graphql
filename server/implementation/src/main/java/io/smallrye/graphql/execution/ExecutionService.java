@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.execution.ExecutionId;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
+import graphql.execution.instrumentation.ChainedInstrumentation;
+import graphql.execution.instrumentation.Instrumentation;
 import graphql.parser.ParserOptions;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
@@ -238,15 +241,18 @@ public class ExecutionService {
 
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
                 graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(new ExceptionHandler());
+
+                List<Instrumentation> chainedList = new ArrayList<>();
+
                 if (config.getQueryComplexityInstrumentation().isPresent()) {
-                    graphqlBuilder = graphqlBuilder.instrumentation(
-                            new MaxQueryComplexityInstrumentation(config.getQueryComplexityInstrumentation().get()));
+                    chainedList.add(new MaxQueryComplexityInstrumentation(config.getQueryComplexityInstrumentation().get()));
                 }
                 if (config.getQueryDepthInstrumentation().isPresent()) {
-                    graphqlBuilder = graphqlBuilder
-                            .instrumentation(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
+                    chainedList.add(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
                 }
-                graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
+                chainedList.add(queryCache);
+                // TODO: Allow users to add custome instumentations 
+                graphqlBuilder = graphqlBuilder.instrumentation(new ChainedInstrumentation(chainedList));
 
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 
