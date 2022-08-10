@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +21,14 @@ import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.analysis.MaxQueryComplexityInstrumentation;
+import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.execution.ExecutionId;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
+import graphql.execution.instrumentation.ChainedInstrumentation;
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.parser.ParserOptions;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.DataFetcherFactory;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
@@ -245,9 +251,24 @@ public class ExecutionService {
     private GraphQL getGraphQL() {
         if (this.graphQL == null) {
             if (graphQLSchema != null) {
+                Config config = Config.get();
+                setParserOptions(config);
+
                 GraphQL.Builder graphqlBuilder = GraphQL.newGraphQL(graphQLSchema);
                 graphqlBuilder = graphqlBuilder.defaultDataFetcherExceptionHandler(new ExceptionHandler());
-                graphqlBuilder = graphqlBuilder.instrumentation(queryCache);
+
+                List<Instrumentation> chainedList = new ArrayList<>();
+
+                if (config.getQueryComplexityInstrumentation().isPresent()) {
+                    chainedList.add(new MaxQueryComplexityInstrumentation(config.getQueryComplexityInstrumentation().get()));
+                }
+                if (config.getQueryDepthInstrumentation().isPresent()) {
+                    chainedList.add(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
+                }
+                chainedList.add(queryCache);
+                // TODO: Allow users to add custome instumentations 
+                graphqlBuilder = graphqlBuilder.instrumentation(new ChainedInstrumentation(chainedList));
+
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);
 
                 if (queryExecutionStrategy != null) {
@@ -272,5 +293,31 @@ public class ExecutionService {
         }
         return this.graphQL;
 
+    }
+
+    private void setParserOptions(Config config) {
+        if (config.hasParserOptions()) {
+            ParserOptions.Builder parserOptionsBuilder = ParserOptions.newParserOptions();
+            if (config.isParserCaptureIgnoredChars().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureIgnoredChars(config.isParserCaptureIgnoredChars().get());
+            }
+            if (config.isParserCaptureLineComments().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureLineComments(config.isParserCaptureLineComments().get());
+            }
+            if (config.isParserCaptureSourceLocation().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .captureSourceLocation(config.isParserCaptureSourceLocation().get());
+            }
+            if (config.getParserMaxTokens().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder.maxTokens(config.getParserMaxTokens().get());
+            }
+            if (config.getParserMaxWhitespaceTokens().isPresent()) {
+                parserOptionsBuilder = parserOptionsBuilder
+                        .maxWhitespaceTokens(config.getParserMaxWhitespaceTokens().get());
+            }
+            ParserOptions.setDefaultParserOptions(parserOptionsBuilder.build());
+        }
     }
 }

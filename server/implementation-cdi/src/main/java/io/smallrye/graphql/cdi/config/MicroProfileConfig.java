@@ -34,6 +34,13 @@ public class MicroProfileConfig implements Config {
     private String fieldVisibility;
     private Optional<List<String>> unwrapExceptions;
     private Optional<List<String>> errorExtensionFields;
+    private Optional<Integer> parserMaxTokens;
+    private Optional<Integer> parserMaxWhitespaceTokens;
+    private Optional<Boolean> parserCaptureSourceLocation;
+    private Optional<Boolean> parserCaptureLineComments;
+    private Optional<Boolean> parserCaptureIgnoredChars;
+    private Optional<Integer> queryComplexityInstrumentation;
+    private Optional<Integer> queryDepthInstrumentation;
 
     @Override
     public String getName() {
@@ -169,6 +176,55 @@ public class MicroProfileConfig implements Config {
     }
 
     @Override
+    public Optional<Boolean> isParserCaptureIgnoredChars() {
+        if (parserCaptureIgnoredChars == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS,
+                    Boolean.class);
+        }
+        return parserCaptureIgnoredChars;
+    }
+
+    @Override
+    public Optional<Boolean> isParserCaptureLineComments() {
+        if (parserCaptureLineComments == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureLineComments = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS,
+                    Boolean.class);
+        }
+        return parserCaptureLineComments;
+    }
+
+    @Override
+    public Optional<Boolean> isParserCaptureSourceLocation() {
+        if (parserCaptureSourceLocation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION,
+                    Boolean.class);
+        }
+        return parserCaptureSourceLocation;
+    }
+
+    @Override
+    public Optional<Integer> getParserMaxTokens() {
+        if (parserMaxTokens == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class);
+        }
+        return parserMaxTokens;
+    }
+
+    @Override
+    public Optional<Integer> getParserMaxWhitespaceTokens() {
+        if (parserMaxWhitespaceTokens == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS,
+                    Integer.class);
+        }
+        return parserMaxWhitespaceTokens;
+    }
+
+    @Override
     public String getFieldVisibility() {
         if (fieldVisibility == null) {
             fieldVisibility = getStringConfigValue(ConfigKey.FIELD_VISIBILITY, Config.FIELD_VISIBILITY_DEFAULT);
@@ -192,6 +248,26 @@ public class MicroProfileConfig implements Config {
             errorExtensionFields = microProfileConfig.getOptionalValues(ConfigKey.ERROR_EXTENSION_FIELDS, String.class);
         }
         return errorExtensionFields;
+    }
+
+    @Override
+    public Optional<Integer> getQueryComplexityInstrumentation() {
+        if (queryComplexityInstrumentation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            queryComplexityInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY,
+                    Integer.class);
+        }
+        return queryComplexityInstrumentation;
+    }
+
+    @Override
+    public Optional<Integer> getQueryDepthInstrumentation() {
+        if (queryDepthInstrumentation == null) {
+            org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
+            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH,
+                    Integer.class);
+        }
+        return queryDepthInstrumentation;
     }
 
     @Override
@@ -250,6 +326,26 @@ public class MicroProfileConfig implements Config {
 
     public void setLogPayload(LogPayloadOption logPayload) {
         this.logPayload = logPayload;
+    }
+
+    public void setParserCaptureIgnoredChars(Optional<Boolean> parserCaptureIgnoredChars) {
+        this.parserCaptureIgnoredChars = parserCaptureIgnoredChars;
+    }
+
+    public void setParserCaptureLineComments(Optional<Boolean> parserCaptureLineComments) {
+        this.parserCaptureLineComments = parserCaptureLineComments;
+    }
+
+    public void setParserCaptureSourceLocation(Optional<Boolean> parserCaptureSourceLocation) {
+        this.parserCaptureSourceLocation = parserCaptureSourceLocation;
+    }
+
+    public void setParserMaxTokens(Optional<Integer> parserMaxTokens) {
+        this.parserMaxTokens = parserMaxTokens;
+    }
+
+    public void setParserMaxWhitespaceTokens(Optional<Integer> parserMaxWhitespaceTokens) {
+        this.parserMaxWhitespaceTokens = parserMaxWhitespaceTokens;
     }
 
     public void setFieldVisibility(String fieldVisibility) {
@@ -316,6 +412,14 @@ public class MicroProfileConfig implements Config {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
     }
 
+    public void setQueryComplexityInstrumentation(Optional<Integer> queryComplexityInstrumentation) {
+        this.queryComplexityInstrumentation = queryComplexityInstrumentation;
+    }
+
+    public void getQueryDepthInstrumentation(Optional<Integer> queryDepthInstrumentation) {
+        this.queryDepthInstrumentation = queryDepthInstrumentation;
+    }
+
     private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {
 
         List<String> combined = new ArrayList<>();
@@ -331,10 +435,6 @@ public class MicroProfileConfig implements Config {
         } else {
             return Optional.empty();
         }
-    }
-
-    private String getStringConfigValue(String key) {
-        return getStringConfigValue(key, null);
     }
 
     private String getStringConfigValue(String key, String defaultValue) {
