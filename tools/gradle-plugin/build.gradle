@@ -45,6 +45,9 @@ test {
         events "passed", "skipped", "failed"
     }
     useJUnitPlatform()
+    // multiple Gradle invocations executed from the same testing JVM cause problems, so fork
+    // for each test, and make sure we only run one Gradle execution in each test
+    forkEvery 1
 }
 
 javadoc {
