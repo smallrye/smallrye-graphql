@@ -284,10 +284,17 @@ public class GenerateSchemaTask extends DefaultTask {
                 }
             }
         }
-        // FIXME: ROOT/build/classes/java/main might not always be the correct directory?!
         Path classes = Paths.get(classesDir.getAbsolutePath(), "java", "main");
-        getLogger().debug("Adding classes directory: " +classes);
-        urls.add(classes.toUri().toURL());
+        if(classes.toFile().exists()) {
+            getLogger().debug("Adding classes directory: " + classes);
+            urls.add(classes.toUri().toURL());
+        }
+
+        Path classesKotlin = Paths.get(classesDir.getAbsolutePath(), "kotlin", "main");
+        if(classesKotlin.toFile().exists()) {
+            getLogger().debug("Adding classes directory: " + classesKotlin);
+            urls.add(classesKotlin.toUri().toURL());
+        }
 
         return URLClassLoader.newInstance(
             urls.toArray(new URL[0]),
