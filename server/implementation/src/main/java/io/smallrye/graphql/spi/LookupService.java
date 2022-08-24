@@ -5,6 +5,7 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -26,12 +27,25 @@ public interface LookupService {
     }
 
     static LookupService load() {
-        LookupService ls;
-        try {
-            ls = lookupServices.iterator().next();
-        } catch (Exception ex) {
+        LookupService ls = null;
+        Iterator<LookupService> iterator = lookupServices.iterator();
+        while (iterator.hasNext()) {
+            try {
+                ls = iterator.next();
+                String packageName = ls.getClass().getPackageName();
+                // give more priority to user-supplied implementations - if we find one outside smallrye/quarkus
+                // packages, use it
+                if (!packageName.startsWith("io.smallrye") && !packageName.startsWith("io.quarkus")) {
+                    break;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        if (ls == null) {
             ls = new DefaultLookupService();
         }
+
         log.usingLookupService(ls.getName());
         return ls;
     }
