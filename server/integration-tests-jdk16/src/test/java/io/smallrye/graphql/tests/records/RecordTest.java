@@ -5,6 +5,7 @@ import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -89,6 +90,24 @@ public class RecordTest {
         }
     }
 
+    @Test
+    public void testSimpleRecordWithParameterizedConstructor() throws Exception {
+        try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
+                .url(testingURL.toString() + "graphql").build()) {
+            Document query = document(operation(
+                    field("simpleWithParameterizedConstructor",
+                            args(arg("input",
+                                    inputObject(prop("b", "b")))),
+                            field("a"),
+                            field("b"))));
+            Response response = client.executeSync(query);
+            System.out.println(response);
+            System.out.println("query.build() = " + query.build());
+            assertEquals(1, response.getData().getJsonObject("simpleWithParameterizedConstructor").getInt("a"));
+            assertEquals("b", response.getData().getJsonObject("simpleWithParameterizedConstructor").getString("b"));
+        }
+    }
+
     @GraphQLApi
     public static class Api {
 
@@ -102,17 +121,15 @@ public class RecordTest {
             return input;
         }
 
+        @Query
+        public SimpleRecordWithParameterizedConstructor simpleWithParameterizedConstructor(
+                SimpleRecordWithParameterizedConstructor input) {
+            return input;
+        }
+
     }
 
     public record SimpleRecord(String a, String b) {
-
-        // FIXME: until Yasson receives proper support for records, we have
-        // to use this hack to tell Yasson to use the canonical constructor when
-        // deserializing from JSON. Otherwise it will try to find and use a no-arg constructor, and
-        // that does not exist.
-        @JsonbCreator
-        public SimpleRecord {
-        }
 
     }
 
@@ -121,6 +138,15 @@ public class RecordTest {
         @JsonbCreator
         public static SimpleRecordWithFactory build(String a, String b, String[] c, Set<String> d) {
             return new SimpleRecordWithFactory(a, b, c, d);
+        }
+
+    }
+
+    public record SimpleRecordWithParameterizedConstructor(@NonNull Integer a, @NonNull String b) {
+
+        @JsonbCreator
+        public SimpleRecordWithParameterizedConstructor(String b) {
+            this(1, b);
         }
 
     }
