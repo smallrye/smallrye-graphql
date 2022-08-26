@@ -86,18 +86,6 @@ public class InputTypeCreator implements Creator<InputType> {
      * @return the creator, null, if no public constructor or factory method is found
      */
     public MethodInfo findCreator(ClassInfo classInfo) {
-        if (Classes.RECORD.equals(classInfo.superName())) {
-            // records should always have a canonical constructor
-            // the creator will be picked by the JSONB impl at runtime anyway, so
-            // just make sure we can find a public constructor and move on
-            for (MethodInfo constructor : classInfo.constructors()) {
-                if (!Modifier.isPublic(constructor.flags()))
-                    continue;
-                return constructor;
-            }
-            return null;
-        }
-
         for (final MethodInfo constructor : classInfo.constructors()) {
             if (!Modifier.isPublic(constructor.flags()))
                 continue;
@@ -122,6 +110,18 @@ public class InputTypeCreator implements Creator<InputType> {
                     || factoryMethod.hasAnnotation(Annotations.JACKSON_CREATOR)) {
                 return factoryMethod;
             }
+        }
+
+        if (Classes.RECORD.equals(classInfo.superName())) {
+            // records should always have a canonical constructor
+            // the creator will be picked by the JSONB impl at runtime anyway, so
+            // just make sure we can find a public constructor and move on
+            for (MethodInfo constructor : classInfo.constructors()) {
+                if (!Modifier.isPublic(constructor.flags()))
+                    continue;
+                return constructor;
+            }
+            return null;
         }
 
         return null;
