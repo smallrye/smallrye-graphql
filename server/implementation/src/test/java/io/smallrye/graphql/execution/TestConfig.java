@@ -1,7 +1,6 @@
 package io.smallrye.graphql.execution;
 
-import static java.util.Arrays.asList;
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
