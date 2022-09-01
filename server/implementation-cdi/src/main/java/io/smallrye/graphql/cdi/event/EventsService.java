@@ -18,7 +18,7 @@ import io.smallrye.graphql.spi.EventingService;
 /**
  * Implements the EventingService interface and use CDI Events
  * This allows users to take part in the events.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Priority(Priorities.FIRST_IN_LAST_OUT + 200)
@@ -88,7 +88,7 @@ public class EventsService implements EventingService {
             if (current != null) {
                 BeanManager beanManager = current.getBeanManager();
                 if (beanManager != null) {
-                    beanManager.fireEvent(o, annotation);
+                    beanManager.getEvent().select(annotation).fire(o);
                 }
             }
         } catch (java.lang.IllegalStateException ise) {
