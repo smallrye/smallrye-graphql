@@ -49,63 +49,66 @@ public class AdaptToHelper {
      * @return Potentially a AdaptTo model
      */
     public static Optional<AdaptTo> getAdaptTo(Reference r, Annotations annotations) {
-        Type type = getAdaptTo(annotations);
-        if (type != null) {
-            String scalarName = getScalarName(type);
-            Reference reference = Scalars.getScalar(scalarName);
-            AdaptTo adaptTo = new AdaptTo(reference);
-            // Check the way to create this (deserializeMethod)
-            // First check if the user supplied a way
-            String deserializeMethod = getDeserializeMethod(annotations);
-            if (deserializeMethod != null) {
-                adaptTo.setDeserializeMethod(deserializeMethod);
-            } else {
-                // Auto detect this.
-                String className = r.getClassName();
-                if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
-                    ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(className));
-                    if (classInfo != null) {
-                        // Get Parameter type
-                        Type parameter = Type.create(DotName.createSimple(reference.getClassName()), Type.Kind.CLASS);
 
-                        // Check if we can use a constructor
-                        MethodInfo constructor = classInfo.method(CONTRUCTOR_METHOD_NAME, parameter);
-                        if (constructor != null) {
-                            adaptTo.setDeserializeMethod(CONTRUCTOR_METHOD_NAME); // Create new instance with a contructor
-                        } else {
-                            // Check if we can use setValue
-                            MethodInfo setValueMethod = classInfo.method(SET_VALUE_METHOD_NAME, parameter);
-                            if (setValueMethod != null) {
-                                adaptTo.setDeserializeMethod(SET_VALUE_METHOD_NAME);
+        if (r.isAdaptingTo()) {
+            return Optional.of(r.getAdaptTo());
+        } else {
+            Type type = getAdaptTo(annotations);
+            if (type != null) {
+                String scalarName = getScalarName(type);
+                Reference reference = Scalars.getScalar(scalarName);
+                AdaptTo adaptTo = new AdaptTo(reference);
+                // Check the way to create this (deserializeMethod)
+                // First check if the user supplied a way
+                String deserializeMethod = getDeserializeMethod(annotations);
+                if (deserializeMethod != null) {
+                    adaptTo.setDeserializeMethod(deserializeMethod);
+                } else {
+                    // Auto detect this.
+                    String className = r.getClassName();
+                    if (!r.getType().equals(ReferenceType.SCALAR)) { // mapping to scalar stays on default NONE
+                        ClassInfo classInfo = ScanningContext.getIndex().getClassByName(DotName.createSimple(className));
+                        if (classInfo != null) {
+                            // Get Parameter type
+                            Type parameter = Type.create(DotName.createSimple(reference.getClassName()), Type.Kind.CLASS);
+
+                            // Check if we can use a constructor
+                            MethodInfo constructor = classInfo.method(CONTRUCTOR_METHOD_NAME, parameter);
+                            if (constructor != null) {
+                                adaptTo.setDeserializeMethod(CONTRUCTOR_METHOD_NAME); // Create new instance with a contructor
                             } else {
-                                // Check if we can use static fromXXXXX
-                                String staticFromMethodName = FROM + scalarName;
-                                MethodInfo staticFromMethod = classInfo.method(staticFromMethodName, parameter);
-                                if (staticFromMethod != null) {
-                                    adaptTo.setDeserializeMethod(staticFromMethodName);
+                                // Check if we can use setValue
+                                MethodInfo setValueMethod = classInfo.method(SET_VALUE_METHOD_NAME, parameter);
+                                if (setValueMethod != null) {
+                                    adaptTo.setDeserializeMethod(SET_VALUE_METHOD_NAME);
                                 } else {
-                                    // Check if we can use static getInstance
-                                    MethodInfo staticGetInstance = classInfo.method(GET_INSTANCE_METHOD_NAME, parameter);
-                                    if (staticGetInstance != null) {
-                                        adaptTo.setDeserializeMethod(GET_INSTANCE_METHOD_NAME);
+                                    // Check if we can use static fromXXXXX
+                                    String staticFromMethodName = FROM + scalarName;
+                                    MethodInfo staticFromMethod = classInfo.method(staticFromMethodName, parameter);
+                                    if (staticFromMethod != null) {
+                                        adaptTo.setDeserializeMethod(staticFromMethodName);
+                                    } else {
+                                        // Check if we can use static getInstance
+                                        MethodInfo staticGetInstance = classInfo.method(GET_INSTANCE_METHOD_NAME, parameter);
+                                        if (staticGetInstance != null) {
+                                            adaptTo.setDeserializeMethod(GET_INSTANCE_METHOD_NAME);
+                                        }
                                     }
                                 }
                             }
-                        }
 
+                        }
                     }
                 }
-            }
 
-            // Get serializeMethod (default to toString)
-            String serializeMethod = getSerializeMethod(annotations);
-            if (serializeMethod != null) {
-                adaptTo.setSerializeMethod(serializeMethod);
-            }
+                // Get serializeMethod (default to toString)
+                String serializeMethod = getSerializeMethod(annotations);
+                if (serializeMethod != null) {
+                    adaptTo.setSerializeMethod(serializeMethod);
+                }
 
-            return Optional.of(adaptTo);
-        } else {
-            // TODO: Support other than Scalar mapping 
+                return Optional.of(adaptTo);
+            }
         }
         return Optional.empty();
     }

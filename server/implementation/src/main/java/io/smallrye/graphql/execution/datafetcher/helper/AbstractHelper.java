@@ -59,8 +59,23 @@ public abstract class AbstractHelper {
      * @return if adaption is needed
      */
     protected boolean shouldAdapt(Field field) {
-        return field.getReference().isAdaptingWith() || field.isAdaptingWith()
-                || (field.hasWrapper() && field.getWrapper().isMap());
+        return shouldAdaptWith(field) || shouldAutoAdaptWithMap(field) || shouldAdaptTo(field);
+    }
+
+    protected boolean shouldAutoAdaptWithMap(Field field) {
+        return field.hasWrapper() && field.getWrapper().isMap();
+    }
+
+    protected boolean shouldAdaptWith(Field field) {
+        return field.getReference().isAdaptingWith() || field.isAdaptingWith();
+    }
+
+    protected boolean shouldAdaptTo(Field field) {
+        return field.getReference().isAdaptingTo()
+                && field.getReference().getAdaptTo().getDeserializeMethod() != null
+                ||
+                field.isAdaptingTo()
+                        && field.getAdaptTo().getDeserializeMethod() != null;
     }
 
     public Object transformOrAdapt(Object val, Field field, DataFetchingEnvironment dfe)

@@ -243,18 +243,6 @@ public class ArgumentHelper extends AbstractHelper {
         }
     }
 
-    private boolean shouldAdaptTo(Field field) {
-        return field.getReference().isAdaptingTo()
-                && field.getReference().getAdaptTo().getDeserializeMethod() != null
-                ||
-                field.isAdaptingTo()
-                        && field.getAdaptTo().getDeserializeMethod() != null;
-    }
-
-    private boolean shouldAdaptWith(Field field) {
-        return field.getReference().isAdaptingWith() || field.isAdaptingWith();
-    }
-
     private String getCreateMethodName(Field field) {
         if (field.getReference().isAdaptingTo()) {
             return field.getReference().getAdaptTo().getDeserializeMethod();

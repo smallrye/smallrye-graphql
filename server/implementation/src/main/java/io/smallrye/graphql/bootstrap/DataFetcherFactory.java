@@ -14,12 +14,15 @@ import org.dataloader.BatchLoaderWithContext;
 import graphql.schema.DataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CompletionStageDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.DefaultDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.FieldDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.MultiDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.PlugableBatchableDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PlugableDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PublisherDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.UniDataFetcher;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.DataFetcherService;
@@ -49,6 +52,16 @@ public class DataFetcherFactory {
 
     public <T> DataFetcher<T> getDataFetcher(Operation operation, Type type) {
         return (DataFetcher<T>) get(operation, type);
+    }
+
+    public <T> PlugableDataFetcher<T> getFieldDataFetcher(Field field, Type type, Reference owner) {
+        for (DataFetcherService dfe : dataFetcherServices) {
+            PlugableDataFetcher df = dfe.getFieldDataFetcher(field, type, owner);
+            if (df != null) {
+                return (PlugableDataFetcher) df;
+            }
+        }
+        return new FieldDataFetcher<>(field, type, owner);
     }
 
     public <K, T> BatchLoaderWithContext<K, T> getSourceBatchLoader(Operation operation, Type type) {
@@ -85,10 +98,10 @@ public class DataFetcherFactory {
         return (V) getOtherFieldDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getCompletionStageDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getCompletionStageDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getCompletionStageDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getCompletionStageDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -97,10 +110,10 @@ public class DataFetcherFactory {
         return new CompletionStageDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getUniDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getUniDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getUniDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getUniDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -109,10 +122,10 @@ public class DataFetcherFactory {
         return new UniDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getPublisherDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getPublisherDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getPublisherDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getPublisherDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -121,10 +134,10 @@ public class DataFetcherFactory {
         return new PublisherDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getMultiDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getMultiDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getMultiDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getMultiDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -133,10 +146,10 @@ public class DataFetcherFactory {
         return new MultiDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getOtherWrappedDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getOtherWrappedDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getOtherWrappedDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getOtherWrappedDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -145,17 +158,17 @@ public class DataFetcherFactory {
         return getDefaultDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getOtherFieldDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getOtherFieldDataFetcher(Operation operation, Type type) {
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getOtherFieldDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getOtherFieldDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
         }
 
         for (DataFetcherService dfe : dataFetcherServices) {
-            PlugableDataFetcher df = dfe.getDefaultDataFetcher(operation, type);
+            PlugableBatchableDataFetcher df = dfe.getDefaultDataFetcher(operation, type);
             if (df != null) {
                 return df;
             }
@@ -164,7 +177,7 @@ public class DataFetcherFactory {
         return new DefaultDataFetcher(operation, type);
     }
 
-    public PlugableDataFetcher getDefaultDataFetcher(Operation operation, Type type) {
+    private PlugableBatchableDataFetcher getDefaultDataFetcher(Operation operation, Type type) {
         return getOtherFieldDataFetcher(operation, type);
     }
 
