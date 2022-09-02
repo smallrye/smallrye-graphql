@@ -50,7 +50,7 @@ import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.CollectionCreator;
-import io.smallrye.graphql.execution.datafetcher.FieldDataFetcher;
+import io.smallrye.graphql.execution.datafetcher.PlugableDataFetcher;
 import io.smallrye.graphql.execution.error.ErrorInfoMap;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
@@ -642,7 +642,7 @@ public class Bootstrap {
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
-        FieldDataFetcher<?> datafetcher = new FieldDataFetcher<>(field, getTypeForField(field), owner);
+        PlugableDataFetcher<?> datafetcher = dataFetcherFactory.getFieldDataFetcher(field, getTypeForField(field), owner);
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(owner.getName(), graphQLFieldDefinition.getName()),
                 datafetcher);
 

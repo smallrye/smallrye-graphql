@@ -59,8 +59,9 @@ public class AdaptWithHelper {
      */
     public static Optional<AdaptWith> getAdaptWith(Direction direction, ReferenceCreator referenceCreator, Reference r,
             Annotations annotations, AdapterType adapterType) {
-
-        if (adapterType != null) {
+        if (r.isAdaptingWith()) {
+            return Optional.of(r.getAdaptWith());
+        } else if (adapterType != null) {
             Type type = adapterType.type;
             AdaptWith adaptWith = adapterType.adaptWith;
             if (type.kind().equals(Type.Kind.CLASS)) {

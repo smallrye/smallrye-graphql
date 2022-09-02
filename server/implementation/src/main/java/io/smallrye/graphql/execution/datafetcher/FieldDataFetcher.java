@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import graphql.GraphQLException;
 import graphql.TrivialDataFetcher;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
@@ -29,7 +28,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  *           different
  *           subtype of the owner class for each call).
  */
-public class FieldDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T> {
+public class FieldDataFetcher<T> implements PlugableDataFetcher<T>, TrivialDataFetcher<T> {
 
     private final FieldHelper fieldHelper;
     private final Field field;
