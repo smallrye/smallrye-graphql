@@ -79,6 +79,8 @@ public class FieldHelper extends AbstractHelper {
                 log.transformError(ex);
                 throw new TransformException(ex, field, argumentValue);
             }
+        } else if (field.isAdaptingTo()) {
+            return argumentValue.toString();
         } else if (field.hasWrapper() && field.getWrapper().isMap()) {
             Object key = null;
             Map<String, Object> arguments = dfe.getArguments();
