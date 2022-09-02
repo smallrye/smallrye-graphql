@@ -28,7 +28,7 @@ import io.smallrye.graphql.transformation.AbstractDataFetcherException;
  * @param <K>
  * @param <T>
  */
-public abstract class AbstractDataFetcher<K, T> implements PlugableDataFetcher<K, T> {
+public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableDataFetcher<K, T> {
 
     protected Operation operation;
     protected Type type;
