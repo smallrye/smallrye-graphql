@@ -1,7 +1,10 @@
 package io.smallrye.graphql.spi;
 
+import io.smallrye.graphql.execution.datafetcher.PlugableBatchableDataFetcher;
 import io.smallrye.graphql.execution.datafetcher.PlugableDataFetcher;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Type;
 
 /**
@@ -13,31 +16,35 @@ public interface DataFetcherService {
 
     public Integer getPriority();
 
-    default PlugableDataFetcher getCompletionStageDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getCompletionStageDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getUniDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getUniDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getPublisherDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getPublisherDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getMultiDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getMultiDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getOtherWrappedDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getOtherWrappedDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getOtherFieldDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getOtherFieldDataFetcher(Operation operation, Type type) {
         return null;
     }
 
-    default PlugableDataFetcher getDefaultDataFetcher(Operation operation, Type type) {
+    default PlugableBatchableDataFetcher getDefaultDataFetcher(Operation operation, Type type) {
+        return null;
+    }
+
+    default PlugableDataFetcher getFieldDataFetcher(Field field, Type type, Reference owner) {
         return null;
     }
 }
