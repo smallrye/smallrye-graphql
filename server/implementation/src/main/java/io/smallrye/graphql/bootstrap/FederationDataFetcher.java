@@ -16,6 +16,7 @@ import graphql.schema.DelegatingDataFetchingEnvironment;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedSchemaElement;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 
@@ -50,7 +51,7 @@ class FederationDataFetcher implements DataFetcher<List<Object>> {
 
     private boolean matchesReturnType(GraphQLFieldDefinition field, String typename) {
         GraphQLOutputType returnType = field.getType();
-        return returnType instanceof GraphQLObjectType && ((GraphQLObjectType) returnType).getName().equals(typename);
+        return returnType instanceof GraphQLNamedSchemaElement && ((GraphQLNamedSchemaElement) returnType).getName().equals(typename);
     }
 
     private boolean matchesArguments(Map<String, Object> requestedArguments, GraphQLFieldDefinition field) {
