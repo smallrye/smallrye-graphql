@@ -2,6 +2,7 @@
 :graphql-over-http: https://github.com/graphql/graphql-over-http
 :subscriptions-transport-ws: https://github.com/apollographql/subscriptions-transport-ws
 :graphql-ws: https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md
+:graphql-federation: https://www.apollographql.com/docs/federation
 
 image:https://github.com/smallrye/smallrye-graphql/workflows/SmallRye%20Build/badge.svg?branch=main[link=https://github.com/smallrye/smallrye-graphql/actions?query=workflow%3A%22SmallRye+Build%22]
 image:https://sonarcloud.io/api/project_badges/measure?project=smallrye_smallrye-graphql&metric=alert_status["Quality Gate Status", link="https://sonarcloud.io/dashboard?id=smallrye_smallrye-graphql"]
@@ -16,6 +17,7 @@ SmallRye GraphQL is an implementation of
 - {graphql-over-http}[GraphQL over HTTP].
 - {graphql-ws}[GraphQL over WebSocket].
 - {subscriptions-transport-ws}[Subscriptions transport ws] (old).
+- {graphql-federation}[GraphQL Federation]
 
 == Instructions
 
