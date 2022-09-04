@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.apps.federation.product.api;
+package io.smallrye.graphql.test.apps.federation;
 
 import org.eclipse.microprofile.graphql.Id;
 

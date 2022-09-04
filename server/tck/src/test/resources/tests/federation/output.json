@@ -1,24 +1,11 @@
 {
   "data": {
-    "deepList": [
-      [
-        [
-          {
-            "names": [
-              "Phillip"
-            ]
-          }
-        ]
-      ]
-    ],
-    "deepListFoo": [
-      [
-        [
-          {
-            "bar": "bar"
-          }
-        ]
-      ]
+    "_entities": [
+      {
+        "__typename": "Product",
+        "name": "Armchair",
+        "id": "1"
+      }
     ]
   }
 }

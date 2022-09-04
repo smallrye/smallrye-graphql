@@ -1,4 +1,4 @@
-package io.smallrye.graphql.test.apps.federation.product.api;
+package io.smallrye.graphql.test.apps.federation;
 
 import static java.util.Arrays.asList;
 
@@ -9,7 +9,7 @@ import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Query;
 
 @GraphQLApi
-public class Products {
+public class ProductApi {
     private static final List<Product> PRODUCTS = asList(
             Product.product("1", "Armchair"),
             Product.product("2", "Table"));
