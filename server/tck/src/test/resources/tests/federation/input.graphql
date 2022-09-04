@@ -1,8 +1,12 @@
-{
-  deepList{
-    names
-  }
-  deepListFoo{
-    bar
+query product {
+  _entities(representations: [{
+    __typename: "Product",
+    id: "1"
+  }]) {
+    ... on Product {
+      __typename
+      name
+      id
+    }
   }
 }

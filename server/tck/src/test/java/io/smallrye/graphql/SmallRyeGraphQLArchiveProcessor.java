@@ -12,6 +12,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
 import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.test.apps.adapt.to.api.AdaptToResource;
 import io.smallrye.graphql.test.apps.adapt.with.api.AdapterResource;
 import io.smallrye.graphql.test.apps.async.api.AsyncApi;
@@ -23,6 +24,7 @@ import io.smallrye.graphql.test.apps.defaultvalue.api.DefaultValueParrotAPI;
 import io.smallrye.graphql.test.apps.enumlist.api.EnumListApi;
 import io.smallrye.graphql.test.apps.error.api.ErrorApi;
 import io.smallrye.graphql.test.apps.exceptionlist.ExceptionListApi;
+import io.smallrye.graphql.test.apps.federation.ProductApi;
 import io.smallrye.graphql.test.apps.fieldexistence.api.FieldExistenceApi;
 import io.smallrye.graphql.test.apps.generics.api.ControllerWithGenerics;
 import io.smallrye.graphql.test.apps.grouping.api.BookGraphQLApi;
@@ -90,6 +92,8 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
 
             // For our auto Map adaption
             war.addPackage(Entry.class.getPackage());
+            // For the federation directives
+            war.addPackage(Key.class.getPackage());
             // Add our own test app
             war.addPackage(ProfileGraphQLApi.class.getPackage());
             war.addPackage(AdditionalScalarsApi.class.getPackage());
@@ -116,6 +120,7 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
             war.addPackage(NonNullClass.class.getPackage());
             war.addPackage(NonNullPackageClass.class.getPackage());
             war.addPackage(StocksApi.class.getPackage());
+            war.addPackage(ProductApi.class.getPackage());
         }
     }
 }
