@@ -7,6 +7,7 @@ nav:
   - Server side features:
       - Customizing JSON deserializers: 'custom-json-deserializers.md'
       - Directives: 'directives.md'
+      - Federation: 'federation.md'
       - Custom error extensions: 'custom-error-extensions.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
