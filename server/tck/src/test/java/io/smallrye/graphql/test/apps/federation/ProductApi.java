@@ -10,12 +10,12 @@ import org.eclipse.microprofile.graphql.Query;
 
 @GraphQLApi
 public class ProductApi {
-    private static final List<Product> PRODUCTS = asList(
-            Product.product("1", "Armchair"),
-            Product.product("2", "Table"));
+    private static final List<ProductEntity> PRODUCTS = asList(
+            ProductEntity.product("1", "Armchair"),
+            ProductEntity.product("2", "Table"));
 
     @Query
-    public Product product(@Id String id) {
+    public ProductEntity product(@Id String id) {
         return PRODUCTS.stream()
                 .filter(product -> product.getId().equals(id))
                 .findFirst().orElseThrow(() -> new RuntimeException("product not find"));

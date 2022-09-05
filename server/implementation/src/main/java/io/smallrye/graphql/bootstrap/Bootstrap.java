@@ -25,6 +25,8 @@ import jakarta.json.JsonReader;
 import jakarta.json.JsonReaderFactory;
 import jakarta.json.bind.Jsonb;
 
+import org.eclipse.microprofile.graphql.Name;
+
 import com.apollographql.federation.graphqljava.Federation;
 
 import graphql.introspection.Introspection.DirectiveLocation;
@@ -205,7 +207,9 @@ public class Bootstrap {
             if (src == null) {
                 return null;
             }
-            GraphQLObjectType result = env.getSchema().getObjectType(src.getClass().getSimpleName()); // TODO respect @Name, etc.
+            Name annotation = src.getClass().getAnnotation(Name.class);
+            String typeName = (annotation == null) ? src.getClass().getSimpleName() : annotation.value();
+            GraphQLObjectType result = env.getSchema().getObjectType(typeName);
             if (result == null) {
                 throw new RuntimeException("can't resolve federated entity type " + src.getClass().getName());
             }

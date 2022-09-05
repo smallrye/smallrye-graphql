@@ -1,13 +1,15 @@
 package io.smallrye.graphql.test.apps.federation;
 
 import org.eclipse.microprofile.graphql.Id;
+import org.eclipse.microprofile.graphql.Name;
 
 import io.smallrye.graphql.api.federation.Key;
 
 @Key(fields = "id")
-public class Product {
-    static Product product(String id, String name) {
-        Product product = new Product();
+@Name("Product")
+public class ProductEntity {
+    static ProductEntity product(String id, String name) {
+        ProductEntity product = new ProductEntity();
         product.setId(id);
         product.setName(name);
         return product;
