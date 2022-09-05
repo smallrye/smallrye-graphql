@@ -48,7 +48,7 @@
         <version.glasfish-el>4.0.2</version.glasfish-el>
         <version.weld-junit5>4.0.0.Final</version.weld-junit5>
         <version.rxjava>2.2.21</version.rxjava>
-        <version.jackson>2.13.3</version.jackson>
+        <version.jackson>2.13.4</version.jackson>
         <version.mongo-bson>4.7.1</version.mongo-bson>
         <version.mockito>4.9.0</version.mockito>
         
