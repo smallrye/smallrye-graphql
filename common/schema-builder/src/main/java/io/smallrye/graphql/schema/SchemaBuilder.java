@@ -154,6 +154,7 @@ public class SchemaBuilder {
         interfaceCreator.setDirectives(directives);
         fieldCreator.setDirectives(directives);
         argumentCreator.setDirectives(directives);
+        operationCreator.setDirectives(directives);
     }
 
     private void addTypesToSchema(Schema schema) {
