@@ -8,7 +8,7 @@ import org.eclipse.microprofile.graphql.Query;
 @GraphQLApi
 public class DirectivesTestApi {
     @Query
-    public TestTypeWithDirectives testTypeWithDirectives(List<String> arg) {
+    public TestTypeWithDirectives queryWithDirectives(@ArgumentDirective List<String> arg) {
         return null;
     }
 }

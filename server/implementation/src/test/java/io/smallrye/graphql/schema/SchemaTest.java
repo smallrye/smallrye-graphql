@@ -31,7 +31,7 @@ class SchemaTest {
     @Test
     void testSchemaWithDirectives() {
         Schema schema = SchemaBuilder
-                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
+                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class, ArgumentDirective.class,
                         TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
@@ -59,6 +59,9 @@ class SchemaTest {
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
         assertNotNull(fieldDirectiveInstance);
 
+        GraphQLFieldDefinition queryWithDirectives = graphQLSchema.getQueryType().getField("queryWithDirectives");
+        assertNotNull(queryWithDirectives.getArgument("arg").getDirective("argumentDirective"));
+
         String schemaString = new SchemaPrinter().print(graphQLSchema);
         LOG.info(schemaString);
         assertTrue(schemaString.contains("\"test-description\"\n" +
@@ -66,7 +69,7 @@ class SchemaTest {
         assertTrue(schemaString.endsWith("" +
                 "\"Query root\"\n" +
                 "type Query {\n" +
-                "  testTypeWithDirectives(arg: [String]): TestTypeWithDirectives\n" +
+                "  queryWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives\n" +
                 "}\n" +
                 "\n" +
                 "type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {\n" +
