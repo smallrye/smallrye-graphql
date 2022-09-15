@@ -31,7 +31,8 @@ class SchemaTest {
     @Test
     void testSchemaWithDirectives() {
         Schema schema = SchemaBuilder
-                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class, ArgumentDirective.class,
+                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
+                        ArgumentDirective.class, OperationDirective.class,
                         TestTypeWithDirectives.class, DirectivesTestApi.class));
         assertNotNull(schema);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
@@ -59,22 +60,41 @@ class SchemaTest {
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
         assertNotNull(fieldDirectiveInstance);
 
-        GraphQLFieldDefinition queryWithDirectives = graphQLSchema.getQueryType().getField("queryWithDirectives");
-        assertNotNull(queryWithDirectives.getArgument("arg").getDirective("argumentDirective"));
+        assertOperationWithDirectives(graphQLSchema.getQueryType().getField("queryWithDirectives"));
+        assertOperationWithDirectives(graphQLSchema.getMutationType().getField("mutationWithDirectives"));
+        assertOperationWithDirectives(graphQLSchema.getSubscriptionType().getField("subscriptionWithDirectives"));
 
         String schemaString = new SchemaPrinter().print(graphQLSchema);
         LOG.info(schemaString);
         assertTrue(schemaString.contains("\"test-description\"\n" +
                 "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n"));
         assertTrue(schemaString.endsWith("" +
+                "\"Mutation root\"\n" +
+                "type Mutation {\n" +
+                "  mutationWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
+                "}\n" +
+                "\n" +
                 "\"Query root\"\n" +
                 "type Query {\n" +
-                "  queryWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives\n" +
+                "  queryWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
+                "}\n" +
+                "\n" +
+                "\"Subscription root\"\n" +
+                "type Subscription {\n" +
+                "  subscriptionWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
                 "}\n" +
                 "\n" +
                 "type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {\n" +
                 "  value: String @fieldDirective\n" +
                 "}\n"));
+    }
+
+    private void assertOperationWithDirectives(GraphQLFieldDefinition operation) {
+        String name = operation.getName();
+        GraphQLDirective operationDirective = operation.getDirective("operationDirective");
+        assertNotNull(operationDirective, () -> name + " should have directive @operationDirective");
+        GraphQLDirective argumentDirective = operation.getArgument("arg").getDirective("argumentDirective");
+        assertNotNull(argumentDirective, () -> "Argument arg of " + name + " should have directive @argumentDirective");
     }
 
     private IndexView scan(Class<?>... classes) {
