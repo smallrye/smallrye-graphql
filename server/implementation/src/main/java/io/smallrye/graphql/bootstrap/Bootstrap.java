@@ -600,6 +600,11 @@ public class Bootstrap {
             fieldBuilder.argument(autoMapArgument.get());
         }
 
+        // Directives
+        if (operation.hasDirectiveInstances()) {
+            fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+        }
+
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
@@ -609,6 +614,12 @@ public class Bootstrap {
                 datafetcher);
 
         return graphQLFieldDefinition;
+    }
+
+    private GraphQLDirective[] createGraphQLDirectives(Collection<DirectiveInstance> directiveInstances) {
+        return directiveInstances.stream()
+                .map(this::createGraphQLDirectiveFrom)
+                .toArray(GraphQLDirective[]::new);
     }
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(Reference owner, Collection<Field> fields) {
