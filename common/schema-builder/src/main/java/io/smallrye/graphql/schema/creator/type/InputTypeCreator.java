@@ -18,8 +18,10 @@ import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -37,6 +39,7 @@ public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
 
     private final FieldCreator fieldCreator;
+    private Directives directives;
 
     public InputTypeCreator(FieldCreator fieldCreator) {
         this.fieldCreator = fieldCreator;
@@ -65,6 +68,9 @@ public class InputTypeCreator implements Creator<InputType> {
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);
 
         InputType inputType = new InputType(classInfo.name().toString(), name, description);
+
+        // Directives
+        inputType.setDirectiveInstances(getDirectiveInstances(annotations));
 
         // Fields
         addFields(inputType, classInfo, reference);
@@ -125,6 +131,14 @@ public class InputTypeCreator implements Creator<InputType> {
         }
 
         return null;
+    }
+
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
+    }
+
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
+        return directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null));
     }
 
     private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {
