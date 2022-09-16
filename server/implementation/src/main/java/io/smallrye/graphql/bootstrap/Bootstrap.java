@@ -339,6 +339,10 @@ public class Bootstrap {
         GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum()
                 .name(enumType.getName())
                 .description(enumType.getDescription());
+        // Directives
+        if (enumType.hasDirectiveInstances()) {
+            enumBuilder = enumBuilder.withDirectives(createGraphQLDirectives(enumType.getDirectiveInstances()));
+        }
         // Values
         for (EnumValue value : enumType.getValues()) {
             enumBuilder = enumBuilder.value(value.getValue(), value.getValue(), value.getDescription());

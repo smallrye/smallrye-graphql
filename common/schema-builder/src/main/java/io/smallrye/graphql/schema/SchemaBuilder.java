@@ -152,6 +152,7 @@ public class SchemaBuilder {
     private void setupDirectives(Directives directives) {
         typeCreator.setDirectives(directives);
         interfaceCreator.setDirectives(directives);
+        enumCreator.setDirectives(directives);
         fieldCreator.setDirectives(directives);
         argumentCreator.setDirectives(directives);
         operationCreator.setDirectives(directives);
