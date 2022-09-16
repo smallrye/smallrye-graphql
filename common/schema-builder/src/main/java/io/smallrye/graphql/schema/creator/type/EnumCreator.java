@@ -11,6 +11,7 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
@@ -28,9 +29,14 @@ public class EnumCreator implements Creator<EnumType> {
     private static final Logger LOG = Logger.getLogger(EnumCreator.class.getName());
 
     private final TypeAutoNameStrategy autoNameStrategy;
+    private Directives directives;
 
     public EnumCreator(TypeAutoNameStrategy autoNameStrategy) {
         this.autoNameStrategy = autoNameStrategy;
+    }
+
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
     }
 
     @Override
@@ -50,6 +56,10 @@ public class EnumCreator implements Creator<EnumType> {
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);
 
         EnumType enumType = new EnumType(classInfo.name().toString(), name, maybeDescription.orElse(null));
+
+        // Directives
+        enumType.setDirectiveInstances(
+                directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null)));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();
