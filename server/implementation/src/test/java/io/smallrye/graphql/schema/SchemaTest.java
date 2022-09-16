@@ -18,6 +18,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Directive;
@@ -100,6 +101,27 @@ class SchemaTest {
                 "enum EnumWithDirectives @enumDirective {\n" +
                 "  A @enumDirective\n" +
                 "  B\n" +
+                "}\n");
+    }
+
+    @Test
+    void schemaWithInputDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(InputDirective.class, InputTestApi.class,
+                InputTestApi.InputWithDirectives.class);
+
+        GraphQLInputObjectType inputWithDirectives = graphQLSchema.getTypeAs("InputWithDirectivesInput");
+        assertNotNull(inputWithDirectives.getDirective("inputDirective"),
+                "Input type InputWithDirectivesInput should have directive @inputDirective");
+        assertNotNull(inputWithDirectives.getField("foo").getDirective("inputDirective"),
+                "Input type field InputWithDirectivesInput.foo should have directive @inputDirective");
+        assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
+                "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
+
+        String schemaString = new SchemaPrinter().print(graphQLSchema);
+        assertSchemaEndsWith(schemaString, "" +
+                "input InputWithDirectivesInput @inputDirective {\n" +
+                "  bar: Int! @inputDirective\n" +
+                "  foo: Int! @inputDirective\n" +
                 "}\n");
     }
 
