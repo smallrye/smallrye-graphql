@@ -150,6 +150,7 @@ public class SchemaBuilder {
     }
 
     private void setupDirectives(Directives directives) {
+        inputTypeCreator.setDirectives(directives);
         typeCreator.setDirectives(directives);
         interfaceCreator.setDirectives(directives);
         enumCreator.setDirectives(directives);

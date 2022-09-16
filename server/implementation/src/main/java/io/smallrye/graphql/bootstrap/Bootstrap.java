@@ -462,6 +462,12 @@ public class Bootstrap {
                 .name(inputType.getName())
                 .description(inputType.getDescription());
 
+        // Directives
+        if (inputType.hasDirectiveInstances()) {
+            inputObjectTypeBuilder = inputObjectTypeBuilder
+                    .withDirectives(createGraphQLDirectives(inputType.getDirectiveInstances()));
+        }
+
         // Fields
         if (inputType.hasFields()) {
             inputObjectTypeBuilder = inputObjectTypeBuilder
