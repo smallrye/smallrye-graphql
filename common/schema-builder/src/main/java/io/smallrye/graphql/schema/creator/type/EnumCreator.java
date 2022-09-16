@@ -15,6 +15,7 @@ import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Reference;
@@ -58,8 +59,7 @@ public class EnumCreator implements Creator<EnumType> {
         EnumType enumType = new EnumType(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
         // Directives
-        enumType.setDirectiveInstances(
-                directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null)));
+        enumType.setDirectiveInstances(getDirectiveInstances(annotations));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();
@@ -69,12 +69,16 @@ public class EnumCreator implements Creator<EnumType> {
                 if (!field.type().kind().equals(Type.Kind.ARRAY) && !IgnoreHelper.shouldIgnore(annotationsForField, field)) {
                     String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
                             .orElse(null);
-                    enumType.addValue(new EnumValue(description, field.name()));
+                    enumType.addValue(new EnumValue(description, field.name(), getDirectiveInstances(annotationsForField)));
                 }
             }
         }
 
         return enumType;
+    }
+
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
+        return directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null));
     }
 
 }

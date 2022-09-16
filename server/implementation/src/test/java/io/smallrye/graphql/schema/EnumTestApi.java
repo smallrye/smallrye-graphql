@@ -14,7 +14,8 @@ public class EnumTestApi {
     @EnumDirective
     public enum EnumWithDirectives {
         @EnumDirective
-        A
+        A,
+        B
     }
 
 }

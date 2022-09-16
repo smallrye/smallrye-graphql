@@ -92,12 +92,15 @@ class SchemaTest {
         GraphQLEnumType enumWithDirectives = graphQLSchema.getTypeAs("EnumWithDirectives");
         assertNotNull(enumWithDirectives.getDirective("enumDirective"),
                 "Enum EnumWithDirectives should have directive @enumDirective");
+        assertNotNull(enumWithDirectives.getValue("A").getDirective("enumDirective"),
+                "Enum value EnumWithDirectives.A should have directive @enumDirective");
 
         String schemaString = new SchemaPrinter().print(graphQLSchema);
-        assertSchemaEndsWith(schemaString,
+        assertSchemaEndsWith(schemaString, "" +
                 "enum EnumWithDirectives @enumDirective {\n" +
-                        "  A\n" +
-                        "}\n");
+                "  A @enumDirective\n" +
+                "  B\n" +
+                "}\n");
     }
 
     private GraphQLSchema createGraphQLSchema(Class<?>... api) {
