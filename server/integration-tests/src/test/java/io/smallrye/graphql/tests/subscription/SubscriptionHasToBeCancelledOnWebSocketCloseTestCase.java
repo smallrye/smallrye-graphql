@@ -1,10 +1,12 @@
 package io.smallrye.graphql.tests.subscription;
 
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -14,7 +16,6 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,7 +50,7 @@ public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
     @GraphQLApi
     public static class Foo {
 
-        static AtomicBoolean CANCELLED = new AtomicBoolean(false);
+        static CountDownLatch CANCELLED = new CountDownLatch(1);
 
         @Subscription
         public Multi<Long> counting() {
@@ -58,7 +59,7 @@ public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
                     .every(Duration.ofSeconds(1L))
                     .onCancellation().invoke(() -> {
                         // this has to be called on the internal subscriber when a client's websocket connection ends
-                        CANCELLED.set(true);
+                        CANCELLED.countDown();
                     });
         }
 
@@ -75,23 +76,24 @@ public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
                 .url(testingURL.toString() + "graphql")
                 .build();
         Multi<Response> multi = client.subscription("subscription {counting}");
+        CountDownLatch items = new CountDownLatch(1);
         multi.subscribe().with(response -> {
+            items.countDown();
             System.out.println(response);
         }, error -> {
-            error.printStackTrace();
+            throw new AssertionError("Subscription failed", error);
         });
 
         // wait until some items are produced
-        TimeUnit.SECONDS.sleep(3);
+        assertTrue(items.await(10, TimeUnit.SECONDS));
 
         System.out.println("Forcibly closing the websocket....");
         closeUnderlyingHttpClient(client);
 
-        TimeUnit.SECONDS.sleep(1);
         // assert that the internal subscriber of the Multi on the server side was closed
-        Assert.assertTrue("The server-side Multi's internal subscriber has to be cancelled " +
+        assertTrue("The server-side Multi's internal subscriber has to be cancelled " +
                 "after the client websocket connection is closed",
-                Foo.CANCELLED.get());
+                Foo.CANCELLED.await(10, TimeUnit.SECONDS));
     }
 
     private void closeUnderlyingHttpClient(DynamicGraphQLClient client) throws NoSuchFieldException, IllegalAccessException {
