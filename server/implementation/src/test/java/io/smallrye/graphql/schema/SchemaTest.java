@@ -12,11 +12,11 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
-import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -26,17 +26,12 @@ import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.model.Schema;
 
 class SchemaTest {
-    private static final Logger LOG = Logger.getLogger(SchemaTest.class.getName());
 
     @Test
     void testSchemaWithDirectives() {
-        Schema schema = SchemaBuilder
-                .build(scan(Directive.class, IntArrayTestDirective.class, FieldDirective.class,
-                        ArgumentDirective.class, OperationDirective.class,
-                        TestTypeWithDirectives.class, DirectivesTestApi.class));
-        assertNotNull(schema);
-        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
-        assertNotNull(graphQLSchema);
+        GraphQLSchema graphQLSchema = createGraphQLSchema(
+                Directive.class, IntArrayTestDirective.class, FieldDirective.class, ArgumentDirective.class,
+                OperationDirective.class, TestTypeWithDirectives.class, DirectivesTestApi.class);
 
         GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");
         assertEquals("intArrayTestDirective", typeDirective.getName());
@@ -65,10 +60,10 @@ class SchemaTest {
         assertOperationWithDirectives(graphQLSchema.getSubscriptionType().getField("subscriptionWithDirectives"));
 
         String schemaString = new SchemaPrinter().print(graphQLSchema);
-        LOG.info(schemaString);
-        assertTrue(schemaString.contains("\"test-description\"\n" +
-                "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n"));
-        assertTrue(schemaString.endsWith("" +
+        assertSchemaContains(schemaString,
+                "\"test-description\"\n" +
+                        "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n");
+        assertSchemaEndsWith(schemaString, "" +
                 "\"Mutation root\"\n" +
                 "type Mutation {\n" +
                 "  mutationWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
@@ -86,7 +81,42 @@ class SchemaTest {
                 "\n" +
                 "type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {\n" +
                 "  value: String @fieldDirective\n" +
-                "}\n"));
+                "}\n");
+    }
+
+    @Test
+    void schemaWithEnumDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(EnumDirective.class, EnumTestApi.class,
+                EnumTestApi.EnumWithDirectives.class);
+
+        GraphQLEnumType enumWithDirectives = graphQLSchema.getTypeAs("EnumWithDirectives");
+        assertNotNull(enumWithDirectives.getDirective("enumDirective"),
+                "Enum EnumWithDirectives should have directive @enumDirective");
+        assertNotNull(enumWithDirectives.getValue("A").getDirective("enumDirective"),
+                "Enum value EnumWithDirectives.A should have directive @enumDirective");
+
+        String schemaString = new SchemaPrinter().print(graphQLSchema);
+        assertSchemaEndsWith(schemaString, "" +
+                "enum EnumWithDirectives @enumDirective {\n" +
+                "  A @enumDirective\n" +
+                "  B\n" +
+                "}\n");
+    }
+
+    private GraphQLSchema createGraphQLSchema(Class<?>... api) {
+        Schema schema = SchemaBuilder.build(scan(api));
+        assertNotNull(schema, "Schema should not be null");
+        GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
+        assertNotNull(graphQLSchema, "GraphQLSchema should not be null");
+        return graphQLSchema;
+    }
+
+    private static void assertSchemaContains(String schema, String snippet) {
+        assertTrue(schema.contains(snippet), () -> "<<<\n" + schema + "\n>>> does not contain <<<\n" + snippet + "\n>>>");
+    }
+
+    private static void assertSchemaEndsWith(String schema, String end) {
+        assertTrue(schema.endsWith(end), () -> "<<<\n" + schema + "\n>>> does not end with <<<\n" + end + "\n>>>");
     }
 
     private void assertOperationWithDirectives(GraphQLFieldDefinition operation) {

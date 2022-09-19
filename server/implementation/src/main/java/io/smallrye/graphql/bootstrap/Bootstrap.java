@@ -32,6 +32,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -339,9 +340,20 @@ public class Bootstrap {
         GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum()
                 .name(enumType.getName())
                 .description(enumType.getDescription());
+        // Directives
+        if (enumType.hasDirectiveInstances()) {
+            enumBuilder = enumBuilder.withDirectives(createGraphQLDirectives(enumType.getDirectiveInstances()));
+        }
         // Values
         for (EnumValue value : enumType.getValues()) {
-            enumBuilder = enumBuilder.value(value.getValue(), value.getValue(), value.getDescription());
+            GraphQLEnumValueDefinition.Builder definitionBuilder = GraphQLEnumValueDefinition.newEnumValueDefinition()
+                    .name(value.getValue())
+                    .value(value.getValue())
+                    .description(value.getDescription());
+            if (value.hasDirectiveInstances()) {
+                definitionBuilder = definitionBuilder.withDirectives(createGraphQLDirectives(value.getDirectiveInstances()));
+            }
+            enumBuilder = enumBuilder.value(definitionBuilder.build());
         }
         GraphQLEnumType graphQLEnumType = enumBuilder.build();
         enumMap.put(enumType.getClassName(), graphQLEnumType);
