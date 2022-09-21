@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Uni;
@@ -26,7 +27,8 @@ public class DefaultDataFetcher<K, T> extends AbstractDataFetcher<K, T> {
     }
 
     @Override
-    public <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
+    public <T> T invokeAndTransform(Context context, DataFetchingEnvironment dfe,
+            DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
         Object resultFromMethodCall = operationInvoker.invoke(transformedArguments);
         Object resultFromTransform = fieldHelper.transformOrAdaptResponse(resultFromMethodCall, dfe);

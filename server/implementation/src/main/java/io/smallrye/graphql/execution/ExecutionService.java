@@ -169,7 +169,7 @@ public class ExecutionService {
                 log.noGraphQLMethodsFound();
             }
         } catch (Throwable t) {
-            eventEmitter.fireOnExecuteError(finalExecutionId.toString(), t);
+            eventEmitter.fireOnExecuteError(smallRyeContext, t);
             writer.fail(t);
         }
     }
