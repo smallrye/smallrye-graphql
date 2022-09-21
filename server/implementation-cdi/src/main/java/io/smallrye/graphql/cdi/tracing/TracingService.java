@@ -72,8 +72,8 @@ public class TracingService implements EventingService {
     }
 
     @Override
-    public void errorExecute(String executionId, Throwable t) {
-        Span span = spans.remove(executionId);
+    public void errorExecute(Context context, Throwable t) {
+        Span span = spans.remove(context.getExecutionId());
         if (span != null) {
             Map<String, Object> error = new HashMap<>();
             error.put("event.object", t);
@@ -117,8 +117,8 @@ public class TracingService implements EventingService {
     }
 
     @Override
-    public void errorDataFetch(String executionId, Throwable t) {
-        Span span = spans.get(executionId);
+    public void errorDataFetch(Context context, Throwable t) {
+        Span span = spans.get(context.getExecutionId());
         if (span != null) {
             logError(span, t);
         }

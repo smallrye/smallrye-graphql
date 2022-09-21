@@ -90,9 +90,9 @@ public class EventEmitter {
         }
     }
 
-    public void fireOnExecuteError(String executionId, Throwable t) {
+    public void fireOnExecuteError(Context context, Throwable t) {
         for (EventingService extensionService : enabledServices) {
-            extensionService.errorExecute(executionId, t);
+            extensionService.errorExecute(context, t);
         }
     }
 
@@ -116,9 +116,9 @@ public class EventEmitter {
         }
     }
 
-    public void fireOnDataFetchError(String executionId, Throwable t) {
+    public void fireOnDataFetchError(Context context, Throwable t) {
         for (EventingService extensionService : enabledServices) {
-            extensionService.errorDataFetch(executionId, t);
+            extensionService.errorDataFetch(context, t);
         }
     }
 
