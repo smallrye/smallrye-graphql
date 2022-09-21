@@ -9,6 +9,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
@@ -59,16 +60,16 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
         try {
             List<Object> transformedArguments = argumentHelper.getArguments(dfe);
 
-            return invokeAndTransform(dfe, resultBuilder, transformedArguments.toArray());
+            return invokeAndTransform(smallRyeContext, dfe, resultBuilder, transformedArguments.toArray());
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed
             abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
+            eventEmitter.fireOnDataFetchError(smallRyeContext, abstractDataFetcherException);
         } catch (GraphQLException graphQLException) {
             errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
-            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), graphQLException);
+            eventEmitter.fireOnDataFetchError(smallRyeContext, graphQLException);
         } catch (Throwable ex) {
-            eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), ex);
+            eventEmitter.fireOnDataFetchError(smallRyeContext, ex);
             throw ex;
         } finally {
             eventEmitter.fireAfterDataFetch(smallRyeContext);
@@ -92,7 +93,8 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
         }
     }
 
-    protected abstract <T> T invokeAndTransform(DataFetchingEnvironment dfe, DataFetcherResult.Builder<Object> resultBuilder,
+    protected abstract <T> T invokeAndTransform(Context c, DataFetchingEnvironment dfe,
+            DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws AbstractDataFetcherException, Exception;
 
     protected abstract <T> T invokeFailure(DataFetcherResult.Builder<Object> resultBuilder);

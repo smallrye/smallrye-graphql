@@ -8,6 +8,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -30,6 +31,7 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
     @Override
     @SuppressWarnings("unchecked")
     protected <O> O invokeAndTransform(
+            Context context,
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
@@ -39,7 +41,7 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
                 .onItemOrFailure()
                 .transformToUni((result, throwable, emitter) -> {
                     if (throwable != null) {
-                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                        eventEmitter.fireOnDataFetchError(context, throwable);
                         if (throwable instanceof GraphQLException) {
                             GraphQLException graphQLException = (GraphQLException) throwable;
                             errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);

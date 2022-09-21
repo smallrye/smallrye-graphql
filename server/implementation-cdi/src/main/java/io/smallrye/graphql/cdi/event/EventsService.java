@@ -68,13 +68,13 @@ public class EventsService implements EventingService {
     }
 
     @Override
-    public void errorExecute(String executionId, Throwable t) {
-        fire(new ErrorInfo(executionId, t), ErrorExecute.LITERAL);
+    public void errorExecute(Context context, Throwable t) {
+        fire(new ErrorInfo(context, t), ErrorExecute.LITERAL);
     }
 
     @Override
-    public void errorDataFetch(String executionId, Throwable t) {
-        fire(new ErrorInfo(executionId, t), ErrorDataFetch.LITERAL);
+    public void errorDataFetch(Context context, Throwable t) {
+        fire(new ErrorInfo(context, t), ErrorDataFetch.LITERAL);
     }
 
     @Override
