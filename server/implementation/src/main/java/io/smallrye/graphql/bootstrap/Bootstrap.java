@@ -379,6 +379,13 @@ public class Bootstrap {
                             interfaceType.getFields().values()));
         }
 
+        // Directives
+        if (interfaceType.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : interfaceType.getDirectiveInstances()) {
+                interfaceTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
+
         // Interfaces
         if (interfaceType.hasInterfaces()) {
             Set<Reference> interfaces = interfaceType.getInterfaces();
