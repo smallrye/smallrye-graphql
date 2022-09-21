@@ -1,0 +1,63 @@
+directive @argumentDirective on ARGUMENT_DEFINITION
+
+"Indicates a Bean Validation constraint"
+directive @constraint(format: String, max: BigInteger, maxFloat: BigDecimal, maxLength: Int, min: BigInteger, minFloat: BigDecimal, minLength: Int, pattern: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+"Marks the field, argument, input field or enum value as deprecated"
+directive @deprecated(
+    "The reason for the deprecation"
+    reason: String = "No longer supported"
+  ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
+
+directive @fieldDirective on FIELD
+
+"Directs the executor to include this field or fragment only when the `if` argument is true"
+directive @include(
+    "Included when true."
+    if: Boolean!
+  ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"test-description"
+directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE
+
+directive @operationDirective on QUERY | MUTATION | SUBSCRIPTION
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip(
+    "Skipped when true."
+    if: Boolean!
+  ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Exposes a URL that specifies the behaviour of this scalar."
+directive @specifiedBy(
+    "The URL that specifies the behaviour of this scalar."
+    url: String!
+  ) on SCALAR
+
+interface TestInterfaceDirective @intArrayTestDirective(value : [1, 2, 3]) {
+  testValue: String
+}
+
+"Mutation root"
+type Mutation {
+  mutationWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective
+}
+
+"Query root"
+type Query {
+  queryWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective
+  queryWithInterfaceDirectives: TestInterfaceDirective
+}
+
+"Subscription root"
+type Subscription {
+  subscriptionWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective
+}
+
+type TestInterfaceDirectiveImpl implements TestInterfaceDirective @intArrayTestDirective(value : [1, 2, 3]) {
+  testValue: String
+}
+
+type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {
+  value: String @fieldDirective
+}
