@@ -30,4 +30,9 @@ public class DirectivesTestApi {
         return Multi.createFrom().empty();
     }
 
+    @Query
+    public TestInterfaceDirective queryWithInterfaceDirectives() {
+        return new TestInterfaceDirectiveImpl();
+    }
+
 }

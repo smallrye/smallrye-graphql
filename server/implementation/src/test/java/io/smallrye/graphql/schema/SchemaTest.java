@@ -6,12 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
@@ -28,10 +32,11 @@ import io.smallrye.graphql.schema.model.Schema;
 class SchemaTest {
 
     @Test
-    void testSchemaWithDirectives() {
+    void testSchemaWithDirectives() throws URISyntaxException, IOException {
         GraphQLSchema graphQLSchema = createGraphQLSchema(
                 Directive.class, IntArrayTestDirective.class, FieldDirective.class, ArgumentDirective.class,
-                OperationDirective.class, TestTypeWithDirectives.class, DirectivesTestApi.class);
+                OperationDirective.class, TestTypeWithDirectives.class, DirectivesTestApi.class, TestInterfaceDirective.class,
+                TestInterfaceDirectiveImpl.class);
 
         GraphQLDirective typeDirective = graphQLSchema.getDirective("intArrayTestDirective");
         assertEquals("intArrayTestDirective", typeDirective.getName());
@@ -59,29 +64,10 @@ class SchemaTest {
         assertOperationWithDirectives(graphQLSchema.getMutationType().getField("mutationWithDirectives"));
         assertOperationWithDirectives(graphQLSchema.getSubscriptionType().getField("subscriptionWithDirectives"));
 
-        String schemaString = new SchemaPrinter().print(graphQLSchema);
-        assertSchemaContains(schemaString,
-                "\"test-description\"\n" +
-                        "directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE\n");
-        assertSchemaEndsWith(schemaString, "" +
-                "\"Mutation root\"\n" +
-                "type Mutation {\n" +
-                "  mutationWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
-                "}\n" +
-                "\n" +
-                "\"Query root\"\n" +
-                "type Query {\n" +
-                "  queryWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
-                "}\n" +
-                "\n" +
-                "\"Subscription root\"\n" +
-                "type Subscription {\n" +
-                "  subscriptionWithDirectives(arg: [String] @argumentDirective): TestTypeWithDirectives @operationDirective\n" +
-                "}\n" +
-                "\n" +
-                "type TestTypeWithDirectives @intArrayTestDirective(value : [1, 2, 3]) {\n" +
-                "  value: String @fieldDirective\n" +
-                "}\n");
+        String actualSchema = new SchemaPrinter().print(graphQLSchema);
+        String expectedSchema = Files
+                .readString(new File(SchemaTest.class.getResource("/schemaTest.graphql").toURI()).toPath());
+        Assertions.assertEquals(expectedSchema, actualSchema);
     }
 
     @Test
