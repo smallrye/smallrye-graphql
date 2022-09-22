@@ -1054,7 +1054,7 @@ class ScalarBehavior {
 
             Instant value = api.foo(in);
 
-            then(fixture.query()).isEqualTo("query foo($instant: Instant) { foo(instant: $instant) }");
+            then(fixture.query()).isEqualTo("query foo($instant: DateTime) { foo(instant: $instant) }");
             then(fixture.variables()).isEqualTo("{'instant':'" + in + "'}");
             then(value).isEqualTo(out);
         }
