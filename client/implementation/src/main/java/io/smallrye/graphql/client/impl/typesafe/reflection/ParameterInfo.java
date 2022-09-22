@@ -100,6 +100,7 @@ public class ParameterInfo {
             case "LocalDateTime":
             case "OffsetDateTime":
             case "ZonedDateTime":
+            case "Instant":
                 return "DateTime";
             default:
                 return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");
