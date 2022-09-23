@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -26,11 +27,20 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Directive;
+import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
+import io.smallrye.graphql.execution.TestConfig;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.spi.config.Config;
 
 class SchemaTest {
+    private final TestConfig config = (TestConfig) Config.get();
+
+    @AfterEach
+    void tearDown() {
+        config.reset();
+    }
 
     @Test
     void testSchemaWithDirectives() throws URISyntaxException, IOException {
@@ -55,7 +65,7 @@ class SchemaTest {
         assertEquals("intArrayTestDirective", intArrayTestDirective.getName());
         GraphQLArgument argument = intArrayTestDirective.getArgument("value");
         assertEquals("value", argument.getName());
-        assertArrayEquals(new Object[] { 1, 2, 3 }, (Object[]) argument.getArgumentValue().getValue());
+        assertArrayEquals(new Object[] { 1, 2, 3 }, argument.toAppliedArgument().getValue());
 
         GraphQLFieldDefinition valueField = testTypeWithDirectives.getFieldDefinition("value");
         GraphQLDirective fieldDirectiveInstance = valueField.getDirective("fieldDirective");
@@ -82,8 +92,7 @@ class SchemaTest {
         assertNotNull(enumWithDirectives.getValue("A").getDirective("enumDirective"),
                 "Enum value EnumWithDirectives.A should have directive @enumDirective");
 
-        String schemaString = new SchemaPrinter().print(graphQLSchema);
-        assertSchemaEndsWith(schemaString, "" +
+        assertSchemaEndsWith(graphQLSchema, "" +
                 "enum EnumWithDirectives @enumDirective {\n" +
                 "  A @enumDirective\n" +
                 "  B\n" +
@@ -103,11 +112,51 @@ class SchemaTest {
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
 
-        String schemaString = new SchemaPrinter().print(graphQLSchema);
-        assertSchemaEndsWith(schemaString, "" +
+        assertSchemaEndsWith(graphQLSchema, "" +
                 "input InputWithDirectivesInput @inputDirective {\n" +
                 "  bar: Int! @inputDirective\n" +
                 "  foo: Int! @inputDirective\n" +
+                "}\n");
+    }
+
+    @Test
+    void testSchemaWithFederationDisabled() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
+                FederationTestApi.class);
+
+        assertSchemaEndsWith(graphQLSchema, "\n" +
+                "\"Query root\"\n" +
+                "type Query {\n" +
+                "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
+                "}\n" +
+                "\n" +
+                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
+                "  id: String\n" +
+                "}\n");
+    }
+
+    @Test
+    void testSchemaWithFederation() {
+        config.federationEnabled = true;
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
+                FederationTestApi.class);
+
+        assertSchemaEndsWith(graphQLSchema, "\n" +
+                "union _Entity = TestTypeWithFederation\n" +
+                "\n" +
+                "\"Query root\"\n" +
+                "type Query {\n" +
+                "  _entities(representations: [_Any!]!): [_Entity]!\n" +
+                "  _service: _Service!\n" +
+                "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
+                "}\n" +
+                "\n" +
+                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
+                "  id: String\n" +
+                "}\n" +
+                "\n" +
+                "type _Service {\n" +
+                "  sdl: String!\n" +
                 "}\n");
     }
 
@@ -119,11 +168,13 @@ class SchemaTest {
         return graphQLSchema;
     }
 
-    private static void assertSchemaContains(String schema, String snippet) {
-        assertTrue(schema.contains(snippet), () -> "<<<\n" + schema + "\n>>> does not contain <<<\n" + snippet + "\n>>>");
+    private static void assertSchemaEndsWith(GraphQLSchema schema, String end) {
+        String schemaString = new SchemaPrinter().print(schema);
+        assertSchemaEndsWith(schemaString, end);
     }
 
     private static void assertSchemaEndsWith(String schema, String end) {
+        // assertEquals(schema, end); // this is convenient for debugging, as the IDE can show the diff
         assertTrue(schema.endsWith(end), () -> "<<<\n" + schema + "\n>>> does not end with <<<\n" + end + "\n>>>");
     }
 
