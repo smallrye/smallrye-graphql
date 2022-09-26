@@ -60,6 +60,7 @@ public class SchemaBuilder {
     private final InputTypeCreator inputTypeCreator;
     private final TypeCreator typeCreator;
     private final FieldCreator fieldCreator;
+    private final ArgumentCreator argumentCreator;
     private final InterfaceCreator interfaceCreator;
     private final EnumCreator enumCreator;
     private final ReferenceCreator referenceCreator;
@@ -93,8 +94,7 @@ public class SchemaBuilder {
         enumCreator = new EnumCreator(autoNameStrategy);
         referenceCreator = new ReferenceCreator(autoNameStrategy);
         fieldCreator = new FieldCreator(referenceCreator);
-        ArgumentCreator argumentCreator = new ArgumentCreator(referenceCreator);
-
+        argumentCreator = new ArgumentCreator(referenceCreator);
         inputTypeCreator = new InputTypeCreator(fieldCreator);
         operationCreator = new OperationCreator(referenceCreator, argumentCreator);
         typeCreator = new TypeCreator(referenceCreator, fieldCreator, operationCreator);
@@ -150,9 +150,13 @@ public class SchemaBuilder {
     }
 
     private void setupDirectives(Directives directives) {
+        inputTypeCreator.setDirectives(directives);
         typeCreator.setDirectives(directives);
         interfaceCreator.setDirectives(directives);
+        enumCreator.setDirectives(directives);
         fieldCreator.setDirectives(directives);
+        argumentCreator.setDirectives(directives);
+        operationCreator.setDirectives(directives);
     }
 
     private void addTypesToSchema(Schema schema) {

@@ -32,6 +32,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -339,9 +340,20 @@ public class Bootstrap {
         GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum()
                 .name(enumType.getName())
                 .description(enumType.getDescription());
+        // Directives
+        if (enumType.hasDirectiveInstances()) {
+            enumBuilder = enumBuilder.withDirectives(createGraphQLDirectives(enumType.getDirectiveInstances()));
+        }
         // Values
         for (EnumValue value : enumType.getValues()) {
-            enumBuilder = enumBuilder.value(value.getValue(), value.getValue(), value.getDescription());
+            GraphQLEnumValueDefinition.Builder definitionBuilder = GraphQLEnumValueDefinition.newEnumValueDefinition()
+                    .name(value.getValue())
+                    .value(value.getValue())
+                    .description(value.getDescription());
+            if (value.hasDirectiveInstances()) {
+                definitionBuilder = definitionBuilder.withDirectives(createGraphQLDirectives(value.getDirectiveInstances()));
+            }
+            enumBuilder = enumBuilder.value(definitionBuilder.build());
         }
         GraphQLEnumType graphQLEnumType = enumBuilder.build();
         enumMap.put(enumType.getClassName(), graphQLEnumType);
@@ -365,6 +377,13 @@ public class Bootstrap {
             interfaceTypeBuilder = interfaceTypeBuilder
                     .fields(createGraphQLFieldDefinitionsFromFields(interfaceType,
                             interfaceType.getFields().values()));
+        }
+
+        // Directives
+        if (interfaceType.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : interfaceType.getDirectiveInstances()) {
+                interfaceTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
         }
 
         // Interfaces
@@ -449,6 +468,12 @@ public class Bootstrap {
         GraphQLInputObjectType.Builder inputObjectTypeBuilder = GraphQLInputObjectType.newInputObject()
                 .name(inputType.getName())
                 .description(inputType.getDescription());
+
+        // Directives
+        if (inputType.hasDirectiveInstances()) {
+            inputObjectTypeBuilder = inputObjectTypeBuilder
+                    .withDirectives(createGraphQLDirectives(inputType.getDirectiveInstances()));
+        }
 
         // Fields
         if (inputType.hasFields()) {
@@ -600,6 +625,11 @@ public class Bootstrap {
             fieldBuilder.argument(autoMapArgument.get());
         }
 
+        // Directives
+        if (operation.hasDirectiveInstances()) {
+            fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+        }
+
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
 
         // DataFetcher
@@ -609,6 +639,12 @@ public class Bootstrap {
                 datafetcher);
 
         return graphQLFieldDefinition;
+    }
+
+    private GraphQLDirective[] createGraphQLDirectives(Collection<DirectiveInstance> directiveInstances) {
+        return directiveInstances.stream()
+                .map(this::createGraphQLDirectiveFrom)
+                .toArray(GraphQLDirective[]::new);
     }
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(Reference owner, Collection<Field> fields) {

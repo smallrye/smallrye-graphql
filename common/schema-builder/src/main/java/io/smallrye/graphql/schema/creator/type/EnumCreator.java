@@ -11,9 +11,11 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Reference;
@@ -28,9 +30,14 @@ public class EnumCreator implements Creator<EnumType> {
     private static final Logger LOG = Logger.getLogger(EnumCreator.class.getName());
 
     private final TypeAutoNameStrategy autoNameStrategy;
+    private Directives directives;
 
     public EnumCreator(TypeAutoNameStrategy autoNameStrategy) {
         this.autoNameStrategy = autoNameStrategy;
+    }
+
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
     }
 
     @Override
@@ -51,6 +58,9 @@ public class EnumCreator implements Creator<EnumType> {
 
         EnumType enumType = new EnumType(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
+        // Directives
+        enumType.setDirectiveInstances(getDirectiveInstances(annotations));
+
         // Values
         List<FieldInfo> fields = classInfo.fields();
         for (FieldInfo field : fields) {
@@ -59,12 +69,16 @@ public class EnumCreator implements Creator<EnumType> {
                 if (!field.type().kind().equals(Type.Kind.ARRAY) && !IgnoreHelper.shouldIgnore(annotationsForField, field)) {
                     String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
                             .orElse(null);
-                    enumType.addValue(new EnumValue(description, field.name()));
+                    enumType.addValue(new EnumValue(description, field.name(), getDirectiveInstances(annotationsForField)));
                 }
             }
         }
 
         return enumType;
+    }
+
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
+        return directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null));
     }
 
 }

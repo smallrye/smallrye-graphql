@@ -1,5 +1,8 @@
 package io.smallrye.graphql.schema.model;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Represents one of an enum's values. Is part of {@link EnumType}.
  *
@@ -9,13 +12,15 @@ public final class EnumValue {
 
     private String description;
     private String value;
+    private List<DirectiveInstance> directiveInstances;
 
     public EnumValue() {
     }
 
-    public EnumValue(String description, String value) {
+    public EnumValue(String description, String value, List<DirectiveInstance> directiveInstances) {
         this.description = description;
         this.value = value;
+        this.directiveInstances = directiveInstances;
     }
 
     public String getDescription() {
@@ -36,6 +41,19 @@ public final class EnumValue {
 
     @Override
     public String toString() {
-        return "EnumValue{" + "description=" + description + ", value=" + value + '}';
+        return "EnumValue{" +
+                "description=" + description +
+                ", value=" + value +
+                ", directiveInstances=" + directiveInstances +
+                '}';
     }
+
+    public boolean hasDirectiveInstances() {
+        return directiveInstances != null && !directiveInstances.isEmpty();
+    }
+
+    public Collection<DirectiveInstance> getDirectiveInstances() {
+        return directiveInstances;
+    }
+
 }

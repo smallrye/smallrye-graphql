@@ -49,7 +49,15 @@ public interface EventingService {
     default void afterExecute(Context context) {
     }
 
+    /**
+     * @deprecated use {@code errorExecute(Context context, Throwable t)}
+     */
+    @Deprecated
     default void errorExecute(String executionId, Throwable t) {
+    }
+
+    default void errorExecute(Context context, Throwable t) {
+        errorExecute(context.getExecutionId(), t);
     }
 
     default void beforeDataFetch(Context context) {
@@ -61,6 +69,14 @@ public interface EventingService {
     default void afterDataFetch(Context context) {
     }
 
+    /**
+     * @deprecated use {@code errorDataFetch(Context context, Throwable t)}
+     */
+    @Deprecated
     default void errorDataFetch(String executionId, Throwable t) {
+    }
+
+    default void errorDataFetch(Context context, Throwable t) {
+        errorDataFetch(context.getExecutionId(), t);
     }
 }

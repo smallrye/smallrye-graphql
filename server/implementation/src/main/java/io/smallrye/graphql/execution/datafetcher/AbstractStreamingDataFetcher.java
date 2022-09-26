@@ -9,6 +9,7 @@ import org.eclipse.microprofile.graphql.GraphQLException;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
+import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -31,6 +32,7 @@ public abstract class AbstractStreamingDataFetcher<K, T> extends AbstractDataFet
     @Override
     @SuppressWarnings("unchecked")
     protected <O> O invokeAndTransform(
+            Context context,
             DataFetchingEnvironment dfe,
             DataFetcherResult.Builder<Object> resultBuilder,
             Object[] transformedArguments) throws Exception {
@@ -46,14 +48,14 @@ public abstract class AbstractStreamingDataFetcher<K, T> extends AbstractDataFet
                     } catch (AbstractDataFetcherException abstractDataFetcherException) {
                         //Arguments or result couldn't be transformed
                         abstractDataFetcherException.appendDataFetcherResult(resultBuilder, dfe);
-                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), abstractDataFetcherException);
+                        eventEmitter.fireOnDataFetchError(context, abstractDataFetcherException);
                         return (O) resultBuilder.build();
                     }
                 })
                 .onFailure().recoverWithItem(new Function<Throwable, O>() {
                     @Override
                     public O apply(Throwable throwable) {
-                        eventEmitter.fireOnDataFetchError(dfe.getExecutionId().toString(), throwable);
+                        eventEmitter.fireOnDataFetchError(context, throwable);
                         if (throwable instanceof GraphQLException) {
                             GraphQLException graphQLException = (GraphQLException) throwable;
                             errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
