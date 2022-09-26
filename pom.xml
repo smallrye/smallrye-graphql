@@ -33,6 +33,7 @@
         <version.jakarta-validation>2.0.2</version.jakarta-validation>
         <version.jakarta-annotation>1.3.5</version.jakarta-annotation>
         <version.graphql-java>19.2</version.graphql-java>
+        <version.graphql-java-federation>2.0.8</version.graphql-java-federation>
         <verison.io.micrometer>1.9.3</verison.io.micrometer>
         <version.vertx>4.3.3</version.vertx>
 
@@ -230,6 +231,11 @@
                 <groupId>com.graphql-java</groupId>
                 <artifactId>graphql-java</artifactId>
                 <version>${version.graphql-java}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.apollographql.federation</groupId>
+                <artifactId>federation-graphql-java-support</artifactId>
+                <version>${version.graphql-java-federation}</version>
             </dependency>
 
             <dependency>
