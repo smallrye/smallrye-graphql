@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import graphql.ExecutionResult;
@@ -12,12 +13,12 @@ import org.junit.jupiter.api.Test;
 class SmallRyeContextTest {
 
     @Test
-    void getAndSetExecutionResult() {
+    void unwrapExecutionResult() {
         SmallRyeContext context = new SmallRyeContext(SmallRyeContextManager.class.getName());
-        assertEquals(context.getExecutionResult(), Optional.empty());
+        assertNull(context.unwrap(ExecutionResult.class));
 
         ExecutionResult executionResult = mock(ExecutionResult.class);
         context.setExecutionResult(executionResult);
-        assertEquals(context.getExecutionResult(), Optional.of(executionResult));
+        assertEquals(context.unwrap(ExecutionResult.class), executionResult);
     }
 }

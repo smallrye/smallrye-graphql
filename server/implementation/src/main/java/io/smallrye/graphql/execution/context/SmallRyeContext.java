@@ -205,13 +205,6 @@ public class SmallRyeContext implements Context {
         this.executionResult = executionResult;
     }
 
-    public Optional<ExecutionResult> getExecutionResult() {
-        if (this.executionResult != null) {
-            return Optional.of(this.executionResult);
-        }
-        return Optional.empty();
-    }
-
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
         // We only support DataFetchingEnvironment, ExecutionInput and Document at this point
@@ -225,6 +218,12 @@ public class SmallRyeContext implements Context {
                 return (T) documentSupplier.get();
             }
             return null;
+        } else if (wrappedType.equals(ExecutionResult.class)) {
+            if (executionResult != null) {
+                return (T) executionResult;
+            } else {
+                return null;
+            }
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
