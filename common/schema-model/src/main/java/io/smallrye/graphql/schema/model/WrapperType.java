@@ -1,8 +1,8 @@
 package io.smallrye.graphql.schema.model;
 
 /**
- * Represent an wrapper type in the Schema.
- * 
+ * Represent a wrapper type in the Schema.
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public enum WrapperType {
@@ -10,5 +10,6 @@ public enum WrapperType {
     COLLECTION,
     MAP,
     ARRAY,
+    RESULT, // see GraphQLResult
     UNKNOWN // Could be a plugged in type, or normal generics
 }

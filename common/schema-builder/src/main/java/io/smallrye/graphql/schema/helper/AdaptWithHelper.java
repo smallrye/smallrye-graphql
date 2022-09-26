@@ -78,19 +78,19 @@ public class AdaptWithHelper {
                             Type from = arguments.get(0);
                             Type to = arguments.get(1);
                             adaptWith.setAdapterClass(type.name().toString());
-                            r.setWrapper(WrapperCreator.createWrapper(from).orElse(null));
+                            r.setWrapper(WrapperCreator.createWrapper(from, annotations).orElse(null));
                             adaptWith.setFromReference(r);
 
                             if (Scalars.isScalar(to.name().toString())) {
                                 adaptWith.setToReference(Scalars.getScalar(to.name().toString()));
                             } else {
-                                Annotations annotationsAplicableToMe = annotations.removeAnnotations(Annotations.ADAPT_WITH,
+                                Annotations annotationsApplicableToMe = annotations.removeAnnotations(Annotations.ADAPT_WITH,
                                         Annotations.JAKARTA_JSONB_TYPE_ADAPTER, Annotations.JAVAX_JSONB_TYPE_ADAPTER);
 
                                 // Remove the adaption annotation, as this is the type being adapted to
                                 Reference toRef = referenceCreator.createReferenceForAdapter(to,
-                                        annotationsAplicableToMe, direction);
-                                toRef.setWrapper(WrapperCreator.createWrapper(to).orElse(null));
+                                        annotationsApplicableToMe, direction);
+                                toRef.setWrapper(WrapperCreator.createWrapper(to, annotations).orElse(null));
 
                                 adaptWith.setToReference(toRef);
                             }

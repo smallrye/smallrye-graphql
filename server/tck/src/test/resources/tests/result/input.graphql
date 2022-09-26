@@ -1,0 +1,8 @@
+{
+  order(id: "1") {
+    order {
+      id
+      orderDate
+    }
+  }
+}

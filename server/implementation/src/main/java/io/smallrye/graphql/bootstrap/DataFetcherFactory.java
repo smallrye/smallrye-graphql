@@ -34,7 +34,7 @@ import io.smallrye.graphql.spi.DataFetcherService;
  */
 public class DataFetcherFactory {
 
-    private List<DataFetcherService> dataFetcherServices = new ArrayList<>();
+    private final List<DataFetcherService> dataFetcherServices = new ArrayList<>();
 
     public DataFetcherFactory() {
         Iterator<DataFetcherService> i = ServiceLoader.load(DataFetcherService.class).iterator();
@@ -76,6 +76,8 @@ public class DataFetcherFactory {
         } else if (isBatch) {
             return field.getWrapper().getWrapper();
         } else if (field.hasWrapper() && field.getWrapper().isCollectionOrArrayOrMap()) {
+            return field.getWrapper();
+        } else if (field.hasWrapper() && field.getWrapper().isResult()) {
             return field.getWrapper();
         } else if (field.hasWrapper()) {
             // TODO: Move Generics logic here ?

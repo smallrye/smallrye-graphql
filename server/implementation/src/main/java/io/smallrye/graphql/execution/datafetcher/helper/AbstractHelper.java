@@ -32,8 +32,8 @@ import io.smallrye.graphql.transformation.Transformer;
 public abstract class AbstractHelper {
 
     protected final ClassloadingService classloadingService = ClassloadingService.get();
-    protected final DefaultMapAdapter mapAdapter = new DefaultMapAdapter();
-    private final Map<String, Transformer> transformerMap = new HashMap<>();
+    protected final DefaultMapAdapter<?, ?> mapAdapter = new DefaultMapAdapter<>();
+    private final Map<String, Transformer<?, ?>> transformerMap = new HashMap<>();
     private final Map<Integer, ReflectionInvoker> invokerMap = new HashMap<>();
 
     protected AbstractHelper() {
@@ -142,6 +142,8 @@ public abstract class AbstractHelper {
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
             // Also handle optionals
             return recursiveTransformOptional(inputValue, field, dfe);
+        } else if (field.hasWrapper() && field.getWrapper().isResult()) {
+            return transformResult(inputValue, field);
         } else {
             // we need to transform before we make sure the type is correct
             inputValue = singleTransform(inputValue, field);
@@ -170,7 +172,7 @@ public abstract class AbstractHelper {
         } else if (Classes.isMap(inputValue) && shouldAdaptWithToMap(field)) {
             return singleAdapting(inputValue, field, dfe);
         } else if (shouldAdaptWithFromMap(field)) {
-            return singleAdapting(new HashSet((Collection) inputValue), field, dfe);
+            return singleAdapting(new HashSet<>((Collection<?>) inputValue), field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
             return recursiveAdaptCollection(inputValue, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
@@ -197,10 +199,10 @@ public abstract class AbstractHelper {
     private Object recursiveTransformArray(Object array, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
-            array = ((Collection) array).toArray();
+            array = ((Collection<?>) array).toArray();
         }
 
-        Class classInCollection = getArrayType(field);
+        Class<?> classInCollection = getArrayType(field);
 
         //Skip transform if not needed
         if (array.getClass().getComponentType().equals(classInCollection)) {
@@ -231,10 +233,10 @@ public abstract class AbstractHelper {
     private Object recursiveAdaptArray(Object array, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         if (Classes.isCollection(array)) {
-            array = ((Collection) array).toArray();
+            array = ((Collection<?>) array).toArray();
         }
 
-        Class classInCollection = getArrayType(field);
+        Class<?> classInCollection = getArrayType(field);
 
         //Skip mapping if not needed
         if (array.getClass().getComponentType().equals(classInCollection)) {
@@ -266,7 +268,7 @@ public abstract class AbstractHelper {
      */
     private Object recursiveTransformCollection(Object argumentValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
-        Collection givenCollection = getGivenCollection(argumentValue);
+        Collection<?> givenCollection = getGivenCollection(argumentValue);
 
         String collectionClassName = field.getWrapper().getWrapperClassName();
 
@@ -292,7 +294,7 @@ public abstract class AbstractHelper {
      */
     private Object recursiveAdaptCollection(Object argumentValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
-        Collection givenCollection = getGivenCollection(argumentValue);
+        Collection<?> givenCollection = getGivenCollection(argumentValue);
         String collectionClassName = field.getWrapper().getWrapperClassName();
         Collection convertedCollection = CollectionCreator.newCollection(collectionClassName, givenCollection.size());
 
@@ -317,14 +319,26 @@ public abstract class AbstractHelper {
     private Optional<Object> recursiveTransformOptional(Object argumentValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
-        if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
+        if (argumentValue == null || ((Optional<?>) argumentValue).isEmpty()) {
             return Optional.empty();
         } else {
-            Optional optional = (Optional) argumentValue;
+            Optional<?> optional = (Optional<?>) argumentValue;
             Object o = optional.get();
             Field f = getFieldInField(field);
             return Optional.of(recursiveTransform(o, f, dfe));
         }
+    }
+
+    /**
+     * Re-wrap the {@link io.smallrye.graphql.api.GraphQLResult result} in a one-element map.
+     * This is not yet specified by MicroProfile GraphQL.
+     *
+     * @param argumentValue the value as from graphql-java
+     * @param field the graphql-field
+     * @return a optional with the transformed value in.
+     */
+    private Map<String, Object> transformResult(Object argumentValue, Field field) {
+        return Map.of(field.getName(), argumentValue);
     }
 
     /**
@@ -337,10 +351,10 @@ public abstract class AbstractHelper {
     private Optional<Object> recursiveAdaptOptional(Object argumentValue, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         // Check the type and maybe apply transformation
-        if (argumentValue == null || !((Optional) argumentValue).isPresent()) {
+        if (argumentValue == null || !((Optional<?>) argumentValue).isPresent()) {
             return Optional.empty();
         } else {
-            Optional optional = (Optional) argumentValue;
+            Optional<?> optional = (Optional<?>) argumentValue;
             Object o = optional.get();
             Field f = getFieldInField(field);
             return Optional.of(recursiveAdapting(o, f, dfe));
@@ -350,15 +364,14 @@ public abstract class AbstractHelper {
 
     protected Class<?> getArrayType(Field field) {
         String classNameInCollection = field.getReference().getClassName();
-        Class classInCollection = classloadingService.loadClass(classNameInCollection);
-        return classInCollection;
+        return classloadingService.loadClass(classNameInCollection);
     }
 
-    protected Transformer getTransformer(Field field) {
+    protected Transformer<?, ?> getTransformer(Field field) {
         if (transformerMap.containsKey(field.getName())) {
             return transformerMap.get(field.getName());
         }
-        Transformer transformer = Transformer.transformer(field);
+        Transformer<?, ?> transformer = Transformer.transformer(field);
         transformerMap.put(field.getName(), transformer);
         return transformer;
     }
@@ -399,7 +412,7 @@ public abstract class AbstractHelper {
     }
 
     private Integer getKey(String className, String methodName, List<String> parameterClasses) {
-        return Objects.hash(className, methodName, parameterClasses.toArray());
+        return Objects.hash(className, methodName, Arrays.hashCode(parameterClasses.toArray()));
     }
 
     /**
@@ -430,7 +443,6 @@ public abstract class AbstractHelper {
         child.setDefaultValue(owner.getDefaultValue());
 
         // wrapper
-        Wrapper wrapper = owner.getWrapper();
         if (owner.hasWrapper()) {
             Wrapper ownerWrapper = owner.getWrapper();
             if (ownerWrapper.getWrapper() != null) {
@@ -443,9 +455,9 @@ public abstract class AbstractHelper {
 
     }
 
-    private <T> Collection getGivenCollection(Object argumentValue) {
+    private <T> Collection<?> getGivenCollection(Object argumentValue) {
         if (Classes.isCollection(argumentValue)) {
-            return (Collection) argumentValue;
+            return (Collection<?>) argumentValue;
         } else {
             return Arrays.asList((T[]) argumentValue);
         }

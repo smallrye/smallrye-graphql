@@ -46,6 +46,11 @@ public class ExecutionResponse {
         this.executionResult = executionResult;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + executionResult + "]";
+    }
+
     public ExecutionResult getExecutionResult() {
         return this.executionResult;
     }

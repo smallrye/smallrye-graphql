@@ -39,7 +39,7 @@ public class OperationCreator extends ModelCreator {
      *
      * @param methodInfo the java method
      * @param operationType the type of operation (Query / Mutation)
-     * @param type
+     * @param type the GraphQL type of the operation
      * @return a Operation that defines this GraphQL Operation
      */
     public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
@@ -84,9 +84,22 @@ public class OperationCreator extends ModelCreator {
             maybeArgument.ifPresent(operation::addArgument);
         }
 
+        // Declared Throwables
+        methodInfo.exceptions().stream().map(this::toError).forEach(operation::addDeclaredError);
+
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
         return operation;
+    }
+
+    private String toError(Type type) {
+        var name = type.name().toString();
+        name = name.substring(name.lastIndexOf('.') + 1);
+        name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+        if (name.endsWith("Exception")) {
+            name = name.substring(0, name.length() - 9);
+        }
+        return name;
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {

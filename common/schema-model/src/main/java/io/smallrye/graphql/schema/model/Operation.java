@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,6 +41,12 @@ public final class Operation extends Field {
      * And all Uni and CompletionStage will be non blocking by default, except if marked with @Blocking
      */
     private Execute execute;
+
+    /**
+     * The error codes that the method declares to throw.
+     * This is required to build the <code>error</code> fields for a <code>GraphQLResult</code>.
+     */
+    private List<String> declaredErrors;
 
     public Operation() {
     }
@@ -104,9 +111,20 @@ public final class Operation extends Field {
         this.execute = execute;
     }
 
+    public List<String> getDeclaredErrors() {
+        return declaredErrors;
+    }
+
+    public void addDeclaredError(String error) {
+        if (this.declaredErrors == null) {
+            this.declaredErrors = new ArrayList<>();
+        }
+        this.declaredErrors.add(error);
+    }
+
     @Override
     public String toString() {
         return "Operation{" + "className=" + className + ", arguments=" + arguments + ", operationType=" + operationType
-                + ", sourceFieldOn=" + sourceFieldOn + '}';
+                + ", sourceFieldOn=" + sourceFieldOn + ", declaredErrors=" + declaredErrors + '}';
     }
 }
