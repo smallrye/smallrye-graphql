@@ -185,14 +185,7 @@ public class ExecutionService {
 
                     SmallRyeContextManager.restore(smallRyeContext);
 
-                    // Notify after
-                    eventEmitter.fireAfterExecute(smallRyeContext);
-
-                    ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
-                    if (!payloadOption.equals(LogPayloadOption.off)) {
-                        log.payloadOut(executionResponse.toString());
-                    }
-                    writer.write(executionResponse);
+                    notifyAndWrite(smallRyeContext, executionResult, writer);
 
                 }, failure -> {
                     if (failure != null) {
@@ -207,18 +200,26 @@ public class ExecutionService {
             ExecutionResponseWriter writer) {
         try {
             ExecutionResult executionResult = g.execute(executionInput);
-            // Notify after
-            eventEmitter.fireAfterExecute(smallRyeContext);
-
-            ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
-            if (!payloadOption.equals(LogPayloadOption.off)) {
-                log.payloadOut(executionResponse.toString());
-            }
-
-            writer.write(executionResponse);
+            notifyAndWrite(smallRyeContext, executionResult, writer);
         } catch (Throwable t) {
             writer.fail(t);
         }
+    }
+
+    private void notifyAndWrite(SmallRyeContext smallRyeContext,
+            ExecutionResult executionResult,
+            ExecutionResponseWriter writer) {
+        smallRyeContext.setExecutionResult(executionResult);
+
+        // Notify after
+        eventEmitter.fireAfterExecute(smallRyeContext);
+
+        ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+        if (!payloadOption.equals(LogPayloadOption.off)) {
+            log.payloadOut(executionResponse.toString());
+        }
+
+        writer.write(executionResponse);
     }
 
     private <K, T> DataLoaderRegistry getDataLoaderRegistry(List<Operation> operations) {
