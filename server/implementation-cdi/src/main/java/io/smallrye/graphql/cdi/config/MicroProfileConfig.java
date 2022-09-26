@@ -137,7 +137,7 @@ public class MicroProfileConfig implements Config {
     @Override
     public boolean isFederationEnabled() {
         if (federationEnabled == null) {
-            federationEnabled = getBooleanConfigValue(ConfigKey.ENABLE_FEDERATION);
+            federationEnabled = getBooleanConfigValue(ConfigKey.ENABLE_FEDERATION, true);
         }
         return federationEnabled;
     }
