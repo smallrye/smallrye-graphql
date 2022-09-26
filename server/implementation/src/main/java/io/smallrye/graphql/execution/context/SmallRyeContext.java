@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import graphql.ExecutionResult;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 
@@ -40,6 +41,7 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
+    private ExecutionResult executionResult;
 
     public SmallRyeContext(String createdBy) {
         this.createdBy = createdBy;
@@ -197,6 +199,17 @@ public class SmallRyeContext implements Context {
 
     public void setDocumentSupplier(DocumentSupplier documentSupplier) {
         this.documentSupplier = documentSupplier;
+    }
+
+    public void setExecutionResult(ExecutionResult executionResult) {
+        this.executionResult = executionResult;
+    }
+
+    public Optional<ExecutionResult> getExecutionResult() {
+        if (this.executionResult != null) {
+            return Optional.of(this.executionResult);
+        }
+        return Optional.empty();
     }
 
     @Override
