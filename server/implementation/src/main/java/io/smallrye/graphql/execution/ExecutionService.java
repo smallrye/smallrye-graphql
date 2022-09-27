@@ -223,8 +223,7 @@ public class ExecutionService {
 
     private void notifyAndWrite(SmallRyeContext smallRyeContext,
             ExecutionResult executionResult,
-            ExecutionResponseWriter writer
-    ){
+            ExecutionResponseWriter writer) {
         smallRyeContext.setExecutionResult(executionResult);
 
         // Notify after
