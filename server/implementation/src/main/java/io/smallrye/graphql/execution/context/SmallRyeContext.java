@@ -10,6 +10,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 
 import graphql.ExecutionInput;
+import graphql.ExecutionResult;
 import graphql.language.Document;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Context;
@@ -40,6 +41,7 @@ public class SmallRyeContext implements Context {
     private ExecutionInput executionInput;
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
+    private ExecutionResult executionResult;
 
     public SmallRyeContext(String createdBy) {
         this.createdBy = createdBy;
@@ -199,6 +201,10 @@ public class SmallRyeContext implements Context {
         this.documentSupplier = documentSupplier;
     }
 
+    public void setExecutionResult(ExecutionResult executionResult) {
+        this.executionResult = executionResult;
+    }
+
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
         // We only support DataFetchingEnvironment, ExecutionInput and Document at this point
@@ -212,6 +218,12 @@ public class SmallRyeContext implements Context {
                 return (T) documentSupplier.get();
             }
             return null;
+        } else if (wrappedType.equals(ExecutionResult.class)) {
+            if (executionResult != null) {
+                return (T) executionResult;
+            } else {
+                return null;
+            }
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
