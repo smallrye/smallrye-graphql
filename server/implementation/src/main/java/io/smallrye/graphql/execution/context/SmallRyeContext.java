@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import graphql.ExecutionResult;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 
 import graphql.ExecutionInput;
+import graphql.ExecutionResult;
 import graphql.language.Document;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Context;

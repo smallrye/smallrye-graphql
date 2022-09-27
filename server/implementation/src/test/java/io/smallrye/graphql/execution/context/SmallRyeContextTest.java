@@ -4,11 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
-import graphql.ExecutionResult;
-
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
+
+import graphql.ExecutionResult;
 
 class SmallRyeContextTest {
 
