@@ -1,0 +1,11 @@
+{
+  "data": {
+    "_entities": [
+      {
+        "__typename": "Product",
+        "name": "Armchair",
+        "id": "1"
+      }
+    ]
+  }
+}
