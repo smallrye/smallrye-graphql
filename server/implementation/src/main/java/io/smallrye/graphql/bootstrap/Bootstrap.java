@@ -25,6 +25,10 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.bind.Jsonb;
 
+import org.eclipse.microprofile.graphql.Name;
+
+import com.apollographql.federation.graphqljava.Federation;
+
 import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
@@ -45,6 +49,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.GraphQLUnionType;
+import graphql.schema.TypeResolver;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
@@ -184,7 +189,32 @@ public class Bootstrap {
         Map<String, Jsonb> overrides = eventEmitter.fireOverrideJsonbConfig();
         JsonInputRegistry.override(overrides);
 
-        this.graphQLSchema = schemaBuilder.build();
+        if (Config.get().isFederationEnabled()) {
+            log.enableFederation();
+            GraphQLSchema rawSchema = schemaBuilder.build();
+            this.graphQLSchema = Federation.transform(rawSchema)
+                    .fetchEntities(new FederationDataFetcher(rawSchema.getQueryType(), rawSchema.getCodeRegistry()))
+                    .resolveEntityType(fetchEntityType())
+                    .build();
+        } else {
+            this.graphQLSchema = schemaBuilder.build();
+        }
+    }
+
+    private TypeResolver fetchEntityType() {
+        return env -> {
+            Object src = env.getObject();
+            if (src == null) {
+                return null;
+            }
+            Name annotation = src.getClass().getAnnotation(Name.class);
+            String typeName = (annotation == null) ? src.getClass().getSimpleName() : annotation.value();
+            GraphQLObjectType result = env.getSchema().getObjectType(typeName);
+            if (result == null) {
+                throw new RuntimeException("can't resolve federated entity type " + src.getClass().getName());
+            }
+            return result;
+        };
     }
 
     private void createGraphQLDirectiveTypes() {

@@ -15,6 +15,12 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
  */
 public class TestConfig implements Config {
 
+    public boolean federationEnabled;
+
+    public TestConfig() {
+        reset();
+    }
+
     @Override
     public boolean isPrintDataFetcherException() {
         return true;
@@ -23,6 +29,11 @@ public class TestConfig implements Config {
     @Override
     public boolean isEventsEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean isFederationEnabled() {
+        return federationEnabled;
     }
 
     @Override
@@ -54,5 +65,9 @@ public class TestConfig implements Config {
     @Override
     public String getName() {
         return "Test Config Service";
+    }
+
+    public void reset() {
+        this.federationEnabled = false;
     }
 }

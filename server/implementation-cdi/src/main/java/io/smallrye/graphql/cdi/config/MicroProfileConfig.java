@@ -11,7 +11,7 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Configuration for GraphQL
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class MicroProfileConfig implements Config {
@@ -26,6 +26,7 @@ public class MicroProfileConfig implements Config {
     private Boolean tracingEnabled;
     private Boolean validationEnabled;
     private Boolean eventsEnabled;
+    private Boolean federationEnabled;
     private Boolean includeScalarsInSchema;
     private Boolean includeDirectivesInSchema;
     private Boolean includeSchemaDefinitionInSchema;
@@ -131,6 +132,14 @@ public class MicroProfileConfig implements Config {
             eventsEnabled = getBooleanConfigValue(ConfigKey.ENABLE_EVENTS);
         }
         return eventsEnabled;
+    }
+
+    @Override
+    public boolean isFederationEnabled() {
+        if (federationEnabled == null) {
+            federationEnabled = getBooleanConfigValue(ConfigKey.ENABLE_FEDERATION, true);
+        }
+        return federationEnabled;
     }
 
     @Override

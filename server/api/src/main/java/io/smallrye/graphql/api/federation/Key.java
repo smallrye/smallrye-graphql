@@ -1,4 +1,4 @@
-package io.smallrye.graphql.federation.api;
+package io.smallrye.graphql.api.federation;
 
 import static io.smallrye.graphql.api.DirectiveLocation.INTERFACE;
 import static io.smallrye.graphql.api.DirectiveLocation.OBJECT;
