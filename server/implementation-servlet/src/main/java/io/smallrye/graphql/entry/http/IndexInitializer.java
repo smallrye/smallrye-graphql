@@ -28,6 +28,11 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
 import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.api.federation.Extends;
+import io.smallrye.graphql.api.federation.External;
+import io.smallrye.graphql.api.federation.Key;
+import io.smallrye.graphql.api.federation.Provides;
+import io.smallrye.graphql.api.federation.Requires;
 
 /**
  * This creates an index from the classpath.
@@ -73,6 +78,13 @@ public class IndexInitializer {
         try {
             indexer.index(convertClassToInputStream(Map.class));
             indexer.index(convertClassToInputStream(Entry.class));
+
+            // things from the API module
+            indexer.index(convertClassToInputStream(Extends.class));
+            indexer.index(convertClassToInputStream(External.class));
+            indexer.index(convertClassToInputStream(Key.class));
+            indexer.index(convertClassToInputStream(Provides.class));
+            indexer.index(convertClassToInputStream(Requires.class));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
