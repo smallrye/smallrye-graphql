@@ -1,0 +1,45 @@
+# idea
+**/.idea
+**/*.iml
+**/*.ipr
+**/*.iws
+out
+
+# netbeans
+nbactions.xml
+nb-configuration.xml
+catalog.xml
+
+# vim
+*.swp
+
+# temp files
+*~
+
+# java
+hs_err_pid*
+CosServices.cfg
+
+# maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+target
+**/target
+.mvn
+.cache
+
+# eclipse
+.project
+.settings
+.classpath
+.metadata
+
+# svn
+.svn
+
+# gradle
+.gradle
+**/gradle/wrapper
+build
