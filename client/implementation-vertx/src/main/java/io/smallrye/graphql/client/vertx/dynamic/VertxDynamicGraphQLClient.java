@@ -49,6 +49,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private final boolean executeSingleOperationsOverWebsocket;
     private final MultiMap headers;
+    private final Map<String, Object> initPayload;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
 
@@ -63,7 +64,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     VertxDynamicGraphQLClient(Vertx vertx, WebClient webClient,
             String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
-            MultiMap headers, WebClientOptions options,
+            MultiMap headers, Map<String, Object> initPayload, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
@@ -76,7 +77,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             this.webClient = webClient;
         }
         this.headers = headers;
-
+        this.initPayload = initPayload;
         if (url != null) {
             if (url.startsWith("stork")) {
                 this.url = new StorkServiceURLSupplier(URI.create(url), false);
@@ -309,7 +310,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                                         WebSocket webSocket = result.result();
                                         WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
                                                 .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                        subscriptionInitializationTimeout, () -> {
+                                                        subscriptionInitializationTimeout, initPayload, () -> {
                                                             // if the websocket disconnects, remove the handler so we can try
                                                             // connecting again with a new websocket and handler
                                                             webSocketHandler.set(null);
