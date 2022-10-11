@@ -33,12 +33,14 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private Boolean executeSingleOperationsOverWebsocket;
     private String configKey;
     private final MultiMap headersMap;
+    private final Map<String, Object> initPayload;
     private WebClientOptions options;
     private List<WebsocketSubprotocol> subprotocols;
     private Integer subscriptionInitializationTimeout;
 
     public VertxDynamicGraphQLClientBuilder() {
         headersMap = new HeadersMultiMap();
+        initPayload = new HashMap<>();
         headersMap.set("Content-Type", "application/json");
         subprotocols = new ArrayList<>();
     }
@@ -60,6 +62,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder headers(Map<String, String> headers) {
         headersMap.setAll(headers);
+        return this;
+    }
+
+    public VertxDynamicGraphQLClientBuilder initPayload(Map<String, Object> initPayload) {
+        this.initPayload.putAll(initPayload);
         return this;
     }
 
@@ -143,7 +150,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
             executeSingleOperationsOverWebsocket = false;
         }
         return new VertxDynamicGraphQLClient(toUseVertx, webClient, url, websocketUrl,
-                executeSingleOperationsOverWebsocket, headersMap, options, subprotocols,
+                executeSingleOperationsOverWebsocket, headersMap, initPayload, options, subprotocols,
                 subscriptionInitializationTimeout);
     }
 

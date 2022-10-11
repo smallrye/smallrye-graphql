@@ -38,6 +38,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private String websocketUrl;
     private Boolean executeSingleOperationsOverWebsocket;
     private Map<String, String> headers;
+    private Map<String, Object> initPayload;
     private List<WebsocketSubprotocol> subprotocols;
     private Vertx vertx;
     private HttpClientOptions options;
@@ -98,6 +99,14 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    public VertxTypesafeGraphQLClientBuilder initPayload(Map<String, Object> initPayload) {
+        if (this.initPayload == null) {
+            this.initPayload = new LinkedHashMap<>();
+        }
+        this.initPayload.putAll(initPayload);
+        return this;
+    }
+
     public VertxTypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
         this.subprotocols.addAll(Arrays.asList(subprotocols));
         return this;
@@ -134,7 +143,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (executeSingleOperationsOverWebsocket == null) {
             executeSingleOperationsOverWebsocket = false;
         }
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, endpoint,
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, initPayload,
+                endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
                 websocketInitializationTimeout);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },

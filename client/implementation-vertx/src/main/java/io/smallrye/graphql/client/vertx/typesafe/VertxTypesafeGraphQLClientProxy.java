@@ -63,6 +63,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
 
     private final Map<String, String> additionalHeaders;
+    private final Map<String, Object> initPayload;
     private final ServiceURLSupplier endpoint;
     private final ServiceURLSupplier websocketUrl;
     private final HttpClient httpClient;
@@ -84,6 +85,7 @@ class VertxTypesafeGraphQLClientProxy {
     VertxTypesafeGraphQLClientProxy(
             Class<?> api,
             Map<String, String> additionalHeaders,
+            Map<String, Object> initPayload,
             URI endpoint,
             String websocketUrl,
             boolean executeSingleOperationsOverWebsocket,
@@ -93,6 +95,7 @@ class VertxTypesafeGraphQLClientProxy {
             Integer subscriptionInitializationTimeout) {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
+        this.initPayload = initPayload;
         if (endpoint != null) {
             if (endpoint.getScheme().startsWith("stork")) {
                 this.endpoint = new StorkServiceURLSupplier(endpoint, false);
@@ -230,7 +233,7 @@ class VertxTypesafeGraphQLClientProxy {
                                         WebSocket webSocket = result.result();
                                         WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
                                                 .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                        subscriptionInitializationTimeout, () -> {
+                                                        subscriptionInitializationTimeout, initPayload, () -> {
                                                             webSocketHandler.set(null);
                                                         });
                                         handlerEmitter.complete(handler);

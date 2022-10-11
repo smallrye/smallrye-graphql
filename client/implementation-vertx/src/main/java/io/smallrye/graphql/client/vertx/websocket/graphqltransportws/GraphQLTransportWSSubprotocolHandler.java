@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.vertx.websocket.graphqltransportws;
 
 import java.io.StringReader;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -53,9 +54,12 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     private final Runnable onClose;
 
     private final OperationIDGenerator operationIdGenerator;
+    private final Map<String, Object> initPayload;
 
     public GraphQLTransportWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout,
-            Runnable onClose) {
+            Map<String, Object> initPayload, Runnable onClose) {
+        this.initPayload = new LinkedHashMap<>();
+        this.initPayload.putAll(initPayload);
         this.webSocket = webSocket;
         this.connectionInitializationTimeout = subscriptionInitializationTimeout;
         this.uniOperations = new ConcurrentHashMap<>();
@@ -75,7 +79,12 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
             if (log.isTraceEnabled()) {
                 log.trace("Initializing websocket with graphql-transport-ws protocol");
             }
-            connectionInitMessage = Json.createObjectBuilder().add("type", "connection_init").build();
+
+            JsonObjectBuilder payloadBuilder = Json.createObjectBuilder();
+            if (!initPayload.isEmpty()) {
+                payloadBuilder.add("payload", Json.createObjectBuilder(initPayload));
+            }
+            connectionInitMessage = Json.createObjectBuilder().add("type", "connection_init").addAll(payloadBuilder).build();
             pongMessage = Json.createObjectBuilder().add("type", "pong")
                     .add("payload", Json.createObjectBuilder().add("message", "keepalive")).build();
 

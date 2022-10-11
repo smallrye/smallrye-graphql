@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.vertx.test;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -31,6 +32,7 @@ public class SubscriptionInitializationTimeoutTest {
         try {
             DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                     .subprotocols(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS)
+                    .initPayload(Map.of("token", "secret"))
                     .websocketInitializationTimeout(100)
                     .url("http://localhost:" + server.actualPort())
                     .build();
