@@ -24,6 +24,11 @@ public class GraphQLClientConfiguration {
     private Map<String, String> headers;
 
     /**
+     * Additional payload sent on subscription initialization.
+     */
+    private Map<String, Object> initPayload;
+
+    /**
      * Names of websocket subprotocols that this client will understand. The actual subprotocol to be used
      * will be subject to negotiation with the server.
      */
@@ -117,6 +122,14 @@ public class GraphQLClientConfiguration {
 
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
+    }
+
+    public Map<String, Object> getInitPayload() {
+        return initPayload;
+    }
+
+    public void setInitPayload(Map<String, Object> initPayload) {
+        this.initPayload = initPayload;
     }
 
     public List<String> getWebsocketSubprotocols() {
