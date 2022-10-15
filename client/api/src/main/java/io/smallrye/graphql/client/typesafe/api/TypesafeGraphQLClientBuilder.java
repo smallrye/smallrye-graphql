@@ -74,6 +74,11 @@ public interface TypesafeGraphQLClientBuilder {
      */
     TypesafeGraphQLClientBuilder header(String name, String value);
 
+    /**
+     * Static payload to send with initialization method on subscription.
+     */
+    TypesafeGraphQLClientBuilder initPayload(Map<String, Object> initPayload);
+
     TypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols);
 
     /**
