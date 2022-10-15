@@ -22,3 +22,4 @@ See [Quarkus Documentation](https://quarkus.io/guides/all-config#quarkus-smallry
 | `CLIENT_NAME/mp-graphql/maxRedirects` | 16  | Max number of redirects to follow. Set to 0 to disable redirects. |
 | `CLIENT_NAME/mp-graphql/websocketInitializationTimeout` | none  |  Maximum time in milliseconds that will be allowed to wait for the server to acknowledge a websocket connection. |
 | `CLIENT_NAME/mp-graphql/runSingleOperationsOverWebsocket` | `false`  |  If true, then queries and mutations will run over the websocket transport rather than pure HTTP. Off by default, because it has higher overhead. |
+| `CLIENT_NAME/mp-graphql/initPayload/KEY` | none  | Adds a property named `KEY` to the connect_init message payload when negotiating a subscription. All values will be treated as string. For other types instatiate the API with the builder. |
