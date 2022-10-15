@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.vertx.websocket.graphqlws;
 
 import java.io.StringReader;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,8 +48,12 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     private final Runnable onClose;
 
     private final OperationIDGenerator operationIdGenerator;
+    private final Map<String, Object> initPayload;
 
-    public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout, Runnable onClose) {
+    public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout,
+            Map<String, Object> initPayload, Runnable onClose) {
+        this.initPayload = new HashMap<>();
+        this.initPayload.putAll(initPayload);
         this.webSocket = webSocket;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
         this.uniOperations = new ConcurrentHashMap<>();
@@ -212,8 +217,13 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     }
 
     private JsonObject createConnectionInitMessage() {
+        JsonObjectBuilder payloadBuilder = Json.createObjectBuilder();
+        if (!initPayload.isEmpty()) {
+            payloadBuilder.add("payload", Json.createObjectBuilder(initPayload));
+        }
         return Json.createObjectBuilder()
                 .add("type", "connection_init")
+                .addAll(payloadBuilder)
                 .build();
     }
 
