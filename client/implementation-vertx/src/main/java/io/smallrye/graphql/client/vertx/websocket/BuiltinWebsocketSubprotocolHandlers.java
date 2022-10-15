@@ -12,7 +12,7 @@ public class BuiltinWebsocketSubprotocolHandlers {
             Integer subscriptionInitializationTimeout, Map<String, Object> initPayload, Runnable onClose) {
         switch (protocolName) {
             case "graphql-ws":
-                return new GraphQLWSSubprotocolHandler(webSocket, subscriptionInitializationTimeout, onClose);
+                return new GraphQLWSSubprotocolHandler(webSocket, subscriptionInitializationTimeout, initPayload, onClose);
             case "graphql-transport-ws":
                 return new GraphQLTransportWSSubprotocolHandler(webSocket, subscriptionInitializationTimeout, initPayload,
                         onClose);

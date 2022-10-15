@@ -76,6 +76,7 @@ public class GraphQLClientsConfiguration {
         // HTTP headers
         configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
 
+        configuration.setInitPayload(getConfiguredInitPayload(clientName, mpConfig));
         // websocket subprotocols
         Optional<String[]> subprotocolList = mpConfig.getOptionalValue(clientName + "/mp-graphql/subprotocols",
                 String[].class);
@@ -162,9 +163,21 @@ public class GraphQLClientsConfiguration {
 
     /** All headers that where configured via MP Config, e.g. <code>xxx/mp-graphql/header/yyy = zzz</code> */
     public static Map<String, String> getConfiguredHeaders(String configKey, Config config) {
+        String prefix = configKey + "/mp-graphql/header/";
+        return extractMapOfString(config, prefix);
+    }
+
+    /** All headers that where configured via MP Config, e.g. <code>xxx/mp-graphql/initPayload/yyy = zzz</code> */
+    public static Map<String, Object> getConfiguredInitPayload(String configKey, Config config) {
+        Map<String, Object> map = new HashMap<>();
+        String prefix = configKey + "/mp-graphql/initPayload/";
+        map.putAll(extractMapOfString(config, prefix));
+        return map;
+    }
+
+    private static Map<String, String> extractMapOfString(Config config, String prefix) {
         Map<String, String> map = new HashMap<>();
         for (String propertyName : config.getPropertyNames()) {
-            String prefix = configKey + "/mp-graphql/header/";
             if (!propertyName.startsWith(prefix)) {
                 continue;
             }
