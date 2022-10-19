@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -116,7 +117,7 @@ public class SchemaBuilder {
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
-            List<MethodInfo> methods = apiClass.methods();
+            List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
             Optional<Group> group = GroupHelper.getGroup(graphQLApiAnnotation);
             addOperations(group, schema, methods);
         }
@@ -137,6 +138,22 @@ public class SchemaBuilder {
         referenceCreator.clear();
 
         return schema;
+    }
+
+    private List<MethodInfo> getAllMethodsIncludingFromSuperClasses(ClassInfo classInfo) {
+        ClassInfo current = classInfo;
+        IndexView index = ScanningContext.getIndex();
+        List<MethodInfo> methods = new ArrayList<>();
+        while (current != null) {
+            methods.addAll(current.methods());
+            DotName superName = classInfo.superName();
+            if (superName != null) {
+                current = index.getClassByName(current.superName());
+            } else {
+                current = null;
+            }
+        }
+        return methods;
     }
 
     private void addDirectiveTypes(Schema schema) {
