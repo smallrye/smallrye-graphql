@@ -170,6 +170,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 this.headersMap.set(k, v);
             }
         });
+        configuration.getInitPayload().forEach((k, v) -> {
+            if (!this.initPayload.containsKey(k)) {
+                this.initPayload.put(k, v);
+            }
+        });
         if (configuration.getWebsocketSubprotocols() != null) {
             configuration.getWebsocketSubprotocols().forEach(protocol -> {
                 try {
