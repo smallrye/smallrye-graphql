@@ -53,7 +53,9 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     public GraphQLWSSubprotocolHandler(WebSocket webSocket, Integer subscriptionInitializationTimeout,
             Map<String, Object> initPayload, Runnable onClose) {
         this.initPayload = new HashMap<>();
-        this.initPayload.putAll(initPayload);
+        if (initPayload != null) {
+            this.initPayload.putAll(initPayload);
+        }
         this.webSocket = webSocket;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
         this.uniOperations = new ConcurrentHashMap<>();
