@@ -223,6 +223,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
         }
+        if (this.initPayload == null && configuration.getInitPayload() != null) {
+            this.initPayload = configuration.getInitPayload();
+        }
         if (this.websocketInitializationTimeout == null && configuration.getWebsocketInitializationTimeout() != null) {
             this.websocketInitializationTimeout = configuration.getWebsocketInitializationTimeout();
         }
