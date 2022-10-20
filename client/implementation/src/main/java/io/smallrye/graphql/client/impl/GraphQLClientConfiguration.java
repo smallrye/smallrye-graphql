@@ -260,6 +260,11 @@ public class GraphQLClientConfiguration {
         } else if (other.headers != null) {
             other.headers.forEach((key, value) -> this.headers.put(key, value));
         }
+        if (this.initPayload == null) {
+            this.initPayload = other.initPayload;
+        } else if (other.initPayload != null) {
+            other.initPayload.forEach((key, value) -> this.initPayload.put(key, value));
+        }
         if (this.websocketSubprotocols == null) {
             this.websocketSubprotocols = other.websocketSubprotocols;
         } else if (other.websocketSubprotocols != null) {
