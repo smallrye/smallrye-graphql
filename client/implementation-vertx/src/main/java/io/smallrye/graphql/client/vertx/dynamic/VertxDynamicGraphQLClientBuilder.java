@@ -11,8 +11,8 @@ import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
+import io.smallrye.graphql.client.vertx.VertxManager;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
-import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
@@ -128,18 +128,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
                 throw ErrorMessageProvider.get().urlMissingErrorForNamedClient(configKey);
             }
         }
-        Vertx toUseVertx;
-        if (vertx != null) {
-            toUseVertx = vertx;
-        } else {
-            Context vertxContext = Vertx.currentContext();
-            if (vertxContext != null && vertxContext.owner() != null) {
-                toUseVertx = vertxContext.owner();
-            } else {
-                // create a new vertx instance if there is none
-                toUseVertx = Vertx.vertx();
-            }
-        }
+        Vertx toUseVertx = vertx != null ? vertx : VertxManager.get();
         if (subprotocols == null || subprotocols.isEmpty()) {
             subprotocols = new ArrayList<>(EnumSet.of(WebsocketSubprotocol.GRAPHQL_TRANSPORT_WS));
         }
