@@ -20,8 +20,8 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
+import io.smallrye.graphql.client.vertx.VertxManager;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -29,7 +29,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
 public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientBuilder {
-    private static Vertx VERTX;
 
     private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientBuilder.class);
 
@@ -178,19 +177,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     private Vertx vertx() {
-        if (vertx == null) {
-            Context vertxContext = Vertx.currentContext();
-            if (vertxContext != null && vertxContext.owner() != null) {
-                vertx = vertxContext.owner();
-            } else {
-                // create a new vertx instance if there is none
-                if (VERTX == null) {
-                    VERTX = Vertx.vertx();
-                }
-                vertx = VERTX;
-            }
-        }
-        return vertx;
+        return vertx != null ? vertx : VertxManager.get();
     }
 
     private Object invoke(VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
