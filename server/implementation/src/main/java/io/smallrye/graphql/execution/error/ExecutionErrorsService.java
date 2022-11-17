@@ -4,7 +4,6 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ServiceLoader;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -22,7 +21,6 @@ import jakarta.json.bind.JsonbConfig;
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
-import io.smallrye.graphql.api.ErrorExtensionProvider;
 import io.smallrye.graphql.spi.config.Config;
 
 /**
@@ -37,6 +35,7 @@ public class ExecutionErrorsService {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
+    private static final ErrorExtensionProviders ERROR_EXTENSION_PROVIDERS = new ErrorExtensionProviders();
 
     private final Config config = Config.get();
 
@@ -100,7 +99,7 @@ public class ExecutionErrorsService {
     }
 
     private void addErrorExtensions(JsonObjectBuilder objectBuilder, Throwable exception) {
-        ServiceLoader.load(ErrorExtensionProvider.class)
+        ERROR_EXTENSION_PROVIDERS.get()
                 .forEach(provider -> addKeyValue(objectBuilder, provider.getKey(), provider.mapValueFrom(exception)));
     }
 
