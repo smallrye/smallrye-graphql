@@ -35,7 +35,8 @@ public class ExecutionErrorsService {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
-    private static final ErrorExtensionProviders ERROR_EXTENSION_PROVIDERS = new ErrorExtensionProviders();
+
+    private final ErrorExtensionProviders errorExtensionProviders = new ErrorExtensionProviders();
 
     private final Config config = Config.get();
 
@@ -99,7 +100,7 @@ public class ExecutionErrorsService {
     }
 
     private void addErrorExtensions(JsonObjectBuilder objectBuilder, Throwable exception) {
-        ERROR_EXTENSION_PROVIDERS.get()
+        errorExtensionProviders.get()
                 .forEach(provider -> addKeyValue(objectBuilder, provider.getKey(), provider.mapValueFrom(exception)));
     }
 
