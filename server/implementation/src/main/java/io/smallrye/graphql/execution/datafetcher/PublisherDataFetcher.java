@@ -8,6 +8,7 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Multi;
+import mutiny.zero.flow.adapters.AdaptersToFlow;
 
 /**
  * Handle Stream calls with Publisher
@@ -26,12 +27,12 @@ public class PublisherDataFetcher<K, T> extends AbstractStreamingDataFetcher<K, 
     protected Multi<?> handleUserMethodCall(DataFetchingEnvironment dfe, final Object[] transformedArguments)
             throws Exception {
         Publisher<?> publisher = operationInvoker.invoke(transformedArguments);
-        return (Multi<?>) Multi.createFrom().publisher(publisher);
+        return (Multi<?>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
     }
 
     @Override
     protected Multi<List<T>> handleUserBatchLoad(DataFetchingEnvironment dfe, final Object[] arguments) throws Exception {
         Publisher<List<T>> publisher = operationInvoker.invoke(arguments);
-        return (Multi<List<T>>) Multi.createFrom().publisher(publisher);
+        return (Multi<List<T>>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
     }
 }
