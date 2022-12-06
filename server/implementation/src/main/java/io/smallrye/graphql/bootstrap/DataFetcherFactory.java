@@ -88,10 +88,10 @@ public class DataFetcherFactory {
             return (V) getCompletionStageDataFetcher(operation, type);
         } else if (isMutinyUni(operation)) {
             return (V) getUniDataFetcher(operation, type);
-        } else if (isPublisher(operation)) {
-            return (V) getPublisherDataFetcher(operation, type);
         } else if (isMutinyMulti(operation)) {
             return (V) getMultiDataFetcher(operation, type);
+        } else if (isPublisher(operation)) {
+            return (V) getPublisherDataFetcher(operation, type);
         } else if (isWrapped(operation)) {
             return (V) getOtherWrappedDataFetcher(operation, type);
         }

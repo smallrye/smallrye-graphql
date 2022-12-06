@@ -23,6 +23,7 @@ import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.graphql.spi.ManagedInstance;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import mutiny.zero.flow.adapters.AdaptersToReactiveStreams;
 
 /**
  * Invoke methods using reflection
@@ -95,9 +96,11 @@ public class ReflectionInvoker {
                     operationInstance.destroyIfNecessary();
                 });
             } else if (result instanceof Multi) {
-                return (T) ((Multi) result).onTermination().invoke(() -> {
+                Multi multi = (Multi) result;
+                multi = multi.onTermination().invoke(() -> {
                     operationInstance.destroyIfNecessary();
                 });
+                return (T) AdaptersToReactiveStreams.publisher(multi);
             } else {
                 operationInstance.destroyIfNecessary();
                 return result;
