@@ -9,6 +9,7 @@ import org.reactivestreams.Publisher;
 
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.mutiny.Multi;
+import mutiny.zero.flow.adapters.AdaptersToFlow;
 
 @GraphQLApi
 public class StocksApi {
@@ -29,7 +30,7 @@ public class StocksApi {
     @Subscription
     @Description("Get stock quote changes as they happen using Mutiny")
     public Multi<Stock> getStockQuoteMulti(String stockCode) {
-        return Multi.createFrom().publisher(getStockQuotePublisher(stockCode));
+        return Multi.createFrom().publisher(AdaptersToFlow.publisher(getStockQuotePublisher(stockCode)));
     }
 
     @Subscription("listSubscription")
