@@ -33,6 +33,7 @@ jobs:
         with:
           java-version: ${{matrix.java}}
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Install graphviz
         run: sudo apt install graphviz
@@ -58,19 +59,12 @@ jobs:
           ref: main
           path: wildfly-graphql-feature-pack
 
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - uses: actions/setup-java@v3.0.0
         name: set up jdk ${{matrix.java}}
         with:
           java-version: ${{matrix.java}}
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: build with maven
         run: mvn -B install -DskipTests --file pom.xml
@@ -104,19 +98,12 @@ jobs:
           ref: jakarta-rewrite
           path: quarkus
 
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - uses: actions/setup-java@v3.0.0
         name: set up jdk ${{matrix.java}}
         with:
           java-version: ${{matrix.java}}
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: build with maven
         run: mvn -B install -DskipTests --file smallrye-graphql/pom.xml
@@ -145,6 +132,7 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: sonar
         env:
