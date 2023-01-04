@@ -1,0 +1,4 @@
+= GraphQL Client Plugin
+
+IntelliJ Plugin to auto-complete MicroProfile GraphQL Typesafe Client API interfaces and types/inputs
+from the `schema.graphql` file in your project directory.

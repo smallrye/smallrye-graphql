@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-graphql-tools-parent</artifactId>
+        <version>2.0.1-SNAPSHOT</version>
+    </parent>
+
+    <!-- use a versioning separate from the smallrye project, as the plugin doesn't depend on it -->
+    <version>1.0-SNAPSHOT</version>
+    <artifactId>smallrye-graphql-intellij-plugin</artifactId>
+    <name>SmallRye: GraphQL Tools :: Gradle</name>
+    <description>An IntelliJ plugin to auto-complete MicroProfile GraphQL Typesafe Client API interfaces and types/inputs
+        from a `schema.graphql` file in your project directory.</description>
+    <!-- NOTE: this is just a wrapper to start the gradle build from maven -->
+    <packaging>pom</packaging>
+
+    <properties>
+        <gradle.executable>./gradlew</gradle.executable>
+        <!-- don't let maven compile the classes: -->
+        <maven.main.skip>true</maven.main.skip>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>gradle</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <executable>${gradle.executable}</executable>
+                            <arguments>
+                                <argument>clean</argument>
+                                <argument>runPluginVerifier</argument>
+                                <argument>-Dgraphql-java.version=${version.graphql-java}</argument>
+                                <argument>-Pdescription=${project.description}</argument>
+                                <argument>-Pversion=${project.version}</argument>
+                                <argument>-S</argument>
+                                <argument>--stacktrace</argument>
+                            </arguments>
+                            <environmentVariables>
+                                <MAVEN_LOCAL_REPO>${settings.localRepository}</MAVEN_LOCAL_REPO>
+                                <!--suppress MavenModelInspection -->
+                                <GRADLE_OPTS>${env.MAVEN_OPTS}</GRADLE_OPTS>
+                            </environmentVariables>
+                            <skip>${skip.gradle.build}</skip>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-artifacts</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>build/distributions/graphql-client-plugin-${project.version}.zip</file>
+                                    <type>zip</type>
+                                </artifact>
+                            </artifacts>
+                            <skipAttach>${skip.gradle.build}</skipAttach>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Do not deploy this project-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <gradle.executable>gradlew.bat</gradle.executable>
+            </properties>
+        </profile>
+        <profile>
+            <id>skipTests</id>
+            <activation>
+                <property>
+                    <name>skipTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <gradle.task>assemble</gradle.task>
+            </properties>
+        </profile>
+        <profile>
+            <id>maven.test.skip</id>
+            <activation>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <gradle.task>assemble</gradle.task>
+            </properties>
+        </profile>
+        <profile>
+            <id>release</id>
+            <properties>
+                <skip.gradle.build>true</skip.gradle.build>
+            </properties>
+        </profile>
+    </profiles>
+</project>

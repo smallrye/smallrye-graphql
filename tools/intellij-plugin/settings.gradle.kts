@@ -1,0 +1,1 @@
+rootProject.name = "graphql-client-plugin"
