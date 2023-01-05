@@ -161,7 +161,10 @@ class SchemaTest {
         assertEquals("key", keyDirective.getName());
         assertTrue(keyDirective.isRepeatable());
         assertEquals(
-                "The @key directive is used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.",
+                "Designates an object type as an entity and specifies its key fields " +
+                        "(a set of fields that the subgraph can use to uniquely identify any instance " +
+                        "of the entity). You can apply multiple @key directives to a single entity " +
+                        "(to specify multiple valid sets of key fields).",
                 keyDirective.getDescription());
         assertEquals(EnumSet.of(OBJECT, INTERFACE), keyDirective.validLocations());
         assertEquals(1, keyDirective.getArguments().size());

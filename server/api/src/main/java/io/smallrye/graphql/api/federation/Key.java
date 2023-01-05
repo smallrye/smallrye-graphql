@@ -19,24 +19,25 @@ import io.smallrye.graphql.api.federation.Key.Keys;
  *
  * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#key">federation spec</a>
  */
-@Directive(on = {OBJECT, INTERFACE})
+@Directive(on = { OBJECT, INTERFACE })
 @Description("Designates an object type as an entity and specifies its key fields (a set of fields that the subgraph " +
-             "can use to uniquely identify any instance of the entity). You can apply multiple @key directives to " +
-             "a single entity (to specify multiple valid sets of key fields).")
+        "can use to uniquely identify any instance of the entity). You can apply multiple @key directives to " +
+        "a single entity (to specify multiple valid sets of key fields).")
 @Retention(RUNTIME)
 @Repeatable(Keys.class)
 @Experimental("SmallRye GraphQL Federation is still subject to change.")
 public @interface Key {
     @NonNull
     @Description("A GraphQL selection set (provided as a string) of fields and subfields that contribute " +
-                 "to the entity's primary key.\n" +
-                 "Examples:\n" +
-                 "\"id\"\n" +
-                 "\"username region\"\n" +
-                 "\"name organization { id }\"")
+            "to the entity's primary key.\n" +
+            "Examples:\n" +
+            "\"id\"\n" +
+            "\"username region\"\n" +
+            "\"name organization { id }\"")
     String fields();
 
-    @Retention(RUNTIME) @interface Keys {
+    @Retention(RUNTIME)
+    @interface Keys {
         Key[] value();
     }
 }

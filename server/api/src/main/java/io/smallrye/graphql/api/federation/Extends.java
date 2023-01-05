@@ -14,11 +14,12 @@ import io.smallrye.graphql.api.Directive;
 /**
  * <b><code>directive @extends on OBJECT | INTERFACE</code></b>
  *
- * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#extends">federation spec</a>
+ * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#extends">federation
+ *      spec</a>
  */
 @Directive(on = { OBJECT, INTERFACE })
 @Description("Indicates that an object or interface definition is an extension of another definition of that same type.\n" +
-             "If your subgraph library supports GraphQL's built-in extend keyword, do not use this directive! Instead, use extend.")
+        "If your subgraph library supports GraphQL's built-in extend keyword, do not use this directive! Instead, use extend.")
 @Retention(RUNTIME)
 @Experimental("SmallRye GraphQL Federation is still subject to change. " +
         "Additionally, this annotation is currently only a directive without explicit support from the extension.")

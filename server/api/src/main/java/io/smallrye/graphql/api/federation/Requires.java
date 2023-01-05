@@ -14,12 +14,13 @@ import io.smallrye.graphql.api.Directive;
 /**
  * <b><code>directive @requires(fields: FieldSet!) on FIELD_DEFINITION</code></b>
  *
- * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#requires">federation spec</a>
+ * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#requires">federation
+ *      spec</a>
  */
 @Directive(on = FIELD_DEFINITION)
 @Description("Indicates that the resolver for a particular entity field depends on the values of other entity fields " +
-             "that are resolved by other subgraphs. This tells the graph router that it needs to fetch the values " +
-             "of those externally defined fields first, even if the original client query didn't request them.")
+        "that are resolved by other subgraphs. This tells the graph router that it needs to fetch the values " +
+        "of those externally defined fields first, even if the original client query didn't request them.")
 @Retention(RUNTIME)
 @Experimental("SmallRye GraphQL Federation is still subject to change. " +
         "Additionally, this annotation is currently only a directive without explicit support from the extension.")
