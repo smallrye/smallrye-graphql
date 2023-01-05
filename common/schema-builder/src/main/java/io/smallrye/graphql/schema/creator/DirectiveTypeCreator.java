@@ -34,7 +34,8 @@ public class DirectiveTypeCreator extends ModelCreator {
         directiveType.setClassName(classInfo.name().toString());
         directiveType.setName(toDirectiveName(classInfo, annotations));
         directiveType.setDescription(DescriptionHelper.getDescriptionForType(annotations).orElse(null));
-        directiveType.setLocations(getLocations(classInfo.classAnnotation(DIRECTIVE)));
+        directiveType.setLocations(getLocations(classInfo.declaredAnnotation(DIRECTIVE)));
+        directiveType.setRepeatable(classInfo.hasAnnotation(Annotations.REPEATABLE));
 
         for (MethodInfo method : classInfo.methods()) {
             DirectiveArgument argument = new DirectiveArgument();

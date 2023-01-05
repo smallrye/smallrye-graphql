@@ -1,23 +1,35 @@
 package io.smallrye.graphql.api.federation;
 
-import static io.smallrye.graphql.api.DirectiveLocation.FIELD_DEFINITION;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-
+import io.smallrye.common.annotation.Experimental;
+import io.smallrye.graphql.api.Directive;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.NonNull;
 
-import io.smallrye.common.annotation.Experimental;
-import io.smallrye.graphql.api.Directive;
+import java.lang.annotation.Retention;
 
-/** <b><code>directive @provides(fields: _FieldSet!) on FIELD_DEFINITION</code></b> */
+import static io.smallrye.graphql.api.DirectiveLocation.FIELD_DEFINITION;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * <b><code>directive @provides(fields: FieldSet!) on FIELD_DEFINITION</code></b>
+ *
+ * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#provides">federation spec</a>
+ */
 @Directive(on = FIELD_DEFINITION)
-@Description("When resolving the annotated field, this service can provide additional, normally `@external` fields.")
+@Description("Specifies a set of entity fields that a subgraph can resolve, but only at a particular schema path " +
+             "(at other paths, the subgraph can't resolve those fields).\n" +
+             "If a subgraph can always resolve a particular entity field, do not apply this directive.\n" +
+             "Using this directive is always an optional optimization. It can reduce the total number of subgraphs " +
+             "that your graph router needs to communicate with to resolve certain operations, which can improve performance.")
 @Retention(RUNTIME)
-@Experimental("SmallRye GraphQL Federation is still subject to change. " +
-        "Additionally, this annotation is currently only a directive without explicit support from the extension.")
+@Experimental("SmallRye GraphQL Federation is still subject to change.")
 public @interface Provides {
     @NonNull
-    String[] fields();
+    @Description("A GraphQL selection set (provided as a string) of object fields and subfields that the subgraph " +
+                 "can resolve only at this query path.\n" +
+                 "Examples:\n" +
+                 "\"name\"\n" +
+                 "\"name address\"\n" +
+                 "\"... on Person { name address }\" (valid for fields that return a union or interface)")
+    String fields();
 }
