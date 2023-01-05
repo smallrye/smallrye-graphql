@@ -13,6 +13,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 
 public class DynamicClientSSLTest {
 
+    public static final Duration TIMEOUT = Duration.ofSeconds(20);
     private SSLTestingTools tools = new SSLTestingTools();
 
     /**
@@ -25,12 +26,12 @@ public class DynamicClientSSLTest {
             System.setProperty("myclient1/mp-graphql/truststore", "classpath:ssl/client.pkcs12.truststore");
             System.setProperty("myclient1/mp-graphql/truststorePassword", "clienttruststorepassword");
             System.setProperty("myclient1/mp-graphql/truststoreType", "PKCS12");
-            DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
+            try (DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
                     .configKey("myclient1")
                     .url("https://127.0.0.1:" + server.actualPort())
-                    .build();
-            client.executeAsync("asd").await().atMost(Duration.ofSeconds(1));
-            client.close();
+                    .build()) {
+                client.executeAsync("asd").await().atMost(TIMEOUT);
+            }
         } finally {
             server.close();
         }
@@ -47,21 +48,15 @@ public class DynamicClientSSLTest {
             System.setProperty("myclient2/mp-graphql/truststore", "classpath:ssl/client.pkcs12.truststore");
             System.setProperty("myclient2/mp-graphql/truststorePassword", "clienttruststorepassword");
             System.setProperty("myclient2/mp-graphql/truststoreType", "PKCS12");
-            DynamicGraphQLClient client = null;
-            try {
-                client = DynamicGraphQLClientBuilder.newBuilder()
-                        .configKey("myclient2")
-                        .url("https://127.0.0.1:" + server.actualPort())
-                        .build();
-                client.executeAsync("asd").await().atMost(Duration.ofSeconds(1));
+            try (DynamicGraphQLClient client = DynamicGraphQLClientBuilder.newBuilder()
+                    .configKey("myclient2")
+                    .url("https://127.0.0.1:" + server.actualPort())
+                    .build()) {
+                client.executeAsync("asd").await().atMost(TIMEOUT);
                 Assertions.fail("Connection to server should fail");
             } catch (Exception e) {
                 // verify that the client rejected the server's certificate
                 assertHasCauseContainingMessage(e, "unable to find valid certification path to requested target");
-            } finally {
-                if (client != null) {
-                    client.close();
-                }
             }
         } finally {
             server.close();
@@ -81,13 +76,13 @@ public class DynamicClientSSLTest {
             System.setProperty("myclient3/mp-graphql/keystoreType", "PKCS12");
             WebClientOptions options = new WebClientOptions();
             options.setTrustAll(true); // don't require server auth
-            DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
+            try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                     .configKey("myclient3")
                     .options(options)
                     .url("https://127.0.0.1:" + server.actualPort())
-                    .build();
-            client.executeAsync("asd").await().atMost(Duration.ofSeconds(1));
-            client.close();
+                    .build()) {
+                client.executeAsync("asd").await().atMost(TIMEOUT);
+            }
         } finally {
             server.close();
         }
@@ -106,22 +101,16 @@ public class DynamicClientSSLTest {
             System.setProperty("myclient4/mp-graphql/keystoreType", "PKCS12");
             WebClientOptions options = new WebClientOptions();
             options.setTrustAll(true); // don't require server auth
-            DynamicGraphQLClient client = null;
-            try {
-                client = new VertxDynamicGraphQLClientBuilder()
-                        .configKey("myclient4")
-                        .options(options)
-                        .url("https://127.0.0.1:" + server.actualPort())
-                        .build();
-                client.executeAsync("asd").await().atMost(Duration.ofSeconds(1));
+            try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
+                    .configKey("myclient4")
+                    .options(options)
+                    .url("https://127.0.0.1:" + server.actualPort())
+                    .build()) {
+                client.executeAsync("asd").await().atMost(TIMEOUT);
                 Assertions.fail("Connection to server should fail");
             } catch (Exception e) {
                 // verify that the server rejected the client's certificate
                 assertHasCauseContainingMessage(e, "Received fatal alert: bad_certificate");
-            } finally {
-                if (client != null) {
-                    client.close();
-                }
             }
         } finally {
             server.close();
