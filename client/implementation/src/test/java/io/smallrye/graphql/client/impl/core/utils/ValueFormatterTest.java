@@ -1,11 +1,11 @@
 package io.smallrye.graphql.client.impl.core.utils;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
 
 class ValueFormatterTest {
 
