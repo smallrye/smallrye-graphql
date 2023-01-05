@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +62,11 @@ public class ArraysTest {
                                                 prop("charPrimitiveArray", new char[] { 'f', 'o', 'o' }),
                                                 prop("charObjectArray", new Character[] { 'f', 'o', 'o' }),
 
-                                                prop("stringArray", new String[] { "foo", "bar", "baz" })))),
+                                                prop("stringArray", new String[] { "foo", "bar", "baz" }),
+
+                                                prop("uuidArray",
+                                                        new UUID[] { UUID.fromString("fc4bb4f4-13fe-4908-8d6a-afa64f1b56c9"),
+                                                                UUID.fromString("863c9e3c-7538-41b9-9d63-0852f6a50815") })))),
                                 field("boolPrimitiveArray"),
                                 field("boolObjectArray"),
 
@@ -89,7 +94,9 @@ public class ArraysTest {
                                 field("charPrimitiveArray"),
                                 field("charObjectArray"),
 
-                                field("stringArray"))));
+                                field("stringArray"),
+
+                                field("uuidArray"))));
 
         String generatedRequest = document.build();
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
