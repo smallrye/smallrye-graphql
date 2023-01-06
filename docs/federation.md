@@ -1,6 +1,6 @@
 # Federation
 
-To enable support for [GraphQL Federation](https://www.apollographql.com/docs/federation), simply set the `smallrye.graphql.federation.enabled` config key to `true`.
+Support for [GraphQL Federation](https://www.apollographql.com/docs/federation) is enabled by default. If you add one of the federation annotations, the corresponding directives will be declared to your schema and the additional Federation queries will be added automatically. You can also disable Federation completely by setting the `smallrye.graphql.federation.enabled` config key to `false`.
 
 You can add the Federation directives by using the equivalent Java annotation, e.g. to extend a `Product` entity with a `price` field, you can write a class:
 
@@ -37,7 +37,7 @@ import org.eclipse.microprofile.graphql.Query;
 public class Prices {
     @Query
     public Product product(@Id String id) {
-        return ...;
+        return ...
     }
 }
 ```
@@ -45,7 +45,7 @@ public class Prices {
 The GraphQL Schema then contains:
 
 ```graphql
-type Product @extends @key(fields : ["id"]) {
+type Product @extends @key(fields : "id") {
     id: ID
     price: Int
 }
@@ -58,3 +58,5 @@ type Query {
     product(id: ID): Product
 }
 ```
+
+If you can resolve, e.g., the product with different types of ids, you can add multiple `@Key` annotations.
