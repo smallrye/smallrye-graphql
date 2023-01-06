@@ -130,6 +130,9 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <systemProperties>
+                        <smallrye.graphql.federation.enabled>true</smallrye.graphql.federation.enabled>
+                    </systemProperties>
                 </configuration>
             </plugin>
             <plugin>
