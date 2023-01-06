@@ -78,7 +78,7 @@ public class EnumCreator implements Creator<EnumType> {
     }
 
     private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null));
+        return directives.buildDirectiveInstances(annotations);
     }
 
 }
