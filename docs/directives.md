@@ -1,5 +1,20 @@
 # Directives
 
+## Custom Directives
+
+You can add your own [GraphQL Directives](https://spec.graphql.org/draft/#sec-Language.Directives) by writing
+a corresponding Java Annotation and annotate it as `@Directive`, e.g.:
+
+```java
+@Directive(on = { OBJECT, INTERFACE })
+@Description("Just a test")
+@Retention(RUNTIME)
+public @interface MyDirective {
+}
+```
+
+Directives can be repeatable, see the `@Key` annotation for an example.
+
 ## Directives generated from Bean Validation annotations
 
 If your project uses Bean Validation to validate fields on input types and operation arguments, and you enable 
