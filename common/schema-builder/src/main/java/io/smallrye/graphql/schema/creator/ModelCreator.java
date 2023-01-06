@@ -53,10 +53,7 @@ public abstract class ModelCreator {
     }
 
     /**
-     * The the return type.This is usually the method return type, but can also be adapted to something else
-     * 
-     * @param fieldInfo
-     * @return the return type
+     * The return type. This is usually the method return type, but can also be adapted to something else
      */
     protected static Type getReturnType(FieldInfo fieldInfo) {
         return fieldInfo.type();
@@ -100,8 +97,7 @@ public abstract class ModelCreator {
 
         // Directives
         if (directives != null) { // this happens while scanning for the directive types
-            field.addDirectiveInstances(
-                    directives.buildDirectiveInstances(name -> annotations.getOneOfTheseAnnotations(name).orElse(null)));
+            field.addDirectiveInstances(directives.buildDirectiveInstances(annotations));
         }
     }
 }

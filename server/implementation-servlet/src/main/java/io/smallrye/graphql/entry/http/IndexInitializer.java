@@ -2,6 +2,7 @@ package io.smallrye.graphql.entry.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Repeatable;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -78,6 +79,7 @@ public class IndexInitializer {
         try {
             indexer.index(convertClassToInputStream(Map.class));
             indexer.index(convertClassToInputStream(Entry.class));
+            indexer.index(convertClassToInputStream(Repeatable.class));
 
             // things from the API module
             indexer.index(convertClassToInputStream(Extends.class));

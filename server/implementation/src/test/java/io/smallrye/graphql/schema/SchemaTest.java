@@ -1,5 +1,9 @@
 package io.smallrye.graphql.schema;
 
+import static graphql.Scalars.GraphQLString;
+import static graphql.introspection.Introspection.DirectiveLocation.INTERFACE;
+import static graphql.introspection.Introspection.DirectiveLocation.OBJECT;
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,8 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Repeatable;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.EnumSet;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
@@ -25,9 +31,12 @@ import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLUnionType;
 import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.api.federation.Key;
+import io.smallrye.graphql.api.federation.Key.Keys;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.TestConfig;
@@ -76,8 +85,8 @@ class SchemaTest {
         assertOperationWithDirectives(graphQLSchema.getSubscriptionType().getField("subscriptionWithDirectives"));
 
         String actualSchema = new SchemaPrinter().print(graphQLSchema);
-        String expectedSchema = Files
-                .readString(new File(SchemaTest.class.getResource("/schemaTest.graphql").toURI()).toPath());
+        var schemaUri = requireNonNull(SchemaTest.class.getResource("/schemaTest.graphql")).toURI();
+        String expectedSchema = Files.readString(new File(schemaUri).toPath());
         Assertions.assertEquals(expectedSchema, actualSchema);
     }
 
@@ -91,12 +100,8 @@ class SchemaTest {
                 "Enum EnumWithDirectives should have directive @enumDirective");
         assertNotNull(enumWithDirectives.getValue("A").getDirective("enumDirective"),
                 "Enum value EnumWithDirectives.A should have directive @enumDirective");
-
-        assertSchemaEndsWith(graphQLSchema, "" +
-                "enum EnumWithDirectives @enumDirective {\n" +
-                "  A @enumDirective\n" +
-                "  B\n" +
-                "}\n");
+        assertNull(enumWithDirectives.getValue("B").getDirective("enumDirective"),
+                "Enum value EnumWithDirectives.B should not have directive @enumDirective");
     }
 
     @Test
@@ -111,53 +116,105 @@ class SchemaTest {
                 "Input type field InputWithDirectivesInput.foo should have directive @inputDirective");
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
-
-        assertSchemaEndsWith(graphQLSchema, "" +
-                "input InputWithDirectivesInput @inputDirective {\n" +
-                "  bar: Int! @inputDirective\n" +
-                "  foo: Int! @inputDirective\n" +
-                "}\n");
     }
 
     @Test
     void testSchemaWithFederationDisabled() {
-        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
-                FederationTestApi.class);
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, Keys.class,
+                TestTypeWithFederation.class, FederationTestApi.class);
 
-        assertSchemaEndsWith(graphQLSchema, "\n" +
-                "\"Query root\"\n" +
-                "type Query {\n" +
-                "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
-                "}\n" +
-                "\n" +
-                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
-                "  id: String\n" +
-                "}\n");
+        assertNotNull(graphQLSchema.getDirective("key"));
+        assertNull(graphQLSchema.getType("_Entity"));
+
+        GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
+        assertEquals(1, queryRoot.getFields().size());
+        assertNull(queryRoot.getField("_entities"));
+        assertNull(queryRoot.getField("_service"));
+
+        GraphQLFieldDefinition query = queryRoot.getField("testTypeWithFederation");
+        assertEquals(1, query.getArguments().size());
+        assertEquals(GraphQLString, query.getArgument("arg").getType());
+        assertEquals("TestTypeWithFederation", ((GraphQLObjectType) query.getType()).getName());
+
+        GraphQLObjectType type = graphQLSchema.getObjectType("TestTypeWithFederation");
+        assertEquals(2, type.getDirectives().size());
+        assertKeyDirective(type.getDirectives().get(0), "id");
+        assertKeyDirective(type.getDirectives().get(1), "type id");
+        assertEquals(3, type.getFields().size());
+        assertEquals("id", type.getFields().get(0).getName());
+        assertEquals(GraphQLString, type.getFields().get(0).getType());
+        assertEquals("type", type.getFields().get(1).getName());
+        assertEquals(GraphQLString, type.getFields().get(1).getType());
+        assertEquals("value", type.getFields().get(2).getName());
+        assertEquals(GraphQLString, type.getFields().get(2).getType());
+
+        assertNull(graphQLSchema.getObjectType("_Service"));
     }
 
     @Test
-    void testSchemaWithFederation() {
+    void testSchemaWithFederationEnabled() {
         config.federationEnabled = true;
-        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
-                FederationTestApi.class);
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Repeatable.class, Directive.class, Key.class, Keys.class,
+                TestTypeWithFederation.class, FederationTestApi.class);
 
-        assertSchemaEndsWith(graphQLSchema, "\n" +
-                "union _Entity = TestTypeWithFederation\n" +
-                "\n" +
-                "\"Query root\"\n" +
-                "type Query {\n" +
-                "  _entities(representations: [_Any!]!): [_Entity]!\n" +
-                "  _service: _Service!\n" +
-                "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
-                "}\n" +
-                "\n" +
-                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
-                "  id: String\n" +
-                "}\n" +
-                "\n" +
-                "type _Service {\n" +
-                "  sdl: String!\n" +
-                "}\n");
+        GraphQLDirective keyDirective = graphQLSchema.getDirective("key");
+        assertEquals("key", keyDirective.getName());
+        assertTrue(keyDirective.isRepeatable());
+        assertEquals(
+                "Designates an object type as an entity and specifies its key fields " +
+                        "(a set of fields that the subgraph can use to uniquely identify any instance " +
+                        "of the entity). You can apply multiple @key directives to a single entity " +
+                        "(to specify multiple valid sets of key fields).",
+                keyDirective.getDescription());
+        assertEquals(EnumSet.of(OBJECT, INTERFACE), keyDirective.validLocations());
+        assertEquals(1, keyDirective.getArguments().size());
+        assertEquals("String", ((GraphQLScalarType) keyDirective.getArgument("fields").getType()).getName());
+
+        GraphQLUnionType entityType = (GraphQLUnionType) graphQLSchema.getType("_Entity");
+        assertNotNull(entityType);
+        assertEquals(1, entityType.getTypes().size());
+        assertEquals(TestTypeWithFederation.class.getSimpleName(), entityType.getTypes().get(0).getName());
+
+        GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
+        assertEquals(3, queryRoot.getFields().size());
+
+        GraphQLFieldDefinition entities = queryRoot.getField("_entities");
+        assertEquals(1, entities.getArguments().size());
+        assertEquals("[_Any!]!", entities.getArgument("representations").getType().toString());
+        assertEquals("[_Entity]!", entities.getType().toString());
+
+        GraphQLFieldDefinition service = queryRoot.getField("_service");
+        assertEquals(0, service.getArguments().size());
+        assertEquals("_Service!", service.getType().toString());
+
+        GraphQLFieldDefinition query = queryRoot.getField("testTypeWithFederation");
+        assertEquals(1, query.getArguments().size());
+        assertEquals(GraphQLString, query.getArgument("arg").getType());
+        assertEquals("TestTypeWithFederation", ((GraphQLObjectType) query.getType()).getName());
+
+        GraphQLObjectType type = graphQLSchema.getObjectType("TestTypeWithFederation");
+        assertEquals(2, type.getDirectives().size());
+        assertKeyDirective(type.getDirectives().get(0), "id");
+        assertKeyDirective(type.getDirectives().get(1), "type id");
+        assertEquals(3, type.getFields().size());
+        assertEquals("id", type.getFields().get(0).getName());
+        assertEquals(GraphQLString, type.getFields().get(0).getType());
+        assertEquals("type", type.getFields().get(1).getName());
+        assertEquals(GraphQLString, type.getFields().get(1).getType());
+        assertEquals("value", type.getFields().get(2).getName());
+        assertEquals(GraphQLString, type.getFields().get(2).getType());
+
+        GraphQLObjectType serviceType = graphQLSchema.getObjectType("_Service");
+        assertEquals(1, serviceType.getFields().size());
+        assertEquals("sdl", serviceType.getFields().get(0).getName());
+        assertEquals("String!", serviceType.getFields().get(0).getType().toString());
+    }
+
+    private static void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
+        assertEquals("key", graphQLDirective.getName());
+        assertEquals(1, graphQLDirective.getArguments().size());
+        assertEquals("fields", graphQLDirective.getArguments().get(0).getName());
+        assertEquals(value, graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue());
     }
 
     private GraphQLSchema createGraphQLSchema(Class<?>... api) {
@@ -166,16 +223,6 @@ class SchemaTest {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(schema, true);
         assertNotNull(graphQLSchema, "GraphQLSchema should not be null");
         return graphQLSchema;
-    }
-
-    private static void assertSchemaEndsWith(GraphQLSchema schema, String end) {
-        String schemaString = new SchemaPrinter().print(schema);
-        assertSchemaEndsWith(schemaString, end);
-    }
-
-    private static void assertSchemaEndsWith(String schema, String end) {
-        // assertEquals(schema, end); // this is convenient for debugging, as the IDE can show the diff
-        assertTrue(schema.endsWith(end), () -> "<<<\n" + schema + "\n>>> does not end with <<<\n" + end + "\n>>>");
     }
 
     private void assertOperationWithDirectives(GraphQLFieldDefinition operation) {
