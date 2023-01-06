@@ -29,7 +29,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * This creates an input type object.
- * 
+ *
  * The input object has fields that might reference other types
  * that should still be created.
  * 
@@ -138,7 +138,7 @@ public class InputTypeCreator implements Creator<InputType> {
     }
 
     private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(dotName -> annotations.getOneOfTheseAnnotations(dotName).orElse(null));
+        return directives.buildDirectiveInstances(annotations);
     }
 
     private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -76,7 +77,7 @@ public class Annotations {
     private static Map<DotName, AnnotationInstance> getParentAnnotations(ClassInfo classInfo) {
         Map<DotName, AnnotationInstance> parentAnnotations = new HashMap<>();
 
-        for (AnnotationInstance classAnnotation : classInfo.classAnnotations()) {
+        for (AnnotationInstance classAnnotation : classInfo.declaredAnnotations()) {
             parentAnnotations.putIfAbsent(classAnnotation.name(), classAnnotation);
         }
 
@@ -95,7 +96,7 @@ public class Annotations {
         if (packageName != null) {
             ClassInfo packageInfo = ScanningContext.getIndex().getClassByName(packageName);
             if (packageInfo != null) {
-                for (AnnotationInstance packageAnnotation : packageInfo.classAnnotations()) {
+                for (AnnotationInstance packageAnnotation : packageInfo.declaredAnnotations()) {
                     packageAnnotations.putIfAbsent(packageAnnotation.name(), packageAnnotation);
                 }
             }
@@ -178,7 +179,7 @@ public class Annotations {
 
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
 
-        for (AnnotationInstance annotationInstance : classInfo.classAnnotations()) {
+        for (AnnotationInstance annotationInstance : classInfo.declaredAnnotations()) {
             DotName name = annotationInstance.name();
             annotationMap.put(name, annotationInstance);
         }
@@ -390,6 +391,25 @@ public class Annotations {
         return Optional.empty();
     }
 
+    /**
+     * Get a stream of that annotation, maybe empty if not present, maybe a stream of one, or maybe several, if it's repeatable.
+     */
+    public Stream<AnnotationInstance> resolve(DotName name) {
+        var annotationInstance = annotationsMap.get(name);
+        if (annotationInstance == null) {
+            var repeatableType = ScanningContext.getIndex().getClassByName(name);
+            if (repeatableType.hasAnnotation(REPEATABLE)) {
+                DotName containerName = repeatableType.annotation(REPEATABLE).value().asClass().name();
+                AnnotationInstance containerAnnotation = annotationsMap.get(containerName);
+                if (containerAnnotation != null) {
+                    return Stream.of(containerAnnotation.value().asNestedArray());
+                }
+            }
+            return Stream.of();
+        }
+        return Stream.of(annotationInstance);
+    }
+
     @Override
     public String toString() {
         return annotationsMap.toString();
@@ -558,6 +578,8 @@ public class Annotations {
 
     private static final short ZERO = 0;
 
+    public static final DotName REPEATABLE = DotName.createSimple("java.lang.annotation.Repeatable");
+
     // SmallRye Common Annotations
     public static final DotName BLOCKING = DotName.createSimple("io.smallrye.common.annotation.Blocking");
     public static final DotName NON_BLOCKING = DotName.createSimple("io.smallrye.common.annotation.NonBlocking");
@@ -629,5 +651,4 @@ public class Annotations {
 
     //Kotlin NotNull
     public static final DotName KOTLIN_NOT_NULL = DotName.createSimple("org.jetbrains.annotations.NotNull");
-
 }

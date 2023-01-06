@@ -1,17 +1,18 @@
 package io.smallrye.graphql.schema.helper;
 
+import static java.util.stream.Collectors.toList;
 import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 
+import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
@@ -37,21 +38,13 @@ public class Directives {
         }
     }
 
-    public List<DirectiveInstance> buildDirectiveInstances(Function<DotName, AnnotationInstance> getAnnotation) {
-        List<DirectiveInstance> result = null;
+    public List<DirectiveInstance> buildDirectiveInstances(Annotations annotations) {
         // only build directive instances from `@Directive` annotations here (that means the `directiveTypes` map),
         // because `directiveTypesOther` directives get their instances added on-the-go by classes that extend `ModelCreator`
-        for (DotName directiveTypeName : directiveTypes.keySet()) {
-            AnnotationInstance annotationInstance = getAnnotation.apply(directiveTypeName);
-            if (annotationInstance == null) {
-                continue;
-            }
-            if (result == null) {
-                result = new ArrayList<>();
-            }
-            result.add(toDirectiveInstance(annotationInstance));
-        }
-        return result;
+        return directiveTypes.keySet().stream()
+                .flatMap(annotations::resolve)
+                .map(this::toDirectiveInstance)
+                .collect(toList());
     }
 
     private DirectiveInstance toDirectiveInstance(AnnotationInstance annotationInstance) {
