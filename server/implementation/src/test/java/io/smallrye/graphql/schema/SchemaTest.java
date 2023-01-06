@@ -130,7 +130,7 @@ class SchemaTest {
                 "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
                 "}\n" +
                 "\n" +
-                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
+                "type TestTypeWithFederation {\n" +
                 "  id: String\n" +
                 "}\n");
     }
@@ -138,26 +138,32 @@ class SchemaTest {
     @Test
     void testSchemaWithFederation() {
         config.federationEnabled = true;
-        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
-                FederationTestApi.class);
+        // need to set it as system property because the SchemaBuilder doesn't have access to the Config object
+        System.setProperty("smallrye.graphql.federation.enabled", "true");
+        try {
+            GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, TestTypeWithFederation.class,
+                    FederationTestApi.class);
 
-        assertSchemaEndsWith(graphQLSchema, "\n" +
-                "union _Entity = TestTypeWithFederation\n" +
-                "\n" +
-                "\"Query root\"\n" +
-                "type Query {\n" +
-                "  _entities(representations: [_Any!]!): [_Entity]!\n" +
-                "  _service: _Service!\n" +
-                "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
-                "}\n" +
-                "\n" +
-                "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
-                "  id: String\n" +
-                "}\n" +
-                "\n" +
-                "type _Service {\n" +
-                "  sdl: String!\n" +
-                "}\n");
+            assertSchemaEndsWith(graphQLSchema, "\n" +
+                    "union _Entity = TestTypeWithFederation\n" +
+                    "\n" +
+                    "\"Query root\"\n" +
+                    "type Query {\n" +
+                    "  _entities(representations: [_Any!]!): [_Entity]!\n" +
+                    "  _service: _Service!\n" +
+                    "  testTypeWithFederation(arg: String): TestTypeWithFederation\n" +
+                    "}\n" +
+                    "\n" +
+                    "type TestTypeWithFederation @key(fields : [\"id\"]) {\n" +
+                    "  id: String\n" +
+                    "}\n" +
+                    "\n" +
+                    "type _Service {\n" +
+                    "  sdl: String!\n" +
+                    "}\n");
+        } finally {
+            System.clearProperty("smallrye.graphql.federation.enabled");
+        }
     }
 
     private GraphQLSchema createGraphQLSchema(Class<?>... api) {
