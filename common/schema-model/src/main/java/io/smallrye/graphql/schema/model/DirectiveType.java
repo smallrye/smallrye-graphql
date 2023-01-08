@@ -69,6 +69,10 @@ public class DirectiveType {
         this.repeatable = repeatable;
     }
 
+    public boolean isFederation() {
+        return className != null && className.startsWith("io.smallrye.graphql.api.federation");
+    }
+
     /**
      * Helper 'getter' methods, but DON'T add 'get' into their names, otherwise it breaks Quarkus bytecode recording,
      * because they would be detected as actual property getters while they are actually not
