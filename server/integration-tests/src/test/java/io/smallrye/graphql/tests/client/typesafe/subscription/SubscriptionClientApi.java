@@ -20,4 +20,10 @@ public interface SubscriptionClientApi extends Closeable {
     @Subscription(value = "countToFive")
     Multi<DummyWithErrorOrOnFailingSourceField> countToFiveWithFailingSourceFieldInErrorOr(boolean shouldFail);
 
+    @Subscription
+    Multi<Integer> failingImmediately();
+
+    @Subscription
+    Multi<Integer> throwingExceptionDirectly();
+
 }
