@@ -115,6 +115,12 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                                 } else if (data instanceof Publisher) {
                                     // this means the operation is a subscription
                                     sendStreamingMessage(operationId, executionResponse);
+                                } else if (data == null) {
+                                    // if isDataPresent() == true && but data == null,
+                                    // then this is probably a subscription, but the subscription
+                                    // method threw an exception instead of returning
+                                    // a failed Multi
+                                    sendErrorMessage(operationId, executionResponse);
                                 } else {
                                     logUnknownResult(executionResult);
                                 }
@@ -167,8 +173,8 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     }
 
     private void logUnknownResult(ExecutionResult executionResult) {
-        LOG.warn("Unknown execution result of type "
-                + executionResult.getClass());
+        LOG.warn("Unknown data type of execution result: "
+                + executionResult.getData().getClass());
     }
 
     private void sendSingleMessage(String operationId, ExecutionResponse executionResponse) throws IOException {
