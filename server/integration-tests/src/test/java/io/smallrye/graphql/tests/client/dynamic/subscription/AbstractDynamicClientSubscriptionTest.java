@@ -6,13 +6,9 @@ import static io.smallrye.graphql.client.core.Operation.operation;
 import static org.junit.Assert.*;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import jakarta.json.JsonValue;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
@@ -20,14 +16,15 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
+import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
+import io.smallrye.mutiny.helpers.test.AssertSubscriber;
 
 public abstract class AbstractDynamicClientSubscriptionTest {
 
@@ -37,6 +34,8 @@ public abstract class AbstractDynamicClientSubscriptionTest {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addClasses(DynamicClientSubscriptionApi.class);
     }
+
+    static Duration DURATION = Duration.ofSeconds(5);
 
     @ArquillianResource
     URL testingURL;
@@ -69,23 +68,28 @@ public abstract class AbstractDynamicClientSubscriptionTest {
         Document document = document(
                 operation(OperationType.SUBSCRIPTION,
                         field("failingImmediately")));
-        AtomicReference<Response> response = new AtomicReference<>();
-        CountDownLatch finished = new CountDownLatch(1);
-        client.subscription(document)
-                .subscribe()
-                .with(item -> {
-                    response.set(item);
-                }, throwable -> {
-                    // nothing
-                }, () -> {
-                    finished.countDown();
-                });
-        finished.await(10, TimeUnit.SECONDS);
-        Response actualResponse = response.get();
-        assertNotNull("One response was expected to arrive", actualResponse);
-        Assert.assertEquals(JsonValue.NULL, actualResponse.getData().get("failingImmediately"));
-        // FIXME: add an assertion about the contained error message
-        // right now, there is no error message present, which is a bug
+        AssertSubscriber<Response> subscriber = new AssertSubscriber<>(10);
+        client.subscription(document).subscribe(subscriber);
+        List<Response> messages = subscriber
+                .awaitNextItem(DURATION)
+                .awaitCompletion(DURATION)
+                .assertTerminated()
+                .getItems();
+        assertEquals(1, messages.size());
+        assertEquals("System error", messages.get(0).getErrors().get(0).getMessage());
+    }
+
+    @Test
+    public void testThrowingExceptionDirectly() throws InterruptedException {
+        Document document = document(
+                operation(OperationType.SUBSCRIPTION,
+                        field("throwingExceptionDirectly")));
+        AssertSubscriber<Response> subscriber = new AssertSubscriber<>(10);
+        client.subscription(document).subscribe(subscriber);
+        Throwable failure = subscriber.awaitFailure(DURATION)
+                .getFailure();
+        assertTrue(failure instanceof GraphQLClientException);
+        assertEquals("System error", ((GraphQLClientException) failure).getErrors().get(0).getMessage());
     }
 
     private void assertNoErrors(List<GraphQLError> errors) {
