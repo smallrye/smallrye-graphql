@@ -153,6 +153,9 @@ function graphQLFetcher(graphQLParams) {
                                 break;
                             case 'pong':
                                 break;
+                            case 'error':
+                                observer.next(data.payload);
+                                webSocket.close();
                             default:
                                 observer.next(data);
                                 break;
@@ -182,6 +185,9 @@ function graphQLFetcher(graphQLParams) {
                                 break;
                             case 'ka':
                                 break;
+                            case 'error':
+                                observer.next(data);
+                                webSocket.close();
                             default:
                                 observer.next(data);
                                 break;
