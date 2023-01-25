@@ -29,4 +29,14 @@ public class SubscriptionApi {
         throw new RuntimeException("FAILED SOURCE FIELD");
     }
 
+    @Subscription
+    public Multi<Integer> failingImmediately() {
+        return Multi.createFrom().failure(new RuntimeException("blabla"));
+    }
+
+    @Subscription
+    public Multi<Integer> throwingExceptionDirectly() {
+        throw new RuntimeException("blabla");
+    }
+
 }

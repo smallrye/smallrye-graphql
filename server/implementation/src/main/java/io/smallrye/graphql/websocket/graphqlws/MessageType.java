@@ -12,7 +12,7 @@ public enum MessageType {
     GQL_CONNECTION_ERROR("connection_error"),
     GQL_CONNECTION_ACK("connection_ack"),
     GQL_DATA("data"),
-    GQL_ERROR("connection_error"),
+    GQL_ERROR("error"),
     GQL_COMPLETE("complete"),
     GQL_CONNECTION_KEEP_ALIVE("ka");
 

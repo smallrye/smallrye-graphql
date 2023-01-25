@@ -1,11 +1,13 @@
 package io.smallrye.graphql.tests.client.typesafe.subscription;
 
+import static io.smallrye.graphql.client.core.Field.field;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +24,7 @@ import org.junit.Test;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.helpers.test.AssertSubscriber;
 
 public abstract class AbstractTypesafeClientSubscriptionTest {
 
@@ -36,6 +39,8 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
     URL testingURL;
 
     protected SubscriptionClientApi client;
+
+    static Duration DURATION = Duration.ofSeconds(5);
 
     @After
     public void cleanup() {
@@ -105,6 +110,28 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
         boolean ended = end.await(10, TimeUnit.SECONDS);
         assertTrue("The client-side multi should receive onFailure after the subscription fails due" +
                 " to an exception in server-side processing", ended);
+    }
+
+    @Test
+    public void testFailingImmediately() {
+        AssertSubscriber<Integer> subscriber = new AssertSubscriber<>(10);
+        client.failingImmediately().subscribe(subscriber);
+        Throwable failure = subscriber
+                .awaitFailure(DURATION)
+                .assertHasNotReceivedAnyItem()
+                .getFailure();
+        assertTrue(failure instanceof GraphQLClientException);
+    }
+
+    @Test
+    public void testThrowingExceptionDirectly() {
+        AssertSubscriber<Integer> subscriber = new AssertSubscriber<>(10);
+        client.failingImmediately().subscribe(subscriber);
+        Throwable failure = subscriber
+                .awaitFailure(DURATION)
+                .assertHasNotReceivedAnyItem()
+                .getFailure();
+        assertTrue(failure instanceof GraphQLClientException);
     }
 
 }

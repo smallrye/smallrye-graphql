@@ -25,4 +25,9 @@ public class DynamicClientSubscriptionApi {
         return Multi.createFrom().failure(new RuntimeException("blabla"));
     }
 
+    @Subscription
+    public Multi<Integer> throwingExceptionDirectly() {
+        throw new RuntimeException("blabla");
+    }
+
 }
