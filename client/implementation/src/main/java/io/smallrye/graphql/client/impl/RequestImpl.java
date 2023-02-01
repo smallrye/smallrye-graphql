@@ -62,6 +62,10 @@ public class RequestImpl implements Request {
                 varBuilder.add(k, (Integer) v);
             } else if (v instanceof JsonValue) {
                 varBuilder.add(k, (JsonValue) v);
+            } else if (v instanceof Boolean) {
+                varBuilder.add(k, (Boolean) v);
+            } else if (v == null) {
+                varBuilder.addNull(k);
             } else {
                 try (Jsonb jsonb = JsonbBuilder.create()) {
                     JsonStructure struct = ((JsonBinding) jsonb).toJsonStructure(v);
