@@ -29,6 +29,7 @@ The schema will appear as `target/generated/schema.graphql` by default.
 - `includeDependencies` - Scan project's dependencies for GraphQL model classes too. Off (false) by default.
 - `includeDependenciesScopes` - If the above `includeDependencies` is true, you can control what scopes should be included. Default is `compile, system`
 - `includeDependenciesTypes` - If the above `includeDependencies` is true, you can control what types should be included. Default is `jar`
+- `includeDependenciesGroupIds` - If the above `includeDependencies` is true, you can control which group ids should be included. Default is empty, which means all group ids.
 - `includeScalars` - Include scalars in the schema. Default false.
 - `includeDirectives` - Include directives in the schema. Default false.
 - `includeSchemaDefinition` - Include the schema definition. Default false.
