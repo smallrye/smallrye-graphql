@@ -72,6 +72,13 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "jar", property = "includeDependenciesTypes")
     private List<String> includeDependenciesTypes;
 
+    /**
+     * When you include dependencies, we include all dependencies by default.
+     * You can change that here.
+     */
+    @Parameter(defaultValue = "", property = "includeDependenciesGroupIds")
+    private List<String> includeDependenciesGroupIds;
+
     @Parameter(defaultValue = "false", property = "includeScalars")
     private boolean includeScalars;
 
@@ -130,7 +137,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
     private IndexView createIndex() throws MojoExecutionException {
         List<IndexView> indexes = new ArrayList<>();
         try {
-            IndexView moduleIndex = indexModuleClasses();
+            IndexView moduleIndex = indexModuleClasses(classesDir);
             indexes.add(moduleIndex);
         } catch (IOException e) {
             throw new MojoExecutionException("Can't compute index", e);
@@ -156,15 +163,36 @@ public class GenerateSchemaMojo extends AbstractMojo {
                 Artifact artifact = (Artifact) a;
                 if (includeDependenciesScopes.contains(artifact.getScope())
                         && includeDependenciesTypes.contains(artifact.getType())
+                        && (includeDependenciesGroupIds.isEmpty() ||
+                                includeDependenciesGroupIds.contains(artifact.getGroupId()))
                         && !isMutiny.test(artifact)) {
-                    Result result = indexJar(artifact.getFile());
-                    if (result != null) {
-                        indexes.add(result.getIndex());
+
+                    Index index = indexArtifact(artifact);
+                    if (index != null) {
+                        indexes.add(index);
                     }
                 }
             }
         }
         return CompositeIndex.create(indexes);
+    }
+
+    private Index indexArtifact(Artifact artifact) throws MojoExecutionException {
+        if (artifact.getFile().isDirectory()) {
+            try {
+                return indexModuleClasses(artifact.getFile());
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to index classes of artifact " + artifact, e);
+            }
+       } else {
+            Result result = indexJar(artifact.getFile());
+
+            if (result != null) {
+                return result.getIndex();
+            } else {
+                return null;
+            }
+        }
     }
 
     private Result indexJar(File file) {
@@ -178,8 +206,8 @@ public class GenerateSchemaMojo extends AbstractMojo {
         }
     }
 
-    // index the classes of this Maven module
-    private Index indexModuleClasses() throws IOException {
+    // index the classes of a Maven module
+    private Index indexModuleClasses(File classesDir) throws IOException {
         Indexer indexer = new Indexer();
         try (Stream<Path> classesDirStream = Files.walk(classesDir.toPath())) {
             List<Path> classFiles = classesDirStream

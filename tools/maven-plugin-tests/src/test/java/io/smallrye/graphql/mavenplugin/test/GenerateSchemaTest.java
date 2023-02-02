@@ -23,6 +23,8 @@ import org.junit.Test;
 public class GenerateSchemaTest {
 
     private final Path SCHEMA_FILE_PATH = Paths.get("testing-project", "target", "generated", "schema.graphql");
+    private final Path SCHEMA_FILE_PATH_MULTI_MODULE = Paths.get("testing-project-multi-module", "api", "target", "generated",
+            "schema.graphql");
 
     @Before
     public void before() {
@@ -69,6 +71,26 @@ public class GenerateSchemaTest {
         String schema = execute(Collections.singletonMap("typeAutoNameStrategy", "Full"));
         assertThat("Fully qualified class names should be used for GraphQL types",
                 schema, containsString("type org_acme_Foo"));
+    }
+
+    @Test
+    public void testMultiModuleProject() throws Exception {
+        SCHEMA_FILE_PATH_MULTI_MODULE.toFile().delete();
+
+        Verifier verifier = new Verifier(new File("testing-project-multi-module").getAbsolutePath());
+        verifier.setSystemProperty("plugin.version", System.getProperty("plugin.version"));
+
+        List<String> goals = new ArrayList<>();
+        goals.add("clean");
+        goals.add("package");
+        goals.add("process-classes");
+        verifier.executeGoals(goals);
+
+        verifier.verifyErrorFreeLog();
+        verifier.verifyTextInLog("Wrote the schema to ");
+
+        Assert.assertTrue("File " + SCHEMA_FILE_PATH_MULTI_MODULE.toAbsolutePath() + " expected but not found",
+                SCHEMA_FILE_PATH_MULTI_MODULE.toFile().exists());
     }
 
     private String execute(Map<String, String> properties) throws VerificationException, IOException {
