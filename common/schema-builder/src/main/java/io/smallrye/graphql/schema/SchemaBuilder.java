@@ -69,8 +69,6 @@ public class SchemaBuilder {
     private final DirectiveTypeCreator directiveTypeCreator;
     private final UnionCreator unionCreator;
 
-    private final DotName FEDERATION_ANNOTATIONS_PACKAGE = DotName.createSimple("io.smallrye.graphql.api.federation");
-
     /**
      * This builds the Schema from Jandex
      *
@@ -162,13 +160,7 @@ public class SchemaBuilder {
         // custom directives from annotations
         for (AnnotationInstance annotationInstance : ScanningContext.getIndex().getAnnotations(DIRECTIVE)) {
             ClassInfo classInfo = annotationInstance.target().asClass();
-            boolean federationEnabled = Boolean.getBoolean("smallrye.graphql.federation.enabled");
-            // only add federation-related directive types to the schema if federation is enabled
-            DotName packageName = classInfo.name().packagePrefixName();
-            if (packageName == null || !packageName.equals(FEDERATION_ANNOTATIONS_PACKAGE) || federationEnabled) {
-                schema.addDirectiveType(directiveTypeCreator.create(classInfo));
-            }
-
+            schema.addDirectiveType(directiveTypeCreator.create(classInfo));
         }
         // bean validation directives
         schema.addDirectiveType(BeanValidationDirectivesHelper.CONSTRAINT_DIRECTIVE_TYPE);

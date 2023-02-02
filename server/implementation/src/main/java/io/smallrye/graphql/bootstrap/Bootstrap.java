@@ -220,9 +220,15 @@ public class Bootstrap {
     private void createGraphQLDirectiveTypes() {
         if (schema.hasDirectiveTypes()) {
             for (DirectiveType directiveType : schema.getDirectiveTypes()) {
-                createGraphQLDirectiveType(directiveType);
+                if (enabled(directiveType)) {
+                    createGraphQLDirectiveType(directiveType);
+                }
             }
         }
+    }
+
+    private static boolean enabled(DirectiveType directiveType) {
+        return Config.get().isFederationEnabled() || !directiveType.isFederation();
     }
 
     private void createGraphQLDirectiveType(DirectiveType directiveType) {
@@ -372,7 +378,8 @@ public class Bootstrap {
                 .description(enumType.getDescription());
         // Directives
         if (enumType.hasDirectiveInstances()) {
-            enumBuilder = enumBuilder.withDirectives(createGraphQLDirectives(enumType.getDirectiveInstances()));
+            enumBuilder = enumBuilder
+                    .withDirectives(createGraphQLDirectives(enumType.getDirectiveInstances()));
         }
         // Values
         for (EnumValue value : enumType.getValues()) {
@@ -381,7 +388,8 @@ public class Bootstrap {
                     .value(value.getValue())
                     .description(value.getDescription());
             if (value.hasDirectiveInstances()) {
-                definitionBuilder = definitionBuilder.withDirectives(createGraphQLDirectives(value.getDirectiveInstances()));
+                definitionBuilder = definitionBuilder
+                        .withDirectives(createGraphQLDirectives(value.getDirectiveInstances()));
             }
             enumBuilder = enumBuilder.value(definitionBuilder.build());
         }
@@ -411,9 +419,8 @@ public class Bootstrap {
 
         // Directives
         if (interfaceType.hasDirectiveInstances()) {
-            for (DirectiveInstance directiveInstance : interfaceType.getDirectiveInstances()) {
-                interfaceTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
-            }
+            interfaceTypeBuilder = interfaceTypeBuilder
+                    .withDirectives(createGraphQLDirectives(interfaceType.getDirectiveInstances()));
         }
 
         // Interfaces
@@ -535,9 +542,8 @@ public class Bootstrap {
 
         // Directives
         if (type.hasDirectiveInstances()) {
-            for (DirectiveInstance directiveInstance : type.getDirectiveInstances()) {
-                objectTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
-            }
+            objectTypeBuilder = objectTypeBuilder
+                    .withDirectives(createGraphQLDirectives(type.getDirectiveInstances()));
         }
 
         // Fields
@@ -657,7 +663,8 @@ public class Bootstrap {
 
         // Directives
         if (operation.hasDirectiveInstances()) {
-            fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+            fieldBuilder = fieldBuilder
+                    .withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
         }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
@@ -673,6 +680,7 @@ public class Bootstrap {
 
     private GraphQLDirective[] createGraphQLDirectives(Collection<DirectiveInstance> directiveInstances) {
         return directiveInstances.stream()
+                .filter(directiveInstance -> enabled(directiveInstance.getType()))
                 .map(this::createGraphQLDirectiveFrom)
                 .toArray(GraphQLDirective[]::new);
     }
@@ -695,9 +703,8 @@ public class Bootstrap {
 
         // Directives
         if (field.hasDirectiveInstances()) {
-            for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
-                fieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
-            }
+            fieldBuilder = fieldBuilder
+                    .withDirectives(createGraphQLDirectives(field.getDirectiveInstances()));
         }
 
         // Auto Map argument
@@ -770,10 +777,10 @@ public class Bootstrap {
         // Type
         inputFieldBuilder = inputFieldBuilder.type(createGraphQLInputType(field));
 
+        // Directives
         if (field.hasDirectiveInstances()) {
-            for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
-                inputFieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
-            }
+            inputFieldBuilder = inputFieldBuilder
+                    .withDirectives(createGraphQLDirectives(field.getDirectiveInstances()));
         }
 
         // Default value (on method)
@@ -942,12 +949,13 @@ public class Bootstrap {
             graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
         }
 
+        // Type
         argumentBuilder = argumentBuilder.type(graphQLInputType);
 
+        // Directives
         if (argument.hasDirectiveInstances()) {
-            for (DirectiveInstance directiveInstance : argument.getDirectiveInstances()) {
-                argumentBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
-            }
+            argumentBuilder = argumentBuilder
+                    .withDirectives(createGraphQLDirectives(argument.getDirectiveInstances()));
         }
 
         return argumentBuilder.build();
