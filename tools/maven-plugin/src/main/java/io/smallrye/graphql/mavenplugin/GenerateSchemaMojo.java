@@ -184,7 +184,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
             } catch (IOException e) {
                 throw new MojoExecutionException("Failed to index classes of artifact " + artifact, e);
             }
-       } else {
+        } else {
             Result result = indexJar(artifact.getFile());
 
             if (result != null) {
