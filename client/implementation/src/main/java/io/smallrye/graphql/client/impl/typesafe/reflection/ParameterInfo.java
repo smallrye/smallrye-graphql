@@ -13,7 +13,7 @@ import org.eclipse.microprofile.graphql.NonNull;
 import io.smallrye.graphql.client.typesafe.api.Header;
 import io.smallrye.graphql.client.typesafe.api.NestedParameter;
 
-public class ParameterInfo {
+public class ParameterInfo implements NamedElement {
     private final MethodInvocation method;
     private final Parameter parameter;
     private final TypeInfo type;
@@ -124,6 +124,7 @@ public class ParameterInfo {
         return this.value;
     }
 
+    @Override
     public String getName() {
         if (parameter.isAnnotationPresent(Name.class))
             return parameter.getAnnotation(Name.class).value();
@@ -135,10 +136,12 @@ public class ParameterInfo {
         return getRawName();
     }
 
+    @Override
     public String getRawName() {
         return parameter.getName();
     }
 
+    @Override
     public boolean isRenamed() {
         return !getName().equals(getRawName());
     }
