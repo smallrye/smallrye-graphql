@@ -62,6 +62,7 @@ public class MethodInvocation implements NamedElement {
         return OperationType.QUERY;
     }
 
+    @Override
     public String getName() {
         return queryName()
                 .orElseGet(() -> mutationName()
@@ -93,15 +94,12 @@ public class MethodInvocation implements NamedElement {
         return Optional.empty();
     }
 
+    @Override
     public String getRawName() {
         String name = method.getName();
         if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
             return Character.toLowerCase(name.charAt(3)) + name.substring(4);
         return name;
-    }
-
-    public boolean isRenamed() {
-        return !getName().equals(getRawName());
     }
 
     public TypeInfo getReturnType() {
