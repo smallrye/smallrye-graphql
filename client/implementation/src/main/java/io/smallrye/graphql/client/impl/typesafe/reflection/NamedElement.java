@@ -5,5 +5,7 @@ public interface NamedElement {
 
     String getRawName();
 
-    boolean isRenamed();
+    default boolean isRenamed() {
+        return !getName().equals(getRawName());
+    }
 }

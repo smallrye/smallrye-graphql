@@ -141,11 +141,6 @@ public class ParameterInfo implements NamedElement {
         return parameter.getName();
     }
 
-    @Override
-    public boolean isRenamed() {
-        return !getName().equals(getRawName());
-    }
-
     public <A extends Annotation> A[] getAnnotations(Class<A> type) {
         return parameter.getAnnotationsByType(type);
     }
