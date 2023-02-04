@@ -27,7 +27,7 @@ import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
-public class MethodInvocation {
+public class MethodInvocation implements NamedElement {
     public static MethodInvocation of(Method method, Object... args) {
         return new MethodInvocation(new TypeInfo(null, method.getDeclaringClass()), method, args);
     }
@@ -93,7 +93,7 @@ public class MethodInvocation {
         return Optional.empty();
     }
 
-    private String getRawName() {
+    public String getRawName() {
         String name = method.getName();
         if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)))
             return Character.toLowerCase(name.charAt(3)) + name.substring(4);

@@ -15,6 +15,7 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodResolver;
+import io.smallrye.graphql.client.impl.typesafe.reflection.NamedElement;
 import io.smallrye.graphql.client.impl.typesafe.reflection.ParameterInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.AuthorizationHeader;
@@ -86,7 +87,7 @@ public class HeaderBuilder {
             throw new RuntimeException("Header must have either 'method' XOR 'constant': " + header);
         if (header.name().isEmpty())
             throw new RuntimeException("Missing header name for constant '" + header.constant() + "'");
-        return new HeaderDescriptor(header.constant(), header.name(), null);
+        return new HeaderDescriptor(header.constant(), header.name());
     }
 
     private HeaderDescriptor resolveHeaderMethod(Header header) {
@@ -96,7 +97,7 @@ public class HeaderBuilder {
             throw new RuntimeException("referenced header method '" + header.method() + "'" +
                     " in " + declaringType.getTypeName() + " is not static");
         String value = callMethod(method);
-        return new HeaderDescriptor(value, header.name(), toHeaderName(method));
+        return new HeaderDescriptor(value, toHeaderName(header, method));
     }
 
     private String callMethod(MethodInvocation method) {
@@ -110,19 +111,16 @@ public class HeaderBuilder {
         }
     }
 
-    private String toHeaderName(MethodInvocation method) {
-        String name = method.getName();
-        return method.isRenamed() ? name : camelToKebab(name);
+    private String toHeaderName(Header header, NamedElement namedElement) {
+        if (!header.name().isEmpty())
+            return header.name();
+        String name = namedElement.getName();
+        return namedElement.isRenamed() ? name : camelToKebab(name);
     }
 
     private HeaderDescriptor resolve(ParameterInfo parameter) {
         Header header = parameter.getAnnotations(Header.class)[0];
-        return new HeaderDescriptor(parameter.getValue(), header.name(), toHeaderName(parameter));
-    }
-
-    private String toHeaderName(ParameterInfo parameter) {
-        String name = parameter.getName();
-        return parameter.isRenamed() ? name : camelToKebab(name);
+        return new HeaderDescriptor(parameter.getValue(), toHeaderName(header, parameter));
     }
 
     private static String camelToKebab(String input) {
@@ -133,9 +131,9 @@ public class HeaderBuilder {
         private final String name;
         private final String value;
 
-        public HeaderDescriptor(Object value, String name, String fallbackName) {
+        public HeaderDescriptor(Object value, String name) {
             this.value = (value == null) ? null : value.toString();
-            this.name = (name.isEmpty()) ? fallbackName : name;
+            this.name = name;
         }
 
         public void apply(Map<String, String> headers) {
