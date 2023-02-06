@@ -80,7 +80,6 @@ jobs:
           mvn install -Dversion.io.smallrye.graphql=$SMALLRYE_VERSION --file wildfly-graphql-feature-pack/pom.xml
 
   quarkus-tests:
-    if: false # TODO, reenable after Quarkus gets Mutiny 2
     runs-on: ubuntu-latest
     strategy:
       matrix:
