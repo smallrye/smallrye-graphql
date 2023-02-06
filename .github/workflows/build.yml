@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: quarkusio/quarkus
-          ref: jakarta-rewrite
+          ref: main
           path: quarkus
 
       - uses: actions/setup-java@v3.0.0
