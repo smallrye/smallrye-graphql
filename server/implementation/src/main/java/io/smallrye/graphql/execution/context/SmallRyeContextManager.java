@@ -30,6 +30,7 @@ import graphql.schema.GraphQLType;
 import graphql.schema.SelectedField;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.QueryCache;
+import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
@@ -250,6 +251,9 @@ public class SmallRyeContextManager {
 
         if (documentSupplier != null) {
             Document document = documentSupplier.get();
+            if (document == null) {
+                throw new UnparseableDocumentException();
+            }
             List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
             for (OperationDefinition definition : definitions) {
                 String operationType = getOperationTypeFromDefinition(definition);

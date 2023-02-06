@@ -17,10 +17,8 @@ import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderRegistry;
 
-import graphql.ExecutionInput;
+import graphql.*;
 import graphql.ExecutionInput.Builder;
-import graphql.ExecutionResult;
-import graphql.GraphQL;
 import graphql.analysis.MaxQueryComplexityInstrumentation;
 import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.execution.ExecutionId;
@@ -35,6 +33,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
+import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Schema;
@@ -165,9 +164,22 @@ public class ExecutionService {
                 }
 
                 ExecutionInput executionInput = executionBuilder.build();
-
                 // Context
-                smallRyeContext = SmallRyeContextManager.populateFromExecutionInput(executionInput, queryCache);
+                try {
+                    smallRyeContext = SmallRyeContextManager.populateFromExecutionInput(executionInput, queryCache);
+                } catch (UnparseableDocumentException ex) {
+                    GraphQLError error = GraphqlErrorBuilder
+                            .newError()
+                            .message("Unparseable input document")
+                            .build();
+                    ExecutionResult executionResult = ExecutionResultImpl
+                            .newExecutionResult()
+                            .addError(error)
+                            .build();
+                    ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+                    writer.write(executionResponse);
+                    return;
+                }
                 context.put(SmallRyeContextManager.CONTEXT, smallRyeContext);
                 executionInput.getGraphQLContext().putAll(context);
 
