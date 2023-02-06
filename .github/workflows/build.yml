@@ -79,6 +79,8 @@ jobs:
           mvn install -Dversion.io.smallrye.graphql=$SMALLRYE_VERSION --file wildfly-graphql-feature-pack/pom.xml
 
   quarkus-tests:
+    # Disabled on 2.0.x branch. There's no suitable compatible Quarkus branch.
+    if: false
     runs-on: ubuntu-latest
     strategy:
       matrix:
