@@ -39,7 +39,7 @@
         <version.graphql-java-federation>2.1.1</version.graphql-java-federation>
         <version.graphql-java>19.2</version.graphql-java>
         <verison.io.micrometer>1.10.2</verison.io.micrometer>
-        <version.vertx>4.3.5</version.vertx>
+        <version.vertx>4.3.7</version.vertx>
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.Final</version.arquillian.jetty>
