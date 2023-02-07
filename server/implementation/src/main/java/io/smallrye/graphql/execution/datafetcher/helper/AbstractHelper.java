@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 
 import graphql.schema.DataFetchingEnvironment;
@@ -121,34 +125,46 @@ public abstract class AbstractHelper {
     /**
      * Here we actually do the transform. This method get called recursively in the case of arrays
      *
-     * @param inputValue the value we got from graphql-java or response from the method call
+     * @param value the value we got from graphql-java or response from the method call
      * @param field details about the expected type created while scanning the code
      * @return the argumentValue in the correct type and transformed
      */
-    Object recursiveTransform(Object inputValue, Field field, DataFetchingEnvironment dfe)
+    Object recursiveTransform(Object value, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
 
-        if (inputValue == null) {
+        if (value == null) {
             return null;
         }
 
         // First handle the array if this is an array
         if (field.hasWrapper() && field.getWrapper().isArray()) {
-            return recursiveTransformArray(inputValue, field, dfe);
+            return recursiveTransformArray(value, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isMap()) {
-            return inputValue;
+            return value;
         } else if (field.hasWrapper() && field.getWrapper().isCollection()) {
-            return recursiveTransformCollection(inputValue, field, dfe);
+            return recursiveTransformCollection(value, field, dfe);
         } else if (field.hasWrapper() && field.getWrapper().isOptional()) {
             // Also handle optionals
-            return recursiveTransformOptional(inputValue, field, dfe);
+            return recursiveTransformOptional(value, field, dfe);
+        } else if (field.getReference().getClassName().equals("java.util.OptionalInt")) {
+            if (value instanceof OptionalInt)
+                return value;
+            return OptionalInt.of((Integer) value);
+        } else if (field.getReference().getClassName().equals("java.util.OptionalLong")) {
+            if (value instanceof OptionalLong)
+                return value;
+            return OptionalLong.of(((BigInteger) value).longValue());
+        } else if (field.getReference().getClassName().equals("java.util.OptionalDouble")) {
+            if (value instanceof OptionalDouble)
+                return value;
+            return OptionalDouble.of((Double) value);
         } else {
             // we need to transform before we make sure the type is correct
-            inputValue = singleTransform(inputValue, field);
+            value = singleTransform(value, field);
         }
 
         // Recursive transformation done.
-        return afterRecursiveTransform(inputValue, field, dfe);
+        return afterRecursiveTransform(value, field, dfe);
     }
 
     /**
