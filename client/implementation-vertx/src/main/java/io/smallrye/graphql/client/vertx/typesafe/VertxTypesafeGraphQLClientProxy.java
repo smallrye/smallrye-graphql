@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -322,6 +325,18 @@ class VertxTypesafeGraphQLClientProxy {
         }
         if (value instanceof BigDecimal) {
             return Json.createValue((BigDecimal) value);
+        }
+        if (value instanceof OptionalInt) {
+            OptionalInt optionalValue = ((OptionalInt) value);
+            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsInt()) : JsonValue.NULL);
+        }
+        if (value instanceof OptionalLong) {
+            OptionalLong optionalValue = ((OptionalLong) value);
+            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsLong()) : JsonValue.NULL);
+        }
+        if (value instanceof OptionalDouble) {
+            OptionalDouble optionalValue = ((OptionalDouble) value);
+            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsDouble()) : JsonValue.NULL);
         }
         return Json.createValue(value.toString());
     }
