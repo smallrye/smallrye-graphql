@@ -5,6 +5,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
@@ -45,7 +48,10 @@ public class JsonReader extends Reader<JsonValue> {
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
         Reader<?> reader = reader(location);
-        return reader.read();
+        Object result = reader.read();
+        if (type.isOptionalNumber() && result == null)
+            return optionalNumberEmpty();
+        return result;
     }
 
     private ErrorOr<Object> readErrorOr() {
@@ -98,5 +104,18 @@ public class JsonReader extends Reader<JsonValue> {
                 return new JsonNullReader(type, location, value, field);
         }
         throw new InvalidResponseException("unexpected value type for " + location.getDescription() + ": " + value);
+    }
+
+    private Object optionalNumberEmpty() {
+        Object result = null;
+        if (type.getTypeName().equals("java.util.OptionalInt")) {
+            result = OptionalInt.empty();
+        } else if (type.getTypeName().equals("java.util.OptionalLong")) {
+            result = OptionalLong.empty();
+        } else if (type.getTypeName().equals("java.util.OptionalDouble")) {
+            result = OptionalDouble.empty();
+        }
+        return result;
+
     }
 }

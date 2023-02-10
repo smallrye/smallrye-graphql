@@ -72,11 +72,13 @@ public class ParameterInfo implements NamedElement {
             case "Short":
             case "byte":
             case "Byte":
+            case "OptionalInt":
                 return "Int";
             case "float":
             case "Float":
             case "double":
             case "Double":
+            case "OptionalDouble":
                 return "Float";
             case "String":
             case "char":
@@ -89,6 +91,7 @@ public class ParameterInfo implements NamedElement {
             case "BigInteger":
             case "long":
             case "Long":
+            case "OptionalLong":
                 return "BigInteger";
             case "BigDecimal":
                 return "BigDecimal";

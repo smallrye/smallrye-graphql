@@ -2,6 +2,9 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import jakarta.json.JsonNumber;
 
@@ -41,6 +44,12 @@ class JsonNumberReader extends Reader<JsonNumber> {
             return value.bigIntegerValueExact();
         if (BigDecimal.class.equals(rawType) || Object.class.equals(rawType))
             return value.bigDecimalValue();
+        if (OptionalInt.class.equals(rawType))
+            return OptionalInt.of(value.intValueExact());
+        if (OptionalLong.class.equals(rawType))
+            return OptionalLong.of(value.longValueExact());
+        if (OptionalDouble.class.equals(rawType))
+            return OptionalDouble.of(value.doubleValue());
 
         throw GraphQLClientValueHelper.fail(location, value);
     }

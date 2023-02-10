@@ -23,6 +23,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
@@ -131,6 +134,12 @@ public class TypeInfo {
         return Map.class.isAssignableFrom(getRawType());
     }
 
+    public boolean isOptionalNumber() {
+        Class<?> rawType = getRawType();
+        return OptionalInt.class.isAssignableFrom(rawType) || OptionalLong.class.isAssignableFrom(rawType) ||
+                OptionalDouble.class.isAssignableFrom(rawType);
+    }
+
     private boolean ifClass(Predicate<Class<?>> predicate) {
         return (type instanceof Class) && predicate.test((Class<?>) type);
     }
@@ -187,7 +196,10 @@ public class TypeInfo {
                 || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
                 || java.util.Date.class.equals(getRawType())
                 || java.util.UUID.class.equals(getRawType())
-                || scalarConstructor().isPresent();
+                || scalarConstructor().isPresent()
+                || java.util.OptionalInt.class.equals(getRawType())
+                || java.util.OptionalLong.class.equals(getRawType())
+                || java.util.OptionalDouble.class.equals(getRawType());
     }
 
     public boolean isPrimitive() {
