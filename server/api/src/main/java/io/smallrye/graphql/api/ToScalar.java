@@ -56,7 +56,7 @@ import io.smallrye.common.annotation.Experimental;
 @Documented
 @Experimental("Allow you to map to a certain scalar class. Not covered by the specification. " +
         "Subject to change.")
-@Deprecated
+@java.lang.Deprecated
 public @interface ToScalar {
     /**
      * @return the scalar to use.

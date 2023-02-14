@@ -23,7 +23,7 @@ import io.smallrye.graphql.schema.model.Field;
  */
 public abstract class ModelCreator {
 
-    private Directives directives;
+    protected Directives directives;
     protected final ReferenceCreator referenceCreator;
 
     public ModelCreator(ReferenceCreator referenceCreator) {
