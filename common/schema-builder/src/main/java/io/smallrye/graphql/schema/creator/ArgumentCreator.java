@@ -11,6 +11,7 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
+import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
@@ -28,12 +29,14 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 public class ArgumentCreator extends ModelCreator {
 
     private final BeanValidationDirectivesHelper validationHelper;
+    private final DeprecatedDirectivesHelper deprecatedHelper;
 
     private final Logger logger = Logger.getLogger(ArgumentCreator.class.getName());
 
     public ArgumentCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
         validationHelper = new BeanValidationDirectivesHelper();
+        deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
     /**
@@ -92,6 +95,16 @@ public class ArgumentCreator extends ModelCreator {
                 logger.debug("Adding constraint directives " + constraintDirectives + " to argument '" + argument.getName()
                         + "' of method '" + argument.getMethodName() + "'");
                 argument.addDirectiveInstances(constraintDirectives);
+            }
+        }
+        if (deprecatedHelper != null && directives != null) {
+            List<DirectiveInstance> deprecatedDirectives = deprecatedHelper
+                    .transformDeprecatedToDirectives(annotationsForThisArgument,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")));
+            if (!deprecatedDirectives.isEmpty()) {
+                logger.debug("Adding deprecated directives " + deprecatedDirectives + " to field '" + argument.getName()
+                        + "' of  of method '" + argument.getMethodName() + "'");
+                argument.addDirectiveInstances(deprecatedDirectives);
             }
         }
 
