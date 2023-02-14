@@ -67,4 +67,8 @@ public class Directives {
         }
         return annotationValue.value();
     }
+
+    public Map<DotName, DirectiveType> getDirectiveTypes() {
+        return directiveTypes;
+    }
 }

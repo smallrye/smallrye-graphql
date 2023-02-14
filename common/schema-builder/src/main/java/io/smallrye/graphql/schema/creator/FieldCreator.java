@@ -4,6 +4,7 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Optional;
 
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
@@ -13,6 +14,7 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
+import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.IgnoreHelper;
 import io.smallrye.graphql.schema.helper.MethodHelper;
@@ -30,10 +32,12 @@ public class FieldCreator extends ModelCreator {
     private final Logger logger = Logger.getLogger(FieldCreator.class.getName());
 
     private final BeanValidationDirectivesHelper validationHelper;
+    private final DeprecatedDirectivesHelper deprecatedHelper;
 
     public FieldCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
         validationHelper = new BeanValidationDirectivesHelper();
+        deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
     /**
@@ -97,6 +101,7 @@ public class FieldCreator extends ModelCreator {
                     reference);
             if (direction == Direction.IN) {
                 addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
+                addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             }
 
             populateField(direction, field, fieldType, methodType, annotationsForPojo);
@@ -122,6 +127,7 @@ public class FieldCreator extends ModelCreator {
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
         addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
+        addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
         populateField(Direction.IN, field, fieldType, method.parameterType(position), annotationsForPojo);
 
         return Optional.of(field);
@@ -155,6 +161,7 @@ public class FieldCreator extends ModelCreator {
                     reference);
             if (direction == Direction.IN) {
                 addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
+                addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             }
             populateField(direction, field, fieldType, annotationsForPojo);
 
@@ -172,6 +179,20 @@ public class FieldCreator extends ModelCreator {
                 logger.debug("Adding constraint directives " + constraintDirectives + " to field '" + field.getName()
                         + "' of parent type '" + parentObjectReference.getName() + "'");
                 field.addDirectiveInstances(constraintDirectives);
+            }
+        }
+    }
+
+    private void addDirectivesForDeprecated(Annotations annotationsForPojo, Field field,
+            Reference parentObjectReference) {
+        if (deprecatedHelper != null && directives != null) {
+            List<DirectiveInstance> deprecatedDirectives = deprecatedHelper
+                    .transformDeprecatedToDirectives(annotationsForPojo,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")));
+            if (!deprecatedDirectives.isEmpty()) {
+                logger.debug("Adding deprecated directives " + deprecatedDirectives + " to field '" + field.getName()
+                        + "' of parent type '" + parentObjectReference.getName() + "'");
+                field.addDirectiveInstances(deprecatedDirectives);
             }
         }
     }
