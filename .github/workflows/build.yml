@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: quarkusio/quarkus
-          ref: main
+          ref: 2.16
           path: quarkus
 
       - name: Cache local Maven repository
