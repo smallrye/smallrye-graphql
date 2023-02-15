@@ -422,7 +422,7 @@ public abstract class AbstractHelper {
     }
 
     private Integer getKey(String className, String methodName, List<String> parameterClasses) {
-        return Objects.hash(className, methodName, parameterClasses.toArray());
+        return Objects.hash(className, methodName, Arrays.hashCode(parameterClasses.toArray()));
     }
 
     /**
