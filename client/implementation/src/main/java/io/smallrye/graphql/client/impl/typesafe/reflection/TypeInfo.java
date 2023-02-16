@@ -30,6 +30,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import jakarta.json.bind.annotation.JsonbTransient;
+
 import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -164,8 +166,24 @@ public class TypeInfo {
     }
 
     private boolean isGraphQlField(Field field) {
+        Class jsonIgnoreClass = null;
+        try {
+            jsonIgnoreClass = Class.forName("com.fasterxml.jackson.annotation.JsonIgnore", false,
+                    Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            /* IN CASE THE CLASS IS NOT IMPORTED */ }
         return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers())
-                && !field.isAnnotationPresent(Ignore.class);
+                && !isAnnotatedBy(field, Ignore.class, JsonbTransient.class, jsonIgnoreClass);
+    }
+
+    private boolean isAnnotatedBy(Field field, Class<? extends Annotation>... annotationClasses) {
+        for (Class<? extends Annotation> annotationClass : annotationClasses) {
+            if (annotationClass != null
+                    && field.isAnnotationPresent(annotationClass)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Modifier.isSynthetic is package private */
