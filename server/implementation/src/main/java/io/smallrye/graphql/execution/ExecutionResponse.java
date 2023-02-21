@@ -3,7 +3,10 @@ package io.smallrye.graphql.execution;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.json.*;
 import javax.json.bind.Jsonb;
@@ -32,8 +35,15 @@ public class ExecutionResponse {
 
     private final ExecutionResult executionResult;
 
+    private Map<String, Object> addedExtensions;
+
     public ExecutionResponse(ExecutionResult executionResult) {
+        this(executionResult, null);
+    }
+
+    public ExecutionResponse(ExecutionResult executionResult, Map<String, Object> addedExtensions) {
         this.executionResult = executionResult;
+        this.addedExtensions = addedExtensions;
     }
 
     public String toString() {
@@ -87,11 +97,17 @@ public class ExecutionResponse {
 
     private JsonObjectBuilder addExtensionsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
         final Map<Object, Object> extensions = executionResult.getExtensions();
-        if (extensions != null) {
-            JsonObject extensionsObject = buildExtensions(extensions);
-            returnObjectBuilder = returnObjectBuilder.add(EXTENSIONS, extensionsObject);
+        if (extensions != null) { // ERRORS
+            returnObjectBuilder = addExtensionToBuilder(extensions, returnObjectBuilder);
+        } else if (addedExtensions != null && !addedExtensions.isEmpty()) { // ADDED EXTENSIONS
+            returnObjectBuilder = addExtensionToBuilder(new HashMap(addedExtensions), returnObjectBuilder);
         }
         return returnObjectBuilder;
+    }
+
+    private JsonObjectBuilder addExtensionToBuilder(Map<Object, Object> extensions, JsonObjectBuilder returnObjectBuilder) {
+        JsonObject extensionsObject = buildExtensions(extensions);
+        return returnObjectBuilder.add(EXTENSIONS, extensionsObject);
     }
 
     private JsonObject buildExtensions(final Map<Object, Object> extensions) {
