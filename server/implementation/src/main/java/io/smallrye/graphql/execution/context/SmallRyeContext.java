@@ -2,6 +2,7 @@ package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,19 @@ public class SmallRyeContext implements Context {
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
     private ExecutionResult executionResult;
+    private Map<String, Object> addedExtensions = new HashMap<>();
+
+    public Map<String, Object> getAddedExtensions() {
+        return addedExtensions;
+    }
+
+    public void setAddedExtensions(Map<String, Object> addedExtensions) {
+        this.addedExtensions = addedExtensions;
+    }
+
+    public void addExtension(String key, Object value) {
+        addedExtensions.put(key, value);
+    }
 
     public SmallRyeContext(String createdBy) {
         this.createdBy = createdBy;
