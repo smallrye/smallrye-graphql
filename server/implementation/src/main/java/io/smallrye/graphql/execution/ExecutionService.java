@@ -210,11 +210,11 @@ public class ExecutionService {
             ExecutionResult executionResult,
             ExecutionResponseWriter writer) {
         smallRyeContext.setExecutionResult(executionResult);
-
         // Notify after
         eventEmitter.fireAfterExecute(smallRyeContext);
 
-        ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+        ExecutionResponse executionResponse = new ExecutionResponse(executionResult,
+                smallRyeContext.getAddedExtensions());
         if (!payloadOption.equals(LogPayloadOption.off)) {
             log.payloadOut(executionResponse.toString());
         }
