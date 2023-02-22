@@ -2,6 +2,12 @@
 
 Documentation is built using the `mkdocs` tool.
 See link:https://www.mkdocs.org/user-guide/installation/[Installation guide] on how to install it.
+On top of that install these 3 plugins:
+```
+pip install mkdocs-material
+pip install mkdocs-build-plantuml-plugin
+pip install mkdocs-macros-plugin
+```
 Then, building the documentation locally will be as simple as running `mkdocs build` in the root
 of this repository (NOT in the `docs` directory) - the output should appear in the `site` directory.
 To fix a few things, like making links work correctly, you should serve the site

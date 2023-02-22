@@ -9,6 +9,7 @@ nav:
       - Directives: 'directives.md'
       - Federation: 'federation.md'
       - Custom error extensions: 'custom-error-extensions.md'
+      - Response extensions: 'extensions.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'
