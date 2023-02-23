@@ -25,18 +25,34 @@ public class ResponseImpl implements Response {
 
     private final JsonObject data;
     private final List<GraphQLError> errors;
+    private final JsonObject extensions;
     private final Map<String, List<String>> metadata;
 
     public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers) {
+        this(data, errors, null, headers);
+    }
+
+    public ResponseImpl(JsonObject data,
+            List<GraphQLError> errors,
+            JsonObject extensions,
+            Map<String, List<String>> headers) {
         this.data = data;
         this.errors = errors;
+        this.extensions = extensions;
         this.metadata = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
     }
 
     public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers,
             Integer statusCode, String statusMessage) {
+        this(data, errors, null, headers, statusCode, statusMessage);
+    }
+
+    public ResponseImpl(JsonObject data, List<GraphQLError> errors, JsonObject extensions,
+            Map<String, List<String>> headers,
+            Integer statusCode, String statusMessage) {
         this.data = data;
         this.errors = errors;
+        this.extensions = extensions;
         Map<String, List<String>> meta = new HashMap<>();
         if (headers != null) {
             meta.putAll(headers);
@@ -134,6 +150,11 @@ public class ResponseImpl implements Response {
         return errors;
     }
 
+    @Override
+    public JsonObject getExtensions() {
+        return extensions;
+    }
+
     /**
      * If there are application errors inside this response, this method converts these errors into a `GraphQLClientException`
      * and throws it. If there are no errors, then this method does nothing.
@@ -156,8 +177,17 @@ public class ResponseImpl implements Response {
     }
 
     @Override
+    public boolean hasExtensions() {
+        return extensions != null && !extensions.isEmpty();
+    }
+
+    @Override
     public String toString() {
-        return "GraphQLResponse{" + "data=" + data + ", errors=" + errors + '}';
+        return "ResponseImpl{" +
+                "data=" + data +
+                ", errors=" + errors +
+                ", extensions=" + extensions +
+                '}';
     }
 
     public Map<String, List<String>> getHeaders() {

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 
 public interface Response {
 
@@ -18,6 +19,11 @@ public interface Response {
      * List of errors contained in this response.
      */
     List<GraphQLError> getErrors();
+
+    /**
+     * List of user-made extensions contained in this response.
+     */
+    JsonObject getExtensions();
 
     /**
      * Transform the contents of the `rootField` from this response into a list of objects
@@ -47,6 +53,11 @@ public interface Response {
      * If this response contains at least one error, this returns `true`; `false` otherwise.
      */
     boolean hasError();
+
+    /**
+     * If this response contains any extensions, this returns `true`; `false` otherwise.
+     */
+    boolean hasExtensions();
 
     /**
      * Get transport-specific metadata that came from the server with this response.
