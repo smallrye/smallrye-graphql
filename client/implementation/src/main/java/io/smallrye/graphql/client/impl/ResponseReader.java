@@ -82,7 +82,12 @@ public class ResponseReader {
             }
         }
 
-        return new ResponseImpl(data, errors, headers, statusCode, statusMessage);
+        JsonObject extensions = null;
+        if (jsonResponse.containsKey("extensions")) {
+            extensions = jsonResponse.getJsonObject("extensions");
+        }
+
+        return new ResponseImpl(data, errors, extensions, headers, statusCode, statusMessage);
     }
 
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
