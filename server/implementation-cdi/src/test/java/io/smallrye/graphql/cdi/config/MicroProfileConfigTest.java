@@ -14,7 +14,7 @@ class MicroProfileConfigTest {
         MicroProfileConfig config = new MicroProfileConfig();
         assertTrue(config.getHideErrorMessageList().isPresent());
         List<String> hiddenMessages = config.getHideErrorMessageList().get();
-        assertEquals(List.of("a,b,c,d"), hiddenMessages);
+        assertEquals(List.of("a", "b", "c", "b", "c", "d"), hiddenMessages);
     }
 
     @Test
@@ -22,6 +22,6 @@ class MicroProfileConfigTest {
         MicroProfileConfig config = new MicroProfileConfig();
         assertTrue(config.getShowErrorMessageList().isPresent());
         List<String> shownMessages = config.getShowErrorMessageList().get();
-        assertEquals(List.of("a,b,c,d"), shownMessages);
+        assertEquals(List.of("a", "b", "c", "b", "c", "d"), shownMessages);
     }
 }

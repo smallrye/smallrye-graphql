@@ -1,13 +1,12 @@
 package io.smallrye.graphql.cdi.config;
 
+import io.smallrye.graphql.spi.config.Config;
+import io.smallrye.graphql.spi.config.LogPayloadOption;
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import org.eclipse.microprofile.config.ConfigProvider;
-
-import io.smallrye.graphql.spi.config.Config;
-import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Configuration for GraphQL
@@ -16,8 +15,8 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
  */
 public class MicroProfileConfig implements Config {
 
-    private Optional<List<String>> hideList;
-    private Optional<List<String>> showList;
+    private List<String> hideList;
+    private List<String> showList;
     private String defaultErrorMessage;
     private Boolean printDataFetcherException;
     private Boolean allowGet;
@@ -68,22 +67,27 @@ public class MicroProfileConfig implements Config {
     public Optional<List<String>> getHideErrorMessageList() {
         if (hideList == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            Optional<List<String>> blackList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_BLACK_LIST,
-                    String.class);
-            hideList = mergeList(microProfileConfig.getOptionalValues("mp.graphql.hideErrorMessage", String.class), blackList);
+            List<String> blackList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_BLACK_LIST, String.class)
+                    .orElse(List.of());
+            List<String> currentList = microProfileConfig.getOptionalValues("mp.graphql.hideErrorMessage", String.class)
+                    .orElse(List.of());
+            hideList = mergeList(currentList, blackList).orElse(null);
         }
-        return hideList;
+        return Optional.ofNullable(hideList);
     }
 
     @Override
     public Optional<List<String>> getShowErrorMessageList() {
         if (showList == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            Optional<List<String>> whiteList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_WHITE_LIST,
-                    String.class);
-            showList = mergeList(microProfileConfig.getOptionalValues("mp.graphql.showErrorMessage", String.class), whiteList);
+            List<String> whiteList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_WHITE_LIST, String.class)
+                    .orElse(List.of());
+            List<String> currentList = microProfileConfig.getOptionalValues("mp.graphql.showErrorMessage", String.class)
+                    .orElse(List.of());
+            showList = mergeList(currentList, whiteList)
+                    .orElse(null);
         }
-        return showList;
+        return Optional.ofNullable(showList);
     }
 
     @Override
@@ -285,11 +289,11 @@ public class MicroProfileConfig implements Config {
         return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
     }
 
-    public void setHideErrorMessageList(Optional<List<String>> hideList) {
+    public void setHideErrorMessageList(List<String> hideList) {
         this.hideList = hideList;
     }
 
-    public void setShowErrorMessageList(Optional<List<String>> showList) {
+    public void setShowErrorMessageList(List<String> showList) {
         this.showList = showList;
     }
 
@@ -369,14 +373,6 @@ public class MicroProfileConfig implements Config {
         this.errorExtensionFields = errorExtensionFields;
     }
 
-    public void setHideList(Optional<List<String>> hideList) {
-        this.hideList = hideList;
-    }
-
-    public void setShowList(Optional<List<String>> showList) {
-        this.showList = showList;
-    }
-
     public void setPrintDataFetcherException(Boolean printDataFetcherException) {
         this.printDataFetcherException = printDataFetcherException;
     }
@@ -429,15 +425,10 @@ public class MicroProfileConfig implements Config {
         this.queryDepthInstrumentation = queryDepthInstrumentation;
     }
 
-    private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {
+    private Optional<List<String>> mergeList(List<String> currentList, List<String> deprecatedList) {
 
-        List<String> combined = new ArrayList<>();
-        if (deprecatedList.isPresent()) {
-            combined.addAll(deprecatedList.get());
-        }
-        if (currentList.isPresent()) {
-            combined.addAll(currentList.get());
-        }
+        List<String> combined = new ArrayList<>(deprecatedList);
+        combined.addAll(currentList);
 
         if (!combined.isEmpty()) {
             return Optional.of(combined);
