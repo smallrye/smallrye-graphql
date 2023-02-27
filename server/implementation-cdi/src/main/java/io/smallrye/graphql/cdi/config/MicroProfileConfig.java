@@ -40,7 +40,7 @@ public class MicroProfileConfig implements Config {
     private Optional<Boolean> parserCaptureLineComments;
     private Optional<Boolean> parserCaptureIgnoredChars;
     private Integer queryComplexityInstrumentation;
-    private Optional<Integer> queryDepthInstrumentation;
+    private Integer queryDepthInstrumentation;
 
     @Override
     public String getName() {
@@ -279,10 +279,10 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getQueryDepthInstrumentation() {
         if (queryDepthInstrumentation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH,
-                    Integer.class);
+            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH, Integer.class)
+                    .orElse(null);
         }
-        return queryDepthInstrumentation;
+        return Optional.ofNullable(queryDepthInstrumentation);
     }
 
     @Override
@@ -423,7 +423,7 @@ public class MicroProfileConfig implements Config {
         this.queryComplexityInstrumentation = queryComplexityInstrumentation;
     }
 
-    public void getQueryDepthInstrumentation(Optional<Integer> queryDepthInstrumentation) {
+    public void getQueryDepthInstrumentation(Integer queryDepthInstrumentation) {
         this.queryDepthInstrumentation = queryDepthInstrumentation;
     }
 

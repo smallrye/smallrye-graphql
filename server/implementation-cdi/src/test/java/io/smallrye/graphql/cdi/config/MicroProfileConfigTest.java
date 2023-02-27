@@ -48,4 +48,12 @@ class MicroProfileConfigTest {
         Integer queryComplexityInstrumentation = config.getQueryComplexityInstrumentation().get();
         assertEquals(1337, queryComplexityInstrumentation);
     }
+
+    @Test
+    void testQueryDepthInstrumentation() {
+        MicroProfileConfig config = new MicroProfileConfig();
+        assertTrue(config.getQueryDepthInstrumentation().isPresent());
+        Integer queryDepthInstrumentation = config.getQueryDepthInstrumentation().get();
+        assertEquals(1338, queryDepthInstrumentation);
+    }
 }
