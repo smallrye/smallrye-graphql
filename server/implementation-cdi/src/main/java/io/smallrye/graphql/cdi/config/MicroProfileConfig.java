@@ -35,7 +35,7 @@ public class MicroProfileConfig implements Config {
     private List<String> unwrapExceptions;
     private List<String> errorExtensionFields;
     private Integer parserMaxTokens;
-    private Optional<Integer> parserMaxWhitespaceTokens;
+    private Integer parserMaxWhitespaceTokens;
     private Optional<Boolean> parserCaptureSourceLocation;
     private Optional<Boolean> parserCaptureLineComments;
     private Optional<Boolean> parserCaptureIgnoredChars;
@@ -232,10 +232,10 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getParserMaxWhitespaceTokens() {
         if (parserMaxWhitespaceTokens == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS,
-                    Integer.class);
+            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS, Integer.class)
+                    .orElse(null);
         }
-        return parserMaxWhitespaceTokens;
+        return Optional.ofNullable(parserMaxWhitespaceTokens);
     }
 
     @Override
@@ -360,7 +360,7 @@ public class MicroProfileConfig implements Config {
         this.parserMaxTokens = parserMaxTokens;
     }
 
-    public void setParserMaxWhitespaceTokens(Optional<Integer> parserMaxWhitespaceTokens) {
+    public void setParserMaxWhitespaceTokens(Integer parserMaxWhitespaceTokens) {
         this.parserMaxWhitespaceTokens = parserMaxWhitespaceTokens;
     }
 

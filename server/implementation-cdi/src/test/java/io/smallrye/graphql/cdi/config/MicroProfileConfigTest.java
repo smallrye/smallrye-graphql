@@ -59,4 +59,11 @@ class MicroProfileConfigTest {
         Integer queryDepthInstrumentation = config.getParserMaxTokens().get();
         assertEquals(1339, queryDepthInstrumentation);
     }
+
+    @Test
+    void testParserMaxWhitespaceTokens() {
+        assertTrue(config.getParserMaxWhitespaceTokens().isPresent());
+        Integer queryDepthInstrumentation = config.getParserMaxWhitespaceTokens().get();
+        assertEquals(1340, queryDepthInstrumentation);
+    }
 }
