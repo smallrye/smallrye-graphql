@@ -34,7 +34,7 @@ public class MicroProfileConfig implements Config {
     private String fieldVisibility;
     private List<String> unwrapExceptions;
     private List<String> errorExtensionFields;
-    private Optional<Integer> parserMaxTokens;
+    private Integer parserMaxTokens;
     private Optional<Integer> parserMaxWhitespaceTokens;
     private Optional<Boolean> parserCaptureSourceLocation;
     private Optional<Boolean> parserCaptureLineComments;
@@ -222,9 +222,10 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getParserMaxTokens() {
         if (parserMaxTokens == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class);
+            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class)
+                    .orElse(null);
         }
-        return parserMaxTokens;
+        return Optional.ofNullable(parserMaxTokens);
     }
 
     @Override
@@ -355,7 +356,7 @@ public class MicroProfileConfig implements Config {
         this.parserCaptureSourceLocation = parserCaptureSourceLocation;
     }
 
-    public void setParserMaxTokens(Optional<Integer> parserMaxTokens) {
+    public void setParserMaxTokens(Integer parserMaxTokens) {
         this.parserMaxTokens = parserMaxTokens;
     }
 
