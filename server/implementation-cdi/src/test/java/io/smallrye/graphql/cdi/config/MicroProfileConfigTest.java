@@ -56,14 +56,21 @@ class MicroProfileConfigTest {
     @Test
     void testParserMaxTokens() {
         assertTrue(config.getParserMaxTokens().isPresent());
-        Integer queryDepthInstrumentation = config.getParserMaxTokens().get();
-        assertEquals(1339, queryDepthInstrumentation);
+        Integer parserMaxTokens = config.getParserMaxTokens().get();
+        assertEquals(1339, parserMaxTokens);
     }
 
     @Test
     void testParserMaxWhitespaceTokens() {
         assertTrue(config.getParserMaxWhitespaceTokens().isPresent());
-        Integer queryDepthInstrumentation = config.getParserMaxWhitespaceTokens().get();
-        assertEquals(1340, queryDepthInstrumentation);
+        Integer parserMaxWhitespaceTokens = config.getParserMaxWhitespaceTokens().get();
+        assertEquals(1340, parserMaxWhitespaceTokens);
+    }
+
+    @Test
+    void testParserCaptureSourceLocation() {
+        assertTrue(config.isParserCaptureSourceLocation().isPresent());
+        Boolean isParserCaptureSourceLocation = config.isParserCaptureSourceLocation().get();
+        assertEquals(Boolean.TRUE, isParserCaptureSourceLocation);
     }
 }

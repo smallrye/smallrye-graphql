@@ -36,7 +36,7 @@ public class MicroProfileConfig implements Config {
     private List<String> errorExtensionFields;
     private Integer parserMaxTokens;
     private Integer parserMaxWhitespaceTokens;
-    private Optional<Boolean> parserCaptureSourceLocation;
+    private Boolean parserCaptureSourceLocation;
     private Optional<Boolean> parserCaptureLineComments;
     private Optional<Boolean> parserCaptureIgnoredChars;
     private Integer queryComplexityInstrumentation;
@@ -212,10 +212,10 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureSourceLocation() {
         if (parserCaptureSourceLocation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION,
-                    Boolean.class);
+            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION, Boolean.class)
+                    .orElse(null);
         }
-        return parserCaptureSourceLocation;
+        return Optional.ofNullable(parserCaptureSourceLocation);
     }
 
     @Override
@@ -352,7 +352,7 @@ public class MicroProfileConfig implements Config {
         this.parserCaptureLineComments = parserCaptureLineComments;
     }
 
-    public void setParserCaptureSourceLocation(Optional<Boolean> parserCaptureSourceLocation) {
+    public void setParserCaptureSourceLocation(Boolean parserCaptureSourceLocation) {
         this.parserCaptureSourceLocation = parserCaptureSourceLocation;
     }
 
