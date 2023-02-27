@@ -73,4 +73,10 @@ class MicroProfileConfigTest {
         Boolean isParserCaptureSourceLocation = config.isParserCaptureSourceLocation().get();
         assertEquals(Boolean.TRUE, isParserCaptureSourceLocation);
     }
+
+    @Test
+    void testParserCaptureLineComments() {
+        assertTrue(config.isParserCaptureLineComments().isPresent());
+        assertEquals(Boolean.TRUE, config.isParserCaptureLineComments().get());
+    }
 }
