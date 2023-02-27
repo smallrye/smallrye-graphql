@@ -25,7 +25,7 @@ As an example, this class below contains the query `getShirt` and during the htt
 `{"country": "Germany", "pi": 3.1415926535}`.
 These extensions will be sent back via response in the `extensions` field.
 ```java
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 @GraphQLApi
 public class ShirtResources {
