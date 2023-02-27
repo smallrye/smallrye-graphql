@@ -37,7 +37,15 @@ class MicroProfileConfigTest {
     void testErrorExtensionFields() {
         MicroProfileConfig config = new MicroProfileConfig();
         assertTrue(config.getErrorExtensionFields().isPresent());
-        List<String> unwrappedExceptions = config.getErrorExtensionFields().get();
-        assertEquals(List.of("a", "b", "c"), unwrappedExceptions);
+        List<String> errorExtensionFields = config.getErrorExtensionFields().get();
+        assertEquals(List.of("a", "b", "c"), errorExtensionFields);
+    }
+
+    @Test
+    void testQueryComplexityInstrumentation() {
+        MicroProfileConfig config = new MicroProfileConfig();
+        assertTrue(config.getQueryComplexityInstrumentation().isPresent());
+        Integer queryComplexityInstrumentation = config.getQueryComplexityInstrumentation().get();
+        assertEquals(1337, queryComplexityInstrumentation);
     }
 }
