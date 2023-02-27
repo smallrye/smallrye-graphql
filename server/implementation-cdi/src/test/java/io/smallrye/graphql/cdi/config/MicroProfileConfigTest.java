@@ -32,4 +32,12 @@ class MicroProfileConfigTest {
         List<String> unwrappedExceptions = config.getUnwrapExceptions().get();
         assertEquals(List.of("a", "b", "c"), unwrappedExceptions);
     }
+
+    @Test
+    void testErrorExtensionFields() {
+        MicroProfileConfig config = new MicroProfileConfig();
+        assertTrue(config.getErrorExtensionFields().isPresent());
+        List<String> unwrappedExceptions = config.getErrorExtensionFields().get();
+        assertEquals(List.of("a", "b", "c"), unwrappedExceptions);
+    }
 }

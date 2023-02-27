@@ -33,7 +33,7 @@ public class MicroProfileConfig implements Config {
     private LogPayloadOption logPayload;
     private String fieldVisibility;
     private List<String> unwrapExceptions;
-    private Optional<List<String>> errorExtensionFields;
+    private List<String> errorExtensionFields;
     private Optional<Integer> parserMaxTokens;
     private Optional<Integer> parserMaxWhitespaceTokens;
     private Optional<Boolean> parserCaptureSourceLocation;
@@ -259,9 +259,10 @@ public class MicroProfileConfig implements Config {
     public Optional<List<String>> getErrorExtensionFields() {
         if (errorExtensionFields == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            errorExtensionFields = microProfileConfig.getOptionalValues(ConfigKey.ERROR_EXTENSION_FIELDS, String.class);
+            errorExtensionFields = microProfileConfig.getOptionalValues(ConfigKey.ERROR_EXTENSION_FIELDS, String.class)
+                    .orElse(null);
         }
-        return errorExtensionFields;
+        return Optional.ofNullable(errorExtensionFields);
     }
 
     @Override
@@ -370,7 +371,7 @@ public class MicroProfileConfig implements Config {
         this.unwrapExceptions = unwrapExceptions;
     }
 
-    public void setErrorExtensionFields(Optional<List<String>> errorExtensionFields) {
+    public void setErrorExtensionFields(List<String> errorExtensionFields) {
         this.errorExtensionFields = errorExtensionFields;
     }
 
