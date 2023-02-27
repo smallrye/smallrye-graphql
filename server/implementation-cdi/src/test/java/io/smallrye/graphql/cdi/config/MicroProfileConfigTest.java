@@ -14,25 +14,25 @@ class MicroProfileConfigTest {
     @Test
     void testHideErrorMessageList() {
         assertTrue(config.getHideErrorMessageList().isPresent());
-        assertEquals(List.of("a", "b", "c", "b", "c", "d"), config.getHideErrorMessageList().get());
+        assertEquals(List.of("a1", "a2", "a3", "a2", "a3", "a4"), config.getHideErrorMessageList().get());
     }
 
     @Test
     void testShowErrorMessageList() {
         assertTrue(config.getShowErrorMessageList().isPresent());
-        assertEquals(List.of("a", "b", "c", "b", "c", "d"), config.getShowErrorMessageList().get());
+        assertEquals(List.of("b1", "b2", "b3", "b2", "b3", "b4"), config.getShowErrorMessageList().get());
     }
 
     @Test
     void testUnwrapExceptions() {
         assertTrue(config.getUnwrapExceptions().isPresent());
-        assertEquals(List.of("a", "b", "c"), config.getUnwrapExceptions().get());
+        assertEquals(List.of("c1", "c2", "c3"), config.getUnwrapExceptions().get());
     }
 
     @Test
     void testErrorExtensionFields() {
         assertTrue(config.getErrorExtensionFields().isPresent());
-        assertEquals(List.of("a", "b", "c"), config.getErrorExtensionFields().get());
+        assertEquals(List.of("d1", "d2", "d3"), config.getErrorExtensionFields().get());
     }
 
     @Test
