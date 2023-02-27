@@ -38,7 +38,7 @@ public class MicroProfileConfig implements Config {
     private Integer parserMaxWhitespaceTokens;
     private Boolean parserCaptureSourceLocation;
     private Boolean parserCaptureLineComments;
-    private Optional<Boolean> parserCaptureIgnoredChars;
+    private Boolean parserCaptureIgnoredChars;
     private Integer queryComplexityInstrumentation;
     private Integer queryDepthInstrumentation;
 
@@ -192,10 +192,10 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureIgnoredChars() {
         if (parserCaptureIgnoredChars == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS,
-                    Boolean.class);
+            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS, Boolean.class)
+                    .orElse(null);
         }
-        return parserCaptureIgnoredChars;
+        return Optional.ofNullable(parserCaptureIgnoredChars);
     }
 
     @Override
@@ -344,7 +344,7 @@ public class MicroProfileConfig implements Config {
         this.logPayload = logPayload;
     }
 
-    public void setParserCaptureIgnoredChars(Optional<Boolean> parserCaptureIgnoredChars) {
+    public void setParserCaptureIgnoredChars(Boolean parserCaptureIgnoredChars) {
         this.parserCaptureIgnoredChars = parserCaptureIgnoredChars;
     }
 

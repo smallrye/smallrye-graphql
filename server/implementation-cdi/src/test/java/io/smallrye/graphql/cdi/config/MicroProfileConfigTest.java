@@ -79,4 +79,10 @@ class MicroProfileConfigTest {
         assertTrue(config.isParserCaptureLineComments().isPresent());
         assertEquals(Boolean.TRUE, config.isParserCaptureLineComments().get());
     }
+
+    @Test
+    void testParserCaptureIgnoredChars() {
+        assertTrue(config.isParserCaptureIgnoredChars().isPresent());
+        assertEquals(Boolean.TRUE, config.isParserCaptureIgnoredChars().get());
+    }
 }
