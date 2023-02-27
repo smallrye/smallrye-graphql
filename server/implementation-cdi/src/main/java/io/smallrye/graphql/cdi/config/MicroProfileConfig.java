@@ -32,7 +32,7 @@ public class MicroProfileConfig implements Config {
     private Boolean includeIntrospectionTypesInSchema;
     private LogPayloadOption logPayload;
     private String fieldVisibility;
-    private Optional<List<String>> unwrapExceptions;
+    private List<String> unwrapExceptions;
     private Optional<List<String>> errorExtensionFields;
     private Optional<Integer> parserMaxTokens;
     private Optional<Integer> parserMaxWhitespaceTokens;
@@ -249,9 +249,10 @@ public class MicroProfileConfig implements Config {
     public Optional<List<String>> getUnwrapExceptions() {
         if (unwrapExceptions == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            unwrapExceptions = microProfileConfig.getOptionalValues(ConfigKey.UNWRAP_EXCEPTIONS, String.class);
+            unwrapExceptions = microProfileConfig.getOptionalValues(ConfigKey.UNWRAP_EXCEPTIONS, String.class)
+                    .orElse(null);
         }
-        return unwrapExceptions;
+        return Optional.ofNullable(unwrapExceptions);
     }
 
     @Override
@@ -365,7 +366,7 @@ public class MicroProfileConfig implements Config {
         this.fieldVisibility = fieldVisibility;
     }
 
-    public void setUnwrapExceptions(Optional<List<String>> unwrapExceptions) {
+    public void setUnwrapExceptions(List<String> unwrapExceptions) {
         this.unwrapExceptions = unwrapExceptions;
     }
 

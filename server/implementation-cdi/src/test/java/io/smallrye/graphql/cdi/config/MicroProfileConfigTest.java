@@ -24,4 +24,12 @@ class MicroProfileConfigTest {
         List<String> shownMessages = config.getShowErrorMessageList().get();
         assertEquals(List.of("a", "b", "c", "b", "c", "d"), shownMessages);
     }
+
+    @Test
+    void testUnwrapExceptions() {
+        MicroProfileConfig config = new MicroProfileConfig();
+        assertTrue(config.getUnwrapExceptions().isPresent());
+        List<String> unwrappedExceptions = config.getUnwrapExceptions().get();
+        assertEquals(List.of("a", "b", "c"), unwrappedExceptions);
+    }
 }
