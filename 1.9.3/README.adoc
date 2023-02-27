@@ -1,0 +1,28 @@
+== Create a local build of the documentation
+
+Documentation is built using the `mkdocs` tool.
+See link:https://www.mkdocs.org/user-guide/installation/[Installation guide] on how to install it.
+On top of that install these 3 plugins:
+```
+pip install mkdocs-material
+pip install mkdocs-build-plantuml-plugin
+pip install mkdocs-macros-plugin
+```
+Then, building the documentation locally will be as simple as running `mkdocs build` in the root
+of this repository (NOT in the `docs` directory) - the output should appear in the `site` directory.
+To fix a few things, like making links work correctly, you should serve the site
+via Jekyll (`jekyll serve` from the `site` directory)
+rather than directly open the HTML files in a browser.
+
+== Push a build manually
+
+GitHub actions take care of building the site on each tag push, and adding it to the `gh-pages` branch.
+To push a documentation build manually, you also need `mike` (`pip install mike`). After building the docs, use
+```
+mike deploy --push --update-aliases $DOCS_VERSION latest --branch gh-pages --remote $NAME_OF_YOUR_REMOTE
+```
+`latest` (in the command above) is an optional alias for the docs version. The default version that
+will be opened by browsers is set to be the one with the `latest` alias.
+
+This command also overwrites any possible build if it already exists labeled by the specified version.
+
