@@ -81,6 +81,8 @@ public interface TypesafeGraphQLClientBuilder {
 
     TypesafeGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols);
 
+    TypesafeGraphQLClientBuilder allowUnexpectedResponseFields(boolean value);
+
     /**
      * Maximum time (in milliseconds) allowed between initializing a subscription websocket and receiving
      * a subscription start acknowledgement from the server.

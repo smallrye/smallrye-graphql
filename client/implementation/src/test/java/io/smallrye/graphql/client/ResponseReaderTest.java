@@ -64,6 +64,13 @@ public class ResponseReaderTest {
             "    \"strings\": [\"hello\", \"bye\"]\n" +
             "  }\n" +
             "}";
+    private static final String EXAMPLE_RESPONSE_WITH_UNEXPECTED_FIELD = "{\n" +
+            "  \"data\": {\n" +
+            "    \"number\": 32\n" +
+            "  },\n" +
+            "  \"bugs\": {\n" +
+            "  }\n" +
+            "}";
 
     enum Gender {
         MALE,
@@ -231,4 +238,18 @@ public class ResponseReaderTest {
         }
     }
 
+    @Test
+    public void unexpectedResponseFieldThrowsException() {
+        Assertions.assertThrows(InvalidResponseException.class, () -> ResponseReader.readFrom(
+                EXAMPLE_RESPONSE_WITH_UNEXPECTED_FIELD,
+                Collections.emptyMap()));
+    }
+
+    @Test
+    public void ignoringUnexpectedResponseField() {
+        ResponseImpl response = ResponseReader.readFrom(
+                EXAMPLE_RESPONSE_WITH_UNEXPECTED_FIELD,
+                Collections.emptyMap(), null, null, true);
+        assertEquals(32, response.getObject(Long.class, "number"));
+    }
 }

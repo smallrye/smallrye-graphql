@@ -23,6 +23,8 @@ public interface DynamicGraphQLClientBuilder {
 
     DynamicGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols);
 
+    DynamicGraphQLClientBuilder allowUnexpectedResponseFields(boolean value);
+
     /**
      * Maximum time (in milliseconds) allowed between initializing a subscription websocket and receiving
      * a subscription start acknowledgement from the server.

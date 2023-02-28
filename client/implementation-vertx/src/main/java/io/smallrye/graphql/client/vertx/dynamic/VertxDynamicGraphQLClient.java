@@ -52,6 +52,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     private final Map<String, Object> initPayload;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
+    private final boolean allowUnexpectedResponseFields;
 
     // Do NOT use this field directly, always retrieve by calling `webSocketHandler()`.
     // When a websocket connection is required, then this is populated with a Uni
@@ -65,7 +66,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     VertxDynamicGraphQLClient(Vertx vertx, WebClient webClient,
             String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
             MultiMap headers, Map<String, Object> initPayload, WebClientOptions options,
-            List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout) {
+            List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout,
+            boolean allowUnexpectedResponseFields) {
         if (options != null) {
             this.httpClient = vertx.createHttpClient(options);
         } else {
@@ -100,6 +102,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+        this.allowUnexpectedResponseFields = allowUnexpectedResponseFields;
     }
 
     @Override
@@ -336,7 +339,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                         .sendBuffer(Buffer.buffer(json.toString()))
                         .toCompletionStage()))
                 .map(response -> ResponseReader.readFrom(response.bodyAsString(),
-                        convertHeaders(response.headers()), response.statusCode(), response.statusMessage()));
+                        convertHeaders(response.headers()), response.statusCode(), response.statusMessage(),
+                        allowUnexpectedResponseFields));
     }
 
     private Uni<Response> executeSingleResultOperationOverWebsocket(JsonObject json) {

@@ -100,6 +100,12 @@ public class GraphQLClientConfiguration {
      */
     private Integer websocketInitializationTimeout;
 
+    /**
+     * If true and there is an unexpected field in the response payload, it won't throw an error, and it will log
+     * a warning message.
+     */
+    private Boolean allowUnexpectedResponseFields;
+
     public String getUrl() {
         return url;
     }
@@ -244,6 +250,14 @@ public class GraphQLClientConfiguration {
         this.websocketInitializationTimeout = websocketInitializationTimeout;
     }
 
+    public Boolean getAllowUnexpectedResponseFields() {
+        return allowUnexpectedResponseFields;
+    }
+
+    public void setAllowUnexpectedResponseFields(Boolean allowUnexpectedResponseFields) {
+        this.allowUnexpectedResponseFields = allowUnexpectedResponseFields;
+    }
+
     /**
      * Merge the `other` configuration into this one. Values in `other` take precedence.
      * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
@@ -312,6 +326,9 @@ public class GraphQLClientConfiguration {
         }
         if (other.websocketInitializationTimeout != null) {
             this.websocketInitializationTimeout = other.websocketInitializationTimeout;
+        }
+        if (other.allowUnexpectedResponseFields != null) {
+            this.allowUnexpectedResponseFields = other.allowUnexpectedResponseFields;
         }
         return this;
     }

@@ -31,6 +31,10 @@ public class ResponseReader {
      * (see https://spec.graphql.org/draft/#sec-Response-Format)
      */
     public static JsonObject parseGraphQLResponse(String input) {
+        return parseGraphQLResponse(input, false);
+    }
+
+    public static JsonObject parseGraphQLResponse(String input, Boolean allowUnexpectedResponseFields) {
         if (input == null) {
             return null;
         }
@@ -44,22 +48,30 @@ public class ResponseReader {
 
         // validate that this is what we consider a GraphQL response - else return null
         if (jsonResponse.size() >= 1) {
-            for (String key : jsonResponse.keySet()) {
-                if (!key.equalsIgnoreCase("data")
-                        && !key.equalsIgnoreCase("errors")
-                        && !key.equalsIgnoreCase("extensions")) {
-                    return null;
-                }
-            }
-            return jsonResponse;
+            return checkExpectedResponseFields(jsonResponse,
+                    allowUnexpectedResponseFields);
         } else {
             return null;
         }
     }
 
+    private static JsonObject checkExpectedResponseFields(JsonObject jsonResponse,
+            Boolean allowUnexpectedResponseFields) {
+        for (String key : jsonResponse.keySet()) {
+            if (!key.equalsIgnoreCase("data")
+                    && !key.equalsIgnoreCase("errors")
+                    && !key.equalsIgnoreCase("extensions")) {
+                if (!allowUnexpectedResponseFields)
+                    return null;
+                LOG.info("Ignored field: " + "'" + key + "' in the response.");
+            }
+        }
+        return jsonResponse;
+    }
+
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
-            String statusMessage) {
-        JsonObject jsonResponse = parseGraphQLResponse(input);
+            String statusMessage, Boolean allowUnexpectedResponseFields) {
+        JsonObject jsonResponse = parseGraphQLResponse(input, allowUnexpectedResponseFields);
         if (jsonResponse == null) {
             throw new InvalidResponseException(
                     "Unexpected response. Code=" + statusCode + ", message=\"" + statusMessage + "\", " +
@@ -92,6 +104,11 @@ public class ResponseReader {
 
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers) {
         return readFrom(input, headers, null, null);
+    }
+
+    public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
+            String statusMessage) {
+        return readFrom(input, headers, statusCode, statusMessage, false);
     }
 
     public static GraphQLError readError(JsonValue errorJson) {
