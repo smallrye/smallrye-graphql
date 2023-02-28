@@ -1,12 +1,13 @@
 package io.smallrye.graphql.cdi.config;
 
-import io.smallrye.graphql.spi.config.Config;
-import io.smallrye.graphql.spi.config.LogPayloadOption;
-import org.eclipse.microprofile.config.ConfigProvider;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.eclipse.microprofile.config.ConfigProvider;
+
+import io.smallrye.graphql.spi.config.Config;
+import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Configuration for GraphQL
