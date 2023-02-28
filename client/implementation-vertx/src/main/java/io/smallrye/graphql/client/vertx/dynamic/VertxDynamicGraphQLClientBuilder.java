@@ -37,6 +37,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private WebClientOptions options;
     private List<WebsocketSubprotocol> subprotocols;
     private Integer subscriptionInitializationTimeout;
+    private Boolean allowUnexpectedResponseFields;
 
     public VertxDynamicGraphQLClientBuilder() {
         headersMap = new HeadersMultiMap();
@@ -77,6 +78,12 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder subprotocols(WebsocketSubprotocol... subprotocols) {
         this.subprotocols.addAll(Arrays.asList(subprotocols));
+        return this;
+    }
+
+    @Override
+    public DynamicGraphQLClientBuilder allowUnexpectedResponseFields(boolean value) {
+        this.allowUnexpectedResponseFields = value;
         return this;
     }
 
@@ -138,9 +145,12 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         if (executeSingleOperationsOverWebsocket == null) {
             executeSingleOperationsOverWebsocket = false;
         }
+        if (allowUnexpectedResponseFields == null) {
+            allowUnexpectedResponseFields = false;
+        }
         return new VertxDynamicGraphQLClient(toUseVertx, webClient, url, websocketUrl,
                 executeSingleOperationsOverWebsocket, headersMap, initPayload, options, subprotocols,
-                subscriptionInitializationTimeout);
+                subscriptionInitializationTimeout, allowUnexpectedResponseFields);
     }
 
     /**
@@ -179,6 +189,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         }
         if (executeSingleOperationsOverWebsocket == null && configuration.getExecuteSingleOperationsOverWebsocket() != null) {
             this.executeSingleOperationsOverWebsocket = configuration.getExecuteSingleOperationsOverWebsocket();
+        }
+        if (allowUnexpectedResponseFields == null && configuration.getAllowUnexpectedResponseFields() != null) {
+            this.allowUnexpectedResponseFields = configuration.getAllowUnexpectedResponseFields();
         }
 
         VertxClientOptionsHelper.applyConfigToVertxOptions(options, configuration);

@@ -32,16 +32,20 @@ public class ResultBuilder {
     private final String statusMessage;
     private JsonObject data;
 
-    public ResultBuilder(MethodInvocation method, String responseString) {
-        this(method, responseString, null, null);
+    public ResultBuilder(MethodInvocation method, String responseString, boolean allowUnexpectedResponseFields) {
+        this(method, responseString, null, null, allowUnexpectedResponseFields);
     }
 
-    public ResultBuilder(MethodInvocation method, String responseString, Integer statusCode, String statusMessage) {
+    public ResultBuilder(MethodInvocation method,
+            String responseString,
+            Integer statusCode,
+            String statusMessage,
+            boolean allowUnexpectedResponseFields) {
         this.method = method;
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
         this.responseString = responseString;
-        this.response = ResponseReader.parseGraphQLResponse(responseString);
+        this.response = ResponseReader.parseGraphQLResponse(responseString, allowUnexpectedResponseFields);
     }
 
     public Object read() {

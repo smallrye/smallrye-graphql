@@ -122,7 +122,8 @@ public class GraphQLClientsConfiguration {
                 .ifPresent(configuration::setWebsocketInitializationTimeout);
         mpConfig.getOptionalValue(clientName + "/mp-graphql/executeSingleOperationsOverWebsocket", Boolean.class)
                 .ifPresent(configuration::setExecuteSingleOperationsOverWebsocket);
-
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/allowUnexpectedResponseFields", Boolean.class)
+                .ifPresent(configuration::setAllowUnexpectedResponseFields);
         return configuration;
     }
 
