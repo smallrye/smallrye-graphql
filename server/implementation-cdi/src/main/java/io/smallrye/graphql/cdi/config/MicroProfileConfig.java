@@ -192,7 +192,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureIgnoredChars() {
         if (parserCaptureIgnoredChars == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS, Boolean.class)
+            parserCaptureIgnoredChars = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS, Boolean.class)
                     .orElse(null);
         }
         return Optional.ofNullable(parserCaptureIgnoredChars);
@@ -202,7 +203,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureLineComments() {
         if (parserCaptureLineComments == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureLineComments = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS, Boolean.class)
+            parserCaptureLineComments = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS, Boolean.class)
                     .orElse(null);
         }
         return Optional.ofNullable(parserCaptureLineComments);
@@ -212,7 +214,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureSourceLocation() {
         if (parserCaptureSourceLocation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION, Boolean.class)
+            parserCaptureSourceLocation = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION, Boolean.class)
                     .orElse(null);
         }
         return Optional.ofNullable(parserCaptureSourceLocation);
@@ -232,7 +235,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getParserMaxWhitespaceTokens() {
         if (parserMaxWhitespaceTokens == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS, Integer.class)
+            parserMaxWhitespaceTokens = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS, Integer.class)
                     .orElse(null);
         }
         return Optional.ofNullable(parserMaxWhitespaceTokens);
@@ -270,7 +274,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getQueryComplexityInstrumentation() {
         if (queryComplexityInstrumentation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            queryComplexityInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY, Integer.class)
+            queryComplexityInstrumentation = microProfileConfig
+                    .getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY, Integer.class)
                     .orElse(null);
         }
         return Optional.ofNullable(queryComplexityInstrumentation);
@@ -280,7 +285,8 @@ public class MicroProfileConfig implements Config {
     public Optional<Integer> getQueryDepthInstrumentation() {
         if (queryDepthInstrumentation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH, Integer.class)
+            queryDepthInstrumentation = microProfileConfig
+                    .getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH, Integer.class)
                     .orElse(null);
         }
         return Optional.ofNullable(queryDepthInstrumentation);
