@@ -75,6 +75,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final Integer subscriptionInitializationTimeout;
     private final Class<?> api;
     private final boolean executeSingleOperationsOverWebsocket;
+    private final boolean allowUnexpectedResponseFields;
 
     // Do NOT use this field directly, always retrieve by calling `webSocketHandler()`.
     // When a websocket connection is required, then this is populated with a Uni
@@ -95,7 +96,8 @@ class VertxTypesafeGraphQLClientProxy {
             HttpClient httpClient,
             WebClient webClient,
             List<WebsocketSubprotocol> subprotocols,
-            Integer subscriptionInitializationTimeout) {
+            Integer subscriptionInitializationTimeout,
+            boolean allowUnexpectedResponseFields) {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
         this.initPayload = initPayload;
@@ -122,6 +124,7 @@ class VertxTypesafeGraphQLClientProxy {
         this.webClient = webClient;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
+        this.allowUnexpectedResponseFields = allowUnexpectedResponseFields;
     }
 
     Object invoke(MethodInvocation method) {
@@ -156,7 +159,8 @@ class VertxTypesafeGraphQLClientProxy {
             log.tracef("response graphql: %s", response.bodyAsString());
         }
         return new ResultBuilder(method, response.bodyAsString(),
-                response.statusCode(), response.statusMessage()).read();
+                response.statusCode(), response.statusMessage(),
+                allowUnexpectedResponseFields).read();
     }
 
     private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
@@ -164,7 +168,8 @@ class VertxTypesafeGraphQLClientProxy {
         return Uni.createFrom()
                 .completionStage(postAsync(request.toString(), headers))
                 .map(response -> new ResultBuilder(method, response.bodyAsString(),
-                        response.statusCode(), response.statusMessage()).read());
+                        response.statusCode(), response.statusMessage(),
+                        allowUnexpectedResponseFields).read());
     }
 
     private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {
@@ -187,7 +192,7 @@ class VertxTypesafeGraphQLClientProxy {
                     }
                 })
                 .onItem().transform(data -> {
-                    Object object = new ResultBuilder(method, data).read();
+                    Object object = new ResultBuilder(method, data, allowUnexpectedResponseFields).read();
                     if (object != null) {
                         return object;
                     } else {
@@ -212,7 +217,7 @@ class VertxTypesafeGraphQLClientProxy {
                     handlerRef.get().cancelMulti(operationId.get());
                 })
                 .onItem().transform(data -> {
-                    Object object = new ResultBuilder(method, data).read();
+                    Object object = new ResultBuilder(method, data, allowUnexpectedResponseFields).read();
                     if (object != null) {
                         return object;
                     } else {

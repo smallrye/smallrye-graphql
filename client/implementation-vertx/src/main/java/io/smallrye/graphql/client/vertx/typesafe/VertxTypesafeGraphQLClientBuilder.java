@@ -44,6 +44,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private WebClient webClient;
     private HttpClient httpClient;
     private Integer websocketInitializationTimeout;
+    private Boolean allowUnexpectedResponseFields;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -112,6 +113,12 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     @Override
+    public TypesafeGraphQLClientBuilder allowUnexpectedResponseFields(boolean value) {
+        this.allowUnexpectedResponseFields = value;
+        return this;
+    }
+
+    @Override
     public VertxTypesafeGraphQLClientBuilder websocketInitializationTimeout(Integer timeoutInMilliseconds) {
         this.websocketInitializationTimeout = timeoutInMilliseconds;
         return this;
@@ -142,10 +149,15 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (executeSingleOperationsOverWebsocket == null) {
             executeSingleOperationsOverWebsocket = false;
         }
+        if (allowUnexpectedResponseFields == null) {
+            allowUnexpectedResponseFields = false;
+        }
+
         VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, initPayload,
                 endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
-                websocketInitializationTimeout);
+                websocketInitializationTimeout,
+                allowUnexpectedResponseFields);
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
                 (proxy, method, args) -> invoke(graphQlClient, method, args)));
     }
@@ -219,6 +231,10 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (executeSingleOperationsOverWebsocket == null && configuration.getExecuteSingleOperationsOverWebsocket() != null) {
             this.executeSingleOperationsOverWebsocket = configuration.getExecuteSingleOperationsOverWebsocket();
         }
+        if (allowUnexpectedResponseFields == null && configuration.getAllowUnexpectedResponseFields() != null) {
+            this.allowUnexpectedResponseFields = configuration.getAllowUnexpectedResponseFields();
+        }
+
         if (configuration.getWebsocketSubprotocols() != null) {
             configuration.getWebsocketSubprotocols().forEach(protocol -> {
                 try {
