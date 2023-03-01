@@ -16,8 +16,8 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
  */
 public class MicroProfileConfig implements Config {
 
-    private Optional<List<String>> hideList;
-    private Optional<List<String>> showList;
+    private List<String> hideList;
+    private List<String> showList;
     private String defaultErrorMessage;
     private Boolean printDataFetcherException;
     private Boolean allowGet;
@@ -33,15 +33,15 @@ public class MicroProfileConfig implements Config {
     private Boolean includeIntrospectionTypesInSchema;
     private LogPayloadOption logPayload;
     private String fieldVisibility;
-    private Optional<List<String>> unwrapExceptions;
-    private Optional<List<String>> errorExtensionFields;
-    private Optional<Integer> parserMaxTokens;
-    private Optional<Integer> parserMaxWhitespaceTokens;
-    private Optional<Boolean> parserCaptureSourceLocation;
-    private Optional<Boolean> parserCaptureLineComments;
-    private Optional<Boolean> parserCaptureIgnoredChars;
-    private Optional<Integer> queryComplexityInstrumentation;
-    private Optional<Integer> queryDepthInstrumentation;
+    private List<String> unwrapExceptions;
+    private List<String> errorExtensionFields;
+    private Integer parserMaxTokens;
+    private Integer parserMaxWhitespaceTokens;
+    private Boolean parserCaptureSourceLocation;
+    private Boolean parserCaptureLineComments;
+    private Boolean parserCaptureIgnoredChars;
+    private Integer queryComplexityInstrumentation;
+    private Integer queryDepthInstrumentation;
 
     @Override
     public String getName() {
@@ -68,22 +68,27 @@ public class MicroProfileConfig implements Config {
     public Optional<List<String>> getHideErrorMessageList() {
         if (hideList == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            Optional<List<String>> blackList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_BLACK_LIST,
-                    String.class);
-            hideList = mergeList(microProfileConfig.getOptionalValues("mp.graphql.hideErrorMessage", String.class), blackList);
+            List<String> blackList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_BLACK_LIST, String.class)
+                    .orElse(List.of());
+            List<String> currentList = microProfileConfig.getOptionalValues("mp.graphql.hideErrorMessage", String.class)
+                    .orElse(List.of());
+            hideList = mergeList(currentList, blackList).orElse(null);
         }
-        return hideList;
+        return Optional.ofNullable(hideList);
     }
 
     @Override
     public Optional<List<String>> getShowErrorMessageList() {
         if (showList == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            Optional<List<String>> whiteList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_WHITE_LIST,
-                    String.class);
-            showList = mergeList(microProfileConfig.getOptionalValues("mp.graphql.showErrorMessage", String.class), whiteList);
+            List<String> whiteList = microProfileConfig.getOptionalValues(ConfigKey.EXCEPTION_WHITE_LIST, String.class)
+                    .orElse(List.of());
+            List<String> currentList = microProfileConfig.getOptionalValues("mp.graphql.showErrorMessage", String.class)
+                    .orElse(List.of());
+            showList = mergeList(currentList, whiteList)
+                    .orElse(null);
         }
-        return showList;
+        return Optional.ofNullable(showList);
     }
 
     @Override
@@ -188,49 +193,54 @@ public class MicroProfileConfig implements Config {
     public Optional<Boolean> isParserCaptureIgnoredChars() {
         if (parserCaptureIgnoredChars == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureIgnoredChars = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS,
-                    Boolean.class);
+            parserCaptureIgnoredChars = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_IGNORED_CHARS, Boolean.class)
+                    .orElse(null);
         }
-        return parserCaptureIgnoredChars;
+        return Optional.ofNullable(parserCaptureIgnoredChars);
     }
 
     @Override
     public Optional<Boolean> isParserCaptureLineComments() {
         if (parserCaptureLineComments == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureLineComments = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS,
-                    Boolean.class);
+            parserCaptureLineComments = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_LINE_COMMENTS, Boolean.class)
+                    .orElse(null);
         }
-        return parserCaptureLineComments;
+        return Optional.ofNullable(parserCaptureLineComments);
     }
 
     @Override
     public Optional<Boolean> isParserCaptureSourceLocation() {
         if (parserCaptureSourceLocation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserCaptureSourceLocation = microProfileConfig.getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION,
-                    Boolean.class);
+            parserCaptureSourceLocation = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_CAPTURE_SOURCE_LOCATION, Boolean.class)
+                    .orElse(null);
         }
-        return parserCaptureSourceLocation;
+        return Optional.ofNullable(parserCaptureSourceLocation);
     }
 
     @Override
     public Optional<Integer> getParserMaxTokens() {
         if (parserMaxTokens == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class);
+            parserMaxTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_TOKENS, Integer.class)
+                    .orElse(null);
         }
-        return parserMaxTokens;
+        return Optional.ofNullable(parserMaxTokens);
     }
 
     @Override
     public Optional<Integer> getParserMaxWhitespaceTokens() {
         if (parserMaxWhitespaceTokens == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            parserMaxWhitespaceTokens = microProfileConfig.getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS,
-                    Integer.class);
+            parserMaxWhitespaceTokens = microProfileConfig
+                    .getOptionalValue(ConfigKey.PARSER_MAX_WHITESPACE_TOKENS, Integer.class)
+                    .orElse(null);
         }
-        return parserMaxWhitespaceTokens;
+        return Optional.ofNullable(parserMaxWhitespaceTokens);
     }
 
     @Override
@@ -245,38 +255,42 @@ public class MicroProfileConfig implements Config {
     public Optional<List<String>> getUnwrapExceptions() {
         if (unwrapExceptions == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            unwrapExceptions = microProfileConfig.getOptionalValues(ConfigKey.UNWRAP_EXCEPTIONS, String.class);
+            unwrapExceptions = microProfileConfig.getOptionalValues(ConfigKey.UNWRAP_EXCEPTIONS, String.class)
+                    .orElse(null);
         }
-        return unwrapExceptions;
+        return Optional.ofNullable(unwrapExceptions);
     }
 
     @Override
     public Optional<List<String>> getErrorExtensionFields() {
         if (errorExtensionFields == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            errorExtensionFields = microProfileConfig.getOptionalValues(ConfigKey.ERROR_EXTENSION_FIELDS, String.class);
+            errorExtensionFields = microProfileConfig.getOptionalValues(ConfigKey.ERROR_EXTENSION_FIELDS, String.class)
+                    .orElse(null);
         }
-        return errorExtensionFields;
+        return Optional.ofNullable(errorExtensionFields);
     }
 
     @Override
     public Optional<Integer> getQueryComplexityInstrumentation() {
         if (queryComplexityInstrumentation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            queryComplexityInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY,
-                    Integer.class);
+            queryComplexityInstrumentation = microProfileConfig
+                    .getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_COMPLEXITY, Integer.class)
+                    .orElse(null);
         }
-        return queryComplexityInstrumentation;
+        return Optional.ofNullable(queryComplexityInstrumentation);
     }
 
     @Override
     public Optional<Integer> getQueryDepthInstrumentation() {
         if (queryDepthInstrumentation == null) {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
-            queryDepthInstrumentation = microProfileConfig.getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH,
-                    Integer.class);
+            queryDepthInstrumentation = microProfileConfig
+                    .getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH, Integer.class)
+                    .orElse(null);
         }
-        return queryDepthInstrumentation;
+        return Optional.ofNullable(queryDepthInstrumentation);
     }
 
     @Override
@@ -285,11 +299,11 @@ public class MicroProfileConfig implements Config {
         return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
     }
 
-    public void setHideErrorMessageList(Optional<List<String>> hideList) {
+    public void setHideErrorMessageList(List<String> hideList) {
         this.hideList = hideList;
     }
 
-    public void setShowErrorMessageList(Optional<List<String>> showList) {
+    public void setShowErrorMessageList(List<String> showList) {
         this.showList = showList;
     }
 
@@ -337,23 +351,23 @@ public class MicroProfileConfig implements Config {
         this.logPayload = logPayload;
     }
 
-    public void setParserCaptureIgnoredChars(Optional<Boolean> parserCaptureIgnoredChars) {
+    public void setParserCaptureIgnoredChars(Boolean parserCaptureIgnoredChars) {
         this.parserCaptureIgnoredChars = parserCaptureIgnoredChars;
     }
 
-    public void setParserCaptureLineComments(Optional<Boolean> parserCaptureLineComments) {
+    public void setParserCaptureLineComments(Boolean parserCaptureLineComments) {
         this.parserCaptureLineComments = parserCaptureLineComments;
     }
 
-    public void setParserCaptureSourceLocation(Optional<Boolean> parserCaptureSourceLocation) {
+    public void setParserCaptureSourceLocation(Boolean parserCaptureSourceLocation) {
         this.parserCaptureSourceLocation = parserCaptureSourceLocation;
     }
 
-    public void setParserMaxTokens(Optional<Integer> parserMaxTokens) {
+    public void setParserMaxTokens(Integer parserMaxTokens) {
         this.parserMaxTokens = parserMaxTokens;
     }
 
-    public void setParserMaxWhitespaceTokens(Optional<Integer> parserMaxWhitespaceTokens) {
+    public void setParserMaxWhitespaceTokens(Integer parserMaxWhitespaceTokens) {
         this.parserMaxWhitespaceTokens = parserMaxWhitespaceTokens;
     }
 
@@ -361,20 +375,12 @@ public class MicroProfileConfig implements Config {
         this.fieldVisibility = fieldVisibility;
     }
 
-    public void setUnwrapExceptions(Optional<List<String>> unwrapExceptions) {
+    public void setUnwrapExceptions(List<String> unwrapExceptions) {
         this.unwrapExceptions = unwrapExceptions;
     }
 
-    public void setErrorExtensionFields(Optional<List<String>> errorExtensionFields) {
+    public void setErrorExtensionFields(List<String> errorExtensionFields) {
         this.errorExtensionFields = errorExtensionFields;
-    }
-
-    public void setHideList(Optional<List<String>> hideList) {
-        this.hideList = hideList;
-    }
-
-    public void setShowList(Optional<List<String>> showList) {
-        this.showList = showList;
     }
 
     public void setPrintDataFetcherException(Boolean printDataFetcherException) {
@@ -421,23 +427,18 @@ public class MicroProfileConfig implements Config {
         this.includeIntrospectionTypesInSchema = includeIntrospectionTypesInSchema;
     }
 
-    public void setQueryComplexityInstrumentation(Optional<Integer> queryComplexityInstrumentation) {
+    public void setQueryComplexityInstrumentation(Integer queryComplexityInstrumentation) {
         this.queryComplexityInstrumentation = queryComplexityInstrumentation;
     }
 
-    public void getQueryDepthInstrumentation(Optional<Integer> queryDepthInstrumentation) {
+    public void getQueryDepthInstrumentation(Integer queryDepthInstrumentation) {
         this.queryDepthInstrumentation = queryDepthInstrumentation;
     }
 
-    private Optional<List<String>> mergeList(Optional<List<String>> currentList, Optional<List<String>> deprecatedList) {
+    private Optional<List<String>> mergeList(List<String> currentList, List<String> deprecatedList) {
 
-        List<String> combined = new ArrayList<>();
-        if (deprecatedList.isPresent()) {
-            combined.addAll(deprecatedList.get());
-        }
-        if (currentList.isPresent()) {
-            combined.addAll(currentList.get());
-        }
+        List<String> combined = new ArrayList<>(deprecatedList);
+        combined.addAll(currentList);
 
         if (!combined.isEmpty()) {
             return Optional.of(combined);
