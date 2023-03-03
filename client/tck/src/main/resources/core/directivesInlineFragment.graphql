@@ -1,0 +1,10 @@
+query SimpleQuery {
+  customers {
+    name
+    ... on Customer @myDirective(flag:true) {
+        orders {
+        id
+      }
+    }
+  }
+}

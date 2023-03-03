@@ -1,0 +1,6 @@
+query SimpleQuery @myDirective(directiveArg:3.1415926535) {
+  customers {
+    id
+    name
+  }
+}

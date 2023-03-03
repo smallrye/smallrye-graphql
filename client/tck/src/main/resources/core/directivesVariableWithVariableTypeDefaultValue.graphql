@@ -1,0 +1,6 @@
+query AnotherQuery($arg1: ID!=1 @myDirective) {
+  customerById(id:$arg1) {
+    id
+    name
+  }
+}

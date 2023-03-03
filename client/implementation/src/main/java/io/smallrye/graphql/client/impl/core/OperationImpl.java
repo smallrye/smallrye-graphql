@@ -1,10 +1,14 @@
 package io.smallrye.graphql.client.impl.core;
 
-import io.smallrye.graphql.client.core.FieldOrFragment;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import io.smallrye.graphql.client.core.Buildable;
 import io.smallrye.graphql.client.core.exceptions.BuildException;
 
 public class OperationImpl extends AbstractOperation {
-    // TODO: Use simple StringJoiner
     @Override
     public String build() {
         StringBuilder builder = new StringBuilder();
@@ -31,6 +35,10 @@ public class OperationImpl extends AbstractOperation {
             _buildVariables(builder);
         }
 
+        if (!this.getDirectives().isEmpty()) {
+            _buildDirectives(builder);
+        }
+
         if (!this.getFields().isEmpty()) {
             _buildFields(builder);
         } else {
@@ -40,35 +48,33 @@ public class OperationImpl extends AbstractOperation {
         return builder.toString();
     }
 
-    // TODO: Use StringJoiner  or Stream + Collectors.joining (https://www.baeldung.com/java-strings-concatenation)
     private void _buildVariables(StringBuilder builder) {
-        builder.append("(");
-
-        VariableImpl[] vars = this.getVariables().toArray(new VariableImpl[0]);
-        for (int i = 0; i < vars.length; i++) {
-            VariableImpl variable = vars[i];
-            builder.append(variable.build());
-            if (i < vars.length - 1) {
-                builder.append(", ");
-            }
-        }
-
-        builder.append(")");
+        buildWrapper(builder, this::getVariables, ", ", "(", ")");
     }
 
-    // TODO: Use StringJoiner  or Stream + Collectors.joining (https://www.baeldung.com/java-strings-concatenation)
+    private void _buildDirectives(StringBuilder builder) {
+        String directives = getDirectives().stream().map(Buildable::build).collect(Collectors.joining());
+        /*
+         * in case there is a whitespace (30th line) as a last character in the StringBuilder,
+         * the string containing all directives will be trimmed, so there won't be any
+         * two whitespace characters next to each other.
+         */
+        if (String.valueOf(builder.charAt(builder.length() - 1)).equals(" "))
+            directives = directives.trim();
+        builder.append(directives);
+    }
+
     private void _buildFields(StringBuilder builder) {
-        builder.append("{");
+        buildWrapper(builder, this::getFields, " ", "{", "}");
+    }
 
-        FieldOrFragment[] rootFields = this.getFields().toArray(new FieldOrFragment[0]);
-        for (int i = 0; i < rootFields.length; i++) {
-            FieldOrFragment rootField = rootFields[i];
-            builder.append(rootField.build());
-            if (i < rootFields.length - 1) {
-                builder.append(" ");
-            }
-        }
-
-        builder.append("}");
+    private void buildWrapper(StringBuilder builder,
+            Supplier<List<?>> getMethod,
+            String delimiter,
+            String prefix,
+            String suffix) {
+        StringJoiner stringJoiner = new StringJoiner(delimiter, prefix, suffix);
+        getMethod.get().forEach(buildableObject -> stringJoiner.add(((Buildable) buildableObject).build()));
+        builder.append(stringJoiner);
     }
 }

@@ -1,0 +1,6 @@
+query SomeQuery($arg1: ID @myDirective1, $arg2: VARCHAR2 @myDirective2(reason:"something") @myDirective3) {
+  customerByIdAndName(id:$arg1, name:$arg2) {
+    id
+    name
+  }
+}

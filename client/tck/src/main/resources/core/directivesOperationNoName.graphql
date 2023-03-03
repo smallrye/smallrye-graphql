@@ -1,0 +1,5 @@
+query ($var1:Int) @myDirective {
+   customerById(id:$var1) {
+      name
+   }
+}
