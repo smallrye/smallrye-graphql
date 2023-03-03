@@ -23,6 +23,20 @@ public interface Operation extends FragmentOrOperation {
         operation.setName("");
         operation.setVariables(emptyList());
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (directives, fields)
+    static Operation operationWithDirectives(List<Directive> directives, FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(QUERY);
+        operation.setName("");
+        operation.setVariables(emptyList());
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -35,6 +49,20 @@ public interface Operation extends FragmentOrOperation {
         operation.setName("");
         operation.setVariables(vars);
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (vars, directives, fields)
+    static Operation operationWithDirectives(List<Variable> vars, List<Directive> directives, FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(QUERY);
+        operation.setName("");
+        operation.setVariables(vars);
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -47,6 +75,22 @@ public interface Operation extends FragmentOrOperation {
         operation.setName("");
         operation.setVariables(emptyList());
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (type, directives, fields)
+    static Operation operationWithDirectives(OperationType type,
+            List<Directive> directives,
+            FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(type);
+        operation.setName("");
+        operation.setVariables(emptyList());
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -59,6 +103,23 @@ public interface Operation extends FragmentOrOperation {
         operation.setName("");
         operation.setVariables(vars);
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (type, vars, directives, fields)
+    static Operation operationWithDirectives(OperationType type,
+            List<Variable> vars,
+            List<Directive> directives,
+            FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(type);
+        operation.setName("");
+        operation.setVariables(vars);
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -71,6 +132,20 @@ public interface Operation extends FragmentOrOperation {
         operation.setName(name);
         operation.setVariables(emptyList());
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (name, directives, fields)
+    static Operation operationWithDirectives(String name, List<Directive> directives, FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(QUERY);
+        operation.setName(name);
+        operation.setVariables(emptyList());
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -83,6 +158,23 @@ public interface Operation extends FragmentOrOperation {
         operation.setName(name);
         operation.setVariables(emptyList());
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (type, name, directives, fields)
+    static Operation operationWithDirectives(OperationType type,
+            String name,
+            List<Directive> directives,
+            FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(type);
+        operation.setName(name);
+        operation.setVariables(emptyList());
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -95,6 +187,23 @@ public interface Operation extends FragmentOrOperation {
         operation.setName(name);
         operation.setVariables(vars);
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (name, vars, directives, fields)
+    static Operation operationWithDirectives(String name,
+            List<Variable> vars,
+            List<Directive> directives,
+            FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(QUERY);
+        operation.setName(name);
+        operation.setVariables(vars);
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -107,6 +216,24 @@ public interface Operation extends FragmentOrOperation {
         operation.setName(name);
         operation.setVariables(vars);
         operation.setFields(asList(fields));
+        operation.setDirectives(emptyList());
+
+        return operation;
+    }
+
+    // (type, name, vars, directives, fields)
+    static Operation operationWithDirectives(OperationType type,
+            String name,
+            List<Variable> vars,
+            List<Directive> directives,
+            FieldOrFragment... fields) {
+        Operation operation = getNewInstanceOf(Operation.class);
+
+        operation.setType(type);
+        operation.setName(name);
+        operation.setVariables(vars);
+        operation.setFields(asList(fields));
+        operation.setDirectives(directives);
 
         return operation;
     }
@@ -129,4 +256,8 @@ public interface Operation extends FragmentOrOperation {
     List<FieldOrFragment> getFields();
 
     void setFields(List<FieldOrFragment> fields);
+
+    List<Directive> getDirectives();
+
+    void setDirectives(List<Directive> directives);
 }

@@ -1,0 +1,6 @@
+query SimpleQuery($arg1: VARCHAR="default" @myDirective) {
+  customerByName(name:$arg1) {
+    id
+    name
+  }
+}

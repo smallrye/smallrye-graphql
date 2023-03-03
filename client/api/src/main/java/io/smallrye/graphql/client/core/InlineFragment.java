@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 import java.util.List;
 
@@ -15,6 +16,17 @@ public interface InlineFragment extends FieldOrFragment {
         InlineFragment fragment = getNewInstanceOf(InlineFragment.class);
 
         fragment.setType(type);
+        fragment.setDirectives(emptyList());
+        fragment.setFields(asList(fields));
+
+        return fragment;
+    }
+
+    static InlineFragment on(String type, List<Directive> directives, FieldOrFragment... fields) {
+        InlineFragment fragment = getNewInstanceOf(InlineFragment.class);
+
+        fragment.setType(type);
+        fragment.setDirectives(directives);
         fragment.setFields(asList(fields));
 
         return fragment;
@@ -27,5 +39,9 @@ public interface InlineFragment extends FieldOrFragment {
     List<FieldOrFragment> getFields();
 
     void setFields(List<FieldOrFragment> fields);
+
+    List<Directive> getDirectives();
+
+    void setDirectives(List<Directive> directives);
 
 }

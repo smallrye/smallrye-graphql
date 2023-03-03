@@ -1,5 +1,8 @@
 package io.smallrye.graphql.client.impl.core;
 
+import java.util.stream.Collectors;
+
+import io.smallrye.graphql.client.core.Buildable;
 import io.smallrye.graphql.client.core.FieldOrFragment;
 
 public class FieldImpl extends AbstractField {
@@ -15,6 +18,11 @@ public class FieldImpl extends AbstractField {
             builder.append("(");
             builder.append(_buildArgs());
             builder.append(")");
+        }
+
+        // Directives to build ?
+        if (!this.getDirectives().isEmpty()) {
+            builder.append(_buildDirectives());
         }
 
         // Sub-fields to build ?
@@ -57,5 +65,9 @@ public class FieldImpl extends AbstractField {
         }
 
         return builder.toString();
+    }
+
+    private String _buildDirectives() {
+        return getDirectives().stream().map(Buildable::build).collect(Collectors.joining());
     }
 }

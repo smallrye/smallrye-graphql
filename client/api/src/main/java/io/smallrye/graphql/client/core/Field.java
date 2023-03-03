@@ -21,6 +21,7 @@ public interface Field extends FieldOrFragment {
         field.setName(name);
         field.setArguments(emptyList());
         field.setFields(emptyList());
+        field.setDirectives(emptyList());
 
         return field;
     }
@@ -32,6 +33,7 @@ public interface Field extends FieldOrFragment {
         field.setName(name);
         field.setArguments(emptyList());
         field.setFields(asList(fields));
+        field.setDirectives(emptyList());
 
         return field;
     }
@@ -43,6 +45,19 @@ public interface Field extends FieldOrFragment {
         field.setName(name);
         field.setArguments(asList(args));
         field.setFields(emptyList());
+        field.setDirectives(emptyList());
+
+        return field;
+    }
+
+    // (name, directives)
+    static Field fieldWithDirectives(String name, Directive... directives) {
+        Field field = getNewInstanceOf(Field.class);
+
+        field.setName(name);
+        field.setArguments(emptyList());
+        field.setFields(emptyList());
+        field.setDirectives(asList(directives));
 
         return field;
     }
@@ -53,6 +68,43 @@ public interface Field extends FieldOrFragment {
 
         field.setName(name);
         field.setArguments(args);
+        field.setFields(asList(fields));
+        field.setDirectives(emptyList());
+
+        return field;
+    }
+
+    // (name, args, directives)
+    static Field fieldWithDirectives(String name, List<Argument> args, List<Directive> directives) {
+        Field field = getNewInstanceOf(Field.class);
+
+        field.setName(name);
+        field.setArguments(args);
+        field.setDirectives(directives);
+        field.setFields(emptyList());
+
+        return field;
+    }
+
+    // (name, directives, fields)
+    static Field fieldWithDirectives(String name, List<Directive> directives, FieldOrFragment... fields) {
+        Field field = getNewInstanceOf(Field.class);
+
+        field.setName(name);
+        field.setArguments(emptyList());
+        field.setDirectives(directives);
+        field.setFields(asList(fields));
+
+        return field;
+    }
+
+    // (name, args, directives, subfields)
+    static Field fieldWithDirectives(String name, List<Argument> args, List<Directive> directives, FieldOrFragment... fields) {
+        Field field = getNewInstanceOf(Field.class);
+
+        field.setName(name);
+        field.setArguments(args);
+        field.setDirectives(directives);
         field.setFields(asList(fields));
 
         return field;
@@ -72,4 +124,8 @@ public interface Field extends FieldOrFragment {
     List<FieldOrFragment> getFields();
 
     void setFields(List<FieldOrFragment> fields);
+
+    List<Directive> getDirectives();
+
+    void setDirectives(List<Directive> directives);
 }
