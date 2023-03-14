@@ -21,6 +21,8 @@ import static io.smallrye.graphql.client.core.Variable.varWithDirectives;
 import static io.smallrye.graphql.client.core.Variable.vars;
 import static io.smallrye.graphql.client.core.VariableType.nonNull;
 import static io.smallrye.graphql.client.core.VariableType.varType;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +34,7 @@ import tck.graphql.dynamic.helper.Utils;
 /**
  * This class tests creating queries (via DSL) that contain user-made client-side directives (with/without arguments).
  */
-public class BuildDirectiveTest {
+public class DirectivesTest {
     /*--------TESTING INLINE FRAGMENTS--------*/
     @Test
     public void buildInlineFragmentWithDirectiveTest() {
@@ -356,5 +358,33 @@ public class BuildDirectiveTest {
                                 field("name"))));
         String generatedRequest = document.build();
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
+    }
+
+    @Test
+    public void directiveShouldNotThrowExceptionForValidNameTest() {
+        assertDoesNotThrow(() -> directive("myDirective"));
+        assertDoesNotThrow(() -> directive("_myDirective"));
+        assertDoesNotThrow(() -> directive("my_directive"));
+        assertDoesNotThrow(() -> directive("my123Directive"));
+        assertDoesNotThrow(() -> directive("d"));
+        assertDoesNotThrow(() -> directive("_"));
+        assertDoesNotThrow(() -> directive("dir_ective"));
+    }
+
+    @Test
+    public void directiveShouldThrowExceptionForInvalidNameTest() {
+        assertThrows(IllegalArgumentException.class, () -> directive(""));
+        assertThrows(IllegalArgumentException.class, () -> directive(null));
+        assertThrows(IllegalArgumentException.class, () -> directive(" "));
+        assertThrows(IllegalArgumentException.class, () -> directive("invalid name"));
+        assertThrows(IllegalArgumentException.class, () -> directive("1invalid"));
+        assertThrows(IllegalArgumentException.class, () -> directive("directive_with spaces"));
+        assertThrows(IllegalArgumentException.class, () -> directive("directive.with.periods"));
+        assertThrows(IllegalArgumentException.class, () -> directive("directive*with*asterisks"));
+        assertThrows(IllegalArgumentException.class, () -> directive("directive:with:colons"));
+        assertThrows(IllegalArgumentException.class, () -> directive(":directive_with_colon_at_beginning"));
+        assertThrows(IllegalArgumentException.class, () -> directive("directive_with_colon_at_end:"));
+        assertThrows(IllegalArgumentException.class, () -> directive("@invalid_directive"));
+        assertThrows(IllegalArgumentException.class, () -> directive("@directive_with_@_at_the_end@"));
     }
 }

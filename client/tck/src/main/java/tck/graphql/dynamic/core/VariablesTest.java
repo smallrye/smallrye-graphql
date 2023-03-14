@@ -18,6 +18,8 @@ import static io.smallrye.graphql.client.core.Variable.var;
 import static io.smallrye.graphql.client.core.Variable.vars;
 import static io.smallrye.graphql.client.core.VariableType.list;
 import static io.smallrye.graphql.client.core.VariableType.nonNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,6 +27,7 @@ import java.net.URISyntaxException;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.core.Document;
+import io.smallrye.graphql.client.core.ScalarType;
 import io.smallrye.graphql.client.core.Variable;
 import tck.graphql.dynamic.helper.AssertGraphQL;
 import tck.graphql.dynamic.helper.Utils;
@@ -169,4 +172,29 @@ public class VariablesTest {
         String generatedRequest = document.build();
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
     }
+
+    @Test
+    public void variablesShouldNotThrowExceptionForValidNameTest() {
+        ScalarType scalarType = GQL_INT;
+        assertDoesNotThrow(() -> var("myVar", scalarType));
+        assertDoesNotThrow(() -> var("_myVar", scalarType));
+        assertDoesNotThrow(() -> var("my_var", scalarType));
+        assertDoesNotThrow(() -> var("my123Var", scalarType));
+        assertDoesNotThrow(() -> var("v", scalarType));
+        assertDoesNotThrow(() -> var("_", scalarType));
+        assertDoesNotThrow(() -> var("va_r", scalarType));
+    }
+
+    @Test
+    public void variablesShouldThrowExceptionForInvalidNameTest() {
+        ScalarType scalarType = GQL_INT;
+        assertThrows(IllegalArgumentException.class, () -> var("123", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var("my_var$", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var("va:r", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var("", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var(":var", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var("va:r:", scalarType));
+        assertThrows(IllegalArgumentException.class, () -> var(null, scalarType));
+    }
+
 }

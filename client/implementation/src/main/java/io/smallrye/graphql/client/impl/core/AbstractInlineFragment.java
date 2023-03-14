@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateNameAllowEmpty;
+
 import java.util.List;
 
 import io.smallrye.graphql.client.core.Directive;
@@ -29,7 +31,7 @@ public abstract class AbstractInlineFragment implements InlineFragment {
 
     @Override
     public void setType(String type) {
-        this.type = type;
+        this.type = validateNameAllowEmpty(type);
     }
 
     @Override

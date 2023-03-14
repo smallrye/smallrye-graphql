@@ -1,5 +1,8 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateFragmentName;
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
+
 import java.util.List;
 
 import io.smallrye.graphql.client.core.FieldOrFragment;
@@ -18,7 +21,7 @@ public abstract class AbstractFragment implements Fragment {
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        this.name = validateFragmentName(name);
     }
 
     @Override
@@ -38,6 +41,6 @@ public abstract class AbstractFragment implements Fragment {
 
     @Override
     public void setTargetType(String targetType) {
-        this.targetType = targetType;
+        this.targetType = validateName(targetType);
     }
 }

@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
+
 import io.smallrye.graphql.client.core.InputObjectField;
 
 public abstract class AbstractInputObjectField implements InputObjectField {
@@ -20,7 +22,7 @@ public abstract class AbstractInputObjectField implements InputObjectField {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = validateName(name);
     }
 
     public Object getValue() {

@@ -6,6 +6,8 @@ import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static io.smallrye.graphql.client.core.OperationType.QUERY;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -40,5 +42,37 @@ public class FieldsTest {
 
         String generatedRequest = document.build();
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
+    }
+
+    @Test
+    public void fieldShouldNotThrowExceptionForValidNameTest() {
+        assertDoesNotThrow(() -> field("valid_name"));
+        assertDoesNotThrow(() -> field("field:name"));
+        assertDoesNotThrow(() -> field("_name"));
+        assertDoesNotThrow(() -> field("name_"));
+        assertDoesNotThrow(() -> field("name_with_underscores"));
+        assertDoesNotThrow(() -> field("name_with_underscores:name"));
+        assertDoesNotThrow(() -> field("o:_"));
+        assertDoesNotThrow(() -> field("o:o1"));
+        assertDoesNotThrow(() -> field("o1:a"));
+        assertDoesNotThrow(() -> field("_:v1"));
+        assertDoesNotThrow(() -> field("___"));
+        assertDoesNotThrow(() -> field("o"));
+    }
+
+    @Test
+    public void fieldShouldThrowExceptionForInvalidNameTest() {
+        assertThrows(IllegalArgumentException.class, () -> field(null));
+        assertThrows(IllegalArgumentException.class, () -> field(""));
+        assertThrows(IllegalArgumentException.class, () -> field("invalid_nam&e"));
+        assertThrows(IllegalArgumentException.class, () -> field("1invalid_name"));
+        assertThrows(IllegalArgumentException.class, () -> field(" invalid_name"));
+        assertThrows(IllegalArgumentException.class, () -> field(":invalid_name"));
+        assertThrows(IllegalArgumentException.class, () -> field("invalid name"));
+        assertThrows(IllegalArgumentException.class, () -> field("invalid_name:"));
+        assertThrows(IllegalArgumentException.class, () -> field("0:invalid"));
+        assertThrows(IllegalArgumentException.class, () -> field("a:1"));
+        assertThrows(IllegalArgumentException.class, () -> field("invalid::name"));
+        assertThrows(IllegalArgumentException.class, () -> field("field:name:name2"));
     }
 }

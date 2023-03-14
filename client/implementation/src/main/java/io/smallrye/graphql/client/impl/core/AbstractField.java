@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateFieldName;
+
 import java.util.List;
 
 import io.smallrye.graphql.client.core.Argument;
@@ -21,7 +23,7 @@ public abstract class AbstractField implements Field {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = validateFieldName(name);
     }
 
     public List<Argument> getArguments() {
