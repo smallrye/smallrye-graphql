@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateNameAllowEmpty;
+
 import java.util.List;
 
 import io.smallrye.graphql.client.core.Directive;
@@ -41,7 +43,7 @@ public abstract class AbstractOperation implements Operation {
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        this.name = validateNameAllowEmpty(name);
     }
 
     @Override

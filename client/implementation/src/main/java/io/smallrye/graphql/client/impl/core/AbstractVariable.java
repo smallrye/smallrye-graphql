@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +31,7 @@ public abstract class AbstractVariable implements Variable {
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        this.name = validateName(name);
     }
 
     @Override

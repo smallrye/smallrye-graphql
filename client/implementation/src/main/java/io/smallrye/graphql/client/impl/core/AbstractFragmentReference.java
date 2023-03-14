@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.core;
 
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateFragmentName;
+
 import io.smallrye.graphql.client.core.FragmentReference;
 
 public abstract class AbstractFragmentReference implements FragmentReference {
@@ -13,7 +15,7 @@ public abstract class AbstractFragmentReference implements FragmentReference {
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        this.name = validateFragmentName(name);
     }
 
 }
