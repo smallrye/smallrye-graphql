@@ -6,6 +6,7 @@ import static io.smallrye.graphql.client.core.InlineFragment.on;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static io.smallrye.graphql.client.core.OperationType.QUERY;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,25 @@ public class InlineFragmentsTest {
     }
 
     @Test
+    public void inlineFragmentWithoutTypeConditionTest() {
+        String expectedRequest = Utils.getResourceFileContent("core/" +
+                "inlinefragmentsNoTypeCondition.graphql");
+
+        Document document = document(
+                operation(QUERY, "inlineFragmentNoType",
+                        field("user",
+                                field("id"),
+                                field("name"),
+                                on(
+                                        field("firstName"),
+                                        field("lastName"),
+                                        field("birthday")))));
+
+        String generatedRequest = document.build();
+        AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
+    }
+
+    @Test
     public void inlineFragmentsShouldNotThrowExceptionForInvalidNameTest() {
         assertDoesNotThrow(() -> on("name"));
         assertDoesNotThrow(() -> on("name_one"));
@@ -42,10 +62,10 @@ public class InlineFragmentsTest {
         assertDoesNotThrow(() -> on("on"));
         assertDoesNotThrow(() -> on("one"));
         assertDoesNotThrow(() -> on(""));
-        //        assertDoesNotThrow(() -> {
-        //            var inlineFragment = on(null);
-        //            assertEquals(inlineFragment.getType(), "");
-        //        });
+        assertDoesNotThrow(() -> {
+            var inlineFragment = on((String) null);
+            assertEquals(inlineFragment.getType(), "");
+        });
 
     }
 

@@ -32,6 +32,14 @@ public interface InlineFragment extends FieldOrFragment {
         return fragment;
     }
 
+    static InlineFragment on(FieldOrFragment... fields) {
+        return on("", fields);
+    }
+
+    static InlineFragment on(List<Directive> directives, FieldOrFragment... fields) {
+        return on("", directives, fields);
+    }
+
     String getType();
 
     void setType(String name);

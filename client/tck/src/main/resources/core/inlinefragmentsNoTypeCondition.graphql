@@ -1,0 +1,11 @@
+query inlineFragmentNoType {
+  user {
+    id
+    name
+    ... {
+      firstName
+      lastName
+      birthday
+    }
+  }
+}
