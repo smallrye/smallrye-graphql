@@ -14,6 +14,7 @@ import static io.smallrye.graphql.client.core.Operation.operationWithDirectives;
 import static io.smallrye.graphql.client.core.OperationType.MUTATION;
 import static io.smallrye.graphql.client.core.OperationType.QUERY;
 import static io.smallrye.graphql.client.core.OperationType.SUBSCRIPTION;
+import static io.smallrye.graphql.client.core.ScalarType.GQL_BOOL;
 import static io.smallrye.graphql.client.core.ScalarType.GQL_ID;
 import static io.smallrye.graphql.client.core.ScalarType.GQL_INT;
 import static io.smallrye.graphql.client.core.Variable.var;
@@ -51,6 +52,28 @@ public class DirectivesTest {
                                                         directiveArg("flag", true))),
                                         field("orders",
                                                 field("id"))))));
+
+        String generatedRequest = document.build();
+        AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
+    }
+
+    @Test
+    public void buildInlineFragmentWithoutTypeConditionWithDirectiveTest() {
+        String expectedRequest = Utils.getResourceFileContent("core/" +
+                "directivesInlineFragmentsNoTypeCondition.graphql");
+        Variable variable = var("expandedInfo", GQL_BOOL);
+        Document document = document(
+                operation(QUERY, "inlineFragmentNoType", vars(variable),
+                        field("user", args(arg("handle", "zuck")),
+                                field("id"),
+                                field("name"),
+                                on(
+                                        directives(
+                                                directive("include",
+                                                        directiveArg("if", variable))),
+                                        field("firstName"),
+                                        field("lastName"),
+                                        field("birthday")))));
 
         String generatedRequest = document.build();
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);

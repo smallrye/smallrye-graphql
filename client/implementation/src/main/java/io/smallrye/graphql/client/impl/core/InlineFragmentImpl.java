@@ -11,12 +11,16 @@ public class InlineFragmentImpl extends AbstractInlineFragment {
     @Override
     public String build() throws BuildException {
         StringBuilder builder = new StringBuilder();
-        builder.append("... on ")
-                .append(getType())
-                .append(getDirectives()
-                        .stream()
-                        .map(Buildable::build)
-                        .collect(Collectors.joining()));
+        builder.append("...");
+        String type = getType();
+        if (!type.isEmpty()) {
+            builder.append(" on ")
+                    .append(type);
+        }
+        builder.append(getDirectives()
+                .stream()
+                .map(Buildable::build)
+                .collect(Collectors.joining()));
 
         // fields
         StringJoiner stringJoiner = new StringJoiner(" ", " {", "}");
