@@ -8,6 +8,8 @@ import static io.smallrye.graphql.client.core.DirectiveArgument.directiveArg;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Field.fieldWithDirectives;
+import static io.smallrye.graphql.client.core.Fragment.fragment;
+import static io.smallrye.graphql.client.core.FragmentReference.fragmentRefWithDirective;
 import static io.smallrye.graphql.client.core.InlineFragment.on;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static io.smallrye.graphql.client.core.Operation.operationWithDirectives;
@@ -79,6 +81,25 @@ public class DirectivesTest {
         AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
     }
 
+    /*--------TESTING FRAGMENTS--------*/
+    @Test
+    public void buildFragmentWithDirectiveTest() {
+        String expectedRequest = Utils.getResourceFileContent("core/" +
+                "directivesFragment.graphql");
+        Document document = document(
+                operation(QUERY, field("people",
+                        fragmentRefWithDirective(
+                                "sensitiveFields",
+                                directive("myDirective"),
+                                directive("yourDirective")))),
+                fragment("sensitiveFields").on("Person", directives(
+                        directive("oursDirective"),
+                        directive("theirsDirective")),
+                        field("age"),
+                        field("religion")));
+        String generatedRequest = document.build();
+        AssertGraphQL.assertEquivalentGraphQLRequest(expectedRequest, generatedRequest);
+    }
     /*--------TESTING OPERATION--------*/
 
     // (directives, fields)

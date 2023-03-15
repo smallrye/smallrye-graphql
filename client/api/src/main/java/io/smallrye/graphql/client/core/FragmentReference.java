@@ -1,6 +1,10 @@
 package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
+import java.util.List;
 
 /**
  * Represents a reference to a named fragment.
@@ -14,6 +18,7 @@ public interface FragmentReference extends FieldOrFragment {
     static FragmentReference fragmentRef(String name) {
         FragmentReference ref = getNewInstanceOf(FragmentReference.class);
         ref.setName(name);
+        ref.setDirectives(emptyList());
         return ref;
     }
 
@@ -25,6 +30,30 @@ public interface FragmentReference extends FieldOrFragment {
     static FragmentReference fragmentRef(Fragment fragment) {
         FragmentReference ref = getNewInstanceOf(FragmentReference.class);
         ref.setName(fragment.getName());
+        ref.setDirectives(emptyList());
+        return ref;
+    }
+
+    /**
+     * Create a fragment reference by specifying the name of the target fragment and directives.
+     * In the resulting document, this will appear as `...FRAGMENTNAME @DIRECTIVE`
+     */
+    static FragmentReference fragmentRefWithDirective(String name, Directive... directives) {
+        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        ref.setName(name);
+        ref.setDirectives(asList(directives));
+        return ref;
+    }
+
+    /**
+     * Create a fragment reference by providing a built instance of a named fragment and directives.
+     * This will actually only use the name of the fragment - in the resulting document,
+     * this will appear as `...FRAGMENTNAME @DIRECTIVE`
+     */
+    static FragmentReference fragmentRefWithDirective(Fragment fragment, Directive... directives) {
+        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        ref.setName(fragment.getName());
+        ref.setDirectives(asList(directives));
         return ref;
     }
 
@@ -32,4 +61,7 @@ public interface FragmentReference extends FieldOrFragment {
 
     void setName(String name);
 
+    List<Directive> getDirectives();
+
+    void setDirectives(List<Directive> directives);
 }
