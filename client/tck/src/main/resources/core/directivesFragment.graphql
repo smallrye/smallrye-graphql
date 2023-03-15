@@ -1,0 +1,10 @@
+query {
+    people {
+        ...sensitiveFields @myDirective @yourDirective
+    }
+}
+
+fragment sensitiveFields on Person @oursDirective @theirsDirective {
+    age
+    religion
+}

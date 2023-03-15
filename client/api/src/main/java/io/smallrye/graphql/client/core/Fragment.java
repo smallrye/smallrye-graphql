@@ -2,7 +2,9 @@ package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
 import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateFragmentName;
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 import java.util.List;
 
@@ -37,11 +39,17 @@ public interface Fragment extends FragmentOrOperation {
 
     void setFields(List<FieldOrFragment> fields);
 
+    List<Directive> getDirectives();
+
+    void setDirectives(List<Directive> directives);
+
     class FragmentBuilder {
 
         private String name;
 
         private String targetType;
+
+        private List<Directive> directives;
 
         private List<FieldOrFragment> fields;
 
@@ -50,7 +58,15 @@ public interface Fragment extends FragmentOrOperation {
         }
 
         public Fragment on(String targetType, FieldOrFragment... fields) {
-            this.targetType = targetType;
+            this.targetType = validateName(targetType);
+            this.directives = emptyList();
+            this.fields = asList(fields);
+            return build();
+        }
+
+        public Fragment on(String targetType, List<Directive> directives, FieldOrFragment... fields) {
+            this.targetType = validateName(targetType);
+            this.directives = directives;
             this.fields = asList(fields);
             return build();
         }
@@ -59,6 +75,7 @@ public interface Fragment extends FragmentOrOperation {
             Fragment fragment = getNewInstanceOf(Fragment.class);
             fragment.setName(name);
             fragment.setTargetType(targetType);
+            fragment.setDirectives(directives);
             fragment.setFields(fields);
             return fragment;
         }

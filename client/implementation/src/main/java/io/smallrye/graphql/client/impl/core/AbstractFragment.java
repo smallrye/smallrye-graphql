@@ -5,6 +5,7 @@ import static io.smallrye.graphql.client.core.utils.validation.NameValidation.va
 
 import java.util.List;
 
+import io.smallrye.graphql.client.core.Directive;
 import io.smallrye.graphql.client.core.FieldOrFragment;
 import io.smallrye.graphql.client.core.Fragment;
 
@@ -12,6 +13,7 @@ public abstract class AbstractFragment implements Fragment {
 
     private String name;
     private String targetType;
+    private List<Directive> directives;
     private List<FieldOrFragment> fields;
 
     @Override
@@ -42,5 +44,15 @@ public abstract class AbstractFragment implements Fragment {
     @Override
     public void setTargetType(String targetType) {
         this.targetType = validateName(targetType);
+    }
+
+    @Override
+    public List<Directive> getDirectives() {
+        return directives;
+    }
+
+    @Override
+    public void setDirectives(List<Directive> directives) {
+        this.directives = directives;
     }
 }
