@@ -22,14 +22,23 @@ import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
 public class JsonReader extends Reader<JsonValue> {
     public static Object readJson(String description, TypeInfo type, JsonValue value, FieldInfo field) {
         return readJson(new Location(type, description), type, value, field);
     }
 
+    public static Object readJsonTypesafeResponse(String description, TypeInfo type, JsonValue value, FieldInfo field) {
+        return readJsonTypesafeResponse(new Location(type, description), type, value, field);
+    }
+
     static Object readJson(Location location, TypeInfo type, JsonValue value, FieldInfo field) {
         return new JsonReader(type, location, value, field).read();
+    }
+
+    static Object readJsonTypesafeResponse(Location location, TypeInfo type, JsonValue value, FieldInfo field) {
+        return new JsonReader(type, location, value, field).typesafeResponseRead();
     }
 
     private JsonReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
@@ -45,6 +54,8 @@ public class JsonReader extends Reader<JsonValue> {
         }
         if (type.isErrorOr())
             return readErrorOr();
+        if (type.isTypesafeResponse())
+            throw new IllegalArgumentException("TypesafeResponse type should be only on the highest level of recursion");
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
         Reader<?> reader = reader(location);
@@ -52,6 +63,19 @@ public class JsonReader extends Reader<JsonValue> {
         if (type.isOptionalNumber() && result == null)
             return optionalNumberEmpty();
         return result;
+    }
+
+    Object typesafeResponseRead() {
+        if (!type.isTypesafeResponse()) {
+            throw new IllegalArgumentException("Type should be TypesafeResponse");
+        }
+        return readTypesafeResponse();
+    }
+
+    private TypesafeResponse<Object> readTypesafeResponse() {
+        if (isListOfErrors(value))
+            return TypesafeResponse.ofErrors(readGraphQlClientErrors());
+        return TypesafeResponse.of(readJson(location, type.getItemType(), value, field));
     }
 
     private ErrorOr<Object> readErrorOr() {

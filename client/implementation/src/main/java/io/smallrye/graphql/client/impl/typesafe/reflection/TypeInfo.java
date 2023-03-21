@@ -36,6 +36,7 @@ import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.NonNull;
 
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
@@ -200,6 +201,10 @@ public class TypeInfo {
         return ErrorOr.class.equals(getRawType());
     }
 
+    public boolean isTypesafeResponse() {
+        return TypesafeResponse.class.equals(getRawType());
+    }
+
     public boolean isRecord() {
         Class<?> superclass = rawType.getSuperclass();
         return superclass != null && superclass.getName().equals("java.lang.Record");
@@ -324,7 +329,7 @@ public class TypeInfo {
     }
 
     public TypeInfo getItemType() {
-        assert isCollection() || isOptional() || isErrorOr() || isAsync();
+        assert isCollection() || isOptional() || isErrorOr() || isAsync() || isTypesafeResponse();
         if (itemType == null)
             itemType = new TypeInfo(this, computeParameterType(0), computeAnnotatedItemType());
         return this.itemType;

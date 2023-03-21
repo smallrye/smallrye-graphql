@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.vertx.typesafe;
 
+import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Array;
@@ -159,7 +160,7 @@ class VertxTypesafeGraphQLClientProxy {
             log.tracef("response graphql: %s", response.bodyAsString());
         }
         return new ResultBuilder(method, response.bodyAsString(),
-                response.statusCode(), response.statusMessage(),
+                response.statusCode(), response.statusMessage(), convertHeaders(headers),
                 allowUnexpectedResponseFields).read();
     }
 
@@ -168,8 +169,14 @@ class VertxTypesafeGraphQLClientProxy {
         return Uni.createFrom()
                 .completionStage(postAsync(request.toString(), headers))
                 .map(response -> new ResultBuilder(method, response.bodyAsString(),
-                        response.statusCode(), response.statusMessage(),
+                        response.statusCode(), response.statusMessage(), convertHeaders(headers),
                         allowUnexpectedResponseFields).read());
+    }
+
+    private Map<String, List<String>> convertHeaders(MultiMap input) {
+        return input.entries().stream()
+                .collect(groupingBy(Map.Entry::getKey,
+                        mapping(Map.Entry::getValue, toList())));
     }
 
     private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {

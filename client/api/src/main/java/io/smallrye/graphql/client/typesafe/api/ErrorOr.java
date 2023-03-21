@@ -20,7 +20,7 @@ import io.smallrye.graphql.client.GraphQLError;
  * There can be the paradox situation that there is a <code>value</code> <em>as well as</em> errors,
  * but this is what a GraphQL service could theoretically return!
  */
-public final class ErrorOr<T> {
+public class ErrorOr<T> {
     private final T value;
     private final List<GraphQLError> errors;
 
@@ -36,7 +36,7 @@ public final class ErrorOr<T> {
         return new ErrorOr<>(null, unmodifiableList(new ArrayList<>(errors)));
     }
 
-    private ErrorOr(T value, List<GraphQLError> errors) {
+    protected ErrorOr(T value, List<GraphQLError> errors) {
         this.value = value;
         this.errors = errors;
     }
