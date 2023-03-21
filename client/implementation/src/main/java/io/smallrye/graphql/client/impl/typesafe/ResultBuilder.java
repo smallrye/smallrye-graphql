@@ -5,6 +5,7 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import jakarta.json.Json;
@@ -23,6 +24,7 @@ import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
 public class ResultBuilder {
     private final MethodInvocation method;
@@ -31,20 +33,24 @@ public class ResultBuilder {
     private final Integer statusCode;
     private final String statusMessage;
     private JsonObject data;
+    private JsonObject extensions;
+    private Map<String, List<String>> transportMeta;
 
     public ResultBuilder(MethodInvocation method, String responseString, boolean allowUnexpectedResponseFields) {
-        this(method, responseString, null, null, allowUnexpectedResponseFields);
+        this(method, responseString, null, null, null, allowUnexpectedResponseFields);
     }
 
     public ResultBuilder(MethodInvocation method,
             String responseString,
             Integer statusCode,
             String statusMessage,
+            Map<String, List<String>> transportMeta,
             boolean allowUnexpectedResponseFields) {
         this.method = method;
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
         this.responseString = responseString;
+        this.transportMeta = transportMeta;
         this.response = ResponseReader.parseGraphQLResponse(responseString, allowUnexpectedResponseFields);
     }
 
@@ -59,7 +65,25 @@ public class ResultBuilder {
         if (data == null)
             return null;
         JsonValue value = method.isSingle() ? data.get(method.getName()) : data;
-        return JsonReader.readJson(method.toString(), method.getReturnType(), value, null);
+        Object result;
+        if (method.getReturnType().isTypesafeResponse()) {
+            extensions = readExtensions();
+            result = JsonReader.readJsonTypesafeResponse(
+                    method.toString(),
+                    method.getReturnType(),
+                    value,
+                    null);
+            result = TypesafeResponse.withTransportMetaAndExtensions((TypesafeResponse<?>) result,
+                    transportMeta,
+                    extensions);
+        } else {
+            result = JsonReader.readJson(
+                    method.toString(),
+                    method.getReturnType(),
+                    value,
+                    null);
+        }
+        return result;
     }
 
     private JsonObject readData() {
@@ -97,6 +121,12 @@ public class ResultBuilder {
         errors.add(ERROR_MARK.apply((JsonObject) error));
         this.data = pointer.replace(data, errors.build());
         return true;
+    }
+
+    private JsonObject readExtensions() {
+        if (!response.containsKey("extensions") || response.isNull("extensions"))
+            return null;
+        return response.getJsonObject("extensions");
     }
 
     private boolean exists(JsonPointer pointer) {

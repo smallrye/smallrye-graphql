@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.impl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import io.smallrye.graphql.client.GraphQLError;
 
@@ -74,5 +75,24 @@ public class GraphQLErrorImpl implements GraphQLError {
                 ", path=" + Arrays.toString(path) +
                 ", extensions=" + extensions +
                 other + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        GraphQLErrorImpl that = (GraphQLErrorImpl) o;
+        return Objects.equals(message, that.message) && Objects.equals(locations, that.locations)
+                && Arrays.equals(path, that.path) && Objects.equals(extensions, that.extensions)
+                && Objects.equals(otherFields, that.otherFields);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(message, locations, extensions, otherFields);
+        result = 31 * result + Arrays.hashCode(path);
+        return result;
     }
 }

@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -33,6 +35,7 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
     private String statusMessage;
     private String response;
     private JsonObject requestSent;
+    private Map<String, List<String>> transportMeta;
 
     public VertxTypesafeGraphQLClientFixture() {
         given(mockWebClient.postAbs(any(String.class))).willReturn(mockHttpRequest);
@@ -44,6 +47,13 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
         given(mockHttpResponse.bodyAsString()).will(i -> response);
         given(mockHttpResponse.statusCode()).will(i -> statusCode);
         given(mockHttpResponse.statusMessage()).will(i -> statusMessage);
+        given(mockHttpResponse.headers()).will(i -> toMultiMap(transportMeta));
+    }
+
+    private MultiMap toMultiMap(Map<String, List<String>> transportMeta) {
+        MultiMap multiMap = MultiMap.caseInsensitiveMultiMap();
+        transportMeta.forEach((key, values) -> values.forEach(value -> multiMap.add(key, value)));
+        return multiMap;
     }
 
     @Override
@@ -74,9 +84,15 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
     }
 
     @Override
-    public void returns(String response) {
+    public TypesafeGraphQLClientFixture returns(String response) {
         this.response = response;
         this.statusCode = 200;
+        return this;
+    }
+
+    @Override
+    public void withHeaders(Map<String, List<String>> transportMeta) {
+        this.transportMeta = transportMeta;
     }
 
     @Override
@@ -105,6 +121,11 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
     @Override
     public String query() {
         return requestSent().getString("query").replace('\"', '\'');
+    }
+
+    @Override
+    public Map<String, List<String>> transportMeta() {
+        return transportMeta;
     }
 
     private JsonObject requestSent() {

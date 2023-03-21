@@ -2,6 +2,8 @@ package tck.graphql.typesafe;
 
 import java.net.URI;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
@@ -31,7 +33,9 @@ public interface TypesafeGraphQLClientFixture {
 
     void returnsData(String data);
 
-    void returns(String response);
+    TypesafeGraphQLClientFixture returns(String response);
+
+    void withHeaders(Map<String, List<String>> headers);
 
     void returnsServerError();
 
@@ -42,6 +46,8 @@ public interface TypesafeGraphQLClientFixture {
     String operationName();
 
     String query();
+
+    Map<String, List<String>> transportMeta();
 
     Object sentHeader(String name);
 
