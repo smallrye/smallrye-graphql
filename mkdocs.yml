@@ -18,6 +18,7 @@ nav:
       - Logging: 'typesafe-client-logging.md'
       - Running multiple queries at once: 'typesafe-client-multiple-queries.md'
       - Error handling: 'typesafe-client-error-handling.md'
+      - Accessing metadata of responses: 'typesafe-client-accessing-metadata-of-responses.md'
   - Dynamic client:
       - Basic usage: 'dynamic-client-usage.md'
       - Error handling: 'dynamic-client-error-handling.md'
