@@ -84,7 +84,7 @@ public class GeneratorBehavior {
                 .hasCauseInstanceOf(SchemaProblem.class);
         thenErrorCauseOf(thrown)
                 .hasErrorType(InvalidSyntax)
-                .hasMessage("Invalid Syntax : offending token 'foo' at line 1 column 1");
+                .hasMessage("Invalid syntax with offending token 'foo' at line 1 column 1");
     }
 
     @Test
