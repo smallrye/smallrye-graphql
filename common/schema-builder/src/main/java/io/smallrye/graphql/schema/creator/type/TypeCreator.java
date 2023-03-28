@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.FieldInfo;
@@ -48,13 +51,17 @@ public class TypeCreator extends AbstractCreator {
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
-                allMethods.addAll(c.methods());
+                List<MethodInfo> classMethods = c.methods();
+                allMethods.addAll(classMethods);
+                allMethods.addAll(getAllInterfaceMethods(c, classMethods
+                        .stream()
+                        .map(MethodInfo::toString)
+                        .collect(Collectors.toSet())));
                 for (FieldInfo fieldInfo : c.fields()) {
                     allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
             }
         }
-
         for (MethodInfo methodInfo : allMethods) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)) {
                 String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
@@ -81,6 +88,28 @@ public class TypeCreator extends AbstractCreator {
     @Override
     protected ReferenceType referenceType() {
         return ReferenceType.TYPE;
+    }
+
+    private List<MethodInfo> getAllInterfaceMethods(ClassInfo classInfo, Set<String> methodMemory) {
+        return classInfo
+                .interfaceNames()
+                .stream()
+                .map(ScanningContext.getIndex()::getClassByName)
+                .filter(Objects::nonNull)
+                .flatMap(parentInterfaceInfo -> Stream.concat(
+                        parentInterfaceInfo
+                                .methods()
+                                .stream()
+                                .filter(method -> isNotGenericType(method) && methodMemory.add(method.toString())),
+                        getAllInterfaceMethods(parentInterfaceInfo, methodMemory).stream()))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isNotGenericType(MethodInfo method) {
+        return method.returnType().kind() != org.jboss.jandex.Type.Kind.TYPE_VARIABLE &&
+                method.returnType().kind() != org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE &&
+                method.parameterTypes().stream().allMatch(type -> type.kind() != org.jboss.jandex.Type.Kind.TYPE_VARIABLE &&
+                        type.kind() != org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE);
     }
 
 }
