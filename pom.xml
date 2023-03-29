@@ -236,6 +236,12 @@
                 <groupId>com.apollographql.federation</groupId>
                 <artifactId>federation-graphql-java-support</artifactId>
                 <version>${version.graphql-java-federation}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.graphql-java</groupId>
+                        <artifactId>graphql-java</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
