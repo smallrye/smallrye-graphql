@@ -134,7 +134,8 @@ public class ExecutionService {
             Optional<Map<String, Object>> variables = smallRyeContext.getVariables();
 
             if (query == null || query.isEmpty()) {
-                throw new RuntimeException("Query can not be null");
+                sendError("Missing 'query' field in the request", writer);
+                return;
             }
             if (payloadOption.equals(LogPayloadOption.queryOnly)) {
                 log.payloadIn(query);
@@ -168,16 +169,7 @@ public class ExecutionService {
                 try {
                     smallRyeContext = SmallRyeContextManager.populateFromExecutionInput(executionInput, queryCache);
                 } catch (UnparseableDocumentException ex) {
-                    GraphQLError error = GraphqlErrorBuilder
-                            .newError()
-                            .message("Unparseable input document")
-                            .build();
-                    ExecutionResult executionResult = ExecutionResultImpl
-                            .newExecutionResult()
-                            .addError(error)
-                            .build();
-                    ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
-                    writer.write(executionResponse);
+                    sendError("Unparseable input document", writer);
                     return;
                 }
                 context.put(SmallRyeContextManager.CONTEXT, smallRyeContext);
@@ -199,6 +191,19 @@ public class ExecutionService {
             eventEmitter.fireOnExecuteError(smallRyeContext, t);
             writer.fail(t);
         }
+    }
+
+    private static void sendError(String errorMessage, ExecutionResponseWriter writer) {
+        GraphQLError error = GraphqlErrorBuilder
+                .newError()
+                .message(errorMessage)
+                .build();
+        ExecutionResult executionResult = ExecutionResultImpl
+                .newExecutionResult()
+                .addError(error)
+                .build();
+        ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+        writer.write(executionResponse);
     }
 
     private void writeAsync(GraphQL graphQL,
