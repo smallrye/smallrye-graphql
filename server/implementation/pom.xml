@@ -109,12 +109,6 @@
             <artifactId>yasson</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.opentracing</groupId>
-            <artifactId>opentracing-mock</artifactId>
-            <version>${version.opentracing}</version>
-            <scope>test</scope>
-        </dependency>
         <!-- The model builder -->
         <dependency>
             <groupId>${project.groupId}</groupId>
