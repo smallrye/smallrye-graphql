@@ -74,9 +74,6 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
                 war.addAsWebInfResource(config.getAsset(), "classes/META-INF/microprofile-config.properties");
             }
 
-            // Add OpenTracing Producer
-            war.addClass(TracerProducer.class);
-
             // Add GraphQL
             String[] deps = {
                     "io.smallrye:smallrye-graphql-servlet",

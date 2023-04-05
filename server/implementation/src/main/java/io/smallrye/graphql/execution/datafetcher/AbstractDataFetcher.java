@@ -71,8 +71,6 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
         } catch (Throwable ex) {
             eventEmitter.fireOnDataFetchError(smallRyeContext, ex);
             throw ex;
-        } finally {
-            eventEmitter.fireAfterDataFetch(smallRyeContext);
         }
 
         return invokeFailure(resultBuilder);

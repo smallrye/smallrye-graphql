@@ -29,7 +29,6 @@
         <version.smallrye-mutiny-zero>1.0.0</version.smallrye-mutiny-zero>
         <version.smallrye-context-propagation>2.0.0</version.smallrye-context-propagation>
         <version.smallrye-stork>1.4.2</version.smallrye-stork>
-        <version.opentracing>0.33.0</version.opentracing>
 
         <version.yasson>2.0.4</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
@@ -40,11 +39,12 @@
         <version.graphql-java>20.1</version.graphql-java>
         <verison.io.micrometer>1.10.3</verison.io.micrometer>
         <version.vertx>4.3.7</version.vertx>
+        <version.smallrye-opentelemetry>2.4.0</version.smallrye-opentelemetry>
+
 
         <!-- Test -->
         <version.arquillian.jetty>1.0.0.Final</version.arquillian.jetty>
         <version.jetty>11.0.13</version.jetty>
-        <version.smallrye-opentracing>3.0.0</version.smallrye-opentracing>
         <version.hibernate-validator>8.0.0.Final</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
         <version.weld-junit5>4.0.0.Final</version.weld-junit5>
@@ -159,13 +159,6 @@
                 <version>${version.eclipse.microprofile.context-propagation}</version>
             </dependency>
 
-            <!-- OpenTracing -->
-            <dependency>
-                <groupId>io.opentracing</groupId>
-                <artifactId>opentracing-api</artifactId>
-                <version>${version.opentracing}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.eclipse</groupId>
                 <artifactId>yasson</artifactId>
@@ -224,6 +217,18 @@
                 <groupId>io.smallrye</groupId>
                 <artifactId>smallrye-context-propagation-cdi</artifactId>
                 <version>${version.smallrye-context-propagation}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.smallrye.opentelemetry</groupId>
+                <artifactId>smallrye-opentelemetry-parent</artifactId>
+                <version>${version.smallrye-opentelemetry}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.smallrye.opentelemetry</groupId>
+                <artifactId>smallrye-opentelemetry-api</artifactId>
+                <version>${version.smallrye-opentelemetry}</version>
             </dependency>
 
             <dependency>
@@ -369,18 +374,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>io.opentracing</groupId>
-                <artifactId>opentracing-mock</artifactId>
-                <version>${version.opentracing}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.smallrye</groupId>
-                <artifactId>smallrye-opentracing</artifactId>
-                <version>${version.smallrye-opentracing}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${version.hibernate-validator}</version>
@@ -398,7 +391,6 @@
                 <version>${version.weld-junit5}</version>
                 <scope>test</scope>
             </dependency>
-            
             <dependency>
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
