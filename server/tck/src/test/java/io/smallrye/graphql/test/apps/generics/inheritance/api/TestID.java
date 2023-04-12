@@ -1,6 +1,9 @@
 package io.smallrye.graphql.test.apps.generics.inheritance.api;
 
-public class TestID extends AbstractID<TestID> implements ID<TestID> {
+// FIXME: This is a workaround for https://github.com/smallrye/smallrye-graphql/issues/1405 until resolved
+// extending a type with a type parameter that references the child class causes infinite recursion
+//public class TestID extends AbstractID<TestID> implements ID<TestID> {
+public class TestID extends AbstractID implements ID<TestID> {
 
     public TestID() {
         super("test");
