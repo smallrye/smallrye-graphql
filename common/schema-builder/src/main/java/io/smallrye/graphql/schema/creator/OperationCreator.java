@@ -91,7 +91,7 @@ public class OperationCreator extends ModelCreator {
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {
         Type returnType = methodInfo.returnType();
-        if (returnType.kind().equals(Type.Kind.VOID)) {
+        if (!operationType.equals(OperationType.MUTATION) && returnType.kind().equals(Type.Kind.VOID)) {
             throw new SchemaBuilderException(
                     "Can not have a void return for [" + operationType.name()
                             + "] on method [" + methodInfo.name() + "]");

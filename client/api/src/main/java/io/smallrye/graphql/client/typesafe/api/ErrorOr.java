@@ -62,11 +62,11 @@ public class ErrorOr<T> {
     }
 
     public boolean isPresent() {
-        return value != null;
+        return !hasErrors();
     }
 
     public boolean hasErrors() {
-        return !isPresent();
+        return errors != null;
     }
 
     public T get() {

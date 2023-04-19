@@ -14,7 +14,9 @@ class JsonNullReader extends Reader<JsonValue> {
 
     @Override
     Object read() {
-        check(location, value, !type.isPrimitive());
+        if (!type.isVoid()) {
+            check(location, value, !type.isPrimitive());
+        }
         return null;
     }
 }

@@ -12,6 +12,7 @@ import io.smallrye.graphql.scalar.number.BigDecimalScalar;
 import io.smallrye.graphql.scalar.number.BigIntegerScalar;
 import io.smallrye.graphql.scalar.number.FloatScalar;
 import io.smallrye.graphql.scalar.number.IntegerScalar;
+import io.smallrye.graphql.scalar.others.VoidScalar;
 import io.smallrye.graphql.scalar.time.DateScalar;
 import io.smallrye.graphql.scalar.time.DateTimeScalar;
 import io.smallrye.graphql.scalar.time.DurationScalar;
@@ -79,6 +80,8 @@ public class GraphQLScalarTypes {
 
         mapType(new PeriodScalar());
         mapType(new DurationScalar());
+
+        mapType(new VoidScalar()); // Void
 
         for (final GraphQLScalarType value : SCALAR_MAP.values()) {
             SCALARS_BY_NAME.put(value.getName(), value);
