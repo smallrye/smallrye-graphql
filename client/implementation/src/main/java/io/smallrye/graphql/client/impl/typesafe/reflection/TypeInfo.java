@@ -212,6 +212,7 @@ public class TypeInfo {
 
     public boolean isScalar() {
         return isPrimitive()
+                || Void.class.isAssignableFrom(getRawType())
                 || Number.class.isAssignableFrom(getRawType())
                 || Boolean.class.isAssignableFrom(getRawType())
                 || isEnum()
@@ -227,6 +228,11 @@ public class TypeInfo {
 
     public boolean isPrimitive() {
         return getRawType().isPrimitive();
+    }
+
+    public boolean isVoid() {
+        return void.class.isAssignableFrom(getRawType())
+                || Void.class.isAssignableFrom(getRawType());
     }
 
     public boolean isEnum() {

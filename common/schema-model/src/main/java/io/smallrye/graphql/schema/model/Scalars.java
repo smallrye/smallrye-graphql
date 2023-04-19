@@ -47,6 +47,7 @@ public class Scalars {
     private static final String ID = "ID";
     private static final String PERIOD = "Period";
     private static final String DURATION = "Duration";
+    private static final String VOID = "Void";
 
     private Scalars() {
     }
@@ -160,6 +161,10 @@ public class Scalars {
         populateScalar(Duration.class.getName(), DURATION, String.class.getName());
         // Period
         populateScalar(Period.class.getName(), PERIOD, String.class.getName());
+
+        // Void
+        populateScalar(Void.class.getName(), VOID, Void.class.getName());
+        populateScalar(void.class.getName(), VOID, Void.class.getName());
     }
 
     private static void populateScalar(String className, String scalarName) {

@@ -1,7 +1,6 @@
 package io.smallrye.graphql.client.typesafe.api;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +16,7 @@ public final class TypesafeResponse<T> extends ErrorOr<T> {
     private JsonObject extensions;
 
     public static <T> TypesafeResponse<T> of(T value) {
-        return new TypesafeResponse<>(requireNonNull(value, "value must not be null"),
-                null);
+        return new TypesafeResponse<>(value, null);
     }
 
     public static <T> TypesafeResponse<T> ofErrors(List<GraphQLError> errors) {
