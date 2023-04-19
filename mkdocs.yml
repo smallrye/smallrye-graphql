@@ -10,6 +10,7 @@ nav:
       - Federation: 'federation.md'
       - Custom error extensions: 'custom-error-extensions.md'
       - Response extensions: 'extensions.md'
+      - Returning Void from Mutations: 'mutation-void.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'
