@@ -21,7 +21,7 @@ import io.smallrye.graphql.schema.model.Scalars;
 /**
  * Helping with object adapters.
  * This adds support for Adapting one type to another.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AdaptWithHelper {
@@ -35,7 +35,7 @@ public class AdaptWithHelper {
 
     /**
      * Get the adaptWith for a certain field (if any)
-     * 
+     *
      * @param direction
      * @param referenceCreator
      * @param field
@@ -49,7 +49,7 @@ public class AdaptWithHelper {
 
     /**
      * Get the adapt with for a certain reference.
-     * 
+     *
      * @param direction
      * @param referenceCreator
      * @param r
@@ -106,7 +106,7 @@ public class AdaptWithHelper {
 
     /**
      * Get the adapt with for a certain reference.
-     * 
+     *
      * @param direction
      * @param referenceCreator
      * @param r

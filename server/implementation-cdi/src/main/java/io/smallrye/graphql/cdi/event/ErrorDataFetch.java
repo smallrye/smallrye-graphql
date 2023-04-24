@@ -10,7 +10,7 @@ import jakarta.inject.Qualifier;
 
 /**
  * CDI Event fired when an error happened during DataFetch
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Qualifier

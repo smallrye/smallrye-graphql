@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test a basic grouping
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GroupingTest extends ExecutionTestBase {

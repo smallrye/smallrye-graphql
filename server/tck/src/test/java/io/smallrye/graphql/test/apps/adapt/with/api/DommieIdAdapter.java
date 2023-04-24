@@ -4,7 +4,7 @@ import io.smallrye.graphql.api.Adapter;
 
 /**
  * Using an adapter
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DommieIdAdapter implements Adapter<DommieId, Id> {

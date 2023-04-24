@@ -13,7 +13,7 @@ import io.smallrye.graphql.spi.ManagedInstance;
 
 /**
  * Lookup service that gets the beans via CDI
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CdiLookupService implements LookupService {

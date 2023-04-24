@@ -8,7 +8,7 @@ import io.smallrye.graphql.schema.Classes;
 
 /**
  * Helping to figure out of some should be marked as Non null
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class NonNullHelper {
@@ -19,7 +19,7 @@ public class NonNullHelper {
 
     /**
      * Check if we should mark a certain type as non null.
-     * 
+     *
      * @param type the type
      * @param annotations the applicable annotations
      * @return true if we should
@@ -30,9 +30,9 @@ public class NonNullHelper {
 
     /**
      * Check if we should mark a certain type as non null.
-     * 
+     *
      * By default primitives is non null.
-     * 
+     *
      * @param type the type
      * @param annotations the applicable annotations
      * @param ignorePrimitiveCheck ignore the primitive rule

@@ -16,7 +16,7 @@ import io.restassured.specification.RequestSpecification;
 
 /**
  * Using RestAssured for GraphQL
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLAssured {

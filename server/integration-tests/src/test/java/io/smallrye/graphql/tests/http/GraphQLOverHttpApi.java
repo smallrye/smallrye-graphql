@@ -6,9 +6,9 @@ import org.eclipse.microprofile.graphql.Query;
 
 /**
  * This is to test compatibility with the GraphQL over HTTP Spec
- * 
+ *
  * @see <a href="https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md">GraphQL over HTTP<a/>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @GraphQLApi

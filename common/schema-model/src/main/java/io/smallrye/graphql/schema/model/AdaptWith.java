@@ -5,9 +5,9 @@ import java.util.Objects;
 
 /**
  * Indicate that a field apply a custom adapter, adapting from one type to another
- * 
+ *
  * This can be a JsonbTypeAdapter
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AdaptWith implements Serializable {

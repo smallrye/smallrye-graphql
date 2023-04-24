@@ -5,7 +5,7 @@ import org.jboss.arquillian.core.spi.LoadableExtension;
 
 /**
  * Activating the extension
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLExtension implements LoadableExtension {

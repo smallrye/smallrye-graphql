@@ -2,7 +2,7 @@ package io.smallrye.graphql.execution;
 
 /**
  * Write the response to something
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface ExecutionResponseWriter {

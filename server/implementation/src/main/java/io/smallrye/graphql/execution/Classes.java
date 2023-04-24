@@ -23,7 +23,7 @@ import java.util.Optional;
 
 /**
  * Class helper
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
@@ -187,7 +187,7 @@ public class Classes {
     /**
      * Tests, if {@code boxedType} is the wrapper-type of {@code primitiveType}.
      * For example, {@code java.lang.Integer} is the wrapper for {@code int}.
-     * 
+     *
      * @param primitiveType the classname of the primitive type
      * @param boxedType the classname of the boxed type
      * @return true, if {@code boxedType} is the wrapper-type of {@code primitiveType}

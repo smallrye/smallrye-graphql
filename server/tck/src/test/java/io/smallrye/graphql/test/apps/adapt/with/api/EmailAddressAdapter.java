@@ -4,7 +4,7 @@ import jakarta.json.bind.adapter.JsonbAdapter;
 
 /**
  * Using an adapter
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class EmailAddressAdapter implements JsonbAdapter<EmailAddress, Address> {

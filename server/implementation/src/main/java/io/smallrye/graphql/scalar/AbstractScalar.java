@@ -8,7 +8,7 @@ import graphql.schema.GraphQLScalarType;
 
 /**
  * Base Scalar for all of our own scalars
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractScalar {

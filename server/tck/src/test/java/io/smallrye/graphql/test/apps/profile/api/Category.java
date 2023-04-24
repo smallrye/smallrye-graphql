@@ -6,7 +6,7 @@ import org.eclipse.microprofile.graphql.Ignore;
 /**
  * Enum should omit normal methods
  * see issues #309
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public enum Category {

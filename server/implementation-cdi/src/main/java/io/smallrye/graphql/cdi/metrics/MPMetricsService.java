@@ -21,7 +21,7 @@ import io.smallrye.graphql.spi.EventingService;
 
 /**
  * Listening for event and create metrics from it. Uses MP Metrics 3.x API.
- * 
+ *
  * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

@@ -2,7 +2,7 @@ package io.smallrye.graphql.test.apps.adapt.to.api;
 
 /**
  * Testing AdaptTo using a static fromXXX Method
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class WithStaticFrom {

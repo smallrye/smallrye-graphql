@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * resolver) for a GraphQL subscription. <br>
  * <br>
  * For example, a user might annotate a method as such:
- * 
+ *
  * <pre>
  * public class CharacterService {
  *     {@literal @}Subscription
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  * </pre>
  *
  * Schema generation of this would result in a stanza such as:
- * 
+ *
  * <pre>
  * type Subscription {
  *    "Get stock quote changes as they happen"

@@ -20,7 +20,7 @@ import io.smallrye.graphql.spi.ClassloadingService;
 
 /**
  * The adapter to change map to Entry Set.Users can also supply their own adapter.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @param <K> Key
  * @param <V> Value

@@ -32,7 +32,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  *
  * The input object has fields that might reference other types
  * that should still be created.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class InputTypeCreator implements Creator<InputType> {
@@ -87,7 +87,7 @@ public class InputTypeCreator implements Creator<InputType> {
      * Returns a constructor or factory method to create instances of this class.
      *
      * Could either be the default constructor or any constructor or static method annotated with {@code @JsonbCreator}
-     * 
+     *
      * @param classInfo the class whose creator is to be found
      * @return the creator, null, if no public constructor or factory method is found
      */

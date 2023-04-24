@@ -34,7 +34,7 @@ import io.smallrye.common.annotation.Experimental;
 /**
  * Holing context for the current request
  * There are two parts to this.The initial request, that can be a aggregation of requests, and the current execution context.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Experimental("Request context to allow downstream operations to get insight into the request. Not covered by the specification. "
@@ -47,14 +47,14 @@ public interface Context {
     /**
      * Get the full body of the request.
      * This includes the query, variables and operation name
-     * 
+     *
      * @return JsonObject
      */
     public JsonObject getRequest();
 
     /**
      * Check if there is a request set
-     * 
+     *
      * @return
      */
     default boolean hasRequest() {
@@ -65,7 +65,7 @@ public interface Context {
     /**
      * Get the query part of the request.
      * TODO: Consider creating a domain object for this (rather than String).
-     * 
+     *
      * @return raw string query
      */
     default String getQuery() {
@@ -75,14 +75,14 @@ public interface Context {
     /**
      * Get the operationName of the request.
      * Could be null (not set)
-     * 
+     *
      * @return the operation name if set
      */
     public Optional<String> getOperationName();
 
     /**
      * Check if the request contains an operation name
-     * 
+     *
      * @return true if it does
      */
     default boolean hasOperationName() {
@@ -92,7 +92,7 @@ public interface Context {
     /**
      * Get the variables of the request
      * Could be null (not set)
-     * 
+     *
      * @return
      */
     default Optional<Map<String, Object>> getVariables() {
@@ -107,7 +107,7 @@ public interface Context {
 
     /**
      * Check if the request contains variables
-     * 
+     *
      * @return true if it does
      */
     default boolean hasVariables() {
@@ -116,21 +116,21 @@ public interface Context {
 
     /**
      * Get the execution ID.
-     * 
+     *
      * @return the ID as a String
      */
     public String getExecutionId();
 
     /**
      * Get the field name
-     * 
+     *
      * @return name of the field
      */
     public String getFieldName();
 
     /**
      * Return true if the argument exist
-     * 
+     *
      * @param name the argument name
      * @return true if there
      */
@@ -145,7 +145,7 @@ public interface Context {
     /**
      * Get the argument using a name
      * This return the argument instance if it exists
-     * 
+     *
      * @param name key
      * @return argument value
      */
@@ -159,7 +159,7 @@ public interface Context {
 
     /**
      * Same as above but with the option to do a default value
-     * 
+     *
      * @param name
      * @param defaultValue
      * @return the argument instance if it exists, else the provided default
@@ -173,7 +173,7 @@ public interface Context {
 
     /**
      * Get all the arguments
-     * 
+     *
      * @return a map with name and instance of the argument
      */
     public <A> Map<String, A> getArguments();
@@ -187,21 +187,21 @@ public interface Context {
 
     /**
      * Return the current path
-     * 
+     *
      * @return the path as a String
      */
     public String getPath();
 
     /**
      * Return the fields selected in the request
-     * 
+     *
      * @return JsonArray of fields selected
      */
     public JsonArray getSelectedFields();
 
     /**
      * Return the fields and source fields in the request
-     * 
+     *
      * @return JsonArray of fields selected
      */
     public JsonArray getSelectedAndSourceFields();
@@ -209,7 +209,7 @@ public interface Context {
     /**
      * Return the current type (Query, Mutation ext)
      * Current type means the type currently being executed.
-     * 
+     *
      * @return name of the operation type
      */
     public String getOperationType();
@@ -219,21 +219,21 @@ public interface Context {
      * A Request can contain more than one operation. This will return a unique list of types.
      * So if there is 2 Queries, it will only return one QUERY type, but if there is two
      * queries and a mutation, it will return QUERY,MUTATION
-     * 
+     *
      * @return
      */
     public List<String> getRequestedOperationTypes();
 
     /**
      * Return the type name of the parent (if any)
-     * 
+     *
      * @return the parent type name maybe
      */
     public Optional<String> getParentTypeName();
 
     /**
      * This leaky abstraction allows falling down to the underlying implementation
-     * 
+     *
      * @param <T> the implementation class
      * @param wrappedType the class type of T
      * @return instance of the implementation class

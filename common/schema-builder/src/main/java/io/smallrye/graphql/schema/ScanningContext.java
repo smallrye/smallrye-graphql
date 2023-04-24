@@ -6,7 +6,7 @@ import org.jboss.jandex.IndexView;
  * A simple registry to hold the current scanning info
  *
  * At this point we only keep the index in the context
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ScanningContext {

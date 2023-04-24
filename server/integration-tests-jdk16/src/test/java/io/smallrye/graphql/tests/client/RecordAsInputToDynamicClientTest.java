@@ -30,7 +30,6 @@ public class RecordAsInputToDynamicClientTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class)
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addClasses(SimpleRecord.class);
     }
 

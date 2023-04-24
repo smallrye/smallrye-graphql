@@ -6,7 +6,7 @@ import io.smallrye.graphql.spi.config.LogPayloadOption;
 
 /**
  * Allow for using true/false as valid value (backward compatible)
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class LogPayloadOptionConverter implements Converter<LogPayloadOption> {

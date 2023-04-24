@@ -37,7 +37,7 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Adds methods to make the life cycle of the context easy to implement
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContextManager {
@@ -66,7 +66,7 @@ public class SmallRyeContextManager {
 
     /**
      * This creates a new context at the beginning of the request
-     * 
+     *
      * @param request the original request
      * @return the initial context
      */
@@ -85,7 +85,7 @@ public class SmallRyeContextManager {
 
     /**
      * This will populate the context with the input, and happens on every new request, just before GraphQL execute is called
-     * 
+     *
      * @param executionInput
      * @param queryCache
      * @return the current context
@@ -109,7 +109,7 @@ public class SmallRyeContextManager {
 
     /**
      * This will populate the provided smallRyeContext from the GraphQL-Java DataFetchingEnvironment, and is per field.
-     * 
+     *
      * @param type
      * @param field
      * @param dataFetchingEnvironment

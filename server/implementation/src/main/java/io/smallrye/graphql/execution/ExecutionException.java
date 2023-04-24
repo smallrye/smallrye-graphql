@@ -2,7 +2,7 @@ package io.smallrye.graphql.execution;
 
 /**
  * Error while executing a request
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionException extends RuntimeException {

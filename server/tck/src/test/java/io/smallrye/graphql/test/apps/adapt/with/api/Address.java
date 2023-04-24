@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Address
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Address {

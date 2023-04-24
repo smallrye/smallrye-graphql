@@ -12,7 +12,7 @@ import org.eclipse.microprofile.graphql.Query;
 
 /**
  * Book API
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @GraphQLApi

@@ -7,7 +7,7 @@ import io.smallrye.graphql.api.Adapter;
 
 /**
  * Using an adapter to String
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TagsAdapter implements Adapter<Tags, String> {

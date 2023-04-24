@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Book POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Book {

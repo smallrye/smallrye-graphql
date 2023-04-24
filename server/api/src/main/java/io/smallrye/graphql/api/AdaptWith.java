@@ -28,7 +28,7 @@ import io.smallrye.common.annotation.Experimental;
  * This is an experimental feature that might move to the spec.
  * <br>
  * Example:
- * 
+ *
  * <pre>
  * public class Profile {
  *     //  Map a EmailAdress to an Address
@@ -38,7 +38,7 @@ import io.smallrye.common.annotation.Experimental;
  *     // other getters/setters...
  * }
  * </pre>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Retention(RetentionPolicy.RUNTIME)

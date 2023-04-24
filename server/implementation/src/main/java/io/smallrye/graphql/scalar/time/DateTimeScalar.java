@@ -9,7 +9,7 @@ import java.util.Date;
 
 /**
  * Scalar for DateTime.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DateTimeScalar extends AbstractDateScalar {

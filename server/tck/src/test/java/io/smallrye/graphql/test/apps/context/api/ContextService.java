@@ -7,7 +7,7 @@ import io.smallrye.graphql.api.Context;
 
 /**
  * Some downstream service
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @RequestScoped

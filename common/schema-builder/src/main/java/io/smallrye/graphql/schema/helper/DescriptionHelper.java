@@ -10,7 +10,7 @@ import io.smallrye.graphql.schema.Classes;
 /**
  * Helper to get the correct Description.
  * Basically looking for the @Description annotation.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DescriptionHelper {
@@ -20,7 +20,7 @@ public class DescriptionHelper {
 
     /**
      * Get the Description on a field or argument
-     * 
+     *
      * @param annotations the annotations for that field/argument
      * @param type the java type (some types have default values)
      * @return the optional description
@@ -53,7 +53,7 @@ public class DescriptionHelper {
 
     /**
      * Get the description on a class type
-     * 
+     *
      * @param annotations annotation on the class
      * @return the optional description
      */

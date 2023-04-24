@@ -4,7 +4,7 @@ import java.util.Random;
 
 /**
  * Some object to test lists of POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TestListObject {

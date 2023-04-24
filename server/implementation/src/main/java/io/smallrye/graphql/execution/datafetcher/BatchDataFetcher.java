@@ -19,7 +19,7 @@ import io.smallrye.mutiny.Uni;
 
 /**
  * Fetch data using using a batchloader
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class BatchDataFetcher<T> implements DataFetcher<T> {

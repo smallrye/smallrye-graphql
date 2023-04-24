@@ -2,7 +2,7 @@ package io.smallrye.graphql.test.apps.adapt.with.api;
 
 /**
  * Simple language POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Language {

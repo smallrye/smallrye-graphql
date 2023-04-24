@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test a basic async endpoint
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CompletableFutureTest extends ExecutionTestBase {

@@ -12,7 +12,7 @@ import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Helping with BatchLoaders
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class BatchLoaderHelper {

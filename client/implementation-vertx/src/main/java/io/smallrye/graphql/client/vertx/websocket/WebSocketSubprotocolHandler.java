@@ -25,7 +25,7 @@ public interface WebSocketSubprotocolHandler {
 
     /**
      * Requests an execution of a single-result operation over the websocket.
-     * 
+     *
      * @param request Request in full JSON format describing the operation to be executed.
      * @param emitter Emitter that should receive the completion event (or an error) when the operation finishes.
      * @return The generated internal ID of this operation.
@@ -34,7 +34,7 @@ public interface WebSocketSubprotocolHandler {
 
     /**
      * Requests an execution of a subscription operation over the websocket.
-     * 
+     *
      * @param request Request in full JSON format describing the operation to be executed.
      * @param emitter Emitter that should receive the completion events (or an error) from the subscription.
      * @return The generated internal ID of this operation.
@@ -46,7 +46,7 @@ public interface WebSocketSubprotocolHandler {
      * operation,
      * it only sends a cancellation message to the server (if applicable depending on the protocol), and marks this
      * operation as finished.
-     * 
+     *
      * @param operationId ID of the operation (returned from calling `executeUni`)
      */
     void cancelUni(String operationId);
@@ -55,7 +55,7 @@ public interface WebSocketSubprotocolHandler {
      * Cancels an active subscription with the given ID. This does not do anything with the Emitter for this operation,
      * it only sends a cancellation message to the server (if applicable depending on the protocol), and marks this
      * operation as finished.
-     * 
+     *
      * @param operationId ID of the operation (returned from calling `executeMulti`)
      */
     void cancelMulti(String operationId);

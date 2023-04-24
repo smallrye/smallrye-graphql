@@ -91,7 +91,7 @@ public class ArgumentHelper extends AbstractHelper {
      * @return the value of the argument
      */
     private Object getArgument(DataFetchingEnvironment dfe, Argument argument) throws AbstractDataFetcherException {
-        // If this is a source argument, just return the source. The source does 
+        // If this is a source argument, just return the source. The source does
         // not need transformation and would already be in the correct class type
         if (argument.isSourceArgument()) {
             Object source = dfe.getSource();
@@ -446,7 +446,7 @@ public class ArgumentHelper extends AbstractHelper {
 
     /**
      * Build the (possible generic) type for this reference.
-     * 
+     *
      * @param reference the reference
      * @return the type
      */

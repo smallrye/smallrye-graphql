@@ -118,7 +118,7 @@ public class ExecutionServlet extends HttpServlet {
                 JsonObjectBuilder input = Json.createObjectBuilder();
                 input.add(QUERY, query);
                 return input.build();
-                // Else we expect a Json in the content    
+                // Else we expect a Json in the content
             } else {
                 try (JsonReader jsonReader = jsonReaderFactory.createReader(bufferedReader)) {
                     return jsonReader.readObject();

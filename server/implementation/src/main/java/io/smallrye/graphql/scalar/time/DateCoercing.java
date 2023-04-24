@@ -9,7 +9,7 @@ import graphql.schema.Coercing;
 
 /**
  * The Coercing used by dates
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DateCoercing implements Coercing {

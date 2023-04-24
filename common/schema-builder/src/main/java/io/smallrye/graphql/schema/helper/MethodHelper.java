@@ -7,9 +7,9 @@ import io.smallrye.graphql.schema.Annotations;
 
 /**
  * Helping with method operations.
- * 
+ *
  * Use to get the correct name for a method (so remove the get/set/is)
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class MethodHelper {
@@ -19,7 +19,7 @@ public class MethodHelper {
 
     /**
      * Get the correct field name from a method
-     * 
+     *
      * @param direction the direction
      * @param methodName the method name
      * @return the field name

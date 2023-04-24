@@ -5,10 +5,10 @@ import java.util.Objects;
 
 /**
  * Indicate that a field should adapt to another type
- * 
+ *
  * At the moment this is used to adapt existing scalars to other scalars
  * or custom objects to existing scalars.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AdaptTo implements Serializable {

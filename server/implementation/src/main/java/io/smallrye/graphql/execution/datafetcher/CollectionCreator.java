@@ -9,7 +9,7 @@ import io.smallrye.graphql.spi.ClassloadingService;
 /**
  * Helping with creating collection instances
  * This gets the new collection when creating arguments to call the method.
- * 
+ *
  * We get a Collection from graph-ql java, and we go through all elements, potentially transforming them,
  * and then we need to create a new collection of the correct type to call the method via reflection.
  *

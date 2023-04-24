@@ -12,7 +12,7 @@ import io.smallrye.graphql.schema.model.Transformation;
 
 /**
  * Helping with formats of dates and Numbers
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class FormatHelper {
@@ -22,7 +22,7 @@ public class FormatHelper {
 
     /**
      * Test if any formatting is present.
-     * 
+     *
      * @param annotations the annotations
      * @return if formatting is present
      */
@@ -33,7 +33,7 @@ public class FormatHelper {
 
     /**
      * Get the format model object for a certain type.
-     * 
+     *
      * @param type the type
      * @param annotations the annotations
      * @return Potentially a TransformInfo model
@@ -50,7 +50,7 @@ public class FormatHelper {
     /**
      * The the number format (if any) as a String
      * This is used to add to the description in the schema
-     * 
+     *
      * @param annotations the annotations
      * @return potentially a format as a String
      */
@@ -66,7 +66,7 @@ public class FormatHelper {
     /**
      * The the date format as a String
      * This is used to add to the description in the schema
-     * 
+     *
      * @param annotations the annotations
      * @param type the date type
      * @return potentially a format as a String

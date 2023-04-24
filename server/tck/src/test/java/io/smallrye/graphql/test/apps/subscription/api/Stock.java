@@ -8,7 +8,7 @@ import org.eclipse.microprofile.graphql.NonNull;
 
 /**
  * Representing a stock
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Stock {

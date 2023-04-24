@@ -14,7 +14,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * Helping with Name of types in the schema
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TypeNameHelper {

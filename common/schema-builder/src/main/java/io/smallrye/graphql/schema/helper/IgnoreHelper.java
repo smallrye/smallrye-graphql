@@ -9,7 +9,7 @@ import io.smallrye.graphql.schema.Annotations;
 /**
  * Helping to figure out if we should ignore a field.
  * Looking for the @Ignore and other relevant annotations.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class IgnoreHelper {
@@ -19,7 +19,7 @@ public class IgnoreHelper {
 
     /**
      * See if we should ignore this.
-     * 
+     *
      * @param annotations annotations
      * @return true if we should.
      */
@@ -29,7 +29,7 @@ public class IgnoreHelper {
 
     /**
      * See if we should ignore this.
-     * 
+     *
      * @param annotations annotations
      * @param fieldInfo field info (if any)
      * @return true if we should.

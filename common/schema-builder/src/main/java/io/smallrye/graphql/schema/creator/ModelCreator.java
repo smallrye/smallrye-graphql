@@ -18,7 +18,7 @@ import io.smallrye.graphql.schema.model.Field;
 
 /**
  * Abstract creator
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class ModelCreator {
@@ -44,7 +44,7 @@ public abstract class ModelCreator {
 
     /**
      * The the return type.This is usually the method return type, but can also be adapted to something else
-     * 
+     *
      * @param methodInfo method
      * @return the return type
      */

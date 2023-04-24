@@ -7,11 +7,11 @@ import java.util.Objects;
 
 /**
  * Represent a property on a complex type (Type/Input/Interface)
- * 
+ *
  * For fields that can take arguments, see Operation.
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-The-__Field-Type">Field</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Field implements Serializable {

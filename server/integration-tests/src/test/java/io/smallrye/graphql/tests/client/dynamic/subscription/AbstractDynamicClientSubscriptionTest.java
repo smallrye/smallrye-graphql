@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Test;
@@ -31,7 +30,6 @@ public abstract class AbstractDynamicClientSubscriptionTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "dynamic-client-subscription-test.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addClasses(DynamicClientSubscriptionApi.class);
     }
 

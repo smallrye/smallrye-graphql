@@ -5,7 +5,7 @@ import java.math.BigInteger;
 
 /**
  * Convert to the correct Type
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface Converter {

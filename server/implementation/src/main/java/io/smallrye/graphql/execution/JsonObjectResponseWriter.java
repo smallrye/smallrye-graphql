@@ -16,7 +16,7 @@ import org.jboss.logging.Logger;
 
 /**
  * A default implementation for Execution Response Writer
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class JsonObjectResponseWriter implements ExecutionResponseWriter {

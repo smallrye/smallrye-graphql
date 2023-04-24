@@ -182,7 +182,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
             session.sendMessage(
                     createDataMessage(operationId,
                             executionResponse.getExecutionResultAsJsonObject())
-                                    .toString());
+                            .toString());
             session.sendMessage(createCompleteMessage(operationId).toString());
         }
     }
@@ -286,7 +286,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                     session.sendMessage(
                             createDataMessage(operationId,
                                     executionResponse.getExecutionResultAsJsonObject())
-                                            .toString());
+                                    .toString());
                 } catch (IOException e) {
                     LOG.warn(e);
                 }

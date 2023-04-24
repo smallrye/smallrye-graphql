@@ -4,7 +4,7 @@ import io.smallrye.graphql.api.Context;
 
 /**
  * Simple Pojo that hold error info
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ErrorInfo {

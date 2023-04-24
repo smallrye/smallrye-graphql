@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * Allow grouping of queries and mutations.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Group implements Serializable {

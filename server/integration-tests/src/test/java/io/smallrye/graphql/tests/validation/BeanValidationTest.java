@@ -9,7 +9,6 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
@@ -24,7 +23,6 @@ public class BeanValidationTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "validation-test.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource(new StringAsset("smallrye.graphql.validation.enabled=true"),
                         "META-INF/microprofile-config.properties")
                 .addClasses(ValidatingGraphQLApi.class, Person.class);

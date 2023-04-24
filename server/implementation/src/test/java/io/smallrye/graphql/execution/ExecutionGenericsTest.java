@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test against generics
- * 
+ *
  * @author Vlastimil Elias (velias at redhat dot com)
  */
 public class ExecutionGenericsTest extends ExecutionTestBase {

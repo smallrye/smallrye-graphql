@@ -12,7 +12,7 @@ import io.smallrye.graphql.schema.model.Group;
 
 /**
  * Helping with Group creation
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GroupHelper {
@@ -35,7 +35,7 @@ public class GroupHelper {
     /**
      * This gets the root name (by default 'root).
      * This will allow grouping root queries under a logical name.
-     * 
+     *
      * @param graphQLApiAnnotation
      * @return
      */
@@ -58,7 +58,7 @@ public class GroupHelper {
 
     /**
      * Get the description on a class type
-     * 
+     *
      * @param annotations annotation on the class
      * @return the optional description
      */

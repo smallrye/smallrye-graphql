@@ -5,11 +5,11 @@ import java.util.Objects;
 
 /**
  * Indicate that a field should apply transformation
- * 
+ *
  * At the moment this is only on number and date scalars.
- * 
+ *
  * We also mark if this is a JsonB annotated field o
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Transformation implements Serializable {

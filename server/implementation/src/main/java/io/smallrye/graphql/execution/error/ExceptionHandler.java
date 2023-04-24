@@ -12,7 +12,7 @@ import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Here we have the ability to mask certain messages to the client (for security reasons)
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExceptionHandler implements DataFetcherExceptionHandler {

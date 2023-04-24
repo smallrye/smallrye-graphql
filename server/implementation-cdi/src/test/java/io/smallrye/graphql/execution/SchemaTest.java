@@ -19,7 +19,7 @@ import io.smallrye.graphql.schema.model.Schema;
 
 /**
  * Test the graphql-java Schema creation from the schema model
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaTest {

@@ -27,7 +27,7 @@ import mutiny.zero.flow.adapters.AdaptersToReactiveStreams;
 
 /**
  * Invoke methods using reflection
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ReflectionInvoker {

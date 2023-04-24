@@ -15,9 +15,9 @@ import io.smallrye.graphql.transformation.Transformer;
 
 /**
  * Help with the field response
- * 
+ *
  * Here we need to transform (if needed) the response field
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class FieldHelper extends AbstractHelper {
@@ -26,9 +26,9 @@ public class FieldHelper extends AbstractHelper {
 
     /**
      * We need the modeled field to create the correct value
-     * 
+     *
      * @param field the field
-     * 
+     *
      */
     public FieldHelper(Field field) {
         this.field = field;
@@ -42,7 +42,7 @@ public class FieldHelper extends AbstractHelper {
 
     /**
      * By now this is a 'leaf' value, i.e not a collection of array, so we just transform if needed.
-     * 
+     *
      * @param argumentValue the value to transform
      * @param field the field as created while scanning
      * @return transformed value
@@ -58,7 +58,7 @@ public class FieldHelper extends AbstractHelper {
 
     /**
      * By now this is a 'leaf' value, i.e not a collection of array, so we just adapt to if needed.
-     * 
+     *
      * @param argumentValue the value to map
      * @param field the field as created while scanning
      * @return mapped value

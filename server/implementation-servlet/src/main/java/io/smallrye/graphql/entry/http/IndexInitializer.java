@@ -37,7 +37,7 @@ import io.smallrye.graphql.api.federation.Requires;
 
 /**
  * This creates an index from the classpath.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class IndexInitializer {
@@ -45,7 +45,7 @@ public class IndexInitializer {
     public IndexView createIndex(Set<URL> urls) {
         List<IndexView> indexes = new ArrayList<>();
 
-        // TODO: Read all jandex.idx in the classpath: 
+        // TODO: Read all jandex.idx in the classpath:
         // something like Enumeration<URL> systemResources = ClassLoader.getSystemResources(JANDEX_IDX);
 
         // Check in this war

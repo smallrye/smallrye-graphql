@@ -4,14 +4,14 @@ import java.util.*;
 
 /**
  * Represent a GraphQL Input Type.
- * 
+ *
  * A Input Type is used when passing a complex object as an argument in an operation.
  * It's a Java Bean that we only care about the setter methods and properties.
- * 
+ *
  * A Input Type is a java bean with fields and setter methods
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-Object">Object</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class InputType extends Reference {

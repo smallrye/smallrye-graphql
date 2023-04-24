@@ -23,7 +23,7 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
  * This create an Enum Type.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class EnumCreator implements Creator<EnumType> {

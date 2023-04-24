@@ -2,7 +2,7 @@ package io.smallrye.graphql.execution.resolver;
 
 /**
  * There is an interface with no concrete implementation
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ConcreteImplementationNotFoundException extends RuntimeException {

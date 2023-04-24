@@ -7,7 +7,7 @@ import org.eclipse.microprofile.graphql.Name;
 
 /**
  * Some other POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TestSource {

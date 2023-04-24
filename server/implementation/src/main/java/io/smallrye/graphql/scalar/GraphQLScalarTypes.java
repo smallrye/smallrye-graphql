@@ -22,7 +22,7 @@ import io.smallrye.graphql.scalar.time.TimeScalar;
 /**
  * Here we keep all the graphql-java scalars
  * mapped by classname
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLScalarTypes {

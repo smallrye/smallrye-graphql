@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * User POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class User {

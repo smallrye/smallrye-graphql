@@ -8,7 +8,7 @@ import jakarta.json.bind.adapter.JsonbAdapter;
 
 /**
  * Map a Currency to and from json
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CurrencyAdapter implements JsonbAdapter<Currency, JsonObject> {

@@ -46,7 +46,7 @@ import org.jboss.jandex.Type;
 
 /**
  * Class helper
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Classes {
@@ -60,7 +60,7 @@ public class Classes {
 
     /**
      * Check if this is a Parameterized type
-     * 
+     *
      * @param type
      * @return
      */
@@ -70,7 +70,7 @@ public class Classes {
 
     /**
      * Check if a certain type is Optional
-     * 
+     *
      * @param type the type
      * @return true if it is
      */
@@ -83,7 +83,7 @@ public class Classes {
 
     /**
      * Check if a certain class is an interface
-     * 
+     *
      * @param classInfo the class to check
      * @return true if it is
      */
@@ -95,7 +95,7 @@ public class Classes {
 
     /**
      * Check if a certain class is an enum
-     * 
+     *
      * @param classInfo the class to check
      * @return true if it is
      */
@@ -107,7 +107,7 @@ public class Classes {
 
     /**
      * Check if this type is a Number (or collection of numbers)
-     * 
+     *
      * @param type the type to check
      * @return true if it is
      */
@@ -119,7 +119,7 @@ public class Classes {
 
     /**
      * Check if this type is a Date (or collection of numbers)
-     * 
+     *
      * @param type the type to check
      * @return true if it is
      */
@@ -159,7 +159,7 @@ public class Classes {
 
     /**
      * Return true if type is java array, or it is Collection type which is handled as GraphQL array
-     * 
+     *
      * @param type to check
      * @return if this is a collection or array
      */
@@ -170,7 +170,7 @@ public class Classes {
 
     /**
      * Return true if this is an array
-     * 
+     *
      * @param type
      * @return
      */
@@ -180,7 +180,7 @@ public class Classes {
 
     /**
      * Return true if type is java Collection type which is handled as GraphQL array
-     * 
+     *
      * @param type to check
      * @return if this is a collection
      */
@@ -243,7 +243,7 @@ public class Classes {
     /**
      * Return true if given type is parametrized type unwrapped/handled by the runtime before the serialization
      * (Optional&lt;&gt;, CompletableFutur&lt;&gt;, CompletionStage&lt;&gt; etc)
-     * 
+     *
      * @param type to be checked
      * @return true if type is unwrapped by the runtime
      */

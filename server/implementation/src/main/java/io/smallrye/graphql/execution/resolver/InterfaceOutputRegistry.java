@@ -10,9 +10,9 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Here we register output objects that implements some interface
- * 
+ *
  * We need this to resolve the correct concrete class
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class InterfaceOutputRegistry {

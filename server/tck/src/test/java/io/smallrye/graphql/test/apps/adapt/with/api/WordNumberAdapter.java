@@ -7,7 +7,7 @@ import io.smallrye.graphql.api.Adapter;
 
 /**
  * Using an adapter to integer
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class WordNumberAdapter implements Adapter<WordNumber, Integer> {
