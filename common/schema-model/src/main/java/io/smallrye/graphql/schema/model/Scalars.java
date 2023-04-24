@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Here we keep all the scalars we know about
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Scalars {

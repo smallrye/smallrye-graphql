@@ -12,7 +12,7 @@ import java.util.ServiceLoader;
 /**
  * Lookup service that allows multiple DI frameworks to use this.
  * By default, plain old reflection will be used.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @author Andy McCright (andymc@us.ibm.com)
  */

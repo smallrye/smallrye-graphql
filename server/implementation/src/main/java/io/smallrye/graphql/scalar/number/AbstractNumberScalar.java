@@ -4,7 +4,7 @@ import io.smallrye.graphql.scalar.AbstractScalar;
 
 /**
  * Base Scalar for Numbers.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public abstract class AbstractNumberScalar extends AbstractScalar {

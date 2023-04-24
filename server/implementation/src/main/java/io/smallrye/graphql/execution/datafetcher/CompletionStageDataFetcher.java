@@ -10,7 +10,7 @@ import io.smallrye.mutiny.Uni;
 
 /**
  * Handle Async calls with CompletableFuture
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @param <K>
  * @param <T>

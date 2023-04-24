@@ -18,7 +18,7 @@ import io.smallrye.graphql.schema.model.Scalars;
 
 /**
  * Helping with mapping of scalars
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AdaptToHelper {
@@ -32,7 +32,7 @@ public class AdaptToHelper {
 
     /**
      * Get the adaptTo for a certain field (if any)
-     * 
+     *
      * @param field
      * @param annotations the annotations
      * @return Potentially an AdaptTo model
@@ -43,7 +43,7 @@ public class AdaptToHelper {
 
     /**
      * Get the adapt to for a certain reference.
-     * 
+     *
      * @param r
      * @param annotations the annotations
      * @return Potentially a AdaptTo model

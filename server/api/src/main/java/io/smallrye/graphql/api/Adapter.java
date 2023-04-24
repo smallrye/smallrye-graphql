@@ -17,7 +17,7 @@ package io.smallrye.graphql.api;
 
 /**
  * Adapter definition that allow adapting objects to and from each other
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface Adapter<From extends Object, To extends Object> {
@@ -25,7 +25,7 @@ public interface Adapter<From extends Object, To extends Object> {
     /**
      * If the type is a generic type, unwrap and wrap again.
      * So a list of a object, the object will be adapted and added to a new list.
-     * 
+     *
      * @return if we need to unwrap
      */
     default boolean unwrap() {

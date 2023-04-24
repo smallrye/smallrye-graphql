@@ -12,9 +12,9 @@ import io.smallrye.graphql.schema.model.WrapperType;
 
 /**
  * Helper with detecting if this field is in a wrapper
- * 
+ *
  * If it is we create an WrapperInfo model that contains the relevant information
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class WrapperCreator {
@@ -28,7 +28,7 @@ public class WrapperCreator {
 
     /**
      * Create a Wrapper for a Field (that has properties and methods)
-     * 
+     *
      * @param fieldType the java field type
      * @param methodType the java method type
      * @return optional array

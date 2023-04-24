@@ -12,7 +12,7 @@ import io.smallrye.graphql.execution.ExecutionResponseWriter;
 
 /**
  * Writing the response to HTTP servlet
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class HttpServletResponseWriter implements ExecutionResponseWriter {

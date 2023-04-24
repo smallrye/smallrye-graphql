@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents a reference to some other type (type/input/enum/interface) This so that, as we are scanning, we can refer
  * to a type that might not exist yet. All types extends this.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Reference implements Serializable {
@@ -66,7 +66,7 @@ public class Reference implements Serializable {
 
     /**
      * This represents the GraphQL Name
-     * 
+     *
      * @return String name
      */
     public String getName() {
@@ -79,7 +79,7 @@ public class Reference implements Serializable {
 
     /**
      * This represent the GraphQL Type
-     * 
+     *
      * @return the type
      */
     public ReferenceType getType() {

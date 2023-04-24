@@ -12,7 +12,6 @@ import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
@@ -31,7 +30,6 @@ public class DynamicClientInjectionTest {
     //@Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "client-injection-test.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 // we need to set the context-path of the web app in advance so that we know what URL to put into microprofile-config.properties
                 .addAsWebInfResource(new StringAsset("<Configure class=\"org.eclipse.jetty.webapp.WebAppContext\">\n" +
                         "  <Set name=\"contextPath\">/client-injection-test</Set>\n" +

@@ -9,7 +9,7 @@ import graphql.Scalars;
 /**
  * Scalar for Float.
  * Based on graphql-java's Scalars.GraphQLFloat
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class FloatScalar extends AbstractNumberScalar {

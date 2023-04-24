@@ -6,7 +6,7 @@ import java.math.BigInteger;
 /**
  * Scalar for BigDecimal.
  * Based on graphql-java's Scalars.GraphQLBigDecimal
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class BigDecimalScalar extends AbstractNumberScalar {

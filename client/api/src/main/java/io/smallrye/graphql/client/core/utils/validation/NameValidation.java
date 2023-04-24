@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 /**
  * This class provides utility methods for validating names according to the GraphQL specification.
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#Name">https://spec.graphql.org/draft/#Name</a>
  */
 public class NameValidation {
@@ -20,7 +20,7 @@ public class NameValidation {
     /**
      * Validates a GraphQL name and returns it. Throws an IllegalArgumentException if the name is null or invalid.
      * Allows empty string "" as a valid input.
-     * 
+     *
      * @param name the name to validate
      * @return the validated name
      * @throws IllegalArgumentException if the name is null or invalid
@@ -57,7 +57,7 @@ public class NameValidation {
     /**
      * Validates a GraphQL name and returns it. Throws an IllegalArgumentException if the name is null or invalid.
      * Does not allow empty string "" as a valid input.
-     * 
+     *
      * @param name the name to validate
      * @return the validated name
      * @throws IllegalArgumentException if the name is null, invalid or empty

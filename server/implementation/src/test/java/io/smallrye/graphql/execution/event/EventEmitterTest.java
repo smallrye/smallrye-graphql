@@ -44,7 +44,7 @@ class EventEmitterTest {
         assertThat(
                 asList(TestEventingService.invocationOrder, FirstEventingService.invocationOrder,
                         LastEventingService.invocationOrder))
-                                .isEqualTo(asList(1, 0, 2));
+                .isEqualTo(asList(1, 0, 2));
     }
 
     @Test
@@ -54,6 +54,6 @@ class EventEmitterTest {
         assertThat(
                 asList(TestEventingService.invocationOrder, FirstEventingService.invocationOrder,
                         LastEventingService.invocationOrder))
-                                .isEqualTo(asList(1, 2, 0));
+                .isEqualTo(asList(1, 2, 0));
     }
 }

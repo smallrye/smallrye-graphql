@@ -21,7 +21,7 @@ import io.smallrye.graphql.schema.ScanningContext;
 /**
  * Finds all @Source fields.
  * Creates a map of fields that needs to be added to certain Objects due to @Source annotation
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SourceOperationHelper {

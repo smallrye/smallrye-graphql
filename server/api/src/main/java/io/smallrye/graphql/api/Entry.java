@@ -2,7 +2,7 @@ package io.smallrye.graphql.api;
 
 /**
  * An Entry POJO to support maps
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Entry<K, V> {

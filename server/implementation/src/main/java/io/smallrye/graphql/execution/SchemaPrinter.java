@@ -5,7 +5,7 @@ import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Printing the schema
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaPrinter {

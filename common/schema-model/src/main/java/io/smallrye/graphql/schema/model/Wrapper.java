@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * If the type is wrapped in a generics bucket or in an array, keep the info here.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Wrapper implements Serializable {

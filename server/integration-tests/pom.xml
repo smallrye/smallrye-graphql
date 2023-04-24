@@ -19,12 +19,18 @@
         <dependency>
             <groupId>org.jboss.shrinkwrap.resolver</groupId>
             <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>javax.inject</groupId>
                     <artifactId>javax.inject</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -189,6 +195,11 @@
             <artifactId>stork-microprofile-config</artifactId>
             <version>${version.smallrye-stork}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

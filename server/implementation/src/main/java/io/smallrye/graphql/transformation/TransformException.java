@@ -17,7 +17,7 @@ import io.smallrye.graphql.schema.model.Field;
 
 /**
  * Exception thrown when the transformation failed on input parameters or return object.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TransformException extends AbstractDataFetcherException {

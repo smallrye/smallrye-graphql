@@ -8,7 +8,7 @@ import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * There was an issue when fetching data.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DataFetcherException extends RuntimeException {

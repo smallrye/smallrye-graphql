@@ -12,7 +12,7 @@ import io.smallrye.graphql.schema.model.InputType;
 
 /**
  * Here we create a mapping of all fields in a input type that needs transformation and mapping
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class InputFieldsInfo {

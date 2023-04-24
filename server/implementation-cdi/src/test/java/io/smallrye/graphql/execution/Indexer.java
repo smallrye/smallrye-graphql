@@ -10,7 +10,7 @@ import org.jboss.jandex.IndexView;
 
 /**
  * Index the classes we want to test against
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Indexer {

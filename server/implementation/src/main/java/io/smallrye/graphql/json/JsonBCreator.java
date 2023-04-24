@@ -13,9 +13,9 @@ import io.smallrye.graphql.schema.model.InputType;
 
 /**
  * Here we create JsonB Objects for certain input object.
- * 
+ *
  * We only use JsonB on input, as output use data fetchers per field.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class JsonBCreator {

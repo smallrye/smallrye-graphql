@@ -18,7 +18,7 @@ import org.eclipse.microprofile.graphql.Source;
 
 /**
  * Films API
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @GraphQLApi

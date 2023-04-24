@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Scalar for BigInteger.
  * Based on graphql-java's Scalars.GraphQLBigInteger
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class BigIntegerScalar extends AbstractNumberScalar {

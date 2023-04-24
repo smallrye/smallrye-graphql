@@ -16,7 +16,7 @@ import io.smallrye.graphql.execution.error.GraphQLExceptionWhileDataFetching;
 
 /**
  * Helping with PartialResults
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ErrorResultHelper {

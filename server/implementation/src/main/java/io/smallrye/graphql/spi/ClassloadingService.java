@@ -13,7 +13,7 @@ import io.smallrye.graphql.execution.Classes;
 /**
  * Classloading service that will load classes
  * By default, TCCL will be use.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @author Andy McCright (andymc@us.ibm.com)
  */

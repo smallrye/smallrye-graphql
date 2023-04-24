@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * so CDI can build and inject it for you.
  * <p>
  * Example:
- * 
+ *
  * <pre>
  * &#64;GraphQLClientApi
  * public interface SuperHeroesApi {

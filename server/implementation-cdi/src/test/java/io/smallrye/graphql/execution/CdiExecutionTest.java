@@ -14,9 +14,12 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 
+import org.eclipse.microprofile.graphql.tck.apps.basic.api.ScalarTestApi;
+import org.eclipse.microprofile.graphql.tck.apps.superhero.api.HeroFinder;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 import org.jboss.weld.junit5.auto.ActivateScopes;
+import org.jboss.weld.junit5.auto.AddBeanClasses;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,11 +31,12 @@ import io.smallrye.graphql.spi.LookupService;
 
 /**
  * Test a basic query
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @EnableAutoWeld
 @ActivateScopes({ RequestScoped.class, ApplicationScoped.class })
+@AddBeanClasses({ ScalarTestApi.class, HeroFinder.class })
 public class CdiExecutionTest {
     private static final Logger LOG = Logger.getLogger(CdiExecutionTest.class.getName());
 
@@ -273,7 +277,7 @@ public class CdiExecutionTest {
         assertFalse(error.isNull("message"), "message should not be null");
 
         assertEquals(
-                "Validation error of type WrongType: argument 'time' with value 'StringValue{value='Today'}' is not a valid 'Time' @ 'startPatrolling'",
+                "argument 'time' with value 'StringValue{value='Today'}' is not a valid 'Time'",
                 error.getString("message"),
                 "Wrong error message while startPatrolling with wrong date");
     }
@@ -290,7 +294,7 @@ public class CdiExecutionTest {
         assertFalse(error.isNull("message"), "message should not be null");
 
         assertEquals(
-                "Validation error of type WrongType: argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int' @ 'updateItemPowerLevel'",
+                "argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int'",
                 error.getString("message"),
                 "Wrong error message while updateItemPowerLevel with wrong number");
     }
@@ -522,7 +526,7 @@ public class CdiExecutionTest {
             "        }\n" +
             "}";
 
-    // This test a basic mutation        
+    // This test a basic mutation
     private static final String MUTATION_BASIC = "mutation addHeroToTeam {\n" +
             "    addHeroToTeam(hero: \"Starlord\", team: \"Avengers\") {\n" +
             "        name\n" +
@@ -537,7 +541,7 @@ public class CdiExecutionTest {
             "    transformedNumber(input:345)\n" +
             "}";
 
-    // This test date transformation on a Query 
+    // This test date transformation on a Query
     private static final String TRANSFORMED_DATE = "query testTransformedDate{\n" +
             "  	transformedDate\n" +
             "}";

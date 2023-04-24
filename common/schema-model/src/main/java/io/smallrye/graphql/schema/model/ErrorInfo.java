@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Represent info on a Exception.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class ErrorInfo implements Serializable {

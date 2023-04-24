@@ -7,7 +7,7 @@ import graphql.language.SourceLocation;
 
 /**
  * Simple way to override the message to only use the original exception message
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLExceptionWhileDataFetching extends ExceptionWhileDataFetching {

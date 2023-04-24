@@ -2,7 +2,7 @@ package io.smallrye.graphql.schema.helper;
 
 /**
  * Naming strategy for type
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public enum TypeAutoNameStrategy {

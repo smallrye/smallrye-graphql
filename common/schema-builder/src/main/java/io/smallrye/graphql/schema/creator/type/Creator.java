@@ -6,7 +6,7 @@ import io.smallrye.graphql.schema.model.Reference;
 
 /**
  * Something that can create object types on the schema
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  * @param <T> the created type
  */

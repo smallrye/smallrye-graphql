@@ -10,7 +10,7 @@ import io.smallrye.graphql.api.Entry;
 
 /**
  * Using an adapter to String
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class CustomMapAdapter implements Adapter<Map<String, String>, Set<Entry<String, String>>> {

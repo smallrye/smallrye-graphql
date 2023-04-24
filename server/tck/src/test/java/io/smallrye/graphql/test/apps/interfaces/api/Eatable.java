@@ -4,7 +4,7 @@ import org.eclipse.microprofile.graphql.Type;
 
 /**
  * Define something that is fit to be consumed as food
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @Type

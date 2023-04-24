@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Film POJO
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class Film {

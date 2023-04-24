@@ -9,7 +9,7 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * DataFetcherService service that will get the datafetchers to use
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface DataFetcherService {

@@ -3,7 +3,7 @@ package io.smallrye.graphql.schema;
 /**
  * Runtime exception when we could not create a type (input or output) while building the schema
  * or the schema itself
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilderException extends RuntimeException {

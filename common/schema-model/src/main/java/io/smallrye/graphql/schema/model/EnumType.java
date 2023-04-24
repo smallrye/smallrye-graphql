@@ -5,9 +5,9 @@ import java.util.Set;
 
 /**
  * Represent an enum type in the Schema.
- * 
+ *
  * @see <a href="https://spec.graphql.org/draft/#sec-Enum">Enum</a>
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class EnumType extends Reference {

@@ -15,7 +15,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
@@ -30,7 +29,6 @@ public class MetricTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "metrics-test.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource(new StringAsset("smallrye.graphql.metrics.enabled=true"),
                         "META-INF/microprofile-config.properties")
                 .addClasses(DummyGraphQLApi.class, Foo.class);

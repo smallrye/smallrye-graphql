@@ -6,7 +6,7 @@ import jakarta.json.bind.config.PropertyNamingStrategy;
 
 /**
  * Naming strategy that take GraphQL annotations into account
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class GraphQLNamingStrategy implements PropertyNamingStrategy {

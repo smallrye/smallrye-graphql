@@ -10,7 +10,7 @@ import graphql.Scalars;
 /**
  * Scalar for Integer.
  * Based on graphql-java's Scalars.GraphQLInt
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class IntegerScalar extends AbstractNumberScalar {

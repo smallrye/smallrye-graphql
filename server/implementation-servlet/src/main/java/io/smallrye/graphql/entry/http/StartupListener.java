@@ -27,7 +27,7 @@ import io.smallrye.graphql.schema.model.Schema;
 
 /**
  * Bootstrap the application on startup
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @WebListener

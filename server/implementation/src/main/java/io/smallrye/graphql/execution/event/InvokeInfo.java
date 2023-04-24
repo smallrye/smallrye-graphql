@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 /**
  * Hold some information about the invocation
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class InvokeInfo {

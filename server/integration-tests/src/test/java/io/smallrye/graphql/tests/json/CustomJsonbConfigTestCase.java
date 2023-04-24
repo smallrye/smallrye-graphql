@@ -7,7 +7,6 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
@@ -26,7 +25,6 @@ public class CustomJsonbConfigTestCase {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "custom-jsonb.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource(new StringAsset(CustomJsonbService.class.getName()),
                         "META-INF/services/io.smallrye.graphql.spi.EventingService")
                 .addClasses(DateWrapper.class, CustomJsonbService.class, MyApi.class);

@@ -70,7 +70,8 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
         session.sendMessage(createErrorMessage(operationId,
                 // TODO: the message should have a single error, but executionresult contains an array of errors? what do?
                 executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors").get(0)
-                        .asJsonObject()).toString());
+                        .asJsonObject())
+                .toString());
     }
 
     private JsonObject createErrorMessage(String operationId, JsonObject error) {

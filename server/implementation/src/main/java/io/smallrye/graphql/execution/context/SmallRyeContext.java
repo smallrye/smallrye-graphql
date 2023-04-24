@@ -51,7 +51,7 @@ public class SmallRyeContext implements Context {
 
     /**
      * Sets the entire map of extension(s) into the context.
-     * 
+     *
      * @param addedExtensions The Map object containing extension(s).
      */
     public void setAddedExtensions(Map<String, Object> addedExtensions) {
@@ -60,7 +60,7 @@ public class SmallRyeContext implements Context {
 
     /**
      * Adds single instance of user created extension into the context.
-     * 
+     *
      * @param key The key (identification) of the extension.
      * @param value The value of extension.
      */

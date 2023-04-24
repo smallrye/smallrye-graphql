@@ -13,7 +13,7 @@ import io.smallrye.graphql.execution.SchemaPrinter;
 
 /**
  * Serving the GraphQL schema
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 @WebServlet(name = "SmallRyeGraphQLSchemaServlet", urlPatterns = { "/graphql/schema.graphql" }, loadOnStartup = 2)

@@ -13,7 +13,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
 /**
  * Creates the deployable unit with all the needed dependencies.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProcessor {

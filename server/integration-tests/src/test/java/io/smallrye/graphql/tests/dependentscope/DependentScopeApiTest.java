@@ -14,7 +14,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +31,6 @@ public class DependentScopeApiTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "dependent-scope-test.war")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addClasses(DependentScopedApi.class);
     }
 

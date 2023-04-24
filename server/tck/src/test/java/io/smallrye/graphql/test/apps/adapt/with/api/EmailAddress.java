@@ -2,7 +2,7 @@ package io.smallrye.graphql.test.apps.adapt.with.api;
 
 /**
  * An email complex object
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class EmailAddress {

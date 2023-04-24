@@ -6,7 +6,7 @@ import java.time.OffsetTime;
 
 /**
  * Scalar for Time.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class TimeScalar extends AbstractDateScalar {

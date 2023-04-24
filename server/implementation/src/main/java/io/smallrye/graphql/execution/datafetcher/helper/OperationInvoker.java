@@ -8,7 +8,7 @@ import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Invoke methods on Operation class
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class OperationInvoker extends ReflectionInvoker {

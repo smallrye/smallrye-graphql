@@ -13,7 +13,7 @@ import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Some events during bootstrap and execution that allows extension
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public interface EventingService {

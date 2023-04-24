@@ -44,7 +44,7 @@ import io.smallrye.mutiny.Uni;
 
 /**
  * Executing the GraphQL request
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class ExecutionService {
@@ -284,7 +284,7 @@ public class ExecutionService {
                     chainedList.add(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
                 }
                 chainedList.add(queryCache);
-                // TODO: Allow users to add custome instumentations 
+                // TODO: Allow users to add custome instumentations
                 graphqlBuilder = graphqlBuilder.instrumentation(new ChainedInstrumentation(chainedList));
 
                 graphqlBuilder = graphqlBuilder.preparsedDocumentProvider(queryCache);

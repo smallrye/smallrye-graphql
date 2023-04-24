@@ -69,11 +69,6 @@ public abstract class AbstractBean<T> implements Bean<T> {
     }
 
     @Override
-    public boolean isNullable() {
-        return false;
-    }
-
-    @Override
     public void destroy(T instance, CreationalContext<T> ctx) {
         ctx.release();
     }
