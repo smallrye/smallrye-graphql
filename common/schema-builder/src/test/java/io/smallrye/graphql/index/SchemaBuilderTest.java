@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,6 +39,7 @@ import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 
@@ -181,6 +183,90 @@ public class SchemaBuilderTest {
         assertNotNull(titleDirectiveInstance);
         assertEquals(someDirective, titleDirectiveInstance.getType());
         assertArrayEquals(new String[] { "getter" }, (Object[]) titleDirectiveInstance.getValue("value"));
+    }
+
+    @Test
+    public void testGenericSchemaBuilding() {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/generic");
+        IndexView index = indexer.complete();
+
+        Schema schema = SchemaBuilder.build(index);
+
+        assertNotNull(schema);
+        Set<Operation> queries = schema.getQueries();
+        Set<Operation> mutations = schema.getMutations();
+
+        assertEquals(queries.size(), 1);
+        assertEquals(mutations.size(), 4);
+
+        Operation query = queries.stream()
+                .filter(q -> q.getName().equals("heroes"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // return type
+        assertEquals(query.getReference().getName(), "Hero");
+        // ------------------------------------------------------------------
+        // MUTATIONS
+        Operation firstMutation = mutations.stream()
+                .filter(q -> q.getName().equals("addHero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // arguments
+        assertEquals(firstMutation
+                .getArguments()
+                .stream()
+                .filter(a -> a.getName().equals("hero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new).getName(), "hero");
+
+        // return type
+        assertEquals(firstMutation.getReference().getName(), "Hero");
+        // ------------------------------------------------------------------
+        Operation secondMutation = mutations.stream()
+                .filter(q -> q.getName().equals("removeHero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // arguments
+        assertEquals(secondMutation
+                .getArguments()
+                .stream()
+                .filter(a -> a.getName().equals("hero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new).getName(), "hero");
+
+        // return type
+        assertEquals(secondMutation.getReference().getName(), "Hero");
+        // ------------------------------------------------------------------
+        Operation thirdMutation = mutations.stream()
+                .filter(q -> q.getName().equals("updateHero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // arguments
+        assertEquals(thirdMutation
+                .getArguments()
+                .stream()
+                .filter(a -> a.getName().equals("hero"))
+                .findFirst()
+                .orElseThrow(AssertionError::new).getName(), "hero");
+
+        // return type
+        assertEquals(thirdMutation.getReference().getName(), "Hero");
+        // ------------------------------------------------------------------
+        Operation fourthMutation = mutations.stream()
+                .filter(q -> q.getName().equals("doSomething"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // arguments
+        assertEquals(fourthMutation.getArguments().size(), 0);
+        // return type
+        assertEquals(fourthMutation.getReference().getName(), "Hero");
+
     }
 
     static IndexView getTCKIndex() {

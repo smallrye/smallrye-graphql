@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -147,7 +148,8 @@ public class SchemaBuilder {
         IndexView index = ScanningContext.getIndex();
         List<MethodInfo> methods = new ArrayList<>();
         while (current != null) {
-            methods.addAll(current.methods());
+            methods.addAll(
+                    current.methods().stream().filter(methodInfo -> !methodInfo.isSynthetic()).collect(Collectors.toList()));
             DotName superName = classInfo.superName();
             if (superName != null) {
                 current = index.getClassByName(current.superName());
