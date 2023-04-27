@@ -117,7 +117,16 @@ public class ParameterInfo implements NamedElement {
             // determining whether this Parameter itself is nullable, introspect the Parameter
             // instance itself rather than its AnnotatedType (which is what the
             // `itemType.isNonNull` method would do).
-            return this.type.isPrimitive() || parameter.isAnnotationPresent(NonNull.class) ? "!" : "";
+            Class jakartaNotNullClass = null;
+            try {
+                jakartaNotNullClass = Class.forName("jakarta.validation.constraints.NotNull", false,
+                        Thread.currentThread().getContextClassLoader());
+            } catch (ClassNotFoundException e) {
+                /* IN CASE THE CLASS IS NOT IMPORTED */
+            }
+            return this.type.isPrimitive() ||
+                    (jakartaNotNullClass != null && parameter.isAnnotationPresent(jakartaNotNullClass)) ||
+                    parameter.isAnnotationPresent(NonNull.class) ? "!" : "";
         } else {
             return itemType.isNonNull() ? "!" : "";
         }
