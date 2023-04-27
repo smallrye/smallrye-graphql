@@ -111,7 +111,16 @@ public class FieldInfo {
     }
 
     public boolean isNonNull() {
-        return field.isAnnotationPresent(NonNull.class) || getType().isPrimitive();
+        Class jakartaNotNullClass = null;
+        try {
+            jakartaNotNullClass = Class.forName("jakarta.validation.constraints.NotNull", false,
+                    Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            /* IN CASE THE CLASS IS NOT IMPORTED */
+        }
+        return field.isAnnotationPresent(NonNull.class)
+                || (jakartaNotNullClass != null && field.isAnnotationPresent(jakartaNotNullClass))
+                || getType().isPrimitive();
     }
 
     public boolean isIncludeNull() {

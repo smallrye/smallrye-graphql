@@ -42,6 +42,8 @@ class ParametersBehavior {
     @GraphQLClientApi
     interface NonNullStringParamApi {
         String greeting(@NonNull String who);
+
+        String jakartaGreeting(@jakarta.validation.constraints.NotNull String who);
     }
 
     @Test
@@ -54,6 +56,19 @@ class ParametersBehavior {
         then(fixture.query()).isEqualTo("query greeting($who: String!) { greeting(who: $who) }");
         then(fixture.variables()).isEqualTo("{'who':'foo'}");
         then(fixture.operationName()).isEqualTo("greeting");
+        then(greeting).isEqualTo("hi, foo");
+    }
+
+    @Test
+    void shouldQueryWithJakartaNonNullStringParam() {
+        fixture.returnsData("'jakartaGreeting':'hi, foo'");
+        NonNullStringParamApi api = fixture.build(NonNullStringParamApi.class);
+
+        String greeting = api.jakartaGreeting("foo");
+
+        then(fixture.query()).isEqualTo("query jakartaGreeting($who: String!) { jakartaGreeting(who: $who) }");
+        then(fixture.variables()).isEqualTo("{'who':'foo'}");
+        then(fixture.operationName()).isEqualTo("jakartaGreeting");
         then(greeting).isEqualTo("hi, foo");
     }
 

@@ -319,13 +319,26 @@ public class TypeInfo {
     }
 
     public boolean isNonNull() {
-        if (ifClass(c -> c.isPrimitive() || c.isAnnotationPresent(NonNull.class)))
+        Class jakartaNotNullClass = null;
+        try {
+            jakartaNotNullClass = Class.forName("jakarta.validation.constraints.NotNull", false,
+                    Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            /* IN CASE THE CLASS IS NOT IMPORTED */
+        }
+
+        Class finalJakartaNotNullClass = jakartaNotNullClass; // lambda
+        if (ifClass(c -> c.isPrimitive() || c.isAnnotationPresent(NonNull.class) ||
+                (finalJakartaNotNullClass != null && c.isAnnotationPresent(finalJakartaNotNullClass))))
             return true;
         if (annotatedType != null)
-            return annotatedType.isAnnotationPresent(NonNull.class);
+            return annotatedType.isAnnotationPresent(NonNull.class) ||
+                    (jakartaNotNullClass != null && annotatedType.isAnnotationPresent(jakartaNotNullClass));
         if (container == null || !container.isCollection() || container.annotatedType == null)
             return false; // TODO test
-        return container.annotatedType.isAnnotationPresent(NonNull.class);
+        return container.annotatedType.isAnnotationPresent(NonNull.class) ||
+                (jakartaNotNullClass != null && container.annotatedType.isAnnotationPresent(jakartaNotNullClass));
+
     }
 
     public Class<?> getRawType() {
