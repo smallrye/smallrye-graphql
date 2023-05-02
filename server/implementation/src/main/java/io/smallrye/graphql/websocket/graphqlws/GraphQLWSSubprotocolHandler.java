@@ -36,10 +36,14 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
             try {
                 switch (messageType) {
                     case GQL_CONNECTION_INIT:
+                        if (message.get("payload") != null) {
+                            getContext().put("init-payload",
+                                    Collections.unmodifiableMap((Map<String, Object>) message.get("payload")));
+                        }
                         sendConnectionAckMessage();
                         break;
                     case GQL_START:
-                        sendDataMessage(message);
+                        onOperationRequest(message);
                         break;
                     case GQL_STOP:
                         sendCancelMessage(message);

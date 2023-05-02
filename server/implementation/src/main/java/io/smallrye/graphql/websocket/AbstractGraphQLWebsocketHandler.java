@@ -92,11 +92,10 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    protected void sendDataMessage(JsonObject message) {
+    protected void onOperationRequest(JsonObject message) {
         String operationId = message.getString("id");
         if (validSubscription(operationId)) {
             JsonObject payload = message.getJsonObject("payload");
-
             executionService.executeAsync(payload, context, new ExecutionResponseWriter() {
                 @Override
                 public void write(ExecutionResponse executionResponse) {
@@ -257,6 +256,10 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     protected abstract void closeDueToConnectionNotInitialized();
 
     protected abstract String getPingMessage();
+
+    public Map<String, Object> getContext() {
+        return context;
+    }
 
     /**
      * The middleman that subscribes to an execution result and forwards its events to the websocket channel.
