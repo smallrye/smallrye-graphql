@@ -19,7 +19,7 @@ public class ServerPayloadApi {
                 .getGraphQlContext()
                 .get("init-payload")
                 .toString())
-                        .equals(value)) {
+                .equals(value)) {
             throw new RuntimeException();
         }
         return "ok";
