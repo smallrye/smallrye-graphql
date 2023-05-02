@@ -39,6 +39,10 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
             try {
                 switch (messageType) {
                     case CONNECTION_INIT:
+                        if (message.get("payload") != null) {
+                            getContext().put("init-payload",
+                                    Collections.unmodifiableMap((Map<String, Object>) message.get("payload")));
+                        }
                         sendConnectionAckMessage();
                         break;
                     case PING:
@@ -47,7 +51,7 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
                     case PONG:
                         break;
                     case SUBSCRIBE:
-                        sendDataMessage(message);
+                        onOperationRequest(message);
                         break;
                     case COMPLETE:
                         sendCancelMessage(message);
