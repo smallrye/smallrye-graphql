@@ -18,6 +18,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import graphql.ExecutionResult;
+import graphql.ExecutionResultImpl;
+import graphql.GraphQLError;
+import graphql.GraphqlErrorBuilder;
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionResponseWriter;
 import io.smallrye.graphql.execution.ExecutionService;
@@ -98,6 +101,27 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
             JsonObject payload = message.getJsonObject("payload");
 
             executionService.executeAsync(payload, context, new ExecutionResponseWriter() {
+
+                @Override
+                public void fail(Throwable t) {
+                    LOG.warn("Cannot execute GraphQL operation", t);
+
+                    GraphQLError error = GraphqlErrorBuilder
+                            .newError()
+                            .message("Internal server error")
+                            .build();
+                    ExecutionResult executionResult = ExecutionResultImpl
+                            .newExecutionResult()
+                            .addError(error)
+                            .build();
+                    ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
+                    try {
+                        sendErrorMessage(operationId, executionResponse);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 @Override
                 public void write(ExecutionResponse executionResponse) {
                     ExecutionResult executionResult = executionResponse.getExecutionResult();
