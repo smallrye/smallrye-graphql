@@ -147,16 +147,12 @@ public interface Config {
         return false;
     }
 
-    default boolean isValidationEnabled() {
-        return false;
-    }
-
     default boolean isEventsEnabled() {
         return false;
     }
 
     default boolean shouldEmitEvents() {
-        return isTracingEnabled() || isMetricsEnabled() || isValidationEnabled() || isEventsEnabled();
+        return isTracingEnabled() || isMetricsEnabled() || isEventsEnabled();
     }
 
     default boolean isFederationEnabled() {

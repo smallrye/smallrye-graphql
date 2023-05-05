@@ -49,6 +49,10 @@ public class ReflectionInvoker {
         this.setMethod(methodName, parameterClasses);
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
     public void setMethod(String methodName, List<String> parameterClasses) {
         this.method = lookupMethod(operationClass, methodName, parameterClasses);
     }

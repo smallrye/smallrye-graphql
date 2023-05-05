@@ -12,7 +12,6 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String ALLOW_POST_WITH_QUERY_PARAMETERS = "smallrye.graphql.allowPostWithQueryParameters";
     public static final String ENABLE_METRICS = "smallrye.graphql.metrics.enabled";
     public static final String ENABLE_TRACING = "smallrye.graphql.tracing.enabled";
-    public static final String ENABLE_VALIDATION = "smallrye.graphql.validation.enabled";
     public static final String ENABLE_EVENTS = "smallrye.graphql.events.enabled";
     public static final String ENABLE_FEDERATION = "smallrye.graphql.federation.enabled";
     public static final String SCHEMA_INCLUDE_SCALARS = "smallrye.graphql.schema.includeScalars";

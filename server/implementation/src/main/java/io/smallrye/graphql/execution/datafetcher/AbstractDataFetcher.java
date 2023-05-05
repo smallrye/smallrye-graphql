@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
+import jakarta.validation.ConstraintViolationException;
+
 import org.dataloader.BatchLoaderEnvironment;
 import org.eclipse.microprofile.graphql.GraphQLException;
 
@@ -21,6 +23,7 @@ import io.smallrye.graphql.execution.event.EventEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
+import io.smallrye.graphql.validation.BeanValidationUtil;
 
 /**
  * The abstract data fetcher
@@ -68,6 +71,10 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
         } catch (GraphQLException graphQLException) {
             errorResultHelper.appendPartialResult(resultBuilder, dfe, graphQLException);
             eventEmitter.fireOnDataFetchError(smallRyeContext, graphQLException);
+        } catch (ConstraintViolationException cve) {
+            BeanValidationUtil.addConstraintViolationsToDataFetcherResult(cve.getConstraintViolations(),
+                    operationInvoker.getMethod(), resultBuilder, dfe);
+            return (T) resultBuilder.build();
         } catch (Throwable ex) {
             eventEmitter.fireOnDataFetchError(smallRyeContext, ex);
             throw ex;
