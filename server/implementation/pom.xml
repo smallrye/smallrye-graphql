@@ -39,6 +39,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- GraphQL Java -->
         <dependency>
             <groupId>com.graphql-java</groupId>

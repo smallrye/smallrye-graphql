@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.validation;
+package io.smallrye.graphql.validation;
 
 import static java.util.Arrays.asList;
 
@@ -17,19 +17,13 @@ import graphql.language.Field;
 import graphql.language.NamedNode;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 
-public class BeanValidationException extends AbstractDataFetcherException {
-    private final Set<ConstraintViolation<Object>> violations;
-    private final Method method;
+public class BeanValidationUtil {
 
-    public BeanValidationException(Set<ConstraintViolation<Object>> violations, Method method) {
-        this.violations = violations;
-        this.method = method;
-    }
-
-    @Override
-    public DataFetcherResult.Builder<Object> appendDataFetcherResult(DataFetcherResult.Builder<Object> builder,
+    public static DataFetcherResult.Builder<Object> addConstraintViolationsToDataFetcherResult(
+            Set<ConstraintViolation<?>> violations,
+            Method method,
+            DataFetcherResult.Builder<Object> builder,
             DataFetchingEnvironment dfe) {
         RequestNodeBuilder requestNodeBuilder = new RequestNodeBuilder(method, dfe);
         violations.stream()
@@ -38,7 +32,7 @@ public class BeanValidationException extends AbstractDataFetcherException {
         return builder;
     }
 
-    class RequestNodeBuilder {
+    static class RequestNodeBuilder {
         private final Method method;
         private final DataFetchingEnvironment dfe;
 
@@ -47,7 +41,7 @@ public class BeanValidationException extends AbstractDataFetcherException {
             this.dfe = dfe;
         }
 
-        List<NamedNode<?>> build(ConstraintViolation<Object> violation) {
+        List<NamedNode<?>> build(ConstraintViolation<?> violation) {
             Iterator<Path.Node> violationNodes = violation.getPropertyPath().iterator();
 
             return asList(

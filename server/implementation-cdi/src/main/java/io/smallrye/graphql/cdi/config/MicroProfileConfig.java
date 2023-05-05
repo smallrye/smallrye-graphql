@@ -24,7 +24,6 @@ public class MicroProfileConfig implements Config {
     private Boolean allowPostWithQueryParameters;
     private Boolean metricsEnabled;
     private Boolean tracingEnabled;
-    private Boolean validationEnabled;
     private Boolean eventsEnabled;
     private Boolean federationEnabled;
     private Boolean includeScalarsInSchema;
@@ -121,14 +120,6 @@ public class MicroProfileConfig implements Config {
             tracingEnabled = getBooleanConfigValue(ConfigKey.ENABLE_TRACING);
         }
         return tracingEnabled;
-    }
-
-    @Override
-    public boolean isValidationEnabled() {
-        if (validationEnabled == null) {
-            validationEnabled = getBooleanConfigValue(ConfigKey.ENABLE_VALIDATION);
-        }
-        return validationEnabled;
     }
 
     @Override
@@ -401,10 +392,6 @@ public class MicroProfileConfig implements Config {
 
     public void setTracingEnabled(Boolean tracingEnabled) {
         this.tracingEnabled = tracingEnabled;
-    }
-
-    public void setValidationEnabled(Boolean validationEnabled) {
-        this.validationEnabled = validationEnabled;
     }
 
     public void setEventsEnabled(Boolean eventsEnabled) {

@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.validation;
+package io.smallrye.graphql.validation;
 
 import static graphql.ErrorType.ValidationError;
 import static java.util.stream.Collectors.toList;
@@ -18,10 +18,10 @@ import graphql.language.NamedNode;
 import graphql.language.SourceLocation;
 
 public class BeanValidationError implements GraphQLError {
-    private final ConstraintViolation<Object> violation;
+    private final ConstraintViolation<?> violation;
     private final List<NamedNode<?>> requestedPath;
 
-    public BeanValidationError(ConstraintViolation<Object> violation, List<NamedNode<?>> requestedPath) {
+    public BeanValidationError(ConstraintViolation<?> violation, List<NamedNode<?>> requestedPath) {
         this.violation = violation;
         this.requestedPath = requestedPath;
     }
