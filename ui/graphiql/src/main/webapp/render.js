@@ -8,6 +8,9 @@ const shouldPersistHeaders = false;
 var webSocket = null;
 var observable = null;
 
+const urlParams = new URLSearchParams(window.location.search);
+const embed = urlParams.get('embed');
+
 window.onbeforeunload = function (event) {
     if(webSocket !==null){
         webSocket.close();
@@ -276,5 +279,9 @@ ReactDOM.render(
         }),
         document.getElementById('graphiql'),
         );
-
-document.getElementsByClassName("title")[0].innerHTML = "<a id='graphQLUiLogoLink' href='" + logo + "'><img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'></a><a id='graphQLUiTitleLink' href='" + ui + "'></a>";
+        
+if(!embed){
+    document.getElementsByClassName("title")[0].innerHTML = "<a id='graphQLUiLogoLink' href='" + logo + "'><img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'></a><a id='graphQLUiTitleLink' href='" + ui + "'></a>";
+}else{
+    document.getElementsByClassName("title")[0].innerHTML = "";
+}
