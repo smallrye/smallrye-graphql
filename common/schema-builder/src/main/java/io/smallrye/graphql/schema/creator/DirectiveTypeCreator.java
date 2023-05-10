@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
@@ -24,6 +25,8 @@ public class DirectiveTypeCreator extends ModelCreator {
     public DirectiveTypeCreator(ReferenceCreator referenceCreator) {
         super(referenceCreator);
     }
+
+    private static DotName NON_NULL = DotName.createSimple("org.eclipse.microprofile.graphql.NonNull");
 
     public DirectiveType create(ClassInfo classInfo) {
         LOG.debug("Creating directive from " + classInfo.name().toString());
@@ -43,6 +46,9 @@ public class DirectiveTypeCreator extends ModelCreator {
             argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
             populateField(Direction.IN, argument, method.returnType(), annotationsForMethod);
+            if (annotationsForMethod.containsOneOfTheseAnnotations(NON_NULL)) {
+                argument.setNotNull(true);
+            }
             directiveType.addArgumentType(argument);
         }
 

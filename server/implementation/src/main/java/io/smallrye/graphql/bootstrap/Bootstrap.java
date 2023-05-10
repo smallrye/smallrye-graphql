@@ -234,6 +234,9 @@ public class Bootstrap {
         }
         for (String argumentName : directiveType.argumentNames()) {
             GraphQLInputType argumentType = argumentType(directiveType.argumentType(argumentName));
+            if (directiveType.argumentType(argumentName).isNotNull()) {
+                argumentType = GraphQLNonNull.nonNull(argumentType);
+            }
             directiveBuilder = directiveBuilder
                     .argument(GraphQLArgument.newArgument().type(argumentType).name(argumentName).build());
         }

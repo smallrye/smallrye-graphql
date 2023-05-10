@@ -30,6 +30,7 @@ import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
@@ -173,7 +174,9 @@ class SchemaTest {
                     keyDirective.getDescription());
             assertEquals(EnumSet.of(OBJECT, INTERFACE), keyDirective.validLocations());
             assertEquals(1, keyDirective.getArguments().size());
-            assertEquals("String", ((GraphQLScalarType) keyDirective.getArgument("fields").getType()).getName());
+            assertEquals("String",
+                    ((GraphQLScalarType) ((GraphQLNonNull) keyDirective.getArgument("fields").getType()).getWrappedType())
+                            .getName());
 
             GraphQLUnionType entityType = (GraphQLUnionType) graphQLSchema.getType("_Entity");
             assertNotNull(entityType);
