@@ -44,11 +44,10 @@ jobs:
         run: mvn -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml
 
   wildfly-tests:
-    if: false # TODO, reenable after WildFly gets Mutiny 2
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [11]
+        java: [17]
     name: WildFly GraphQL feature pack tests
 
     steps:
