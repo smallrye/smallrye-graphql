@@ -44,7 +44,7 @@
 
 
         <!-- Test -->
-        <version.arquillian>1.7.0.Alpha14</version.arquillian>
+        <version.arquillian>1.7.0.Final</version.arquillian>
         <version.arquillian.jetty>1.0.0.Final</version.arquillian.jetty>
         <version.jetty>11.0.15</version.jetty>
         <version.hibernate-validator>8.0.0.Final</version.hibernate-validator>
