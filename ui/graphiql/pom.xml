@@ -15,9 +15,8 @@
     
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
-        <react.version>18.1.0</react.version>
-        <graphiql.version>1.9.13</graphiql.version>
-        <rxjs.version>7.5.7</rxjs.version>
+        <react.version>18.2.0</react.version>
+        <graphiql.version>2.4.7</graphiql.version>
     </properties>
     
     <dependencies>
@@ -34,18 +33,20 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.webjars.npm</groupId>
-            <artifactId>rxjs</artifactId>
-            <version>${rxjs.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!-- NOTE: The following dependencies can be uncommented to include
+         the GraphiQL plugin explorer in the project -->
+        <!--        <dependency>-->
+<!--            <groupId>org.webjars.npm</groupId>-->
+<!--            <artifactId>graphiql__plugin-explorer</artifactId>-->
+<!--            <version>0.1.19</version>-->
+<!--            <scope>provided</scope>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>*</groupId>-->
+<!--                    <artifactId>*</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>react</artifactId>
@@ -125,18 +126,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.webjars.npm</groupId>
-                                    <artifactId>rxjs</artifactId>
-                                    <version>${rxjs.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>
-                                    <includes>**/rxjs.umd.min.js, **/rxjs.umd.min.js.map</includes>
-                                    <fileMappers>
-                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
-                                    </fileMappers>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.webjars.npm</groupId>
                                     <artifactId>react</artifactId>
                                     <version>${react.version}</version>
                                     <type>jar</type>
@@ -159,6 +148,20 @@
                                         <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />
                                     </fileMappers>
                                 </artifactItem>
+                                <!-- NOTE: The following dependencies can be uncommented to include
+         the GraphiQL plugin explorer in the project -->
+<!--                                <artifactItem>-->
+<!--                                    <groupId>org.webjars.npm</groupId>-->
+<!--                                    <artifactId>graphiql__plugin-explorer</artifactId>-->
+<!--                                    <version>0.1.19</version>-->
+<!--                                    <type>jar</type>-->
+<!--                                    <overWrite>true</overWrite>-->
+<!--                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>-->
+<!--                                    <includes>**/graphiql-plugin-explorer.umd.js</includes>-->
+<!--                                    <fileMappers>-->
+<!--                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper />-->
+<!--                                    </fileMappers>-->
+<!--                                </artifactItem>-->
                             </artifactItems>
                         </configuration>
                     </execution>

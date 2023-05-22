@@ -1,72 +1,29 @@
 body {
-    height: 100%;
     margin: 0;
-    width: 100%;
-    overflow: hidden;
 }
+
+.graphiql-container, .CodeMirror-info, .CodeMirror-lint-tooltip, reach-portal {
+    --color-primary: 199, 63%, 51% !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.graphiql-light) .graphiql-container,body:not(.graphiql-light) .CodeMirror-info,body:not(.graphiql-light) .CodeMirror-lint-tooltip,body:not(.graphiql-light) reach-portal {
+    	--color-base: 210, 10%, 23% !important;
+    }
+}
+
+body.graphiql-dark .graphiql-container,
+body.graphiql-dark .CodeMirror-info,
+body.graphiql-dark .CodeMirror-lint-tooltip,
+body.graphiql-dark reach-portal {
+	--color-base: 210, 10%, 23% !important;
+}
+
 #graphiql {
     height: 100vh;
 }
-.graphiql-container .topBar{
-    background:#343a40;
-    border-bottom-color: #343a40!important;
-}
-.graphiql-container .execute-button{
-    box-shadow:unset;
-}
-.history-contents>li:hover{
-    background-color: #00aada !important;
-}
-.toolbar-button {
-    background: none!important;
-    border: none!important;
-    padding: 0!important;
-    color: white!important;
-    cursor: pointer;
-    border-radius: unset!important;
-    box-shadow: unset!important;
-}
 
-.toolbar-button:hover {
-    color: #01a0cc!important;
-}
-
-.execute-button {
-    background: none!important;
-    border-color: #01a0cc!important;
-    padding: 0!important;
-    cursor: pointer;
-    box-shadow: unset!important;
-}
-
-.execute-button svg {
-    fill: #01a0cc;
-}
-
-.execute-button:hover svg {
-    fill: white;
-}
-
-.execute-button:hover {
-    border-color: white!important;
-}
-
-.docExplorerShow {
-    background: #343a40!important;
-    border: unset!important;
-    color: white!important;
-}
-
-.docExplorerShow:hover{
-    color: #01a0cc!important;
-}
-
-.docExplorerShow::before {
-    border-left: 2px solid white!important;
-    border-top: 2px solid white!important;
-}
-
-.docExplorerShow:hover::before{
-    border-left: 2px solid #01a0cc!important;
-    border-top: 2px solid #01a0cc!important;
+#graphQLUiLogoLink {
+    display: flex;
+    justify-content: center;
 }

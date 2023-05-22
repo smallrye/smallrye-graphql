@@ -5,19 +5,31 @@
         <title>SmallRye GraphQL (v${project.version})</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
         <link rel="icon" href="favicon.ico" type="image/x-icon">
-        
-        <script src="rxjs.umd.min.js"></script>
+
         <script src="react.production.min.js"></script>
         <script src="react-dom.production.min.js"></script>
         <link href="graphiql.min.css" rel="stylesheet"/>
+        <!-- NOTE: The following dependencies can be uncommented to include
+         the GraphiQL plugin explorer in the project -->
+<!--        <link-->
+<!--                rel="stylesheet"-->
+<!--                href="https://unpkg.com/@graphiql/plugin-explorer/dist/style.css"-->
+<!--        />-->
         <link href="style.css" rel="stylesheet"/>
     </head>
     <body>
         <div id="graphiql">Loading...</div>
+
         <script
             src="graphiql.min.js"
             type="application/javascript"
         ></script>
+        <!-- NOTE: The following dependencies can be uncommented to include
+        the GraphiQL plugin explorer in the project -->
+<!--        <script-->
+<!--                src="graphiql-plugin-explorer.umd.js"-->
+<!--                type="application/javascript"-->
+<!--        ></script>-->
         <script src="render.js" type="application/javascript"></script>
     </body>
 </html>
