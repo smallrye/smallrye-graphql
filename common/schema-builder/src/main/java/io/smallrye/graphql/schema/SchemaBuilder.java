@@ -4,9 +4,11 @@ import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -116,7 +118,28 @@ public class SchemaBuilder {
         final Schema schema = new Schema();
 
         addDirectiveTypes(schema);
-        setupDirectives(new Directives(schema.getDirectiveTypes()));
+
+        Directives directivesHelper = new Directives(schema.getDirectiveTypes());
+        setupDirectives(directivesHelper);
+
+        Set<String> directiveClassNames = new HashSet<>();
+        for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
+            Annotations annotations = Annotations.getAnnotationsForClass(graphQLApiAnnotation.target().asClass());
+            schema.getDirectiveInstances()
+                    .addAll(directivesHelper
+                            .buildDirectiveInstances(annotations)
+                            .stream()
+                            .map(directiveInstance -> {
+                                String directiveClassName = directiveInstance.getType().getClassName();
+                                if (!directiveInstance.getType().isRepeatable()
+                                        && !directiveClassNames.add(directiveClassName)) {
+                                    throw new SchemaBuilderException("The @" + directiveInstance.getType().getName()
+                                            + " directive is not repeatable, but was used more than once in the GraphQL" +
+                                            " schema.");
+                                }
+                                return directiveInstance;
+                            }).collect(Collectors.toList()));
+        }
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
