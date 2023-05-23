@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.json.Json;
@@ -169,7 +170,10 @@ public class Bootstrap {
         addQueries(schemaBuilder);
         addMutations(schemaBuilder);
         addSubscriptions(schemaBuilder);
-
+        schemaBuilder.withSchemaAppliedDirectives(Arrays.stream(
+                createGraphQLDirectives(schema.getDirectiveInstances()))
+                .map(graphQLDirective -> graphQLDirective.toAppliedDirective())
+                .collect(Collectors.toList()));
         schemaBuilder.additionalDirectives(directiveTypes);
         schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(interfaceMap.values()));

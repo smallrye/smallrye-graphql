@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -16,7 +17,11 @@ import java.io.InputStream;
 import java.lang.annotation.Repeatable;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
@@ -42,6 +47,12 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.TestConfig;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.schemadirectives.NonRepeatableSchemaDirective;
+import io.smallrye.graphql.schema.schemadirectives.RepeatableSchemaDirective;
+import io.smallrye.graphql.schema.schemadirectives.Schema1;
+import io.smallrye.graphql.schema.schemadirectives.Schema2;
+import io.smallrye.graphql.schema.schemadirectives.Schema3;
+import io.smallrye.graphql.schema.schemadirectives.Schema4;
 import io.smallrye.graphql.spi.config.Config;
 
 class SchemaTest {
@@ -219,6 +230,28 @@ class SchemaTest {
         } finally {
             System.clearProperty("smallrye.graphql.federation.enabled");
         }
+    }
+
+    @Test
+    void testSchemasWithValidSchemaDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Repeatable.class, RepeatableSchemaDirective.class,
+                NonRepeatableSchemaDirective.class, Schema1.class, Schema2.class, Schema3.class);
+        assertEquals(graphQLSchema.getSchemaAppliedDirectives().size(), 5);
+        Set<String> expectedArgValues = new HashSet<>(Arrays.asList("name1", "name2", "name3", "name4"));
+        graphQLSchema.getSchemaAppliedDirectives().stream()
+                .filter(graphQLAppliedDirective -> graphQLAppliedDirective.getName().equals("repeatableSchemaDirective"))
+                .collect(Collectors.toList()).forEach(composeDirective -> composeDirective.getArguments()
+                        .forEach(argument -> assertTrue(!expectedArgValues.add(argument.getValue()),
+                                "Unexpected directive argument value")));
+    }
+
+    @Test
+    void testSchemasWithInvalidSchemaDirectives() {
+        Exception exception = assertThrows(SchemaBuilderException.class,
+                () -> createGraphQLSchema(Directive.class, Repeatable.class, RepeatableSchemaDirective.class,
+                        NonRepeatableSchemaDirective.class, Schema3.class, Schema4.class));
+        String expectedMessage = "The @nonRepeatableSchemaDirective directive is not repeatable, but was used more than once in the GraphQL schema.";
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     private static void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
