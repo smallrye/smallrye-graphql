@@ -1,19 +1,18 @@
 package io.smallrye.graphql.cdi;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Instance;
 
 import io.smallrye.graphql.spi.ManagedInstance;
 
 public class CDIManagedInstance<T> implements ManagedInstance<T> {
 
-    private final Instance<T> instance;
+    private final Instance.Handle<T> instanceHandle;
     private final T object;
-    private final boolean isDependentScoped;
 
-    CDIManagedInstance(Instance<T> instance, boolean isDependentScoped) {
-        this.instance = instance;
-        this.isDependentScoped = isDependentScoped;
-        this.object = instance.get();
+    CDIManagedInstance(Instance.Handle<T> handle) {
+        this.instanceHandle = handle;
+        this.object = handle.get();
     }
 
     @Override
@@ -23,8 +22,8 @@ public class CDIManagedInstance<T> implements ManagedInstance<T> {
 
     @Override
     public void destroyIfNecessary() {
-        if (isDependentScoped) {
-            instance.destroy(object);
+        if (instanceHandle.getBean().getScope().equals(Dependent.class)) {
+            instanceHandle.destroy();
         }
     }
 }

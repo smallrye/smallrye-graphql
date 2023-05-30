@@ -1,11 +1,5 @@
 package io.smallrye.graphql.cdi;
 
-import java.util.Set;
-
-import jakarta.enterprise.context.Dependent;
-import jakarta.enterprise.inject.AmbiguousResolutionException;
-import jakarta.enterprise.inject.UnsatisfiedResolutionException;
-import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.CDI;
 
 import io.smallrye.graphql.spi.LookupService;
@@ -31,20 +25,8 @@ public class CdiLookupService implements LookupService {
 
     @Override
     public <T> ManagedInstance<T> getInstance(Class<T> declaringClass) {
-        CDI<Object> cdi = CDI.current();
-        Bean<?> bean = getExactlyOneObject(cdi.getBeanManager().getBeans(declaringClass));
-        boolean isDependentScope = bean.getScope().equals(Dependent.class);
-        return new CDIManagedInstance<>(cdi.select(declaringClass), isDependentScope);
-    }
-
-    private <T> T getExactlyOneObject(Set<T> set) {
-        if (set.size() > 1) {
-            throw new AmbiguousResolutionException();
-        }
-        if (set.size() == 0) {
-            throw new UnsatisfiedResolutionException();
-        }
-        return set.iterator().next();
+        // getHandle() throws exception if there is unsatisfied or ambiguous dep
+        return new CDIManagedInstance<>(CDI.current().getBeanContainer().createInstance().select(declaringClass).getHandle());
     }
 
     @Override
