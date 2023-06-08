@@ -30,7 +30,7 @@
         <version.smallrye-context-propagation>2.1.0</version.smallrye-context-propagation>
         <version.smallrye-stork>1.4.2</version.smallrye-stork>
 
-        <version.jakarta-json>2.1.1</version.jakarta-json>
+        <version.jakarta-json>2.1.2</version.jakarta-json>
         <version.yasson>3.0.3</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
         <version.jakarta-annotation>2.1.1</version.jakarta-annotation>
