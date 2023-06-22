@@ -2,17 +2,21 @@ package io.smallrye.graphql.schema.creator;
 
 import java.lang.reflect.Modifier;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -27,9 +31,14 @@ public class OperationCreator extends ModelCreator {
 
     private final ArgumentCreator argumentCreator;
 
+    private final RolesAllowedDirectivesHelper rolesAllowedHelper;
+
+    private final Logger logger = Logger.getLogger(OperationCreator.class.getName());
+
     public OperationCreator(ReferenceCreator referenceCreator, ArgumentCreator argumentCreator) {
         super(referenceCreator);
         this.argumentCreator = argumentCreator;
+        this.rolesAllowedHelper = new RolesAllowedDirectivesHelper();
     }
 
     /**
@@ -44,7 +53,6 @@ public class OperationCreator extends ModelCreator {
      */
     public Operation createOperation(MethodInfo methodInfo, OperationType operationType,
             final io.smallrye.graphql.schema.model.Type type) {
-
         if (!Modifier.isPublic(methodInfo.flags())) {
             throw new IllegalArgumentException(
                     "Method " + methodInfo.declaringClass().name().toString() + "#" + methodInfo.name()
@@ -83,7 +91,7 @@ public class OperationCreator extends ModelCreator {
             Optional<Argument> maybeArgument = argumentCreator.createArgument(operation, methodInfo, i);
             maybeArgument.ifPresent(operation::addArgument);
         }
-
+        addDirectivesForRolesAllowed(annotationsForMethod, annotationsForClass, operation, reference);
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
         return operation;
@@ -164,4 +172,14 @@ public class OperationCreator extends ModelCreator {
         return Execute.DEFAULT;
     }
 
+    private void addDirectivesForRolesAllowed(Annotations annotationsForPojo, Annotations classAnnotations, Operation operation,
+            Reference parentObjectReference) {
+        DirectiveInstance rolesAllowedDirectives = rolesAllowedHelper
+                .transformRolesAllowedToDirectives(annotationsForPojo, classAnnotations);
+        if (!Objects.isNull(rolesAllowedDirectives)) {
+            logger.debug("Adding rolesAllowed directive " + rolesAllowedDirectives + " to method '" + operation.getName()
+                    + "' of parent type '" + parentObjectReference.getName() + "'");
+            operation.addDirectiveInstance(rolesAllowedDirectives);
+        }
+    }
 }

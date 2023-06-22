@@ -22,6 +22,9 @@ directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE
 
 directive @operationDirective on QUERY | MUTATION | SUBSCRIPTION
 
+"Used to specify the role required to execute a given field or operation."
+directive @rolesAllowed(value: String) on FIELD_DEFINITION
+
 "Directs the executor to skip this field or fragment when the `if` argument is true."
 directive @skip(
     "Skipped when true."
