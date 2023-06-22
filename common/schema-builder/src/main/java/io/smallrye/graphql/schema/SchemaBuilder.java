@@ -36,6 +36,7 @@ import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;
+import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.ErrorInfo;
 import io.smallrye.graphql.schema.model.Group;
@@ -197,6 +198,9 @@ public class SchemaBuilder {
         }
         // bean validation directives
         schema.addDirectiveType(BeanValidationDirectivesHelper.CONSTRAINT_DIRECTIVE_TYPE);
+
+        // rolesAllowed directive
+        schema.addDirectiveType(RolesAllowedDirectivesHelper.ROLES_ALLOWED_DIRECTIVE_TYPE);
     }
 
     private void setupDirectives(Directives directives) {
