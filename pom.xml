@@ -28,7 +28,7 @@
         <version.smallrye-mutiny>2.3.1</version.smallrye-mutiny>
         <version.smallrye-mutiny-zero>1.0.0</version.smallrye-mutiny-zero>
         <version.smallrye-context-propagation>2.1.0</version.smallrye-context-propagation>
-        <version.smallrye-stork>1.4.2</version.smallrye-stork>
+        <version.smallrye-stork>2.3.1</version.smallrye-stork>
 
         <version.jakarta-json>2.1.2</version.jakarta-json>
         <version.yasson>3.0.3</version.yasson>
