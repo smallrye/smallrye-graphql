@@ -594,6 +594,7 @@ public class Annotations {
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
     public static final DotName DEFAULT_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.DefaultNonNull");
     public static final DotName NULLABLE = DotName.createSimple("io.smallrye.graphql.api.Nullable");
+    public static final DotName KOTLIN_METADATA = DotName.createSimple("kotlin.Metadata");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");
