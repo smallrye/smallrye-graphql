@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
@@ -21,6 +22,14 @@ import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
+import kotlinx.metadata.Flag;
+import kotlinx.metadata.KmClassifier;
+import kotlinx.metadata.KmFunction;
+import kotlinx.metadata.KmType;
+import kotlinx.metadata.KmTypeProjection;
+import kotlinx.metadata.KmValueParameter;
+import kotlinx.metadata.jvm.KotlinClassHeader;
+import kotlinx.metadata.jvm.KotlinClassMetadata;
 
 /**
  * Creates a Operation object
@@ -94,7 +103,71 @@ public class OperationCreator extends ModelCreator {
         addDirectivesForRolesAllowed(annotationsForMethod, annotationsForClass, operation, reference);
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
+        if (operation.hasWrapper()) {
+            checkWrappedTypeKotlinNullability(methodInfo, annotationsForClass, operation);
+        }
         return operation;
+    }
+
+    // If the operation return type is a wrapper and is written in Kotlin,
+    // this checks whether the wrapped type is nullable.
+    // Nullability metadata is stored in the kotlin.Metadata annotation
+    // on the class that contains the operation.
+    private void checkWrappedTypeKotlinNullability(MethodInfo methodInfo,
+            Annotations annotationsForClass,
+            Operation operation) {
+        Optional<AnnotationInstance> kotlinMetadataAnnotation = annotationsForClass
+                .getOneOfTheseAnnotations(Annotations.KOTLIN_METADATA);
+        if (kotlinMetadataAnnotation.isPresent()) {
+            KotlinClassMetadata.Class kotlinClass = toKotlinClassMetadata(kotlinMetadataAnnotation.get());
+            // We need to find the corresponding function inside
+            // the KotlinClassMetadata to check its IS_NULLABLE flag.
+            Optional<KmFunction> function = kotlinClass.getKmClass().getFunctions()
+                    .stream()
+                    .filter(f -> f.getName().equals(methodInfo.name()))
+                    .filter(f -> compareParameterLists(f.getValueParameters(), methodInfo.parameterTypes()))
+                    .findAny();
+            if (function.isPresent()) {
+                KmType returnType = function.get().getReturnType();
+                KmTypeProjection arg = returnType.getArguments().get(0);
+                int flags = arg.getType().getFlags();
+                boolean nullable = Flag.Type.IS_NULLABLE.invoke(flags);
+                if (nullable) {
+                    operation.setNotNull(false);
+                }
+            }
+        }
+    }
+
+    private boolean compareParameterLists(List<KmValueParameter> kotlinParameters,
+            List<Type> jandexParameters) {
+        if (kotlinParameters.size() != jandexParameters.size()) {
+            return false;
+        }
+        for (int i = 0; i < kotlinParameters.size(); i++) {
+            // TODO: the matching of parameter types could use some improvements
+            // For example, it won't work for primitives.
+            // An Int parameter will be represented as kotlin.Int in the KotlinClassMetadata,
+            // but as "int" in the Jandex MethodInfo.
+            if (!((KmClassifier.Class) kotlinParameters.get(i).getType().classifier)
+                    .getName().replace("/", ".")
+                    .equals(jandexParameters.get(i).name().toString())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private KotlinClassMetadata.Class toKotlinClassMetadata(AnnotationInstance metadata) {
+        KotlinClassHeader classHeader = new KotlinClassHeader(
+                metadata.value("k").asInt(),
+                metadata.value("mv").asIntArray(),
+                metadata.value("d1").asStringArray(),
+                metadata.value("d2").asStringArray(),
+                metadata.value("xs") != null ? metadata.value("xs").asString() : null,
+                metadata.value("pn") != null ? metadata.value("pn").asString() : null,
+                metadata.value("xi").asInt());
+        return (KotlinClassMetadata.Class) KotlinClassMetadata.read(classHeader);
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {
