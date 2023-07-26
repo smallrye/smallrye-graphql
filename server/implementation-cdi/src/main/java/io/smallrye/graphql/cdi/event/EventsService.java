@@ -9,7 +9,7 @@ import jakarta.enterprise.inject.spi.CDI;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.config.ConfigKey;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.schema.model.Operation;

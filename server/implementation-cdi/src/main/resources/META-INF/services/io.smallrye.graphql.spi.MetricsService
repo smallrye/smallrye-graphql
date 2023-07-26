@@ -1,0 +1,2 @@
+io.smallrye.graphql.cdi.metrics.MicrometerMetricsService
+io.smallrye.graphql.cdi.metrics.MPMetricsService

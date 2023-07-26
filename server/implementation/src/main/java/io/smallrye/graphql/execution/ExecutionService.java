@@ -35,6 +35,7 @@ import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.execution.event.EventEmitter;
+import io.smallrye.graphql.execution.metrics.MetricsEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
@@ -59,6 +60,7 @@ public class ExecutionService {
     private final Schema schema;
 
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
+    private final MetricsEmitter metricsEmitter = MetricsEmitter.getInstance();
 
     private GraphQL graphQL;
 

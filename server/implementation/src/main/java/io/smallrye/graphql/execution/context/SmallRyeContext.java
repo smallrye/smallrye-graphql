@@ -25,6 +25,7 @@ import io.smallrye.graphql.schema.model.Field;
  */
 public class SmallRyeContext implements Context {
     private final String createdBy;
+    private String fetchId;
     private JsonObject request;
     private String executionId;
     private Field field;

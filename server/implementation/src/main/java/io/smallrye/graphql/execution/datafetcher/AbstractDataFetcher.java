@@ -3,6 +3,7 @@ package io.smallrye.graphql.execution.datafetcher;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -20,6 +21,7 @@ import io.smallrye.graphql.execution.datafetcher.helper.ErrorResultHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.FieldHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.OperationInvoker;
 import io.smallrye.graphql.execution.event.EventEmitter;
+import io.smallrye.graphql.execution.metrics.MetricsEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -41,7 +43,9 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
     protected ErrorResultHelper errorResultHelper = new ErrorResultHelper();
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter = EventEmitter.getInstance();
+    protected MetricsEmitter metricsEmitter = MetricsEmitter.getInstance();
     protected BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
+    protected LinkedBlockingQueue<Long> measurementIds = new LinkedBlockingQueue<>();
 
     public AbstractDataFetcher(Operation operation, Type type) {
         this.operation = operation;
@@ -59,10 +63,8 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
 
         final DataFetcherResult.Builder<Object> resultBuilder = DataFetcherResult.newResult()
                 .localContext(dfe.getGraphQlContext());
-
         try {
             List<Object> transformedArguments = argumentHelper.getArguments(dfe);
-
             return invokeAndTransform(smallRyeContext, dfe, resultBuilder, transformedArguments.toArray());
         } catch (AbstractDataFetcherException abstractDataFetcherException) {
             //Arguments or result couldn't be transformed

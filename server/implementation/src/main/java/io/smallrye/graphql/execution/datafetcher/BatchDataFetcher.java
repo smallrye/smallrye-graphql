@@ -13,6 +13,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.execution.datafetcher.helper.ArgumentHelper;
 import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.event.EventEmitter;
+import io.smallrye.graphql.execution.metrics.MetricsEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.mutiny.Uni;
@@ -30,6 +31,7 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
     private final String batchLoaderName;
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
+    private final MetricsEmitter metricsEmitter = MetricsEmitter.getInstance();
 
     public BatchDataFetcher(Operation operation, Type type) {
         this.operation = operation;
@@ -43,6 +45,8 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
 
         SmallRyeContext smallryeContext = SmallRyeContextManager.populateFromDataFetchingEnvironment(type, operation, dfe);
         eventEmitter.fireBeforeDataFetch(smallryeContext);
+        long measurementId = metricsEmitter.start(smallryeContext);
+
         List<Object> transformedArguments = argumentHelper.getArguments(dfe, true);
         Object source = dfe.getSource();
 
@@ -52,7 +56,8 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
         batchContext.put(BatchLoaderHelper.ARGUMENTS, transformedArguments);
         batchContext.put(BatchLoaderHelper.DATA_FETCHING_ENVIRONMENT, dfe);
 
-        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchContext))
+        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchContext)).onItemOrFailure()
+                .invoke(() -> metricsEmitter.end(measurementId))
                 .subscribe()
                 .asCompletionStage();
 

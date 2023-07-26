@@ -1,3 +1,2 @@
 io.smallrye.graphql.cdi.event.EventsService
-io.smallrye.graphql.cdi.metrics.MetricsService
 io.smallrye.graphql.cdi.tracing.TracingService

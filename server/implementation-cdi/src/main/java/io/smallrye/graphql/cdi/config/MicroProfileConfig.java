@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 
+import io.smallrye.graphql.config.ConfigKey;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 
