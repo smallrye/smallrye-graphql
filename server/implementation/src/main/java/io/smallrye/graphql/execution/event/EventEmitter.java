@@ -70,7 +70,6 @@ public class EventEmitter {
         }
         enabledServices.sort(Comparator.comparing(this::getPriority));
         this.enabledServices = enabledServices;
-        LOG.debugf("Enabled Eventingservices: %s", enabledServices);
     }
 
     private int getPriority(EventingService es) {

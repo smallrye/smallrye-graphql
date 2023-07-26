@@ -1,4 +1,4 @@
-package io.smallrye.graphql.cdi.config;
+package io.smallrye.graphql.config;
 
 /**
  * All the config options available

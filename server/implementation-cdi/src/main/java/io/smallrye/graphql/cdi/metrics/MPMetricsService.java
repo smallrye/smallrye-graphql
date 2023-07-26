@@ -1,23 +1,19 @@
 package io.smallrye.graphql.cdi.metrics;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.enterprise.util.AnnotationLiteral;
 
-import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
+import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.config.ConfigKey;
-import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.EventingService;
+import io.smallrye.graphql.spi.MetricsService;
 
 /**
  * Listening for event and create metrics from it. Uses MP Metrics 3.x API.
@@ -25,44 +21,17 @@ import io.smallrye.graphql.spi.EventingService;
  * @author Jan Martiska (jmartisk@redhat.com)
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class MPMetricsService implements EventingService {
+public class MPMetricsService implements MetricsService {
 
     private MetricRegistry metricRegistry;
-    private final Map<Context, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<Long, MetricMeasurement> metricsMemory = new ConcurrentHashMap<>();
     private static final String METRIC_NAME = "mp_graphql";
-    private final String DESCRIPTION = "Call statistics for the operation denoted by the 'name' tag";
+    private Logger LOG = Logger.getLogger(MPMetricsService.class);
 
-    @Override
-    public Operation createOperation(Operation operation) {
-        final Tag[] tags = getTags(operation);
-
-        Metadata metadata = Metadata.builder()
-                .withName(METRIC_NAME)
-                .withType(MetricType.SIMPLE_TIMER)
-                .withDescription(DESCRIPTION)
-                .build();
-        getMetricRegistry().simpleTimer(metadata, tags);
-        return operation;
-    }
-
-    @Override
-    public void beforeDataFetch(Context context) {
-        startTimes.put(context, System.nanoTime());
-    }
-
-    @Override
-    public void afterDataFetch(Context context) {
-        Long startTime = startTimes.remove(context);
-        if (startTime != null) {
-            long duration = System.nanoTime() - startTime;
-            getMetricRegistry().simpleTimer(METRIC_NAME, getTags(context))
-                    .update(Duration.ofNanos(duration));
-        }
-    }
-
-    @Override
-    public String getConfigKey() {
-        return ConfigKey.ENABLE_METRICS;
+    public MPMetricsService() {
+        // If MP Metrics are not available, this will throw an exception
+        // and make sure that this service doesn't get registered
+        getMetricRegistry();
     }
 
     private MetricRegistry getMetricRegistry() {
@@ -72,20 +41,30 @@ public class MPMetricsService implements EventingService {
         return metricRegistry;
     }
 
-    private Tag[] getTags(Context context) {
+    private Tag[] getTags(MetricMeasurement metricMeasurement) {
         return new Tag[] {
-                new Tag("name", context.getFieldName()),
-                new Tag("type", context.getOperationType()),
-                new Tag("source", String.valueOf(context.getSource() != null))
+                new Tag("name", metricMeasurement.getName()),
+                new Tag("type", metricMeasurement.getOperationType()),
+                new Tag("source", String.valueOf(metricMeasurement.isSource()))
         };
     }
 
-    private Tag[] getTags(Operation operation) {
-        return new Tag[] {
-                new Tag("name", operation.getName()),
-                new Tag("type", operation.getOperationType().toString()),
-                new Tag("source", String.valueOf(operation.isSourceField()))
-        };
+    @Override
+    public void start(Long measurementId, Context context) {
+        metricsMemory.put(measurementId, new MetricMeasurement(context.getFieldName(),
+                context.hasSource(),
+                context.getOperationType(),
+                System.nanoTime()));
+        LOG.tracef("(" + measurementId + ") Started recording metrics for: %s", context.getFieldName());
+    }
+
+    @Override
+    public void end(Long measurementId) {
+        MetricMeasurement metricMeasurement = metricsMemory.remove(measurementId);
+        long duration = System.nanoTime() - metricMeasurement.getTimeStarted();
+        getMetricRegistry().simpleTimer(METRIC_NAME, getTags(metricMeasurement))
+                .update(Duration.ofNanos(duration));
+        LOG.tracef("(" + measurementId + ") Finished recording metrics for: %s", metricMeasurement.getName());
     }
 
     class VendorType extends AnnotationLiteral<RegistryType> implements RegistryType {

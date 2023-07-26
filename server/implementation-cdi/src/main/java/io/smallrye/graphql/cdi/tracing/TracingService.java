@@ -14,7 +14,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.config.ConfigKey;
+import io.smallrye.graphql.config.ConfigKey;
 import io.smallrye.graphql.execution.event.Priorities;
 import io.smallrye.graphql.spi.EventingService;
 

@@ -1,66 +1,52 @@
 package io.smallrye.graphql.cdi.metrics;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jboss.logging.Logger;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.Timer;
 import io.smallrye.graphql.api.Context;
-import io.smallrye.graphql.cdi.config.ConfigKey;
-import io.smallrye.graphql.schema.model.Operation;
-import io.smallrye.graphql.spi.EventingService;
+import io.smallrye.graphql.spi.MetricsService;
 
-public class MicrometerMetricsService implements EventingService {
-
+public class MicrometerMetricsService implements MetricsService {
     private final MeterRegistry meterRegistry = Metrics.globalRegistry;
-    private final Map<Context, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<Long, MetricMeasurement> metricsMemory = new ConcurrentHashMap<>();
     private static final String METRIC_NAME = "mp_graphql";
-    private final String DESCRIPTION = "Call statistics for the operation denoted by the 'name' tag";
+    private Logger LOG = Logger.getLogger(MicrometerMetricsService.class);
 
-    @Override
-    public Operation createOperation(Operation operation) {
-        final Tags tags = getTags(operation);
-        Timer.builder(METRIC_NAME)
-                .tags(tags)
-                .description(DESCRIPTION)
-                .register(meterRegistry);
-        return operation;
+    public MicrometerMetricsService() {
+        // If Micrometer is not available, this will throw an exception
+        // and make sure that this service doesn't get registered
+        meterRegistry.getMeters();
+    }
+
+    private Tags getTags(MetricMeasurement metricMeasurement) {
+        return Tags.of("name", metricMeasurement.getName())
+                .and("type", metricMeasurement.getOperationType())
+                .and("source", String.valueOf(metricMeasurement.isSource()));
     }
 
     @Override
-    public void beforeDataFetch(Context context) {
-        startTimes.put(context, System.nanoTime());
+    public void start(Long measurementId, Context context) {
+        metricsMemory.put(measurementId,
+                new MetricMeasurement(
+                        context.getFieldName(),
+                        context.hasSource(),
+                        context.getOperationType(),
+                        System.nanoTime()));
+        LOG.tracef("(" + measurementId + ") Started recording metrics for: %s", context.getFieldName());
     }
 
     @Override
-    public void afterDataFetch(Context context) {
-        Long startTime = startTimes.remove(context);
-        if (startTime != null) {
-            long duration = System.nanoTime() - startTime;
-            meterRegistry.timer(METRIC_NAME, getTags(context))
-                    .record(Duration.ofNanos(duration));
-        }
+    public void end(Long measurementId) {
+        MetricMeasurement metricMeasurement = metricsMemory.remove(measurementId);
+        long duration = System.nanoTime() - metricMeasurement.getTimeStarted();
+        meterRegistry.timer(METRIC_NAME, getTags(metricMeasurement))
+                .record(Duration.ofNanos(duration));
+        LOG.tracef("(" + measurementId + ") Finished recording metrics for: %s", metricMeasurement.getName());
     }
-
-    @Override
-    public String getConfigKey() {
-        return ConfigKey.ENABLE_METRICS;
-    }
-
-    private Tags getTags(Context context) {
-        return Tags.of("name", context.getFieldName())
-                .and("type", context.getOperationType())
-                .and("source", String.valueOf(context.getSource() != null));
-    }
-
-    private Tags getTags(Operation operation) {
-        return Tags.of("name", operation.getName())
-                .and("type", operation.getOperationType().toString())
-                .and("source", String.valueOf(operation.isSourceField()));
-    }
-
 }

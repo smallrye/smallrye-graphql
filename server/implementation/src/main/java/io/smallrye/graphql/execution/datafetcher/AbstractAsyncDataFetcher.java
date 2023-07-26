@@ -59,6 +59,7 @@ public abstract class AbstractAsyncDataFetcher<K, T> extends AbstractDataFetcher
                             te.appendDataFetcherResult(resultBuilder, dfe);
                         } finally {
                             eventEmitter.fireAfterDataFetch(context);
+                            //                            metricsEmitter.end(measurementIds.remove());
                         }
                     }
 
