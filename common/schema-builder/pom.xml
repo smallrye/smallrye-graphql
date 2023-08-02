@@ -25,7 +25,14 @@
             <groupId>io.smallrye</groupId>
             <artifactId>jandex</artifactId>
         </dependency>
-        
+
+        <!-- Kotlin support -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-metadata-jvm</artifactId>
+            <version>${version.kotlinx.metadata.jvm}</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.jboss.logging</groupId>
@@ -61,6 +68,16 @@
             <artifactId>jakarta.validation-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>mutiny</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -73,6 +90,27 @@
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${version.kotlin.compiler}</version>
+                <executions>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <dir>${project.basedir}/src/test/kotlin</dir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 

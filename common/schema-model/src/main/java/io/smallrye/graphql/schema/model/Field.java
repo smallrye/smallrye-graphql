@@ -205,6 +205,12 @@ public class Field implements Serializable {
         }
     }
 
+    public void addDirectiveInstance(DirectiveInstance directiveInstance) {
+        if (directiveInstances != null) {
+            this.directiveInstances.add(directiveInstance);
+        }
+    }
+
     @Override
     public String toString() {
         return "Field{" + "methodName=" + methodName + ", propertyName=" + propertyName + ", name=" + name + ", description="

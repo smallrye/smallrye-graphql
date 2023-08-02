@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -267,6 +268,36 @@ public class SchemaBuilderTest {
         // return type
         assertEquals(fourthMutation.getReference().getName(), "Hero");
 
+    }
+
+    @Test
+    public void testKotlinTypeNullability() {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/kotlin");
+        IndexView index = indexer.complete();
+        Schema schema = SchemaBuilder.build(index);
+
+        assertTrue(getQueryByName(schema, "notNullable").isNotNull());
+        assertFalse(getQueryByName(schema, "nullable").isNotNull());
+        assertTrue(getQueryByName(schema, "notNullableItemInUni").isNotNull());
+        assertFalse(getQueryByName(schema, "nullableItemInUni").isNotNull());
+
+        Map<String, Operation> fooSubfields = schema.getTypes().get("Foo").getOperations();
+        assertTrue(fooSubfields.get("notNullableNestedItem").isNotNull());
+        assertTrue(fooSubfields.get("notNullableNestedItemInUni").isNotNull());
+        assertFalse(fooSubfields.get("nullableNestedItem").isNotNull());
+        assertFalse(fooSubfields.get("nullableNestedItemInUni").isNotNull());
+
+        assertFalse(getQueryByName(schema, "zzz1").isNotNull());
+        assertFalse(getQueryByName(schema, "zzz2").isNotNull());
+        assertTrue(getQueryByName(schema, "zzz3").isNotNull());
+        assertTrue(getQueryByName(schema, "zzz4").isNotNull());
+    }
+
+    private Operation getQueryByName(Schema schema, String name) {
+        return schema.getQueries()
+                .stream().filter(q -> q.getName().equals(name))
+                .findFirst().orElseThrow();
     }
 
     static IndexView getTCKIndex() {

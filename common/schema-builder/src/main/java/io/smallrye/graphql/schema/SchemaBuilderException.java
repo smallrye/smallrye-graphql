@@ -1,8 +1,8 @@
 package io.smallrye.graphql.schema;
 
 /**
- * Runtime exception when we could not create a type (input or output) while building the schema
- * or the schema itself
+ * Thrown when we can't build a proper schema due to invalid
+ * declarations
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */

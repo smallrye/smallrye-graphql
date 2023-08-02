@@ -36,6 +36,7 @@ public final class Schema implements Serializable {
 
     private Map<String, String> wrappedDataFetchers = new HashMap<>();
     private Map<String, String> fieldDataFetchers = new HashMap<>();
+    private List<DirectiveInstance> directiveInstances = new ArrayList<>();
 
     public Schema() {
     }
@@ -342,4 +343,7 @@ public final class Schema implements Serializable {
                 + ", interfaces=" + interfaces + ", enums=" + enums + ", errors=" + errors + '}';
     }
 
+    public List<DirectiveInstance> getDirectiveInstances() {
+        return directiveInstances;
+    }
 }

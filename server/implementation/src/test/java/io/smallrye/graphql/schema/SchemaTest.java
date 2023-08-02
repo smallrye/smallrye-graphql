@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -16,8 +17,15 @@ import java.io.InputStream;
 import java.lang.annotation.Repeatable;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import jakarta.annotation.security.RolesAllowed;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
@@ -42,6 +50,16 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.TestConfig;
 import io.smallrye.graphql.schema.model.Schema;
+import io.smallrye.graphql.schema.rolesallowedschemas.Customer;
+import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema1;
+import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema2;
+import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema3;
+import io.smallrye.graphql.schema.schemadirectives.NonRepeatableSchemaDirective;
+import io.smallrye.graphql.schema.schemadirectives.RepeatableSchemaDirective;
+import io.smallrye.graphql.schema.schemadirectives.Schema1;
+import io.smallrye.graphql.schema.schemadirectives.Schema2;
+import io.smallrye.graphql.schema.schemadirectives.Schema3;
+import io.smallrye.graphql.schema.schemadirectives.Schema4;
 import io.smallrye.graphql.spi.config.Config;
 
 class SchemaTest {
@@ -221,11 +239,120 @@ class SchemaTest {
         }
     }
 
+    @Test
+    void testSchemasWithValidSchemaDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Repeatable.class, RepeatableSchemaDirective.class,
+                NonRepeatableSchemaDirective.class, Schema1.class, Schema2.class, Schema3.class);
+        assertEquals(graphQLSchema.getSchemaAppliedDirectives().size(), 5);
+        Set<String> expectedArgValues = new HashSet<>(Arrays.asList("name1", "name2", "name3", "name4"));
+        graphQLSchema.getSchemaAppliedDirectives().stream()
+                .filter(graphQLAppliedDirective -> graphQLAppliedDirective.getName().equals("repeatableSchemaDirective"))
+                .collect(Collectors.toList()).forEach(composeDirective -> composeDirective.getArguments()
+                        .forEach(argument -> assertTrue(!expectedArgValues.add(argument.getValue()),
+                                "Unexpected directive argument value")));
+    }
+
+    @Test
+    void testSchemasWithInvalidSchemaDirectives() {
+        Exception exception = assertThrows(SchemaBuilderException.class,
+                () -> createGraphQLSchema(Directive.class, Repeatable.class, RepeatableSchemaDirective.class,
+                        NonRepeatableSchemaDirective.class, Schema3.class, Schema4.class));
+        String expectedMessage = "The @nonRepeatableSchemaDirective directive is not repeatable, but was used more than once in the GraphQL schema.";
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    @Test
+    void testSchemasWithRolesAllowedDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(Customer.class, RolesAllowed.class, RolesSchema1.class,
+                RolesSchema2.class,
+                RolesSchema3.class);
+
+        // QUERY ROOT
+        GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
+        assertEquals(5, queryRoot.getFields().size());
+
+        GraphQLFieldDefinition helloQuery = queryRoot.getField("hello");
+        assertRolesAllowedDirective(helloQuery, "admin");
+
+        GraphQLFieldDefinition anotherHelloQuery = queryRoot.getField("anotherHello");
+        assertRolesAllowedDirective(anotherHelloQuery, null);
+
+        GraphQLFieldDefinition moneyQuery = queryRoot.getField("money");
+        assertRolesAllowedDirective(moneyQuery, "employee");
+
+        GraphQLFieldDefinition adminMoneyQuery = queryRoot.getField("adminMoney");
+        assertRolesAllowedDirective(adminMoneyQuery, "admin");
+
+        GraphQLFieldDefinition doNothingQuery = queryRoot.getField("doNothing");
+        assertRolesAllowedDirective(doNothingQuery, null);
+
+        // MUTATION ROOT
+        GraphQLObjectType mutationRoot = graphQLSchema.getMutationType();
+        assertEquals(3, mutationRoot.getFields().size());
+
+        GraphQLFieldDefinition createHelloMutation = mutationRoot.getField("createHello");
+        assertRolesAllowedDirective(createHelloMutation, "admin");
+
+        GraphQLFieldDefinition createCustomerMutation = mutationRoot.getField("createCustomer");
+        assertRolesAllowedDirective(createCustomerMutation, "employee");
+
+        GraphQLFieldDefinition createNothingMutation = mutationRoot.getField("createNothing");
+        assertRolesAllowedDirective(createNothingMutation, null);
+
+        // SUBSCRIPTION TYPE
+        GraphQLObjectType subscriptionType = graphQLSchema.getSubscriptionType();
+        assertEquals(3, subscriptionType.getFields().size());
+
+        GraphQLFieldDefinition helloCreatedSubscription = subscriptionType.getField("helloCreated");
+        assertRolesAllowedDirective(helloCreatedSubscription, "basic");
+
+        GraphQLFieldDefinition customerCreatedSubscription = subscriptionType.getField("customerCreated");
+        assertRolesAllowedDirective(customerCreatedSubscription, "employee");
+
+        GraphQLFieldDefinition nothingCreatedSubscription = subscriptionType.getField("nothingCreated");
+        assertRolesAllowedDirective(nothingCreatedSubscription, null);
+
+        // SOURCE METHODS
+        GraphQLObjectType type = graphQLSchema.getObjectType("Customer");
+        assertEquals(0, type.getDirectives().size());
+        assertEquals(4, type.getFields().size());
+        assertEquals(Set.of("name", "password", "nothingPassword", "adminPassword"),
+                type.getFields().stream().map(GraphQLFieldDefinition::getName).collect(Collectors.toSet()));
+
+        GraphQLFieldDefinition nameField = type.getField("name");
+        assertEquals(GraphQLString, nameField.getType());
+        assertRolesAllowedDirective(nameField, null);
+
+        GraphQLFieldDefinition passwordField = type.getField("password");
+        assertEquals(GraphQLString, passwordField.getType());
+        assertRolesAllowedDirective(passwordField, "employee");
+
+        GraphQLFieldDefinition adminPasswordField = type.getField("adminPassword");
+        assertEquals(GraphQLString, adminPasswordField.getType());
+        assertRolesAllowedDirective(adminPasswordField, "admin");
+    }
+
     private static void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
         assertEquals("key", graphQLDirective.getName());
         assertEquals(1, graphQLDirective.getArguments().size());
         assertEquals("fields", graphQLDirective.getArguments().get(0).getName());
         assertEquals(value, graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue());
+    }
+
+    public static void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {
+        assertNotNull(field);
+
+        if (Objects.isNull(roleValue)) {
+            assertTrue(field.getDirectives().isEmpty());
+            return;
+        }
+        assertEquals(1, field.getDirectives().size());
+        assertEquals("rolesAllowed", field.getDirectives().get(0).getName());
+        assertEquals(1, field.getDirective("rolesAllowed").getArguments().size());
+        assertEquals("value", field.getDirective("rolesAllowed").getArguments().get(0).getName());
+        assertEquals(roleValue,
+                field.getDirective("rolesAllowed").getArgument("value").toAppliedArgument().getArgumentValue().getValue());
+
     }
 
     private GraphQLSchema createGraphQLSchema(Class<?>... api) {
