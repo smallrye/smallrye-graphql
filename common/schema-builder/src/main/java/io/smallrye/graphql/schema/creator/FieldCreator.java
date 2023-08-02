@@ -40,6 +40,11 @@ public class FieldCreator extends ModelCreator {
         deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        return "FIELD_DEFINITION";
+    }
+
     /**
      * Creates a field from a method only.This is used in the case of an interface
      *

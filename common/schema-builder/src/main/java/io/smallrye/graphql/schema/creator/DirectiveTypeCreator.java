@@ -26,6 +26,12 @@ public class DirectiveTypeCreator extends ModelCreator {
         super(referenceCreator);
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        throw new IllegalArgumentException(
+                "This method should never be called since 'DirectiveType' cannot have another directives");
+    }
+
     private static DotName NON_NULL = DotName.createSimple("org.eclipse.microprofile.graphql.NonNull");
 
     public DirectiveType create(ClassInfo classInfo) {

@@ -32,7 +32,7 @@ public enum DirectiveLocation {
     INLINE_FRAGMENT,
     VARIABLE_DEFINITION,
 
-    // TypeSystemDirectiveLocation
+    // TypeSystemDirectiveLocation:
     SCHEMA,
     SCALAR,
     OBJECT,

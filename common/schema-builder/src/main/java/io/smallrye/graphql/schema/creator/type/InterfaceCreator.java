@@ -57,6 +57,11 @@ public class InterfaceCreator extends AbstractCreator {
         }
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        return "INTERFACE";
+    }
+
     private static final String JAVA_DOT = "java.";
 
     /**

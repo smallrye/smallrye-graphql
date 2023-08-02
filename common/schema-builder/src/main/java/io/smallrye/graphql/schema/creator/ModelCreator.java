@@ -43,7 +43,7 @@ public abstract class ModelCreator {
     }
 
     /**
-     * The the return type.This is usually the method return type, but can also be adapted to something else
+     * The return type.This is usually the method return type, but can also be adapted to something else
      *
      * @param methodInfo method
      * @return the return type
@@ -59,6 +59,8 @@ public abstract class ModelCreator {
         return fieldInfo.type();
 
     }
+
+    public abstract String getDirectiveLocation();
 
     protected void populateField(Direction direction, Field field, Type type, Annotations annotations) {
         // Wrapper
@@ -97,7 +99,15 @@ public abstract class ModelCreator {
 
         // Directives
         if (directives != null) { // this happens while scanning for the directive types
-            field.addDirectiveInstances(directives.buildDirectiveInstances(annotations));
+            field.addDirectiveInstances(directives.buildDirectiveInstances(annotations, getDirectiveLocation(direction)));
         }
+    }
+
+    private String getDirectiveLocation(Direction direction) {
+        String directiveLocation = getDirectiveLocation();
+        if (direction.equals(Direction.IN) && directiveLocation.equals("FIELD_DEFINITION")) {
+            return "INPUT_FIELD_DEFINITION";
+        }
+        return directiveLocation;
     }
 }

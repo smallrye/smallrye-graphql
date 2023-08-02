@@ -37,7 +37,6 @@ import io.smallrye.graphql.schema.model.ReferenceType;
  */
 public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
-
     private final FieldCreator fieldCreator;
     private Directives directives;
 
@@ -76,6 +75,11 @@ public class InputTypeCreator implements Creator<InputType> {
         addFields(inputType, classInfo, reference);
 
         return inputType;
+    }
+
+    @Override
+    public String getDirectiveLocation() {
+        return "INPUT_OBJECT";
     }
 
     public boolean hasUseableConstructor(ClassInfo classInfo) {
@@ -138,7 +142,7 @@ public class InputTypeCreator implements Creator<InputType> {
     }
 
     private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(annotations);
+        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
     }
 
     private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {

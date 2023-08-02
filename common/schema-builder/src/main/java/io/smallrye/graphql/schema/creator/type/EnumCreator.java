@@ -77,8 +77,13 @@ public class EnumCreator implements Creator<EnumType> {
         return enumType;
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        return "ENUM";
+    }
+
     private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(annotations);
+        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
     }
 
 }

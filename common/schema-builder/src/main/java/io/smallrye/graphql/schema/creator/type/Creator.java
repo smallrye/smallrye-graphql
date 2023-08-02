@@ -13,4 +13,6 @@ import io.smallrye.graphql.schema.model.Reference;
 public interface Creator<T> {
 
     T create(ClassInfo classInfo, Reference reference);
+
+    String getDirectiveLocation();
 }

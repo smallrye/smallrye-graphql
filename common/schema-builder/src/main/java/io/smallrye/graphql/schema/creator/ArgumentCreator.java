@@ -39,6 +39,11 @@ public class ArgumentCreator extends ModelCreator {
         deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        return "ARGUMENT_DEFINITION";
+    }
+
     /**
      * Create an argument model. Arguments exist on Operations as input parameters
      *

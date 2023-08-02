@@ -255,4 +255,9 @@ public class OperationCreator extends ModelCreator {
             operation.addDirectiveInstance(rolesAllowedDirectives);
         }
     }
+
+    @Override
+    public String getDirectiveLocation() {
+        return "FIELD_DEFINITION";
+    }
 }

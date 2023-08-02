@@ -55,6 +55,7 @@ import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema1;
 import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema2;
 import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema3;
 import io.smallrye.graphql.schema.schemadirectives.NonRepeatableSchemaDirective;
+import io.smallrye.graphql.schema.schemadirectives.OutputDirective;
 import io.smallrye.graphql.schema.schemadirectives.RepeatableSchemaDirective;
 import io.smallrye.graphql.schema.schemadirectives.Schema1;
 import io.smallrye.graphql.schema.schemadirectives.Schema2;
@@ -125,8 +126,8 @@ class SchemaTest {
 
     @Test
     void schemaWithInputDirectives() {
-        GraphQLSchema graphQLSchema = createGraphQLSchema(InputDirective.class, InputTestApi.class,
-                InputTestApi.InputWithDirectives.class);
+        GraphQLSchema graphQLSchema = createGraphQLSchema(InputDirective.class, OutputDirective.class, InputTestApi.class,
+                InputTestApi.InputWithDirectives.class, InputTestApi.SomeObject.class);
 
         GraphQLInputObjectType inputWithDirectives = graphQLSchema.getTypeAs("InputWithDirectivesInput");
         assertNotNull(inputWithDirectives.getDirective("inputDirective"),
@@ -135,6 +136,10 @@ class SchemaTest {
                 "Input type field InputWithDirectivesInput.foo should have directive @inputDirective");
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
+
+        GraphQLInputObjectType outputAsInputWithDirectives = graphQLSchema.getTypeAs("SomeObjectInput");
+        assertNull(outputAsInputWithDirectives.getDirective("outputDirective"),
+                "Input type SomeObject should not have directive @outputDirective");
     }
 
     @Test
