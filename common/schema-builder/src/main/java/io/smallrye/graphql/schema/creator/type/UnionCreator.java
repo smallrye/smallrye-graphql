@@ -41,4 +41,11 @@ public class UnionCreator implements Creator<UnionType> {
 
         return new UnionType(classInfo.name().toString(), name, maybeDescription.orElse(null));
     }
+
+    // TODO: create feature that allows adding UNION directives  (graphql.schema)
+    @Override
+    public String getDirectiveLocation() {
+        return "UNION";
+    }
+
 }

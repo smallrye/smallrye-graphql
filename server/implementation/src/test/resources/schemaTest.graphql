@@ -9,7 +9,7 @@ directive @deprecated(
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
 
-directive @fieldDirective on FIELD
+directive @fieldDirective on FIELD_DEFINITION
 
 "Directs the executor to include this field or fragment only when the `if` argument is true"
 directive @include(
@@ -20,7 +20,7 @@ directive @include(
 "test-description"
 directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE
 
-directive @operationDirective on QUERY | MUTATION | SUBSCRIPTION
+directive @operationDirective on FIELD_DEFINITION
 
 "Used to specify the role required to execute a given field or operation."
 directive @rolesAllowed(value: String) on FIELD_DEFINITION

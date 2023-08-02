@@ -128,7 +128,7 @@ public class SchemaBuilder {
             Annotations annotations = Annotations.getAnnotationsForClass(graphQLApiAnnotation.target().asClass());
             schema.getDirectiveInstances()
                     .addAll(directivesHelper
-                            .buildDirectiveInstances(annotations)
+                            .buildDirectiveInstances(annotations, "SCHEMA")
                             .stream()
                             .map(directiveInstance -> {
                                 String directiveClassName = directiveInstance.getType().getClassName();

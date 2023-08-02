@@ -112,4 +112,8 @@ public class TypeCreator extends AbstractCreator {
                         type.kind() != org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE);
     }
 
+    @Override
+    public String getDirectiveLocation() {
+        return "OBJECT";
+    }
 }

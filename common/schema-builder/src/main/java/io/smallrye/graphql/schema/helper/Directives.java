@@ -38,12 +38,13 @@ public class Directives {
         }
     }
 
-    public List<DirectiveInstance> buildDirectiveInstances(Annotations annotations) {
+    public List<DirectiveInstance> buildDirectiveInstances(Annotations annotations, String directiveLocation) {
         // only build directive instances from `@Directive` annotations here (that means the `directiveTypes` map),
         // because `directiveTypesOther` directives get their instances added on-the-go by classes that extend `ModelCreator`
         return directiveTypes.keySet().stream()
                 .flatMap(annotations::resolve)
                 .map(this::toDirectiveInstance)
+                .filter(directiveInstance -> directiveInstance.getType().getLocations().contains(directiveLocation))
                 .collect(toList());
     }
 
