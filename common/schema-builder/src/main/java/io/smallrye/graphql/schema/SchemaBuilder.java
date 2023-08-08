@@ -211,6 +211,7 @@ public class SchemaBuilder {
         fieldCreator.setDirectives(directives);
         argumentCreator.setDirectives(directives);
         operationCreator.setDirectives(directives);
+        unionCreator.setDirectives(directives);
     }
 
     private void addTypesToSchema(Schema schema) {

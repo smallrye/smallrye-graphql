@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
@@ -8,7 +9,9 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
+import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
+import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.UnionType;
@@ -18,6 +21,7 @@ public class UnionCreator implements Creator<UnionType> {
     private static final Logger LOG = Logger.getLogger(UnionCreator.class.getName());
 
     private final ReferenceCreator referenceCreator;
+    private Directives directives;
 
     public UnionCreator(ReferenceCreator referenceCreator) {
         this.referenceCreator = referenceCreator;
@@ -39,7 +43,13 @@ public class UnionCreator implements Creator<UnionType> {
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);
 
-        return new UnionType(classInfo.name().toString(), name, maybeDescription.orElse(null));
+        UnionType unionType = new UnionType(classInfo.name().toString(), name, maybeDescription.orElse(null));
+
+        // Directives
+        unionType.setDirectiveInstances(getDirectiveInstances(annotations));
+
+        return unionType;
+
     }
 
     // TODO: create feature that allows adding UNION directives  (graphql.schema)
@@ -48,4 +58,11 @@ public class UnionCreator implements Creator<UnionType> {
         return "UNION";
     }
 
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
+        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
+    }
+
+    public void setDirectives(Directives directives) {
+        this.directives = directives;
+    }
 }

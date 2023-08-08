@@ -487,10 +487,18 @@ public class Bootstrap {
             }
         }
 
+        // Directives
+        if (unionType.hasDirectiveInstances()) {
+            for (DirectiveInstance directiveInstance : unionType.getDirectiveInstances()) {
+                unionTypeBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
+            }
+        }
+
         GraphQLUnionType graphQLUnionType = unionTypeBuilder.build();
         // To resolve the concrete class
         this.codeRegistryBuilder.typeResolver(graphQLUnionType, new UnionResolver(unionType));
         this.unionMap.put(unionType.getName(), graphQLUnionType);
+
     }
 
     private void createGraphQLInputObjectTypes() {
