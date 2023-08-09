@@ -59,7 +59,7 @@ public class EnumCreator implements Creator<EnumType> {
         EnumType enumType = new EnumType(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
         // Directives
-        enumType.setDirectiveInstances(getDirectiveInstances(annotations));
+        enumType.setDirectiveInstances(getDirectiveInstances(annotations, false));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();
@@ -69,7 +69,8 @@ public class EnumCreator implements Creator<EnumType> {
                 if (!field.type().kind().equals(Type.Kind.ARRAY) && !IgnoreHelper.shouldIgnore(annotationsForField, field)) {
                     String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
                             .orElse(null);
-                    enumType.addValue(new EnumValue(description, field.name(), getDirectiveInstances(annotationsForField)));
+                    enumType.addValue(
+                            new EnumValue(description, field.name(), getDirectiveInstances(annotationsForField, true)));
                 }
             }
         }
@@ -82,8 +83,9 @@ public class EnumCreator implements Creator<EnumType> {
         return "ENUM";
     }
 
-    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, boolean enumValue) {
+        // enumValue for switching if to filter out ENUM_VALUE directives or ENUM
+        return directives.buildDirectiveInstances(annotations, enumValue ? "ENUM_VALUE" : getDirectiveLocation());
     }
 
 }

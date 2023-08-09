@@ -1,6 +1,5 @@
 package io.smallrye.graphql.schema.model;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,8 +51,12 @@ public final class EnumValue {
         return directiveInstances != null && !directiveInstances.isEmpty();
     }
 
-    public Collection<DirectiveInstance> getDirectiveInstances() {
+    public List<DirectiveInstance> getDirectiveInstances() {
         return directiveInstances;
+    }
+
+    public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
+        this.directiveInstances = directiveInstances;
     }
 
 }
