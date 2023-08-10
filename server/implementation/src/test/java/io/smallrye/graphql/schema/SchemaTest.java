@@ -6,6 +6,7 @@ import static graphql.introspection.Introspection.DirectiveLocation.OBJECT;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -122,6 +124,24 @@ class SchemaTest {
                 "Enum value EnumWithDirectives.A should have directive @enumDirective");
         assertNull(enumWithDirectives.getValue("B").getDirective("enumDirective"),
                 "Enum value EnumWithDirectives.B should not have directive @enumDirective");
+    }
+
+    @Test
+    void schemaWithUnionDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(UnionDirective.class, UnionTestApi.class,
+                UnionTestApi.SomeUnion.class, UnionTestApi.SomeClass.class);
+
+        GraphQLUnionType unionWithDirectives = graphQLSchema.getTypeAs("SomeUnion");
+        List<GraphQLDirective> unionDirectives = unionWithDirectives.getDirectives("unionDirective");
+        assertFalse(unionDirectives.isEmpty(),
+                "Union SomeUnion should have directive @unionDirective");
+        assertEquals(3, unionDirectives.size(), "Union SomeUnion should have 3 @unionDirective instances");
+        Set<String> expectedDirectivesArgValues = new HashSet<>(Arrays.asList("A", "B", "C"));
+        unionDirectives.forEach(directive -> directive.getArguments()
+                .forEach(argument -> assertFalse(expectedDirectivesArgValues.add(argument.toAppliedArgument().getValue()),
+                        "Unexpected directive argument value")));
+        assertTrue(unionWithDirectives.getDirectives("InputDirective").isEmpty(),
+                "Union SomeUnion should not have a directive @inputDirective");
     }
 
     @Test
