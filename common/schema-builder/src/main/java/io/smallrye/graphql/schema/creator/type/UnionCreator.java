@@ -52,7 +52,6 @@ public class UnionCreator implements Creator<UnionType> {
 
     }
 
-    // TODO: create feature that allows adding UNION directives  (graphql.schema)
     @Override
     public String getDirectiveLocation() {
         return "UNION";
