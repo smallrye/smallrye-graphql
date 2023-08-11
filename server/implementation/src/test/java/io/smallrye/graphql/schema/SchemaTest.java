@@ -120,10 +120,13 @@ class SchemaTest {
         GraphQLEnumType enumWithDirectives = graphQLSchema.getTypeAs("EnumWithDirectives");
         assertNotNull(enumWithDirectives.getDirective("enumDirective"),
                 "Enum EnumWithDirectives should have directive @enumDirective");
+        assertEquals("EnumWithDirectives description", enumWithDirectives.getDescription());
         assertNotNull(enumWithDirectives.getValue("A").getDirective("enumDirective"),
                 "Enum value EnumWithDirectives.A should have directive @enumDirective");
+        assertEquals("A description", enumWithDirectives.getValue("A").getDescription());
         assertNull(enumWithDirectives.getValue("B").getDirective("enumDirective"),
                 "Enum value EnumWithDirectives.B should not have directive @enumDirective");
+        assertNull(enumWithDirectives.getValue("B").getDescription());
     }
 
     @Test
@@ -142,6 +145,7 @@ class SchemaTest {
                         "Unexpected directive argument value")));
         assertTrue(unionWithDirectives.getDirectives("InputDirective").isEmpty(),
                 "Union SomeUnion should not have a directive @inputDirective");
+        assertEquals("Union description", unionWithDirectives.getDescription());
     }
 
     @Test
@@ -152,8 +156,10 @@ class SchemaTest {
         GraphQLInputObjectType inputWithDirectives = graphQLSchema.getTypeAs("InputWithDirectivesInput");
         assertNotNull(inputWithDirectives.getDirective("inputDirective"),
                 "Input type InputWithDirectivesInput should have directive @inputDirective");
+        assertEquals("InputType description", inputWithDirectives.getDescription());
         assertNotNull(inputWithDirectives.getField("foo").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.foo should have directive @inputDirective");
+        assertEquals("InputTypeField description", inputWithDirectives.getField("foo").getDescription());
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
 
@@ -275,6 +281,7 @@ class SchemaTest {
                 .collect(Collectors.toList()).forEach(composeDirective -> composeDirective.getArguments()
                         .forEach(argument -> assertTrue(!expectedArgValues.add(argument.getValue()),
                                 "Unexpected directive argument value")));
+        assertEquals("Schema description", graphQLSchema.getDescription());
     }
 
     @Test
@@ -357,14 +364,14 @@ class SchemaTest {
         assertRolesAllowedDirective(adminPasswordField, "admin");
     }
 
-    private static void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
+    private void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
         assertEquals("key", graphQLDirective.getName());
         assertEquals(1, graphQLDirective.getArguments().size());
         assertEquals("fields", graphQLDirective.getArguments().get(0).getName());
         assertEquals(value, graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue());
     }
 
-    public static void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {
+    private void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {
         assertNotNull(field);
 
         if (Objects.isNull(roleValue)) {

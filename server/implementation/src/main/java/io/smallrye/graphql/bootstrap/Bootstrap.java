@@ -174,6 +174,7 @@ public class Bootstrap {
                 createGraphQLDirectives(schema.getDirectiveInstances()))
                 .map(graphQLDirective -> graphQLDirective.toAppliedDirective())
                 .collect(Collectors.toList()));
+        schemaBuilder.description(schema.getDescription());
         schemaBuilder.additionalDirectives(directiveTypes);
         schemaBuilder.additionalTypes(new HashSet<>(enumMap.values()));
         schemaBuilder.additionalTypes(new HashSet<>(interfaceMap.values()));

@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -27,6 +28,7 @@ public class UnionTestApi {
     @UnionDirective(value = "A")
     @InputDirective // should be ignored
     @UnionDirective(value = "B")
+    @Description("Union description")
     interface SomeUnion {
     }
 
