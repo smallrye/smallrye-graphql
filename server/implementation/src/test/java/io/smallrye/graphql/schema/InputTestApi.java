@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -19,8 +20,10 @@ public class InputTestApi {
     }
 
     @InputDirective
+    @Description("InputType description")
     public static class InputWithDirectives {
         @InputDirective
+        @Description("InputTypeField description")
         public int foo;
 
         @InputDirective

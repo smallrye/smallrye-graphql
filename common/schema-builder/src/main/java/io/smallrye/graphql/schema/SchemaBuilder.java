@@ -34,6 +34,7 @@ import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
 import io.smallrye.graphql.schema.creator.type.TypeCreator;
 import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
+import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
@@ -123,24 +124,8 @@ public class SchemaBuilder {
         Directives directivesHelper = new Directives(schema.getDirectiveTypes());
         setupDirectives(directivesHelper);
 
-        Set<String> directiveClassNames = new HashSet<>();
-        for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
-            Annotations annotations = Annotations.getAnnotationsForClass(graphQLApiAnnotation.target().asClass());
-            schema.getDirectiveInstances()
-                    .addAll(directivesHelper
-                            .buildDirectiveInstances(annotations, "SCHEMA")
-                            .stream()
-                            .map(directiveInstance -> {
-                                String directiveClassName = directiveInstance.getType().getClassName();
-                                if (!directiveInstance.getType().isRepeatable()
-                                        && !directiveClassNames.add(directiveClassName)) {
-                                    throw new SchemaBuilderException("The @" + directiveInstance.getType().getName()
-                                            + " directive is not repeatable, but was used more than once in the GraphQL" +
-                                            " schema.");
-                                }
-                                return directiveInstance;
-                            }).collect(Collectors.toList()));
-        }
+        // add AppliedSchemaDirectives and Schema Description
+        setUpSchemaDirectivesAndDescription(schema, graphQLApiAnnotations, directivesHelper);
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
@@ -377,5 +362,46 @@ public class SchemaBuilder {
                 }
             }
         }
+    }
+
+    private void setUpSchemaDirectivesAndDescription(Schema schema,
+            Collection<AnnotationInstance> graphQLApiAnnotations,
+            Directives directivesHelper) {
+        Set<String> directiveClassNames = new HashSet<>();
+        for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
+            Annotations annotations = Annotations.getAnnotationsForClass(graphQLApiAnnotation.target().asClass());
+            getSchemaDirectives(schema, directiveClassNames, annotations, directivesHelper);
+            getDescription(annotations).ifPresent(description -> {
+                if (schema.getDescription() == null) {
+                    schema.setDescription(description);
+                } else {
+                    LOG.warn("Duplicate @description annotation for @GraphQLApi class");
+                }
+            });
+        }
+    }
+
+    private Optional<String> getDescription(Annotations annotations) {
+        return DescriptionHelper.getDescriptionForType(annotations);
+    }
+
+    private void getSchemaDirectives(Schema schema,
+            Set<String> directiveClassNames,
+            Annotations annotations,
+            Directives directivesHelper) {
+        schema.getDirectiveInstances()
+                .addAll(directivesHelper
+                        .buildDirectiveInstances(annotations, "SCHEMA")
+                        .stream()
+                        .map(directiveInstance -> {
+                            String directiveClassName = directiveInstance.getType().getClassName();
+                            if (!directiveInstance.getType().isRepeatable()
+                                    && !directiveClassNames.add(directiveClassName)) {
+                                throw new SchemaBuilderException("The @" + directiveInstance.getType().getName()
+                                        + " directive is not repeatable, but was used more than once in the GraphQL" +
+                                        " schema.");
+                            }
+                            return directiveInstance;
+                        }).collect(Collectors.toList()));
     }
 }

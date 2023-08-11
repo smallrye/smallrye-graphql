@@ -17,6 +17,7 @@ import java.util.Set;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public final class Schema implements Serializable {
+    private String description;
     private Set<Operation> queries = new HashSet<>();
     private Set<Operation> mutations = new HashSet<>();
     private Set<Operation> subscriptions = new HashSet<>();
@@ -337,13 +338,38 @@ public final class Schema implements Serializable {
 
     @Override
     public String toString() {
-        return "Schema{" + "queries=" + queries + ", mutations=" + mutations + ", subscriptions=" + subscriptions
-                + ", groupedQueries=" + groupedQueries + ", groupedMutations=" + groupedMutations + ", groupedSubscriptions="
-                + groupedSubscriptions + ", directiveTypes=" + directiveTypes + ", inputs=" + inputs + ", types=" + types
-                + ", interfaces=" + interfaces + ", enums=" + enums + ", errors=" + errors + '}';
+        return "Schema{" +
+                "description='" + description + '\'' +
+                ", queries=" + queries +
+                ", mutations=" + mutations +
+                ", subscriptions=" + subscriptions +
+                ", groupedQueries=" + groupedQueries +
+                ", groupedMutations=" + groupedMutations +
+                ", groupedSubscriptions=" + groupedSubscriptions +
+                ", directiveTypes=" + directiveTypes +
+                ", inputs=" + inputs +
+                ", types=" + types +
+                ", interfaces=" + interfaces +
+                ", unions=" + unions +
+                ", enums=" + enums +
+                ", errors=" + errors +
+                ", directiveInstances=" + directiveInstances +
+                '}';
     }
 
     public List<DirectiveInstance> getDirectiveInstances() {
         return directiveInstances;
+    }
+
+    public void setDirectiveInstances(List<DirectiveInstance> directiveInstances) {
+        this.directiveInstances = directiveInstances;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

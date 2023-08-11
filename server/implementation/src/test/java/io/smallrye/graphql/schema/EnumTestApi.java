@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -12,8 +13,10 @@ public class EnumTestApi {
     }
 
     @EnumDirective
+    @Description("EnumWithDirectives description")
     public enum EnumWithDirectives {
         @EnumDirective
+        @Description("A description")
         A,
         B
     }
