@@ -70,7 +70,6 @@ public class InputTypeCreator implements Creator<InputType> {
 
         // Directives
         inputType.setDirectiveInstances(getDirectiveInstances(annotations));
-
         // Fields
         addFields(inputType, classInfo, reference);
 

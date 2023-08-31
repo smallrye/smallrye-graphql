@@ -106,9 +106,8 @@ public class FieldCreator extends ModelCreator {
                     reference);
             if (direction == Direction.IN) {
                 addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
-                addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             }
-
+            addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             populateField(direction, field, fieldType, methodType, annotationsForPojo);
 
             return Optional.of(field);
@@ -166,8 +165,8 @@ public class FieldCreator extends ModelCreator {
                     reference);
             if (direction == Direction.IN) {
                 addDirectivesForBeanValidationConstraints(annotationsForPojo, field, parentObjectReference);
-                addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             }
+            addDirectivesForDeprecated(annotationsForPojo, field, parentObjectReference);
             populateField(direction, field, fieldType, annotationsForPojo);
 
             return Optional.of(field);
@@ -191,14 +190,14 @@ public class FieldCreator extends ModelCreator {
     private void addDirectivesForDeprecated(Annotations annotationsForPojo, Field field,
             Reference parentObjectReference) {
         if (deprecatedHelper != null && directives != null) {
-            List<DirectiveInstance> deprecatedDirectives = deprecatedHelper
-                    .transformDeprecatedToDirectives(annotationsForPojo,
-                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")));
-            if (!deprecatedDirectives.isEmpty()) {
-                logger.debug("Adding deprecated directives " + deprecatedDirectives + " to field '" + field.getName()
-                        + "' of parent type '" + parentObjectReference.getName() + "'");
-                field.addDirectiveInstances(deprecatedDirectives);
-            }
+            deprecatedHelper
+                    .transformDeprecatedToDirective(annotationsForPojo,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")))
+                    .ifPresent(deprecatedDirectives -> {
+                        logger.debug("Adding deprecated directives " + deprecatedDirectives + " to field '" + field.getName()
+                                + "' of parent type '" + parentObjectReference.getName() + "'");
+                        field.addDirectiveInstance(deprecatedDirectives);
+                    });
         }
     }
 

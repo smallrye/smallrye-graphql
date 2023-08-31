@@ -2,7 +2,6 @@ package io.smallrye.graphql.schema.creator;
 
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -13,11 +12,11 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.SchemaBuilderException;
+import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.model.Argument;
-import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
@@ -41,6 +40,7 @@ public class OperationCreator extends ModelCreator {
     private final ArgumentCreator argumentCreator;
 
     private final RolesAllowedDirectivesHelper rolesAllowedHelper;
+    private final DeprecatedDirectivesHelper deprecatedHelper;
 
     private final Logger logger = Logger.getLogger(OperationCreator.class.getName());
 
@@ -48,6 +48,7 @@ public class OperationCreator extends ModelCreator {
         super(referenceCreator);
         this.argumentCreator = argumentCreator;
         this.rolesAllowedHelper = new RolesAllowedDirectivesHelper();
+        this.deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
     /**
@@ -101,6 +102,7 @@ public class OperationCreator extends ModelCreator {
             maybeArgument.ifPresent(operation::addArgument);
         }
         addDirectivesForRolesAllowed(annotationsForMethod, annotationsForClass, operation, reference);
+        addDirectiveForDeprecated(annotationsForMethod, operation);
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
         if (operation.hasWrapper()) {
@@ -245,14 +247,28 @@ public class OperationCreator extends ModelCreator {
         return Execute.DEFAULT;
     }
 
-    private void addDirectivesForRolesAllowed(Annotations annotationsForPojo, Annotations classAnnotations, Operation operation,
+    private void addDirectivesForRolesAllowed(Annotations annotationsForOperation, Annotations classAnnotations,
+            Operation operation,
             Reference parentObjectReference) {
-        DirectiveInstance rolesAllowedDirectives = rolesAllowedHelper
-                .transformRolesAllowedToDirectives(annotationsForPojo, classAnnotations);
-        if (!Objects.isNull(rolesAllowedDirectives)) {
-            logger.debug("Adding rolesAllowed directive " + rolesAllowedDirectives + " to method '" + operation.getName()
-                    + "' of parent type '" + parentObjectReference.getName() + "'");
-            operation.addDirectiveInstance(rolesAllowedDirectives);
+        rolesAllowedHelper
+                .transformRolesAllowedToDirectives(annotationsForOperation, classAnnotations)
+                .ifPresent(rolesAllowedDirective -> {
+                    logger.debug("Adding rolesAllowed directive " + rolesAllowedDirective + " to method '" + operation.getName()
+                            + "'");
+                    operation.addDirectiveInstance(rolesAllowedDirective);
+                });
+    }
+
+    private void addDirectiveForDeprecated(Annotations annotationsForOperation, Operation operation) {
+        if (deprecatedHelper != null && directives != null) {
+            deprecatedHelper
+                    .transformDeprecatedToDirective(annotationsForOperation,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")))
+                    .ifPresent(deprecatedDirective -> {
+                        logger.debug("Adding deprecated directive " + deprecatedDirective + " to method '" + operation.getName()
+                                + "'");
+                        operation.addDirectiveInstance(deprecatedDirective);
+                    });
         }
     }
 

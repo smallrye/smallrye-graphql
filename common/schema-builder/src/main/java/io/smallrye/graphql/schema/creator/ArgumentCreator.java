@@ -103,14 +103,16 @@ public class ArgumentCreator extends ModelCreator {
             }
         }
         if (deprecatedHelper != null && directives != null) {
-            List<DirectiveInstance> deprecatedDirectives = deprecatedHelper
-                    .transformDeprecatedToDirectives(annotationsForThisArgument,
-                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")));
-            if (!deprecatedDirectives.isEmpty()) {
-                logger.debug("Adding deprecated directives " + deprecatedDirectives + " to field '" + argument.getName()
-                        + "' of  of method '" + argument.getMethodName() + "'");
-                argument.addDirectiveInstances(deprecatedDirectives);
-            }
+            deprecatedHelper
+                    .transformDeprecatedToDirective(annotationsForThisArgument,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")))
+                    .ifPresent(deprecatedDirective -> {
+                        logger.debug(
+                                "Adding deprecated directive " + deprecatedDirective + " to argument '"
+                                        + argument.getName()
+                                        + "' of method '" + argument.getMethodName() + "'");
+                        argument.addDirectiveInstance(deprecatedDirective);
+                    });
         }
 
         populateField(Direction.IN, argument, argumentType, annotationsForThisArgument);
