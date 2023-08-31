@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.helper;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.jboss.jandex.AnnotationValue;
@@ -34,7 +35,7 @@ public class RolesAllowedDirectivesHelper {
         return arg;
     }
 
-    public DirectiveInstance transformRolesAllowedToDirectives(Annotations methodAnnotations,
+    public Optional<DirectiveInstance> transformRolesAllowedToDirectives(Annotations methodAnnotations,
             Annotations classAnnotations) {
 
         Set<DotName> annotationNames = new HashSet<>(methodAnnotations.getAnnotationNames());
@@ -52,10 +53,10 @@ public class RolesAllowedDirectivesHelper {
                     value = getStringValue(classAnnotations, annotationName, "value");
                 }
                 directive.setValue("value", value);
-                return directive;
+                return Optional.of(directive);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private String getStringValue(Annotations annotations, DotName annotationName, String parameterName) {

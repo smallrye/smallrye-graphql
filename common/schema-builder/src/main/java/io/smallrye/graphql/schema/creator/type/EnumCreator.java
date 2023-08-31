@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.Directives;
@@ -32,8 +34,11 @@ public class EnumCreator implements Creator<EnumType> {
     private final TypeAutoNameStrategy autoNameStrategy;
     private Directives directives;
 
+    private final DeprecatedDirectivesHelper deprecatedHelper;
+
     public EnumCreator(TypeAutoNameStrategy autoNameStrategy) {
         this.autoNameStrategy = autoNameStrategy;
+        this.deprecatedHelper = new DeprecatedDirectivesHelper();
     }
 
     public void setDirectives(Directives directives) {
@@ -69,8 +74,11 @@ public class EnumCreator implements Creator<EnumType> {
                 if (!field.type().kind().equals(Type.Kind.ARRAY) && !IgnoreHelper.shouldIgnore(annotationsForField, field)) {
                     String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
                             .orElse(null);
-                    enumType.addValue(
-                            new EnumValue(description, field.name(), getDirectiveInstances(annotationsForField, true)));
+                    EnumValue enumValue = new EnumValue(description, field.name(),
+                            getDirectiveInstances(annotationsForField, true));
+                    addDirectiveForDeprecated(annotationsForField, enumValue);
+                    enumType.addValue(enumValue);
+
                 }
             }
         }
@@ -86,6 +94,20 @@ public class EnumCreator implements Creator<EnumType> {
     private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, boolean enumValue) {
         // enumValue for switching if to filter out ENUM_VALUE directives or ENUM
         return directives.buildDirectiveInstances(annotations, enumValue ? "ENUM_VALUE" : getDirectiveLocation());
+    }
+
+    private void addDirectiveForDeprecated(Annotations annotationsForOperation, EnumValue enumValue) {
+        if (deprecatedHelper != null && directives != null) {
+            deprecatedHelper
+                    .transformDeprecatedToDirective(annotationsForOperation,
+                            directives.getDirectiveTypes().get(DotName.createSimple("io.smallrye.graphql.api.Deprecated")))
+                    .ifPresent(deprecatedDirective -> {
+                        LOG.debug(
+                                "Adding deprecated directive " + deprecatedDirective + " to enum value '" + enumValue.getValue()
+                                        + "'");
+                        enumValue.addDirectiveInstance(deprecatedDirective);
+                    });
+        }
     }
 
 }

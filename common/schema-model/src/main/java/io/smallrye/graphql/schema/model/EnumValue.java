@@ -59,4 +59,7 @@ public final class EnumValue {
         this.directiveInstances = directiveInstances;
     }
 
+    public void addDirectiveInstance(DirectiveInstance directiveInstance) {
+        this.directiveInstances.add(directiveInstance);
+    }
 }

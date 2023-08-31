@@ -147,11 +147,12 @@ public class GenerateSchemaMojo extends AbstractMojo {
         // even if includeDependencies=false
         Predicate<Artifact> isMutiny = a -> a.getGroupId().equals("io.smallrye.reactive") &&
                 a.getArtifactId().equals("mutiny");
+        Predicate<Artifact> isSmallRyeGraphQLApi = a -> a.getGroupId().equals("io.smallrye") &&
+                a.getArtifactId().equals("smallrye-graphql-api");
         mavenProject.getArtifacts()
                 .stream()
-                .filter(isMutiny)
-                .findAny()
-                .ifPresent(a -> {
+                .filter(a -> isMutiny.test((Artifact) a) || isSmallRyeGraphQLApi.test((Artifact) a))
+                .forEach(a -> {
                     Result r = indexJar(((Artifact) a).getFile());
                     if (r != null) {
                         indexes.add(r.getIndex());
@@ -165,7 +166,7 @@ public class GenerateSchemaMojo extends AbstractMojo {
                         && includeDependenciesTypes.contains(artifact.getType())
                         && (includeDependenciesGroupIds.isEmpty() ||
                                 includeDependenciesGroupIds.contains(artifact.getGroupId()))
-                        && !isMutiny.test(artifact)) {
+                        && !isMutiny.test(artifact) && !isSmallRyeGraphQLApi.test(artifact)) {
 
                     Index index = indexArtifact(artifact);
                     if (index != null) {

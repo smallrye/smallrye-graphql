@@ -206,9 +206,7 @@ public class Field implements Serializable {
     }
 
     public void addDirectiveInstance(DirectiveInstance directiveInstance) {
-        if (directiveInstances != null) {
-            this.directiveInstances.add(directiveInstance);
-        }
+        this.directiveInstances.add(directiveInstance);
     }
 
     @Override
