@@ -1,15 +1,17 @@
 package io.smallrye.graphql.bootstrap;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.apollographql.federation.graphqljava._Entity;
 
+import graphql.execution.Async;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DelegatingDataFetchingEnvironment;
@@ -20,7 +22,7 @@ import graphql.schema.GraphQLNamedSchemaElement;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 
-class FederationDataFetcher implements DataFetcher<List<Object>> {
+class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object>>> {
 
     private final GraphQLObjectType queryType;
     private final GraphQLCodeRegistry codeRegistry;
@@ -31,10 +33,11 @@ class FederationDataFetcher implements DataFetcher<List<Object>> {
     }
 
     @Override
-    public List<Object> get(DataFetchingEnvironment environment) throws Exception {
-        return environment.<List<Map<String, Object>>> getArgument(_Entity.argumentName).stream()
-                .map(representations -> fetchEntities(environment, representations))
-                .collect(toList());
+    public CompletableFuture<List<Object>> get(DataFetchingEnvironment environment) throws Exception {
+        return sequence(environment.<List<Map<String, Object>>> getArgument(_Entity.argumentName).stream()
+                .map(representations -> fetchEntities(environment, representations)).map(Async::toCompletableFuture)
+                .collect(Collectors.toList()));
+
     }
 
     private Object fetchEntities(DataFetchingEnvironment env, Map<String, Object> representations) {
@@ -89,5 +92,12 @@ class FederationDataFetcher implements DataFetcher<List<Object>> {
         } catch (Exception e) {
             throw new RuntimeException("can't fetch data from " + field, e);
         }
+    }
+
+    static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {
+        return CompletableFuture.allOf(com.toArray(new CompletableFuture<?>[0]))
+                .thenApply(v -> com.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
     }
 }
