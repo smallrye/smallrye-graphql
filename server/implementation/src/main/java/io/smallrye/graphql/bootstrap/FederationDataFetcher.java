@@ -1,26 +1,16 @@
 package io.smallrye.graphql.bootstrap;
 
+import com.apollographql.federation.graphqljava._Entity;
+import graphql.schema.*;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.apollographql.federation.graphqljava._Entity;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DelegatingDataFetchingEnvironment;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLCodeRegistry;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLNamedSchemaElement;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-
-class FederationDataFetcher implements DataFetcher<List<Object>> {
+class FederationDataFetcher implements DataFetcher<Object> {
 
     private final GraphQLObjectType queryType;
     private final GraphQLCodeRegistry codeRegistry;
@@ -31,10 +21,10 @@ class FederationDataFetcher implements DataFetcher<List<Object>> {
     }
 
     @Override
-    public List<Object> get(DataFetchingEnvironment environment) throws Exception {
-        return environment.<List<Map<String, Object>>> getArgument(_Entity.argumentName).stream()
+    public Object get(DataFetchingEnvironment environment) throws Exception {
+        return collect(environment.<List<Map<String, Object>>> getArgument(_Entity.argumentName).stream()
                 .map(representations -> fetchEntities(environment, representations))
-                .collect(toList());
+                .collect(toList()));
     }
 
     private Object fetchEntities(DataFetchingEnvironment env, Map<String, Object> representations) {
@@ -89,5 +79,15 @@ class FederationDataFetcher implements DataFetcher<List<Object>> {
         } catch (Exception e) {
             throw new RuntimeException("can't fetch data from " + field, e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object collect(List<Object> entities) {
+        if (!entities.isEmpty() && entities.iterator().next() instanceof CompletionStage) {
+            List<CompletableFuture<?>> futures = (List<CompletableFuture<?>>)(List<?>) entities;
+            return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                    .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(toList()));
+        }
+        return entities;
     }
 }
