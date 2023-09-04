@@ -1,14 +1,15 @@
 package io.smallrye.graphql.bootstrap;
 
-import com.apollographql.federation.graphqljava._Entity;
-import graphql.schema.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import com.apollographql.federation.graphqljava._Entity;
+
+import graphql.schema.*;
 
 class FederationDataFetcher implements DataFetcher<Object> {
 
@@ -84,7 +85,7 @@ class FederationDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings("unchecked")
     private Object collect(List<Object> entities) {
         if (!entities.isEmpty() && entities.iterator().next() instanceof CompletionStage) {
-            List<CompletableFuture<?>> futures = (List<CompletableFuture<?>>)(List<?>) entities;
+            List<CompletableFuture<?>> futures = (List<CompletableFuture<?>>) (List<?>) entities;
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                     .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(toList()));
         }
