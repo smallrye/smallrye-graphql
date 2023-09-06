@@ -96,8 +96,8 @@ jobs:
       - name: checkout Quarkus repository
         uses: actions/checkout@v2
         with:
-          repository: mskacelik/quarkus
-          ref: SmallRye-GraphQL-2.4
+          repository: quarkusio/quarkus
+          ref: main
           path: quarkus
 
       - uses: actions/setup-java@v3.10.0
