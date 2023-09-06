@@ -6,9 +6,6 @@ updates:
     interval: daily
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: org.webjars.npm:graphiql
-    versions:
-    - 1.4.1
   - dependency-name: io.smallrye.config:smallrye-config
     versions:
     - 2.2.0
