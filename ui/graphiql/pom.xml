@@ -22,7 +22,7 @@
     <dependencies>
         <!-- Here so that dependabot will tell us about an update -->
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.mvnpm</groupId>
             <artifactId>graphiql</artifactId>
             <version>${graphiql.version}</version>
             <scope>provided</scope>
@@ -36,9 +36,9 @@
         <!-- NOTE: The following dependencies can be uncommented to include
          the GraphiQL plugin explorer in the project -->
         <!--        <dependency>-->
-<!--            <groupId>org.webjars.npm</groupId>-->
-<!--            <artifactId>graphiql__plugin-explorer</artifactId>-->
-<!--            <version>0.1.19</version>-->
+<!--            <groupId>org.mvnpm.at.graphiql</groupId>-->
+<!--            <artifactId>plugin-explorer</artifactId>-->
+<!--            <version>0.3.4</version>-->
 <!--            <scope>provided</scope>-->
 <!--            <exclusions>-->
 <!--                <exclusion>-->
@@ -48,7 +48,7 @@
 <!--            </exclusions>-->
 <!--        </dependency>-->
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.mvnpm</groupId>
             <artifactId>react</artifactId>
             <version>${react.version}</version>
             <scope>provided</scope>
@@ -60,7 +60,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.webjars.npm</groupId>
+            <groupId>org.mvnpm</groupId>
             <artifactId>react-dom</artifactId>
             <version>${react.version}</version>
             <scope>provided</scope>
@@ -113,7 +113,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.webjars.npm</groupId>
+                                    <groupId>org.mvnpm</groupId>
                                     <artifactId>graphiql</artifactId>
                                     <version>${graphiql.version}</version>
                                     <type>jar</type>
@@ -125,7 +125,7 @@
                                     </fileMappers>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>org.webjars.npm</groupId>
+                                    <groupId>org.mvnpm</groupId>
                                     <artifactId>react</artifactId>
                                     <version>${react.version}</version>
                                     <type>jar</type>
@@ -137,7 +137,7 @@
                                     </fileMappers>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>org.webjars.npm</groupId>
+                                    <groupId>org.mvnpm</groupId>
                                     <artifactId>react-dom</artifactId>
                                     <version>${react.version}</version>
                                     <type>jar</type>
@@ -151,9 +151,9 @@
                                 <!-- NOTE: The following dependencies can be uncommented to include
          the GraphiQL plugin explorer in the project -->
 <!--                                <artifactItem>-->
-<!--                                    <groupId>org.webjars.npm</groupId>-->
-<!--                                    <artifactId>graphiql__plugin-explorer</artifactId>-->
-<!--                                    <version>0.1.19</version>-->
+<!--                                    <groupId>org.mvnpm.at.graphiql</groupId>-->
+<!--                                    <artifactId>plugin-explorer</artifactId>-->
+<!--                                    <version>0.3.4</version>-->
 <!--                                    <type>jar</type>-->
 <!--                                    <overWrite>true</overWrite>-->
 <!--                                    <outputDirectory>${project.build.directory}/classes/META-INF/resources/${path.graphiql}/</outputDirectory>-->
