@@ -14,6 +14,7 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String ENABLE_TRACING = "smallrye.graphql.tracing.enabled";
     public static final String ENABLE_EVENTS = "smallrye.graphql.events.enabled";
     public static final String ENABLE_FEDERATION = "smallrye.graphql.federation.enabled";
+    public static final String ENABLE_FEDERATION_BATCH_RESOLVING = "smallrye.graphql.federation.batchResolving.enabled";
     public static final String SCHEMA_INCLUDE_SCALARS = "smallrye.graphql.schema.includeScalars";
     public static final String SCHEMA_INCLUDE_DEFINITION = "smallrye.graphql.schema.includeSchemaDefinition";
     public static final String SCHEMA_INCLUDE_DIRECTIVES = "smallrye.graphql.schema.includeDirectives";

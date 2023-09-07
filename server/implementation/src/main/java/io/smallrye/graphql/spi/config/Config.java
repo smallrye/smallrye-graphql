@@ -159,6 +159,10 @@ public interface Config {
         return false;
     }
 
+    default boolean isFederationBatchResolvingEnabled() {
+        return false;
+    }
+
     default LogPayloadOption logPayload() {
         return LogPayloadOption.off;
     }
