@@ -74,14 +74,14 @@ abstract class AbstractCreator implements Creator<Type> {
         addOperations(type, classInfo);
 
         // Directives
-        addDirectives(type, annotations, getDirectiveLocation());
+        addDirectives(type, annotations, getDirectiveLocation(), type.getClassName());
         return type;
     }
 
     protected abstract void addFields(Type type, ClassInfo classInfo, Reference reference);
 
-    private void addDirectives(Type type, Annotations annotations, String directiveLocation) {
-        type.setDirectiveInstances(directives.buildDirectiveInstances(annotations, directiveLocation));
+    private void addDirectives(Type type, Annotations annotations, String directiveLocation, String referenceName) {
+        type.setDirectiveInstances(directives.buildDirectiveInstances(annotations, directiveLocation, referenceName));
     }
 
     private void addPolymorphicTypes(Type type, ClassInfo classInfo, Reference reference) {

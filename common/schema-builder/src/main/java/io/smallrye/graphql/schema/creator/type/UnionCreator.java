@@ -46,7 +46,7 @@ public class UnionCreator implements Creator<UnionType> {
         UnionType unionType = new UnionType(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
         // Directives
-        unionType.setDirectiveInstances(getDirectiveInstances(annotations));
+        unionType.setDirectiveInstances(getDirectiveInstances(annotations, unionType.getClassName()));
 
         return unionType;
 
@@ -57,8 +57,8 @@ public class UnionCreator implements Creator<UnionType> {
         return "UNION";
     }
 
-    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, String referenceName) {
+        return directives.buildDirectiveInstances(annotations, getDirectiveLocation(), referenceName);
     }
 
     public void setDirectives(Directives directives) {

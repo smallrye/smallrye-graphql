@@ -370,7 +370,8 @@ public class SchemaBuilder {
         Set<String> directiveClassNames = new HashSet<>();
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             Annotations annotations = Annotations.getAnnotationsForClass(graphQLApiAnnotation.target().asClass());
-            getSchemaDirectives(schema, directiveClassNames, annotations, directivesHelper);
+            getSchemaDirectives(schema, directiveClassNames, annotations, directivesHelper,
+                    String.valueOf(graphQLApiAnnotation.target().asClass().name()));
             getDescription(annotations).ifPresent(description -> {
                 if (schema.getDescription() == null) {
                     schema.setDescription(description);
@@ -388,10 +389,10 @@ public class SchemaBuilder {
     private void getSchemaDirectives(Schema schema,
             Set<String> directiveClassNames,
             Annotations annotations,
-            Directives directivesHelper) {
+            Directives directivesHelper, String schemaClassName) {
         schema.getDirectiveInstances()
                 .addAll(directivesHelper
-                        .buildDirectiveInstances(annotations, "SCHEMA")
+                        .buildDirectiveInstances(annotations, "SCHEMA", schemaClassName)
                         .stream()
                         .map(directiveInstance -> {
                             String directiveClassName = directiveInstance.getType().getClassName();

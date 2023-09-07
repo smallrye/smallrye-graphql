@@ -69,7 +69,7 @@ public class InputTypeCreator implements Creator<InputType> {
         InputType inputType = new InputType(classInfo.name().toString(), name, description);
 
         // Directives
-        inputType.setDirectiveInstances(getDirectiveInstances(annotations));
+        inputType.setDirectiveInstances(getDirectiveInstances(annotations, inputType.getClassName()));
         // Fields
         addFields(inputType, classInfo, reference);
 
@@ -140,8 +140,8 @@ public class InputTypeCreator implements Creator<InputType> {
         this.directives = directives;
     }
 
-    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations) {
-        return directives.buildDirectiveInstances(annotations, getDirectiveLocation());
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, String referenceName) {
+        return directives.buildDirectiveInstances(annotations, getDirectiveLocation(), referenceName);
     }
 
     private void addFields(InputType inputType, ClassInfo classInfo, Reference reference) {
