@@ -64,7 +64,7 @@ public class EnumCreator implements Creator<EnumType> {
         EnumType enumType = new EnumType(classInfo.name().toString(), name, maybeDescription.orElse(null));
 
         // Directives
-        enumType.setDirectiveInstances(getDirectiveInstances(annotations, false));
+        enumType.setDirectiveInstances(getDirectiveInstances(annotations, enumType.getClassName(), false));
 
         // Values
         List<FieldInfo> fields = classInfo.fields();
@@ -75,7 +75,7 @@ public class EnumCreator implements Creator<EnumType> {
                     String description = annotationsForField.getOneOfTheseAnnotationsValue(Annotations.DESCRIPTION)
                             .orElse(null);
                     EnumValue enumValue = new EnumValue(description, field.name(),
-                            getDirectiveInstances(annotationsForField, true));
+                            getDirectiveInstances(annotationsForField, field.name(), true));
                     addDirectiveForDeprecated(annotationsForField, enumValue);
                     enumType.addValue(enumValue);
 
@@ -91,9 +91,10 @@ public class EnumCreator implements Creator<EnumType> {
         return "ENUM";
     }
 
-    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, boolean enumValue) {
+    private List<DirectiveInstance> getDirectiveInstances(Annotations annotations, String referenceName, boolean enumValue) {
         // enumValue for switching if to filter out ENUM_VALUE directives or ENUM
-        return directives.buildDirectiveInstances(annotations, enumValue ? "ENUM_VALUE" : getDirectiveLocation());
+        return directives.buildDirectiveInstances(annotations, enumValue ? "ENUM_VALUE" : getDirectiveLocation(),
+                referenceName);
     }
 
     private void addDirectiveForDeprecated(Annotations annotationsForOperation, EnumValue enumValue) {

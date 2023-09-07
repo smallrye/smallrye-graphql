@@ -99,7 +99,8 @@ public abstract class ModelCreator {
 
         // Directives
         if (directives != null) { // this happens while scanning for the directive types
-            field.addDirectiveInstances(directives.buildDirectiveInstances(annotations, getDirectiveLocation(direction)));
+            field.addDirectiveInstances(directives.buildDirectiveInstances(annotations, getDirectiveLocation(direction),
+                    field.getName()));
         }
     }
 
