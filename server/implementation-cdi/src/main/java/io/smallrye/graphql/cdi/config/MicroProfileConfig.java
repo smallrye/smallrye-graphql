@@ -27,6 +27,7 @@ public class MicroProfileConfig implements Config {
     private Boolean tracingEnabled;
     private Boolean eventsEnabled;
     private Boolean federationEnabled;
+    private Boolean federationBatchResolvingEnabled;
     private Boolean includeScalarsInSchema;
     private Boolean includeDirectivesInSchema;
     private Boolean includeSchemaDefinitionInSchema;
@@ -137,6 +138,14 @@ public class MicroProfileConfig implements Config {
             federationEnabled = getBooleanConfigValue(ConfigKey.ENABLE_FEDERATION, true);
         }
         return federationEnabled;
+    }
+
+    @Override
+    public boolean isFederationBatchResolvingEnabled() {
+        if (federationBatchResolvingEnabled == null) {
+            federationBatchResolvingEnabled = getBooleanConfigValue(ConfigKey.ENABLE_FEDERATION_BATCH_RESOLVING, false);
+        }
+        return federationBatchResolvingEnabled;
     }
 
     @Override

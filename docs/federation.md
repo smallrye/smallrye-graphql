@@ -60,3 +60,27 @@ type Query {
 ```
 
 If you can resolve, e.g., the product with different types of ids, you can add multiple `@Key` annotations.
+## Federation Batch Resolver
+
+For better performance, there is the option to use batch resolvers with federation. This is not activated on default. It can be activated by setting `smallrye.graphql.federation.batchResolving.enabled` config key to `true`.
+
+It is not needed to provide batch resolvers for all entities, if there is no batch resolver, a non-batch resolver is used.
+
+```java
+package org.example.price;
+
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Id;
+import org.eclipse.microprofile.graphql.Query;
+
+@GraphQLApi
+public class Prices {
+    @Query
+    public List<Product> product(@Id List<String> id) {
+        return ...
+    }
+}
+```
+
+It is crucial that the sequence of argument list matches with the order of result list. Currently, the name of the Argument `id` must match with the property name in the type.
+
