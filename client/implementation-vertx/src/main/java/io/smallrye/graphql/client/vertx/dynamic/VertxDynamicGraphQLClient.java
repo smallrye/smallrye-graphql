@@ -409,6 +409,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                                         handlerEmitter.complete(handler);
                                         log.debug("Using websocket subprotocol handler: " + handler);
                                     } else {
+                                        webSocketHandler.set(null);
                                         handlerEmitter.fail(result.cause());
                                     }
                                 });
@@ -460,7 +461,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             webSocketHandler().subscribe().with(handler -> {
                 handlerRef.set(handler);
                 operationId.set(handler.executeMulti(json, rawEmitter));
-            });
+            }, rawEmitter::fail);
         });
         return rawMulti
                 .onCancellation().invoke(() -> {
