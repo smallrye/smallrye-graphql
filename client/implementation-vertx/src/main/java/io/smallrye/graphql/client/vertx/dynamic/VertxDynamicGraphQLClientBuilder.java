@@ -13,6 +13,7 @@ import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
 import io.smallrye.graphql.client.vertx.VertxManager;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
@@ -33,6 +34,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private Boolean executeSingleOperationsOverWebsocket;
     private String configKey;
     private final MultiMap headersMap;
+    private Map<String, Uni<String>> dynamicHeaders;
     private final Map<String, Object> initPayload;
     private WebClientOptions options;
     private List<WebsocketSubprotocol> subprotocols;
@@ -41,6 +43,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder() {
         headersMap = new HeadersMultiMap();
+        dynamicHeaders = new HashMap<>();
         initPayload = new HashMap<>();
         headersMap.set("Content-Type", "application/json");
         subprotocols = new ArrayList<>();
@@ -58,6 +61,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder header(String name, String value) {
         headersMap.set(name, value);
+        return this;
+    }
+
+    public VertxDynamicGraphQLClientBuilder dynamicHeader(String name, Uni<String> value) {
+        dynamicHeaders.put(name, value);
         return this;
     }
 
@@ -149,7 +157,7 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
             allowUnexpectedResponseFields = false;
         }
         return new VertxDynamicGraphQLClient(toUseVertx, webClient, url, websocketUrl,
-                executeSingleOperationsOverWebsocket, headersMap, initPayload, options, subprotocols,
+                executeSingleOperationsOverWebsocket, headersMap, dynamicHeaders, initPayload, options, subprotocols,
                 subscriptionInitializationTimeout, allowUnexpectedResponseFields);
     }
 
@@ -167,6 +175,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
         configuration.getHeaders().forEach((k, v) -> {
             if (!this.headersMap.contains(k)) {
                 this.headersMap.set(k, v);
+            }
+        });
+        configuration.getDynamicHeaders().forEach((k, v) -> {
+            if (!this.dynamicHeaders.containsKey(k)) {
+                this.dynamicHeaders.put(k, v);
             }
         });
         configuration.getInitPayload().forEach((k, v) -> {

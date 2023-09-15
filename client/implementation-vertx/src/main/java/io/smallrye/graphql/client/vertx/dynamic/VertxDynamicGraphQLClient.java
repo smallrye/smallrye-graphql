@@ -3,6 +3,7 @@ package io.smallrye.graphql.client.vertx.dynamic;
 import static java.util.stream.Collectors.toList;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     private final boolean executeSingleOperationsOverWebsocket;
     private final MultiMap headers;
+    private final Map<String, Uni<String>> dynamicHeaders;
     private final Map<String, Object> initPayload;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
@@ -66,7 +68,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 
     VertxDynamicGraphQLClient(Vertx vertx, WebClient webClient,
             String url, String websocketUrl, boolean executeSingleOperationsOverWebsocket,
-            MultiMap headers, Map<String, Object> initPayload, WebClientOptions options,
+            MultiMap headers, Map<String, Uni<String>> dynamicHeaders,
+            Map<String, Object> initPayload, WebClientOptions options,
             List<WebsocketSubprotocol> subprotocols, Integer subscriptionInitializationTimeout,
             boolean allowUnexpectedResponseFields) {
         if (options != null) {
@@ -80,6 +83,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             this.webClient = webClient;
         }
         this.headers = headers;
+        this.dynamicHeaders = dynamicHeaders;
         this.initPayload = initPayload;
         if (url != null) {
             if (url.startsWith("stork")) {
@@ -204,6 +208,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             if (additionalHeaders != null) {
                 allHeaders.addAll(additionalHeaders);
             }
+            // obtain values of dynamic headers and add them to the request
+            for (Map.Entry<String, Uni<String>> dynamicHeaderEntry : dynamicHeaders.entrySet()) {
+                allHeaders.add(dynamicHeaderEntry.getKey(), dynamicHeaderEntry.getValue().await().indefinitely());
+            }
             return executeSingleResultOperationOverHttp(json, allHeaders).await().indefinitely();
         }
     }
@@ -306,7 +314,20 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             if (additionalHeaders != null) {
                 allHeaders.addAll(additionalHeaders);
             }
-            return executeSingleResultOperationOverHttp(json, allHeaders);
+            List<Uni<Void>> unis = new ArrayList<>();
+            // append dynamic headers to the request
+            for (Map.Entry<String, Uni<String>> stringUniEntry : dynamicHeaders.entrySet()) {
+                unis.add(stringUniEntry.getValue().onItem().invoke(headerValue -> {
+                    allHeaders.add(stringUniEntry.getKey(), headerValue);
+                }).replaceWithVoid());
+            }
+            if (unis.isEmpty()) {
+                return executeSingleResultOperationOverHttp(json, allHeaders);
+            } else {
+                return Uni.combine().all().unis(unis)
+                        .combinedWith(f -> f).onItem()
+                        .transformToUni(f -> executeSingleResultOperationOverHttp(json, allHeaders));
+            }
         }
     }
 

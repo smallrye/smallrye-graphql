@@ -67,6 +67,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
 
     private final Map<String, String> additionalHeaders;
+    private final Map<String, Uni<String>> dynamicHeaders;
     private final Map<String, Object> initPayload;
     private final ServiceURLSupplier endpoint;
     private final ServiceURLSupplier websocketUrl;
@@ -90,6 +91,7 @@ class VertxTypesafeGraphQLClientProxy {
     VertxTypesafeGraphQLClientProxy(
             Class<?> api,
             Map<String, String> additionalHeaders,
+            Map<String, Uni<String>> dynamicHeaders,
             Map<String, Object> initPayload,
             URI endpoint,
             String websocketUrl,
@@ -101,6 +103,7 @@ class VertxTypesafeGraphQLClientProxy {
             boolean allowUnexpectedResponseFields) {
         this.api = api;
         this.additionalHeaders = additionalHeaders;
+        this.dynamicHeaders = dynamicHeaders;
         this.initPayload = initPayload;
         if (endpoint != null) {
             if (endpoint.getScheme().startsWith("stork")) {
@@ -155,22 +158,47 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
-        HttpResponse<Buffer> response = postSync(request.toString(), headers);
+        MultiMap allHeaders = new HeadersMultiMap();
+        allHeaders.addAll(headers);
+        // obtain values of dynamic headers and add them to the request
+        for (Map.Entry<String, Uni<String>> dynamicHeaderEntry : dynamicHeaders.entrySet()) {
+            allHeaders.add(dynamicHeaderEntry.getKey(), dynamicHeaderEntry.getValue().await().indefinitely());
+        }
+        HttpResponse<Buffer> response = postSync(request.toString(), allHeaders);
         if (log.isTraceEnabled() && response != null) {
             log.tracef("response graphql: %s", response.bodyAsString());
         }
         return new ResultBuilder(method, response.bodyAsString(),
-                response.statusCode(), response.statusMessage(), convertHeaders(headers),
+                response.statusCode(), response.statusMessage(), convertHeaders(allHeaders),
                 allowUnexpectedResponseFields).read();
     }
 
     private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
             MultiMap headers) {
-        return Uni.createFrom()
-                .completionStage(postAsync(request.toString(), headers))
-                .map(response -> new ResultBuilder(method, response.bodyAsString(),
-                        response.statusCode(), response.statusMessage(), convertHeaders(headers),
-                        allowUnexpectedResponseFields).read());
+        List<Uni<Void>> unis = new ArrayList<>();
+        MultiMap allHeaders = new HeadersMultiMap();
+        allHeaders.addAll(headers);
+        // obtain values of dynamic headers and add them to the request
+        for (Map.Entry<String, Uni<String>> stringUniEntry : dynamicHeaders.entrySet()) {
+            unis.add(stringUniEntry.getValue().onItem().invoke(headerValue -> {
+                allHeaders.add(stringUniEntry.getKey(), headerValue);
+            }).replaceWithVoid());
+        }
+        if (unis.isEmpty()) {
+            return Uni.createFrom().completionStage(postAsync(request.toString(), allHeaders))
+                    .map(response -> new ResultBuilder(method, response.bodyAsString(),
+                            response.statusCode(), response.statusMessage(), convertHeaders(allHeaders),
+                            allowUnexpectedResponseFields).read());
+        } else {
+            // when all dynamic headers have been obtained, proceed with the request
+            return Uni.combine().all().unis(unis)
+                    .combinedWith(f -> f)
+                    .onItem().transformToUni(g -> Uni.createFrom()
+                            .completionStage(postAsync(request.toString(), allHeaders))
+                            .map(response -> new ResultBuilder(method, response.bodyAsString(),
+                                    response.statusCode(), response.statusMessage(), convertHeaders(allHeaders),
+                                    allowUnexpectedResponseFields).read()));
+        }
     }
 
     private Map<String, List<String>> convertHeaders(MultiMap input) {

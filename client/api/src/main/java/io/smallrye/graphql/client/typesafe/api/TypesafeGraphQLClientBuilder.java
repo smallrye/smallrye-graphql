@@ -7,6 +7,7 @@ import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Use this builder, when you are not in a CDI context, i.e. when working with Java SE.
@@ -73,6 +74,8 @@ public interface TypesafeGraphQLClientBuilder {
      * @see AuthorizationHeader
      */
     TypesafeGraphQLClientBuilder header(String name, String value);
+
+    TypesafeGraphQLClientBuilder dynamicHeader(String name, Uni<String> value);
 
     /**
      * Static payload to send with initialization method on subscription.

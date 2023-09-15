@@ -3,6 +3,8 @@ package io.smallrye.graphql.client.impl;
 import java.util.List;
 import java.util.Map;
 
+import io.smallrye.mutiny.Uni;
+
 /**
  * The configuration of a single GraphQL client.
  */
@@ -22,6 +24,11 @@ public class GraphQLClientConfiguration {
      * HTTP headers to be appended to each HTTP request.
      */
     private Map<String, String> headers;
+
+    /**
+     * HTTP headers that need to be resolved dynamically for each request.
+     */
+    private Map<String, Uni<String>> dynamicHeaders;
 
     /**
      * Additional payload sent on subscription initialization.
@@ -128,6 +135,14 @@ public class GraphQLClientConfiguration {
 
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
+    }
+
+    public Map<String, Uni<String>> getDynamicHeaders() {
+        return dynamicHeaders;
+    }
+
+    public void setDynamicHeaders(Map<String, Uni<String>> dynamicHeaders) {
+        this.dynamicHeaders = dynamicHeaders;
     }
 
     public Map<String, Object> getInitPayload() {
@@ -273,6 +288,11 @@ public class GraphQLClientConfiguration {
             this.headers = other.headers;
         } else if (other.headers != null) {
             other.headers.forEach((key, value) -> this.headers.put(key, value));
+        }
+        if (this.dynamicHeaders == null) {
+            this.dynamicHeaders = other.dynamicHeaders;
+        } else if (other.dynamicHeaders != null) {
+            other.dynamicHeaders.forEach((key, value) -> this.dynamicHeaders.put(key, value));
         }
         if (this.initPayload == null) {
             this.initPayload = other.initPayload;
