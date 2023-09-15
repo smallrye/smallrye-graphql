@@ -75,6 +75,8 @@ public class GraphQLClientsConfiguration {
 
         // HTTP headers
         configuration.setHeaders(getConfiguredHeaders(clientName, mpConfig));
+        // dynamic headers can't be configured via config properties
+        configuration.setDynamicHeaders(new HashMap<>());
 
         configuration.setInitPayload(getConfiguredInitPayload(clientName, mpConfig));
         // websocket subprotocols
@@ -155,6 +157,10 @@ public class GraphQLClientsConfiguration {
 
     public GraphQLClientConfiguration getClient(String key) {
         return clients.computeIfAbsent(key, this::readConfigurationByKey);
+    }
+
+    public Map<String, GraphQLClientConfiguration> getClients() {
+        return clients;
     }
 
     /** this method is required by Quarkus */

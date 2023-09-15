@@ -7,6 +7,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
 import io.smallrye.graphql.client.vertx.VertxManager;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -37,6 +39,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private String websocketUrl;
     private Boolean executeSingleOperationsOverWebsocket;
     private Map<String, String> headers;
+    private Map<String, Uni<String>> dynamicHeaders;
     private Map<String, Object> initPayload;
     private List<WebsocketSubprotocol> subprotocols;
     private Vertx vertx;
@@ -99,6 +102,15 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    @Override
+    public TypesafeGraphQLClientBuilder dynamicHeader(String name, Uni<String> value) {
+        if (this.dynamicHeaders == null) {
+            this.dynamicHeaders = new LinkedHashMap<>();
+        }
+        this.dynamicHeaders.put(name, value);
+        return this;
+    }
+
     public VertxTypesafeGraphQLClientBuilder initPayload(Map<String, Object> initPayload) {
         if (this.initPayload == null) {
             this.initPayload = new LinkedHashMap<>();
@@ -152,8 +164,12 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         if (allowUnexpectedResponseFields == null) {
             allowUnexpectedResponseFields = false;
         }
+        if (dynamicHeaders == null) {
+            dynamicHeaders = new HashMap<>();
+        }
 
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers, initPayload,
+        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers,
+                dynamicHeaders, initPayload,
                 endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
                 websocketInitializationTimeout,
@@ -221,6 +237,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         }
         if (this.headers == null && configuration.getHeaders() != null) {
             this.headers = configuration.getHeaders();
+        }
+        if (this.dynamicHeaders == null && configuration.getDynamicHeaders() != null) {
+            this.dynamicHeaders = configuration.getDynamicHeaders();
         }
         if (this.initPayload == null && configuration.getInitPayload() != null) {
             this.initPayload = configuration.getInitPayload();
