@@ -102,8 +102,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
-    @Override
-    public TypesafeGraphQLClientBuilder dynamicHeader(String name, Uni<String> value) {
+    public VertxTypesafeGraphQLClientBuilder dynamicHeader(String name, Uni<String> value) {
         if (this.dynamicHeaders == null) {
             this.dynamicHeaders = new LinkedHashMap<>();
         }
