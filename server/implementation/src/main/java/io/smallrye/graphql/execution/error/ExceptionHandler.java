@@ -2,6 +2,8 @@ package io.smallrye.graphql.execution.error;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
+import java.util.concurrent.CompletableFuture;
+
 import graphql.ExceptionWhileDataFetching;
 import graphql.execution.DataFetcherExceptionHandler;
 import graphql.execution.DataFetcherExceptionHandlerParameters;
@@ -20,7 +22,8 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
     private final Config config = Config.get();
 
     @Override
-    public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {
+    public CompletableFuture<DataFetcherExceptionHandlerResult> handleException(
+            DataFetcherExceptionHandlerParameters handlerParameters) {
         Throwable throwable = handlerParameters.getException();
         throwable = unwrapThrowable(throwable);
         SourceLocation sourceLocation = handlerParameters.getSourceLocation();
@@ -30,7 +33,8 @@ public class ExceptionHandler implements DataFetcherExceptionHandler {
             log.dataFetchingError(throwable);
         }
 
-        return DataFetcherExceptionHandlerResult.newResult().error(error).build();
+        // we don't do any IO in this method, so we can just synchronously compute the result and return after that
+        return CompletableFuture.completedFuture(DataFetcherExceptionHandlerResult.newResult().error(error).build());
     }
 
     private ExceptionWhileDataFetching getExceptionWhileDataFetching(Throwable throwable, SourceLocation sourceLocation,

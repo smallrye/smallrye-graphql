@@ -51,7 +51,14 @@ public class ErrorResultHelper {
                 .exception(t)
                 .build();
 
-        DataFetcherExceptionHandlerResult exceptionHandlerResult = exceptionHandler.onException(handlerParameters);
+        DataFetcherExceptionHandlerResult exceptionHandlerResult = null;
+        try {
+            exceptionHandlerResult = exceptionHandler.handleException(handlerParameters).get();
+        } catch (Exception e) {
+            // this should generally not happen - exceptionHandler.handleException doesn't do any IO and doesn't
+            // throw exceptions, so maybe only if we get interrupted at the right moment
+            throw new RuntimeException(e);
+        }
 
         return exceptionHandlerResult.getErrors();
     }
