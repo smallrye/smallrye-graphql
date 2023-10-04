@@ -53,7 +53,7 @@
         <version.rxjava>2.2.21</version.rxjava>
         <version.jackson>2.15.2</version.jackson>
         <version.mongo-bson>4.10.2</version.mongo-bson>
-        <version.mockito>5.4.0</version.mockito>
+        <version.mockito>5.5.0</version.mockito>
         <version.shrinkwrap>3.1.4</version.shrinkwrap>
         <version.weld.servlet>5.1.0.Final</version.weld.servlet>
 
