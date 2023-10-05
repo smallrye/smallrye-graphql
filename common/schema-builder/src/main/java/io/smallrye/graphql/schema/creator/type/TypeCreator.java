@@ -51,7 +51,7 @@ public class TypeCreator extends AbstractCreator {
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
-                List<MethodInfo> classMethods = c.methods();
+                List<MethodInfo> classMethods = filterOutBridgeMethod(c.methods());
                 allMethods.addAll(classMethods);
                 allMethods.addAll(getAllInterfaceMethods(c, classMethods
                         .stream()
@@ -97,8 +97,9 @@ public class TypeCreator extends AbstractCreator {
                 .map(ScanningContext.getIndex()::getClassByName)
                 .filter(Objects::nonNull)
                 .flatMap(parentInterfaceInfo -> Stream.concat(
-                        parentInterfaceInfo
-                                .methods()
+                        filterOutBridgeMethod(
+                                parentInterfaceInfo
+                                        .methods())
                                 .stream()
                                 .filter(method -> isNotGenericType(method) && methodMemory.add(method.toString())),
                         getAllInterfaceMethods(parentInterfaceInfo, methodMemory).stream()))
@@ -110,6 +111,10 @@ public class TypeCreator extends AbstractCreator {
                 method.returnType().kind() != org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE &&
                 method.parameterTypes().stream().allMatch(type -> type.kind() != org.jboss.jandex.Type.Kind.TYPE_VARIABLE &&
                         type.kind() != org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE);
+    }
+
+    private List<MethodInfo> filterOutBridgeMethod(List<MethodInfo> methods) {
+        return methods.stream().filter(methodInfo -> !methodInfo.isSynthetic()).collect(Collectors.toList());
     }
 
     @Override

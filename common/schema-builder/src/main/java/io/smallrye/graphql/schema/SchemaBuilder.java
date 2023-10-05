@@ -157,8 +157,7 @@ public class SchemaBuilder {
         IndexView index = ScanningContext.getIndex();
         List<MethodInfo> methods = new ArrayList<>();
         while (current != null) {
-            methods.addAll(
-                    current.methods().stream().filter(methodInfo -> !methodInfo.isSynthetic()).collect(Collectors.toList()));
+            current.methods().stream().filter(methodInfo -> !methodInfo.isSynthetic()).forEach(methods::add);
             DotName superName = classInfo.superName();
             if (superName != null) {
                 current = index.getClassByName(current.superName());
