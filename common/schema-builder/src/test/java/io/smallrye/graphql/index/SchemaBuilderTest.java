@@ -197,17 +197,30 @@ public class SchemaBuilderTest {
         assertNotNull(schema);
         Set<Operation> queries = schema.getQueries();
         Set<Operation> mutations = schema.getMutations();
+        Map<String, Type> outputTypes = schema.getTypes();
 
-        assertEquals(queries.size(), 1);
+        assertEquals(queries.size(), 2);
         assertEquals(mutations.size(), 4);
 
-        Operation query = queries.stream()
+        Operation firstQuery = queries.stream()
                 .filter(q -> q.getName().equals("heroes"))
                 .findFirst()
                 .orElseThrow(AssertionError::new);
 
         // return type
-        assertEquals(query.getReference().getName(), "Hero");
+        assertEquals(firstQuery.getReference().getName(), "Hero");
+
+        Operation secondQuery = queries.stream()
+                .filter(q -> q.getName().equals("sayHello")).findFirst().orElseThrow(AssertionError::new);
+        assertEquals(secondQuery.getReference().getName(), "ResponseComposite");
+        assertEquals(secondQuery.getDescription(), "Say hello");
+
+        Type responseCompositeType = outputTypes.get("ResponseComposite");
+        assertNotNull(responseCompositeType);
+
+        Type greetingType = outputTypes.get("Greet");
+        assertNotNull(greetingType);
+
         // ------------------------------------------------------------------
         // MUTATIONS
         Operation firstMutation = mutations.stream()

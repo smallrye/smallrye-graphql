@@ -2,6 +2,7 @@ package io.smallrye.graphql.index.generic;
 
 import java.util.List;
 
+import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
@@ -39,4 +40,12 @@ public class HeroResource implements CharacterResource<Hero> {
     public Hero doSomething() {
         return null;
     }
+
+    @Query
+    @Description("Say hello")
+    public ResponseComposite sayHello(String name) {
+        ResponseComposite response = new ResponseComposite(new Greet(name));
+        return null;
+    }
+
 }
