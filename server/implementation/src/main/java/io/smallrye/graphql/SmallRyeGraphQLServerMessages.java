@@ -75,4 +75,10 @@ public interface SmallRyeGraphQLServerMessages {
 
     @Message(id = 20, value = "Can not inject an instance of class [%s]. Please make sure it is a CDI bean, also possibly the beans.xml file is needed")
     RuntimeException canNotInjectClass(String className, @Cause Exception cause);
+
+    @Message(id = 21, value = "Can not parse a integer from [%s]")
+    CoercingParseLiteralException integerCoercingParseException(String input);
+
+    @Message(id = 22, value = "Can not parse a number from [%s]")
+    CoercingParseLiteralException numberCoercingParseException(String input);
 }

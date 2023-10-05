@@ -294,7 +294,24 @@ public class CdiExecutionTest {
         assertFalse(error.isNull("message"), "message should not be null");
 
         assertEquals(
-                "argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int'",
+                "Validation error (WrongType@[updateItemPowerLevel]) : argument 'powerLevel' with value 'StringValue{value='Unlimited'}' is not a valid 'Int' - SRGQL000022: Can not parse a number from [StringValue{value='Unlimited'}]",
+                error.getString("message"),
+                "Wrong error message while updateItemPowerLevel with wrong number");
+    }
+
+    @Test
+    public void testParsingInvalidNumberScalar() {
+        JsonArray errors = executeAndGetError(MUTATION_INVALID_INTEGER_SCALAR);
+
+        assertEquals(1, errors.size(),
+                "Wrong size for errors while updateItemPowerLevel with wrong number");
+
+        JsonObject error = errors.getJsonObject(0);
+
+        assertFalse(error.isNull("message"), "message should not be null");
+
+        assertEquals(
+                "Validation error (WrongType@[updateItemPowerLevel]) : argument 'powerLevel' with value 'StringValue{value='3.14'}' is not a valid 'Int' - SRGQL000021: Can not parse a integer from [StringValue{value='3.14'}]",
                 error.getString("message"),
                 "Wrong error message while updateItemPowerLevel with wrong number");
     }
@@ -308,7 +325,6 @@ public class CdiExecutionTest {
         assertFalse(data.getJsonObject("testScalarsInPojo").isNull("timeObject"), "timeObject should not be null");
         assertEquals("11:46:34.263", data.getJsonObject("testScalarsInPojo").getString("timeObject"),
                 "Wrong wrong time format");
-
     }
 
     @Test
@@ -385,6 +401,15 @@ public class CdiExecutionTest {
     // This test invalid number scalars as input (expecting an error)
     private static final String MUTATION_INVALID_NUMBER_SCALAR = "mutation increaseIronManSuitPowerTooHigh {\n" +
             "  updateItemPowerLevel(itemID:1001, powerLevel:\"Unlimited\") {\n" +
+            "    id\n" +
+            "    name\n" +
+            "    powerLevel\n" +
+            "  }\n" +
+            "}";
+
+    // This test invalid integer (as a float) scalar as input (expecting an error)
+    private static final String MUTATION_INVALID_INTEGER_SCALAR = "mutation increaseIronManSuitPowerTooHigh {\n" +
+            "  updateItemPowerLevel(itemID:1001, powerLevel:\"3.14\") {\n" +
             "    id\n" +
             "    name\n" +
             "    powerLevel\n" +
