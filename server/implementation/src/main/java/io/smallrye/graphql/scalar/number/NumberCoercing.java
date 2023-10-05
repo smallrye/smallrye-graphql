@@ -74,10 +74,10 @@ public class NumberCoercing implements Coercing {
                 BigDecimal value = new BigDecimal(((StringValue) input).getValue());
                 return converter.fromBigDecimal(value);
             } catch (NumberFormatException e) {
-                // TODO: Do we still need this ? Here we allow strings through becauce of Numberformatting.
-                return ((StringValue) input).getValue();
+                throw msg.numberCoercingParseException(input.toString());
+            } catch (ArithmeticException e) {
+                throw msg.integerCoercingParseException(input.toString());
             }
-
         } else if (input instanceof IntValue) {
             BigInteger value = ((IntValue) input).getValue();
             if (!converter.isInRange(value)) {
@@ -86,10 +86,19 @@ public class NumberCoercing implements Coercing {
             return converter.fromBigInteger(value);
         } else if (input instanceof FloatValue) {
             BigDecimal value = ((FloatValue) input).getValue();
-            return converter.fromBigDecimal(value);
+            try {
+                return converter.fromBigDecimal(value);
+            } catch (ArithmeticException e) {
+                throw msg.integerCoercingParseException(input.toString());
+            }
+
         } else if (input instanceof BigDecimal) {
             BigDecimal value = (BigDecimal) input;
-            return converter.fromBigDecimal(value);
+            try {
+                return converter.fromBigDecimal(value);
+            } catch (ArithmeticException e) {
+                throw msg.integerCoercingParseException(input.toString());
+            }
         } else if (input instanceof BigInteger) {
             BigInteger value = (BigInteger) input;
             if (!converter.isInRange(value)) {
