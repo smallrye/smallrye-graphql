@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -41,6 +42,9 @@ class JsonStringReader extends Reader<JsonString> {
         }
         if (java.util.UUID.class.equals(this.type.getRawType()))
             return java.util.UUID.fromString(value.getString());
+        if (java.util.Calendar.class.isAssignableFrom(this.type.getRawType())) {
+            return formattedCalendar(value.getString());
+        }
 
         if (Number.class.isAssignableFrom(this.type.getRawType())
                 && field != null &&
@@ -95,6 +99,52 @@ class JsonStringReader extends Reader<JsonString> {
             }
         } else {
             return java.util.Date.from(Instant.parse(value));
+        }
+    }
+
+    private Calendar formattedCalendar(String value) {
+        if (field != null) {
+            String format = null;
+            String locale = null;
+
+            JsonbDateFormat jsonbDateFormat = field.getAnnotation(JsonbDateFormat.class);
+            if (jsonbDateFormat != null) {
+                format = jsonbDateFormat.value();
+                locale = jsonbDateFormat.locale();
+            }
+
+            DateFormat dateFormat = field.getAnnotation(DateFormat.class);
+            if (dateFormat != null) {
+                format = dateFormat.value();
+                locale = dateFormat.locale();
+            }
+
+            SimpleDateFormat sdf;
+            if (format != null) {
+                if (locale == null || locale.isEmpty()) {
+                    sdf = new SimpleDateFormat(format);
+                } else {
+                    sdf = new SimpleDateFormat(format, Locale.forLanguageTag(locale));
+                }
+            } else {
+                // Use the default format
+                sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            }
+            try {
+                Date date = sdf.parse(value);
+
+                // Create a Calendar instance and set its time
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+
+                return calendar;
+            } catch (ParseException e) {
+                throw new RuntimeException("Cannot parse date", e);
+            }
+        } else {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(Date.from(Instant.parse(value)));
+            return calendar;
         }
     }
 

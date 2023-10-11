@@ -5,7 +5,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Scalar for DateTime.
@@ -16,7 +18,7 @@ public class DateTimeScalar extends AbstractDateScalar {
 
     public DateTimeScalar() {
         super("DateTime", LocalDateTime.class, Date.class, Timestamp.class, ZonedDateTime.class,
-                OffsetDateTime.class, Instant.class);
+                OffsetDateTime.class, Instant.class, Calendar.class, GregorianCalendar.class);
     }
 
 }

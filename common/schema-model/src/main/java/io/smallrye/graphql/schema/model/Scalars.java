@@ -16,6 +16,8 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalDouble;
@@ -156,6 +158,8 @@ public class Scalars {
         populateScalar(ZonedDateTime.class.getName(), DATETIME, String.class.getName());
         populateScalar(OffsetDateTime.class.getName(), DATETIME, String.class.getName());
         populateScalar(Instant.class.getName(), DATETIME, String.class.getName());
+        populateScalar(Calendar.class.getName(), DATETIME, String.class.getName());
+        populateScalar(GregorianCalendar.class.getName(), DATETIME, String.class.getName());
 
         // Duration
         populateScalar(Duration.class.getName(), DURATION, String.class.getName());

@@ -104,6 +104,8 @@ public class ParameterInfo implements NamedElement {
             case "OffsetDateTime":
             case "ZonedDateTime":
             case "Instant":
+            case "Calendar":
+            case "GregorianCalendar":
                 return "DateTime";
             default:
                 return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");

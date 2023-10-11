@@ -219,6 +219,7 @@ public class TypeInfo {
                 || CharSequence.class.isAssignableFrom(getRawType())
                 || Character.class.equals(getRawType()) // has a valueOf(char), not valueOf(String)
                 || java.util.Date.class.equals(getRawType())
+                || java.util.Calendar.class.isAssignableFrom(getRawType())
                 || java.util.UUID.class.equals(getRawType())
                 || scalarConstructor().isPresent()
                 || java.util.OptionalInt.class.equals(getRawType())

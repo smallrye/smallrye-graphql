@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -335,6 +336,9 @@ class VertxTypesafeGraphQLClientProxy {
         }
         if (value instanceof Date) {
             return Json.createValue(((Date) value).toInstant().toString());
+        }
+        if (value instanceof Calendar) {
+            return Json.createValue(((Calendar) value).toInstant().toString());
         }
         if (value instanceof Enum) {
             return Json.createValue(((Enum<?>) value).name());

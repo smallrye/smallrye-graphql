@@ -274,6 +274,11 @@ public class ArgumentHelper extends AbstractHelper {
         } else if (Classes.isPrimitiveOf(expectedType, receivedType)) {
             //expected is a primitive, we got the wrapper
             return fieldValue;
+        } else if (expectedType.equals("java.util.Calendar") &&
+                receivedType.equals("java.util.GregorianCalendar")) {
+            // special case since in the CalendarTransformer#in it creates 'java.util.GregorianCalendar' object
+            // if the argument is type of 'java.util.Calendar'
+            return fieldValue;
         } else if (field.getReference().getType().equals(ReferenceType.ENUM)) {
             Class<?> enumClass = classloadingService.loadClass(field.getReference().getClassName());
             return Enum.valueOf((Class<Enum>) enumClass, fieldValue.toString());

@@ -52,6 +52,10 @@ public interface Transformer<IN, OUT> {
         if (LegacyDateTransformer.SUPPORTED_TYPES.contains(field.getReference().getClassName())) {
             return new LegacyDateTransformer(field);
         }
+        if (java.util.Calendar.class.getName().equals(field.getReference().getClassName()) ||
+                java.util.GregorianCalendar.class.getName().equals(field.getReference().getClassName())) {
+            return new CalendarTransformer(field);
+        }
         return new DateTransformer(field);
     }
 

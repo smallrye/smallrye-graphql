@@ -14,9 +14,11 @@ import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -125,7 +127,7 @@ public class Classes {
      */
     public static boolean isDateLikeTypeOrContainedIn(Type type) {
         return isTypeOrContainedIn(type, LOCALDATE, LOCALTIME, LOCALDATETIME, ZONEDDATETIME, OFFSETDATETIME, OFFSETTIME,
-                UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME, INSTANT);
+                UTIL_DATE, SQL_DATE, SQL_TIMESTAMP, SQL_TIME, INSTANT, CALENDAR, GREGORIAN_CALENDAR);
     }
 
     private static boolean isTypeOrContainedIn(Type type, DotName... valid) {
@@ -305,6 +307,9 @@ public class Classes {
     public static final DotName OFFSETDATETIME = DotName.createSimple(OffsetDateTime.class.getName());
     public static final DotName OFFSETTIME = DotName.createSimple(OffsetTime.class.getName());
     public static final DotName INSTANT = DotName.createSimple(Instant.class.getName());
+
+    public static final DotName CALENDAR = DotName.createSimple(Calendar.class.getName());
+    public static final DotName GREGORIAN_CALENDAR = DotName.createSimple(GregorianCalendar.class.getName());
 
     public static final DotName PERIOD = DotName.createSimple(Period.class.getName());
     public static final DotName DURATION = DotName.createSimple(Duration.class.getName());
