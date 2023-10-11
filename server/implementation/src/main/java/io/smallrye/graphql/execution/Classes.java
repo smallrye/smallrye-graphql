@@ -108,6 +108,9 @@ public class Classes {
     public static final String SQL_TIMESTAMP = java.sql.Timestamp.class.getName();
     public static final String SQL_TIME = java.sql.Time.class.getName();
 
+    public static final String CALENDAR = java.util.Calendar.class.getName();
+    public static final String GREGORIAN_CALENDAR = java.util.GregorianCalendar.class.getName();
+
     public static final String DURATION = Duration.class.getName();
     public static final String PERIOD = Period.class.getName();
 
@@ -182,6 +185,8 @@ public class Classes {
         DATES.add(SQL_DATE);
         DATES.add(SQL_TIMESTAMP);
         DATES.add(SQL_TIME);
+        DATES.add(CALENDAR);
+        DATES.add(GREGORIAN_CALENDAR);
     }
 
     /**
