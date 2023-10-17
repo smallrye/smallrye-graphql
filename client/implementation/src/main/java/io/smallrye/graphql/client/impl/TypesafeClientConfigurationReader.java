@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.impl;
 
 import static io.smallrye.graphql.client.impl.GraphQLClientsConfiguration.getConfiguredHeaders;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.Config;
@@ -44,6 +45,7 @@ class TypesafeClientConfigurationReader {
 
     private void buildHeaders() {
         clientConfiguration.setHeaders(getConfiguredHeaders(configKey, mpConfig));
+        clientConfiguration.setDynamicHeaders(new HashMap<>());
     }
 
     GraphQLClientConfiguration getClientConfiguration() {
