@@ -11,6 +11,8 @@ import java.util.Set;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 
+import org.eclipse.microprofile.graphql.Source;
+
 import graphql.execution.DataFetcherResult;
 import graphql.language.Argument;
 import graphql.language.Field;
@@ -73,12 +75,15 @@ public class BeanValidationUtil {
         private int parameterIndex(String name) {
             Parameter[] parameters = method.getParameters();
             int index = 0;
-            for (int i = 0; i < parameters.length; i++) {
-                if (name.equals(parameters[i].getName())) {
+            for (Parameter parameter : parameters) {
+                if (name.equals(parameter.getName())) {
                     return index;
                 }
                 // parameters of type Context are not stored as arguments in the FieldDefinition, so don't increment the index on them
-                if (!parameters[i].getType().isAssignableFrom(Context.class)) {
+                boolean isContext = parameter.getType().isAssignableFrom(Context.class);
+                // similarly, parameters annotated with @Source are also not stored as arguments in the FieldDefinition
+                boolean isAnnotatedWithSource = parameter.getAnnotation(Source.class) != null;
+                if (!isContext && !isAnnotatedWithSource) {
                     index++;
                 }
             }
