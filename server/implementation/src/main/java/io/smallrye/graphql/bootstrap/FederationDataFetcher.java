@@ -27,8 +27,10 @@ import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedSchemaElement;
+import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLType;
 import io.smallrye.graphql.spi.config.Config;
 
 class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object>>> {
@@ -116,7 +118,10 @@ class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object
     }
 
     private boolean matchesReturnTypeList(GraphQLFieldDefinition field, String typename) {
-        GraphQLOutputType listType = field.getType();
+        GraphQLType listType = field.getType();
+        if (listType instanceof GraphQLNonNull) {
+            listType = ((GraphQLNonNull) listType).getOriginalWrappedType();
+        }
         if (listType instanceof GraphQLList) {
             var returnType = ((GraphQLList) listType).getOriginalWrappedType();
             return returnType instanceof GraphQLNamedSchemaElement
