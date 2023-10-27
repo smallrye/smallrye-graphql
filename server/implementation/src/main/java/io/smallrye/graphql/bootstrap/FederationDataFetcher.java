@@ -29,7 +29,6 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedSchemaElement;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLType;
 import io.smallrye.graphql.spi.config.Config;
 
@@ -112,16 +111,13 @@ class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object
     }
 
     private boolean matchesReturnType(GraphQLFieldDefinition field, String typename) {
-        GraphQLOutputType returnType = field.getType();
+        GraphQLType returnType = getGraphqlTypeFromField(field);
         return returnType instanceof GraphQLNamedSchemaElement
                 && ((GraphQLNamedSchemaElement) returnType).getName().equals(typename);
     }
 
     private boolean matchesReturnTypeList(GraphQLFieldDefinition field, String typename) {
-        GraphQLType listType = field.getType();
-        if (listType instanceof GraphQLNonNull) {
-            listType = ((GraphQLNonNull) listType).getOriginalWrappedType();
-        }
+        GraphQLType listType = getGraphqlTypeFromField(field);
         if (listType instanceof GraphQLList) {
             var returnType = ((GraphQLList) listType).getOriginalWrappedType();
             return returnType instanceof GraphQLNamedSchemaElement
@@ -129,6 +125,14 @@ class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object
         } else {
             return false;
         }
+    }
+
+    private GraphQLType getGraphqlTypeFromField(GraphQLFieldDefinition field) {
+        GraphQLType type = field.getType();
+        if (type instanceof GraphQLNonNull) {
+            type = ((GraphQLNonNull) type).getOriginalWrappedType();
+        }
+        return type;
     }
 
     private boolean matchesArguments(TypeAndArgumentNames typeAndArgumentNames, GraphQLFieldDefinition field) {
