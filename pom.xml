@@ -38,6 +38,7 @@
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
         <version.graphql-java-federation>2.1.1</version.graphql-java-federation>
         <version.graphql-java>21.1</version.graphql-java>
+        <version.extended-scalars>21.0</version.extended-scalars>
         <verison.io.micrometer>1.11.3</verison.io.micrometer>
         <version.vertx>4.4.5</version.vertx>
         <version.smallrye-opentelemetry>2.4.0</version.smallrye-opentelemetry>
@@ -350,6 +351,12 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>smallrye-graphql-client-implementation-vertx</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java-extended-scalars</artifactId>
+                <version>${version.extended-scalars}</version>
             </dependency>
 
             <!-- Tests -->

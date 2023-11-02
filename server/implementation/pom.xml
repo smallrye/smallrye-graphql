@@ -71,6 +71,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java-extended-scalars</artifactId>
+        </dependency>
+
         <!-- i18n -->
         <dependency>
             <groupId>org.jboss.logging</groupId>

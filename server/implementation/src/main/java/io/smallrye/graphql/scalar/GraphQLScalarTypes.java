@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import graphql.Scalars;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.scalar.number.BigDecimalScalar;
 import io.smallrye.graphql.scalar.number.BigIntegerScalar;
@@ -44,6 +45,11 @@ public class GraphQLScalarTypes {
 
     public static boolean isGraphQLScalarType(String className) {
         return SCALAR_MAP.containsKey(className);
+    }
+
+    public static void addUuid() {
+        SCALAR_MAP.put(UUID.class.getName(), ExtendedScalars.UUID);
+        SCALARS_BY_NAME.put(ExtendedScalars.UUID.getName(), ExtendedScalars.UUID);
     }
 
     // Scalar map we can just create now.

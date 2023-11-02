@@ -94,6 +94,12 @@ public class Scalars {
                 .build();
     }
 
+    // this is for the UUID from graphql-java-extended-scalars
+    // if used, it will override the original UUID type that is mapped to a String in the schema
+    public static void addUuid() {
+        populateScalar(UUID.class.getName(), "UUID", String.class.getName());
+    }
+
     static {
         // The main java type should go first.
 
@@ -185,7 +191,7 @@ public class Scalars {
         scalarMap.put(className, reference);
 
         // looking up by name
-        scalarNameMap.putIfAbsent(scalarName, reference);
+        scalarNameMap.put(scalarName, reference);
 
         //Currently, each scalar is formatted as String
         formattedScalarMap.put(className, new Reference.Builder()
