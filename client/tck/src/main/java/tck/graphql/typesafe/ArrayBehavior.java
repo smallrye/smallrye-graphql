@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
-class ArrayBehavior {
+public class ArrayBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
 
     @GraphQLClientApi

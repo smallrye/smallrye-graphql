@@ -32,7 +32,7 @@ public class TypesafeIgnoreAnnotationTest {
     @ArquillianResource
     URL testingURL;
 
-    private IgnoreClientApi client;
+    protected IgnoreClientApi client;
 
     @Before
     public void prepare() {

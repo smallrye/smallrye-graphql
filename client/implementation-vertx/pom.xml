@@ -17,6 +17,10 @@
             <artifactId>smallrye-graphql-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-graphql-client-model-builder</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.smallrye.config</groupId>
             <artifactId>smallrye-config</artifactId>
         </dependency>

@@ -959,6 +959,11 @@ class ScalarBehavior {
         Date foo(Date date);
     }
 
+    @GraphQLClientApi
+    interface SqlDateApi {
+        java.sql.Date foo(java.sql.Date date);
+    }
+
     @Nested
     class DateAndTimeBehavior {
         @Test
@@ -969,7 +974,6 @@ class ScalarBehavior {
             LocalDateApi api = fixture.builder().build(LocalDateApi.class);
 
             LocalDate value = api.foo(in);
-
             then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
             then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
             then(value).isEqualTo(out);
@@ -1060,7 +1064,7 @@ class ScalarBehavior {
         }
 
         @Test
-        void shouldCallDateQuery() {
+        void shouldCallUtilDateQuery() {
             Instant in = Instant.ofEpochMilli(123456789);
             Instant out = Instant.ofEpochMilli(987654321);
             fixture.returnsData("'foo':'" + out + "'");
@@ -1068,9 +1072,26 @@ class ScalarBehavior {
 
             Date value = api.foo(Date.from(in));
 
-            then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
+            then(fixture.query()).isEqualTo("query foo($date: DateTime) { foo(date: $date) }");
             then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
             then(value).isEqualTo(Date.from(out));
+        }
+
+        @Test
+        void shouldCallSqlDateQuery() {
+            LocalDate in = LocalDate.of(2020, 10, 31);
+            LocalDate out = LocalDate.of(3000, 1, 1);
+            // just to make sure that it behaves the same as LocalDate#toString()
+            java.sql.Date sqlIn = java.sql.Date.valueOf(in);
+            java.sql.Date sqlOut = java.sql.Date.valueOf(out);
+
+            fixture.returnsData("'foo':'" + out + "'");
+            SqlDateApi api = fixture.builder().build(SqlDateApi.class);
+
+            java.sql.Date value = api.foo(sqlIn);
+            then(fixture.query()).isEqualTo("query foo($date: Date) { foo(date: $date) }");
+            then(fixture.variables()).isEqualTo("{'date':'" + in + "'}");
+            then(value).isEqualTo(sqlOut);
         }
     }
 

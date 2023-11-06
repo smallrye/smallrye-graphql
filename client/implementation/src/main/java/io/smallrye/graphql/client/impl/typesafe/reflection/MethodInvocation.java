@@ -25,6 +25,7 @@ import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation implements NamedElement {
@@ -50,6 +51,10 @@ public class MethodInvocation implements NamedElement {
 
     public String getKey() {
         return method.toGenericString();
+    }
+
+    public MethodKey getMethodKey() {
+        return new MethodKey(method.getReturnType(), method.getName(), method.getParameterTypes());
     }
 
     public OperationType getOperationType() {
@@ -242,5 +247,16 @@ public class MethodInvocation implements NamedElement {
     public boolean isDeclaredInCloseable() {
         return method.getDeclaringClass().equals(Closeable.class) ||
                 method.getDeclaringClass().equals(AutoCloseable.class);
+    }
+
+    public String getOperationTypeAsString() {
+        switch (getOperationType()) {
+            case MUTATION:
+                return "mutation";
+            case SUBSCRIPTION:
+                return "subscription ";
+            default:
+                return "query";
+        }
     }
 }

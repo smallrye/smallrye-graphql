@@ -65,6 +65,10 @@ public class ParameterInfo implements NamedElement {
         }
         if (type.isAnnotated(Name.class))
             return type.getAnnotation(Name.class).value();
+        // Only because of the switch works with *java.lang.Date* which is *DateTime*
+        if (type.getTypeName().equals("java.sql.Date")) {
+            return "Date";
+        }
         switch (type.getSimpleName()) {
             case "int":
             case "Integer":
@@ -106,6 +110,7 @@ public class ParameterInfo implements NamedElement {
             case "Instant":
             case "Calendar":
             case "GregorianCalendar":
+            case "Date": // java.lang.Date
                 return "DateTime";
             default:
                 return type.getSimpleName() + (type.isScalar() || type.isEnum() ? "" : "Input");

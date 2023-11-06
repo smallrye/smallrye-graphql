@@ -21,18 +21,8 @@ public class QueryBuilder {
     }
 
     public String build() {
-        StringBuilder request = new StringBuilder();
-        switch (method.getOperationType()) {
-            case QUERY:
-                request.append("query ");
-                break;
-            case MUTATION:
-                request.append("mutation ");
-                break;
-            case SUBSCRIPTION:
-                request.append("subscription ");
-                break;
-        }
+        StringBuilder request = new StringBuilder(method.getOperationTypeAsString());
+        request.append(" ");
         request.append(method.getName());
         if (method.hasValueParameters())
             request.append(method.valueParameters().map(this::declare).collect(joining(", ", "(", ")")));

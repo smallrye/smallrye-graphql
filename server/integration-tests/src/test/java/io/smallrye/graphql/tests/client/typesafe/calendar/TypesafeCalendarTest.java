@@ -31,7 +31,7 @@ public class TypesafeCalendarTest {
     @ArquillianResource
     URL testingURL;
 
-    private ClientSomeApi client;
+    protected ClientSomeApi client;
 
     @Before
     public void prepare() {

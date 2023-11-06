@@ -44,6 +44,7 @@ import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import io.smallrye.graphql.client.model.ClientModel;
 import io.smallrye.graphql.client.vertx.websocket.BuiltinWebsocketSubprotocolHandlers;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
@@ -77,6 +78,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
     private final Class<?> api;
+    private final ClientModel clientModel;
     private final boolean executeSingleOperationsOverWebsocket;
     private final boolean allowUnexpectedResponseFields;
 
@@ -91,6 +93,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     VertxTypesafeGraphQLClientProxy(
             Class<?> api,
+            ClientModel clientModel,
             Map<String, String> additionalHeaders,
             Map<String, Uni<String>> dynamicHeaders,
             Map<String, Object> initPayload,
@@ -103,6 +106,7 @@ class VertxTypesafeGraphQLClientProxy {
             Integer subscriptionInitializationTimeout,
             boolean allowUnexpectedResponseFields) {
         this.api = api;
+        this.clientModel = clientModel;
         this.additionalHeaders = additionalHeaders;
         this.dynamicHeaders = dynamicHeaders;
         this.initPayload = initPayload;
@@ -296,7 +300,12 @@ class VertxTypesafeGraphQLClientProxy {
 
     private JsonObject request(MethodInvocation method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        String query = queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build());
+        String query;
+        if (clientModel == null) {
+            query = queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build());
+        } else {
+            query = clientModel.getOperationMap().get(method.getMethodKey());
+        }
         request.add("query", query);
         request.add("variables", variables(method));
         request.add("operationName", method.getName());
@@ -333,6 +342,9 @@ class VertxTypesafeGraphQLClientProxy {
     private JsonValue scalarValue(Object value) {
         if (value instanceof String) {
             return Json.createValue((String) value);
+        }
+        if (value instanceof java.sql.Date) {
+            return Json.createValue(value.toString());
         }
         if (value instanceof Date) {
             return Json.createValue(((Date) value).toInstant().toString());
