@@ -302,6 +302,12 @@ public class ArgumentHelper extends AbstractHelper {
         if (Map.class.isAssignableFrom(argumentValue.getClass())) {
             return correctComplexObjectFromMap((Map) argumentValue, field, dfe);
         } else if (receivedClassName.equals(String.class.getName())) {
+            // Edge case for ObjectId: If the field is of type org.bson.types.ObjectId, return the argument value.
+            // We need to handle ObjectId separately to avoid JSON-B calling its no-arg constructor, which would
+            // generate a new, random ID. By returning the argument value as is, we preserve the original ObjectId.
+            if (field.getReference().getClassName().equals("org.bson.types.ObjectId")) {
+                return argumentValue;
+            }
             // We got a String, but not expecting one. Lets bind to Pojo with JsonB
             // This happens with @DefaultValue and Transformable (Passthrough) Scalars
             return correctComplexObjectFromJsonString(argumentValue.toString(), field);
