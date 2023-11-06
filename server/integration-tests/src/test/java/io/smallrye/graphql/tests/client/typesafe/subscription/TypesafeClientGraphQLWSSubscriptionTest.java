@@ -14,13 +14,17 @@ import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 @RunWith(Arquillian.class)
 @RunAsClient
 public class TypesafeClientGraphQLWSSubscriptionTest extends AbstractTypesafeClientSubscriptionTest {
+    private boolean onlyOnce = false;
 
     @Before
     public void prepare() {
-        client = new VertxTypesafeGraphQLClientBuilder()
-                .endpoint(testingURL + "graphql")
-                .subprotocols(WebsocketSubprotocol.GRAPHQL_WS)
-                .build(SubscriptionClientApi.class);
+        if (!onlyOnce) {
+            client = new VertxTypesafeGraphQLClientBuilder()
+                    .endpoint(testingURL + "graphql")
+                    .subprotocols(WebsocketSubprotocol.GRAPHQL_WS)
+                    .build(SubscriptionClientApi.class);
+            onlyOnce = true;
+        }
     }
 
 }

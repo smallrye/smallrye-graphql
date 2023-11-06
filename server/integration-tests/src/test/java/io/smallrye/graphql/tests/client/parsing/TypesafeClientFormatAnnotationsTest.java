@@ -31,7 +31,7 @@ public class TypesafeClientFormatAnnotationsTest {
     @ArquillianResource
     URL testingURL;
 
-    private static FormatAnnotationsClientApi client;
+    protected FormatAnnotationsClientApi client;
 
     @Before
     public void prepare() {

@@ -29,13 +29,13 @@ public class TypesafeClientMapTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class)
-                .addClasses(MapClientApi.class, MapApi.class);
+                .addClasses(MapApi.class, ComplexToComplexMapWrapper.class, Foo.class);
     }
 
     @ArquillianResource
     URL testingURL;
 
-    private static MapClientApi client;
+    protected MapClientApi client;
 
     @Before
     public void prepare() {

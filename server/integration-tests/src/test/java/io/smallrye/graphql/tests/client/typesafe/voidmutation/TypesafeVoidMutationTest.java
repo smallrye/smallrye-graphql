@@ -40,7 +40,7 @@ public class TypesafeVoidMutationTest {
     @ArquillianResource
     URL testingURL;
 
-    private RectangleClientApi client;
+    protected RectangleClientApi client;
 
     @Before
     public void prepare() {

@@ -21,6 +21,8 @@
         <module>generator</module>
         <module>generator-test</module>
         <module>tck</module>
+        <module>model</module>
+        <module>model-builder</module>
     </modules>
 
     <build>

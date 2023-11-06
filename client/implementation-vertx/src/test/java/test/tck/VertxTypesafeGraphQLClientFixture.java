@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
+import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.impl.future.SucceededFuture;
@@ -63,6 +64,12 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
 
     @Override
     public TypesafeGraphQLClientBuilder builder() {
+        boolean clientModelCase = System.getProperty("clientModelCase").equals("true");
+        if (clientModelCase) {
+            return ((VertxTypesafeGraphQLClientBuilder) builderWithoutEndpointConfig())
+                    .clientModels(TypesafeTckClientModelSuite.CLIENT_MODELS)
+                    .endpoint("urn:dummy-endpoint");
+        }
         return builderWithoutEndpointConfig().endpoint("urn:dummy-endpoint");
     }
 

@@ -18,6 +18,8 @@ import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
+import io.smallrye.graphql.client.model.ClientModel;
+import io.smallrye.graphql.client.model.ClientModels;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.vertx.VertxClientOptionsHelper;
@@ -48,6 +50,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private HttpClient httpClient;
     private Integer websocketInitializationTimeout;
     private Boolean allowUnexpectedResponseFields;
+    private ClientModels clientModels;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -123,6 +126,11 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    public VertxTypesafeGraphQLClientBuilder clientModels(ClientModels clientModels) {
+        this.clientModels = clientModels;
+        return this;
+    }
+
     @Override
     public TypesafeGraphQLClientBuilder allowUnexpectedResponseFields(boolean value) {
         this.allowUnexpectedResponseFields = value;
@@ -167,14 +175,20 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             dynamicHeaders = new HashMap<>();
         }
 
-        VertxTypesafeGraphQLClientProxy graphQlClient = new VertxTypesafeGraphQLClientProxy(apiClass, headers,
+        ClientModel clientModel = null;
+        if (clientModels != null) {
+            clientModel = clientModels.getClientModelByConfigKey(configKey);
+        }
+
+        VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, clientModel, headers,
                 dynamicHeaders, initPayload,
                 endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
                 websocketInitializationTimeout,
                 allowUnexpectedResponseFields);
+
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> invoke(graphQlClient, method, args)));
+                (proxy, method, args) -> invoke(graphQLClient, method, args)));
     }
 
     private void applyConfigFor(Class<?> apiClass) {
