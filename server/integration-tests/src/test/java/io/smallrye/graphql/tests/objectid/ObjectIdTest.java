@@ -32,7 +32,6 @@ public class ObjectIdTest {
     @Test
     public void queryWithObjectIdArgumentTest() {
         final String id = ObjectId.get().toHexString();
-        System.err.println(id);
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
 
         String response = graphQLAssured
