@@ -7,8 +7,12 @@ This Gradle plugin allows you to generate the GraphQL Schema on build and save i
 Add this to your build.gradle:
 
     plugins {
-        id 'io.smallrye.graphql' version '1.0.2-SNAPSHOT'
+        id 'io.smallrye.graphql' version 'PLUGIN_VERSION'
     }
+
+The list of existing plugin versions (to substitute the
+`PLUGIN_VERSION` placeholder) can be found
+[here](https://plugins.gradle.org/plugin/io.smallrye.graphql).
 
 The schema will appear as `build/generated/schema.graphql` by default.
 
