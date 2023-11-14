@@ -24,7 +24,7 @@ public class GraphQLClientException extends RuntimeException {
 
     public GraphQLClientException(String message, List<GraphQLError> errors) {
         super(message);
-        this.errors = requireNonNull(errors).stream().filter(Objects::nonNull).collect(Collectors.toList());
+        this.errors = requireNonNull(errors).stream().map(Objects::requireNonNull).collect(Collectors.toList());
     }
 
     @Override
