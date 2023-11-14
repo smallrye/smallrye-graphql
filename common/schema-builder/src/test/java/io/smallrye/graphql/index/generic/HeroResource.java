@@ -48,4 +48,13 @@ public class HeroResource implements CharacterResource<Hero> {
         return null;
     }
 
+    @Query
+    public Some saySome(Some value) {
+        return null;
+    }
+
+    @Mutation
+    public Some updateSome(Some some) {
+        return null;
+    }
 }

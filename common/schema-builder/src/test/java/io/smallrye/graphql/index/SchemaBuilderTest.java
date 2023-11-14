@@ -199,8 +199,8 @@ public class SchemaBuilderTest {
         Set<Operation> mutations = schema.getMutations();
         Map<String, Type> outputTypes = schema.getTypes();
 
-        assertEquals(queries.size(), 2);
-        assertEquals(mutations.size(), 4);
+        assertEquals(queries.size(), 3);
+        assertEquals(mutations.size(), 5);
 
         Operation firstQuery = queries.stream()
                 .filter(q -> q.getName().equals("heroes"))
@@ -220,6 +220,12 @@ public class SchemaBuilderTest {
 
         Type greetingType = outputTypes.get("Greet");
         assertNotNull(greetingType);
+
+        Operation thirdQuery = queries.stream()
+                .filter(q -> q.getName().equals("saySome")).findFirst().orElseThrow(AssertionError::new);
+        assertEquals(thirdQuery.getArguments().size(), 1);
+        assertEquals(thirdQuery.getArguments().get(0).getReference().getName(), "SomeInput");
+        assertEquals(thirdQuery.getReference().getName(), "Some");
 
         // ------------------------------------------------------------------
         // MUTATIONS
@@ -280,6 +286,17 @@ public class SchemaBuilderTest {
         assertEquals(fourthMutation.getArguments().size(), 0);
         // return type
         assertEquals(fourthMutation.getReference().getName(), "Hero");
+
+        Operation fifthMutation = mutations.stream()
+                .filter(q -> q.getName().equals("updateSome"))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+
+        // arguments
+        assertEquals(fifthMutation.getArguments().size(), 1);
+        assertEquals(fifthMutation.getArguments().get(0).getReference().getName(), "SomeInput");
+        // return type
+        assertEquals(fifthMutation.getReference().getName(), "Some");
 
     }
 

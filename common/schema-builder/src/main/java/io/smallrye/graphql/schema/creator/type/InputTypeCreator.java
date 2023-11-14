@@ -153,7 +153,7 @@ public class InputTypeCreator implements Creator<InputType> {
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (!c.toString().startsWith(JAVA_DOT)) { // Not java objects
-                allMethods.addAll(c.methods());
+                c.methods().stream().filter(methodInfo -> !methodInfo.isSynthetic()).forEach(allMethods::add);
                 for (final FieldInfo fieldInfo : c.fields()) {
                     allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
