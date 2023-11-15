@@ -168,7 +168,7 @@ class VertxTypesafeGraphQLClientProxy {
             webSocketHandler().subscribe().with((handler) -> {
                 handlerRef.set(handler);
                 operationId.set(handler.executeUni(request, rawEmitter));
-            });
+            }, rawEmitter::fail);
         });
         return rawUni
                 .onCancellation().invoke(() -> {
@@ -199,7 +199,7 @@ class VertxTypesafeGraphQLClientProxy {
             webSocketHandler().subscribe().with(handler -> {
                 handlerRef.set(handler);
                 operationId.set(handler.executeMulti(request, rawEmitter));
-            });
+            }, rawEmitter::fail);
         });
         return rawMulti
                 .onCancellation().invoke(() -> {
