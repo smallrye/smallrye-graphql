@@ -460,7 +460,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             webSocketHandler().subscribe().with(handler -> {
                 handlerRef.set(handler);
                 operationId.set(handler.executeMulti(json, rawEmitter));
-            });
+            }, rawEmitter::fail);
         });
         return rawMulti
                 .onCancellation().invoke(() -> {
