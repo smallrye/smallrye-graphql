@@ -22,6 +22,7 @@ import org.jboss.logging.Logger;
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.UnexpectedCloseException;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.graphql.client.vertx.websocket.opid.IncrementingNumberOperationIDGenerator;
@@ -98,12 +99,13 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                         // even if the status code is OK, any unfinished single-result operation
                         // should be marked as failed
                         uniOperations.forEach((id, emitter) -> emitter.fail(
-                                new InvalidResponseException("Connection closed before data was received")));
+                                new UnexpectedCloseException("Connection closed before data was received", 1000)));
                         multiOperations.forEach((id, emitter) -> emitter.complete());
                     } else {
-                        InvalidResponseException exception = new InvalidResponseException(
+                        UnexpectedCloseException exception = new UnexpectedCloseException(
                                 "Server closed the websocket connection with code: "
-                                        + webSocket.closeStatusCode() + " and reason: " + webSocket.closeReason());
+                                        + webSocket.closeStatusCode() + " and reason: " + webSocket.closeReason(),
+                                webSocket.closeStatusCode());
                         uniOperations.forEach((id, emitter) -> emitter.fail(exception));
                         multiOperations.forEach((id, emitter) -> emitter.fail(exception));
                     }
