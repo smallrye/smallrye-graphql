@@ -26,6 +26,7 @@ public final class Schema implements Serializable {
     private Map<Group, Set<Operation>> groupedMutations = new HashMap<>();
     private Map<Group, Set<Operation>> groupedSubscriptions = new HashMap<>();
 
+    private List<CustomScalarType> customScalarTypes = new ArrayList<>();
     private List<DirectiveType> directiveTypes = new ArrayList<>();
     private Map<String, InputType> inputs = new HashMap<>();
     private Map<String, Type> types = new HashMap<>();
@@ -320,6 +321,21 @@ public final class Schema implements Serializable {
         map.put(group, set);
     }
 
+    public void addCustomScalarType(CustomScalarType customScalarType) {
+        customScalarTypes.add(customScalarType);
+        Scalars.registerCustomScalarInSchema(
+                customScalarType.getName(),
+                customScalarType.getClassName());
+    }
+
+    public List<CustomScalarType> getCustomScalarTypes() {
+        return customScalarTypes;
+    }
+
+    public boolean hasCustomScalarTypes() {
+        return !customScalarTypes.isEmpty();
+    }
+
     public List<DirectiveType> getDirectiveTypes() {
         return directiveTypes;
     }
@@ -347,6 +363,7 @@ public final class Schema implements Serializable {
                 ", groupedMutations=" + groupedMutations +
                 ", groupedSubscriptions=" + groupedSubscriptions +
                 ", directiveTypes=" + directiveTypes +
+                ", customScalarTypes=" + customScalarTypes +
                 ", inputs=" + inputs +
                 ", types=" + types +
                 ", interfaces=" + interfaces +

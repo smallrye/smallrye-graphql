@@ -31,6 +31,7 @@ import org.eclipse.microprofile.graphql.Name;
 import com.apollographql.federation.graphqljava.Federation;
 
 import graphql.introspection.Introspection.DirectiveLocation;
+import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
@@ -68,6 +69,7 @@ import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.Argument;
+import io.smallrye.graphql.schema.model.CustomScalarType;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
@@ -160,6 +162,8 @@ public class Bootstrap {
     private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
+        createGraphQLDirectiveTypes();
+        createGraphQLCustomScalarTypes();
         createGraphQLEnumTypes();
         createGraphQLDirectiveTypes();
 
@@ -221,6 +225,32 @@ public class Bootstrap {
             }
             return result;
         };
+    }
+
+    private void createGraphQLCustomScalarTypes() {
+        if (schema.hasCustomScalarTypes()) {
+            for (CustomScalarType customScalarType : schema.getCustomScalarTypes()) {
+                createGraphQLCustomScalarType(customScalarType);
+            }
+        }
+    }
+
+    private void createGraphQLCustomScalarType(CustomScalarType customScalarType) {
+        String scalarName = customScalarType.getName();
+        Class<Coercing<?, ?>> coercingClass = (Class<Coercing<?, ?>>) (classloadingService
+                .loadClass(customScalarType.getClassName()));
+        Coercing<?, ?> coercing = LookupService.get().getInstance(coercingClass).get();
+
+        GraphQLScalarType graphQLScalarType = GraphQLScalarType.newScalar()
+                .name(scalarName)
+                .description("Scalar for " + scalarName)
+                .coercing(coercing)
+                .build();
+
+        GraphQLScalarTypes.registerCustomScalar(
+                scalarName,
+                customScalarType.getClassName(),
+                graphQLScalarType);
     }
 
     private void createGraphQLDirectiveTypes() {

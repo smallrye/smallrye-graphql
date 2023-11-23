@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema;
 
+import static io.smallrye.graphql.schema.Annotations.CUSTOM_SCALAR;
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import io.smallrye.graphql.schema.creator.FieldCreator;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.creator.type.Creator;
+import io.smallrye.graphql.schema.creator.type.CustomScalarCreator;
 import io.smallrye.graphql.schema.creator.type.EnumCreator;
 import io.smallrye.graphql.schema.creator.type.InputTypeCreator;
 import io.smallrye.graphql.schema.creator.type.InterfaceCreator;
@@ -73,6 +75,7 @@ public class SchemaBuilder {
     private final OperationCreator operationCreator;
     private final DirectiveTypeCreator directiveTypeCreator;
     private final UnionCreator unionCreator;
+    private final CustomScalarCreator customScalarCreator;
 
     private final DotName FEDERATION_ANNOTATIONS_PACKAGE = DotName.createSimple("io.smallrye.graphql.api.federation");
 
@@ -109,6 +112,7 @@ public class SchemaBuilder {
         interfaceCreator = new InterfaceCreator(referenceCreator, fieldCreator, operationCreator);
         directiveTypeCreator = new DirectiveTypeCreator(referenceCreator);
         unionCreator = new UnionCreator(referenceCreator);
+        customScalarCreator = new CustomScalarCreator(referenceCreator);
     }
 
     private Schema generateSchema() {
@@ -126,6 +130,8 @@ public class SchemaBuilder {
 
         // add AppliedSchemaDirectives and Schema Description
         setUpSchemaDirectivesAndDescription(schema, graphQLApiAnnotations, directivesHelper);
+
+        addCustomScalarTypes(schema);
 
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
@@ -187,7 +193,16 @@ public class SchemaBuilder {
         schema.addDirectiveType(RolesAllowedDirectivesHelper.ROLES_ALLOWED_DIRECTIVE_TYPE);
     }
 
+    private void addCustomScalarTypes(Schema schema) {
+        for (AnnotationInstance annotationInstance : ScanningContext.getIndex().getAnnotations(CUSTOM_SCALAR)) {
+            schema.addCustomScalarType(customScalarCreator.create(
+                    annotationInstance.target().asClass(),
+                    annotationInstance.value().asString()));
+        }
+    }
+
     private void setupDirectives(Directives directives) {
+        customScalarCreator.setDirectives(directives);
         inputTypeCreator.setDirectives(directives);
         typeCreator.setDirectives(directives);
         interfaceCreator.setDirectives(directives);

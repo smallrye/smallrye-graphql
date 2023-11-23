@@ -114,6 +114,20 @@ public class ReferenceCreator {
     }
 
     /**
+     * Get a reference to a custom scalar type
+     *
+     * @param direction the direction
+     * @param fieldType the java type
+     * @param annotations annotation on this operations method
+     * @return a reference to the custom scalar type
+     */
+    public Reference createReferenceForCustomScalar(Type fieldType,
+            Annotations annotations,
+            Direction direction) {
+        return getReference(direction, null, fieldType, annotations, null);
+    }
+
+    /**
      * Get a reference to a field type for an operation Direction is OUT on a field (and IN on an argument) In the case
      * of operations, there is no fields (only methods)
      *
