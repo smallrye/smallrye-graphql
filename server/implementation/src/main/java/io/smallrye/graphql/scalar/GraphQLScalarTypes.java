@@ -52,6 +52,14 @@ public class GraphQLScalarTypes {
         SCALARS_BY_NAME.put(ExtendedScalars.UUID.getName(), ExtendedScalars.UUID);
     }
 
+    public static void registerCustomScalar(
+            String graphQlScalarName,
+            String valueClassName,
+            GraphQLScalarType graphQLScalarType) {
+        SCALAR_MAP.put(valueClassName, graphQLScalarType);
+        SCALARS_BY_NAME.put(graphQlScalarName, graphQLScalarType);
+    }
+
     // Scalar map we can just create now.
     private static final Map<String, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
 

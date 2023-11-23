@@ -94,6 +94,12 @@ public class Scalars {
                 .build();
     }
 
+    public static void registerCustomScalarInSchema(
+            String graphQlScalarName,
+            String valueClassName) {
+        populateScalar(valueClassName, graphQlScalarName, valueClassName);
+    }
+
     // this is for the UUID from graphql-java-extended-scalars
     // if used, it will override the original UUID type that is mapped to a String in the schema
     public static void addUuid() {

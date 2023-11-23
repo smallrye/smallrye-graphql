@@ -586,6 +586,7 @@ public class Annotations {
 
     // SmallRye GraphQL Annotations (Experimental)
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
+    public static final DotName CUSTOM_SCALAR = DotName.createSimple("io.smallrye.graphql.api.CustomScalar");
     public static final DotName ADAPT_TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.AdaptToScalar");
     public static final DotName ADAPT_WITH = DotName.createSimple("io.smallrye.graphql.api.AdaptWith");
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
