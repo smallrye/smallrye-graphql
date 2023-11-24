@@ -51,6 +51,10 @@ import io.smallrye.graphql.api.federation.Key.Keys;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.execution.TestConfig;
+import io.smallrye.graphql.schema.directiveswithenumvalues.MyEnum;
+import io.smallrye.graphql.schema.directiveswithenumvalues.MyEnumValueDirective;
+import io.smallrye.graphql.schema.directiveswithenumvalues.MyObject;
+import io.smallrye.graphql.schema.directiveswithenumvalues.SomeApi;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.rolesallowedschemas.Customer;
 import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema1;
@@ -110,6 +114,31 @@ class SchemaTest {
         var schemaUri = requireNonNull(SchemaTest.class.getResource("/schemaTest.graphql")).toURI();
         String expectedSchema = Files.readString(new File(schemaUri).toPath());
         Assertions.assertEquals(expectedSchema, actualSchema);
+    }
+
+    @Test
+    void testSchemaWithEnumValueDirectives() throws URISyntaxException, IOException {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(MyEnum.class, MyEnumValueDirective.class, EnumDirective.class,
+                MyObject.class, SomeApi.class);
+
+        GraphQLDirective typeDirective = graphQLSchema.getDirective("myEnumValueDirective");
+        assertEquals("myEnumValueDirective", typeDirective.getName());
+        assertEquals(1, typeDirective.getArguments().size());
+        assertEquals("MyEnum!", typeDirective.getArgument("value").getType().toString());
+
+        GraphQLFieldDefinition fieldWithEnumValueDirective = graphQLSchema
+                .getObjectType("MyObject")
+                .getFieldDefinition("name");
+
+        GraphQLDirective enumValueDirectiveInstance = fieldWithEnumValueDirective.getDirective("myEnumValueDirective");
+        assertEquals("myEnumValueDirective", enumValueDirectiveInstance.getName());
+        GraphQLArgument argument = enumValueDirectiveInstance.getArgument("value");
+        assertEquals("value", argument.getName());
+        assertEquals(MyEnum.SOME.toString(), argument.toAppliedArgument().getValue());
+
+        GraphQLEnumType enumType = graphQLSchema.getTypeAs("MyEnum");
+        assertNotNull(enumType.getDirective("enumDirective"),
+                "Enum MyEnum should have directive @enumDirective");
     }
 
     @Test

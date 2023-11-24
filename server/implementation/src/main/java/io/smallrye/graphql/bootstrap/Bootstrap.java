@@ -160,8 +160,9 @@ public class Bootstrap {
     private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        createGraphQLDirectiveTypes();
         createGraphQLEnumTypes();
+        createGraphQLDirectiveTypes();
+
         createGraphQLInterfaceTypes();
         createGraphQLUnionTypes();
         createGraphQLObjectTypes();
