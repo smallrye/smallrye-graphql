@@ -68,6 +68,7 @@ import io.smallrye.graphql.execution.resolver.UnionResolver;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
+import io.smallrye.graphql.scalar.custom.StringCoercing;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.CustomScalarType;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
@@ -237,9 +238,7 @@ public class Bootstrap {
 
     private void createGraphQLCustomScalarType(CustomScalarType customScalarType) {
         String scalarName = customScalarType.getName();
-        Class<Coercing<?, ?>> coercingClass = (Class<Coercing<?, ?>>) (classloadingService
-                .loadClass(customScalarType.getClassName()));
-        Coercing<?, ?> coercing = LookupService.get().getInstance(coercingClass).get();
+        Coercing<?, ?> coercing = new StringCoercing(customScalarType.getClassName());
 
         GraphQLScalarType graphQLScalarType = GraphQLScalarType.newScalar()
                 .name(scalarName)
