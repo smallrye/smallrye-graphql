@@ -24,32 +24,22 @@ public abstract class CustomStringScalar {
     }
 
     public static JsonbSerializer serializer() {
-        return new JsonbSerializer<CustomStringScalar>() {
-            @Override
-            public void serialize(CustomStringScalar customStringScalar, JsonGenerator jsonGenerator,
-                    SerializationContext serializationContext) {
-                jsonGenerator.write(customStringScalar.toString());
-            }
-        };
+        return (JsonbSerializer<CustomStringScalar>) (customStringScalar, jsonGenerator, serializationContext) -> jsonGenerator.write(customStringScalar.toString());
     }
 
     public static JsonbDeserializer deserializer() {
-        return new JsonbDeserializer<CustomStringScalar>() {
-            @Override
-            public CustomStringScalar deserialize(JsonParser jsonParser,
-                    DeserializationContext deserializationContext, Type type) {
-                ClassloadingService classloadingService = ClassloadingService.get();
-                try {
-                    return (CustomStringScalar) classloadingService.loadClass(type.getTypeName()).getConstructor(String.class)
-                            .newInstance(jsonParser.getString());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+        return (JsonbDeserializer<CustomStringScalar>) (jsonParser, deserializationContext, type) -> {
+            ClassloadingService classloadingService = ClassloadingService.get();
+            try {
+                return (CustomStringScalar) classloadingService.loadClass(type.getTypeName()).getConstructor(String.class)
+                        .newInstance(jsonParser.getString());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         };
     }
 
-    public String getStringValue() {
-        return stringValue;
-    }
+//    public String getStringValue() {
+//        return stringValue;
+//    }
 }

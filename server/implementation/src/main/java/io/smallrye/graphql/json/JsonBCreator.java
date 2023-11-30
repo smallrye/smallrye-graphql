@@ -36,6 +36,7 @@ public class JsonBCreator {
             Map<String, String> namemapping = new HashMap<>();
             Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
+                field.getReference().getClassName(); // class might not exist on classpath?
                 // See if the graphql name and property name is different
                 if (!field.getName().equals(field.getPropertyName())) {
                     namemapping.put(field.getPropertyName(), field.getName());
