@@ -13,28 +13,29 @@ import io.smallrye.graphql.spi.ClassloadingService;
 
 public abstract class CustomStringScalar {
 
-    private final String stringValue;
-
-    public CustomStringScalar(String stringValue) {
-        this.stringValue = stringValue;
+    public static JsonbSerializer<CustomStringScalar> serializer() {
+        // note: using a lambda here hides the parameterized type from Jsonb
+        return new JsonbSerializer<CustomStringScalar>() {
+            @Override
+            public void serialize(CustomStringScalar customStringScalar, JsonGenerator jsonGenerator,
+                    SerializationContext serializationContext) {
+                jsonGenerator.write(customStringScalar.toString());
+            }
+        };
     }
 
-    public CustomStringScalar() {
-        stringValue = null;
-    }
-
-    public static JsonbSerializer serializer() {
-        return (JsonbSerializer<CustomStringScalar>) (customStringScalar, jsonGenerator, serializationContext) -> jsonGenerator.write(customStringScalar.toString());
-    }
-
-    public static JsonbDeserializer deserializer() {
-        return (JsonbDeserializer<CustomStringScalar>) (jsonParser, deserializationContext, type) -> {
-            ClassloadingService classloadingService = ClassloadingService.get();
-            try {
-                return (CustomStringScalar) classloadingService.loadClass(type.getTypeName()).getConstructor(String.class)
-                        .newInstance(jsonParser.getString());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+    public static JsonbDeserializer<CustomStringScalar> deserializer() {
+        return new JsonbDeserializer<CustomStringScalar>() {
+            @Override
+            public CustomStringScalar deserialize(JsonParser jsonParser,
+                    DeserializationContext deserializationContext, Type type) {
+                ClassloadingService classloadingService = ClassloadingService.get();
+                try {
+                    return (CustomStringScalar) classloadingService.loadClass(type.getTypeName()).getConstructor(String.class)
+                            .newInstance(jsonParser.getString());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
     }

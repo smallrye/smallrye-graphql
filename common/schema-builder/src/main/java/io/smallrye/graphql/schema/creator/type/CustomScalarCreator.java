@@ -1,6 +1,5 @@
 package io.smallrye.graphql.schema.creator.type;
 
-import io.smallrye.graphql.schema.model.Wrapper;
 import java.util.List;
 
 import org.jboss.jandex.ClassInfo;
