@@ -38,8 +38,4 @@ public abstract class CustomStringScalar {
             }
         };
     }
-
-//    public String getStringValue() {
-//        return stringValue;
-//    }
 }
