@@ -555,7 +555,7 @@ public class Bootstrap {
         if (inputType.hasFields()) {
             inputObjectTypeBuilder = inputObjectTypeBuilder
                     .fields(createGraphQLInputObjectFieldsFromFields(inputType.getFields().values()));
-            // Register this input for posible JsonB usage
+            // Register this input for possible JsonB usage
             JsonInputRegistry.register(inputType);
         }
 

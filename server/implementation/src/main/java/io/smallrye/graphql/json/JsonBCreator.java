@@ -8,6 +8,7 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 
+import io.smallrye.graphql.scalar.custom.CustomStringScalar;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 
@@ -21,7 +22,9 @@ import io.smallrye.graphql.schema.model.InputType;
 public class JsonBCreator {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withFormatting(true)
-            .withNullValues(true)); //null values are required by @JsonbCreator
+            .withNullValues(true)
+            .withSerializers(CustomStringScalar.serializer())
+            .withDeserializers(CustomStringScalar.deserializer())); //null values are required by @JsonbCreator
 
     private static final Map<String, Jsonb> jsonMap = new HashMap<>();
 

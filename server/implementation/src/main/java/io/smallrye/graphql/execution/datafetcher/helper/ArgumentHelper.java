@@ -327,7 +327,7 @@ public class ArgumentHelper extends AbstractHelper {
      * We also need to handle transformation of fields that is on this complex type.
      *
      * The transformation with JsonB annotation will happen when binding, and the transformation
-     * with non-jsonb annotatin will happen when we create a json string from the map.
+     * with non-jsonb annotation will happen when we create a json string from the map.
      *
      * @param m the map from graphql-java
      * @param field the field as created while scanning
