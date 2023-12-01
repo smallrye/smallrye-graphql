@@ -30,12 +30,10 @@ public class CustomScalarCreator extends ModelCreator {
 
         Annotations annotations = Annotations.getAnnotationsForClass(classInfo);
 
-        CustomScalarType customScalarType = new CustomScalarType();
-        customScalarType.setClassName(classInfo.name().toString());
-        customScalarType.setName(scalarName);
-        customScalarType.setDescription(DescriptionHelper.getDescriptionForType(annotations).orElse(null));
-
-        return customScalarType;
+        return new CustomScalarType(
+                classInfo.name().toString(),
+                scalarName,
+                DescriptionHelper.getDescriptionForType(annotations).orElse(null));
 
     }
 

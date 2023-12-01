@@ -8,6 +8,9 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import io.smallrye.graphql.spi.ClassloadingService;
 
+/**
+ * TODO bdupras - implement the non-deprecated methods of Coercing
+ */
 public class StringCoercing implements Coercing<Object, String> {
     private final ClassloadingService classloadingService = ClassloadingService.get();
     private final Class<?> customScalarClass;
@@ -76,7 +79,7 @@ public class StringCoercing implements Coercing<Object, String> {
             return newInstance(((StringValue) input).getValue());
         } catch (IllegalArgumentException ex) {
             throw new CoercingParseLiteralException(
-                    "Expected something that we can convert to a BigDecimalStringScalar but was invalid");
+                    "Expected something that we can convert to a CustomStringScalar but was invalid");
         }
     }
 

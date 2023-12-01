@@ -238,6 +238,8 @@ public class Bootstrap {
 
     private void createGraphQLCustomScalarType(CustomScalarType customScalarType) {
         String scalarName = customScalarType.getName();
+
+        // TODO bdupras un-hardcode the StringCoercing
         Coercing<?, ?> coercing = new StringCoercing(customScalarType.getClassName());
 
         GraphQLScalarType graphQLScalarType = GraphQLScalarType.newScalar()
