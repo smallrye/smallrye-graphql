@@ -65,7 +65,7 @@ class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object
                     }));
             return sequence(repsWithPositionPerType.entrySet().stream().map(e -> {
                 var fieldDefinition = fieldDefinitions.get(e.getKey());
-                if (fieldDefinition.getType() instanceof GraphQLList) {
+                if (getGraphqlTypeFromField(fieldDefinition) instanceof GraphQLList) {
                     //use batch loader if available
                     return executeList(fieldDefinition, environment, e.getValue());
                 } else {
