@@ -181,7 +181,6 @@ public class Scalars {
         // Void
         populateScalar(Void.class.getName(), VOID, Void.class.getName());
         populateScalar(void.class.getName(), VOID, Void.class.getName());
-
     }
 
     private static void populateScalar(String className, String scalarName) {
