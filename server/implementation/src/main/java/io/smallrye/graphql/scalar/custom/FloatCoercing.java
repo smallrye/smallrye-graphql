@@ -1,6 +1,8 @@
 package io.smallrye.graphql.scalar.custom;
 
-import graphql.language.StringValue;
+import java.math.BigDecimal;
+
+import graphql.language.FloatValue;
 import graphql.language.Value;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
@@ -11,19 +13,19 @@ import io.smallrye.graphql.spi.ClassloadingService;
 /**
  * TODO bdupras - implement the non-deprecated methods of Coercing
  */
-public class StringCoercing implements Coercing<Object, String> {
+public class FloatCoercing implements Coercing<Object, BigDecimal> {
 
-    private final Class<? extends CustomStringScalar> customScalarClass;
+    private final Class<? extends CustomFloatScalar> customScalarClass;
 
-    public StringCoercing(String customScalarClass) {
+    public FloatCoercing(String customScalarClass) {
         ClassloadingService classloadingService = ClassloadingService.get();
-        this.customScalarClass = (Class<? extends CustomStringScalar>) classloadingService.loadClass(customScalarClass);
+        this.customScalarClass = (Class<? extends CustomFloatScalar>) classloadingService.loadClass(customScalarClass);
     }
 
-    private CustomStringScalar newInstance(String graphqlPrimitiveValue) {
+    private CustomFloatScalar newInstance(BigDecimal graphqlPrimitiveValue) {
         try {
             return graphqlPrimitiveValue == null ? null
-                    : customScalarClass.getConstructor(String.class).newInstance(graphqlPrimitiveValue);
+                    : customScalarClass.getConstructor(BigDecimal.class).newInstance(graphqlPrimitiveValue);
         } catch (Exception e) {
             throw new CoercingSerializeException("TODO bdupras better error handling here", e);
         }
@@ -37,23 +39,23 @@ public class StringCoercing implements Coercing<Object, String> {
         return input.getClass().getSimpleName();
     }
 
-    private CustomStringScalar convertImpl(Object input) {
-        if (input instanceof String) {
-            return newInstance((String) input);
+    private CustomFloatScalar convertImpl(Object input) {
+        if (input instanceof BigDecimal) {
+            return newInstance((BigDecimal) input);
         } else if (input.getClass().isAssignableFrom(customScalarClass)) {
-            return (CustomStringScalar) input;
+            return (CustomFloatScalar) input;
         }
         return null;
     }
 
     @Override
-    public String serialize(Object input) throws CoercingSerializeException {
-        Object result = convertImpl(input);
+    public BigDecimal serialize(Object input) throws CoercingSerializeException {
+        CustomFloatScalar result = convertImpl(input);
         if (result == null) {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.toString();
+        return result.floatValue();
     }
 
     @Override
@@ -68,17 +70,17 @@ public class StringCoercing implements Coercing<Object, String> {
 
     @Override
     public Object parseLiteral(Object input) throws CoercingParseLiteralException {
-        if (!(input instanceof StringValue)) {
+        if (!(input instanceof FloatValue)) {
             throw new CoercingParseLiteralException(
                     "Expected a String AST type object but was '" + typeName(input) + "'.");
         }
-        return newInstance(((StringValue) input).getValue());
+        return newInstance(((FloatValue) input).getValue());
     }
 
     @Override
     public Value<?> valueToLiteral(Object input) {
-        String s = serialize(input);
-        return StringValue.newStringValue(s).build();
+        BigDecimal s = serialize(input);
+        return FloatValue.newFloatValue(s).build();
     }
 
 }

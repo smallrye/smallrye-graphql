@@ -68,9 +68,12 @@ import io.smallrye.graphql.execution.resolver.UnionResolver;
 import io.smallrye.graphql.json.JsonBCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
+import io.smallrye.graphql.scalar.custom.FloatCoercing;
+import io.smallrye.graphql.scalar.custom.IntCoercing;
 import io.smallrye.graphql.scalar.custom.StringCoercing;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.CustomScalarType;
+import io.smallrye.graphql.schema.model.CustomScalarType.CustomScalarPrimitiveType;
 import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
@@ -239,8 +242,7 @@ public class Bootstrap {
     private void createGraphQLCustomScalarType(CustomScalarType customScalarType) {
         String scalarName = customScalarType.getName();
 
-        // TODO bdupras un-hardcode the StringCoercing
-        Coercing<?, ?> coercing = new StringCoercing(customScalarType.getClassName());
+        Coercing<?, ?> coercing = getCoercing(customScalarType);
 
         GraphQLScalarType graphQLScalarType = GraphQLScalarType.newScalar()
                 .name(scalarName)
@@ -252,6 +254,24 @@ public class Bootstrap {
                 scalarName,
                 customScalarType.getClassName(),
                 graphQLScalarType);
+    }
+
+    private static Coercing<?, ?> getCoercing(CustomScalarType customScalarType) {
+        CustomScalarPrimitiveType primitiveType = customScalarType.customScalarPrimitiveType();
+
+        Coercing<?, ?> coercing = null;
+        switch (primitiveType) {
+            case STRING_TYPE:
+                coercing = new StringCoercing(customScalarType.getClassName());
+                break;
+            case INT_TYPE:
+                coercing = new IntCoercing(customScalarType.getClassName());
+                break;
+            case FLOAT_TYPE:
+                coercing = new FloatCoercing(customScalarType.getClassName());
+                break;
+        }
+        return coercing;
     }
 
     private void createGraphQLDirectiveTypes() {

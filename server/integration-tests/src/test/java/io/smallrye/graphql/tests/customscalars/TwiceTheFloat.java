@@ -3,19 +3,19 @@ package io.smallrye.graphql.tests.customscalars;
 import java.math.BigDecimal;
 
 import io.smallrye.graphql.api.CustomScalar;
-import io.smallrye.graphql.scalar.custom.CustomStringScalar;
+import io.smallrye.graphql.scalar.custom.CustomFloatScalar;
 
 /**
- * An alternative BigDecimal scalar that serializes to a GraphQL String instead of a Float.
+ * A float scalar that serializes to a GraphQL Float equal to twice the internal value.
  * <p>
  */
-@CustomScalar("BigDecimalString")
-public class BigDecimalString implements CustomStringScalar {
+@CustomScalar("TwiceTheFloat")
+public class TwiceTheFloat implements CustomFloatScalar {
 
     private final BigDecimal value;
 
-    public BigDecimalString(String stringValue) {
-        this.value = stringValue == null ? null : new BigDecimal(stringValue);
+    public TwiceTheFloat(BigDecimal floatValue) {
+        this.value = floatValue == null ? null : floatValue.multiply(BigDecimal.valueOf(.5));
     }
 
     @Override
@@ -34,7 +34,7 @@ public class BigDecimalString implements CustomStringScalar {
     }
 
     @Override
-    public String stringValue() {
-        return toString();
+    public BigDecimal floatValue() {
+        return value.multiply(BigDecimal.valueOf(2));
     }
 }

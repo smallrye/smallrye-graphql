@@ -1,8 +1,10 @@
 package io.smallrye.graphql.schema.creator.type;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -33,7 +35,8 @@ public class CustomScalarCreator extends ModelCreator {
         return new CustomScalarType(
                 classInfo.name().toString(),
                 scalarName,
-                DescriptionHelper.getDescriptionForType(annotations).orElse(null));
+                DescriptionHelper.getDescriptionForType(annotations).orElse(null),
+                classInfo.interfaceNames().stream().map(DotName::toString).collect(Collectors.toSet()));
 
     }
 

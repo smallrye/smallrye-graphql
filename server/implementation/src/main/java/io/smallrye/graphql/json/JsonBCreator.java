@@ -8,6 +8,8 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 
+import io.smallrye.graphql.scalar.custom.CustomFloatScalar;
+import io.smallrye.graphql.scalar.custom.CustomIntScalar;
 import io.smallrye.graphql.scalar.custom.CustomStringScalar;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
@@ -29,8 +31,10 @@ public class JsonBCreator {
             //   scalar class declarations. But Jsonb relies on the parameterized type info from
             //   the declaration (JsonbSerializer<SomeTypeHere>) in order to look up the correct
             //   (de)serializer at runtime.
-            .withSerializers(CustomStringScalar.SERIALIZER)
-            .withDeserializers(CustomStringScalar.DESERIALIZER));
+            .withSerializers(CustomStringScalar.SERIALIZER, CustomIntScalar.SERIALIZER,
+                    CustomFloatScalar.SERIALIZER)
+            .withDeserializers(CustomStringScalar.DESERIALIZER, CustomIntScalar.DESERIALIZER,
+                    CustomFloatScalar.DESERIALIZER));
 
     private static final Map<String, Jsonb> jsonMap = new HashMap<>();
 

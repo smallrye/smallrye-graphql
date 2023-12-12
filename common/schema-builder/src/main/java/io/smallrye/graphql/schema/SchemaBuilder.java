@@ -194,15 +194,13 @@ public class SchemaBuilder {
     }
 
     private void addCustomScalarTypes(Schema schema) {
-        Collection<AnnotationInstance> annotations =
-            ScanningContext.getIndex().getAnnotations(CUSTOM_SCALAR);
+        Collection<AnnotationInstance> annotations = ScanningContext.getIndex().getAnnotations(CUSTOM_SCALAR);
 
         for (AnnotationInstance annotationInstance : annotations) {
             schema.addCustomScalarType(customScalarCreator.create(
                     annotationInstance.target().asClass(),
                     // TODO bdupras - get the scalar's name from: the annotation value(); the @Name annotation; or the simple name of the target class
-                    annotationInstance.value().asString())
-            );
+                    annotationInstance.value().asString()));
         }
     }
 

@@ -1,6 +1,8 @@
 package io.smallrye.graphql.scalar.custom;
 
-import graphql.language.StringValue;
+import java.math.BigInteger;
+
+import graphql.language.IntValue;
 import graphql.language.Value;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
@@ -11,19 +13,19 @@ import io.smallrye.graphql.spi.ClassloadingService;
 /**
  * TODO bdupras - implement the non-deprecated methods of Coercing
  */
-public class StringCoercing implements Coercing<Object, String> {
+public class IntCoercing implements Coercing<Object, BigInteger> {
 
-    private final Class<? extends CustomStringScalar> customScalarClass;
+    private final Class<? extends CustomIntScalar> customScalarClass;
 
-    public StringCoercing(String customScalarClass) {
+    public IntCoercing(String customScalarClass) {
         ClassloadingService classloadingService = ClassloadingService.get();
-        this.customScalarClass = (Class<? extends CustomStringScalar>) classloadingService.loadClass(customScalarClass);
+        this.customScalarClass = (Class<? extends CustomIntScalar>) classloadingService.loadClass(customScalarClass);
     }
 
-    private CustomStringScalar newInstance(String graphqlPrimitiveValue) {
+    private CustomIntScalar newInstance(BigInteger graphqlPrimitiveValue) {
         try {
             return graphqlPrimitiveValue == null ? null
-                    : customScalarClass.getConstructor(String.class).newInstance(graphqlPrimitiveValue);
+                    : customScalarClass.getConstructor(BigInteger.class).newInstance(graphqlPrimitiveValue);
         } catch (Exception e) {
             throw new CoercingSerializeException("TODO bdupras better error handling here", e);
         }
@@ -37,23 +39,23 @@ public class StringCoercing implements Coercing<Object, String> {
         return input.getClass().getSimpleName();
     }
 
-    private CustomStringScalar convertImpl(Object input) {
-        if (input instanceof String) {
-            return newInstance((String) input);
+    private CustomIntScalar convertImpl(Object input) {
+        if (input instanceof BigInteger) {
+            return newInstance((BigInteger) input);
         } else if (input.getClass().isAssignableFrom(customScalarClass)) {
-            return (CustomStringScalar) input;
+            return (CustomIntScalar) input;
         }
         return null;
     }
 
     @Override
-    public String serialize(Object input) throws CoercingSerializeException {
-        Object result = convertImpl(input);
+    public BigInteger serialize(Object input) throws CoercingSerializeException {
+        CustomIntScalar result = convertImpl(input);
         if (result == null) {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.toString();
+        return result.integerValue();
     }
 
     @Override
@@ -68,17 +70,17 @@ public class StringCoercing implements Coercing<Object, String> {
 
     @Override
     public Object parseLiteral(Object input) throws CoercingParseLiteralException {
-        if (!(input instanceof StringValue)) {
+        if (!(input instanceof IntValue)) {
             throw new CoercingParseLiteralException(
                     "Expected a String AST type object but was '" + typeName(input) + "'.");
         }
-        return newInstance(((StringValue) input).getValue());
+        return newInstance(((IntValue) input).getValue());
     }
 
     @Override
     public Value<?> valueToLiteral(Object input) {
-        String s = serialize(input);
-        return StringValue.newStringValue(s).build();
+        BigInteger s = serialize(input);
+        return IntValue.newIntValue(s).build();
     }
 
 }

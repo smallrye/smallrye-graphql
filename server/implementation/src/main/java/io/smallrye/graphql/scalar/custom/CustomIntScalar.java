@@ -1,6 +1,7 @@
 package io.smallrye.graphql.scalar.custom;
 
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 
 import jakarta.json.JsonValue.ValueType;
 import jakarta.json.bind.serializer.DeserializationContext;
@@ -12,30 +13,30 @@ import jakarta.json.stream.JsonParser;
 
 import io.smallrye.graphql.spi.ClassloadingService;
 
-public interface CustomStringScalar {
+public interface CustomIntScalar {
     // Note: using lambdas for the SERIALIZER/DESERIALIZER instances doesn't work because it
     // hides the parameterized type from Jsonb.
 
-    JsonbSerializer<CustomStringScalar> SERIALIZER = new JsonbSerializer<>() {
+    JsonbSerializer<CustomIntScalar> SERIALIZER = new JsonbSerializer<>() {
         @Override
-        public void serialize(CustomStringScalar customStringScalar, JsonGenerator jsonGenerator,
+        public void serialize(CustomIntScalar customIntScalar, JsonGenerator jsonGenerator,
                 SerializationContext serializationContext) {
-            jsonGenerator.write(customStringScalar.stringValue());
+            jsonGenerator.write(customIntScalar.integerValue());
         }
     };
 
-    JsonbDeserializer<CustomStringScalar> DESERIALIZER = new JsonbDeserializer<>() {
+    JsonbDeserializer<CustomIntScalar> DESERIALIZER = new JsonbDeserializer<>() {
         @Override
-        public CustomStringScalar deserialize(JsonParser jsonParser,
+        public CustomIntScalar deserialize(JsonParser jsonParser,
                 DeserializationContext deserializationContext, Type type) {
             ClassloadingService classloadingService = ClassloadingService.get();
             try {
                 if (jsonParser.getValue().getValueType() == ValueType.NULL) {
                     return null;
                 } else {
-                    return (CustomStringScalar) classloadingService.loadClass(type.getTypeName())
-                            .getConstructor(String.class)
-                            .newInstance(jsonParser.getString());
+                    return (CustomIntScalar) classloadingService.loadClass(type.getTypeName())
+                            .getConstructor(Integer.class)
+                            .newInstance(jsonParser.getInt());
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -43,5 +44,5 @@ public interface CustomStringScalar {
         }
     };
 
-    String stringValue();
+    BigInteger integerValue();
 }
