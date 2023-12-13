@@ -10,9 +10,6 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import io.smallrye.graphql.spi.ClassloadingService;
 
-/**
- * TODO bdupras - implement the non-deprecated methods of Coercing
- */
 public class FloatCoercing implements Coercing<Object, BigDecimal> {
 
     private final Class<? extends CustomFloatScalar> customScalarClass;

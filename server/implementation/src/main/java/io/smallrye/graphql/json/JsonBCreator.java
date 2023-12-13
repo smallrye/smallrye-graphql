@@ -25,12 +25,6 @@ public class JsonBCreator {
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withFormatting(true)
             .withNullValues(true) //null values are required by @JsonbCreator
-            // TODO bdupras I tried instantiating (de)serializers dynamically at schema-building
-            //   for each of the custom scalar Class<?> instances (com.acme.BigDecimalString),
-            //   so that we could get rid of the `implements CustomStringScalar` on the custom
-            //   scalar class declarations. But Jsonb relies on the parameterized type info from
-            //   the declaration (JsonbSerializer<SomeTypeHere>) in order to look up the correct
-            //   (de)serializer at runtime.
             .withSerializers(CustomStringScalar.SERIALIZER, CustomIntScalar.SERIALIZER,
                     CustomFloatScalar.SERIALIZER)
             .withDeserializers(CustomStringScalar.DESERIALIZER, CustomIntScalar.DESERIALIZER,

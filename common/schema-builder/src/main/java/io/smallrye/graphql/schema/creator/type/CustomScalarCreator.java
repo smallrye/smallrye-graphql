@@ -51,7 +51,6 @@ public class CustomScalarCreator extends ModelCreator {
     }
 
     public void setDirectives(Directives directives) {
-        // TODO bdupras add support for directives on custom scalars
         this.directives = directives;
     }
 }

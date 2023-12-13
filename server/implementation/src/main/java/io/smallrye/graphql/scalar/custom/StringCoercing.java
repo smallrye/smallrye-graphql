@@ -8,9 +8,6 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import io.smallrye.graphql.spi.ClassloadingService;
 
-/**
- * TODO bdupras - implement the non-deprecated methods of Coercing
- */
 public class StringCoercing implements Coercing<Object, String> {
 
     private final Class<? extends CustomStringScalar> customScalarClass;

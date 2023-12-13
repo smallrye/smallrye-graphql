@@ -21,7 +21,7 @@ public interface CustomIntScalar {
         @Override
         public void serialize(CustomIntScalar customIntScalar, JsonGenerator jsonGenerator,
                 SerializationContext serializationContext) {
-            jsonGenerator.write(customIntScalar.integerValue());
+            jsonGenerator.write(customIntScalar.intValue());
         }
     };
 
@@ -44,5 +44,5 @@ public interface CustomIntScalar {
         }
     };
 
-    BigInteger integerValue();
+    BigInteger intValue();
 }

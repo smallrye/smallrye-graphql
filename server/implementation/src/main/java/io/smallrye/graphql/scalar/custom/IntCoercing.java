@@ -10,9 +10,6 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import io.smallrye.graphql.spi.ClassloadingService;
 
-/**
- * TODO bdupras - implement the non-deprecated methods of Coercing
- */
 public class IntCoercing implements Coercing<Object, BigInteger> {
 
     private final Class<? extends CustomIntScalar> customScalarClass;
@@ -55,7 +52,7 @@ public class IntCoercing implements Coercing<Object, BigInteger> {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.integerValue();
+        return result.intValue();
     }
 
     @Override
