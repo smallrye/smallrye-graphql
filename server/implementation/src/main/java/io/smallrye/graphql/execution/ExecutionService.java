@@ -1,24 +1,12 @@
 package io.smallrye.graphql.execution;
 
-import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-
-import jakarta.json.JsonObject;
-
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderRegistry;
-
-import graphql.*;
+import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
+import graphql.ExecutionResult;
+import graphql.ExecutionResultImpl;
+import graphql.GraphQL;
+import graphql.GraphQLError;
+import graphql.GraphqlErrorBuilder;
 import graphql.analysis.MaxQueryComplexityInstrumentation;
 import graphql.analysis.MaxQueryDepthInstrumentation;
 import graphql.execution.ExecutionId;
@@ -42,6 +30,22 @@ import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 import io.smallrye.mutiny.Uni;
+import jakarta.json.JsonObject;
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
+import org.dataloader.DataLoaderRegistry;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 /**
  * Executing the GraphQL request
@@ -75,7 +79,7 @@ public class ExecutionService {
     }
 
     public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, ExecutionStrategy queryExecutionStrategy,
-            ExecutionStrategy mutationExecutionStrategy) {
+                            ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = graphQLSchema;
         this.schema = schema;
@@ -151,6 +155,7 @@ public class ExecutionService {
                 // Query
                 Builder executionBuilder = ExecutionInput.newExecutionInput()
                         .query(query)
+                        .locale(resolveLocale(context))
                         .executionId(finalExecutionId);
 
                 // Variables
@@ -195,6 +200,14 @@ public class ExecutionService {
         }
     }
 
+    private Locale resolveLocale(Map<String, Object> context) {
+        Object mayLocale = context.get("locale");
+        if (mayLocale instanceof Locale) {
+            return (Locale) mayLocale;
+        }
+        return Locale.getDefault();
+    }
+
     private static void sendError(String errorMessage, ExecutionResponseWriter writer) {
         GraphQLError error = GraphqlErrorBuilder
                 .newError()
@@ -209,9 +222,9 @@ public class ExecutionService {
     }
 
     private void writeAsync(GraphQL graphQL,
-            ExecutionInput executionInput,
-            SmallRyeContext smallRyeContext,
-            ExecutionResponseWriter writer) {
+                            ExecutionInput executionInput,
+                            SmallRyeContext smallRyeContext,
+                            ExecutionResponseWriter writer) {
 
         Uni.createFrom().completionStage(() -> graphQL.executeAsync(executionInput))
 
@@ -229,9 +242,9 @@ public class ExecutionService {
     }
 
     private void writeSync(GraphQL g,
-            ExecutionInput executionInput,
-            SmallRyeContext smallRyeContext,
-            ExecutionResponseWriter writer) {
+                           ExecutionInput executionInput,
+                           SmallRyeContext smallRyeContext,
+                           ExecutionResponseWriter writer) {
         try {
             ExecutionResult executionResult = g.execute(executionInput);
             notifyAndWrite(smallRyeContext, executionResult, writer);
@@ -241,8 +254,8 @@ public class ExecutionService {
     }
 
     private void notifyAndWrite(SmallRyeContext smallRyeContext,
-            ExecutionResult executionResult,
-            ExecutionResponseWriter writer) {
+                                ExecutionResult executionResult,
+                                ExecutionResponseWriter writer) {
         smallRyeContext.setExecutionResult(executionResult);
         // Notify after
         eventEmitter.fireAfterExecute(smallRyeContext);
