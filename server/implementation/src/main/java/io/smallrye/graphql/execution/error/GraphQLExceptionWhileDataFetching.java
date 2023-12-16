@@ -16,7 +16,7 @@ public class GraphQLExceptionWhileDataFetching extends ExceptionWhileDataFetchin
 
     public GraphQLExceptionWhileDataFetching(ResultPath path, Throwable exception, SourceLocation sourceLocation) {
         super(path, exception, sourceLocation);
-        this.message = super.getException().getMessage();
+        this.message = super.getException().getLocalizedMessage();
     }
 
     public GraphQLExceptionWhileDataFetching(String message, ResultPath path, Throwable exception,
