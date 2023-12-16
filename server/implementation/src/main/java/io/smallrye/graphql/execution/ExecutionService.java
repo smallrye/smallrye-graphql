@@ -79,7 +79,7 @@ public class ExecutionService {
     }
 
     public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, ExecutionStrategy queryExecutionStrategy,
-                            ExecutionStrategy mutationExecutionStrategy) {
+            ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = graphQLSchema;
         this.schema = schema;
@@ -222,9 +222,9 @@ public class ExecutionService {
     }
 
     private void writeAsync(GraphQL graphQL,
-                            ExecutionInput executionInput,
-                            SmallRyeContext smallRyeContext,
-                            ExecutionResponseWriter writer) {
+            ExecutionInput executionInput,
+            SmallRyeContext smallRyeContext,
+            ExecutionResponseWriter writer) {
 
         Uni.createFrom().completionStage(() -> graphQL.executeAsync(executionInput))
 
@@ -242,9 +242,9 @@ public class ExecutionService {
     }
 
     private void writeSync(GraphQL g,
-                           ExecutionInput executionInput,
-                           SmallRyeContext smallRyeContext,
-                           ExecutionResponseWriter writer) {
+            ExecutionInput executionInput,
+            SmallRyeContext smallRyeContext,
+            ExecutionResponseWriter writer) {
         try {
             ExecutionResult executionResult = g.execute(executionInput);
             notifyAndWrite(smallRyeContext, executionResult, writer);
@@ -254,8 +254,8 @@ public class ExecutionService {
     }
 
     private void notifyAndWrite(SmallRyeContext smallRyeContext,
-                                ExecutionResult executionResult,
-                                ExecutionResponseWriter writer) {
+            ExecutionResult executionResult,
+            ExecutionResponseWriter writer) {
         smallRyeContext.setExecutionResult(executionResult);
         // Notify after
         eventEmitter.fireAfterExecute(smallRyeContext);
