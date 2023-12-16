@@ -1,5 +1,23 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+
+import jakarta.json.JsonObject;
+
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
+import org.dataloader.DataLoaderRegistry;
+
 import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
@@ -30,22 +48,6 @@ import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 import io.smallrye.mutiny.Uni;
-import jakarta.json.JsonObject;
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderRegistry;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 /**
  * Executing the GraphQL request
