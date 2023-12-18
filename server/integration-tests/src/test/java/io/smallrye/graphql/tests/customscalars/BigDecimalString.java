@@ -34,7 +34,7 @@ public class BigDecimalString implements CustomStringScalar {
     }
 
     @Override
-    public String stringValue() {
+    public String stringValueForSerialization() {
         return toString();
     }
 }

@@ -68,14 +68,14 @@ public class SomeApi {
 
     @Query
     public BigDecimal inAsFScalarNullable(TwiceTheFloat fScalar) {
-        return null == fScalar ? null : fScalar.floatValue().setScale(1, RoundingMode.HALF_EVEN);
+        return null == fScalar ? null : fScalar.floatValueForSerialization().setScale(1, RoundingMode.HALF_EVEN);
     }
 
     @Query
     public BigDecimal inAsFFieldNullable(FObjNullable input) {
         return null == input ? null
                 : null == input.fScalar ? null
-                  : input.fScalar.floatValue().setScale(1, RoundingMode.HALF_EVEN);
+                      : input.fScalar.floatValueForSerialization().setScale(1, RoundingMode.HALF_EVEN);
     }
 
     @Query
@@ -85,7 +85,7 @@ public class SomeApi {
 
     @Query
     public ObjOfScalars outputScalars() {
-        ObjOfScalars oScalars =  new ObjOfScalars();
+        ObjOfScalars oScalars = new ObjOfScalars();
         oScalars.fScalar = new TwiceTheFloat(BigDecimal.valueOf(30));
         oScalars.sScalar = new BigDecimalString("98765.56789");
         return oScalars;

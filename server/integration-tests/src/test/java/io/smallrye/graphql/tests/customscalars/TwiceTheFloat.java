@@ -34,7 +34,7 @@ public class TwiceTheFloat implements CustomFloatScalar {
     }
 
     @Override
-    public BigDecimal floatValue() {
+    public BigDecimal floatValueForSerialization() {
         return value.multiply(BigDecimal.valueOf(2));
     }
 }
