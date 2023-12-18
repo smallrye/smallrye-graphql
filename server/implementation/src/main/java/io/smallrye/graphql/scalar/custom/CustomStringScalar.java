@@ -12,18 +12,29 @@ import jakarta.json.stream.JsonParser;
 
 import io.smallrye.graphql.spi.ClassloadingService;
 
+/**
+ * A base class for all CustomScalars that are based on GraphQL's String.
+ */
 public interface CustomStringScalar {
     // Note: using lambdas for the SERIALIZER/DESERIALIZER instances doesn't work because it
     // hides the parameterized type from Jsonb.
 
+    /**
+     * A serializer for CustomScalars based on GraphQL Strings, to inform JsonB how to serialize
+     * a CustomStringScalar to a String value.
+     */
     JsonbSerializer<CustomStringScalar> SERIALIZER = new JsonbSerializer<>() {
         @Override
         public void serialize(CustomStringScalar customStringScalar, JsonGenerator jsonGenerator,
                 SerializationContext serializationContext) {
-            jsonGenerator.write(customStringScalar.stringValue());
+            jsonGenerator.write(customStringScalar.stringValueForSerialization());
         }
     };
 
+    /**
+     * A deserializer for CustomScalars based on GraphQL Strings, to inform JsonB how to deserialize
+     * to an instance of a CustomStringScalar.
+     */
     JsonbDeserializer<CustomStringScalar> DESERIALIZER = new JsonbDeserializer<>() {
         @Override
         public CustomStringScalar deserialize(JsonParser jsonParser,
@@ -43,5 +54,5 @@ public interface CustomStringScalar {
         }
     };
 
-    String stringValue();
+    String stringValueForSerialization();
 }

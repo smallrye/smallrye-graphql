@@ -13,18 +13,29 @@ import jakarta.json.stream.JsonParser;
 
 import io.smallrye.graphql.spi.ClassloadingService;
 
+/**
+ * A base class for all CustomScalars that are based on GraphQL's Int.
+ */
 public interface CustomIntScalar {
     // Note: using lambdas for the SERIALIZER/DESERIALIZER instances doesn't work because it
     // hides the parameterized type from Jsonb.
 
+    /**
+     * A serializer for CustomScalars based on a GraphQL Int, to inform JsonB how to serialize
+     * a CustomStringScalar to a BigInteger value.
+     */
     JsonbSerializer<CustomIntScalar> SERIALIZER = new JsonbSerializer<>() {
         @Override
         public void serialize(CustomIntScalar customIntScalar, JsonGenerator jsonGenerator,
                 SerializationContext serializationContext) {
-            jsonGenerator.write(customIntScalar.intValue());
+            jsonGenerator.write(customIntScalar.intValueForSerialization());
         }
     };
 
+    /**
+     * A deserializer for CustomScalars based on a GraphQL Int, to inform JsonB how to deserialize
+     * to an instance of a CustomIntScalar.
+     */
     JsonbDeserializer<CustomIntScalar> DESERIALIZER = new JsonbDeserializer<>() {
         @Override
         public CustomIntScalar deserialize(JsonParser jsonParser,
@@ -44,5 +55,5 @@ public interface CustomIntScalar {
         }
     };
 
-    BigInteger intValue();
+    BigInteger intValueForSerialization();
 }

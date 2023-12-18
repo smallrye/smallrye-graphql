@@ -52,7 +52,7 @@ public class IntCoercing implements Coercing<Object, BigInteger> {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.intValue();
+        return result.intValueForSerialization();
     }
 
     @Override

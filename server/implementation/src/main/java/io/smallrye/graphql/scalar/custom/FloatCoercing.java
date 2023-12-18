@@ -52,7 +52,7 @@ public class FloatCoercing implements Coercing<Object, BigDecimal> {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.floatValue();
+        return result.floatValueForSerialization();
     }
 
     @Override

@@ -13,18 +13,29 @@ import jakarta.json.stream.JsonParser;
 
 import io.smallrye.graphql.spi.ClassloadingService;
 
+/**
+ * A base class for all CustomScalars that are based on GraphQL's Float.
+ */
 public interface CustomFloatScalar {
     // Note: using lambdas for the SERIALIZER/DESERIALIZER instances doesn't work because it
     // hides the parameterized type from Jsonb.
 
+    /**
+     * A serializer for CustomScalars based on a GraphQL Float, to inform JsonB how to serialize
+     * a CustomStringScalar to a BigDecimal value.
+     */
     JsonbSerializer<CustomFloatScalar> SERIALIZER = new JsonbSerializer<>() {
         @Override
         public void serialize(CustomFloatScalar customFloatScalar, JsonGenerator jsonGenerator,
                 SerializationContext serializationContext) {
-            jsonGenerator.write(customFloatScalar.floatValue());
+            jsonGenerator.write(customFloatScalar.floatValueForSerialization());
         }
     };
 
+    /**
+     * A deserializer for CustomScalars based on a GraphQL Float, to inform JsonB how to deserialize
+     * to an instance of a CustomFloatScalar.
+     */
     JsonbDeserializer<CustomFloatScalar> DESERIALIZER = new JsonbDeserializer<>() {
         @Override
         public CustomFloatScalar deserialize(JsonParser jsonParser,
@@ -44,5 +55,5 @@ public interface CustomFloatScalar {
         }
     };
 
-    BigDecimal floatValue();
+    BigDecimal floatValueForSerialization();
 }

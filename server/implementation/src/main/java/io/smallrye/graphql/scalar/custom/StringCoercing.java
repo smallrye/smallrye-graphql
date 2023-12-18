@@ -45,12 +45,12 @@ public class StringCoercing implements Coercing<Object, String> {
 
     @Override
     public String serialize(Object input) throws CoercingSerializeException {
-        Object result = convertImpl(input);
+        CustomStringScalar result = convertImpl(input);
         if (result == null) {
             throw new CoercingSerializeException(
                     "Expected type String but was '" + typeName(input) + "'.");
         }
-        return result.toString();
+        return result.stringValueForSerialization();
     }
 
     @Override

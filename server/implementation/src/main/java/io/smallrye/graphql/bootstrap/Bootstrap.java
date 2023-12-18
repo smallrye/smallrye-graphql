@@ -166,7 +166,6 @@ public class Bootstrap {
     private void generateGraphQLSchema() {
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        createGraphQLDirectiveTypes();
         createGraphQLCustomScalarTypes();
         createGraphQLEnumTypes();
         createGraphQLDirectiveTypes();
@@ -257,7 +256,7 @@ public class Bootstrap {
     }
 
     private static Coercing<?, ?> getCoercing(CustomScalarType customScalarType) {
-        CustomScalarPrimitiveType primitiveType = customScalarType.customScalarPrimitiveType();
+        CustomScalarPrimitiveType primitiveType = customScalarType.getCustomScalarPrimitiveType();
 
         Coercing<?, ?> coercing = null;
         switch (primitiveType) {
