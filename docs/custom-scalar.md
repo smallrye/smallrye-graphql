@@ -3,7 +3,9 @@ Creating GraphQL Custom Scalars with SmallRye GraphQL
 While by default **MicroProfile GraphQL** specification doesn't provide direct support for creating
 custom scalars for GraphQL literal types of String, Int and Float, **SmallRye GraphQL** has implemented 
 this feature based on user feedback. To implement a **custom scalar** with **SmallRye GraphQL**, 
-you can annotate your custom scalar class with `@CustomScalar` in addition to following the pattern below:
+you can annotate your custom scalar class with `@CustomScalar` in addition to following the pattern below 
+of including a public constructor that takes one of `String`|`BigDecimal`|`BigInteger` depending on 
+the scalar type:
 ```java
   @CustomScalar("BigDecimalString")
   public class BigDecimalString implements CustomStringScalar {

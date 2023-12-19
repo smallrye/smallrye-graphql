@@ -1,5 +1,8 @@
 package io.smallrye.graphql.scalar.custom;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 
 import graphql.language.FloatValue;
@@ -19,13 +22,11 @@ public class FloatCoercing implements Coercing<Object, BigDecimal> {
         this.customScalarClass = (Class<? extends CustomFloatScalar>) classloadingService.loadClass(customScalarClass);
     }
 
-    private CustomFloatScalar newInstance(BigDecimal graphqlPrimitiveValue) {
-        try {
-            return graphqlPrimitiveValue == null ? null
-                    : customScalarClass.getConstructor(BigDecimal.class).newInstance(graphqlPrimitiveValue);
-        } catch (Exception e) {
-            throw new CoercingSerializeException("TODO bdupras better error handling here", e);
-        }
+    private CustomFloatScalar newInstance(BigDecimal graphqlPrimitiveValue)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        return graphqlPrimitiveValue == null ? null
+                : customScalarClass.getConstructor(BigDecimal.class).newInstance(graphqlPrimitiveValue);
+
     }
 
     /* Coercing implementation. Forgive the deprecated methods. */
@@ -36,31 +37,40 @@ public class FloatCoercing implements Coercing<Object, BigDecimal> {
         return input.getClass().getSimpleName();
     }
 
-    private CustomFloatScalar convertImpl(Object input) {
+    private CustomFloatScalar convertImpl(Object input)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (input instanceof BigDecimal) {
             return newInstance((BigDecimal) input);
         } else if (input.getClass().isAssignableFrom(customScalarClass)) {
             return (CustomFloatScalar) input;
         }
-        return null;
+        throw new RuntimeException("Unable to convert null input.");
     }
 
     @Override
     public BigDecimal serialize(Object input) throws CoercingSerializeException {
-        CustomFloatScalar result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type String but was '" + typeName(input) + "'.");
+        CustomFloatScalar result;
+        try {
+            result = convertImpl(input);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new CoercingSerializeException("Unable to serialize input " + input, e);
+        } catch (RuntimeException e) {
+            throw msg.coercingSerializeException("BigDecimal or class extending " +
+                    customScalarClass, typeName(input), null);
         }
         return result.floatValueForSerialization();
     }
 
     @Override
     public Object parseValue(Object input) throws CoercingParseValueException {
-        Object result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type String but was '" + typeName(input) + "'.");
+        Object result;
+        try {
+            result = convertImpl(input);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new CoercingParseValueException("Unable to parse input: " + input, e);
+        } catch (RuntimeException e) {
+            throw msg.coercingParseValueException("BigDecimal or class extending " +
+                    customScalarClass, typeName(input), null);
         }
         return result;
     }
@@ -71,7 +81,11 @@ public class FloatCoercing implements Coercing<Object, BigDecimal> {
             throw new CoercingParseLiteralException(
                     "Expected a String AST type object but was '" + typeName(input) + "'.");
         }
-        return newInstance(((FloatValue) input).getValue());
+        try {
+            return newInstance(((FloatValue) input).getValue());
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new CoercingParseLiteralException("Unable to parse literal:" + input, e);
+        }
     }
 
     @Override

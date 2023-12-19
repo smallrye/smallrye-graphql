@@ -1,5 +1,9 @@
 package io.smallrye.graphql.scalar.custom;
 
+import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
+
+import java.lang.reflect.InvocationTargetException;
+
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.schema.Coercing;
@@ -17,13 +21,12 @@ public class StringCoercing implements Coercing<Object, String> {
         this.customScalarClass = (Class<? extends CustomStringScalar>) classloadingService.loadClass(customScalarClass);
     }
 
-    private CustomStringScalar newInstance(String graphqlPrimitiveValue) {
-        try {
-            return graphqlPrimitiveValue == null ? null
-                    : customScalarClass.getConstructor(String.class).newInstance(graphqlPrimitiveValue);
-        } catch (Exception e) {
-            throw new CoercingSerializeException("TODO bdupras better error handling here", e);
-        }
+    private CustomStringScalar newInstance(String graphqlPrimitiveValue)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+
+        return graphqlPrimitiveValue == null ? null
+                : customScalarClass.getConstructor(String.class).newInstance(graphqlPrimitiveValue);
+
     }
 
     /* Coercing implementation. Forgive the deprecated methods. */
@@ -34,31 +37,40 @@ public class StringCoercing implements Coercing<Object, String> {
         return input.getClass().getSimpleName();
     }
 
-    private CustomStringScalar convertImpl(Object input) {
+    private CustomStringScalar convertImpl(Object input)
+            throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (input instanceof String) {
             return newInstance((String) input);
         } else if (input.getClass().isAssignableFrom(customScalarClass)) {
             return (CustomStringScalar) input;
         }
-        return null;
+        throw new RuntimeException("Unable to convert null input.");
     }
 
     @Override
     public String serialize(Object input) throws CoercingSerializeException {
-        CustomStringScalar result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type String but was '" + typeName(input) + "'.");
+        CustomStringScalar result;
+        try {
+            result = convertImpl(input);
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+            throw new CoercingSerializeException("Unable to serialize object.", e);
+        } catch (RuntimeException e) {
+            throw msg.coercingSerializeException("String or class extending " +
+                    customScalarClass, typeName(input), null);
         }
         return result.stringValueForSerialization();
     }
 
     @Override
     public Object parseValue(Object input) throws CoercingParseValueException {
-        Object result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type String but was '" + typeName(input) + "'.");
+        Object result;
+        try {
+            result = convertImpl(input);
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+            throw new CoercingParseValueException("Unable to parse value: " + input, e);
+        } catch (RuntimeException e) {
+            throw msg.coercingParseValueException("String or class extending " +
+                    customScalarClass, typeName(input), null);
         }
         return result;
     }
@@ -69,7 +81,11 @@ public class StringCoercing implements Coercing<Object, String> {
             throw new CoercingParseLiteralException(
                     "Expected a String AST type object but was '" + typeName(input) + "'.");
         }
-        return newInstance(((StringValue) input).getValue());
+        try {
+            return newInstance(((StringValue) input).getValue());
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            throw new CoercingParseLiteralException("Unable to parse literal: " + input, e);
+        }
     }
 
     @Override

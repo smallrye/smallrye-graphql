@@ -75,7 +75,7 @@ public class SomeApi {
     public BigDecimal inAsFFieldNullable(FObjNullable input) {
         return null == input ? null
                 : null == input.fScalar ? null
-                      : input.fScalar.floatValueForSerialization().setScale(1, RoundingMode.HALF_EVEN);
+                        : input.fScalar.floatValueForSerialization().setScale(1, RoundingMode.HALF_EVEN);
     }
 
     @Query
