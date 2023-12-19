@@ -54,9 +54,9 @@ public class CustomScalarCreator extends ModelCreator {
             checkForOneArgConstructor(classInfo, String.class);
             customScalarPrimitiveType = STRING_TYPE;
         } else {
-            //TODO error handle in the expected way
-            throw new RuntimeException("Required to implement a known CustomScalar primitive type. "
-                    + "(CustomStringScalar, CustomFloatScalar, CustomIntScalar)");
+            throw new RuntimeException(classInfo.name().toString() + " is required to implement a "
+                    + "known CustomScalar primitive type. (CustomStringScalar, CustomFloatScalar, "
+                    + "CustomIntScalar)");
         }
 
         return new CustomScalarType(
@@ -70,9 +70,8 @@ public class CustomScalarCreator extends ModelCreator {
     private static void checkForOneArgConstructor(final ClassInfo classInfo, Class<?> argType) {
         if (classInfo.constructors().stream().noneMatch(methodInfo -> methodInfo.parameters().size() == 1
                 && methodInfo.parameterType(0).equals(ClassType.create(argType)))) {
-            //TODO error handle in the expected way
-            throw new RuntimeException("Required to implement a one arg constructor with paramtype of "
-                    + argType.getName());
+            throw new RuntimeException(classInfo.name().toString() + " is required to implement a "
+                    + "one arg constructor with a type of " + argType.getName());
         }
     }
 

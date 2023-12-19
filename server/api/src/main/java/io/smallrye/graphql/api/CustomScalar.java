@@ -9,9 +9,9 @@ import java.lang.annotation.Target;
 import io.smallrye.common.annotation.Experimental;
 
 /**
- * Allows for definition of custom graphql scalars.  Types with this annotation should extend one of
- * CustomStringScalar, CustomIntScalar, or CustomFloatScalar.  Additionally, the Type should provide
- * a single argument constructor taking the associated type(String, BigInteger, BigDecimal).
+ * Allows for definition of custom graphql scalars. Types with this annotation should extend one of
+ * CustomStringScalar, CustomIntScalar, or CustomFloatScalar. Additionally, the Type should provide
+ * a public single argument constructor taking the associated type(String, BigInteger, BigDecimal).
  */
 @Retention(RUNTIME)
 @Target(TYPE)

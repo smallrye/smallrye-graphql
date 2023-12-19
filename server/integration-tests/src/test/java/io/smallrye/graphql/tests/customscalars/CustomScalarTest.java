@@ -179,9 +179,9 @@ public class CustomScalarTest {
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
 
         assertThat(graphQLAssured
-          .post("query { outputFloat }"))
-          .contains("{\"data\":{\"outputFloat\":10.0}}")
-          .doesNotContain("error");
+                .post("query { outputFloat }"))
+                .contains("{\"data\":{\"outputFloat\":10.0}}")
+                .doesNotContain("error");
     }
 
     @Test
@@ -189,8 +189,8 @@ public class CustomScalarTest {
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
 
         assertThat(graphQLAssured
-          .post("query { outputScalars {fScalar, sScalar}}"))
-          .contains("{\"data\":{\"outputScalars\":{\"fScalar\":30.0,\"sScalar\":\"98765.56789\"}}}")
-          .doesNotContain("error");
+                .post("query { outputScalars {fScalar, sScalar}}"))
+                .contains("{\"data\":{\"outputScalars\":{\"fScalar\":30.0,\"sScalar\":\"98765.56789\"}}}")
+                .doesNotContain("error");
     }
 }
