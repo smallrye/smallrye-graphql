@@ -11,6 +11,7 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
+import io.smallrye.graphql.api.CustomIntScalar;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 public class IntCoercing implements Coercing<Object, BigInteger> {

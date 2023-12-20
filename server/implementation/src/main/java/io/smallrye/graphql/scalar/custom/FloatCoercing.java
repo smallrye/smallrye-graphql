@@ -11,6 +11,7 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
+import io.smallrye.graphql.api.CustomFloatScalar;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 public class FloatCoercing implements Coercing<Object, BigDecimal> {

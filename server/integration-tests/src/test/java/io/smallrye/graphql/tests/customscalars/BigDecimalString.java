@@ -3,7 +3,7 @@ package io.smallrye.graphql.tests.customscalars;
 import java.math.BigDecimal;
 
 import io.smallrye.graphql.api.CustomScalar;
-import io.smallrye.graphql.scalar.custom.CustomStringScalar;
+import io.smallrye.graphql.api.CustomStringScalar;
 
 /**
  * An alternative BigDecimal scalar that serializes to a GraphQL String instead of a Float.

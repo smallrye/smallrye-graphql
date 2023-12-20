@@ -24,9 +24,9 @@ import jakarta.json.bind.serializer.SerializationContext;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonParser;
 
-import io.smallrye.graphql.scalar.custom.CustomFloatScalar;
-import io.smallrye.graphql.scalar.custom.CustomIntScalar;
-import io.smallrye.graphql.scalar.custom.CustomStringScalar;
+import io.smallrye.graphql.api.CustomFloatScalar;
+import io.smallrye.graphql.api.CustomIntScalar;
+import io.smallrye.graphql.api.CustomStringScalar;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.spi.ClassloadingService;
