@@ -2,8 +2,8 @@ package io.smallrye.graphql.tests.customscalars;
 
 import java.math.BigDecimal;
 
+import io.smallrye.graphql.api.CustomFloatScalar;
 import io.smallrye.graphql.api.CustomScalar;
-import io.smallrye.graphql.scalar.custom.CustomFloatScalar;
 
 /**
  * A float scalar that serializes to a GraphQL Float equal to twice the internal value.

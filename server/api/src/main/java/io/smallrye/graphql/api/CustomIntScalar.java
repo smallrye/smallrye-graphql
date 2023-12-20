@@ -1,4 +1,4 @@
-package io.smallrye.graphql.scalar.custom;
+package io.smallrye.graphql.api;
 
 import java.math.BigInteger;
 

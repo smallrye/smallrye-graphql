@@ -44,13 +44,13 @@ public class CustomScalarCreator extends ModelCreator {
         Set<String> interfaces = classInfo.interfaceNames().stream().map(DotName::toString)
                 .collect(Collectors.toSet());
         CustomScalarPrimitiveType customScalarPrimitiveType;
-        if (interfaces.contains("io.smallrye.graphql.scalar.custom.CustomIntScalar")) {
+        if (interfaces.contains("io.smallrye.graphql.api.CustomIntScalar")) {
             checkForOneArgConstructor(classInfo, BigInteger.class);
             customScalarPrimitiveType = INT_TYPE;
-        } else if (interfaces.contains("io.smallrye.graphql.scalar.custom.CustomFloatScalar")) {
+        } else if (interfaces.contains("io.smallrye.graphql.api.CustomFloatScalar")) {
             checkForOneArgConstructor(classInfo, BigDecimal.class);
             customScalarPrimitiveType = FLOAT_TYPE;
-        } else if (interfaces.contains("io.smallrye.graphql.scalar.custom.CustomStringScalar")) {
+        } else if (interfaces.contains("io.smallrye.graphql.api.CustomStringScalar")) {
             checkForOneArgConstructor(classInfo, String.class);
             customScalarPrimitiveType = STRING_TYPE;
         } else {

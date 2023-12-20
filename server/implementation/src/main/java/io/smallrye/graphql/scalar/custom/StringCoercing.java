@@ -10,6 +10,7 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
+import io.smallrye.graphql.api.CustomStringScalar;
 import io.smallrye.graphql.spi.ClassloadingService;
 
 public class StringCoercing implements Coercing<Object, String> {
