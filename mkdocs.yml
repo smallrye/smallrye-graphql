@@ -12,6 +12,7 @@ nav:
       - Response extensions: 'extensions.md'
       - Returning Void from Mutations: 'mutation-void.md'
       - Handling of the WebSocket's init-payload: 'handling-init-payload-from-the-websocket.md'
+      - Custom scalars: 'custom-scalar.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'
