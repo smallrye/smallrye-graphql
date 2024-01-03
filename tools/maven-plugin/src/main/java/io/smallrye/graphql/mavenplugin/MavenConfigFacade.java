@@ -45,4 +45,9 @@ public class MavenConfigFacade implements Config {
     public boolean isIncludeIntrospectionTypesInSchema() {
         return mavenConfig.isIncludeIntrospectionTypes();
     }
+
+    @Override
+    public boolean isFederationEnabled() {
+        return mavenConfig.isFederationEnabled();
+    }
 }

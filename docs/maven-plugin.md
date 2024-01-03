@@ -49,5 +49,8 @@ true, you can control what types should be included. Default is
 
 - `includeIntrospectionTypes` - Include the introspection types in the schema. Default false.
 
+- `federationEnabled` - Enable GraphQL Federation. You should generally use this
+in conjunction with `includeDirectives`. Default false.
+
 - `typeAutoNameStrategy` - Strategy for transforming class names into GraphQL type names. 
 Valid values are `MergeInnerClass`, `Full` and`Default`.

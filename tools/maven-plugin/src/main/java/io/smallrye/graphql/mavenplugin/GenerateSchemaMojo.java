@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.microprofile.graphql.Name;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
@@ -31,8 +32,13 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.JarIndexer;
 import org.jboss.jandex.Result;
 
+import com.apollographql.federation.graphqljava.Federation;
+
+import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.TypeResolver;
 import io.smallrye.graphql.bootstrap.Bootstrap;
+import io.smallrye.graphql.bootstrap.FederationDataFetcher;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
@@ -94,6 +100,9 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Parameter(defaultValue = "Default", property = "typeAutoNameStrategy")
     private String typeAutoNameStrategy;
 
+    @Parameter(defaultValue = "false", property = "federationEnabled")
+    private boolean federationEnabled;
+
     @Parameter(defaultValue = "${project}", required = true)
     private MavenProject mavenProject;
 
@@ -119,10 +128,15 @@ public class GenerateSchemaMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         mavenConfig = new MavenConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes,
-                TypeAutoNameStrategy.valueOf(typeAutoNameStrategy));
+                TypeAutoNameStrategy.valueOf(typeAutoNameStrategy), federationEnabled);
         if (!skip) {
             ClassLoader classLoader = getClassLoader();
             Thread.currentThread().setContextClassLoader(classLoader);
+
+            if (mavenConfig.isFederationEnabled()) {
+                // to make sure the schema builder knows that federation is enabled
+                System.setProperty("smallrye.graphql.federation.enabled", "true");
+            }
 
             IndexView index = createIndex();
             String schema = generateSchema(index);
@@ -224,10 +238,32 @@ public class GenerateSchemaMojo extends AbstractMojo {
     private String generateSchema(IndexView index) {
         Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, true);
+        if (graphQLSchema != null && mavenConfig.isFederationEnabled()) {
+            graphQLSchema = Federation.transform(graphQLSchema)
+                    .fetchEntities(new FederationDataFetcher(graphQLSchema.getQueryType(), graphQLSchema.getCodeRegistry()))
+                    .resolveEntityType(fetchEntityType())
+                    .build();
+        }
         if (graphQLSchema != null) {
             return new SchemaPrinter().print(graphQLSchema);
         }
         return null;
+    }
+
+    private TypeResolver fetchEntityType() {
+        return env -> {
+            Object src = env.getObject();
+            if (src == null) {
+                return null;
+            }
+            Name annotation = src.getClass().getAnnotation(Name.class);
+            String typeName = (annotation == null) ? src.getClass().getSimpleName() : annotation.value();
+            GraphQLObjectType result = env.getSchema().getObjectType(typeName);
+            if (result == null) {
+                throw new RuntimeException("can't resolve federated entity type " + src.getClass().getName());
+            }
+            return result;
+        };
     }
 
     private void write(String schema) throws MojoExecutionException {
@@ -273,13 +309,16 @@ public class GenerateSchemaMojo extends AbstractMojo {
         private final boolean includeIntrospectionTypes;
         private final TypeAutoNameStrategy typeAutoNameStrategy;
 
+        private final boolean federationEnabled;
+
         public MavenConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition,
-                boolean includeIntrospectionTypes, TypeAutoNameStrategy typeAutoNameStrategy) {
+                boolean includeIntrospectionTypes, TypeAutoNameStrategy typeAutoNameStrategy, boolean federationEnabled) {
             this.includeScalars = includeScalars;
             this.includeDirectives = includeDirectives;
             this.includeSchemaDefinition = includeSchemaDefinition;
             this.includeIntrospectionTypes = includeIntrospectionTypes;
             this.typeAutoNameStrategy = typeAutoNameStrategy;
+            this.federationEnabled = federationEnabled;
         }
 
         public boolean isIncludeScalars() {
@@ -300,6 +339,10 @@ public class GenerateSchemaMojo extends AbstractMojo {
 
         public TypeAutoNameStrategy getTypeAutoNameStrategy() {
             return typeAutoNameStrategy;
+        }
+
+        public boolean isFederationEnabled() {
+            return federationEnabled;
         }
     }
 }

@@ -32,7 +32,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import io.smallrye.graphql.spi.config.Config;
 
-class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object>>> {
+public class FederationDataFetcher implements DataFetcher<CompletableFuture<List<Object>>> {
 
     public static final String TYPENAME = "__typename";
     private final GraphQLObjectType queryType;
