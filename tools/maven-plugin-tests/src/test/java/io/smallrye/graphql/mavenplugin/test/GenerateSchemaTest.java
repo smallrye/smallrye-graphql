@@ -43,6 +43,8 @@ public class GenerateSchemaTest {
                 schema, not(containsString("schema {\n  query: Query")));
         assertThat("Short class names should be used for GraphQL types",
                 schema, not(containsString("type org_acme_Foo")));
+        assertThat("Federation should be disabled by default",
+                schema, not(containsString("type _Service")));
     }
 
     @Test
@@ -71,6 +73,13 @@ public class GenerateSchemaTest {
         String schema = execute(Collections.singletonMap("typeAutoNameStrategy", "Full"));
         assertThat("Fully qualified class names should be used for GraphQL types",
                 schema, containsString("type org_acme_Foo"));
+    }
+
+    @Test
+    public void testFederationEnabled() throws Exception {
+        String schema = execute(Collections.singletonMap("federationEnabled", "true"));
+        assertThat("Federation should be enabled",
+                schema, containsString("type _Service"));
     }
 
     @Test
