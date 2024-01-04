@@ -74,6 +74,7 @@ client/shade/dependency-reduced-pom.xml
 # testing artifacts
 /tools/maven-plugin-tests/testing-project/log.txt
 /tools/maven-plugin-tests/testing-project-multi-module/log.txt
+/tools/maven-plugin-tests/testing-project-federation/log.txt
 
 # mkdocs output
 site

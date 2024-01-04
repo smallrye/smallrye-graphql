@@ -188,7 +188,6 @@ public class SchemaBuilder {
         }
         // bean validation directives
         schema.addDirectiveType(BeanValidationDirectivesHelper.CONSTRAINT_DIRECTIVE_TYPE);
-
         // rolesAllowed directive
         schema.addDirectiveType(RolesAllowedDirectivesHelper.ROLES_ALLOWED_DIRECTIVE_TYPE);
     }
