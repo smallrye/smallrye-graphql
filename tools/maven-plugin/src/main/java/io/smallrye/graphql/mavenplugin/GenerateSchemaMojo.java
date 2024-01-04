@@ -25,6 +25,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.microprofile.graphql.Name;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
@@ -133,13 +134,26 @@ public class GenerateSchemaMojo extends AbstractMojo {
             ClassLoader classLoader = getClassLoader();
             Thread.currentThread().setContextClassLoader(classLoader);
 
-            if (mavenConfig.isFederationEnabled()) {
+            IndexView index = createIndex();
+            boolean foundAnyFederationAnnotation = false;
+            for (ClassInfo federationAnnotationType : index.getClassesInPackage("io.smallrye.graphql.api.federation")) {
+                if (federationAnnotationType.isAnnotation()) {
+                    if (!index.getAnnotations(federationAnnotationType.name()).isEmpty()) {
+                        foundAnyFederationAnnotation = true;
+                        break;
+                    }
+                }
+            }
+            boolean enableFederation = false;
+            if (mavenConfig.isFederationEnabled()
+                    || foundAnyFederationAnnotation
+                    || Boolean.getBoolean("smallrye.graphql.federation.enabled")) {
                 // to make sure the schema builder knows that federation is enabled
                 System.setProperty("smallrye.graphql.federation.enabled", "true");
+                enableFederation = true;
             }
 
-            IndexView index = createIndex();
-            String schema = generateSchema(index);
+            String schema = generateSchema(index, enableFederation);
             if (schema != null) {
                 write(schema);
             } else {
@@ -235,10 +249,10 @@ public class GenerateSchemaMojo extends AbstractMojo {
         return indexer.complete();
     }
 
-    private String generateSchema(IndexView index) {
+    private String generateSchema(IndexView index, boolean enableFederation) {
         Schema internalSchema = SchemaBuilder.build(index, mavenConfig.typeAutoNameStrategy);
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, true);
-        if (graphQLSchema != null && mavenConfig.isFederationEnabled()) {
+        if (graphQLSchema != null && enableFederation) {
             graphQLSchema = Federation.transform(graphQLSchema)
                     .fetchEntities(new FederationDataFetcher(graphQLSchema.getQueryType(), graphQLSchema.getCodeRegistry()))
                     .resolveEntityType(fetchEntityType())

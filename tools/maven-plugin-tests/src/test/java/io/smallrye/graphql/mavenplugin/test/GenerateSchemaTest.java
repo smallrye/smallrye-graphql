@@ -23,6 +23,8 @@ import org.junit.Test;
 public class GenerateSchemaTest {
 
     private final Path SCHEMA_FILE_PATH = Paths.get("testing-project", "target", "generated", "schema.graphql");
+    private final Path SCHEMA_FILE_PATH_FEDERATION = Paths.get("testing-project-federation", "target", "generated",
+            "schema.graphql");
     private final Path SCHEMA_FILE_PATH_MULTI_MODULE = Paths.get("testing-project-multi-module", "api", "target", "generated",
             "schema.graphql");
 
@@ -34,7 +36,7 @@ public class GenerateSchemaTest {
 
     @Test
     public void testDefaults() throws Exception {
-        String schema = execute(Collections.emptyMap());
+        String schema = execute(Collections.emptyMap(), "testing-project", SCHEMA_FILE_PATH);
         assertThat("Directives should not be included",
                 schema, not(containsString("directive @skip")));
         assertThat("Introspection types should not be included",
@@ -48,37 +50,46 @@ public class GenerateSchemaTest {
     }
 
     @Test
+    public void testFederationDetectedAutomatically() throws Exception {
+        String schema = execute(Collections.emptyMap(), "testing-project-federation", SCHEMA_FILE_PATH_FEDERATION);
+        assertThat("Federation should be activated automatically if any related annotations are present",
+                schema, containsString("type _Service"));
+    }
+
+    @Test
     public void testIncludeDirectives() throws Exception {
-        String schema = execute(Collections.singletonMap("includeDirectives", "true"));
+        String schema = execute(Collections.singletonMap("includeDirectives", "true"), "testing-project", SCHEMA_FILE_PATH);
         assertThat("Directives should be included",
                 schema, containsString("directive @skip"));
     }
 
     @Test
     public void testIncludeIntrospectionTypes() throws Exception {
-        String schema = execute(Collections.singletonMap("includeIntrospectionTypes", "true"));
+        String schema = execute(Collections.singletonMap("includeIntrospectionTypes", "true"), "testing-project",
+                SCHEMA_FILE_PATH);
         assertThat("Introspection types should be included",
                 schema, containsString("type __Schema"));
     }
 
     @Test
     public void testIncludeSchemaDefinition() throws Exception {
-        String schema = execute(Collections.singletonMap("includeSchemaDefinition", "true"));
+        String schema = execute(Collections.singletonMap("includeSchemaDefinition", "true"), "testing-project",
+                SCHEMA_FILE_PATH);
         assertThat("Schema definition should be included",
                 schema, containsString("schema {\n  query: Query"));
     }
 
     @Test
     public void testTypeAutoNameStrategy() throws Exception {
-        String schema = execute(Collections.singletonMap("typeAutoNameStrategy", "Full"));
+        String schema = execute(Collections.singletonMap("typeAutoNameStrategy", "Full"), "testing-project", SCHEMA_FILE_PATH);
         assertThat("Fully qualified class names should be used for GraphQL types",
                 schema, containsString("type org_acme_Foo"));
     }
 
     @Test
-    public void testFederationEnabled() throws Exception {
-        String schema = execute(Collections.singletonMap("federationEnabled", "true"));
-        assertThat("Federation should be enabled",
+    public void testFederationEnabledExplicitly() throws Exception {
+        String schema = execute(Collections.singletonMap("federationEnabled", "true"), "testing-project", SCHEMA_FILE_PATH);
+        assertThat("Federation should be enabled when explicitly requested, even though there are no annotations",
                 schema, containsString("type _Service"));
     }
 
@@ -102,8 +113,11 @@ public class GenerateSchemaTest {
                 SCHEMA_FILE_PATH_MULTI_MODULE.toFile().exists());
     }
 
-    private String execute(Map<String, String> properties) throws VerificationException, IOException {
-        Verifier verifier = new Verifier(new File("testing-project").getAbsolutePath());
+    private String execute(Map<String, String> properties,
+            String pathToProject,
+            Path pathToExpectedGeneratedSchemaFile)
+            throws VerificationException, IOException {
+        Verifier verifier = new Verifier(new File(pathToProject).getAbsolutePath());
         verifier.setSystemProperty("plugin.version", System.getProperty("plugin.version"));
         properties.forEach(verifier::setSystemProperty);
 
@@ -116,8 +130,8 @@ public class GenerateSchemaTest {
         verifier.verifyErrorFreeLog();
         verifier.verifyTextInLog("Wrote the schema to ");
 
-        Assert.assertTrue("File " + SCHEMA_FILE_PATH.toAbsolutePath() + " expected but not found",
-                SCHEMA_FILE_PATH.toFile().exists());
-        return String.join("\n", Files.readAllLines(SCHEMA_FILE_PATH));
+        Assert.assertTrue("File " + pathToExpectedGeneratedSchemaFile.toAbsolutePath() + " expected but not found",
+                pathToExpectedGeneratedSchemaFile.toFile().exists());
+        return String.join("\n", Files.readAllLines(pathToExpectedGeneratedSchemaFile));
     }
 }
