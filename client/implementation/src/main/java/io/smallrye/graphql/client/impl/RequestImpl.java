@@ -64,6 +64,8 @@ public class RequestImpl implements Request {
                 varBuilder.add(k, (JsonValue) v);
             } else if (v instanceof Boolean) {
                 varBuilder.add(k, (Boolean) v);
+            } else if (v instanceof Long) {
+                varBuilder.add(k, (Long) v);
             } else if (v == null) {
                 varBuilder.addNull(k);
             } else {
