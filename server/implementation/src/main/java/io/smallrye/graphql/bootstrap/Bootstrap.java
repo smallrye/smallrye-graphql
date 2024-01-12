@@ -208,6 +208,7 @@ public class Bootstrap {
             this.graphQLSchema = Federation.transform(rawSchema)
                     .fetchEntities(new FederationDataFetcher(rawSchema.getQueryType(), rawSchema.getCodeRegistry()))
                     .resolveEntityType(fetchEntityType())
+                    .setFederation2(true)
                     .build();
         } else {
             this.graphQLSchema = schemaBuilder.build();
