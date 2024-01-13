@@ -29,11 +29,16 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
 import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.api.federation.ComposeDirective;
 import io.smallrye.graphql.api.federation.Extends;
 import io.smallrye.graphql.api.federation.External;
+import io.smallrye.graphql.api.federation.Inaccessible;
+import io.smallrye.graphql.api.federation.InterfaceObject;
 import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.Provides;
 import io.smallrye.graphql.api.federation.Requires;
+import io.smallrye.graphql.api.federation.Shareable;
+import io.smallrye.graphql.api.federation.Tag;
 
 /**
  * This creates an index from the classpath.
@@ -81,12 +86,18 @@ public class IndexInitializer {
             indexer.index(convertClassToInputStream(Entry.class));
             indexer.index(convertClassToInputStream(Repeatable.class));
 
-            // things from the API module
+            // directives from the API module
+            indexer.index(convertClassToInputStream(ComposeDirective.class));
             indexer.index(convertClassToInputStream(Extends.class));
             indexer.index(convertClassToInputStream(External.class));
+            indexer.index(convertClassToInputStream(Inaccessible.class));
+            indexer.index(convertClassToInputStream(InterfaceObject.class));
             indexer.index(convertClassToInputStream(Key.class));
+            indexer.index(convertClassToInputStream(Override.class));
             indexer.index(convertClassToInputStream(Provides.class));
             indexer.index(convertClassToInputStream(Requires.class));
+            indexer.index(convertClassToInputStream(Shareable.class));
+            indexer.index(convertClassToInputStream(Tag.class));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

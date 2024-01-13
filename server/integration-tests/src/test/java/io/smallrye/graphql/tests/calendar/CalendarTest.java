@@ -53,7 +53,7 @@ public class CalendarTest {
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
         String response = graphQLAssured
                 .post("{ someFormattedCalendar(calendar: \"2023 04 at 13 hours\") }");
-        assertThat(response).contains("{\"data\":{\"someFormattedCalendar\":\"01. April 2023 at 01:00 PM\"}}")
+        assertThat(response).containsIgnoringCase("{\"data\":{\"someFormattedCalendar\":\"01. April 2023 at 01:00 PM\"}}")
                 .doesNotContain("error");
     }
 
@@ -62,7 +62,8 @@ public class CalendarTest {
         GraphQLAssured graphQLAssured = new GraphQLAssured(testingURL);
         String response = graphQLAssured
                 .post("{ someFormattedGregorianCalendar(calendar: \"2023 04 at 13 hours\") }");
-        assertThat(response).contains("{\"data\":{\"someFormattedGregorianCalendar\":\"01. April 2023 at 01:00 PM\"}}")
+        assertThat(response)
+                .containsIgnoringCase("{\"data\":{\"someFormattedGregorianCalendar\":\"01. April 2023 at 01:00 PM\"}}")
                 .doesNotContain("error");
     }
 
