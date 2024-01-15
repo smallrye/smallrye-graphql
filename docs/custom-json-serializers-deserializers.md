@@ -20,11 +20,14 @@ public class CustomJsonbService implements EventingService {
 
     @Override
     public Map<String, Jsonb> overrideJsonbConfig() {
-        JsonbConfig config = new JsonbConfig().withDateFormat("MM dd yyyy HH:mm Z", null);
+        JsonbConfig config = new JsonbConfig().withDateFormat("MM dd yyyy HH:mm Z", null).withDeserializers(OBJECTID_DESERIALIZER).withSerializers(
+            OBJECTID_SERIALIZER);
         return Collections.singletonMap("MyModelClass.class.getName()", JsonbBuilder.create(config));
     }
 }
 ```
+
+We can customize the JsonbConfig as per our need in above example we have registered additional serializer and date formatting for the class MyModelClass.
 
 As the discovery of eventing services uses the ServiceLoader mechanism, don't forget to add a 
 `META-INF/services/io.smallrye.graphql.spi.EventingService` file that contains the fully qualified 
