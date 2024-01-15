@@ -386,7 +386,7 @@ public class ArgumentHelper extends AbstractHelper {
         m = includeNullCreatorParameters(m, field);
 
         // Create a valid jsonString from a map
-        String jsonString = JsonBCreator.getJsonB().toJson(m);
+        String jsonString = JsonBCreator.getJsonB(className).toJson(m);
         return correctComplexObjectFromJsonString(jsonString, field);
     }
 
