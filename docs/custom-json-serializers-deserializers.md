@@ -1,6 +1,6 @@
-# Customizing JSON-B deserializers
+# Customizing JSON-B serializers/deserializers
 
-If your application needs finer-grained control over JSON deserialization than you can achieve via
+If your application needs finer-grained control over JSON serialization/deserialization than you can achieve via
 formatting annotations like `@JsonbDateFormat`, you may plug in your own custom instances of the `Jsonb` class
 for each input type that your GraphQL application exposes.
 
@@ -9,6 +9,8 @@ and implement its `overrideJsonbConfig` method.
 An example that plugs in a custom date format for a particular class that is used as input:
 
 ```
+package org.acme.custom.json.config;
+
 public class CustomJsonbService implements EventingService {
 
     @Override
@@ -19,7 +21,7 @@ public class CustomJsonbService implements EventingService {
     @Override
     public Map<String, Jsonb> overrideJsonbConfig() {
         JsonbConfig config = new JsonbConfig().withDateFormat("MM dd yyyy HH:mm Z", null);
-        return Collections.singletonMap("org.example.model.MyModelClass", JsonbBuilder.create(config));
+        return Collections.singletonMap("MyModelClass.class.getName()", JsonbBuilder.create(config));
     }
 }
 ```
@@ -27,3 +29,4 @@ public class CustomJsonbService implements EventingService {
 As the discovery of eventing services uses the ServiceLoader mechanism, don't forget to add a 
 `META-INF/services/io.smallrye.graphql.spi.EventingService` file that contains the fully qualified 
 name of your implementation.
+Example `org.acme.custom.json.config.CustomJsonbService`
