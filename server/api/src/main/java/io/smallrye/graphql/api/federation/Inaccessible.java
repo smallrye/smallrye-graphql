@@ -20,7 +20,8 @@ import io.smallrye.common.annotation.Experimental;
 import io.smallrye.graphql.api.Directive;
 
 /**
- * <b><code>directive @inaccessible on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION</code></b>
+ * <b><code>directive @inaccessible on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR |
+ * ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION</code></b>
  *
  * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#inaccessible">federation
  *      spec</a>

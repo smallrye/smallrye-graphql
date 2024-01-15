@@ -333,15 +333,15 @@ public class SchemaBuilderTest {
 
         var yyy1 = getQueryByName(schema, "yyy1");
         assertTrue(yyy1.isNotNull());
-        assertTrue(yyy1.getWrapper().isNotEmpty());
+        assertTrue(yyy1.getWrapper().isWrappedTypeNotNull());
 
         var yyy2 = getQueryByName(schema, "yyy2");
         assertTrue(yyy2.isNotNull());
-        assertFalse(yyy2.getWrapper().isNotEmpty());
+        assertFalse(yyy2.getWrapper().isWrappedTypeNotNull());
 
         var yyy3 = getQueryByName(schema, "yyy3");
         assertTrue(yyy3.isNotNull());
-        assertTrue(yyy3.getWrapper().isNotEmpty());
+        assertTrue(yyy3.getWrapper().isWrappedTypeNotNull());
 
         var yyy4 = getQueryByName(schema, "yyy4");
         assertFalse(yyy4.isNotNull());
@@ -351,22 +351,22 @@ public class SchemaBuilderTest {
         assertFalse(arguments.get(1).isNotNull()); // i1
 
         assertTrue(arguments.get(2).isNotNull()); // i2
-        assertTrue(arguments.get(2).getWrapper().isNotEmpty()); // i2
+        assertTrue(arguments.get(2).getWrapper().isWrappedTypeNotNull()); // i2
 
         assertTrue(arguments.get(3).isNotNull()); // i3
-        assertFalse(arguments.get(3).getWrapper().isNotEmpty()); // i3
+        assertFalse(arguments.get(3).getWrapper().isWrappedTypeNotNull()); // i3
 
         assertFalse(arguments.get(4).isNotNull()); // i4
-        assertFalse(arguments.get(4).getWrapper().isNotEmpty()); // i4
+        assertFalse(arguments.get(4).getWrapper().isWrappedTypeNotNull()); // i4
 
         // it is not consistent with java: if in java the wrapped list element is not null, the list will be marked as non-null in any case.
         assertTrue(arguments.get(5).isNotNull()); // i5
-        assertTrue(arguments.get(5).getWrapper().isNotEmpty()); // i5
+        assertTrue(arguments.get(5).getWrapper().isWrappedTypeNotNull()); // i5
 
         var yyy5 = getQueryByName(schema, "yyy5");
         // it is not consistent with java: if in java the wrapped list element is not null, the list will be marked as non-null in any case.
         assertTrue(yyy5.isNotNull());
-        assertTrue(yyy5.getWrapper().isNotEmpty());
+        assertTrue(yyy5.getWrapper().isWrappedTypeNotNull());
     }
 
     private Operation getQueryByName(Schema schema, String name) {

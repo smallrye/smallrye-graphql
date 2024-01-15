@@ -1,17 +1,24 @@
 package io.smallrye.graphql.schema.creator;
 
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
+import static io.smallrye.graphql.schema.Annotations.NON_NULL;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.ArrayType;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.ClassType;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.api.federation.policy.Policy;
+import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
@@ -20,6 +27,10 @@ import io.smallrye.graphql.schema.model.DirectiveArgument;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
 public class DirectiveTypeCreator extends ModelCreator {
+    private static final DotName POLICY = DotName.createSimple(Policy.class.getName());
+    private static final DotName REQUIRES_SCOPES = DotName.createSimple(RequiresScopes.class.getName());
+    private static final DotName STRING = DotName.createSimple(String.class.getName());
+
     private static final Logger LOG = Logger.getLogger(DirectiveTypeCreator.class.getName());
 
     public DirectiveTypeCreator(ReferenceCreator referenceCreator) {
@@ -31,8 +42,6 @@ public class DirectiveTypeCreator extends ModelCreator {
         throw new IllegalArgumentException(
                 "This method should never be called since 'DirectiveType' cannot have another directives");
     }
-
-    private static DotName NON_NULL = DotName.createSimple("org.eclipse.microprofile.graphql.NonNull");
 
     public DirectiveType create(ClassInfo classInfo) {
         LOG.debug("Creating directive from " + classInfo.name().toString());
@@ -48,10 +57,22 @@ public class DirectiveTypeCreator extends ModelCreator {
 
         for (MethodInfo method : classInfo.methods()) {
             DirectiveArgument argument = new DirectiveArgument();
-            argument.setReference(referenceCreator.createReferenceForOperationArgument(method.returnType(), null));
+            Type argumentType;
+            if (classInfo.name().equals(POLICY) || classInfo.name().equals(REQUIRES_SCOPES)) {
+                // For both of these directives, we need to override the argument type to be an array of nested arrays
+                // of strings, where none of the nested elements can be null
+                AnnotationInstance nonNullAnnotation = AnnotationInstance.create(NON_NULL, null,
+                        Collections.emptyList());
+                Type stringType = ClassType.createWithAnnotations(STRING, Type.Kind.CLASS,
+                        new AnnotationInstance[] { nonNullAnnotation });
+                argumentType = buildArrayType(stringType, 2, nonNullAnnotation);
+            } else {
+                argumentType = method.returnType();
+            }
+            argument.setReference(referenceCreator.createReferenceForOperationArgument(argumentType, null));
             argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
-            populateField(Direction.IN, argument, method.returnType(), annotationsForMethod);
+            populateField(Direction.IN, argument, argumentType, annotationsForMethod);
             if (annotationsForMethod.containsOneOfTheseAnnotations(NON_NULL)) {
                 argument.setNotNull(true);
             }
@@ -71,5 +92,15 @@ public class DirectiveTypeCreator extends ModelCreator {
     private Set<String> getLocations(AnnotationInstance directiveAnnotation) {
         return Stream.of(directiveAnnotation.value("on").asEnumArray())
                 .collect(toSet());
+    }
+
+    private static Type buildArrayType(Type baseType, int dimensions, AnnotationInstance annotation) {
+        Type currentType = baseType;
+        for (int i = 0; i < dimensions; i++) {
+            ArrayType.Builder builder = ArrayType.builder(currentType, 1);
+            builder.addAnnotation(annotation);
+            currentType = builder.build();
+        }
+        return currentType;
     }
 }

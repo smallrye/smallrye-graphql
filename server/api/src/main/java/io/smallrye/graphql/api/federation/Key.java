@@ -7,6 +7,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 
+import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.NonNull;
 
@@ -15,7 +16,7 @@ import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.api.federation.Key.Keys;
 
 /**
- * <b><code>directive @key(fields: FieldSet!) repeatable on OBJECT | INTERFACE</code></b>
+ * <b><code>directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE</code></b>
  *
  * @see <a href="https://www.apollographql.com/docs/federation/federated-types/federated-directives/#key">federation spec</a>
  */
@@ -35,6 +36,12 @@ public @interface Key {
             "\"username region\"\n" +
             "\"name organization { id }\"")
     String fields();
+
+    @DefaultValue("true")
+    @Description("If false, indicates to the router that this subgraph doesn't define a reference resolver for this " +
+            "entity. This means that router query plans can't \"jump to\" this subgraph to resolve fields that aren't" +
+            " defined in another subgraph.")
+    boolean resolvable() default true;
 
     @Retention(RUNTIME)
     @interface Keys {

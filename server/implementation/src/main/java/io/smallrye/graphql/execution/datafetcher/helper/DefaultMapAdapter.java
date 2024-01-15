@@ -102,7 +102,7 @@ public class DefaultMapAdapter<K, V> {
                 original.getReference());
 
         Wrapper wrapper = new Wrapper();
-        wrapper.setNotEmpty(original.getWrapper().isNotEmpty());
+        wrapper.setWrappedTypeNotNull(original.getWrapper().isWrappedTypeNotNull());
         wrapper.setWrapperType(WrapperType.COLLECTION);
         wrapper.setWrapperClassName(Set.class.getName());
         wrapper.setWrapper(original.getWrapper().getWrapper());
