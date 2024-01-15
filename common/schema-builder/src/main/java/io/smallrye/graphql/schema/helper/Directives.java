@@ -3,16 +3,15 @@ package io.smallrye.graphql.schema.helper;
 import static java.util.stream.Collectors.toList;
 import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.DotName;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.api.federation.policy.Policy;
+import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
@@ -64,10 +63,20 @@ public class Directives {
 
     private DirectiveInstance toDirectiveInstance(AnnotationInstance annotationInstance) {
         DirectiveInstance directiveInstance = new DirectiveInstance();
-        directiveInstance.setType(directiveTypes.get(annotationInstance.name()));
+        DirectiveType directiveType = directiveTypes.get(annotationInstance.name());
+        directiveInstance.setType(directiveType);
+
         for (AnnotationValue annotationValue : annotationInstance.values()) {
-            directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
+            if (directiveType.getClassName().equals(Policy.class.getName()) ||
+                    directiveType.getClassName().equals(RequiresScopes.class.getName())) {
+                // For both of these directives, we need to process the annotation values as nested arrays of strings
+                List<List<String>> valueList = processAnnotationValues((AnnotationValue[]) annotationValue.value());
+                directiveInstance.setValue(annotationValue.name(), valueList);
+            } else {
+                directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
+            }
         }
+
         return directiveInstance;
     }
 
@@ -85,5 +94,21 @@ public class Directives {
 
     public Map<DotName, DirectiveType> getDirectiveTypes() {
         return directiveTypes;
+    }
+
+    private List<List<String>> processAnnotationValues(AnnotationValue[] annotationValues) {
+        if (annotationValues == null || annotationValues.length == 0) {
+            return Collections.emptyList();
+        }
+
+        List<List<String>> valuesList = new ArrayList<>();
+        for (AnnotationValue nestedValue : annotationValues) {
+            List<String> values = new ArrayList<>();
+            for (AnnotationValue value : (AnnotationValue[]) nestedValue.asNested().values().get(0).value()) {
+                values.add(value.asString());
+            }
+            valuesList.add(values);
+        }
+        return valuesList;
     }
 }

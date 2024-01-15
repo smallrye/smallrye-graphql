@@ -13,7 +13,13 @@
     <description>Creates the model from a Jandex index</description>
         
     <dependencies>
-        
+
+        <!-- The API -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-api</artifactId>
+        </dependency>
+
         <!-- The model -->
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -48,11 +54,6 @@
         <dependency>
             <groupId>org.eclipse</groupId>
             <artifactId>yasson</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>smallrye-graphql-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -38,7 +38,7 @@ public class WrapperCreator {
             Wrapper wrapper = new Wrapper(getWrapperType(methodType), methodType.name().toString());
             // NotNull
             if (markParameterizedTypeNonNull(fieldType, methodType)) {
-                wrapper.setNotEmpty(true);
+                wrapper.setWrappedTypeNotNull(true);
             }
             // Wrapper of wrapper
             Optional<Wrapper> wrapperOfWrapper = getWrapperOfWrapper(methodType);

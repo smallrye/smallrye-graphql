@@ -137,7 +137,7 @@ public class OperationCreator extends ModelCreator {
                     KmType returnType = function.get().getReturnType();
                     var nullable = isKotlinWrappedTypeNullable(returnType);
                     if (operation.getWrapper().isCollectionOrArrayOrMap()) {
-                        operation.getWrapper().setNotEmpty(!nullable);
+                        operation.getWrapper().setWrappedTypeNotNull(!nullable);
                         // workaround: consistent behavior to java: if wrapped type is non null, collection will be marked as non null
                         if (!nullable && !operation.isNotNull()) {
                             operation.setNotNull(true);
@@ -159,7 +159,7 @@ public class OperationCreator extends ModelCreator {
                         if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArrayOrMap()) {
                             KmValueParameter typeParameter = valueParameters.get(i);
                             var paramNullable = isKotlinWrappedTypeNullable(typeParameter.getType());
-                            argument.getWrapper().setNotEmpty(!paramNullable);
+                            argument.getWrapper().setWrappedTypeNotNull(!paramNullable);
                             // workaround:  consistent behavior to java: if wrapped type is not null, collection will be marked as not null
                             if (!paramNullable && !argument.isNotNull()) {
                                 argument.setNotNull(true);

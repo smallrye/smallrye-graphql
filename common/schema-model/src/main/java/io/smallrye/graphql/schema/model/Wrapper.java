@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Wrapper implements Serializable {
 
     private String wrapperClassName;
-    private boolean notEmpty = false; // Mark this to be not empty
+    private boolean wrappedTypeNotNull = false;
     private WrapperType wrapperType = WrapperType.UNKNOWN;
 
     private Wrapper wrapper = null;
@@ -24,10 +24,10 @@ public class Wrapper implements Serializable {
         this.wrapperClassName = wrapperClassName;
     }
 
-    public Wrapper(WrapperType wrapperType, String wrapperClassName, boolean notEmpty) {
+    public Wrapper(WrapperType wrapperType, String wrapperClassName, boolean wrappedTypeNotNull) {
         this.wrapperType = wrapperType;
         this.wrapperClassName = wrapperClassName;
-        this.notEmpty = notEmpty;
+        this.wrappedTypeNotNull = wrappedTypeNotNull;
     }
 
     public WrapperType getWrapperType() {
@@ -46,12 +46,12 @@ public class Wrapper implements Serializable {
         this.wrapperClassName = wrapperClassName;
     }
 
-    public void setNotEmpty(boolean notEmpty) {
-        this.notEmpty = notEmpty;
+    public void setWrappedTypeNotNull(boolean wrappedTypeNotNull) {
+        this.wrappedTypeNotNull = wrappedTypeNotNull;
     }
 
-    public boolean isNotEmpty() {
-        return this.notEmpty;
+    public boolean isWrappedTypeNotNull() {
+        return this.wrappedTypeNotNull;
     }
 
     public Wrapper getWrapper() {
@@ -92,15 +92,15 @@ public class Wrapper implements Serializable {
 
     @Override
     public String toString() {
-        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", notEmpty=" + notEmpty + ", wrapperType=" + wrapperType
-                + ", wrapper=" + wrapper + '}';
+        return "Wrapper{" + "wrapperClassName=" + wrapperClassName + ", wrappedTypeNotNull=" + wrappedTypeNotNull +
+                ", wrapperType=" + wrapperType + ", wrapper=" + wrapper + '}';
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 59 * hash + Objects.hashCode(this.wrapperClassName);
-        hash = 59 * hash + (this.notEmpty ? 1 : 0);
+        hash = 59 * hash + (this.wrappedTypeNotNull ? 1 : 0);
         hash = 59 * hash + Objects.hashCode(this.wrapperType);
         hash = 59 * hash + Objects.hashCode(this.wrapper);
         return hash;
@@ -118,7 +118,7 @@ public class Wrapper implements Serializable {
             return false;
         }
         final Wrapper other = (Wrapper) obj;
-        if (this.notEmpty != other.notEmpty) {
+        if (this.wrappedTypeNotNull != other.wrappedTypeNotNull) {
             return false;
         }
         if (!Objects.equals(this.wrapperClassName, other.wrapperClassName)) {

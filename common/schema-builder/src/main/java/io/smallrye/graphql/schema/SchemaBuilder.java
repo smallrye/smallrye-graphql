@@ -181,7 +181,8 @@ public class SchemaBuilder {
             boolean federationEnabled = Boolean.getBoolean("smallrye.graphql.federation.enabled");
             // only add federation-related directive types to the schema if federation is enabled
             DotName packageName = classInfo.name().packagePrefixName();
-            if (packageName == null || !packageName.equals(FEDERATION_ANNOTATIONS_PACKAGE) || federationEnabled) {
+            if (packageName == null || !packageName.toString().startsWith(FEDERATION_ANNOTATIONS_PACKAGE.toString())
+                    || federationEnabled) {
                 schema.addDirectiveType(directiveTypeCreator.create(classInfo));
             }
 

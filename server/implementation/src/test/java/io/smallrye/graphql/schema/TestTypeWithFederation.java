@@ -3,7 +3,7 @@ package io.smallrye.graphql.schema;
 import io.smallrye.graphql.api.federation.Key;
 
 @Key(fields = "id")
-@Key(fields = "type id")
+@Key(fields = "type id", resolvable = true)
 public class TestTypeWithFederation {
     private String type;
     private String id;

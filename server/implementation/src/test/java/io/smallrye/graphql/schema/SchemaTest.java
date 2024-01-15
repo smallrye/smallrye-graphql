@@ -251,10 +251,12 @@ class SchemaTest {
                             "(to specify multiple valid sets of key fields).",
                     keyDirective.getDescription());
             assertEquals(EnumSet.of(OBJECT, INTERFACE), keyDirective.validLocations());
-            assertEquals(1, keyDirective.getArguments().size());
+            assertEquals(2, keyDirective.getArguments().size());
             assertEquals("String",
                     ((GraphQLScalarType) ((GraphQLNonNull) keyDirective.getArgument("fields").getType()).getWrappedType())
                             .getName());
+            assertEquals("Boolean",
+                    ((GraphQLScalarType) keyDirective.getArgument("resolvable").getType()).getName());
 
             GraphQLUnionType entityType = (GraphQLUnionType) graphQLSchema.getType("_Entity");
             assertNotNull(entityType);
@@ -280,8 +282,8 @@ class SchemaTest {
 
             GraphQLObjectType type = graphQLSchema.getObjectType("TestTypeWithFederation");
             assertEquals(2, type.getDirectives().size());
-            assertKeyDirective(type.getDirectives().get(0), "id");
-            assertKeyDirective(type.getDirectives().get(1), "type id");
+            assertKeyDirective(type.getDirectives().get(0), "id", null);
+            assertKeyDirective(type.getDirectives().get(1), "type id", true);
             assertEquals(3, type.getFields().size());
             assertEquals("id", type.getFields().get(0).getName());
             assertEquals(GraphQLString, type.getFields().get(0).getType());
@@ -393,11 +395,14 @@ class SchemaTest {
         assertRolesAllowedDirective(adminPasswordField, "admin");
     }
 
-    private void assertKeyDirective(GraphQLDirective graphQLDirective, String value) {
+    private void assertKeyDirective(GraphQLDirective graphQLDirective, String fieldsValue, Boolean resolvableValue) {
         assertEquals("key", graphQLDirective.getName());
-        assertEquals(1, graphQLDirective.getArguments().size());
+        assertEquals(2, graphQLDirective.getArguments().size());
         assertEquals("fields", graphQLDirective.getArguments().get(0).getName());
-        assertEquals(value, graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue());
+        assertEquals("resolvable", graphQLDirective.getArguments().get(1).getName());
+        assertEquals(fieldsValue, graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue());
+        assertEquals(resolvableValue, graphQLDirective.getArguments().get(1).toAppliedArgument().getArgumentValue().getValue());
+        assertEquals(true, graphQLDirective.getArguments().get(1).getArgumentDefaultValue().getValue());
     }
 
     private void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {
