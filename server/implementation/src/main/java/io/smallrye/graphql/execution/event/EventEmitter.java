@@ -174,7 +174,9 @@ public class EventEmitter {
 
     public Map<String, Jsonb> fireOverrideJsonbConfig() {
         Map<String, Jsonb> overrides = new HashMap<>();
+        int counter = 1;
         for (EventingService extensionService : enabledServices) {
+            LOG.debug(counter++ + ". Registering custom config for EventingService class - " + extensionService.getClass().getName());
             overrides.putAll(extensionService.overrideJsonbConfig());
         }
         return overrides;
