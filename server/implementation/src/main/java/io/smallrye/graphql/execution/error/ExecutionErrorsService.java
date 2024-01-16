@@ -132,9 +132,7 @@ public class ExecutionErrorsService {
     }
 
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, JsonValue value) {
-        if (value == null) {
-            return;
-        }
+        value = value != null ? value : JsonValue.NULL;
         if (config.getErrorExtensionFields().isPresent()) {
             List<String> fieldsThatShouldBeIncluded = config.getErrorExtensionFields().get();
             if (fieldsThatShouldBeIncluded.contains(key)) {
