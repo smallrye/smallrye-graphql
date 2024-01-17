@@ -110,7 +110,8 @@ public class ExecutionErrorsService {
                 if (config.getErrorExtensionFields().isEmpty()
                         || (config.getErrorExtensionFields().isPresent()
                                 && config.getErrorExtensionFields().get().contains(entry.getKey()))) {
-                    addKeyValue(objectBuilder, entry.getKey(), entry.getValue().toString());
+                    Object value = entry.getValue();
+                    addKeyValue(objectBuilder, entry.getKey(), value != null ? value.toString() : null);
                 }
             }
         }
