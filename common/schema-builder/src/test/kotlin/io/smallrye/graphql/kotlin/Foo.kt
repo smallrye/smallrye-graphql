@@ -46,4 +46,16 @@ class Example {
   @Query("zzz4")
   fun zzz(x: Foo4): Uni<Foo> = Uni.createFrom().nullItem()
 
+  @Query("yyy1")
+  fun yyy1(): List<Foo> = listOf()
+
+  @Query("yyy2")
+  fun yyy2(): List<Foo?> = listOf()
+
+  @Query("yyy3")
+  fun yyy3(i: List<Foo>): List<Foo> = listOf()
+
+  @Query("yyy4")
+  fun yyy4(i0: Foo, i1: Foo?, i2: List<Foo>, i3: List<Foo?>, i4: List<Foo?>?, i5: List<Foo>?): Foo? = null
+
 }

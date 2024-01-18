@@ -1,16 +1,20 @@
 package io.smallrye.graphql.schema.creator;
 
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.Direction;
@@ -105,9 +109,7 @@ public class OperationCreator extends ModelCreator {
         addDirectiveForDeprecated(annotationsForMethod, operation);
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
-        if (operation.hasWrapper()) {
-            checkWrappedTypeKotlinNullability(methodInfo, annotationsForClass, operation);
-        }
+        checkWrappedTypeKotlinNullability(methodInfo, annotationsForClass, operation);
         return operation;
     }
 
@@ -130,15 +132,47 @@ public class OperationCreator extends ModelCreator {
                     .filter(f -> compareParameterLists(f.getValueParameters(), methodInfo.parameterTypes()))
                     .findAny();
             if (function.isPresent()) {
-                KmType returnType = function.get().getReturnType();
-                KmTypeProjection arg = returnType.getArguments().get(0);
-                int flags = arg.getType().getFlags();
-                boolean nullable = Flag.Type.IS_NULLABLE.invoke(flags);
-                if (nullable) {
-                    operation.setNotNull(false);
+                // handle return type
+                if (operation.hasWrapper()) {
+                    KmType returnType = function.get().getReturnType();
+                    var nullable = isKotlinWrappedTypeNullable(returnType);
+                    // TODO: only for CollectionOrArrayOrMap applicable? What about other Wrapper?
+                    if (operation.getWrapper().isCollectionOrArrayOrMap()) {
+                        operation.getWrapper().setNotEmpty(!nullable);
+                    } else {
+                        // Uni, etc
+                        if (nullable) {
+                            operation.setNotNull(false);
+                        }
+                    }
+                }
+
+                // handle arguments
+                List<Argument> arguments = operation.getArguments();
+                List<KmValueParameter> valueParameters = function.get().getValueParameters();
+                if (arguments.size() == valueParameters.size()) {
+                    for (int i = 0; i < arguments.size(); i++) {
+                        Argument argument = arguments.get(i);
+                        // TODO: What about other Wrapper?
+                        if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArrayOrMap()) {
+                            KmValueParameter typeParameter = valueParameters.get(i);
+                            var paramNullable = isKotlinWrappedTypeNullable(typeParameter.getType());
+                            argument.getWrapper().setNotEmpty(!paramNullable);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private static boolean isKotlinWrappedTypeNullable(KmType kotlinType) {
+        if (kotlinType.getArguments().isEmpty()) {
+            return false;
+        }
+        KmTypeProjection arg = kotlinType.getArguments().get(0);
+        int flags = arg.getType().getFlags();
+        boolean nullable = Flag.Type.IS_NULLABLE.invoke(flags);
+        return nullable;
     }
 
     private boolean compareParameterLists(List<KmValueParameter> kotlinParameters,
@@ -147,17 +181,65 @@ public class OperationCreator extends ModelCreator {
             return false;
         }
         for (int i = 0; i < kotlinParameters.size(); i++) {
-            // TODO: the matching of parameter types could use some improvements
-            // For example, it won't work for primitives.
-            // An Int parameter will be represented as kotlin.Int in the KotlinClassMetadata,
-            // but as "int" in the Jandex MethodInfo.
-            if (!((KmClassifier.Class) kotlinParameters.get(i).getType().classifier)
-                    .getName().replace("/", ".")
-                    .equals(jandexParameters.get(i).name().toString())) {
+            KmType kotlinType = kotlinParameters.get(i).getType();
+            Type jandexType = jandexParameters.get(i);
+            if (!compareJavaAndKotlinType(jandexType, kotlinType)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean compareJavaAndKotlinType(Type javaType, kotlinx.metadata.KmType kotlinType) {
+        if (kotlinType == null) {
+            return false;
+        }
+        String kotlinTypeName = ((KmClassifier.Class) kotlinType.classifier).getName().replace("/", ".");
+
+        boolean signatureIsEqual = false;
+        if (kotlinTypeName.equals(javaType.name().toString())) {
+            signatureIsEqual = true;
+        } else if (Classes.isCollection(javaType)) {
+            signatureIsEqual = compareKotlinCollectionType(javaType, kotlinType);
+        }
+        // TODO: the matching of parameter types could use some improvements
+        // TODO: only some cases are handled, there are much more: see https://kotlinlang.org/docs/java-interop.html#mapped-types
+
+        boolean parametersAreEqual = true;
+        if (javaType instanceof ParameterizedType) {
+            List<Type> arguments = javaType.asParameterizedType().arguments();
+            for (int i = 0; i < arguments.size(); i++) {
+                Type javaArg = arguments.get(0);
+                KmType kotlinArg = kotlinType.getArguments().get(i).getType();
+
+                boolean argTypeEqual = compareJavaAndKotlinType(javaArg, kotlinArg);
+                if (!argTypeEqual) {
+                    parametersAreEqual = false;
+                    break;
+                }
+            }
+        }
+
+        return signatureIsEqual && parametersAreEqual;
+    }
+
+    private boolean compareKotlinCollectionType(Type javaType, KmType kotlinType) {
+        String javaCollectionType = javaType.name().toString();
+        String kotlinCollectionType = ((KmClassifier.Class) kotlinType.classifier).getName().replace("/", ".");
+        // TODO: naive implementation. Mutable Types are relevant?
+        if (Collection.class.getName().equals(javaCollectionType)) {
+            return kotlinCollectionType.equals("kotlin.collections.Collection");
+        }
+        if (List.class.getName().equals(javaCollectionType)) {
+            return kotlinCollectionType.equals("kotlin.collections.List");
+        }
+        if (Set.class.getName().equals(javaCollectionType)) {
+            return kotlinCollectionType.equals("kotlin.collections.Set");
+        }
+        if (Iterable.class.getName().equals(javaCollectionType)) {
+            return kotlinCollectionType.equals("kotlin.collections.Iterable");
+        }
+        return false;
     }
 
     private KotlinClassMetadata.Class toKotlinClassMetadata(AnnotationInstance metadata) {
