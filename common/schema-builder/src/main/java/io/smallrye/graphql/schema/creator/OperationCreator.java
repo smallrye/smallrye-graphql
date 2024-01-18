@@ -136,9 +136,12 @@ public class OperationCreator extends ModelCreator {
                 if (operation.hasWrapper()) {
                     KmType returnType = function.get().getReturnType();
                     var nullable = isKotlinWrappedTypeNullable(returnType);
-                    // TODO: only for CollectionOrArrayOrMap applicable? What about other Wrapper?
                     if (operation.getWrapper().isCollectionOrArrayOrMap()) {
                         operation.getWrapper().setNotEmpty(!nullable);
+                        // workaround: consistent behavior to java: if wrapped type is non null, collection will be marked as non null
+                        if (!nullable && !operation.isNotNull()) {
+                            operation.setNotNull(true);
+                        }
                     } else {
                         // Uni, etc
                         if (nullable) {
@@ -153,11 +156,14 @@ public class OperationCreator extends ModelCreator {
                 if (arguments.size() == valueParameters.size()) {
                     for (int i = 0; i < arguments.size(); i++) {
                         Argument argument = arguments.get(i);
-                        // TODO: What about other Wrapper?
                         if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArrayOrMap()) {
                             KmValueParameter typeParameter = valueParameters.get(i);
                             var paramNullable = isKotlinWrappedTypeNullable(typeParameter.getType());
                             argument.getWrapper().setNotEmpty(!paramNullable);
+                            // workaround:  consistent behavior to java: if wrapped type is not null, collection will be marked as not null
+                            if (!paramNullable && !argument.isNotNull()) {
+                                argument.setNotNull(true);
+                            }
                         }
                     }
                 }
@@ -209,7 +215,7 @@ public class OperationCreator extends ModelCreator {
         if (javaType instanceof ParameterizedType) {
             List<Type> arguments = javaType.asParameterizedType().arguments();
             for (int i = 0; i < arguments.size(); i++) {
-                Type javaArg = arguments.get(0);
+                Type javaArg = arguments.get(i);
                 KmType kotlinArg = kotlinType.getArguments().get(i).getType();
 
                 boolean argTypeEqual = compareJavaAndKotlinType(javaArg, kotlinArg);
