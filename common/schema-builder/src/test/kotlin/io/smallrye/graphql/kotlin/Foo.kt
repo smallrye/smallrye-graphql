@@ -58,4 +58,6 @@ class Example {
   @Query("yyy4")
   fun yyy4(i0: Foo, i1: Foo?, i2: List<Foo>, i3: List<Foo?>, i4: List<Foo?>?, i5: List<Foo>?): Foo? = null
 
+  @Query("yyy5")
+  fun yyy5(): List<Foo>? = listOf()
 }

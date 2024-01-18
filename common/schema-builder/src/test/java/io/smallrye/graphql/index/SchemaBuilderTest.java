@@ -359,9 +359,14 @@ public class SchemaBuilderTest {
         assertFalse(arguments.get(4).isNotNull()); // i4
         assertFalse(arguments.get(4).getWrapper().isNotEmpty()); // i4
 
-        // TODO: actually it is not consistent with java: if in java the wrapped list element is not null, the list will be marked as non-null in any case. Is this a problem?
-        assertFalse(arguments.get(5).isNotNull()); // i5
+        // it is not consistent with java: if in java the wrapped list element is not null, the list will be marked as non-null in any case.
+        assertTrue(arguments.get(5).isNotNull()); // i5
         assertTrue(arguments.get(5).getWrapper().isNotEmpty()); // i5
+
+        var yyy5 = getQueryByName(schema, "yyy5");
+        // it is not consistent with java: if in java the wrapped list element is not null, the list will be marked as non-null in any case.
+        assertTrue(yyy5.isNotNull());
+        assertTrue(yyy5.getWrapper().isNotEmpty());
     }
 
     private Operation getQueryByName(Schema schema, String name) {
