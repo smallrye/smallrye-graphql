@@ -232,18 +232,22 @@ public class OperationCreator extends ModelCreator {
     private boolean compareKotlinCollectionType(Type javaType, KmType kotlinType) {
         String javaCollectionType = javaType.name().toString();
         String kotlinCollectionType = ((KmClassifier.Class) kotlinType.classifier).getName().replace("/", ".");
-        // TODO: naive implementation. Mutable Types are relevant?
+        // TODO: naive implementation.
         if (Collection.class.getName().equals(javaCollectionType)) {
-            return kotlinCollectionType.equals("kotlin.collections.Collection");
+            return kotlinCollectionType.equals("kotlin.collections.Collection") ||
+                    kotlinCollectionType.equals("kotlin.collections.MutableCollection");
         }
         if (List.class.getName().equals(javaCollectionType)) {
-            return kotlinCollectionType.equals("kotlin.collections.List");
+            return kotlinCollectionType.equals("kotlin.collections.List") ||
+                    kotlinCollectionType.equals("kotlin.collections.MutableList");
         }
         if (Set.class.getName().equals(javaCollectionType)) {
-            return kotlinCollectionType.equals("kotlin.collections.Set");
+            return kotlinCollectionType.equals("kotlin.collections.Set") ||
+                    kotlinCollectionType.equals("kotlin.collections.MutableSet");
         }
         if (Iterable.class.getName().equals(javaCollectionType)) {
-            return kotlinCollectionType.equals("kotlin.collections.Iterable");
+            return kotlinCollectionType.equals("kotlin.collections.Iterable") ||
+                    kotlinCollectionType.equals("kotlin.collections.MutableIterable");
         }
         return false;
     }
