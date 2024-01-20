@@ -146,7 +146,7 @@ public class ExecutionServlet extends HttpServlet {
         Map<String, Object> context = new HashMap<>();
         String tracingHeader = request.getHeader(FEDERATED_TRACING_HEADER_NAME);
         if (tracingHeader != null) {
-            context.put(FEDERATED_TRACING_HEADER_NAME, request.getHeader(FEDERATED_TRACING_HEADER_NAME));
+            context.put(FEDERATED_TRACING_HEADER_NAME, tracingHeader);
         }
         return context;
     }
