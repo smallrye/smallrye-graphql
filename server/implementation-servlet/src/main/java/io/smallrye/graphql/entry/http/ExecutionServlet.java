@@ -1,10 +1,14 @@
 package io.smallrye.graphql.entry.http;
 
+import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_NAME;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -47,9 +51,10 @@ public class ExecutionServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            Map<String, Object> context = createContext(request);
             if (config.isAllowGet()) {
                 JsonObject jsonObject = getJsonObjectFromQueryParameters(request);
-                executionService.executeSync(jsonObject, new HttpServletResponseWriter(response));
+                executionService.executeSync(jsonObject, context, new HttpServletResponseWriter(response));
             } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
             }
@@ -62,15 +67,16 @@ public class ExecutionServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            Map<String, Object> context = createContext(request);
             JsonObject jsonObjectFromBody = getJsonObjectFromBody(request);
             if (request.getQueryString() != null && !request.getQueryString().isEmpty()
                     && config.isAllowPostWithQueryParameters()) {
                 JsonObject jsonObjectFromQueryParameters = getJsonObjectFromQueryParameters(request);
                 JsonObject mergedJsonObject = Json.createMergePatch(jsonObjectFromQueryParameters).apply(jsonObjectFromBody)
                         .asJsonObject();
-                executionService.executeSync(mergedJsonObject, new HttpServletResponseWriter(response));
+                executionService.executeSync(mergedJsonObject, context, new HttpServletResponseWriter(response));
             } else {
-                executionService.executeSync(jsonObjectFromBody, new HttpServletResponseWriter(response));
+                executionService.executeSync(jsonObjectFromBody, context, new HttpServletResponseWriter(response));
             }
         } catch (IOException ex) {
             SmallRyeGraphQLServletLogging.log.ioException(ex);
@@ -134,6 +140,15 @@ public class ExecutionServlet extends HttpServlet {
         try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
             return jsonReader.readObject();
         }
+    }
+
+    private Map<String, Object> createContext(HttpServletRequest request) {
+        Map<String, Object> context = new HashMap<>();
+        String tracingHeader = request.getHeader(FEDERATED_TRACING_HEADER_NAME);
+        if (tracingHeader != null) {
+            context.put(FEDERATED_TRACING_HEADER_NAME, request.getHeader(FEDERATED_TRACING_HEADER_NAME));
+        }
+        return context;
     }
 
     private static final String QUERY = "query";
