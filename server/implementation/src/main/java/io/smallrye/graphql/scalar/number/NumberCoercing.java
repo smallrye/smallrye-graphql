@@ -8,7 +8,9 @@ import java.math.BigInteger;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
+import graphql.language.Value;
 import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
 
 /**
  * The Coercing used by numbers
@@ -107,5 +109,22 @@ public class NumberCoercing implements Coercing {
             return converter.fromBigInteger(value);
         }
         throw msg.coercingParseLiteralException(input.getClass().getSimpleName());
+    }
+
+    @Override
+    public Value<?> valueToLiteral(Object input) {
+        Object s = serialize(input);
+        if (s instanceof BigDecimal) {
+            return FloatValue.newFloatValue((BigDecimal) s).build();
+        } else if (s instanceof BigInteger) {
+            return IntValue.newIntValue((BigInteger) s).build();
+        } else if (input instanceof Float || input instanceof Double) {
+            return new FloatValue(BigDecimal.valueOf(((Number) input).doubleValue()));
+        } else if (input instanceof Number) {
+            // For other Number types like Integer, Long, etc.
+            return new IntValue(BigInteger.valueOf(((Number) input).longValue()));
+        } else {
+            throw new CoercingParseLiteralException("Input is not a valid number type: " + input);
+        }
     }
 }
