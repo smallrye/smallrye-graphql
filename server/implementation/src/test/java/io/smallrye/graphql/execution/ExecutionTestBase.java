@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import java.util.Map;
+
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -12,8 +14,6 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-
-import java.util.Map;
 
 /**
  * Base class for execution tests

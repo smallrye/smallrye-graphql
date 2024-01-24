@@ -1,18 +1,20 @@
 package io.smallrye.graphql.execution;
 
-import io.smallrye.graphql.spi.config.Config;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_NAME;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_NAME;
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Test for Federated tracing
