@@ -90,7 +90,7 @@ public interface Config {
             if (configuredValue.equals(throwableClass.getName())) {
                 return true;
             } else if (configuredValue.endsWith("*")) {
-                String values = configuredValue.substring(0, configuredValue.length() - 2);
+                String values = configuredValue.substring(0, configuredValue.length() - 1);
                 if (throwableClass.getName().startsWith(values)) {
                     return true;
                 }
