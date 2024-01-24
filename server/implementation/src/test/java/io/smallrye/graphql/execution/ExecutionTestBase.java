@@ -85,7 +85,11 @@ public abstract class ExecutionTestBase {
     protected JsonObject executeAndGetResult(String graphQL, Map<String, Object> context) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
-        executionService.executeSync(jsonObjectResponseWriter.getInput(), context, jsonObjectResponseWriter);
+        if (context == null) {
+            executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
+        } else {
+            executionService.executeSync(jsonObjectResponseWriter.getInput(), context, jsonObjectResponseWriter);
+        }
         jsonObjectResponseWriter.logOutput();
 
         return jsonObjectResponseWriter.getOutput();
