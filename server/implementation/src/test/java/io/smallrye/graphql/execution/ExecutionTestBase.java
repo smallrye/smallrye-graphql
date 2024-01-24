@@ -13,6 +13,8 @@ import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 
+import java.util.Map;
+
 /**
  * Base class for execution tests
  *
@@ -42,7 +44,11 @@ public abstract class ExecutionTestBase {
     }
 
     protected JsonObject executeAndGetData(String graphQL) {
-        JsonObject result = executeAndGetResult(graphQL);
+        return executeAndGetData(graphQL, null);
+    }
+
+    protected JsonObject executeAndGetData(String graphQL, Map<String, Object> context) {
+        JsonObject result = executeAndGetResult(graphQL, context);
         JsonValue value = result.get(DATA);
         if (value != null) {
             return result.getJsonObject(DATA);
@@ -51,7 +57,11 @@ public abstract class ExecutionTestBase {
     }
 
     protected JsonArray executeAndGetErrors(String graphQL) {
-        JsonObject result = executeAndGetResult(graphQL);
+        return executeAndGetErrors(graphQL, null);
+    }
+
+    protected JsonArray executeAndGetErrors(String graphQL, Map<String, Object> context) {
+        JsonObject result = executeAndGetResult(graphQL, context);
         JsonValue value = result.get(ERRORS);
         if (value != null) {
             return result.getJsonArray(ERRORS);
@@ -59,10 +69,23 @@ public abstract class ExecutionTestBase {
         return null;
     }
 
-    protected JsonObject executeAndGetResult(String graphQL) {
+    protected JsonObject executeAndGetExtensions(String graphQL) {
+        return executeAndGetExtensions(graphQL, null);
+    }
+
+    protected JsonObject executeAndGetExtensions(String graphQL, Map<String, Object> context) {
+        JsonObject result = executeAndGetResult(graphQL, context);
+        JsonValue value = result.get(EXTENSIONS);
+        if (value != null) {
+            return result.getJsonObject(EXTENSIONS);
+        }
+        return null;
+    }
+
+    protected JsonObject executeAndGetResult(String graphQL, Map<String, Object> context) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
-        executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
+        executionService.executeSync(jsonObjectResponseWriter.getInput(), context, jsonObjectResponseWriter);
         jsonObjectResponseWriter.logOutput();
 
         return jsonObjectResponseWriter.getOutput();
@@ -70,5 +93,6 @@ public abstract class ExecutionTestBase {
 
     private static final String DATA = "data";
     private static final String ERRORS = "errors";
+    private static final String EXTENSIONS = "extensions";
 
 }
