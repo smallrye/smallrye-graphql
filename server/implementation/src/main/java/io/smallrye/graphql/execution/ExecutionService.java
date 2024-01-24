@@ -313,9 +313,13 @@ public class ExecutionService {
                             false,
                             (ExecutionInput executionInput) -> {
                                 if (executionInput != null && executionInput.getGraphQLContext() != null
-                                        && executionInput.getGraphQLContext().hasKey(FEDERATED_TRACING_HEADER_NAME)) {
-                                    return FEDERATED_TRACING_HEADER_VALUE.equals(
-                                            executionInput.getGraphQLContext().get(FEDERATED_TRACING_HEADER_NAME));
+                                        && executionInput.getGraphQLContext().hasKey("httpHeaders")) {
+                                    Map<String, List<String>> httpHeaders = executionInput.getGraphQLContext()
+                                            .get("httpHeaders");
+                                    if (httpHeaders != null && httpHeaders.containsKey(FEDERATED_TRACING_HEADER_NAME)) {
+                                        List<String> headerValues = httpHeaders.get(FEDERATED_TRACING_HEADER_NAME);
+                                        return headerValues.contains(FEDERATED_TRACING_HEADER_VALUE);
+                                    }
                                 }
                                 return false;
                             });
