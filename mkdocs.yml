@@ -22,6 +22,7 @@ nav:
       - Running multiple queries at once: 'typesafe-client-multiple-queries.md'
       - Error handling: 'typesafe-client-error-handling.md'
       - Accessing metadata of responses: 'typesafe-client-accessing-metadata-of-responses.md'
+      - Static Directives: 'typesafe-client-directives.md'
   - Dynamic client:
       - Basic usage: 'dynamic-client-usage.md'
       - Error handling: 'dynamic-client-error-handling.md'
