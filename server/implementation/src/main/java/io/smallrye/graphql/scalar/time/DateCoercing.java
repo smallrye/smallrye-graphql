@@ -2,7 +2,14 @@ package io.smallrye.graphql.scalar.time;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.time.*;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import graphql.language.StringValue;
