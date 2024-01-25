@@ -5,6 +5,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -49,7 +55,7 @@ public class ExecutionServlet extends HttpServlet {
         try {
             if (config.isAllowGet()) {
                 JsonObject jsonObject = getJsonObjectFromQueryParameters(request);
-                executionService.executeSync(jsonObject, new HttpServletResponseWriter(response));
+                executionService.executeSync(jsonObject, getMetaData(request), new HttpServletResponseWriter(response));
             } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
             }
@@ -62,15 +68,16 @@ public class ExecutionServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            Map<String, Object> metaData = getMetaData(request);
             JsonObject jsonObjectFromBody = getJsonObjectFromBody(request);
             if (request.getQueryString() != null && !request.getQueryString().isEmpty()
                     && config.isAllowPostWithQueryParameters()) {
                 JsonObject jsonObjectFromQueryParameters = getJsonObjectFromQueryParameters(request);
                 JsonObject mergedJsonObject = Json.createMergePatch(jsonObjectFromQueryParameters).apply(jsonObjectFromBody)
                         .asJsonObject();
-                executionService.executeSync(mergedJsonObject, new HttpServletResponseWriter(response));
+                executionService.executeSync(mergedJsonObject, metaData, new HttpServletResponseWriter(response));
             } else {
-                executionService.executeSync(jsonObjectFromBody, new HttpServletResponseWriter(response));
+                executionService.executeSync(jsonObjectFromBody, metaData, new HttpServletResponseWriter(response));
             }
         } catch (IOException ex) {
             SmallRyeGraphQLServletLogging.log.ioException(ex);
@@ -134,6 +141,24 @@ public class ExecutionServlet extends HttpServlet {
         try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
             return jsonReader.readObject();
         }
+    }
+
+    protected Map<String, Object> getMetaData(HttpServletRequest request) {
+        Map<String, Object> metaData = new ConcurrentHashMap<>();
+        metaData.put("httpHeaders", getHeaders(request));
+        return metaData;
+    }
+
+    private Map<String, List<String>> getHeaders(HttpServletRequest request) {
+        Map<String, List<String>> h = new HashMap<>();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            Enumeration<String> headerValues = request.getHeaders(headerName);
+            List<String> valuesList = Collections.list(headerValues);
+            h.put(headerName, valuesList);
+        }
+        return h;
     }
 
     private static final String QUERY = "query";

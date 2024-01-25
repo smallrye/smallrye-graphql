@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_NAME;
+import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_VALUE;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
 import java.util.ArrayList;
@@ -17,6 +19,9 @@ import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderRegistry;
+
+import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation;
+import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.Options;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
@@ -301,6 +306,25 @@ public class ExecutionService {
                     chainedList.add(new MaxQueryDepthInstrumentation(config.getQueryDepthInstrumentation().get()));
                 }
                 chainedList.add(queryCache);
+                if (Config.get().isFederationEnabled()) {
+                    // Custom logic in the predicate is required because the default behavior of Options.shouldTrace
+                    // method is to return true, potentially enabling tracing for all requests
+                    Options options = new Options(
+                            false,
+                            (ExecutionInput executionInput) -> {
+                                if (executionInput != null && executionInput.getGraphQLContext() != null
+                                        && executionInput.getGraphQLContext().hasKey("httpHeaders")) {
+                                    Map<String, List<String>> httpHeaders = executionInput.getGraphQLContext()
+                                            .get("httpHeaders");
+                                    if (httpHeaders != null && httpHeaders.containsKey(FEDERATED_TRACING_HEADER_NAME)) {
+                                        List<String> headerValues = httpHeaders.get(FEDERATED_TRACING_HEADER_NAME);
+                                        return headerValues.contains(FEDERATED_TRACING_HEADER_VALUE);
+                                    }
+                                }
+                                return false;
+                            });
+                    chainedList.add(new FederatedTracingInstrumentation(options));
+                }
                 // TODO: Allow users to add custome instumentations
                 graphqlBuilder = graphqlBuilder.instrumentation(new ChainedInstrumentation(chainedList));
 
