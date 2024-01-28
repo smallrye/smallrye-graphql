@@ -88,6 +88,7 @@ public class IndexInitializer {
 
             // directives from the API module
             indexer.index(convertClassToInputStream(ComposeDirective.class));
+            indexer.index(convertClassToInputStream(Deprecated.class));
             indexer.index(convertClassToInputStream(Extends.class));
             indexer.index(convertClassToInputStream(External.class));
             indexer.index(convertClassToInputStream(Inaccessible.class));
