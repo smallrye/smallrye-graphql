@@ -28,6 +28,7 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
+import io.smallrye.graphql.api.Deprecated;
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.api.federation.ComposeDirective;
 import io.smallrye.graphql.api.federation.Extends;
@@ -35,6 +36,7 @@ import io.smallrye.graphql.api.federation.External;
 import io.smallrye.graphql.api.federation.Inaccessible;
 import io.smallrye.graphql.api.federation.InterfaceObject;
 import io.smallrye.graphql.api.federation.Key;
+import io.smallrye.graphql.api.federation.Override;
 import io.smallrye.graphql.api.federation.Provides;
 import io.smallrye.graphql.api.federation.Requires;
 import io.smallrye.graphql.api.federation.Shareable;
