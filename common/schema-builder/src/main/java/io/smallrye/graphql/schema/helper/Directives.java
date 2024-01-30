@@ -3,7 +3,11 @@ package io.smallrye.graphql.schema.helper;
 import static java.util.stream.Collectors.toList;
 import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
