@@ -10,6 +10,8 @@ import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +27,7 @@ class ConfigBehavior {
     @BeforeEach
     void setup() {
         GraphQLClientsConfiguration.clear();
+        ConfigProviderResolver.instance().releaseConfig(ConfigProvider.getConfig());
     }
 
     @GraphQLClientApi
