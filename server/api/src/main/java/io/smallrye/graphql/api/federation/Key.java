@@ -35,7 +35,7 @@ public @interface Key {
             "\"id\"\n" +
             "\"username region\"\n" +
             "\"name organization { id }\"")
-    String fields();
+    FieldSet fields();
 
     @DefaultValue("true")
     @Description("If false, indicates to the router that this subgraph doesn't define a reference resolver for this " +

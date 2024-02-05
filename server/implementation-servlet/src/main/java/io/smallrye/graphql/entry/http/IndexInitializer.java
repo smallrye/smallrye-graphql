@@ -35,6 +35,7 @@ import io.smallrye.graphql.api.federation.Authenticated;
 import io.smallrye.graphql.api.federation.ComposeDirective;
 import io.smallrye.graphql.api.federation.Extends;
 import io.smallrye.graphql.api.federation.External;
+import io.smallrye.graphql.api.federation.FieldSet;
 import io.smallrye.graphql.api.federation.Inaccessible;
 import io.smallrye.graphql.api.federation.InterfaceObject;
 import io.smallrye.graphql.api.federation.Key;
@@ -45,8 +46,10 @@ import io.smallrye.graphql.api.federation.Shareable;
 import io.smallrye.graphql.api.federation.Tag;
 import io.smallrye.graphql.api.federation.policy.Policy;
 import io.smallrye.graphql.api.federation.policy.PolicyGroup;
+import io.smallrye.graphql.api.federation.policy.PolicyItem;
 import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.api.federation.requiresscopes.ScopeGroup;
+import io.smallrye.graphql.api.federation.requiresscopes.ScopeItem;
 
 /**
  * This creates an index from the classpath.
@@ -100,16 +103,19 @@ public class IndexInitializer {
             indexer.index(convertClassToInputStream(Deprecated.class));
             indexer.index(convertClassToInputStream(Extends.class));
             indexer.index(convertClassToInputStream(External.class));
+            indexer.index(convertClassToInputStream(FieldSet.class));
             indexer.index(convertClassToInputStream(Inaccessible.class));
             indexer.index(convertClassToInputStream(InterfaceObject.class));
             indexer.index(convertClassToInputStream(Key.class));
             indexer.index(convertClassToInputStream(Override.class));
             indexer.index(convertClassToInputStream(Policy.class));
             indexer.index(convertClassToInputStream(PolicyGroup.class));
+            indexer.index(convertClassToInputStream(PolicyItem.class));
             indexer.index(convertClassToInputStream(Provides.class));
             indexer.index(convertClassToInputStream(Requires.class));
             indexer.index(convertClassToInputStream(RequiresScopes.class));
             indexer.index(convertClassToInputStream(ScopeGroup.class));
+            indexer.index(convertClassToInputStream(ScopeItem.class));
             indexer.index(convertClassToInputStream(Shareable.class));
             indexer.index(convertClassToInputStream(Tag.class));
             indexer.index(convertClassToInputStream(OneOf.class));

@@ -3,9 +3,10 @@ package io.smallrye.graphql.test.apps.federation;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Name;
 
+import io.smallrye.graphql.api.federation.FieldSet;
 import io.smallrye.graphql.api.federation.Key;
 
-@Key(fields = "id")
+@Key(fields = @FieldSet("id"))
 @Name("Product")
 public class ProductEntity {
     static ProductEntity product(String id, String name) {

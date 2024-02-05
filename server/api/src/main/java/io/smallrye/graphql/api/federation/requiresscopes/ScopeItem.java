@@ -7,10 +7,10 @@ import java.lang.annotation.Retention;
 import org.eclipse.microprofile.graphql.NonNull;
 
 /**
- * Defines a group of JWT scopes, each representing a set used by the {@link RequiresScopes} directive.
+ * String-serialized scalar represents a JWT scope.
  */
 @Retention(RUNTIME)
-public @interface ScopeGroup {
+public @interface ScopeItem {
     @NonNull
-    ScopeItem[] value();
+    String value();
 }

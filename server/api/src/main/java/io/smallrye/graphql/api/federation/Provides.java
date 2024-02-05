@@ -33,5 +33,5 @@ public @interface Provides {
             "\"name\"\n" +
             "\"name address\"\n" +
             "\"... on Person { name address }\" (valid for fields that return a union or interface)")
-    String fields();
+    FieldSet fields();
 }

@@ -180,7 +180,7 @@ public class Bootstrap {
         addSubscriptions(schemaBuilder);
         schemaBuilder.withSchemaAppliedDirectives(Arrays.stream(
                 createGraphQLDirectives(schema.getDirectiveInstances()))
-                .map(graphQLDirective -> graphQLDirective.toAppliedDirective())
+                .map(GraphQLDirective::toAppliedDirective)
                 .collect(Collectors.toList()));
         schemaBuilder.description(schema.getDescription());
         schemaBuilder.additionalDirectives(directiveTypes);
@@ -675,10 +675,14 @@ public class Bootstrap {
             }
             GraphQLInputType inputType = createGraphQLInputType(argumentType);
 
+            // We have to call .valueProgrammatic(...) in order for graphql.schema.InputValueWithState to be set to
+            // EXTERNAL_VALUE, meaning that .valueToLiteral(...) from our own Coercing implementation will be called
+            // when converting. If we use .value(...), INTERNAL_VALUE (which is deprecated) will be used, along with
+            // ValuesResolverLegacy.valueToLiteralLegacy
             GraphQLArgument.Builder argumentBuilder = GraphQLArgument.newArgument()
                     .name(argumentName)
                     .type(inputType)
-                    .value(entry.getValue());
+                    .valueProgrammatic(entry.getValue());
 
             if (argumentType.hasDefaultValue()) {
                 argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitizeDefaultValue(argumentType));

@@ -12,7 +12,7 @@ import org.eclipse.microprofile.graphql.Id;
 import io.smallrye.graphql.api.federation.Extends;
 import io.smallrye.graphql.api.federation.Key;
 
-@Extends @Key(fields = "id")
+@Extends @Key(fields = @FieldSet("id"))
 public class Product {
     @Id
     private String id;

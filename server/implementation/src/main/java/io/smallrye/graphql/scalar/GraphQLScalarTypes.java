@@ -9,6 +9,9 @@ import java.util.UUID;
 import graphql.Scalars;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
+import io.smallrye.graphql.scalar.federation.FieldSetScalar;
+import io.smallrye.graphql.scalar.federation.PolicyScalar;
+import io.smallrye.graphql.scalar.federation.ScopeScalar;
 import io.smallrye.graphql.scalar.number.BigDecimalScalar;
 import io.smallrye.graphql.scalar.number.BigIntegerScalar;
 import io.smallrye.graphql.scalar.number.FloatScalar;
@@ -96,6 +99,12 @@ public class GraphQLScalarTypes {
         mapType(new DurationScalar());
 
         mapType(new VoidScalar()); // Void
+
+        if (Boolean.getBoolean("smallrye.graphql.federation.enabled")) {
+            mapType(new FieldSetScalar());
+            mapType(new PolicyScalar());
+            mapType(new ScopeScalar());
+        }
 
         for (final GraphQLScalarType value : SCALAR_MAP.values()) {
             SCALARS_BY_NAME.put(value.getName(), value);

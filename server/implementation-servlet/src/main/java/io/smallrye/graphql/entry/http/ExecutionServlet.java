@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -90,25 +91,25 @@ public class ExecutionServlet extends HttpServlet {
         // Query
         String query = request.getParameter(QUERY);
         if (query != null && !query.isEmpty()) {
-            input.add(QUERY, URLDecoder.decode(query, "UTF8"));
+            input.add(QUERY, URLDecoder.decode(query, StandardCharsets.UTF_8));
         }
         // OperationName
         String operationName = request.getParameter(OPERATION_NAME);
         if (operationName != null && !operationName.isEmpty()) {
-            input.add(OPERATION_NAME, URLDecoder.decode(query, "UTF8"));
+            input.add(OPERATION_NAME, URLDecoder.decode(query, StandardCharsets.UTF_8));
         }
 
         // Variables
         String variables = request.getParameter(VARIABLES);
         if (variables != null && !variables.isEmpty()) {
-            JsonObject jsonObject = toJsonObject(URLDecoder.decode(variables, "UTF8"));
+            JsonObject jsonObject = toJsonObject(URLDecoder.decode(variables, StandardCharsets.UTF_8));
             input.add(VARIABLES, jsonObject);
         }
 
         // Extensions
         String extensions = request.getParameter(EXTENSIONS);
         if (extensions != null && !extensions.isEmpty()) {
-            JsonObject jsonObject = toJsonObject(URLDecoder.decode(extensions, "UTF8"));
+            JsonObject jsonObject = toJsonObject(URLDecoder.decode(extensions, StandardCharsets.UTF_8));
             input.add(EXTENSIONS, jsonObject);
         }
 

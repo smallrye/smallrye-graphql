@@ -10,4 +10,12 @@
     <artifactId>smallrye-graphql-schema-model</artifactId>
     <name>SmallRye: GraphQL Common :: Schema Model</name>
     <description>A model that represents the schema</description>
+
+     <dependencies>
+        <!-- The API -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>smallrye-graphql-api</artifactId>
+        </dependency>
+    </dependencies>
 </project>

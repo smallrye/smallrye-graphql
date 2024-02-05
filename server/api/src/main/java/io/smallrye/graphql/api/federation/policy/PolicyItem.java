@@ -7,10 +7,10 @@ import java.lang.annotation.Retention;
 import org.eclipse.microprofile.graphql.NonNull;
 
 /**
- * Defines a group of authorization policies, each representing a set used by the {@link Policy} directive.
+ * String-serialized scalar represents an authorization policy.
  */
 @Retention(RUNTIME)
-public @interface PolicyGroup {
+public @interface PolicyItem {
     @NonNull
-    PolicyItem[] value();
+    String value();
 }

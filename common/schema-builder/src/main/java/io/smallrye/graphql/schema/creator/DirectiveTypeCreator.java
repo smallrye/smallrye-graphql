@@ -18,7 +18,9 @@ import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.api.federation.policy.Policy;
+import io.smallrye.graphql.api.federation.policy.PolicyItem;
 import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
+import io.smallrye.graphql.api.federation.requiresscopes.ScopeItem;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
@@ -28,8 +30,9 @@ import io.smallrye.graphql.schema.model.DirectiveType;
 
 public class DirectiveTypeCreator extends ModelCreator {
     private static final DotName POLICY = DotName.createSimple(Policy.class.getName());
+    private static final DotName POLICY_ITEM = DotName.createSimple(PolicyItem.class.getName());
     private static final DotName REQUIRES_SCOPES = DotName.createSimple(RequiresScopes.class.getName());
-    private static final DotName STRING = DotName.createSimple(String.class.getName());
+    private static final DotName SCOPE = DotName.createSimple(ScopeItem.class.getName());
 
     private static final Logger LOG = Logger.getLogger(DirectiveTypeCreator.class.getName());
 
@@ -59,13 +62,19 @@ public class DirectiveTypeCreator extends ModelCreator {
             DirectiveArgument argument = new DirectiveArgument();
             Type argumentType;
             if (classInfo.name().equals(POLICY) || classInfo.name().equals(REQUIRES_SCOPES)) {
-                // For both of these directives, we need to override the argument type to be an array of nested arrays
-                // of strings, where none of the nested elements can be null
+                // For both of these directives, we need to override the argument type to be an array of nested arrays,
+                // where none of the nested elements can be null
+                DotName typeName;
+                if (classInfo.name().equals(POLICY)) {
+                    typeName = POLICY_ITEM;
+                } else {
+                    typeName = SCOPE;
+                }
                 AnnotationInstance nonNullAnnotation = AnnotationInstance.create(NON_NULL, null,
                         Collections.emptyList());
-                Type stringType = ClassType.createWithAnnotations(STRING, Type.Kind.CLASS,
+                Type type = ClassType.createWithAnnotations(typeName, Type.Kind.CLASS,
                         new AnnotationInstance[] { nonNullAnnotation });
-                argumentType = buildArrayType(stringType, 2, nonNullAnnotation);
+                argumentType = buildArrayType(type, 2, nonNullAnnotation);
             } else {
                 argumentType = method.returnType();
             }
