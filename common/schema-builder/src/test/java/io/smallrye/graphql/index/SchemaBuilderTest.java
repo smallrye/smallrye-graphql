@@ -40,7 +40,9 @@ import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
 
@@ -369,6 +371,53 @@ public class SchemaBuilderTest {
         assertTrue(yyy5.getWrapper().isWrappedTypeNotNull());
     }
 
+    @Test
+    public void testParametrizedGenericTypes() {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/generic/parametrized");
+        Index index = indexer.complete();
+        Schema schema = SchemaBuilder.build(index);
+
+        assertNotNull(schema);
+        Set<Operation> queries = schema.getQueries();
+        Map<String, Type> outputTypes = schema.getTypes();
+        Map<String, InputType> inputTypes = schema.getInputs();
+
+        assertEquals(7, queries.size());
+        assertEquals(8, outputTypes.size());
+        assertEquals(8, inputTypes.size());
+
+        assertType(outputTypes, "Bar", Set.of(new Pair("Int", "barField")));
+        assertType(outputTypes, "FirstClass",
+                Set.of(new Pair("Int", "firstClassField"), new Pair<>("Bar", "secondClassField")));
+        assertType(outputTypes, "SecondClass_Bar", Set.of(new Pair("Bar", "secondClassField")));
+        assertType(outputTypes, "ThirdClass_String",
+                Set.of(new Pair("String", "secondClassField"), new Pair("String", "thirdClassField")));
+        assertType(outputTypes, "FourthClass",
+                Set.of(new Pair("String", "fourthClassField"), new Pair("Bar", "fifthClassField1"),
+                        new Pair("String", "fifthClassField2")));
+        assertType(outputTypes, "FifthClass_Bar_String",
+                Set.of(new Pair("Bar", "fifthClassField1"), new Pair("String", "fifthClassField2")));
+        assertType(outputTypes, "NewFirstClass",
+                Set.of(new Pair("Float", "renamedFirstClassField"), new Pair<>("Bar", "secondClassField")));
+        assertType(outputTypes, "NewSecondClass_Bar", Set.of(new Pair("Bar", "renamedSecondClassField")));
+
+        assertType(inputTypes, "BarInput", Set.of(new Pair("Int", "barField")));
+        assertType(inputTypes, "FirstClassInput",
+                Set.of(new Pair("Int", "firstClassField"), new Pair<>("BarInput", "secondClassField")));
+        assertType(inputTypes, "SecondClass_BarInputInput", Set.of(new Pair("BarInput", "secondClassField")));
+        assertType(inputTypes, "ThirdClass_StringInput",
+                Set.of(new Pair("String", "secondClassField"), new Pair("String", "thirdClassField")));
+        assertType(inputTypes, "FourthClassInput",
+                Set.of(new Pair("String", "fourthClassField"), new Pair("BarInput", "fifthClassField1"),
+                        new Pair("String", "fifthClassField2")));
+        assertType(inputTypes, "FifthClass_String_BarInputInput",
+                Set.of(new Pair("String", "fifthClassField1"), new Pair("BarInput", "fifthClassField2")));
+        assertType(inputTypes, "NewFirstClassInput",
+                Set.of(new Pair("Float", "renamedFirstClassField"), new Pair<>("BarInput", "secondClassField")));
+        assertType(inputTypes, "NewSecondClassInput_BarInput", Set.of(new Pair("BarInput", "renamedSecondClassField")));
+    }
+
     private Operation getQueryByName(Schema schema, String name) {
         return schema.getQueries()
                 .stream().filter(q -> q.getName().equals(name))
@@ -405,6 +454,51 @@ public class SchemaBuilderTest {
             indexer.index(stream);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
+        }
+    }
+
+    private void assertType(Map<String, ? extends Reference> types, String typeName, Set<Pair<String, String>> expectedFields) {
+        Reference type = types.get(typeName);
+        assertNotNull(type);
+
+        final Map<String, Field> fields = (type instanceof Type) ? ((Type) type).getFields() : ((InputType) type).getFields();
+
+        assertNotNull(fields);
+        assertEquals(expectedFields.size(), fields.size());
+
+        expectedFields.forEach((expectedField) -> {
+            Field actualField = fields.get(expectedField.getVal2());
+            assertNotNull(actualField);
+            assertEquals(expectedField.getVal1(), actualField.getReference().getName());
+        });
+    }
+
+    private static class Pair<K, V> {
+        private K val1;
+        private V val2;
+
+        public K getVal1() {
+            return val1;
+        }
+
+        public void setVal1(K val1) {
+            this.val1 = val1;
+        }
+
+        public V getVal2() {
+            return val2;
+        }
+
+        public void setVal2(V val2) {
+            this.val2 = val2;
+        }
+
+        public Pair(K val1, V val2) {
+            this.val1 = val1;
+            this.val2 = val2;
+        }
+
+        public Pair() {
         }
     }
 }

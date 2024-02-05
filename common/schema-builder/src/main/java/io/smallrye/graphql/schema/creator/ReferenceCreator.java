@@ -196,6 +196,7 @@ public class ReferenceCreator {
             boolean createAdapedToType,
             boolean createAdapedWithType,
             Map<String, Reference> classParametrizedTypes,
+            Map<String, Reference> extendedClassParametrizedTypes,
             boolean addParametrizedTypeNameExtension) {
 
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
@@ -234,6 +235,7 @@ public class ReferenceCreator {
 
                 createReference(direction, impl, createAdapedToType, createAdapedWithType,
                         parametrizedTypeArgumentsReferencesImpl,
+                        null, // todo: maybe?
                         referenceType.equals(ReferenceType.INTERFACE));
             }
         }
@@ -251,12 +253,12 @@ public class ReferenceCreator {
         if (existing != null && existing.getClassName().equals(className)) {
             return existing;
         }
-
         Reference reference = new Reference.Builder()
                 .className(className)
                 .name(name)
                 .type(referenceType)
                 .classParametrizedTypes(classParametrizedTypes)
+                .extendedClassParametrizedTypes(extendedClassParametrizedTypes)
                 .addParametrizedTypeNameExtension(addParametrizedTypeNameExtension)
                 .build();
 
@@ -353,8 +355,7 @@ public class ReferenceCreator {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
 
-                Map<String, Reference> parametrizedTypeArgumentsReferences = null;
-
+                Map<String, Reference> extendedClassParametrizedTypeArgumentsReferences = null;
                 ParameterizedType parametrizedParentType = findParametrizedParentType(classInfo);
                 if (parametrizedParentType != null) {
                     ClassInfo ci = ScanningContext.getIndex().getClassByName(parametrizedParentType.name());
@@ -363,14 +364,17 @@ public class ReferenceCreator {
                                 "No class info found for parametrizedParentType name [" + parametrizedParentType.name() + "]");
                     }
 
-                    parametrizedTypeArgumentsReferences = collectParametrizedTypes(ci, parametrizedParentType.arguments(),
+                    extendedClassParametrizedTypeArgumentsReferences = collectParametrizedTypes(ci,
+                            parametrizedParentType.arguments(),
                             direction, parentObjectReference);
                 }
 
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        parametrizedTypeArgumentsReferences, false);
+                        null,
+                        extendedClassParametrizedTypeArgumentsReferences,
+                        false);
             } else {
                 return getNonIndexedReference(direction, fieldType);
             }
@@ -385,24 +389,22 @@ public class ReferenceCreator {
                 List<Type> parametrizedTypeArguments = fieldType.asParameterizedType().arguments();
                 Map<String, Reference> parametrizedTypeArgumentsReferences = collectParametrizedTypes(classInfo,
                         parametrizedTypeArguments, direction, parentObjectReference);
-
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        parametrizedTypeArgumentsReferences, true);
+                        parametrizedTypeArgumentsReferences, null, true);
             } else {
                 return getNonIndexedReference(direction, fieldType);
             }
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
-            if (parentObjectReference == null || parentObjectReference.getClassParametrizedTypes() == null) {
+            if (parentObjectReference == null || parentObjectReference.getAllParametrizedTypes() == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
                         + "] as parent object reference is missing or incomplete: " + parentObjectReference);
             }
 
             LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: "
                     + fieldType.asTypeVariable().identifier());
-
-            Reference ret = parentObjectReference.getClassParametrizedTypes().get(fieldType.asTypeVariable().identifier());
+            Reference ret = parentObjectReference.getAllParametrizedTypes().get(fieldType.asTypeVariable().identifier());
 
             if (ret == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()

@@ -463,8 +463,8 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Type getType(Reference reference) {
         Class<?> ownerClass = classloadingService.loadClass(reference.getClassName());
-        if (reference.getClassParametrizedTypes() == null
-                || reference.getClassParametrizedTypes().isEmpty()) {
+        if (reference.getAllParametrizedTypes() == null
+                || reference.getAllParametrizedTypes().isEmpty()) {
             return ownerClass;
         }
 

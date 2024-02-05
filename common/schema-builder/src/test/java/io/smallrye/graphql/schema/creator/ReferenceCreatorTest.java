@@ -49,7 +49,7 @@ public class ReferenceCreatorTest {
                     reference.getGraphQLClassName());
             assertEquals(ReferenceType.INTERFACE, reference.getType());
             assertNull(reference.getAdaptTo());
-            assertFalse(reference.getClassParametrizedTypes().isEmpty());
+            assertFalse(reference.getAllParametrizedTypes().isEmpty());
             assertTrue(reference.isAddParametrizedTypeNameExtension());
         } finally {
             ScanningContext.remove();

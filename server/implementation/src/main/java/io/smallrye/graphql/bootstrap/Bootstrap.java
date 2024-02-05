@@ -821,7 +821,7 @@ public class Bootstrap {
     private Optional<GraphQLArgument> getAutoMapArgument(Field field) {
         // Auto Map argument
         if (field.hasWrapper() && field.getWrapper().isMap() && !field.isAdaptingWith()) { // TODO: Also pass this to the user adapter ?
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getClassParametrizedTypes();
+            Map<String, Reference> parametrizedTypeArguments = field.getReference().getAllParametrizedTypes();
             Reference keyReference = parametrizedTypeArguments.get(AUTOMAP_KEY_KEY);
 
             ReferenceType type = keyReference.getType();

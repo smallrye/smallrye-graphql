@@ -56,7 +56,7 @@ public class EnumCreator implements Creator<EnumType> {
                 annotations,
                 autoNameStrategy,
                 ReferenceType.ENUM,
-                reference.getClassParametrizedTypes());
+                reference.getAllParametrizedTypes());
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);
