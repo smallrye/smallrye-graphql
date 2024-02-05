@@ -2,10 +2,11 @@ package io.smallrye.graphql.schema.helper;
 
 import static java.util.stream.Collectors.toList;
 import static org.jboss.jandex.AnnotationValue.Kind.ARRAY;
+import static org.jboss.jandex.AnnotationValue.Kind.NESTED;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,8 +75,7 @@ public class Directives {
             if (directiveType.getClassName().equals(Policy.class.getName()) ||
                     directiveType.getClassName().equals(RequiresScopes.class.getName())) {
                 // For both of these directives, we need to process the annotation values as nested arrays of strings
-                List<List<String>> valueList = processAnnotationValues((AnnotationValue[]) annotationValue.value());
-                directiveInstance.setValue(annotationValue.name(), valueList);
+                directiveInstance.setValue(annotationValue.name(), valueObjectNestedList(annotationValue));
             } else {
                 directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
             }
@@ -84,35 +84,42 @@ public class Directives {
         return directiveInstance;
     }
 
-    private Object valueObject(AnnotationValue annotationValue) {
-        if (annotationValue.kind() == ARRAY) {
-            AnnotationValue[] values = (AnnotationValue[]) annotationValue.value();
-            Object[] objects = new Object[values.length];
-            for (int i = 0; i < values.length; i++) {
-                objects[i] = valueObject(values[i]);
+    private Object valueObject(AnnotationValue value) {
+        if (value.kind() == ARRAY) {
+            AnnotationValue[] annotationValues = (AnnotationValue[]) value.value();
+            Object[] objects = new Object[annotationValues.length];
+            for (int i = 0; i < annotationValues.length; i++) {
+                objects[i] = valueObject(annotationValues[i]);
             }
             return objects;
+        } else if (value.kind() == NESTED) {
+            AnnotationInstance annotationInstance = (AnnotationInstance) value.value();
+            Map<String, Object> values = new LinkedHashMap<>();
+            if (annotationInstance != null) {
+                for (AnnotationValue annotationValue : annotationInstance.values()) {
+                    values.put(annotationValue.name(), valueObject(annotationValue));
+                }
+            }
+            return values;
         }
-        return annotationValue.value();
+        return value.value();
+    }
+
+    // This method is used specifically in cases where we wish to ignore upper nested objects (e.g. PolicyGroup)
+    private List<List<Object>> valueObjectNestedList(AnnotationValue value) {
+        valueObject(value);
+        List<List<Object>> values = new ArrayList<>();
+        for (AnnotationValue annotationValue : value.asArrayList()) {
+            List<Object> nestedValues = new ArrayList<>();
+            for (AnnotationValue nestedAnnotationValue : annotationValue.asNested().values().get(0).asArrayList()) {
+                nestedValues.add(valueObject(nestedAnnotationValue));
+            }
+            values.add(nestedValues);
+        }
+        return values;
     }
 
     public Map<DotName, DirectiveType> getDirectiveTypes() {
         return directiveTypes;
-    }
-
-    private List<List<String>> processAnnotationValues(AnnotationValue[] annotationValues) {
-        if (annotationValues == null || annotationValues.length == 0) {
-            return Collections.emptyList();
-        }
-
-        List<List<String>> valuesList = new ArrayList<>();
-        for (AnnotationValue nestedValue : annotationValues) {
-            List<String> values = new ArrayList<>();
-            for (AnnotationValue value : (AnnotationValue[]) nestedValue.asNested().values().get(0).value()) {
-                values.add(value.asString());
-            }
-            valuesList.add(values);
-        }
-        return valuesList;
     }
 }

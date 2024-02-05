@@ -1,8 +1,9 @@
 package org.acme;
 
+import io.smallrye.graphql.api.federation.FieldSet;
 import io.smallrye.graphql.api.federation.Key;
 
-@Key(fields = "id")
+@Key(fields = @FieldSet("id"))
 public class Foo {
 
     private Integer number;

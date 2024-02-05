@@ -31,5 +31,5 @@ public @interface Requires {
             "\"name\"\n" +
             "\"name address\"\n" +
             "\"name organization { id }\"")
-    String fields();
+    FieldSet fields();
 }
