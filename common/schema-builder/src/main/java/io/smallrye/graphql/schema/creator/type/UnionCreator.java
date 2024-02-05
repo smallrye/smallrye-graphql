@@ -38,7 +38,7 @@ public class UnionCreator implements Creator<UnionType> {
                 annotations,
                 referenceCreator.getTypeAutoNameStrategy(),
                 ReferenceType.UNION,
-                reference.getClassParametrizedTypes());
+                reference.getAllParametrizedTypes());
 
         // Description
         Optional<String> maybeDescription = DescriptionHelper.getDescriptionForType(annotations);

@@ -1,9 +1,12 @@
 package io.smallrye.graphql.schema.model;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents a reference to some other type (type/input/enum/interface) This so that, as we are scanning, we can refer
@@ -20,6 +23,7 @@ public class Reference implements Serializable {
     private AdaptTo adaptTo = null; // If the type is mapped to a scalar
     private AdaptWith adaptWith = null; // If the type is mapped to another type with an adapter
     private Map<String, Reference> classParametrizedTypes;
+    private Map<String, Reference> parentClassParametrizedTypes;
     private boolean addParametrizedTypeNameExtension;
     private List<DirectiveInstance> directiveInstances;
 
@@ -46,6 +50,7 @@ public class Reference implements Serializable {
         this.adaptTo = builder.adaptTo;
         this.adaptWith = builder.adaptWith;
         this.classParametrizedTypes = builder.classParametrizedTypes;
+        this.parentClassParametrizedTypes = builder.parentClassParametrizedTypes;
         this.addParametrizedTypeNameExtension = builder.addParametrizedTypeNameExtension;
         this.directiveInstances = builder.directiveInstances;
         this.wrapper = builder.wrapper;
@@ -134,6 +139,32 @@ public class Reference implements Serializable {
         return this.adaptWith != null;
     }
 
+    public Map<String, Reference> getAllParametrizedTypes() {
+        if (classParametrizedTypes == null && parentClassParametrizedTypes == null) {
+            return new HashMap<>();
+        }
+        if (classParametrizedTypes == null) {
+            return parentClassParametrizedTypes;
+        }
+        if (parentClassParametrizedTypes == null) {
+            return classParametrizedTypes;
+        }
+
+        // fixme: the way how the ReferenceCreator is implemented this was used if
+        // two types of type variables were used smt like:
+        //  Class<A> extends Class<B>
+        // but since if the TYPE is Parametrized it does not look at the (in the ReferenceCreator)
+        // extended part type vars...
+        Stream<Map.Entry<String, Reference>> combinedStream = Stream.concat(
+                classParametrizedTypes.entrySet().stream(),
+                parentClassParametrizedTypes.entrySet().stream());
+
+        return combinedStream.collect(
+                Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue));
+    }
+
     public Map<String, Reference> getClassParametrizedTypes() {
         return classParametrizedTypes;
     }
@@ -143,15 +174,23 @@ public class Reference implements Serializable {
     }
 
     public boolean hasClassParameterizedTypes() {
-        return classParametrizedTypes != null
-                && !classParametrizedTypes.isEmpty();
+        return getAllParametrizedTypes() != null
+                && !getAllParametrizedTypes().isEmpty();
     }
 
     public Reference getClassParametrizedType(String name) {
         if (hasClassParameterizedTypes()) {
-            return classParametrizedTypes.get(name);
+            return getAllParametrizedTypes().get(name);
         }
         return null;
+    }
+
+    public Map<String, Reference> getParentClassParametrizedTypes() {
+        return parentClassParametrizedTypes;
+    }
+
+    public void setParentClassParametrizedTypes(Map<String, Reference> parentClassParametrizedTypes) {
+        this.parentClassParametrizedTypes = parentClassParametrizedTypes;
     }
 
     public boolean isAddParametrizedTypeNameExtension() {
@@ -200,6 +239,8 @@ public class Reference implements Serializable {
                 ", adaptTo=" + adaptTo +
                 ", adaptWith=" + adaptWith +
                 ", directiveInstances=" + directiveInstances +
+                ", classParametrizedTypes" + classParametrizedTypes +
+                ", extendedClassParametrizedTypes" + parentClassParametrizedTypes +
                 ", wrapper=" + wrapper
                 + '}';
     }
@@ -214,6 +255,8 @@ public class Reference implements Serializable {
         hash = 97 * hash + Objects.hashCode(this.adaptTo);
         hash = 97 * hash + Objects.hashCode(this.adaptWith);
         hash = 97 * hash + Objects.hashCode(this.directiveInstances);
+        hash = 97 * hash + Objects.hashCode(this.classParametrizedTypes);
+        hash = 97 * hash + Objects.hashCode(this.parentClassParametrizedTypes);
         hash = 97 * hash + Objects.hashCode(this.wrapper);
         return hash;
     }
@@ -251,6 +294,12 @@ public class Reference implements Serializable {
         if (!Objects.equals(this.directiveInstances, other.directiveInstances)) {
             return false;
         }
+        if (!Objects.equals(this.classParametrizedTypes, other.classParametrizedTypes)) {
+            return false;
+        }
+        if (!Objects.equals(this.parentClassParametrizedTypes, other.parentClassParametrizedTypes)) {
+            return false;
+        }
         return Objects.equals(this.wrapper, other.wrapper);
     }
 
@@ -263,6 +312,7 @@ public class Reference implements Serializable {
         private AdaptTo adaptTo = null;
         private AdaptWith adaptWith = null;
         private Map<String, Reference> classParametrizedTypes;
+        private Map<String, Reference> parentClassParametrizedTypes;
         private boolean addParametrizedTypeNameExtension;
         private List<DirectiveInstance> directiveInstances;
         private Wrapper wrapper;
@@ -299,6 +349,11 @@ public class Reference implements Serializable {
 
         public Builder classParametrizedTypes(Map<String, Reference> classParametrizedTypes) {
             this.classParametrizedTypes = classParametrizedTypes;
+            return this;
+        }
+
+        public Builder extendedClassParametrizedTypes(Map<String, Reference> extendedClassParametrizedTypes) {
+            this.parentClassParametrizedTypes = extendedClassParametrizedTypes;
             return this;
         }
 
