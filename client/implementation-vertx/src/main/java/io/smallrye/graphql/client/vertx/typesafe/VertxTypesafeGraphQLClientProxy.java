@@ -246,7 +246,7 @@ class VertxTypesafeGraphQLClientProxy {
             webSocketHandler().subscribe().with(handler -> {
                 handlerRef.set(handler);
                 operationId.set(handler.executeMulti(request, rawEmitter));
-            });
+            }, rawEmitter::fail);
         });
         return rawMulti
                 .onCancellation().invoke(() -> {
@@ -284,6 +284,7 @@ class VertxTypesafeGraphQLClientProxy {
                                         log.debug("Using websocket subprotocol handler: " + handler);
                                     } else {
                                         handlerEmitter.fail(result.cause());
+                                        webSocketHandler.set(null);
                                     }
                                 });
                     });
