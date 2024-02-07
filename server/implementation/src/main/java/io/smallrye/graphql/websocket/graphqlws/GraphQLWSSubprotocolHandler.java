@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 
 import io.smallrye.graphql.execution.ExecutionResponse;
@@ -16,6 +17,8 @@ import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
  * Websocket subprotocol handler that implements the `graphql-ws` subprotocol.
  */
 public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler {
+
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
 
     private final String pingMessage;
 
@@ -79,7 +82,7 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
     }
 
     private JsonObject createErrorMessage(String operationId, JsonObject error) {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("id", operationId)
                 .add("type", MessageType.GQL_ERROR.asString())
                 .add("payload", error)
@@ -87,7 +90,7 @@ public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler
     }
 
     private JsonObject createPingMessage() {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", MessageType.GQL_CONNECTION_KEEP_ALIVE.asString())
                 .build();
     }

@@ -46,7 +46,6 @@ import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.execution.event.EventEmitter;
-import io.smallrye.graphql.execution.metrics.MetricsEmitter;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
@@ -69,9 +68,9 @@ public class ExecutionService {
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
     private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final Schema schema;
+    private final DataLoaderRegistry dataLoaderRegistry;
 
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
-    private final MetricsEmitter metricsEmitter = MetricsEmitter.getInstance();
 
     private GraphQL graphQL;
 
@@ -90,6 +89,14 @@ public class ExecutionService {
 
         this.graphQLSchema = graphQLSchema;
         this.schema = schema;
+
+        List<Operation> batchOperations = schema.getBatchOperations();
+        if (batchOperations != null && !batchOperations.isEmpty()) {
+            this.dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
+        } else {
+            this.dataLoaderRegistry = null;
+        }
+
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
         this.queryCache = new QueryCache();
@@ -172,10 +179,8 @@ public class ExecutionService {
                 smallRyeContext.getOperationName().ifPresent(executionBuilder::operationName);
 
                 // DataLoaders
-                List<Operation> batchOperations = schema.getBatchOperations();
-                if (batchOperations != null && !batchOperations.isEmpty()) {
-                    DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
-                    executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
+                if (this.dataLoaderRegistry != null) {
+                    executionBuilder.dataLoaderRegistry(this.dataLoaderRegistry);
                 }
 
                 ExecutionInput executionInput = executionBuilder.build();

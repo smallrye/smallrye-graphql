@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonStructure;
@@ -18,6 +19,8 @@ import io.smallrye.graphql.client.Request;
 
 public class RequestImpl implements Request {
 
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+
     private final String document;
     private Map<String, Object> variables;
     private String operationName;
@@ -29,7 +32,7 @@ public class RequestImpl implements Request {
 
     @Override
     public String toJson() {
-        JsonObjectBuilder queryBuilder = Json.createObjectBuilder().add("query", document);
+        JsonObjectBuilder queryBuilder = jsonBuilderFactory.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
             queryBuilder.add("variables", _formatJsonVariables());
         }
@@ -41,7 +44,7 @@ public class RequestImpl implements Request {
 
     @Override
     public JsonObject toJsonObject() {
-        JsonObjectBuilder queryBuilder = Json.createObjectBuilder().add("query", document);
+        JsonObjectBuilder queryBuilder = jsonBuilderFactory.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
             queryBuilder.add("variables", _formatJsonVariables());
         }
@@ -52,7 +55,7 @@ public class RequestImpl implements Request {
     }
 
     private JsonObject _formatJsonVariables() {
-        JsonObjectBuilder varBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder varBuilder = jsonBuilderFactory.createObjectBuilder();
 
         variables.forEach((k, v) -> {
             // Other types to process here

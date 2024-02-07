@@ -8,8 +8,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParsingException;
@@ -37,6 +40,8 @@ import io.vertx.core.http.WebSocket;
 public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler {
 
     private static final Logger log = Logger.getLogger(GraphQLWSSubprotocolHandler.class);
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final Integer subscriptionInitializationTimeout;
 
@@ -205,7 +210,9 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     }
 
     private JsonObject parseIncomingMessage(String message) {
-        return Json.createReader(new StringReader(message)).readObject();
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
+            return jsonReader.readObject();
+        }
     }
 
     private MessageType getMessageType(JsonObject message) {
@@ -221,31 +228,31 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     }
 
     private JsonObject createConnectionInitMessage() {
-        JsonObjectBuilder payloadBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder payloadBuilder = jsonBuilderFactory.createObjectBuilder();
         if (!initPayload.isEmpty()) {
-            payloadBuilder.add("payload", Json.createObjectBuilder(initPayload));
+            payloadBuilder.add("payload", jsonBuilderFactory.createObjectBuilder(initPayload));
         }
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "connection_init")
                 .addAll(payloadBuilder)
                 .build();
     }
 
     private JsonObject createStopMessage(String id) {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "stop")
                 .add("id", id)
                 .build();
     }
 
     private JsonObject createConnectionTerminateMessage() {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "connection_terminate")
                 .build();
     }
 
     private JsonObject createSubscribeMessage(JsonObject request, String id) {
-        JsonObjectBuilder payload = Json.createObjectBuilder();
+        JsonObjectBuilder payload = jsonBuilderFactory.createObjectBuilder();
 
         payload.add("query", request.getString("query"));
         JsonValue operationName = request.get("operationName");
@@ -256,7 +263,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         if (variables != null) {
             payload.add("variables", variables);
         }
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "start")
                 .add("id", id)
                 .add("payload", payload)
