@@ -11,8 +11,11 @@ import java.util.stream.Collectors;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParsingException;
@@ -40,6 +43,8 @@ import io.vertx.core.http.WebSocket;
 public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotocolHandler {
 
     private static final Logger log = Logger.getLogger(GraphQLTransportWSSubprotocolHandler.class);
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     private final Integer connectionInitializationTimeout;
 
@@ -83,13 +88,14 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
                 log.trace("Initializing websocket with graphql-transport-ws protocol");
             }
 
-            JsonObjectBuilder payloadBuilder = Json.createObjectBuilder();
+            JsonObjectBuilder payloadBuilder = jsonBuilderFactory.createObjectBuilder();
             if (!initPayload.isEmpty()) {
-                payloadBuilder.add("payload", Json.createObjectBuilder(initPayload));
+                payloadBuilder.add("payload", jsonBuilderFactory.createObjectBuilder(initPayload));
             }
-            connectionInitMessage = Json.createObjectBuilder().add("type", "connection_init").addAll(payloadBuilder).build();
-            pongMessage = Json.createObjectBuilder().add("type", "pong")
-                    .add("payload", Json.createObjectBuilder().add("message", "keepalive")).build();
+            connectionInitMessage = jsonBuilderFactory.createObjectBuilder().add("type", "connection_init")
+                    .addAll(payloadBuilder).build();
+            pongMessage = jsonBuilderFactory.createObjectBuilder().add("type", "pong")
+                    .add("payload", jsonBuilderFactory.createObjectBuilder().add("message", "keepalive")).build();
 
             webSocket.closeHandler((v) -> {
                 onClose.run();
@@ -290,11 +296,13 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     }
 
     private JsonObject parseIncomingMessage(String message) {
-        return Json.createReader(new StringReader(message)).readObject();
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
+            return jsonReader.readObject();
+        }
     }
 
     private JsonObject createSubscribeMessage(JsonObject request, String id) {
-        JsonObjectBuilder payload = Json.createObjectBuilder();
+        JsonObjectBuilder payload = jsonBuilderFactory.createObjectBuilder();
 
         payload.add("query", request.getString("query"));
         JsonValue operationName = request.get("operationName");
@@ -305,7 +313,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
         if (variables != null) {
             payload.add("variables", variables);
         }
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "subscribe")
                 .add("id", id)
                 .add("payload", payload)
@@ -313,7 +321,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     }
 
     private JsonObject createCompleteMessage(String id) {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "complete")
                 .add("id", id)
                 .build();

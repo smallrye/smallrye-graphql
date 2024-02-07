@@ -47,19 +47,23 @@ public class BatchDataFetcher<T> implements DataFetcher<T> {
         eventEmitter.fireBeforeDataFetch(smallryeContext);
         long measurementId = metricsEmitter.start(smallryeContext);
 
-        List<Object> transformedArguments = argumentHelper.getArguments(dfe, true);
-        Object source = dfe.getSource();
+        try {
+            List<Object> transformedArguments = argumentHelper.getArguments(dfe, true);
+            Object source = dfe.getSource();
 
-        DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
+            DataLoader<Object, Object> dataLoader = dfe.getDataLoader(batchLoaderName);
 
-        Map<String, Object> batchContext = new HashMap<>();
-        batchContext.put(BatchLoaderHelper.ARGUMENTS, transformedArguments);
-        batchContext.put(BatchLoaderHelper.DATA_FETCHING_ENVIRONMENT, dfe);
+            Map<String, Object> batchContext = new HashMap<>();
+            batchContext.put(BatchLoaderHelper.ARGUMENTS, transformedArguments);
+            batchContext.put(BatchLoaderHelper.DATA_FETCHING_ENVIRONMENT, dfe);
 
-        return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchContext)).onItemOrFailure()
-                .invoke(() -> metricsEmitter.end(measurementId))
-                .subscribe()
-                .asCompletionStage();
-
+            return (T) Uni.createFrom().completionStage(() -> dataLoader.load(source, batchContext)).onItemOrFailure()
+                    .invoke(() -> metricsEmitter.end(measurementId))
+                    .subscribe()
+                    .asCompletionStage();
+        } catch (Exception e) {
+            metricsEmitter.end(measurementId);
+            throw e;
+        }
     }
 }

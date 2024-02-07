@@ -11,14 +11,16 @@ public enum MessageType {
     ERROR("error"),
     COMPLETE("complete");
 
-    private String str;
+    private static final MessageType[] VALUES = values();
+
+    private final String str;
 
     MessageType(String str) {
         this.str = str;
     }
 
     public static MessageType fromString(String text) {
-        for (MessageType b : MessageType.values()) {
+        for (MessageType b : VALUES) {
             if (b.str.equalsIgnoreCase(text)) {
                 return b;
             }

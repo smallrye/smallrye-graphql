@@ -315,7 +315,7 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private JsonObjectBuilder variables(MethodInvocation method) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
+        JsonObjectBuilder builder = jsonObjectFactory.createObjectBuilder();
         method.valueParameters().forEach(parameter -> builder.add(parameter.getRawName(), value(parameter.getValue())));
         return builder;
     }
@@ -398,16 +398,16 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private JsonArray arrayValue(Object value) {
-        JsonArrayBuilder array = Json.createArrayBuilder();
+        JsonArrayBuilder array = jsonObjectFactory.createArrayBuilder();
         values(value).forEach(item -> array.add(value(item)));
         return array.build();
     }
 
     private JsonArray mapValue(Object value) {
         Map<?, ?> map = (Map<?, ?>) value;
-        JsonArrayBuilder array = Json.createArrayBuilder();
+        JsonArrayBuilder array = jsonObjectFactory.createArrayBuilder();
         map.forEach((k, v) -> {
-            JsonObjectBuilder entryBuilder = Json.createObjectBuilder();
+            JsonObjectBuilder entryBuilder = jsonObjectFactory.createObjectBuilder();
             entryBuilder.add("key", value(k));
             entryBuilder.add("value", value(v));
             array.add(entryBuilder.build());
@@ -436,7 +436,7 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
+        JsonObjectBuilder builder = jsonObjectFactory.createObjectBuilder();
         fields.forEach(field -> {
             if (field.isIncludeNull() || field.get(object) != null) {
                 builder.add(field.getName(), value(field.get(object)));

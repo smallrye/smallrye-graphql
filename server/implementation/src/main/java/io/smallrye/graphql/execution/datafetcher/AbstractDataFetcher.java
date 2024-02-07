@@ -43,8 +43,10 @@ public abstract class AbstractDataFetcher<K, T> implements PlugableBatchableData
     protected ErrorResultHelper errorResultHelper = new ErrorResultHelper();
     protected ArgumentHelper argumentHelper;
     protected EventEmitter eventEmitter = EventEmitter.getInstance();
+    @SuppressWarnings("unused")
     protected MetricsEmitter metricsEmitter = MetricsEmitter.getInstance();
     protected BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
+    @SuppressWarnings("unused")
     protected LinkedBlockingQueue<Long> measurementIds = new LinkedBlockingQueue<>();
 
     public AbstractDataFetcher(Operation operation, Type type) {

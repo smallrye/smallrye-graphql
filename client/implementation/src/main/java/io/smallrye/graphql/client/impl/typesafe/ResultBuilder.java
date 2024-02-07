@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonPatch;
@@ -27,6 +28,8 @@ import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
 public class ResultBuilder {
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+
     private final MethodInvocation method;
     private final JsonObject response;
     private final String responseString;
@@ -115,7 +118,7 @@ public class ResultBuilder {
         JsonPointer pointer = Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
         if (!exists(pointer))
             return false;
-        JsonArrayBuilder errors = Json.createArrayBuilder();
+        JsonArrayBuilder errors = jsonBuilderFactory.createArrayBuilder();
         if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
             pointer.getValue(data).asJsonArray().forEach(errors::add);
         errors.add(ERROR_MARK.apply((JsonObject) error));

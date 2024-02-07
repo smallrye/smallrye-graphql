@@ -9,7 +9,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.json.Json;
+import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
 import jakarta.json.stream.JsonParsingException;
 
 import org.jboss.logging.Logger;
@@ -30,7 +33,9 @@ import io.smallrye.mutiny.subscription.Cancellable;
 
 public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocketHandler {
     // TODO: Replace with prepared log messages
-    protected final Logger LOG = Logger.getLogger(GraphQLWebsocketHandler.class.getName());
+    protected static final Logger LOG = Logger.getLogger(GraphQLWebsocketHandler.class.getName());
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
 
     protected final ExecutionService executionService = LookupService.get().getInstance(ExecutionService.class).get();
     protected final GraphQLWebSocketSession session;
@@ -177,18 +182,20 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
 
     // TODO: we need more validation on the incoming messages (correct fields and types etc)
     private JsonObject parseIncomingMessage(String message) {
-        return Json.createReader(new StringReader(message)).readObject();
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
+            return jsonReader.readObject();
+        }
     }
 
     private JsonObject createCompleteMessage(String operationId) {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", "complete")
                 .add("id", operationId)
                 .build();
     }
 
     private JsonObject createDataMessage(String operationId, JsonObject payload) {
-        return Json.createObjectBuilder()
+        return jsonBuilderFactory.createObjectBuilder()
                 .add("type", this.dataMessageTypeName)
                 .add("id", operationId)
                 .add("payload", payload)

@@ -5,7 +5,9 @@ public enum WebsocketSubprotocol {
     GRAPHQL_WS("graphql-ws"),
     GRAPHQL_TRANSPORT_WS("graphql-transport-ws");
 
-    private String protocolId;
+    private static final WebsocketSubprotocol[] VALUES = values();
+
+    private final String protocolId;
 
     WebsocketSubprotocol(String protocolId) {
         this.protocolId = protocolId;
@@ -16,7 +18,7 @@ public enum WebsocketSubprotocol {
     }
 
     public static WebsocketSubprotocol fromString(String text) {
-        for (WebsocketSubprotocol b : WebsocketSubprotocol.values()) {
+        for (WebsocketSubprotocol b : VALUES) {
             if (b.protocolId.equalsIgnoreCase(text)) {
                 return b;
             }

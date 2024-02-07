@@ -12,6 +12,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonReaderFactory;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 
@@ -22,6 +23,7 @@ import io.smallrye.graphql.client.InvalidResponseException;
 
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
+    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
 
     /**
      * Parse a GraphQL response from the input string.
@@ -38,20 +40,21 @@ public class ResponseReader {
         if (input == null) {
             return null;
         }
-        JsonReader jsonReader = Json.createReader(new StringReader(input));
-        JsonObject jsonResponse;
-        try {
-            jsonResponse = jsonReader.readObject();
-        } catch (Exception e) {
-            return null;
-        }
+        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(input))) {
+            JsonObject jsonResponse;
+            try {
+                jsonResponse = jsonReader.readObject();
+            } catch (Exception e) {
+                return null;
+            }
 
-        // validate that this is what we consider a GraphQL response - else return null
-        if (jsonResponse.size() >= 1) {
-            return checkExpectedResponseFields(jsonResponse,
-                    allowUnexpectedResponseFields);
-        } else {
-            return null;
+            // validate that this is what we consider a GraphQL response - else return null
+            if (jsonResponse.size() >= 1) {
+                return checkExpectedResponseFields(jsonResponse,
+                        allowUnexpectedResponseFields);
+            } else {
+                return null;
+            }
         }
     }
 

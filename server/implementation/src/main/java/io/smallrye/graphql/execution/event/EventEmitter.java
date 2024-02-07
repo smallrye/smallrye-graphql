@@ -37,10 +37,11 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class EventEmitter {
     private static final Logger LOG = Logger.getLogger(EventEmitter.class);
+    private static final ThreadLocal<EventEmitter> eventEmitters = ThreadLocal.withInitial(EventEmitter::new);
     private final List<EventingService> enabledServices;
 
     public static EventEmitter getInstance() {
-        return new EventEmitter();
+        return eventEmitters.get();
     }
 
     private EventEmitter() {

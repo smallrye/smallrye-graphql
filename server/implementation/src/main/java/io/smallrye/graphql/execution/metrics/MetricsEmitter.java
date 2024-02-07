@@ -16,10 +16,11 @@ import io.smallrye.graphql.spi.config.Config;
 public class MetricsEmitter {
 
     private static final Logger LOG = Logger.getLogger(MetricsEmitter.class);
+    private static final ThreadLocal<MetricsEmitter> metricsEmitters = ThreadLocal.withInitial(MetricsEmitter::new);
     private final List<MetricsService> enabledServices;
 
     public static MetricsEmitter getInstance() {
-        return new MetricsEmitter();
+        return metricsEmitters.get();
     }
 
     private MetricsEmitter() {
