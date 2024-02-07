@@ -31,7 +31,7 @@ public @interface Override {
             "If you're performing composition with the Rover CLI, this must match the name of the subgraph in the YAML config file you provide to rover supergraph compose.")
     String from();
 
-    @Description("A string of arbitrary arguments. Supported in this release:\n" +
+    @Description("A string of arbitrary arguments. Currently supported:\n" +
             "percent(<percent-value>) - The percentage of traffic for the field that's resolved by this subgraph. The" +
             " remaining percentage is resolved by the other (from) subgraph.")
     String label() default "";
