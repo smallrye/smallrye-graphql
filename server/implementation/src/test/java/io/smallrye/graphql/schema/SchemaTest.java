@@ -46,6 +46,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLUnionType;
 import io.smallrye.graphql.api.Directive;
+import io.smallrye.graphql.api.OneOf;
 import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.Key.Keys;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -393,6 +394,34 @@ class SchemaTest {
         GraphQLFieldDefinition adminPasswordField = type.getField("adminPassword");
         assertEquals(GraphQLString, adminPasswordField.getType());
         assertRolesAllowedDirective(adminPasswordField, "admin");
+    }
+
+    @Test
+    void testSchemasWithOneOfDirective() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(OneOfSchema.class, OneOf.class, OneOfSchema.SomeClass.class);
+
+        GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
+        assertEquals(1, queryRoot.getFields().size());
+
+        GraphQLFieldDefinition someQuery = queryRoot.getField("someQuery");
+        assertNotNull(someQuery);
+
+        GraphQLObjectType someClassOutput = graphQLSchema.getTypeAs("SomeClass");
+        assertNotNull(someClassOutput);
+        assertEquals(0, someClassOutput.getDirectives().size());
+
+        GraphQLInputObjectType someClassInput = graphQLSchema.getTypeAs("SomeClassInput");
+        assertNotNull(someClassInput);
+        assertEquals(1, someClassInput.getDirectives().size());
+        GraphQLDirective oneOfDirective = someClassInput.getDirective("oneOf");
+        assertNotNull(oneOfDirective);
+        assertEquals(0, oneOfDirective.getArguments().size());
+
+        // vvv directive header, since the directiveInstance does not have Description vvv
+        oneOfDirective = graphQLSchema.getDirective("oneOf");
+        assertNotNull(oneOfDirective);
+        assertEquals(0, oneOfDirective.getArguments().size());
+        assertEquals("Indicates an Input Object is a OneOf Input Object.", oneOfDirective.getDescription());
     }
 
     private void assertKeyDirective(GraphQLDirective graphQLDirective, String fieldsValue, Boolean resolvableValue) {
