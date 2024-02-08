@@ -2,6 +2,7 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.CUSTOM_SCALAR;
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
+import static io.smallrye.graphql.schema.Annotations.ONE_OF;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +14,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -41,6 +43,7 @@ import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.GroupHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
+import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.ErrorInfo;
 import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.Operation;
@@ -124,8 +127,15 @@ public class SchemaBuilder {
         final Schema schema = new Schema();
 
         addDirectiveTypes(schema);
-
-        Directives directivesHelper = new Directives(schema.getDirectiveTypes());
+        List<DirectiveType> allDirectiveTypes = schema.getDirectiveTypes();
+        graphQLJavaDirectives().forEach(graphqlJavaDirectiveDotName -> {
+            ClassInfo graphqlJavaDirectiveClazz = ScanningContext.getIndex().getClassByName(graphqlJavaDirectiveDotName);
+            if (graphqlJavaDirectiveClazz != null) {
+                allDirectiveTypes.add(directiveTypeCreator
+                        .create(ScanningContext.getIndex().getClassByName(graphqlJavaDirectiveDotName)));
+            }
+        });
+        Directives directivesHelper = new Directives(allDirectiveTypes);
         setupDirectives(directivesHelper);
 
         // add AppliedSchemaDirectives and Schema Description
@@ -181,8 +191,8 @@ public class SchemaBuilder {
             boolean federationEnabled = Boolean.getBoolean("smallrye.graphql.federation.enabled");
             // only add federation-related directive types to the schema if federation is enabled
             DotName packageName = classInfo.name().packagePrefixName();
-            if (packageName == null || !packageName.toString().startsWith(FEDERATION_ANNOTATIONS_PACKAGE.toString())
-                    || federationEnabled) {
+            if ((packageName == null || !packageName.toString().startsWith(FEDERATION_ANNOTATIONS_PACKAGE.toString())
+                    || federationEnabled) && !isGraphQLJavaDirective(classInfo)) {
                 schema.addDirectiveType(directiveTypeCreator.create(classInfo));
             }
 
@@ -420,5 +430,14 @@ public class SchemaBuilder {
                             }
                             return directiveInstance;
                         }).collect(Collectors.toList()));
+    }
+
+    private boolean isGraphQLJavaDirective(ClassInfo classOfDirective) {
+        return graphQLJavaDirectives().anyMatch(classOfDirective.name()::equals);
+    }
+
+    private Stream<DotName> graphQLJavaDirectives() {
+        // if in future there will be more directives supported by graphql-java
+        return Stream.of(ONE_OF);
     }
 }
