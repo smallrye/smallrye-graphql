@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: wildfly-extras/wildfly-graphql-feature-pack
-          ref: main
+          ref: srgql-2.8.0
           path: wildfly-graphql-feature-pack
 
       - uses: actions/setup-java@v3.0.0
