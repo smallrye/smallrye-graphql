@@ -9,15 +9,19 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
+import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.api.federation.policy.Policy;
 import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.schema.Annotations;
+import io.smallrye.graphql.schema.ScanningContext;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
@@ -72,16 +76,33 @@ public class Directives {
         directiveInstance.setType(directiveType);
 
         for (AnnotationValue annotationValue : annotationInstance.values()) {
+            String annotationValueName = getAnnotationValueName(directiveType, annotationValue.name());
             if (directiveType.getClassName().equals(Policy.class.getName()) ||
                     directiveType.getClassName().equals(RequiresScopes.class.getName())) {
                 // For both of these directives, we need to process the annotation values as nested arrays of strings
-                directiveInstance.setValue(annotationValue.name(), valueObjectNestedList(annotationValue));
+                directiveInstance.setValue(annotationValueName, valueObjectNestedList(annotationValue));
             } else {
-                directiveInstance.setValue(annotationValue.name(), valueObject(annotationValue));
+                directiveInstance.setValue(annotationValueName, valueObject(annotationValue));
             }
         }
 
         return directiveInstance;
+    }
+
+    private String getAnnotationValueName(DirectiveType directiveType, String annotationName) {
+        ClassInfo classInfo = ScanningContext.getIndex().getClassByName(directiveType.getClassName());
+
+        Optional<MethodInfo> matchingMethod = classInfo.methods().stream()
+                .filter(methodInfo -> methodInfo.name().equals(annotationName))
+                .findFirst();
+        if (matchingMethod.isPresent()) {
+            // If the method name is modified when creating the directive type, we need to use the modified name
+            // e.g. Link._import and Link._for
+            MethodInfo method = matchingMethod.get();
+            return TypeNameHelper.getMethodName(matchingMethod.get(),
+                    Annotations.getAnnotationsForInterfaceField(method));
+        }
+        return annotationName;
     }
 
     private Object valueObject(AnnotationValue value) {

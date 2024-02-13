@@ -10,7 +10,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
+import org.eclipse.microprofile.graphql.Description;
+
 @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
 @Directive(on = {
         FIELD_DEFINITION,
@@ -18,6 +19,9 @@ import java.lang.annotation.Target;
         INPUT_FIELD_DEFINITION,
         ENUM_VALUE
 })
+@Description("Marks the field, argument, input field or enum value as deprecated")
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Deprecated {
+    @Description("The reason for the deprecation")
     String reason() default "";
 }
