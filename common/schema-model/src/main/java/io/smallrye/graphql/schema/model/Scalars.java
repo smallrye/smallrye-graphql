@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import io.smallrye.graphql.api.federation.FieldSet;
+import io.smallrye.graphql.api.federation.link.Import;
 import io.smallrye.graphql.api.federation.policy.PolicyItem;
 import io.smallrye.graphql.api.federation.requiresscopes.ScopeItem;
 
@@ -55,6 +56,7 @@ public class Scalars {
     private static final String DURATION = "Duration";
     private static final String VOID = "Void";
     private static final String FIELD_SET = "FieldSet";
+    private static final String IMPORT = "Import";
     private static final String POLICY = "Policy";
     private static final String SCOPE = "Scope";
 
@@ -192,6 +194,7 @@ public class Scalars {
         // Federation
         if (Boolean.getBoolean("smallrye.graphql.federation.enabled")) {
             populateScalar(FieldSet.class.getName(), FIELD_SET, FieldSet.class.getName());
+            populateScalar(Import.class.getName(), IMPORT, Import.class.getName());
             populateScalar(PolicyItem.class.getName(), POLICY, PolicyItem.class.getName());
             populateScalar(ScopeItem.class.getName(), SCOPE, ScopeItem.class.getName());
         }

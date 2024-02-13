@@ -10,6 +10,7 @@ import graphql.Scalars;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.scalar.federation.FieldSetScalar;
+import io.smallrye.graphql.scalar.federation.ImportScalar;
 import io.smallrye.graphql.scalar.federation.PolicyScalar;
 import io.smallrye.graphql.scalar.federation.ScopeScalar;
 import io.smallrye.graphql.scalar.number.BigDecimalScalar;
@@ -102,6 +103,7 @@ public class GraphQLScalarTypes {
 
         if (Boolean.getBoolean("smallrye.graphql.federation.enabled")) {
             mapType(new FieldSetScalar());
+            mapType(new ImportScalar());
             mapType(new PolicyScalar());
             mapType(new ScopeScalar());
         }

@@ -5,6 +5,7 @@ import java.util.Map;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
+import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
@@ -114,6 +115,18 @@ public class TypeNameHelper {
             if (postFix != null) {
                 sb.append(postFix);
             }
+        }
+
+        return sb.toString();
+    }
+
+    public static String getMethodName(MethodInfo methodInfo, Annotations annotations) {
+        StringBuilder sb = new StringBuilder();
+
+        if (annotations.containsKeyAndValidValue(Annotations.NAME)) {
+            sb.append(annotations.getAnnotationValue(Annotations.NAME).asString().trim());
+        } else {
+            sb.append(methodInfo.name());
         }
 
         return sb.toString();

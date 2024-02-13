@@ -79,8 +79,8 @@ public class DirectiveTypeCreator extends ModelCreator {
                 argumentType = method.returnType();
             }
             argument.setReference(referenceCreator.createReferenceForOperationArgument(argumentType, null));
-            argument.setName(method.name());
             Annotations annotationsForMethod = Annotations.getAnnotationsForInterfaceField(method);
+            argument.setName(TypeNameHelper.getMethodName(method, annotationsForMethod));
             populateField(Direction.IN, argument, argumentType, annotationsForMethod);
             if (annotationsForMethod.containsOneOfTheseAnnotations(NON_NULL)) {
                 argument.setNotNull(true);
