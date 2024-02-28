@@ -203,6 +203,10 @@ public interface Config {
         return Optional.empty();
     }
 
+    default boolean isExcludeNullFieldsInResponses() {
+        return false;
+    }
+
     default String getFieldVisibility() {
         return FIELD_VISIBILITY_DEFAULT;
     }
