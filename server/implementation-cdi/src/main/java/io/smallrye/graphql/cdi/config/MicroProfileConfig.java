@@ -43,6 +43,7 @@ public class MicroProfileConfig implements Config {
     private Boolean parserCaptureIgnoredChars;
     private Integer queryComplexityInstrumentation;
     private Integer queryDepthInstrumentation;
+    private Boolean excludeNullFieldsInResponses;
 
     @Override
     public String getName() {
@@ -295,6 +296,14 @@ public class MicroProfileConfig implements Config {
     }
 
     @Override
+    public boolean isExcludeNullFieldsInResponses() {
+        if (excludeNullFieldsInResponses == null) {
+            excludeNullFieldsInResponses = getBooleanConfigValue(ConfigKey.EXCLUDE_NULL_FIELDS_IN_RESPONSES);
+        }
+        return excludeNullFieldsInResponses;
+    }
+
+    @Override
     public <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
         org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
         return microProfileConfig.getOptionalValue(key, type).orElse(defaultValue);
@@ -426,6 +435,10 @@ public class MicroProfileConfig implements Config {
 
     public void setQueryComplexityInstrumentation(Integer queryComplexityInstrumentation) {
         this.queryComplexityInstrumentation = queryComplexityInstrumentation;
+    }
+
+    public void setExcludeNullFieldsInResponses(Boolean excludeNullFieldsInResponses) {
+        this.excludeNullFieldsInResponses = excludeNullFieldsInResponses;
     }
 
     public void getQueryDepthInstrumentation(Integer queryDepthInstrumentation) {

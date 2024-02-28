@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -25,6 +28,7 @@ import jakarta.json.spi.JsonProvider;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
+import io.smallrye.graphql.spi.config.Config;
 
 /**
  * Response from an execution
@@ -45,6 +49,10 @@ public class ExecutionResponse {
 
     private Map<String, Object> addedExtensions;
 
+    private final Stack<Object> pathBuffer = (Config.get().isExcludeNullFieldsInResponses()) ? new Stack<>() : null;
+
+    private final Set<List<Object>> errorPaths;
+
     public ExecutionResponse(ExecutionResult executionResult) {
         this(executionResult, null);
     }
@@ -52,6 +60,9 @@ public class ExecutionResponse {
     public ExecutionResponse(ExecutionResult executionResult, Map<String, Object> addedExtensions) {
         this.executionResult = executionResult;
         this.addedExtensions = addedExtensions;
+        this.errorPaths = (executionResult != null)
+                ? executionResult.getErrors().stream().map(GraphQLError::getPath).collect(Collectors.toSet())
+                : Set.of();
     }
 
     public String toString() {
@@ -142,21 +153,32 @@ public class ExecutionResponse {
      * @return the json value
      */
     private JsonValue toJsonValue(Object pojo) {
+
         final JsonValue jsonValue;
         if (pojo == null) {
             return JsonValue.NULL;
         } else if (pojo instanceof Map) {
             JsonObjectBuilder jsonObjectBuilder = jsonObjectFactory.createObjectBuilder();
             Map<String, Object> map = (Map<String, Object>) pojo;
-            for (final Map.Entry<String, Object> stringObjectEntry : map.entrySet()) {
-                jsonObjectBuilder.add(stringObjectEntry.getKey(), toJsonValue(stringObjectEntry.getValue()));
-            }
+            map.forEach((key, value) -> {
+                pushToPathBuffer(key);
+                JsonValue convertedValue = toJsonValue(value);
+                if ((!Config.get().isExcludeNullFieldsInResponses()) || (convertedValue != JsonValue.NULL
+                        || errorPaths.contains(pathBuffer))) {
+                    jsonObjectBuilder.add(key, convertedValue);
+                }
+                popFromThePathBuffer();
+            });
             jsonValue = jsonObjectBuilder.build();
         } else if (pojo instanceof Collection) {
             Collection<Object> map = ((Collection<Object>) pojo);
             JsonArrayBuilder builder = jsonObjectFactory.createArrayBuilder();
+            int index = 0;
             for (final Object o : map) {
+                pushToPathBuffer(index);
                 builder.add(toJsonValue(o));
+                popFromThePathBuffer();
+                index++;
             }
             jsonValue = builder.build();
         } else if (pojo instanceof Boolean) {
@@ -190,6 +212,18 @@ public class ExecutionResponse {
         }
 
         return jsonValue;
+    }
+
+    private void pushToPathBuffer(Object object) {
+        if (pathBuffer != null) {
+            pathBuffer.push(object);
+        }
+    }
+
+    private void popFromThePathBuffer() {
+        if (pathBuffer != null) {
+            pathBuffer.pop();
+        }
     }
 
     private static final String DATA = "data";

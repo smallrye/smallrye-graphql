@@ -30,5 +30,6 @@ public interface ConfigKey extends org.eclipse.microprofile.graphql.ConfigKey {
     public static final String PARSER_MAX_WHITESPACE_TOKENS = "smallrye.graphql.parser.maxWhitespaceTokens";
     public static final String INSTRUMENTATION_QUERY_COMPLEXITY = "smallrye.graphql.instrumentation.queryComplexity";
     public static final String INSTRUMENTATION_QUERY_DEPTH = "smallrye.graphql.instrumentation.queryDepth";
+    public static final String EXCLUDE_NULL_FIELDS_IN_RESPONSES = "smallrye.graphql.exclude-null-fields-in-responses";
 
 }
