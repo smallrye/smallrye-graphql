@@ -41,7 +41,7 @@ public class LinkProcessor {
     private static final Pattern FEDERATION_VERSION_PATTERN = Pattern.compile("/v([\\d.]+)$");
     private static final Map<String, String> FEDERATION_DIRECTIVES_VERSION = Map.of(
             "@composeDirective", "2.1",
-            "@interfaceObject", "2.4",
+            "@interfaceObject", "2.3",
             "@authenticated", "2.5",
             "@requiresScopes", "2.5",
             "@policy", "2.6");
