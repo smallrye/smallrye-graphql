@@ -28,7 +28,6 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
-import io.smallrye.graphql.api.Deprecated;
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.api.OneOf;
 import io.smallrye.graphql.api.federation.Authenticated;
@@ -103,7 +102,8 @@ public class IndexInitializer {
             // directives from the API module
             indexer.index(convertClassToInputStream(Authenticated.class));
             indexer.index(convertClassToInputStream(ComposeDirective.class));
-            indexer.index(convertClassToInputStream(Deprecated.class));
+            indexer.index(convertClassToInputStream(io.smallrye.graphql.api.Deprecated.class));
+            indexer.index(convertClassToInputStream(java.lang.Deprecated.class));
             indexer.index(convertClassToInputStream(Extends.class));
             indexer.index(convertClassToInputStream(External.class));
             indexer.index(convertClassToInputStream(FieldSet.class));
