@@ -1,7 +1,6 @@
 package io.smallrye.graphql.client.typesafe.api;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,8 @@ import java.util.stream.Stream;
 import io.smallrye.graphql.client.GraphQLError;
 
 /**
- * Like an {@link java.util.Optional}, but if a value is not present, there is a List of
- * {@link GraphQLError}s instead.
+ * Like an {@link java.util.Optional}, but the value can be <code>null</code> and instead of a value,
+ * there can be a List of {@link GraphQLError}s instead.
  * There can be the paradox situation that there is a <code>value</code> <em>as well as</em> errors,
  * but this is what a GraphQL service could theoretically return!
  */
@@ -25,7 +24,7 @@ public class ErrorOr<T> {
     private final List<GraphQLError> errors;
 
     public static <T> ErrorOr<T> of(T value) {
-        return new ErrorOr<>(requireNonNull(value, "value must not be null"), null);
+        return new ErrorOr<>(value, null);
     }
 
     public static <T> ErrorOr<T> ofErrors(List<GraphQLError> errors) {
@@ -112,8 +111,12 @@ public class ErrorOr<T> {
         return (ErrorOr<U>) this;
     }
 
+    /**
+     * Note that an {@link Optional} can not contain <code>null</code>,
+     * so this method will return an empty Optional in this case.
+     */
     public Optional<T> optional() {
-        return isPresent() ? Optional.of(value) : Optional.empty();
+        return isPresent() && value != null ? Optional.of(value) : Optional.empty();
     }
 
     public Stream<T> stream() {
