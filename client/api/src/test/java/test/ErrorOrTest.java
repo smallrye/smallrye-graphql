@@ -58,14 +58,6 @@ class ErrorOrTest {
     @Nested
     class Creation {
         @Test
-        void shouldFailToCreateWithNullValue() {
-            Throwable throwable = catchThrowable(() -> ErrorOr.of(null));
-
-            then(throwable).isInstanceOf(NullPointerException.class)
-                    .hasMessage("value must not be null");
-        }
-
-        @Test
         void shouldFailToCreateWithNullErrors() {
             @SuppressWarnings("ConstantConditions")
             Throwable throwable = catchThrowable(() -> ErrorOr.ofErrors(null));
@@ -204,6 +196,90 @@ class ErrorOrTest {
             Optional<String> optional = errorOr.optional();
 
             then(optional).contains("some-value");
+        }
+    }
+
+    @Nested
+    class GivenItHasANullValue {
+        private final ErrorOr<String> errorOr = ErrorOr.of(null);
+
+        @Test
+        void shouldBeEqual() {
+            then(errorOr).isEqualTo(errorOr); // itself
+            then(errorOr).isEqualTo(ErrorOr.of(null));
+            then(errorOr).isNotEqualTo(null);
+            then(errorOr).isNotEqualTo(ErrorOr.ofErrors(singletonList(CLIENT_ERROR)));
+        }
+
+        @Test
+        void shouldBePresentAndNotHaveErrors() {
+            then(errorOr.isPresent()).isTrue();
+            then(errorOr.hasErrors()).isFalse();
+        }
+
+        @Test
+        void shouldGetValue() {
+            then(errorOr.get()).isEqualTo(null);
+        }
+
+        @Test
+        void shouldFailToGetErrors() {
+            Throwable throwable = catchThrowable(errorOr::getErrors);
+
+            then(throwable).isInstanceOf(NoSuchElementException.class)
+                    .hasMessage("No error present, but value null");
+        }
+
+        @Test
+        void shouldExecuteIfPresent() {
+            StringBuilder builder = new StringBuilder("prefixed-");
+
+            errorOr.ifPresent(builder::append);
+
+            then(builder).hasToString("prefixed-null");
+        }
+
+        @Test
+        void shouldHandleValue() {
+            StringBuilder builder = new StringBuilder("prefixed-");
+
+            errorOr.handle(builder::append, builder::append);
+
+            then(builder).hasToString("prefixed-null");
+        }
+
+        @Test
+        void shouldMapValue() {
+            ErrorOr<Integer> mapped = errorOr.map(value -> {
+                assert value == null;
+                return 10;
+            });
+
+            then(mapped.get()).isEqualTo(10);
+        }
+
+        @Test
+        void shouldFlatMapValue() {
+            ErrorOr<Integer> mapped = errorOr.flatMap(value -> {
+                assert value == null;
+                return ErrorOr.of(10);
+            });
+
+            then(mapped.get()).isEqualTo(10);
+        }
+
+        @Test
+        void shouldStreamValue() {
+            Stream<String> stream = errorOr.stream();
+
+            then(stream).containsExactly((String) null);
+        }
+
+        @Test
+        void shouldContainValue() {
+            Optional<String> optional = errorOr.optional();
+
+            then(optional).isEmpty();
         }
     }
 
