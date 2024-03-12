@@ -97,8 +97,15 @@ public class ResponseReader {
             }
         }
 
+        boolean containsKeyExtension = jsonResponse.containsKey("extensions");
+
+        if (containsKeyExtension && !jsonResponse.isNull("extensions")
+                && !jsonResponse.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
+            LOG.warn("Unexpected value of 'extensions' in response: " + jsonResponse.get("extensions"));
+        }
+
         JsonObject extensions = null;
-        if (jsonResponse.containsKey("extensions")) {
+        if (containsKeyExtension && jsonResponse.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
             extensions = jsonResponse.getJsonObject("extensions");
         }
 
