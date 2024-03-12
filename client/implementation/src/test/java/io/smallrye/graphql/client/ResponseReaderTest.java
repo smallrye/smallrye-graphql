@@ -72,6 +72,13 @@ public class ResponseReaderTest {
             "  }\n" +
             "}";
 
+    private static final String EXAMPLE_RESPONSE_NULL_EXTENSIONS = "{\n" +
+            "  \"data\": {\n" +
+            "    \"greeting\":\"hello\"\n" +
+            "  },\n" +
+            " \"extensions\": null\n" +
+            "}";
+
     enum Gender {
         MALE,
         FEMALE
@@ -251,5 +258,12 @@ public class ResponseReaderTest {
                 EXAMPLE_RESPONSE_WITH_UNEXPECTED_FIELD,
                 Collections.emptyMap(), null, null, true);
         assertEquals(32, response.getObject(Long.class, "number"));
+    }
+
+    @Test
+    public void nullExtensions() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_NULL_EXTENSIONS, Collections.emptyMap());
+        assertEquals("hello", response.getObject(String.class, "greeting"));
+        assertEquals(null, response.getExtensions());
     }
 }
