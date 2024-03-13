@@ -68,7 +68,6 @@ public class ExecutionService {
     private final BatchLoaderHelper batchLoaderHelper = new BatchLoaderHelper();
     private final DataFetcherFactory dataFetcherFactory = new DataFetcherFactory();
     private final Schema schema;
-    private final DataLoaderRegistry dataLoaderRegistry;
 
     private final EventEmitter eventEmitter = EventEmitter.getInstance();
 
@@ -89,13 +88,6 @@ public class ExecutionService {
 
         this.graphQLSchema = graphQLSchema;
         this.schema = schema;
-
-        List<Operation> batchOperations = schema.getBatchOperations();
-        if (batchOperations != null && !batchOperations.isEmpty()) {
-            this.dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
-        } else {
-            this.dataLoaderRegistry = null;
-        }
 
         // use schema's hash as prefix to differentiate between multiple apps
         this.executionIdPrefix = Integer.toString(Objects.hashCode(graphQLSchema));
@@ -179,8 +171,10 @@ public class ExecutionService {
                 smallRyeContext.getOperationName().ifPresent(executionBuilder::operationName);
 
                 // DataLoaders
-                if (this.dataLoaderRegistry != null) {
-                    executionBuilder.dataLoaderRegistry(this.dataLoaderRegistry);
+                List<Operation> batchOperations = schema.getBatchOperations();
+                if (!batchOperations.isEmpty()) {
+                    DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry(batchOperations);
+                    executionBuilder.dataLoaderRegistry(dataLoaderRegistry);
                 }
 
                 ExecutionInput executionInput = executionBuilder.build();
