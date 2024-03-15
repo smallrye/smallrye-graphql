@@ -118,17 +118,55 @@ public class SchemaBuilderTest {
      * Test a schema where two Java classes map to the same GraphQL type. Such schema should not be allowed to create.
      */
     @Test
-    public void testSchemaWithDuplicates() {
+    public void testSchemaWithTypeNameDuplicates() {
         try {
             Indexer indexer = new Indexer();
-            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates");
-            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/a");
-            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/b");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/typename");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/typename/a");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/typename/b");
             IndexView index = indexer.complete();
             SchemaBuilder.build(index);
             Assertions.fail("Schema should not build when there are multiple classes mapped to the same type");
         } catch (SchemaBuilderException e) {
             // ok
+            assertEquals("Classes io.smallrye.graphql.index.duplicates.typename.a.Animal " +
+                    "and io.smallrye.graphql.index.duplicates.typename.b.Animal map to the same GraphQL type " +
+                    "'Animal', consider using the @Name annotation or a different naming strategy to " +
+                    "distinguish between them",
+                    e.getMessage());
+        }
+    }
+
+    @Test
+    public void testSchemaWithSourceFieldNameDuplicates() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/source");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/source/sourcefield");
+            IndexView index = indexer.complete();
+            SchemaBuilder.build(index);
+            Assertions.fail("Schema should not build when there are both field and source field with the same defined name");
+        } catch (SchemaBuilderException e) {
+            // ok
+            assertEquals("Type 'SomeClass' already contains field named 'password' so source field, " +
+                    "with the same name, cannot be applied", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testSchemaWithBatchSourceFieldNameDuplicates() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/source");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/source/batch");
+            IndexView index = indexer.complete();
+            SchemaBuilder.build(index);
+            Assertions.fail("Schema should not build when there are both field and source field with the same defined name");
+        } catch (SchemaBuilderException e) {
+            // ok
+            assertEquals(
+                    "Type 'SomeClass' already contains field named 'password' so source field, with the same name, cannot be applied",
+                    e.getMessage());
         }
     }
 
