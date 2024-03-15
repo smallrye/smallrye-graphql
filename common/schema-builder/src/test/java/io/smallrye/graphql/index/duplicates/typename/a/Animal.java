@@ -1,4 +1,4 @@
-package io.smallrye.graphql.index.duplicates.b;
+package io.smallrye.graphql.index.duplicates.typename.a;
 
 public class Animal {
 
