@@ -5,7 +5,7 @@ edit_uri: edit/main/docs/
 nav:
   - Overview: 'index.md'
   - Server side features:
-      - Customizing JSON deserializers: 'custom-json-deserializers.md'
+      - Customizing JSON (de)serializers: 'custom-json-serializers-deserializers.md'
       - Directives: 'directives.md'
       - Federation: 'federation.md'
       - Custom error extensions: 'custom-error-extensions.md'
