@@ -31,7 +31,7 @@ DynamicGraphQLClient client;
 ```
 
 The above example assumes that configuration for the client is present in system properties. For a full list of
-supported configuration properties, see [Client configuration reference](/client_configuration)
+supported configuration properties, see [Client configuration reference](client_configuration.md)
 
 The other way to build a client is programmatically using a builder:
 
