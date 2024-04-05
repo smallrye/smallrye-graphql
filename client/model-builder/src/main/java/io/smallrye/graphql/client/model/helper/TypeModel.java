@@ -380,7 +380,6 @@ public class TypeModel {
      * @return A stream of {@link FieldModel} instances.
      */
     private Stream<FieldModel> fields(ClassInfo clazz) {
-        // if clazz is null or clazz is java.lang.Object, return an empty stream
         return (clazz == null || clazz.superClassType() == null) ? Stream.of()
                 : Stream.concat(
                         fields(getIndex().getClassByName(clazz.superClassType().name())), // to superClass
