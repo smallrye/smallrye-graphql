@@ -5,7 +5,7 @@ edit_uri: edit/main/docs/
 nav:
   - Overview: 'index.md'
   - Server side features:
-      - Customizing JSON deserializers: 'custom-json-deserializers.md'
+      - Customizing JSON (de)serializers: 'custom-json-serializers-deserializers.md'
       - Directives: 'directives.md'
       - Federation: 'federation.md'
       - Custom error extensions: 'custom-error-extensions.md'
@@ -13,6 +13,7 @@ nav:
       - Returning Void from Mutations: 'mutation-void.md'
       - Handling of the WebSocket's init-payload: 'handling-init-payload-from-the-websocket.md'
       - Custom scalars: 'custom-scalar.md'
+      - Inspecting executable directives: 'inspecting-executable-directives-on-server-side.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Reactive: 'typesafe-client-reactive-types.md'

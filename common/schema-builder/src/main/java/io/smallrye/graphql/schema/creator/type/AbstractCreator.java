@@ -12,6 +12,7 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.ScanningContext;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.creator.ReferenceCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
@@ -112,8 +113,8 @@ abstract class AbstractCreator implements Creator<Type> {
         SourceOperationHelper sourceOperationHelper = new SourceOperationHelper();
         Map<DotName, List<MethodParameterInfo>> sourceFields = sourceOperationHelper.getSourceAnnotations();
         Map<DotName, List<MethodParameterInfo>> batchedFields = sourceOperationHelper.getSourceListAnnotations();
-        type.setOperations(toOperations(sourceFields, type, classInfo));
-        type.setBatchOperations(toOperations(batchedFields, type, classInfo));
+        type.setOperations(validateOperationNames(toOperations(sourceFields, type, classInfo), type));
+        type.setBatchOperations(validateOperationNames(toOperations(batchedFields, type, classInfo), type));
     }
 
     protected Map<String, Operation> toOperations(Map<DotName, List<MethodParameterInfo>> sourceFields, Type type,
@@ -150,6 +151,21 @@ abstract class AbstractCreator implements Creator<Type> {
                 }
             }
         }
+        return operations;
+    }
+
+    /**
+     * Validates if the source field names are not already present as a type's fields.
+     * Make sure that the type's fields are already scanned.
+     *
+     */
+    private Map<String, Operation> validateOperationNames(Map<String, Operation> operations, Type type) {
+        operations.keySet().forEach(fieldName -> {
+            if (type.getFields().keySet().contains(fieldName)) {
+                throw new SchemaBuilderException(String.format("Type '%s' already contains field named '%s'" +
+                        " so source field, with the same name, cannot be applied", type.getName(), fieldName));
+            }
+        });
         return operations;
     }
 }
