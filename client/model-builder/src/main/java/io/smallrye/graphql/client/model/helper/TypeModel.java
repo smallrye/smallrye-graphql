@@ -10,9 +10,6 @@ import static io.smallrye.graphql.client.model.Classes.TYPESAFE_RESPONSE;
 import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
 import static java.util.stream.Collectors.toList;
 
-import io.smallrye.graphql.client.model.Annotations;
-import io.smallrye.graphql.client.model.Classes;
-import io.smallrye.graphql.client.model.Scalars;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -20,6 +17,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
@@ -27,6 +25,10 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
+
+import io.smallrye.graphql.client.model.Annotations;
+import io.smallrye.graphql.client.model.Classes;
+import io.smallrye.graphql.client.model.Scalars;
 
 /**
  * Represents a model for handling GraphQL types, including information about the underlying Jandex Type.
