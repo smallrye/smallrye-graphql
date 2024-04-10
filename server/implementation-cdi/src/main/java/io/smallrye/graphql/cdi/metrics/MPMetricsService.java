@@ -2,7 +2,9 @@ package io.smallrye.graphql.cdi.metrics;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.enterprise.util.AnnotationLiteral;
@@ -13,6 +15,7 @@ import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.spi.MetricsService;
 
 /**
@@ -24,8 +27,10 @@ import io.smallrye.graphql.spi.MetricsService;
 public class MPMetricsService implements MetricsService {
 
     private MetricRegistry metricRegistry;
-    private final Map<Long, MetricMeasurement> metricsMemory = new ConcurrentHashMap<>();
+    private final Map<Long, MetricMeasurement<Long>> metricsMemory = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> subscriptions = new ConcurrentHashMap<>();
     private static final String METRIC_NAME = "mp_graphql";
+    private static final String METRIC_SUBSCRIPTIONS = "mp_graphql_subscription";
     private Logger LOG = Logger.getLogger(MPMetricsService.class);
 
     public MPMetricsService() {
@@ -41,7 +46,7 @@ public class MPMetricsService implements MetricsService {
         return metricRegistry;
     }
 
-    private Tag[] getTags(MetricMeasurement metricMeasurement) {
+    private Tag[] getTags(MetricMeasurement<Long> metricMeasurement) {
         return new Tag[] {
                 new Tag("name", metricMeasurement.getName()),
                 new Tag("type", metricMeasurement.getOperationType()),
@@ -51,7 +56,7 @@ public class MPMetricsService implements MetricsService {
 
     @Override
     public void start(Long measurementId, Context context) {
-        metricsMemory.put(measurementId, new MetricMeasurement(context.getFieldName(),
+        metricsMemory.put(measurementId, new MetricMeasurement<>(context.getFieldName(),
                 context.hasSource(),
                 context.getOperationType(),
                 System.nanoTime()));
@@ -60,11 +65,32 @@ public class MPMetricsService implements MetricsService {
 
     @Override
     public void end(Long measurementId) {
-        MetricMeasurement metricMeasurement = metricsMemory.remove(measurementId);
-        long duration = System.nanoTime() - metricMeasurement.getTimeStarted();
+        MetricMeasurement<Long> metricMeasurement = metricsMemory.remove(measurementId);
+        long duration = System.nanoTime() - metricMeasurement.getMetric();
         getMetricRegistry().simpleTimer(METRIC_NAME, getTags(metricMeasurement))
                 .update(Duration.ofNanos(duration));
         LOG.tracef("(" + measurementId + ") Finished recording metrics for: %s", metricMeasurement.getName());
+    }
+
+    @Override
+    public void subscriptionStart(Context context) {
+        if (!OperationType.SUBSCRIPTION.name().equals(context.getOperationType())) {
+            return;
+        }
+        subscriptions.computeIfAbsent(context.getFieldName(), k -> new AtomicLong(0));
+        subscriptions.get(context.getFieldName()).incrementAndGet();
+        getMetricRegistry().gauge(
+                METRIC_SUBSCRIPTIONS,
+                () -> subscriptions.get(context.getFieldName()).get(),
+                new Tag("name", context.getFieldName()));
+    }
+
+    @Override
+    public void subscriptionEnd(Context context) {
+        if (!OperationType.SUBSCRIPTION.name().equals(context.getOperationType())) {
+            return;
+        }
+        Optional.ofNullable(subscriptions.get(context.getFieldName())).ifPresent(AtomicLong::decrementAndGet);
     }
 
     class VendorType extends AnnotationLiteral<RegistryType> implements RegistryType {

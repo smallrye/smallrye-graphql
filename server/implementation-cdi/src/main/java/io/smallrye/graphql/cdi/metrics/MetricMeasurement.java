@@ -1,16 +1,16 @@
 package io.smallrye.graphql.cdi.metrics;
 
-public class MetricMeasurement {
+public class MetricMeasurement<M> {
     private String name;
     private boolean source;
     private String operationType;
-    private long timeStarted;
+    private M metric;
 
-    public MetricMeasurement(String name, boolean source, String operationType, long timeStarted) {
+    public MetricMeasurement(String name, boolean source, String operationType, M metric) {
         this.name = name;
         this.source = source;
         this.operationType = operationType;
-        this.timeStarted = timeStarted;
+        this.metric = metric;
     }
 
     public String getName() {
@@ -25,7 +25,7 @@ public class MetricMeasurement {
         return operationType;
     }
 
-    public long getTimeStarted() {
-        return timeStarted;
+    public M getMetric() {
+        return metric;
     }
 }
