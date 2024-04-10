@@ -51,6 +51,8 @@ public abstract class AbstractStreamingDataFetcher<K, T> extends AbstractDataFet
                         return (O) resultBuilder.build();
                     }
                 })
+                .onSubscription().invoke(() -> metricsEmitter.subscriptionStart(context))
+                .onTermination().invoke(() -> metricsEmitter.subscriptionEnd(context))
                 .onFailure().recoverWithItem(new Function<Throwable, O>() {
                     @Override
                     public O apply(Throwable throwable) {

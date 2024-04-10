@@ -43,6 +43,14 @@ public class MetricsEmitter {
         this.enabledServices = enabledServices;
     }
 
+    public void subscriptionStart(Context context) {
+        enabledServices.forEach(metricsService -> metricsService.subscriptionStart(context));
+    }
+
+    public void subscriptionEnd(Context context) {
+        enabledServices.forEach(metricsService -> metricsService.subscriptionEnd(context));
+    }
+
     public Long start(Context context) {
         Long measurementId = ThreadLocalRandom.current().nextLong();
         enabledServices.forEach(metricsService -> metricsService.start(measurementId, context));
