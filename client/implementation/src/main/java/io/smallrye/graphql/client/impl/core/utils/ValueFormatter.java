@@ -13,10 +13,8 @@ import java.util.UUID;
 
 public class ValueFormatter {
 
-    private final static Class<?>[] QUOTED_VALUES = new Class[] { String.class, Character.class, LocalDate.class, UUID.class,
-            CustomStringScalar.class };
-    private final static Class<?>[] UNQUOTED_VALUES = new Class[] { Number.class, Boolean.class, Enum.class,
-            CustomIntScalar.class, CustomFloatScalar.class };
+    private final static Class<?>[] QUOTED_VALUES = new Class[] { String.class, Character.class, LocalDate.class, UUID.class };
+    private final static Class<?>[] UNQUOTED_VALUES = new Class[] { Number.class, Boolean.class, Enum.class };
 
     public static boolean assignableFrom(Class<?> clazz, Class<?>[] candidates) {
         for (Class<?> candidate : candidates) {
