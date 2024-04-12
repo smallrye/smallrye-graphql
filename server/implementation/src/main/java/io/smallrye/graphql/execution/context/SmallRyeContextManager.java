@@ -125,25 +125,26 @@ public class SmallRyeContextManager {
             smallRyeContext = restoreSmallRyeContext(dataFetchingEnvironment);
         if (!smallRyeContext.hasRequest())
             throw new RuntimeException("Invalid context provided, can not populate data from Data Fetching Environment");
-        smallRyeContext.setDataFetchingEnvironment(dataFetchingEnvironment);
-        smallRyeContext.setField(field);
-        smallRyeContext.setArguments(dataFetchingEnvironment.getArguments());
-        smallRyeContext.setPath(dataFetchingEnvironment.getExecutionStepInfo().getPath().toString());
-        smallRyeContext.setExecutionId(dataFetchingEnvironment.getExecutionId().toString());
-        smallRyeContext.setFieldName(dataFetchingEnvironment.getField().getName());
-        smallRyeContext.setSource(dataFetchingEnvironment.getSource());
-        smallRyeContext.setSelectedFields(buildSelectedFields(type, dataFetchingEnvironment, field, false));
-        smallRyeContext.setSelectedAndSourceFields(buildSelectedFields(type, dataFetchingEnvironment, field, true));
-        smallRyeContext.setOperationType(getOperationTypeFromDefinition(dataFetchingEnvironment.getOperationDefinition()));
-        smallRyeContext.setParentTypeName(getGraphQLTypeName(dataFetchingEnvironment.getParentType()).orElse(null));
-        if (smallRyeContext.getOperationName().isEmpty()) {
-            smallRyeContext.setOperationName(getOperationName(dataFetchingEnvironment));
+        SmallRyeContext clone = smallRyeContext.clone();
+        clone.setDataFetchingEnvironment(dataFetchingEnvironment);
+        clone.setField(field);
+        clone.setArguments(dataFetchingEnvironment.getArguments());
+        clone.setPath(dataFetchingEnvironment.getExecutionStepInfo().getPath().toString());
+        clone.setExecutionId(dataFetchingEnvironment.getExecutionId().toString());
+        clone.setFieldName(dataFetchingEnvironment.getField().getName());
+        clone.setSource(dataFetchingEnvironment.getSource());
+        clone.setSelectedFields(buildSelectedFields(type, dataFetchingEnvironment, field, false));
+        clone.setSelectedAndSourceFields(buildSelectedFields(type, dataFetchingEnvironment, field, true));
+        clone.setOperationType(getOperationTypeFromDefinition(dataFetchingEnvironment.getOperationDefinition()));
+        clone.setParentTypeName(getGraphQLTypeName(dataFetchingEnvironment.getParentType()).orElse(null));
+        if (clone.getOperationName().isEmpty()) {
+            clone.setOperationName(getOperationName(dataFetchingEnvironment));
         }
         GraphQLContext graphQLContext = dataFetchingEnvironment.getGraphQlContext();
-        graphQLContext.put(CONTEXT, smallRyeContext);
+        graphQLContext.put(CONTEXT, clone);
 
-        current.set(smallRyeContext);
-        return smallRyeContext;
+        current.set(clone);
+        return clone;
     }
 
     private static Optional<String> getGraphQLTypeName(GraphQLType graphQLType) {
