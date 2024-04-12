@@ -263,11 +263,6 @@ public class CDISmallRyeContext extends SmallRyeContext {
     }
 
     @Override
-    public void setAddedExtensions(Map<String, Object> addedExtensions) {
-        SmallRyeContextManager.getCurrentSmallRyeContext().setAddedExtensions(addedExtensions);
-    }
-
-    @Override
     public void addExtension(String key, Object value) {
         SmallRyeContextManager.getCurrentSmallRyeContext().addExtension(key, value);
     }
