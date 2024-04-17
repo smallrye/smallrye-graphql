@@ -163,7 +163,9 @@ abstract class AbstractCreator implements Creator<Type> {
         operations.keySet().forEach(fieldName -> {
             if (type.getFields().keySet().contains(fieldName)) {
                 throw new SchemaBuilderException(String.format("Type '%s' already contains field named '%s'" +
-                        " so source field, with the same name, cannot be applied", type.getName(), fieldName));
+                        " so source field, with the same name, cannot be applied. You can resolve this conflict using @Ignore on the type's field.",
+                        type.getName(),
+                        fieldName));
             }
         });
         return operations;
