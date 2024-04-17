@@ -165,7 +165,7 @@ public class SchemaBuilderTest {
         } catch (SchemaBuilderException e) {
             // ok
             assertEquals(
-                    "Type 'SomeClass' already contains field named 'password' so source field, with the same name, cannot be applied",
+                    "Type 'SomeClass' already contains field named 'password' so source field, with the same name, cannot be applied. You can resolve this conflict using @Ignore on the type's field.",
                     e.getMessage());
         }
     }
