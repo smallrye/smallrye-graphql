@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     
     <name>SmallRye: GraphQL UI</name>
-    <description>UI Tools effectivly repackaged</description>
+    <description>UI Tools effectively repackaged</description>
     
     <modules>
         <module>graphiql</module>

@@ -16,7 +16,7 @@
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
         <react.version>18.2.0</react.version>
-        <graphiql.version>2.4.7</graphiql.version>
+        <graphiql.version>3.2.0</graphiql.version>
     </properties>
     
     <dependencies>
