@@ -2,10 +2,10 @@ package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -20,6 +20,17 @@ import io.smallrye.graphql.schema.model.Field;
 
 /**
  * Implements the Context from MicroProfile API.
+ *
+ * WARNING: This class has to be used as semi-immutable.
+ * When propagating this to a new execution, it has to be cloned.
+ *
+ * A clone is a deep copy WITH THE EXCEPTION OF:
+ * - Added extensions
+ * - ExecutionResult
+ * - DataFetchingEnvironment (this actually should be rewritten after cloning for each new fetcher)
+ *
+ * These above things get shared between all clones to enable applications to write their own data
+ * into them.
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
@@ -44,7 +55,32 @@ public class SmallRyeContext implements Context {
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
     private ExecutionResult executionResult;
-    private Map<String, Object> addedExtensions = new HashMap<>();
+    private Map<String, Object> addedExtensions = new ConcurrentHashMap<>();
+
+    public SmallRyeContext clone() {
+        SmallRyeContext clone = new SmallRyeContext(createdBy);
+        clone.fetchId = fetchId;
+        clone.request = request;
+        clone.executionId = executionId;
+        clone.field = field;
+        clone.fieldName = fieldName;
+        clone.arguments = arguments;
+        clone.source = source;
+        clone.path = path;
+        clone.selectedFields = selectedFields;
+        clone.selectedAndSourceFields = selectedAndSourceFields;
+        clone.operationType = operationType;
+        clone.requestedOperationTypes = requestedOperationTypes;
+        clone.parentTypeName = parentTypeName;
+        clone.operationName = operationName;
+        clone.dataFetchingEnvironment = dataFetchingEnvironment;
+        clone.executionInput = executionInput;
+        clone.queryCache = queryCache;
+        clone.documentSupplier = documentSupplier;
+        clone.executionResult = executionResult;
+        clone.addedExtensions = addedExtensions;
+        return clone;
+    }
 
     public Map<String, Object> getAddedExtensions() {
         return addedExtensions;
@@ -52,10 +88,12 @@ public class SmallRyeContext implements Context {
 
     /**
      * Sets the entire map of extension(s) into the context.
+     * Note: this is private, for adding extensions, it is necessary to use getAddedExtensions().put(...)
+     * to avoid changing the map reference.
      *
      * @param addedExtensions The Map object containing extension(s).
      */
-    public void setAddedExtensions(Map<String, Object> addedExtensions) {
+    private void setAddedExtensions(Map<String, Object> addedExtensions) {
         this.addedExtensions = addedExtensions;
     }
 

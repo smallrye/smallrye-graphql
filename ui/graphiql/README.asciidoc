@@ -1,6 +1,6 @@
 = SmallRye Graph__i__QL UI
 
-This allows you you add GraphiQL UI with your project. 
+This allows you to add GraphiQL UI with your project.
 
 image:/ui/graphiql/graphiql.png[link="/main/ui/graphiql/graphiql.png"]
 

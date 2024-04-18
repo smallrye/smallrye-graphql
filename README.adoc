@@ -3,6 +3,7 @@
 :subscriptions-transport-ws: https://github.com/apollographql/subscriptions-transport-ws
 :graphql-ws: https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md
 :graphql-federation: https://www.apollographql.com/docs/federation
+:vertx: https://vertx.io/
 
 image:https://github.com/smallrye/smallrye-graphql/workflows/SmallRye%20Build/badge.svg?branch=main[link=https://github.com/smallrye/smallrye-graphql/actions?query=workflow%3A%22SmallRye+Build%22]
 image:https://sonarcloud.io/api/project_badges/measure?project=smallrye_smallrye-graphql&metric=alert_status["Quality Gate Status", link="https://sonarcloud.io/dashboard?id=smallrye_smallrye-graphql"]
@@ -62,17 +63,22 @@ The 1.5.x branch will be maintained for the `javax` namespace, and the main (2.x
 
 * link:server/api[API] (pulling in the MicroProfile API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
 * link:server/implementation[Implementation] of the Eclipse MicroProfile GraphQL API.
-* link:server/implementation-cdi[CDI] Module that allows lookup of GraphQL Endpoints via CDI
-* link:server/implementation-servlet[Servlet] Making the implementation available via Servlet
+* link:server/implementation-cdi[CDI] Module that allows lookup of GraphQL Endpoints via CDI.
+* link:server/implementation-servlet[Servlet] Making the implementation available via Servlet.
 * link:server/tck[TCK] Test suite to run the implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] TCK.
-* link:server/runner[Runner] Manual TCK testing with GraphiQL
-* link:server/integration-tests[IT] To run some Integration tests
+* link:server/runner[Runner] Manual TCK testing with GraphiQL.
+* link:server/integration-tests[IT] To run some Integration tests.
 
 ==== Client
 
-* link:client/api[Client API] (pulling in the MicroProfile Client API) and allowing us to experiment with api feature not yet in the spec. Code from here might move the the spec at some point.
+* link:client/api[Client API] (pulling in the MicroProfile Client API) and allowing us to experiment with API feature not yet in the spec. Code from here might move the spec at some point.
 * link:client/implementation[Client Implementation] of the Eclipse MicroProfile GraphQL Client API.
 * link:client/tck[Client TCK] Test suite to run the client-implementation against the {microprofile-graphql}[Eclipse MicroProfile GraphQL] Client TCK.
+* link:client/implementation-vertx[Client Implementation Vert.x] Module for {vertx}[Vert.x] handling for the client.
+* link:client/generator[Client Generator] Module generating Type-Safe Client APIs with annotation processing.
+* link:client/generator-test[Client Generator Test] Module containing tests for client generators.
+* link:client/model[Client Model] defines Type-Safe's client model (GraphQL operations).
+* link:client/model-builder[Client Model Builder] that generates Client Model from Jandex.
 
 ==== Tools
 

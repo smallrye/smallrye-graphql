@@ -86,7 +86,7 @@ public class DynamicClientExtensionsTest {
 
         @Query
         public Pool poolWithExtensions() {
-            smallRyeContext.setAddedExtensions(getMap());
+            smallRyeContext.getAddedExtensions().putAll(getMap());
             return new Pool(23);
         }
     }

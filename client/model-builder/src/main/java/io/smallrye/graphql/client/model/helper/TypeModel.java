@@ -7,9 +7,7 @@ import static io.smallrye.graphql.client.model.Classes.ERROR_OR;
 import static io.smallrye.graphql.client.model.Classes.OBJECT;
 import static io.smallrye.graphql.client.model.Classes.OPTIONAL;
 import static io.smallrye.graphql.client.model.Classes.TYPESAFE_RESPONSE;
-import static io.smallrye.graphql.client.model.Classes.isParameterized;
 import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Modifier;
@@ -384,7 +382,7 @@ public class TypeModel {
      * @return A stream of {@link FieldModel} instances.
      */
     private Stream<FieldModel> fields(ClassInfo clazz) {
-        return (clazz == null) ? Stream.of()
+        return (clazz == null || clazz.superClassType() == null) ? Stream.of()
                 : Stream.concat(
                         fields(getIndex().getClassByName(clazz.superClassType().name())), // to superClass
                         fieldsHelper(clazz)
