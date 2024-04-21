@@ -5,6 +5,7 @@ import static java.lang.reflect.Modifier.isTransient;
 import static java.util.Objects.requireNonNull;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
@@ -22,6 +23,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -34,13 +36,33 @@ import jakarta.json.bind.annotation.JsonbTransient;
 
 import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.NonNull;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.IndexView;
 
+import io.smallrye.graphql.api.Union;
+import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
 public class TypeInfo {
+    private static final Class<? extends Annotation> JACKSON_JSON_IGNORE = findAnnotation(
+            "com.fasterxml.jackson.annotation.JsonIgnore");
+    private static final Class<? extends Annotation> JAKARTA_NOT_NULL = findAnnotation(
+            "jakarta.validation.constraints.NotNull");
+
+    private static Class<? extends Annotation> findAnnotation(String className) {
+        try {
+            //noinspection unchecked
+            return (Class<? extends Annotation>) Class.forName(className, false,
+                    Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            /* IN CASE THE CLASS IS NOT IMPORTED */
+            return null;
+        }
+    }
+
     private final TypeInfo container;
     private final Type type; // TODO only use annotatedType
     private final AnnotatedType annotatedType;
@@ -96,6 +118,18 @@ public class TypeInfo {
         if (type instanceof TypeVariable)
             return resolveTypeVariable().getTypeName();
         return type.getTypeName();
+    }
+
+    public String getGraphQlTypeName() {
+        if (isAnnotated(org.eclipse.microprofile.graphql.Type.class))
+            return getAnnotation(org.eclipse.microprofile.graphql.Type.class).value();
+        return getSimpleName();
+    }
+
+    public String getSimpleName() {
+        if (type instanceof Class)
+            return ((Class<?>) type).getSimpleName();
+        return getTypeName();
     }
 
     private Class<?> resolveTypeVariable() {
@@ -167,24 +201,15 @@ public class TypeInfo {
     }
 
     private boolean isGraphQlField(Field field) {
-        Class jsonIgnoreClass = null;
-        try {
-            jsonIgnoreClass = Class.forName("com.fasterxml.jackson.annotation.JsonIgnore", false,
-                    Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            /* IN CASE THE CLASS IS NOT IMPORTED */ }
         return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers())
-                && !isAnnotatedBy(field, Ignore.class, JsonbTransient.class, jsonIgnoreClass);
+                && !isAnnotatedBy(field, Ignore.class, JsonbTransient.class, JACKSON_JSON_IGNORE);
     }
 
+    @SafeVarargs
     private boolean isAnnotatedBy(Field field, Class<? extends Annotation>... annotationClasses) {
-        for (Class<? extends Annotation> annotationClass : annotationClasses) {
-            if (annotationClass != null
-                    && field.isAnnotationPresent(annotationClass)) {
-                return true;
-            }
-        }
-        return false;
+        return Stream.of(annotationClasses)
+                .filter(Objects::nonNull)
+                .anyMatch(field::isAnnotationPresent);
     }
 
     /** Modifier.isSynthetic is package private */
@@ -208,6 +233,10 @@ public class TypeInfo {
     public boolean isRecord() {
         Class<?> superclass = rawType.getSuperclass();
         return superclass != null && superclass.getName().equals("java.lang.Record");
+    }
+
+    public boolean isUnion() {
+        return isAnnotated(Union.class);
     }
 
     public boolean isScalar() {
@@ -313,33 +342,18 @@ public class TypeInfo {
         }
     }
 
-    public String getSimpleName() {
-        if (type instanceof Class)
-            return ((Class<?>) type).getSimpleName();
-        return type.getTypeName();
-    }
-
     public boolean isNonNull() {
-        Class jakartaNotNullClass = null;
-        try {
-            jakartaNotNullClass = Class.forName("jakarta.validation.constraints.NotNull", false,
-                    Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            /* IN CASE THE CLASS IS NOT IMPORTED */
-        }
-
-        Class finalJakartaNotNullClass = jakartaNotNullClass; // lambda
-        if (ifClass(c -> c.isPrimitive() || c.isAnnotationPresent(NonNull.class) ||
-                (finalJakartaNotNullClass != null && c.isAnnotationPresent(finalJakartaNotNullClass))))
+        if (ifClass(c -> c.isPrimitive() || c.isAnnotationPresent(NonNull.class) || isJakartaNotNull(c)))
             return true;
         if (annotatedType != null)
-            return annotatedType.isAnnotationPresent(NonNull.class) ||
-                    (jakartaNotNullClass != null && annotatedType.isAnnotationPresent(jakartaNotNullClass));
+            return annotatedType.isAnnotationPresent(NonNull.class) || isJakartaNotNull(annotatedType);
         if (container == null || !container.isCollection() || container.annotatedType == null)
             return false; // TODO test
-        return container.annotatedType.isAnnotationPresent(NonNull.class) ||
-                (jakartaNotNullClass != null && container.annotatedType.isAnnotationPresent(jakartaNotNullClass));
+        return container.annotatedType.isAnnotationPresent(NonNull.class) || isJakartaNotNull(container.annotatedType);
+    }
 
+    static boolean isJakartaNotNull(AnnotatedElement c) {
+        return JAKARTA_NOT_NULL != null && c.isAnnotationPresent(JAKARTA_NOT_NULL);
     }
 
     public Class<?> getRawType() {
@@ -376,7 +390,7 @@ public class TypeInfo {
             return ((ParameterizedType) type).getActualTypeArguments()[index];
         // this workaround might be needed in native mode because the other `annotatedType`,
         // which is retrieved by calling parameter.getAnnotatedType,
-        // can't be casted to AnnotatedParameterizedType - at least with GraalVM 21.0 and 21.1
+        // can't be cast to AnnotatedParameterizedType - at least with GraalVM 21.0 and 21.1
         if (genericType instanceof ParameterizedType)
             return ((ParameterizedType) genericType).getActualTypeArguments()[index];
         return ((Class<?>) type).getComponentType();
@@ -446,5 +460,41 @@ public class TypeInfo {
 
     public <T extends Annotation> T getAnnotation(Class<T> type) {
         return ((Class<?>) this.type).getAnnotation(type);
+    }
+
+    public TypeInfo subtype(String typename) {
+        return subtypes()
+                .filter(c -> c.getGraphQlTypeName().equals(typename))
+                .findAny()
+                .orElseThrow(() -> SmallRyeGraphQLClientMessages.msg.cannotInstantiateDomainObject(typename, null));
+    }
+
+    public Stream<TypeInfo> subtypes() {
+        return jandex().getAllKnownImplementors(rawType).stream()
+                .map(this::toClass)
+                .map(TypeInfo::of);
+    }
+
+    private Class<?> toClass(ClassInfo classInfo) {
+        var className = classInfo.name().toString();
+        try {
+            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ReflectiveOperationException e) {
+            throw SmallRyeGraphQLClientMessages.msg.cannotInstantiateDomainObject(className, e);
+        }
+    }
+
+    /**
+     * I'm not where we're going with the model-builder and the ScanningContext, so this is a terrible hack.
+     * Adding a dependency on the model-builder would cause a dependency cycle.
+     */
+    private IndexView jandex() {
+        try {
+            return (IndexView) Class.forName("io.smallrye.graphql.client.model.ScanningContext")
+                    .getMethod("getIndex")
+                    .invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

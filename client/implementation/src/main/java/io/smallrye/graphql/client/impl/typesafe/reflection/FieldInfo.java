@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl.typesafe.reflection;
 
+import static io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo.isJakartaNotNull;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -111,16 +113,9 @@ public class FieldInfo {
     }
 
     public boolean isNonNull() {
-        Class jakartaNotNullClass = null;
-        try {
-            jakartaNotNullClass = Class.forName("jakarta.validation.constraints.NotNull", false,
-                    Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            /* IN CASE THE CLASS IS NOT IMPORTED */
-        }
-        return field.isAnnotationPresent(NonNull.class)
-                || (jakartaNotNullClass != null && field.isAnnotationPresent(jakartaNotNullClass))
-                || getType().isPrimitive();
+        return getType().isPrimitive()
+                || field.isAnnotationPresent(NonNull.class)
+                || isJakartaNotNull(field);
     }
 
     public boolean isIncludeNull() {
