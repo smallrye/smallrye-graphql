@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.api.Union;
-import io.smallrye.graphql.client.model.ScanningContext;
+import io.smallrye.graphql.client.model.ClientModelBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 class UnionBehavior {
@@ -49,7 +49,7 @@ class UnionBehavior {
         indexer.indexClass(SuperHeroResponse.class);
         indexer.indexClass(SuperHero.class);
         indexer.indexClass(NotFound.class);
-        ScanningContext.register(indexer.complete());
+        ClientModelBuilder.generateSubTypeMap(indexer.complete());
     }
 
     @Test

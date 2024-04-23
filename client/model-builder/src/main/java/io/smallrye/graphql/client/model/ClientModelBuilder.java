@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.model;
 
 import static io.smallrye.graphql.client.model.Annotations.GRAPHQL_CLIENT_API;
 import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.model.helper.OperationModel;
 
 /**
@@ -23,7 +25,6 @@ import io.smallrye.graphql.client.model.helper.OperationModel;
  * It scans for classes annotated with {@link Annotations#GRAPHQL_CLIENT_API} and generates client models based on the annotated
  * methods.
  */
-
 public class ClientModelBuilder {
     private static final Logger LOG = Logger.getLogger(ClientModelBuilder.class.getName());
 
@@ -35,7 +36,33 @@ public class ClientModelBuilder {
      */
     public static ClientModels build(IndexView index) {
         ScanningContext.register(index);
+
+        generateSubTypeMap(index);
+
         return new ClientModelBuilder().generateClientModels();
+    }
+
+    public static void generateSubTypeMap(IndexView index) {
+        Map<String, List<Class<?>>> subtypes = new HashMap<>();
+        index.getKnownClasses().stream()
+                .filter(ClassInfo::isInterface)
+                .map(ClassInfo::name)
+                .forEach(interfaceName -> {
+                    var implementors = index.getAllKnownImplementors(interfaceName);
+                    subtypes.put(interfaceName.toString(), implementors.stream()
+                            .map(ClientModelBuilder::toClass)
+                            .collect(toList()));
+                });
+        TypeModels.setImplementors(subtypes);
+    }
+
+    private static Class<?> toClass(ClassInfo classInfo) {
+        var className = classInfo.name().toString();
+        try {
+            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ReflectiveOperationException e) {
+            throw SmallRyeGraphQLClientMessages.msg.cannotInstantiateDomainObject(className, e);
+        }
     }
 
     private ClientModelBuilder() {
@@ -58,7 +85,7 @@ public class ClientModelBuilder {
             ClientModel operationMap = new ClientModel();
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
-            methods.stream().forEach(method -> {
+            methods.forEach(method -> {
                 String query = new QueryBuilder(method).build();
                 LOG.debugf("[%s] - Query created: %s", apiClass.name().toString(), query);
                 operationMap.getOperationMap()

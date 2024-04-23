@@ -36,11 +36,10 @@ import jakarta.json.bind.annotation.JsonbTransient;
 
 import org.eclipse.microprofile.graphql.Ignore;
 import org.eclipse.microprofile.graphql.NonNull;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.IndexView;
 
 import io.smallrye.graphql.api.Union;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
+import io.smallrye.graphql.client.model.TypeModels;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import io.smallrye.mutiny.Multi;
@@ -470,31 +469,7 @@ public class TypeInfo {
     }
 
     public Stream<TypeInfo> subtypes() {
-        return jandex().getAllKnownImplementors(rawType).stream()
-                .map(this::toClass)
+        return TypeModels.getAllImplementorsOf(getTypeName()).stream()
                 .map(TypeInfo::of);
-    }
-
-    private Class<?> toClass(ClassInfo classInfo) {
-        var className = classInfo.name().toString();
-        try {
-            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
-        } catch (ReflectiveOperationException e) {
-            throw SmallRyeGraphQLClientMessages.msg.cannotInstantiateDomainObject(className, e);
-        }
-    }
-
-    /**
-     * I'm not where we're going with the model-builder and the ScanningContext, so this is a terrible hack.
-     * Adding a dependency on the model-builder would cause a dependency cycle.
-     */
-    private IndexView jandex() {
-        try {
-            return (IndexView) Class.forName("io.smallrye.graphql.client.model.ScanningContext")
-                    .getMethod("getIndex")
-                    .invoke(null);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
