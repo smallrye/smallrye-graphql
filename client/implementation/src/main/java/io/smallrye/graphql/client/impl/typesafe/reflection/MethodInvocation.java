@@ -54,7 +54,7 @@ public class MethodInvocation implements NamedElement {
     }
 
     public MethodKey getMethodKey() {
-        return new MethodKey(method.getReturnType(), method.getName(), method.getParameterTypes());
+        return new MethodKey(method.getName(), method.getParameterTypes());
     }
 
     public OperationType getOperationType() {
