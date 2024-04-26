@@ -3,13 +3,18 @@ package io.smallrye.graphql.client.model;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Represents a unique identifier for an Client API operation (method). This class
+ * combines the method name and its parameter types to create a key that can
+ * be identified by both Jandex and Java reflection.
+ *
+ * @author mskacelik
+ */
 public class MethodKey {
-    private Class<?> declaringClass;
     private String methodName;
     private Class<?>[] parameterTypes;
 
-    public MethodKey(Class<?> declaringClass, String methodName, Class<?>[] parameterTypes) {
-        this.declaringClass = declaringClass;
+    public MethodKey(String methodName, Class<?>[] parameterTypes) {
         this.methodName = methodName;
         this.parameterTypes = parameterTypes;
     }
@@ -24,25 +29,17 @@ public class MethodKey {
         if (o == null || getClass() != o.getClass())
             return false;
         MethodKey methodKey = (MethodKey) o;
-        return Objects.equals(declaringClass, methodKey.declaringClass) && Objects.equals(methodName, methodKey.methodName)
-                && Arrays.equals(parameterTypes, methodKey.parameterTypes);
+        return Objects.equals(methodName, methodKey.methodName) && Arrays.equals(parameterTypes, methodKey.parameterTypes);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(declaringClass, methodName);
+        int result = Objects.hash(methodName);
         result = 31 * result + Arrays.hashCode(parameterTypes);
         return result;
     }
 
-    public Class<?> getDeclaringClass() {
-        return declaringClass;
-    }
-
-    public void setDeclaringClass(Class<?> declaringClass) {
-        this.declaringClass = declaringClass;
-    }
-
+    // set methods for bytecode recording
     public String getMethodName() {
         return methodName;
     }
@@ -62,8 +59,7 @@ public class MethodKey {
     @Override
     public String toString() {
         return "MethodKey{" +
-                "declaringClass=" + declaringClass +
-                ", methodName='" + methodName + '\'' +
+                "methodName='" + methodName + '\'' +
                 ", parameterTypes=" + Arrays.toString(parameterTypes) +
                 '}';
     }
