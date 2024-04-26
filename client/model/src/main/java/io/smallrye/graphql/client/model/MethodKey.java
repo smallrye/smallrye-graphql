@@ -3,6 +3,9 @@ package io.smallrye.graphql.client.model;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * A reference to a class method. It's only mutable for deserializing.
+ */
 public class MethodKey {
     private Class<?> declaringClass;
     private String methodName;
@@ -14,6 +17,7 @@ public class MethodKey {
         this.parameterTypes = parameterTypes;
     }
 
+    @Deprecated
     public MethodKey() {
     }
 
@@ -39,6 +43,7 @@ public class MethodKey {
         return declaringClass;
     }
 
+    @Deprecated
     public void setDeclaringClass(Class<?> declaringClass) {
         this.declaringClass = declaringClass;
     }
@@ -47,6 +52,7 @@ public class MethodKey {
         return methodName;
     }
 
+    @Deprecated
     public void setMethodName(String methodName) {
         this.methodName = methodName;
     }
@@ -55,6 +61,7 @@ public class MethodKey {
         return parameterTypes;
     }
 
+    @Deprecated
     public void setParameterTypes(Class<?>[] parameterTypes) {
         this.parameterTypes = parameterTypes;
     }

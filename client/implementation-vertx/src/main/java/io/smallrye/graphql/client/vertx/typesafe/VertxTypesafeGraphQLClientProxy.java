@@ -1,6 +1,7 @@
 package io.smallrye.graphql.client.vertx.typesafe;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Array;
@@ -18,8 +19,6 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -39,12 +38,10 @@ import io.smallrye.graphql.client.impl.discovery.ServiceURLSupplier;
 import io.smallrye.graphql.client.impl.discovery.StaticURLSupplier;
 import io.smallrye.graphql.client.impl.discovery.StorkServiceURLSupplier;
 import io.smallrye.graphql.client.impl.typesafe.HeaderBuilder;
-import io.smallrye.graphql.client.impl.typesafe.QueryBuilder;
 import io.smallrye.graphql.client.impl.typesafe.ResultBuilder;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-import io.smallrye.graphql.client.model.ClientModel;
 import io.smallrye.graphql.client.vertx.websocket.BuiltinWebsocketSubprotocolHandlers;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
@@ -66,8 +63,6 @@ class VertxTypesafeGraphQLClientProxy {
 
     private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
 
-    private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
-
     private final Map<String, String> additionalHeaders;
     private final Map<String, Uni<String>> dynamicHeaders;
     private final Map<String, Object> initPayload;
@@ -78,7 +73,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
     private final Class<?> api;
-    private final ClientModel clientModel;
+    private final OperationRepository operationRepository;
     private final boolean executeSingleOperationsOverWebsocket;
     private final boolean allowUnexpectedResponseFields;
 
@@ -93,7 +88,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     VertxTypesafeGraphQLClientProxy(
             Class<?> api,
-            ClientModel clientModel,
+            OperationRepository operationRepository,
             Map<String, String> additionalHeaders,
             Map<String, Uni<String>> dynamicHeaders,
             Map<String, Object> initPayload,
@@ -106,7 +101,7 @@ class VertxTypesafeGraphQLClientProxy {
             Integer subscriptionInitializationTimeout,
             boolean allowUnexpectedResponseFields) {
         this.api = api;
-        this.clientModel = clientModel;
+        this.operationRepository = operationRepository;
         this.additionalHeaders = additionalHeaders;
         this.dynamicHeaders = dynamicHeaders;
         this.initPayload = initPayload;
@@ -301,12 +296,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     private JsonObject request(MethodInvocation method) {
         JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
-        String query;
-        if (clientModel == null) {
-            query = queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build());
-        } else {
-            query = clientModel.getOperationMap().get(method.getMethodKey());
-        }
+        String query = operationRepository.findOperation(method);
         request.add("query", query);
         request.add("variables", variables(method));
         request.add("operationName", method.getName());

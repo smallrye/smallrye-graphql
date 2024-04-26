@@ -18,7 +18,6 @@ import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
-import io.smallrye.graphql.client.model.ClientModel;
 import io.smallrye.graphql.client.model.ClientModels;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
@@ -51,6 +50,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private Integer websocketInitializationTimeout;
     private Boolean allowUnexpectedResponseFields;
     private ClientModels clientModels;
+    private OperationRepository operationRepository;
 
     public VertxTypesafeGraphQLClientBuilder() {
         this.subprotocols = new ArrayList<>();
@@ -175,12 +175,20 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             dynamicHeaders = new HashMap<>();
         }
 
-        ClientModel clientModel = null;
-        if (clientModels != null) {
-            clientModel = clientModels.getClientModelByConfigKey(configKey);
+        if (operationRepository == null) {
+            if (clientModels != null) {
+                var clientModel = clientModels.getClientModelByConfigKey(configKey);
+                if (clientModel != null) {
+                    operationRepository = method -> clientModel.getOperationMap().get(method.getMethodKey());
+                }
+            }
+            if (operationRepository == null) {
+                operationRepository = new ModelReflection()::getOperation;
+            }
         }
 
-        VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, clientModel, headers,
+        VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, operationRepository,
+                headers,
                 dynamicHeaders, initPayload,
                 endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
