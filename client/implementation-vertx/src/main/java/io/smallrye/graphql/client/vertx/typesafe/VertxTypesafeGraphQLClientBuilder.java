@@ -184,7 +184,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
             }
         }
 
-        VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, operationRepository, headers,
+        VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, operationRepository,
+                headers,
                 dynamicHeaders, initPayload,
                 endpoint,
                 websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
