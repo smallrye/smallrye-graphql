@@ -230,7 +230,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     private Object invoke(VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
-                          Object... args) {
+            Object... args) {
         MethodInvocation methodInvocation = MethodInvocation.of(method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             graphQlClient.close();
@@ -280,8 +280,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
                 try {
                     WebsocketSubprotocol e = WebsocketSubprotocol.fromString(protocol);
                     this.subprotocols.add(e);
-                } catch (
-                        IllegalArgumentException e) {
+                } catch (IllegalArgumentException e) {
                     log.warn(e);
                 }
             });
