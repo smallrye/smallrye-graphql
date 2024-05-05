@@ -19,6 +19,8 @@ import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 /**
+ * Testing query building using the client model implementation.
+ *
  * @author mskacelik
  */
 public class ClientModelBuilderTest {
@@ -197,7 +199,6 @@ public class ClientModelBuilderTest {
         assertNotNull(clientModels.getClientModelByConfigKey(configKey));
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
         assertEquals(3, clientModel.getOperationMap().size());
-        System.err.println(clientModel.getOperationMap());
         assertOperation(clientModel,
                 new MethodKey("allStrings", new Class[0]),
                 "query strings { strings }");
