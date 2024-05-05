@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 
-import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.model.ClientModelBuilder;
 import io.smallrye.graphql.client.model.ClientModels;
 import tck.graphql.typesafe.Animal;
@@ -87,7 +86,6 @@ class TypesafeTckClientModelSuite extends TypesafeTCK {
             // SOME OTHER CLASSES TO BE ADDED TO INDEX
             try {
                 indexer.indexClass(Input.class);
-                indexer.indexClass(GraphQLClient.class);
                 indexer.indexClass(Closeable.class);
                 indexer.indexClass(AutoCloseable.class);
             } catch (IOException e) {

@@ -21,7 +21,6 @@ import org.jboss.jandex.JandexReflection;
 import org.jboss.jandex.MethodInfo;
 
 import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.model.MethodKey;
 
 /**
@@ -71,7 +70,7 @@ public class OperationModel implements NamedElement {
      */
     public String fields(TypeModel type) {
         if (typeStack.contains(type.getName()))
-            throw SmallRyeGraphQLClientMessages.msg.fieldRecursionFound();
+            throw new IllegalStateException("field recursion found");
         try {
             typeStack.push(type.getName());
             return recursionCheckedFields(type);
@@ -224,11 +223,10 @@ public class OperationModel implements NamedElement {
     }
 
     /**
-     * Gets the name of the GraphQL subscription, considering any {@link io.smallrye.graphql.api.Subscription} annotation.
+     * Gets the name of the GraphQL subscription, considering any io.smallrye.graphql.api.Subscription annotation.
      *
      * @return An optional containing the subscription name if specified, otherwise empty.
      */
-
     public Optional<String> subscriptionName() {
         Optional<AnnotationInstance> subscriptionAnnotation = getMethodAnnotation(SUBCRIPTION);
         if (subscriptionAnnotation.isPresent() && subscriptionAnnotation.orElseThrow().value() != null)
