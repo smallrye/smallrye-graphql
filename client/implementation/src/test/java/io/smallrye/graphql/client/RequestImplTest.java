@@ -29,6 +29,12 @@ public class RequestImplTest {
 
         request.setVariable("key", "foo");
         assertEquals("{\"query\":\"example\",\"variables\":{\"key\":\"foo\"}}", request.toJson());
+
+        request.setVariable("key", 5L);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":5}}", request.toJson());
+
+        request.setVariable("key", 5.5);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":5.5}}", request.toJson());
     }
 
     @Test
