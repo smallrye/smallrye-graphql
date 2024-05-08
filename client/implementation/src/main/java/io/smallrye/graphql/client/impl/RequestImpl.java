@@ -69,6 +69,8 @@ public class RequestImpl implements Request {
                 varBuilder.add(k, (Boolean) v);
             } else if (v instanceof Long) {
                 varBuilder.add(k, (Long) v);
+            } else if (v instanceof Double) {
+                varBuilder.add(k, (Double) v);
             } else if (v == null) {
                 varBuilder.addNull(k);
             } else {
