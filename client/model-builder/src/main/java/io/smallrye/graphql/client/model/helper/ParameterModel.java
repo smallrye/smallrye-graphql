@@ -27,6 +27,8 @@ public class ParameterModel implements NamedElement {
     private TypeModel type;
     private List<DirectiveInstance> directives;
 
+    private final static String PARAMETER_NAME_PLACEHOLDER = "arg";
+
     /**
      * Constructs a new {@code ParameterModel} instance based on the provided Jandex {@link MethodParameterInfo}.
      *
@@ -107,7 +109,8 @@ public class ParameterModel implements NamedElement {
     }
 
     public String getRawName() {
-        return parameter.name();
+        String rawName = parameter.name();
+        return (rawName != null) ? rawName : PARAMETER_NAME_PLACEHOLDER + parameter.position();
     }
 
     @Override
