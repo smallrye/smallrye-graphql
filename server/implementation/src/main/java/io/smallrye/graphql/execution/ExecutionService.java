@@ -265,8 +265,7 @@ public class ExecutionService {
         smallRyeContext.setExecutionResult(executionResult);
         // Notify after
         eventEmitter.fireAfterExecute(smallRyeContext);
-
-        ExecutionResponse executionResponse = new ExecutionResponse(executionResult,
+        ExecutionResponse executionResponse = new ExecutionResponse(smallRyeContext.unwrap(ExecutionResult.class),
                 smallRyeContext.getAddedExtensions());
         if (!payloadOption.equals(LogPayloadOption.off)) {
             log.payloadOut(executionResponse.toString());
