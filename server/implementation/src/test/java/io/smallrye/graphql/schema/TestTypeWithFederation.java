@@ -1,11 +1,12 @@
 package io.smallrye.graphql.schema;
 
+import io.smallrye.graphql.api.federation.External;
 import io.smallrye.graphql.api.federation.FieldSet;
 import io.smallrye.graphql.api.federation.Key;
 
 @Key(fields = @FieldSet("id"))
 @Key(fields = @FieldSet("type id"), resolvable = true)
-public class TestTypeWithFederation {
+public class TestTypeWithFederation implements TestInterfaceWitFederation {
     private String type;
     private String id;
     private String value;
@@ -18,6 +19,8 @@ public class TestTypeWithFederation {
         this.type = type;
     }
 
+    @External
+    @Override
     public String getId() {
         return id;
     }

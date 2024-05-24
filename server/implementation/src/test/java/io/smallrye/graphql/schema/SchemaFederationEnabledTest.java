@@ -33,7 +33,7 @@ class SchemaFederationEnabledTest extends SchemaTestBase {
         System.setProperty("smallrye.graphql.federation.enabled", "true");
         try {
             GraphQLSchema graphQLSchema = createGraphQLSchema(Repeatable.class, Directive.class, Key.class, Keys.class,
-                    FieldSet.class, TestTypeWithFederation.class, FederationTestApi.class);
+                    FieldSet.class, TestTypeWithFederation.class, FederationTestApi.class, TestInterfaceWitFederation.class);
 
             GraphQLDirective keyDirective = graphQLSchema.getDirective("key");
             assertEquals("key", keyDirective.getName());
