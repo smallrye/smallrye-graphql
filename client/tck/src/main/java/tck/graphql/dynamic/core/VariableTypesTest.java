@@ -18,12 +18,14 @@ public class VariableTypesTest {
         assertDoesNotThrow(() -> varType("v"));
         assertDoesNotThrow(() -> varType("_"));
         assertDoesNotThrow(() -> varType("va_lid"));
+        assertDoesNotThrow(() -> varType(" ,va_lid,, "));
         assertDoesNotThrow(() -> varType("_valid"));
     }
 
     @Test
     public void varTypesShouldThrowExceptionForInvalidName() {
         assertThrows(IllegalArgumentException.class, () -> varType("Invalid:Name"));
+        assertThrows(IllegalArgumentException.class, () -> varType("Invalid,Name"));
         assertThrows(IllegalArgumentException.class, () -> varType("123InvalidName"));
         assertThrows(IllegalArgumentException.class, () -> varType("invalid-Name"));
         assertThrows(IllegalArgumentException.class, () -> varType("invalid name"));
@@ -39,12 +41,14 @@ public class VariableTypesTest {
         assertDoesNotThrow(() -> nonNull("v"));
         assertDoesNotThrow(() -> nonNull("_"));
         assertDoesNotThrow(() -> nonNull("va_lid"));
+        assertDoesNotThrow(() -> nonNull(" ,va_lid,, "));
         assertDoesNotThrow(() -> nonNull("_valid"));
     }
 
     @Test
     public void nonNullsShouldThrowExceptionForInvalidName() {
         assertThrows(IllegalArgumentException.class, () -> nonNull("Invalid:Name"));
+        assertThrows(IllegalArgumentException.class, () -> nonNull("Invalid,Name"));
         assertThrows(IllegalArgumentException.class, () -> nonNull("123InvalidName"));
         assertThrows(IllegalArgumentException.class, () -> nonNull("invalid-Name"));
         assertThrows(IllegalArgumentException.class, () -> nonNull("invalid name"));
@@ -60,12 +64,14 @@ public class VariableTypesTest {
         assertDoesNotThrow(() -> list("v"));
         assertDoesNotThrow(() -> list("_"));
         assertDoesNotThrow(() -> list("va_lid"));
+        assertDoesNotThrow(() -> list(" ,va_lid,, "));
         assertDoesNotThrow(() -> list("_valid"));
     }
 
     @Test
     public void listsShouldThrowExceptionForInvalidName() {
         assertThrows(IllegalArgumentException.class, () -> list("Invalid:Name"));
+        assertThrows(IllegalArgumentException.class, () -> list("Invalid,Name"));
         assertThrows(IllegalArgumentException.class, () -> list("123InvalidName"));
         assertThrows(IllegalArgumentException.class, () -> list("invalidName-"));
         assertThrows(IllegalArgumentException.class, () -> list("invalid name"));

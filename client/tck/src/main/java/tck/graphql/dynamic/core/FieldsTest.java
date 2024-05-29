@@ -58,6 +58,11 @@ public class FieldsTest {
         assertDoesNotThrow(() -> field("_:v1"));
         assertDoesNotThrow(() -> field("___"));
         assertDoesNotThrow(() -> field("o"));
+        assertDoesNotThrow(() -> field(" valid_name "));
+        assertDoesNotThrow(() -> field("o1: b"));
+        assertDoesNotThrow(() -> field("o12 ,,, : ,,, bbbee1"));
+        assertDoesNotThrow(() -> field(",,,,valid_name,,,,"));
+        assertDoesNotThrow(() -> field("foo:\tbar"));
     }
 
     @Test
@@ -66,7 +71,6 @@ public class FieldsTest {
         assertThrows(IllegalArgumentException.class, () -> field(""));
         assertThrows(IllegalArgumentException.class, () -> field("invalid_nam&e"));
         assertThrows(IllegalArgumentException.class, () -> field("1invalid_name"));
-        assertThrows(IllegalArgumentException.class, () -> field(" invalid_name"));
         assertThrows(IllegalArgumentException.class, () -> field(":invalid_name"));
         assertThrows(IllegalArgumentException.class, () -> field("invalid name"));
         assertThrows(IllegalArgumentException.class, () -> field("invalid_name:"));
@@ -74,5 +78,7 @@ public class FieldsTest {
         assertThrows(IllegalArgumentException.class, () -> field("a:1"));
         assertThrows(IllegalArgumentException.class, () -> field("invalid::name"));
         assertThrows(IllegalArgumentException.class, () -> field("field:name:name2"));
+        assertThrows(IllegalArgumentException.class, () -> field(" invalid,name"));
+        assertThrows(IllegalArgumentException.class, () -> field("invalid\tname"));
     }
 }
