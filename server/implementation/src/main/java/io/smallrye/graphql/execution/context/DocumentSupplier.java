@@ -1,5 +1,6 @@
 package io.smallrye.graphql.execution.context;
 
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import graphql.ExecutionInput;
@@ -25,11 +26,16 @@ public class DocumentSupplier implements Supplier<Document> {
             ParseAndValidateResult parse = ParseAndValidate.parse(executionInput);
             return parse.isFailure() ? null : parse.getDocument();
         } else {
-            PreparsedDocumentEntry documentEntry = queryCache.getDocument(executionInput, ei -> {
-                ParseAndValidateResult parse = ParseAndValidate.parse(ei);
-                return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
-                        : new PreparsedDocumentEntry(parse.getDocument());
-            });
+            PreparsedDocumentEntry documentEntry = null;
+            try {
+                documentEntry = queryCache.getDocumentAsync(executionInput, ei -> {
+                    ParseAndValidateResult parse = ParseAndValidate.parse(ei);
+                    return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
+                            : new PreparsedDocumentEntry(parse.getDocument());
+                }).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
             return documentEntry.hasErrors() ? null : documentEntry.getDocument();
         }
     }
