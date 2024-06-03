@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
-    <version>2.8.5-SNAPSHOT</version>
+    <version>2.9.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <name>SmallRye: GraphQL Parent</name>
@@ -37,7 +37,7 @@
         <version.jakarta.servlet>6.0.0</version.jakarta.servlet>
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
         <version.graphql-java-federation>4.4.0</version.graphql-java-federation>
-        <version.graphql-java>21.3</version.graphql-java>
+        <version.graphql-java>22.1</version.graphql-java>
         <version.extended-scalars>21.0</version.extended-scalars>
         <verison.io.micrometer>1.11.3</verison.io.micrometer>
         <version.vertx>4.5.4</version.vertx>

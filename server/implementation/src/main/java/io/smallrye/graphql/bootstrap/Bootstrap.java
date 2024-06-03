@@ -727,6 +727,12 @@ public class Bootstrap {
                 directiveBuilder.argument(argumentBuilder.build());
             }
         }
+        directiveBuilder.validLocations(directiveInstance
+                .getType()
+                .getLocations()
+                .stream()
+                .map(location -> DirectiveLocation.valueOf(DirectiveLocation.class, location))
+                .toArray(DirectiveLocation[]::new));
 
         return directiveBuilder.build();
     }
