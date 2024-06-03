@@ -186,7 +186,7 @@ public class SchemaBuilderTest {
         Type containerInterface = interfaces.get("ContainerInterface");
         Field containerInterfaceField = containerInterface.getFields().get("inheritField");
 
-        // TODO: Should be FieldInterface according to GraphQL Spec: https://spec.graphql.org/October2021/#sec-Objects.Type-Validation
+        // TODO: Should be FieldType according to GraphQL Spec: https://spec.graphql.org/October2021/#sec-Objects.Type-Validation
         assertEquals("io.smallrye.graphql.index.inherit.FieldInterface",
                 containerTypeField.getReference().getClassName());
         assertEquals("io.smallrye.graphql.index.inherit.FieldInterface",
