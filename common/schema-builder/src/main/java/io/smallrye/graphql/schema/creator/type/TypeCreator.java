@@ -1,11 +1,6 @@
 package io.smallrye.graphql.schema.creator.type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,24 +40,28 @@ public class TypeCreator extends AbstractCreator {
     @Override
     protected void addFields(Type type, ClassInfo classInfo, Reference reference) {
         // Fields
-        List<MethodInfo> allMethods = new ArrayList<>();
+        Map<String, MethodInfo> allMethods = new HashMap<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
 
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
             if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
                 List<MethodInfo> classMethods = filterOutBridgeMethod(c.methods());
-                allMethods.addAll(classMethods);
-                allMethods.addAll(getAllInterfaceMethods(c, classMethods
+                for (MethodInfo classMethod : classMethods) {
+                    allMethods.putIfAbsent(classMethod.name(), classMethod);
+                }
+                for (MethodInfo interfaceMethod : getAllInterfaceMethods(c, classMethods
                         .stream()
-                        .map(MethodInfo::toString)
-                        .collect(Collectors.toSet())));
+                        .map(MethodInfo::name)
+                        .collect(Collectors.toSet()))) {
+                    allMethods.putIfAbsent(interfaceMethod.name(), interfaceMethod);
+                }
                 for (FieldInfo fieldInfo : c.fields()) {
                     allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
             }
         }
-        for (MethodInfo methodInfo : allMethods) {
+        for (MethodInfo methodInfo : allMethods.values()) {
             if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)) {
                 String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
                 FieldInfo fieldInfo = allFields.remove(fieldName);
@@ -101,7 +100,7 @@ public class TypeCreator extends AbstractCreator {
                                 parentInterfaceInfo
                                         .methods())
                                 .stream()
-                                .filter(method -> isNotGenericType(method) && methodMemory.add(method.toString())),
+                                .filter(method -> isNotGenericType(method) && methodMemory.add(method.name())),
                         getAllInterfaceMethods(parentInterfaceInfo, methodMemory).stream()))
                 .collect(Collectors.toList());
     }
