@@ -20,6 +20,7 @@ public class FragmentReferencesTest {
         assertDoesNotThrow(() -> fragmentRef("_"));
         assertDoesNotThrow(() -> fragmentRef("frag_ment"));
         assertDoesNotThrow(() -> fragmentRef("one"));
+        assertDoesNotThrow(() -> fragmentRef(" two,, ,"));
     }
 
     @Test
@@ -33,5 +34,6 @@ public class FragmentReferencesTest {
         assertThrows(IllegalArgumentException.class, () -> fragmentRef("in:valid"));
         assertThrows(IllegalArgumentException.class, () -> fragmentRef("inv@lid"));
         assertThrows(IllegalArgumentException.class, () -> fragmentRef("on"));
+        assertThrows(IllegalArgumentException.class, () -> fragmentRef(" invalid_frag,ment"));
     }
 }
