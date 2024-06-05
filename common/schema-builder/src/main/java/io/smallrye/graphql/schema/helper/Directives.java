@@ -18,6 +18,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
+import graphql.language.StringValue;
+import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.policy.Policy;
 import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.schema.Annotations;
@@ -82,7 +84,12 @@ public class Directives {
                 // For both of these directives, we need to process the annotation values as nested arrays of strings
                 directiveInstance.setValue(annotationValueName, valueObjectNestedList(annotationValue));
             } else {
-                directiveInstance.setValue(annotationValueName, valueObject(annotationValue));
+                if (directiveType.getClassName().equals(Key.class.getName()) && annotationValueName.equals("fields")) {
+                    directiveInstance.setValue(annotationValueName,
+                            new StringValue((String) valueObject(annotationValue.asNested().value())));
+                } else {
+                    directiveInstance.setValue(annotationValueName, valueObject(annotationValue));
+                }
             }
         }
 

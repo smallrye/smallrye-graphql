@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.AfterEach;
 
+import graphql.language.StringValue;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
@@ -33,8 +33,8 @@ public abstract class SchemaTestBase {
         assertEquals("fields", graphQLDirective.getArguments().get(0).getName());
         assertEquals("resolvable", graphQLDirective.getArguments().get(1).getName());
         assertEquals(fieldsValue,
-                ((Map<?, ?>) graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue())
-                        .get("value"));
+                ((StringValue) graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue())
+                        .getValue());
         assertEquals(resolvableValue, graphQLDirective.getArguments().get(1).toAppliedArgument().getArgumentValue().getValue());
         assertEquals(true, graphQLDirective.getArguments().get(1).getArgumentDefaultValue().getValue());
     }

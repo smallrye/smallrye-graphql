@@ -185,13 +185,13 @@ class SchemaTest extends SchemaTestBase {
         System.setProperty("smallrye.graphql.federation.enabled", "false");
 
         GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, Keys.class,
-                TestTypeWithFederation.class, FederationTestApi.class);
+                TestTypeWithFederation.class, FederationTestApi.class, TestInterfaceWitFederation.class);
 
         assertNull(graphQLSchema.getDirective("key"));
         assertNull(graphQLSchema.getType("_Entity"));
 
         GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
-        assertEquals(1, queryRoot.getFields().size());
+        assertEquals(2, queryRoot.getFields().size());
         assertNull(queryRoot.getField("_entities"));
         assertNull(queryRoot.getField("_service"));
 

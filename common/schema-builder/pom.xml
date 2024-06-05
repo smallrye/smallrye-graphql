@@ -19,6 +19,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>smallrye-graphql-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java</artifactId>
+        </dependency>
 
         <!-- The model -->
         <dependency>
