@@ -9,4 +9,9 @@ public class FederationTestApi {
     public TestTypeWithFederation testTypeWithFederation(String arg) {
         return null;
     }
+
+    @Query
+    public TestInterfaceWitFederation testInterfaceWitFederation(String arg) {
+        return null;
+    }
 }

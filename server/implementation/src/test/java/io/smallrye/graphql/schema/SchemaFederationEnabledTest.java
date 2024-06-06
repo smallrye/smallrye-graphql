@@ -4,6 +4,7 @@ import static graphql.Scalars.GraphQLString;
 import static graphql.introspection.Introspection.DirectiveLocation.INTERFACE;
 import static graphql.introspection.Introspection.DirectiveLocation.OBJECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,12 +13,16 @@ import java.util.EnumSet;
 
 import org.junit.jupiter.api.Test;
 
+import graphql.language.StringValue;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLUnionType;
 import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.api.federation.FieldSet;
@@ -33,7 +38,7 @@ class SchemaFederationEnabledTest extends SchemaTestBase {
         System.setProperty("smallrye.graphql.federation.enabled", "true");
         try {
             GraphQLSchema graphQLSchema = createGraphQLSchema(Repeatable.class, Directive.class, Key.class, Keys.class,
-                    FieldSet.class, TestTypeWithFederation.class, FederationTestApi.class);
+                    FieldSet.class, TestTypeWithFederation.class, FederationTestApi.class, TestInterfaceWitFederation.class);
 
             GraphQLDirective keyDirective = graphQLSchema.getDirective("key");
             assertEquals("key", keyDirective.getName());
@@ -58,7 +63,7 @@ class SchemaFederationEnabledTest extends SchemaTestBase {
             assertEquals(TestTypeWithFederation.class.getSimpleName(), entityType.getTypes().get(0).getName());
 
             GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
-            assertEquals(3, queryRoot.getFields().size());
+            assertEquals(4, queryRoot.getFields().size());
 
             GraphQLFieldDefinition entities = queryRoot.getField("_entities");
             assertEquals(1, entities.getArguments().size());
@@ -90,6 +95,15 @@ class SchemaFederationEnabledTest extends SchemaTestBase {
             assertEquals(1, serviceType.getFields().size());
             assertEquals("sdl", serviceType.getFields().get(0).getName());
             assertEquals("String!", serviceType.getFields().get(0).getType().toString());
+
+            GraphQLType interfaceType = graphQLSchema.getType("TestInterfaceWitFederation");
+            assertNotNull(interfaceType);
+            assertInstanceOf(GraphQLInterfaceType.class, interfaceType);
+            GraphQLDirective interfaceDirective = ((GraphQLInterfaceType) interfaceType).getDirectives().get(0);
+            assertEquals("key", interfaceDirective.getName());
+            GraphQLArgument interfaceFieldsArgument = interfaceDirective.getArgument("fields");
+            assertNotNull(interfaceFieldsArgument);
+            assertEquals("id", ((StringValue) interfaceFieldsArgument.getArgumentValue().getValue()).getValue());
         } finally {
             System.clearProperty("smallrye.graphql.federation.enabled");
         }
