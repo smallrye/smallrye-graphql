@@ -1,11 +1,6 @@
 package io.smallrye.graphql.schema.creator.type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,28 +40,34 @@ public class TypeCreator extends AbstractCreator {
     @Override
     protected void addFields(Type type, ClassInfo classInfo, Reference reference) {
         // Fields
-        List<MethodInfo> allMethods = new ArrayList<>();
+        List<List<MethodInfo>> allMethods = new LinkedList<>();
         Map<String, FieldInfo> allFields = new HashMap<>();
 
         // Find all methods and properties up the tree
         for (ClassInfo c = classInfo; c != null; c = ScanningContext.getIndex().getClassByName(c.superName())) {
+            List<MethodInfo> listMethods = new ArrayList<>();
+
             if (InterfaceCreator.canAddInterfaceIntoScheme(c.toString())) { // Not java objects
                 List<MethodInfo> classMethods = filterOutBridgeMethod(c.methods());
-                allMethods.addAll(classMethods);
-                allMethods.addAll(getAllInterfaceMethods(c, classMethods
+                listMethods.addAll(getAllInterfaceMethods(c, classMethods
                         .stream()
                         .map(MethodInfo::toString)
                         .collect(Collectors.toSet())));
+                listMethods.addAll(classMethods);
                 for (FieldInfo fieldInfo : c.fields()) {
                     allFields.putIfAbsent(fieldInfo.name(), fieldInfo);
                 }
             }
+
+            allMethods.add(0, listMethods);
         }
-        for (MethodInfo methodInfo : allMethods) {
-            if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)) {
-                String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
-                FieldInfo fieldInfo = allFields.remove(fieldName);
-                fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference).ifPresent(type::addField);
+        for (List<MethodInfo> listMethods : allMethods) {
+            for (MethodInfo methodInfo : listMethods) {
+                if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)) {
+                    String fieldName = MethodHelper.getPropertyName(Direction.OUT, methodInfo.name());
+                    FieldInfo fieldInfo = allFields.remove(fieldName);
+                    fieldCreator.createFieldForPojo(Direction.OUT, fieldInfo, methodInfo, reference).ifPresent(type::addField);
+                }
             }
         }
 
