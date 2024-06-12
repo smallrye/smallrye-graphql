@@ -24,7 +24,7 @@ public class OneOfSchema {
     }
 
     @Query
-    public SomeClass someQuery(SomeClass someClass) {
+    public String someQuery(SomeClass someClass) {
         return null;
     }
 }
