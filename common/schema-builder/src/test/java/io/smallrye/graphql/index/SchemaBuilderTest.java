@@ -216,7 +216,8 @@ public class SchemaBuilderTest {
         assertEquals("someDirective", someDirective.getName());
         assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
         assertEquals(singleton("value"), someDirective.argumentNames());
-        assertEquals(new HashSet<>(asList("INTERFACE", "FIELD_DEFINITION", "OBJECT")), someDirective.getLocations());
+        assertEquals(new HashSet<>(asList("INTERFACE", "FIELD_DEFINITION", "OBJECT", "INPUT_OBJECT", "INPUT_FIELD_DEFINITION")),
+                someDirective.getLocations());
 
         // check directive instances on type
         Type movie = schema.getTypes().get("Movie");

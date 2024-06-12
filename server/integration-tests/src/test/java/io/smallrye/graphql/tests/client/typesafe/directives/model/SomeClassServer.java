@@ -2,17 +2,14 @@ package io.smallrye.graphql.tests.client.typesafe.directives.model;
 
 import java.util.Objects;
 
-import io.smallrye.graphql.tests.client.typesafe.directives.FieldDirective;
-
-public class SomeClass {
-    @FieldDirective(fields = 4)
+public class SomeClassServer {
     private String id;
     private int number;
 
-    public SomeClass() {
+    public SomeClassServer() {
     }
 
-    public SomeClass(String id, int number) {
+    public SomeClassServer(String id, int number) {
         this.id = id;
         this.number = number;
     }
@@ -39,7 +36,7 @@ public class SomeClass {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        SomeClass someClass = (SomeClass) o;
+        SomeClassServer someClass = (SomeClassServer) o;
         return number == someClass.number && Objects.equals(id, someClass.id);
     }
 
