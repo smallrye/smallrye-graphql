@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.impl;
 
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -8,12 +9,9 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-
-import org.eclipse.yasson.internal.JsonBinding;
 
 import io.smallrye.graphql.client.Request;
 
@@ -75,9 +73,9 @@ public class RequestImpl implements Request {
                 varBuilder.addNull(k);
             } else {
                 try (Jsonb jsonb = JsonbBuilder.create()) {
-                    JsonStructure struct = ((JsonBinding) jsonb).toJsonStructure(v);
-                    varBuilder.add(k, struct);
-                } catch (Exception ignore) {
+                    varBuilder.add(k, Json.createReader(new StringReader(jsonb.toJson(v))).read());
+                } catch (Exception e) {
+                    throw new RuntimeException("Error converting variable to JSON", e);
                 }
             }
         });
