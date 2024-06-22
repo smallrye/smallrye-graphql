@@ -47,10 +47,13 @@ public class TransformException extends AbstractDataFetcherException {
 
         List<String> paths = toPathList(handlerParameters.getPath());
 
-        ValidationError error = new ValidationError(ValidationErrorType.WrongType,
-                sourceLocation, "argument '" + field.getName() + "' with value 'StringValue{value='" + parameterValue
-                        + "'}' is not a valid '" + getScalarTypeName() + "'",
-                paths);
+        ValidationError error = new ValidationError.Builder()
+                .validationErrorType(ValidationErrorType.WrongType)
+                .sourceLocation(sourceLocation)
+                .description("argument '" + field.getName() + "' with value 'StringValue{value='" + parameterValue
+                        + "'}' is not a valid '" + getScalarTypeName() + "'")
+                .queryPath(paths)
+                .build();
 
         return builder.error(error);
     }

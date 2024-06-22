@@ -16,6 +16,7 @@ public class OperationsTest {
         assertDoesNotThrow(() -> operation("_myOperation"));
         assertDoesNotThrow(() -> operation("my_operation"));
         assertDoesNotThrow(() -> operation("my123Operation"));
+        assertDoesNotThrow(() -> operation(",, ,myOperation ,"));
         assertDoesNotThrow(() -> operation("o"));
         assertDoesNotThrow(() -> operation("_"));
         assertDoesNotThrow(() -> operation("op_eration"));
@@ -35,6 +36,7 @@ public class OperationsTest {
         assertThrows(IllegalArgumentException.class, () -> operation("InvalidName::"));
         assertThrows(IllegalArgumentException.class, () -> operation("@InvalidName"));
         assertThrows(IllegalArgumentException.class, () -> operation("my.Operation"));
+        assertThrows(IllegalArgumentException.class, () -> operation("my,Operation"));
         assertThrows(IllegalArgumentException.class, () -> operation("my-Operation"));
     }
 }

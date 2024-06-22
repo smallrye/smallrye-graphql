@@ -18,10 +18,13 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
+import graphql.language.StringValue;
+import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.policy.Policy;
 import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.ScanningContext;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.DirectiveType;
 
@@ -56,16 +59,14 @@ public class Directives {
         return directiveTypes.keySet().stream()
                 .flatMap(annotations::resolve)
                 .map(this::toDirectiveInstance)
-                .filter(directiveInstance -> {
+                .peek(directiveInstance -> {
                     if (!directiveInstance.getType().getLocations().contains(directiveLocation)) {
-                        LOG.warnf(
+                        throw new SchemaBuilderException(String.format(
                                 "Directive instance: '%s' assigned to '%s' cannot be applied." +
                                         " The directive is allowed on locations '%s' but on '%s'",
                                 directiveInstance.getType().getClassName(), referenceName,
-                                directiveInstance.getType().getLocations(), directiveLocation);
-                        return false;
+                                directiveInstance.getType().getLocations(), directiveLocation));
                     }
-                    return true;
                 })
                 .collect(toList());
     }
@@ -82,7 +83,12 @@ public class Directives {
                 // For both of these directives, we need to process the annotation values as nested arrays of strings
                 directiveInstance.setValue(annotationValueName, valueObjectNestedList(annotationValue));
             } else {
-                directiveInstance.setValue(annotationValueName, valueObject(annotationValue));
+                if (directiveType.getClassName().equals(Key.class.getName()) && annotationValueName.equals("fields")) {
+                    directiveInstance.setValue(annotationValueName,
+                            new StringValue((String) valueObject(annotationValue.asNested().value())));
+                } else {
+                    directiveInstance.setValue(annotationValueName, valueObject(annotationValue));
+                }
             }
         }
 

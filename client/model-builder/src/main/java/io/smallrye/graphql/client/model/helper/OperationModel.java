@@ -21,12 +21,13 @@ import org.jboss.jandex.JandexReflection;
 import org.jboss.jandex.MethodInfo;
 
 import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.model.MethodKey;
 
 /**
  * Represents a model for a GraphQL operation method, providing methods to generate GraphQL query fields,
  * handle parameter bindings, and extract operation-related information.
+ *
+ * @author mskacelik
  */
 public class OperationModel implements NamedElement {
     private final MethodInfo method;
@@ -69,7 +70,7 @@ public class OperationModel implements NamedElement {
      */
     public String fields(TypeModel type) {
         if (typeStack.contains(type.getName()))
-            throw SmallRyeGraphQLClientMessages.msg.fieldRecursionFound();
+            throw new IllegalStateException("field recursion found");
         try {
             typeStack.push(type.getName());
             return recursionCheckedFields(type);
@@ -222,11 +223,10 @@ public class OperationModel implements NamedElement {
     }
 
     /**
-     * Gets the name of the GraphQL subscription, considering any {@link io.smallrye.graphql.api.Subscription} annotation.
+     * Gets the name of the GraphQL subscription, considering any io.smallrye.graphql.api.Subscription annotation.
      *
      * @return An optional containing the subscription name if specified, otherwise empty.
      */
-
     public Optional<String> subscriptionName() {
         Optional<AnnotationInstance> subscriptionAnnotation = getMethodAnnotation(SUBCRIPTION);
         if (subscriptionAnnotation.isPresent() && subscriptionAnnotation.orElseThrow().value() != null)
@@ -343,10 +343,10 @@ public class OperationModel implements NamedElement {
     /**
      * Gets the key for identifying the GraphQL operation method.
      *
-     * @return The {@link MethodKey} representing the key for the operation method (return type, name, parameters types).
+     * @return The {@link MethodKey} representing the key for the operation method (name, parameters types).
      */
     public MethodKey getMethodKey() {
-        return new MethodKey(JandexReflection.loadRawType(method.returnType()), method.name(), method.parameters().stream()
+        return new MethodKey(method.name(), method.parameters().stream()
                 .map(methodParameterInfo -> JandexReflection.loadRawType(methodParameterInfo.type())).toArray(Class<?>[]::new));
     }
 

@@ -26,6 +26,10 @@ public class FieldSetCoercing implements Coercing<Object, String> {
             } else {
                 throw new RuntimeException("Can not parse a String from [" + typeName(value) + "]");
             }
+        } else if (input instanceof String) {
+            return (String) input;
+        } else if (input instanceof StringValue) {
+            return ((StringValue) input).getValue();
         } else {
             throw new RuntimeException("Can not parse a FieldSet from [" + typeName(input) + "]");
         }

@@ -19,6 +19,8 @@ import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 /**
+ * Testing query building using the client model implementation.
+ *
  * @author mskacelik
  */
 public class ClientModelBuilderTest {
@@ -43,15 +45,15 @@ public class ClientModelBuilderTest {
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
         assertEquals(3, clientModel.getOperationMap().size());
         assertOperation(clientModel,
-                new MethodKey(Integer.class, "returnInteger", new Class<?>[] { Integer.class }),
+                new MethodKey("returnInteger", new Class<?>[] { Integer.class }),
                 "query returnInteger($someNumber: Int) { returnInteger(someNumber: $someNumber) }");
 
         assertOperation(clientModel,
-                new MethodKey(String.class, "returnString", new Class<?>[] { String.class }),
+                new MethodKey("returnString", new Class<?>[] { String.class }),
                 "mutation returnString($someString: String) { returnString(someString: $someString) }");
 
         assertOperation(clientModel,
-                new MethodKey(float.class, "returnNonNullFloat", new Class<?>[] { float.class }),
+                new MethodKey("returnNonNullFloat", new Class<?>[] { float.class }),
                 "subscription returnNonNullFloat($someFloat: Float!) { returnNonNullFloat(someFloat: $someFloat) }");
     }
 
@@ -75,15 +77,15 @@ public class ClientModelBuilderTest {
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
         assertEquals(3, clientModel.getOperationMap().size());
         assertOperation(clientModel,
-                new MethodKey(Collection.class, "returnIntegerCollection", new Class<?>[] { Integer[].class }),
+                new MethodKey("returnIntegerCollection", new Class<?>[] { Integer[].class }),
                 "query returnIntegerCollection($someNumbers: [Int]) { returnIntegerCollection(someNumbers: $someNumbers) }");
 
         assertOperation(clientModel,
-                new MethodKey(List.class, "returnStringList", new Class<?>[] { Set.class }),
+                new MethodKey("returnStringList", new Class<?>[] { Set.class }),
                 "mutation returnStringList($someStrings: [String]) { returnStringList(someStrings: $someStrings) }");
 
         assertOperation(clientModel,
-                new MethodKey(ArrayList.class, "returnFloatArrayList", new Class<?>[] { HashSet.class }),
+                new MethodKey("returnFloatArrayList", new Class<?>[] { HashSet.class }),
                 "subscription returnFloatArrayList($someFloats: [Float]) { returnFloatArrayList(someFloats: $someFloats) }");
     }
 
@@ -96,7 +98,7 @@ public class ClientModelBuilderTest {
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
         assertEquals(1, clientModel.getOperationMap().size());
         assertOperation(clientModel,
-                new MethodKey(SimpleObjectClientApi.SomeObject.class, "returnSomeObject",
+                new MethodKey("returnSomeObject",
                         new Class<?>[] { SimpleObjectClientApi.SomeObject.class }),
                 "query returnSomeObject($someObject: SomeObjectInput) { returnSomeObject(someObject: $someObject) {name innerObject {someInt}} }");
     }
@@ -130,7 +132,7 @@ public class ClientModelBuilderTest {
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
         assertEquals(1, clientModel.getOperationMap().size());
         assertOperation(clientModel,
-                new MethodKey(List.class, "returnSomeGenericObject", new Class<?>[] { List.class }),
+                new MethodKey("returnSomeGenericObject", new Class<?>[] { List.class }),
                 "query returnSomeGenericObject($someObject: [SomeGenericClassInput])" +
                         " { returnSomeGenericObject(someObject: $someObject) {somethingParent {number}" +
                         " field1 {number} field2 {innerField {number} something {someObject {someThingElse" +
@@ -172,6 +174,40 @@ public class ClientModelBuilderTest {
         class SomeObjectFive<S> {
             S someThingElse;
         }
+    }
+
+    @GraphQLClientApi(configKey = "string-api")
+    interface StringApiChild extends StringApiParent {
+        @Query("strings")
+        List<String> allStrings();
+
+        List<String> allStrings0();
+
+    }
+
+    interface StringApiParent {
+        List<String> allStrings();
+
+        List<String> allStrings2();
+    }
+
+    @Test
+    void inheritedOperationsClientModelTest() throws IOException {
+        String configKey = "string-api";
+        ClientModels clientModels = ClientModelBuilder
+                .build(Index.of(StringApiChild.class, StringApiParent.class));
+        assertNotNull(clientModels.getClientModelByConfigKey(configKey));
+        ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
+        assertEquals(3, clientModel.getOperationMap().size());
+        assertOperation(clientModel,
+                new MethodKey("allStrings", new Class[0]),
+                "query strings { strings }");
+        assertOperation(clientModel,
+                new MethodKey("allStrings2", new Class[0]),
+                "query allStrings2 { allStrings2 }");
+        assertOperation(clientModel,
+                new MethodKey("allStrings0", new Class[0]),
+                "query allStrings0 { allStrings0 }");
     }
 
     private void assertOperation(ClientModel clientModel, MethodKey methodKey, String expectedQuery) {

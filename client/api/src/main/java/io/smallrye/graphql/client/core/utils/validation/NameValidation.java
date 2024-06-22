@@ -12,7 +12,8 @@ public class NameValidation {
     /**
      * The regular expression patterns for a valid GraphQL names.
      */
-    private static final String _NAME_REGEX = "[a-zA-Z_][a-zA-Z0-9_]*";
+    private static final String _IGNORED_TOKENS_REGEX = "[,\\s]*"; // for now, whitespaces and commas
+    private static final String _NAME_REGEX = _IGNORED_TOKENS_REGEX + "[a-zA-Z_][a-zA-Z0-9_]*" + _IGNORED_TOKENS_REGEX;
     private static final String _FIELD_NAME_REGEX = "^" + _NAME_REGEX + "(:" + _NAME_REGEX + ")?$";
     private static final Pattern NAME_PATTERN = Pattern.compile(_NAME_REGEX);
     private static final Pattern FIELD_NAME_PATTERN = Pattern.compile(_FIELD_NAME_REGEX);

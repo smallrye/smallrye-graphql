@@ -46,6 +46,7 @@ public class FragmentsTest {
         assertDoesNotThrow(() -> fragment("_"));
         assertDoesNotThrow(() -> fragment("frag_ment"));
         assertDoesNotThrow(() -> fragment("one"));
+        assertDoesNotThrow(() -> fragment(",,,two "));
     }
 
     @Test
@@ -60,5 +61,6 @@ public class FragmentsTest {
         assertThrows(IllegalArgumentException.class, () -> fragment("...fragmentinvalid"));
         assertThrows(IllegalArgumentException.class, () -> fragment("inv@lid"));
         assertThrows(IllegalArgumentException.class, () -> fragment("on"));
+        assertThrows(IllegalArgumentException.class, () -> fragment("frag,ment"));
     }
 }

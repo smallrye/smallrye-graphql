@@ -23,7 +23,10 @@ import java.util.stream.Collectors;
 
 import jakarta.annotation.security.RolesAllowed;
 
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import graphql.schema.GraphQLArgument;
@@ -48,7 +51,6 @@ import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema1;
 import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema2;
 import io.smallrye.graphql.schema.rolesallowedschemas.RolesSchema3;
 import io.smallrye.graphql.schema.schemadirectives.NonRepeatableSchemaDirective;
-import io.smallrye.graphql.schema.schemadirectives.OutputDirective;
 import io.smallrye.graphql.schema.schemadirectives.RepeatableSchemaDirective;
 import io.smallrye.graphql.schema.schemadirectives.Schema1;
 import io.smallrye.graphql.schema.schemadirectives.Schema2;
@@ -160,8 +162,8 @@ class SchemaTest extends SchemaTestBase {
 
     @Test
     void schemaWithInputDirectives() {
-        GraphQLSchema graphQLSchema = createGraphQLSchema(InputDirective.class, OutputDirective.class,
-                InputTestApi.class, InputTestApi.InputWithDirectives.class, InputTestApi.SomeObject.class);
+        GraphQLSchema graphQLSchema = createGraphQLSchema(InputDirective.class,
+                InputTestApi.class, InputTestApi.InputWithDirectives.class);
 
         GraphQLInputObjectType inputWithDirectives = graphQLSchema.getTypeAs("InputWithDirectivesInput");
         assertNotNull(inputWithDirectives.getDirective("inputDirective"),
@@ -172,10 +174,6 @@ class SchemaTest extends SchemaTestBase {
         assertEquals("InputTypeField description", inputWithDirectives.getField("foo").getDescription());
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
-
-        GraphQLInputObjectType outputAsInputWithDirectives = graphQLSchema.getTypeAs("SomeObjectInput");
-        assertNull(outputAsInputWithDirectives.getDirective("outputDirective"),
-                "Input type SomeObject should not have directive @outputDirective");
     }
 
     @Test
@@ -185,13 +183,13 @@ class SchemaTest extends SchemaTestBase {
         System.setProperty("smallrye.graphql.federation.enabled", "false");
 
         GraphQLSchema graphQLSchema = createGraphQLSchema(Directive.class, Key.class, Keys.class,
-                TestTypeWithFederation.class, FederationTestApi.class);
+                TestTypeWithFederation.class, FederationTestApi.class, TestInterfaceWitFederation.class);
 
         assertNull(graphQLSchema.getDirective("key"));
         assertNull(graphQLSchema.getType("_Entity"));
 
         GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
-        assertEquals(1, queryRoot.getFields().size());
+        assertEquals(2, queryRoot.getFields().size());
         assertNull(queryRoot.getField("_entities"));
         assertNull(queryRoot.getField("_service"));
 
@@ -319,10 +317,6 @@ class SchemaTest extends SchemaTestBase {
         GraphQLFieldDefinition someQuery = queryRoot.getField("someQuery");
         assertNotNull(someQuery);
 
-        GraphQLObjectType someClassOutput = graphQLSchema.getTypeAs("SomeClass");
-        assertNotNull(someClassOutput);
-        assertEquals(0, someClassOutput.getDirectives().size());
-
         GraphQLInputObjectType someClassInput = graphQLSchema.getTypeAs("SomeClassInput");
         assertNotNull(someClassInput);
         assertEquals(1, someClassInput.getDirectives().size());
@@ -335,6 +329,100 @@ class SchemaTest extends SchemaTestBase {
         assertNotNull(oneOfDirective);
         assertEquals(0, oneOfDirective.getArguments().size());
         assertEquals("Indicates an Input Object is a OneOf Input Object.", oneOfDirective.getDescription());
+    }
+
+    @GraphQLApi
+    static class SchemaWithWrongAppliedDirective1 {
+        @InputDirective
+        static class SomeObject {
+            private String field;
+
+            public SomeObject() {
+            }
+
+            public String getField() {
+                return field;
+            }
+
+            public void setField(String field) {
+                this.field = field;
+            }
+        }
+
+        @Query
+        public SomeObject someOperation(SomeObject someObject) {
+            return null;
+        }
+    }
+
+    @GraphQLApi
+    static class SchemaWithWrongAppliedDirective2 {
+
+        static class SomeObject {
+            @InputDirective
+            private String field;
+
+            public SomeObject() {
+            }
+
+            public String getField() {
+                return field;
+            }
+
+            public void setField(String field) {
+                this.field = field;
+            }
+        }
+
+        @Query
+        public SomeObject someOperation(SomeObject someObject) {
+            return null;
+        }
+    }
+
+    @GraphQLApi
+    static class SchemaWithWrongAppliedDirective3 {
+
+        @ArgumentDirective
+        @Query
+        public String someOperation() {
+            return null;
+        }
+    }
+
+    @Nested
+    class WrongAppliedDirectiveTests {
+        @Test
+        void inputDirectiveOnAOutputObjectTest() {
+            Throwable throwable = assertThrows(SchemaBuilderException.class,
+                    () -> createGraphQLSchema(SchemaWithWrongAppliedDirective1.class,
+                            SchemaWithWrongAppliedDirective1.SomeObject.class, InputDirective.class));
+            assertEquals("Directive instance: 'io.smallrye.graphql.schema.InputDirective' assigned to 'io.s" +
+                    "mallrye.graphql.schema.SchemaTest$SchemaWithWrongAppliedDirective1$SomeObject' cannot be applie" +
+                    "d. The directive is allowed on locations '[INPUT_FIELD_DEFINITION, INPUT_OBJECT]' but on 'OBJECT'",
+                    throwable.getMessage());
+        }
+
+        @Test
+        void inputFieldDirectiveOnAOutputFieldTest() {
+            Throwable throwable = assertThrows(SchemaBuilderException.class,
+                    () -> createGraphQLSchema(SchemaWithWrongAppliedDirective2.class,
+                            SchemaWithWrongAppliedDirective2.SomeObject.class, InputDirective.class));
+            assertEquals("Directive instance: 'io.smallrye.graphql.schema.InputDirective' assigned to 'fiel" +
+                    "d' cannot be applied. The directive is allowed on locations '[INPUT_FIELD_DEFINITION, IN" +
+                    "PUT_OBJECT]' but on 'FIELD_DEFINITION'",
+                    throwable.getMessage());
+        }
+
+        @Test
+        void wrongDirectiveLocationInGeneralTest() { // ARGUMENT_DEFINITION -> FIELD_DEFINITION
+            Throwable throwable = assertThrows(SchemaBuilderException.class,
+                    () -> createGraphQLSchema(SchemaWithWrongAppliedDirective3.class, ArgumentDirective.class));
+            assertEquals("Directive instance: 'io.smallrye.graphql.schema.ArgumentDirective' assigned to 's" +
+                    "omeOperation' cannot be applied. The directive is allowed on locations '[ARGUMENT_DEFIN" +
+                    "ITION]' but on 'FIELD_DEFINITION'",
+                    throwable.getMessage());
+        }
     }
 
     private void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {

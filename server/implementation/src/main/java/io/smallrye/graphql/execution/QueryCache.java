@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import graphql.ExecutionInput;
 import graphql.execution.instrumentation.InstrumentationContext;
+import graphql.execution.instrumentation.InstrumentationState;
 import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.execution.instrumentation.parameters.InstrumentationValidationParameters;
 import graphql.execution.preparsed.PreparsedDocumentEntry;
@@ -26,7 +27,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
     private final LRUCache<String, PreparsedDocumentEntry> cache = new LRUCache<>(MAX_CACHE_SIZE);
 
     @Override
-    public PreparsedDocumentEntry getDocument(ExecutionInput executionInput,
+    public CompletableFuture<PreparsedDocumentEntry> getDocumentAsync(ExecutionInput executionInput,
             Function<ExecutionInput, PreparsedDocumentEntry> computeFunction) {
         String query = executionInput.getQuery();
         PreparsedDocumentEntry entry = cache.get(query);
@@ -37,19 +38,19 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         } else {
             log.retrievedFromCache(query);
         }
-        return entry;
+        return CompletableFuture.completedFuture(entry);
     }
 
     @Override
     public InstrumentationContext<List<ValidationError>> beginValidation(
-            InstrumentationValidationParameters parameters) {
+            InstrumentationValidationParameters parameters, InstrumentationState state) {
 
         ExecutionFunction executionFunction = executionFunctionTL.get();
         executionFunctionTL.remove();
         if (executionFunction != null) {
             return new ValidationInstrumentationContext(executionFunction);
         }
-        return super.beginValidation(parameters);
+        return super.beginValidation(parameters, state);
     }
 
     private static class ExecutionFunction implements Function<String, PreparsedDocumentEntry> {
@@ -79,7 +80,7 @@ public class QueryCache extends SimpleInstrumentation implements PreparsedDocume
         }
 
         @Override
-        public void onDispatched(CompletableFuture<List<ValidationError>> result) {
+        public void onDispatched() {
             // no-op
         }
 

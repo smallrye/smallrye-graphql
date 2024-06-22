@@ -172,6 +172,28 @@ public class SchemaBuilderTest {
     }
 
     @Test
+    public void testSchemaWithInheritFieldBySubtype() {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/index/inherit/");
+
+        IndexView index = indexer.complete();
+        Schema schema = SchemaBuilder.build(index);
+        // Get Types
+        Map<String, Type> types = schema.getTypes();
+        Map<String, Type> interfaces = schema.getInterfaces();
+        Type containerType = types.get("ContainerType");
+        Field containerTypeField = containerType.getFields().get("inheritField");
+        Type containerInterface = interfaces.get("ContainerInterface");
+        Field containerInterfaceField = containerInterface.getFields().get("inheritField");
+
+        // Should be FieldType according to GraphQL Spec: https://spec.graphql.org/October2021/#sec-Objects.Type-Validation
+        assertEquals("io.smallrye.graphql.index.inherit.FieldType",
+                containerTypeField.getReference().getClassName());
+        assertEquals("io.smallrye.graphql.index.inherit.FieldInterface",
+                containerInterfaceField.getReference().getClassName());
+    }
+
+    @Test
     public void testSchemaWithDirectives() throws IOException {
         Indexer indexer = new Indexer();
         Path apiDir = Paths.get(System.getProperty("user.dir"), "../../server/api/target/classes/io/smallrye/graphql/api")
@@ -194,7 +216,8 @@ public class SchemaBuilderTest {
         assertEquals("someDirective", someDirective.getName());
         assertEquals(SomeDirective.class.getName(), someDirective.getClassName());
         assertEquals(singleton("value"), someDirective.argumentNames());
-        assertEquals(new HashSet<>(asList("INTERFACE", "FIELD_DEFINITION", "OBJECT")), someDirective.getLocations());
+        assertEquals(new HashSet<>(asList("INTERFACE", "FIELD_DEFINITION", "OBJECT", "INPUT_OBJECT", "INPUT_FIELD_DEFINITION")),
+                someDirective.getLocations());
 
         // check directive instances on type
         Type movie = schema.getTypes().get("Movie");

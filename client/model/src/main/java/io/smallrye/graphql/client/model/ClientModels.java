@@ -3,6 +3,13 @@ package io.smallrye.graphql.client.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents an object for all `ClientModel` (based on their configuration keys)
+ * instances within Quarkus application.
+ *
+ * @author mskacelik
+ */
+
 public class ClientModels {
     private Map<String, ClientModel> clientModelMap;
 
@@ -10,11 +17,11 @@ public class ClientModels {
         return clientModelMap.get(configKey);
     }
 
-    // bytecode recording
     public ClientModels() {
         clientModelMap = new HashMap<>();
     }
 
+    // bytecode recording
     public void setClientModelMap(Map<String, ClientModel> clientModelMap) {
         this.clientModelMap = clientModelMap;
     }

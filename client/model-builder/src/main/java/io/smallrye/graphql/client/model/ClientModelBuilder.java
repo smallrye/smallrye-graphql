@@ -22,6 +22,8 @@ import io.smallrye.graphql.client.model.helper.OperationModel;
  * Builder class for generating client models from Jandex index.
  * It scans for classes annotated with {@link Annotations#GRAPHQL_CLIENT_API} and generates client models based on the annotated
  * methods.
+ *
+ * @author mskacelik
  */
 
 public class ClientModelBuilder {
@@ -60,9 +62,9 @@ public class ClientModelBuilder {
             List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
             methods.stream().forEach(method -> {
                 String query = new QueryBuilder(method).build();
-                LOG.debugf("[%s] - Query created: %s", apiClass.name().toString(), query);
+                LOG.debugf("[%s] – Query created: %s", apiClass.name().toString(), query);
                 operationMap.getOperationMap()
-                        .put(OperationModel.of(method).getMethodKey(), query);
+                        .putIfAbsent(OperationModel.of(method).getMethodKey(), query);
             });
             clientModelMap.put(
                     (graphQLApiAnnotation.value("configKey") == null) ? apiClass.name().toString()

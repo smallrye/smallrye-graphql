@@ -11,6 +11,8 @@ import io.smallrye.graphql.client.model.helper.OperationModel;
 /**
  * A utility class for building GraphQL queries based on a given {@link MethodInfo} which will be scanned thanks
  * to Jandex during build-time.
+ *
+ * @author mskacelik
  */
 public class QueryBuilder {
     private final OperationModel method;
