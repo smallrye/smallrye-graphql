@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.impl;
 
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -8,18 +9,15 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 
-import org.eclipse.yasson.internal.JsonBinding;
-
 import io.smallrye.graphql.client.Request;
 
 public class RequestImpl implements Request {
-
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory JSON = Json.createBuilderFactory(null);
+    private static final Jsonb JSONB = JsonbBuilder.create();
 
     private final String document;
     private Map<String, Object> variables;
@@ -32,7 +30,7 @@ public class RequestImpl implements Request {
 
     @Override
     public String toJson() {
-        JsonObjectBuilder queryBuilder = jsonBuilderFactory.createObjectBuilder().add("query", document);
+        JsonObjectBuilder queryBuilder = JSON.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
             queryBuilder.add("variables", _formatJsonVariables());
         }
@@ -44,7 +42,7 @@ public class RequestImpl implements Request {
 
     @Override
     public JsonObject toJsonObject() {
-        JsonObjectBuilder queryBuilder = jsonBuilderFactory.createObjectBuilder().add("query", document);
+        JsonObjectBuilder queryBuilder = JSON.createObjectBuilder().add("query", document);
         if (!variables.isEmpty()) {
             queryBuilder.add("variables", _formatJsonVariables());
         }
@@ -55,7 +53,7 @@ public class RequestImpl implements Request {
     }
 
     private JsonObject _formatJsonVariables() {
-        JsonObjectBuilder varBuilder = jsonBuilderFactory.createObjectBuilder();
+        JsonObjectBuilder varBuilder = JSON.createObjectBuilder();
 
         variables.forEach((k, v) -> {
             // Other types to process here
@@ -74,11 +72,7 @@ public class RequestImpl implements Request {
             } else if (v == null) {
                 varBuilder.addNull(k);
             } else {
-                try (Jsonb jsonb = JsonbBuilder.create()) {
-                    JsonStructure struct = ((JsonBinding) jsonb).toJsonStructure(v);
-                    varBuilder.add(k, struct);
-                } catch (Exception ignore) {
-                }
+                varBuilder.add(k, Json.createReader(new StringReader(JSONB.toJson(v))).read());
             }
         });
 
