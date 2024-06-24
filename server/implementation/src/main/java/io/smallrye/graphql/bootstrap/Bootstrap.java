@@ -123,7 +123,7 @@ public class Bootstrap {
     }
 
     public static GraphQLSchema bootstrap(Schema schema, boolean skipInjectionValidation) {
-        if (schema != null && (schema.hasOperations())) {
+        if (schema != null && (schema.hasOperations() || Config.get().isFederationEnabled())) {
             Bootstrap bootstrap = new Bootstrap(schema, skipInjectionValidation);
             bootstrap.generateGraphQLSchema();
             return bootstrap.graphQLSchema;
