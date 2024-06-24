@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,11 +38,13 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class EventEmitter {
     private static final Logger LOG = Logger.getLogger(EventEmitter.class);
-    private static final ThreadLocal<EventEmitter> eventEmitters = ThreadLocal.withInitial(EventEmitter::new);
+
+    private static final EventEmitter INSTANCE = new EventEmitter();
+
     private final List<EventingService> enabledServices;
 
     public static EventEmitter getInstance() {
-        return eventEmitters.get();
+        return INSTANCE;
     }
 
     private EventEmitter() {
@@ -70,7 +73,7 @@ public class EventEmitter {
             }
         }
         enabledServices.sort(Comparator.comparing(this::getPriority));
-        this.enabledServices = enabledServices;
+        this.enabledServices = Collections.unmodifiableList(enabledServices);
     }
 
     private int getPriority(EventingService es) {
