@@ -18,13 +18,12 @@ import io.smallrye.graphql.execution.datafetcher.DataFetcherException;
  */
 public interface Config {
     static Logger LOG = Logger.getLogger(Config.class);
-    ServiceLoader<Config> configs = ServiceLoader.load(Config.class);
     Config config = init();
 
     static Config init() {
         Config c;
         try {
-            c = configs.iterator().next();
+            c = ServiceLoader.load(Config.class).iterator().next();
         } catch (Exception ex) {
             c = new Config() {
                 @Override
