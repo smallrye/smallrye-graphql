@@ -86,18 +86,16 @@ public class WrapperCreator {
             Annotations annotationsInParameterizedType = Annotations.getAnnotationsForArray(typeInCollection,
                     methodTypeInCollection);
 
-            return NonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, true);
+            return NonNullHelper.markAsNonNull(typeInCollection, annotationsInParameterizedType, false);
         }
         return false;
     }
 
     private static Type getTypeInCollection(Type type) {
         if (Classes.isArray(type)) {
-            Type typeInArray = type.asArrayType().component();
-            return getTypeInCollection(typeInArray);
+            return type.asArrayType().componentType();
         } else if (Classes.isParameterized(type)) {
-            Type typeInCollection = type.asParameterizedType().arguments().get(0);
-            return getTypeInCollection(typeInCollection);
+            return type.asParameterizedType().arguments().get(0);
         }
         return type;
     }

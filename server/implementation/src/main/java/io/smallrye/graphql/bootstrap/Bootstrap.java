@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -910,23 +911,25 @@ public class Bootstrap {
     }
 
     private GraphQLInputType createGraphQLInputType(Field field) {
-        GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
 
+        GraphQLInputType graphQLInputType = getGraphQLInputType(field.getReference());
         Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
         // Field can have a wrapper, like List<String>
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
+            Stack<Wrapper> stackOfWrappers = new Stack<>();
+            for (Wrapper currentWrapper = wrapper; currentWrapper != null; currentWrapper = currentWrapper.getWrapper()) {
+                stackOfWrappers.add(currentWrapper);
+            }
             // Loop as long as there is a wrapper
             do {
+                wrapper = stackOfWrappers.pop();
                 if (wrapper.isCollectionOrArrayOrMap()) {
                     if (wrapper.isWrappedTypeNotNull()) {
                         graphQLInputType = GraphQLNonNull.nonNull(graphQLInputType);
                     }
                     graphQLInputType = list(graphQLInputType);
-                    wrapper = wrapper.getWrapper();
-                } else {
-                    wrapper = null;
                 }
-            } while (wrapper != null);
+            } while (!stackOfWrappers.empty());
         }
 
         // Check if field is mandatory
@@ -943,18 +946,20 @@ public class Bootstrap {
         Wrapper wrapper = dataFetcherFactory.unwrap(field, isBatch);
         // Field can have a wrapper, like List<String>
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
+            Stack<Wrapper> stackOfWrappers = new Stack<>();
+            for (Wrapper currentWrapper = wrapper; currentWrapper != null; currentWrapper = currentWrapper.getWrapper()) {
+                stackOfWrappers.add(currentWrapper);
+            }
             // Loop as long as there is a wrapper
             do {
+                wrapper = stackOfWrappers.pop();
                 if (wrapper.isCollectionOrArrayOrMap()) {
                     if (wrapper.isWrappedTypeNotNull()) {
                         graphQLOutputType = GraphQLNonNull.nonNull(graphQLOutputType);
                     }
                     graphQLOutputType = list(graphQLOutputType);
-                    wrapper = wrapper.getWrapper();
-                } else {
-                    wrapper = null;
                 }
-            } while (wrapper != null);
+            } while (!stackOfWrappers.empty());
         }
 
         // Check if field is mandatory

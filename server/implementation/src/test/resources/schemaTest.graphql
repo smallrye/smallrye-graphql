@@ -18,7 +18,7 @@ directive @include(
   ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 "test-description"
-directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE
+directive @intArrayTestDirective(value: [Int!]) on OBJECT | INTERFACE
 
 "Indicates an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
