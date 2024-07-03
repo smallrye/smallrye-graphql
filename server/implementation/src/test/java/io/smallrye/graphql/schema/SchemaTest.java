@@ -15,6 +15,7 @@ import java.lang.annotation.Repeatable;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import jakarta.annotation.security.RolesAllowed;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -70,7 +72,7 @@ class SchemaTest extends SchemaTestBase {
         assertEquals("intArrayTestDirective", typeDirective.getName());
         assertEquals("test-description", typeDirective.getDescription());
         assertEquals(1, typeDirective.getArguments().size());
-        assertEquals("[Int]", typeDirective.getArgument("value").getType().toString());
+        assertEquals("[Int!]", typeDirective.getArgument("value").getType().toString());
 
         GraphQLDirective fieldDirective = graphQLSchema.getDirective("fieldDirective");
         assertEquals("fieldDirective", fieldDirective.getName());
@@ -423,6 +425,94 @@ class SchemaTest extends SchemaTestBase {
                     "ITION]' but on 'FIELD_DEFINITION'",
                     throwable.getMessage());
         }
+    }
+
+    @GraphQLApi
+    static class SomeNonNulLWrapperApi {
+        @Query
+        public @NonNull Set<List<@NonNull SomeObject>[]> someOperation(@NonNull Set<List<@NonNull SomeObject>[]> sio) {
+            return null;
+        }
+    }
+
+    static class SomeObject {
+        public Set<Collection<Long>> a;
+        public Set<Collection<@NonNull Long>> b;
+        public Set<@NonNull Collection<Long>> c;
+        @NonNull
+        public Set<Collection<Long>> d;
+        public Set<@NonNull Collection<@NonNull Long>> e;
+        @NonNull
+        public Set<Collection<@NonNull Long>> f;
+        @NonNull
+        public Set<@NonNull Collection<Long>> g;
+        @NonNull
+        public Set<@NonNull Collection<@NonNull Long>> h;
+
+        public String[] aArray;
+        public @NonNull String[] bArray;
+        public List<String[]> cArray;
+        public Set<int[]> dArray;
+
+        public SomeObject() {
+        }
+    }
+
+    @Test
+    void nonNullWrapperTest() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(SomeObject.class, SomeNonNulLWrapperApi.class);
+
+        GraphQLFieldDefinition someOperation = graphQLSchema.getQueryType().getField("someOperation");
+        assertNotNull(someOperation);
+        assertEquals("[[[SomeObject!]]]!", someOperation.getType().toString());
+        assertEquals("[[[SomeObjectInput!]]]!", someOperation.getArgument("sio").getType().toString());
+
+        GraphQLObjectType graphQLObjectType = graphQLSchema.getTypeAs("SomeObject");
+        assertNotNull(graphQLObjectType);
+
+        GraphQLInputObjectType graphQLInputObjectType = graphQLSchema.getTypeAs("SomeObjectInput");
+        assertNotNull(graphQLInputObjectType);
+
+        assertEquals(12, graphQLObjectType.getFields().size());
+        assertEquals(12, graphQLInputObjectType.getFields().size());
+
+        assertEquals("[[BigInteger]]", graphQLObjectType.getField("a").getType().toString());
+        assertEquals("[[BigInteger]]", graphQLInputObjectType.getField("a").getType().toString());
+
+        assertEquals("[[BigInteger!]]", graphQLObjectType.getField("b").getType().toString());
+        assertEquals("[[BigInteger!]]", graphQLInputObjectType.getField("b").getType().toString());
+
+        assertEquals("[[BigInteger]!]", graphQLObjectType.getField("c").getType().toString());
+        assertEquals("[[BigInteger]!]", graphQLInputObjectType.getField("c").getType().toString());
+
+        assertEquals("[[BigInteger]]!", graphQLObjectType.getField("d").getType().toString());
+        assertEquals("[[BigInteger]]!", graphQLInputObjectType.getField("d").getType().toString());
+
+        assertEquals("[[BigInteger!]!]", graphQLObjectType.getField("e").getType().toString());
+        assertEquals("[[BigInteger!]!]", graphQLInputObjectType.getField("e").getType().toString());
+
+        assertEquals("[[BigInteger!]]!", graphQLObjectType.getField("f").getType().toString());
+        assertEquals("[[BigInteger!]]!", graphQLInputObjectType.getField("f").getType().toString());
+
+        assertEquals("[[BigInteger]!]!", graphQLObjectType.getField("g").getType().toString());
+        assertEquals("[[BigInteger]!]!", graphQLInputObjectType.getField("g").getType().toString());
+
+        assertEquals("[[BigInteger!]!]!", graphQLObjectType.getField("h").getType().toString());
+        assertEquals("[[BigInteger!]!]!", graphQLInputObjectType.getField("h").getType().toString());
+
+        assertEquals("[String]", graphQLObjectType.getField("aArray").getType().toString());
+        assertEquals("[String]", graphQLInputObjectType.getField("aArray").getType().toString());
+
+        // should be `[String]!`
+        assertEquals("[String!]!", graphQLObjectType.getField("bArray").getType().toString());
+        assertEquals("[String!]!", graphQLInputObjectType.getField("bArray").getType().toString());
+
+        assertEquals("[[String]]", graphQLObjectType.getField("cArray").getType().toString());
+        assertEquals("[[String]]", graphQLInputObjectType.getField("cArray").getType().toString());
+
+        assertEquals("[[Int!]]", graphQLObjectType.getField("dArray").getType().toString());
+        assertEquals("[[Int!]]", graphQLInputObjectType.getField("dArray").getType().toString());
+
     }
 
     private void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {
