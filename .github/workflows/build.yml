@@ -57,8 +57,8 @@ jobs:
       - name: checkout WildFly feature pack repository
         uses: actions/checkout@v2
         with:
-          repository: mskacelik/wildfly-graphql-feature-pack
-          ref: srgql-2.9.0
+          repository: wildfly-extras/wildfly-graphql-feature-pack
+          ref: main
           path: wildfly-graphql-feature-pack
 
       - uses: actions/setup-java@v3.0.0
