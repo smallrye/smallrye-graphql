@@ -188,7 +188,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
                 allowUnexpectedResponseFields);
 
         return apiClass.cast(Proxy.newProxyInstance(getClassLoader(apiClass), new Class<?>[] { apiClass },
-                (proxy, method, args) -> invoke(graphQLClient, method, args)));
+                (proxy, method, args) -> invoke(apiClass, graphQLClient, method, args)));
     }
 
     private void applyConfigFor(Class<?> apiClass) {
@@ -221,9 +221,9 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return vertx != null ? vertx : VertxManager.get();
     }
 
-    private Object invoke(VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
+    private Object invoke(Class<?> apiClass, VertxTypesafeGraphQLClientProxy graphQlClient, java.lang.reflect.Method method,
             Object... args) {
-        MethodInvocation methodInvocation = MethodInvocation.of(method, args);
+        MethodInvocation methodInvocation = MethodInvocation.of(apiClass, method, args);
         if (methodInvocation.isDeclaredInCloseable()) {
             graphQlClient.close();
             return null; // void

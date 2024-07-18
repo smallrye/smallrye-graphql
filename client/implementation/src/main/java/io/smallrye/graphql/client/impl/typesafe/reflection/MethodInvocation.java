@@ -8,6 +8,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
@@ -31,6 +32,10 @@ import io.smallrye.graphql.client.typesafe.api.Multiple;
 public class MethodInvocation implements NamedElement {
     public static MethodInvocation of(Method method, Object... args) {
         return new MethodInvocation(new TypeInfo(null, method.getDeclaringClass()), method, args);
+    }
+
+    public static MethodInvocation of(Type apiInterface, Method method, Object... args) {
+        return new MethodInvocation(new TypeInfo(null, apiInterface), method, args);
     }
 
     private final TypeInfo type;
