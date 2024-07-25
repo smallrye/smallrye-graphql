@@ -512,9 +512,14 @@ public class Annotations {
 
     private static Map<DotName, AnnotationInstance> getAnnotations(org.jboss.jandex.Type type) {
         Map<DotName, AnnotationInstance> annotationMap = new HashMap<>();
-        List<AnnotationInstance> annotations = type.annotations();
-        for (AnnotationInstance annotationInstance : annotations) {
-            annotationMap.put(annotationInstance.name(), annotationInstance);
+        if (type.kind().equals(org.jboss.jandex.Type.Kind.PARAMETERIZED_TYPE)) {
+            org.jboss.jandex.Type typeInCollection = type.asParameterizedType().arguments().get(0);
+            annotationMap.putAll(getAnnotations(typeInCollection));
+        } else {
+            List<AnnotationInstance> annotations = type.annotations();
+            for (AnnotationInstance annotationInstance : annotations) {
+                annotationMap.put(annotationInstance.name(), annotationInstance);
+            }
         }
         return annotationMap;
     }
