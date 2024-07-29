@@ -96,8 +96,8 @@ jobs:
       - name: checkout Quarkus repository
         uses: actions/checkout@v2
         with:
-          repository: quarkusio/quarkus
-          ref: main
+          repository: mskacelik/quarkus
+          ref: srgql-2.9.1
           path: quarkus
 
       - uses: actions/setup-java@v3.10.0
