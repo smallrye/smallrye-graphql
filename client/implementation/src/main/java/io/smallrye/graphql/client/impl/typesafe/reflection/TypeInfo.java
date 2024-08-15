@@ -239,6 +239,11 @@ public class TypeInfo {
         return isAnnotated(Union.class);
     }
 
+    /** Is this a <em>GraphQL</em> Interface, i.e. a Java interface without a <code>&#64;Union</code> annotation */
+    public boolean isInterface() {
+        return getRawType().isInterface() && !isUnion();
+    }
+
     public boolean isScalar() {
         return isPrimitive()
                 || Void.class.isAssignableFrom(getRawType())

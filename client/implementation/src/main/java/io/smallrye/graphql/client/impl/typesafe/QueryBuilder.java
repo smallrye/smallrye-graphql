@@ -68,7 +68,7 @@ public class QueryBuilder {
     private String recursionCheckedFields(TypeInfo type) {
         while (type.isOptional() || type.isErrorOr() || type.isTypesafeResponse())
             type = type.getItemType();
-        if (type.isUnion()) {
+        if (type.isUnion() || type.isInterface()) {
             return "{__typename " + type.subtypes()
                     .sorted(Comparator.comparing(TypeInfo::getGraphQlTypeName)) // for deterministic order
                     .map(this::fieldsFragment)

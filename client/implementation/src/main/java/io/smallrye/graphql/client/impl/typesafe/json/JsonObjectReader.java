@@ -28,7 +28,7 @@ class JsonObjectReader extends Reader<JsonObject> {
     }
 
     private Object readObject() {
-        if (type.isUnion()) {
+        if (type.isUnion() || type.isInterface()) {
             var subtype = type.subtype(value.getString("__typename"));
             var instance = subtype.newInstance(new Object[0]);
             subtype.fields().forEach(field -> {
