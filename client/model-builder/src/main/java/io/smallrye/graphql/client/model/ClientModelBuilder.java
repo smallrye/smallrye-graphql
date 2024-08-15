@@ -25,7 +25,6 @@ import io.smallrye.graphql.client.model.helper.OperationModel;
  *
  * @author mskacelik
  */
-
 public class ClientModelBuilder {
     private static final Logger LOG = Logger.getLogger(ClientModelBuilder.class.getName());
 
@@ -37,6 +36,7 @@ public class ClientModelBuilder {
      */
     public static ClientModels build(IndexView index) {
         ScanningContext.register(index);
+
         return new ClientModelBuilder().generateClientModels();
     }
 
@@ -60,7 +60,7 @@ public class ClientModelBuilder {
             ClientModel operationMap = new ClientModel();
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
-            methods.stream().forEach(method -> {
+            methods.forEach(method -> {
                 String query = new QueryBuilder(method).build();
                 LOG.debugf("[%s] – Query created: %s", apiClass.name().toString(), query);
                 operationMap.getOperationMap()

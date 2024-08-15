@@ -64,7 +64,7 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
 
     @Override
     public TypesafeGraphQLClientBuilder builder() {
-        boolean clientModelCase = System.getProperty("clientModelCase").equals("true");
+        boolean clientModelCase = "true".equals(System.getProperty("clientModelCase"));
         if (clientModelCase) {
             return ((VertxTypesafeGraphQLClientBuilder) builderWithoutEndpointConfig())
                     .clientModels(TypesafeTckClientModelSuite.CLIENT_MODELS)

@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.impl.typesafe;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
@@ -67,6 +68,13 @@ public class QueryBuilder {
     private String recursionCheckedFields(TypeInfo type) {
         while (type.isOptional() || type.isErrorOr() || type.isTypesafeResponse())
             type = type.getItemType();
+        if (type.isUnion()) {
+            return "{__typename " + type.subtypes()
+                    .sorted(Comparator.comparing(TypeInfo::getGraphQlTypeName)) // for deterministic order
+                    .map(this::fieldsFragment)
+                    .collect(joining(" ")) +
+                    "}";
+        }
         if (type.isScalar())
             return "";
         if (type.isCollection() || type.isAsync())
@@ -79,6 +87,10 @@ public class QueryBuilder {
         return type.fields()
                 .map(this::field)
                 .collect(joining(" ", " {", "}"));
+    }
+
+    private String fieldsFragment(TypeInfo typeInfo) {
+        return "... on " + typeInfo.getGraphQlTypeName() + fields(typeInfo);
     }
 
     private String field(FieldInfo field) {
