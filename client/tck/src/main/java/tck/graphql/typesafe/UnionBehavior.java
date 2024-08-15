@@ -3,6 +3,8 @@ package tck.graphql.typesafe;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.List;
+
 import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTypeInfo;
 
@@ -43,14 +45,16 @@ class UnionBehavior {
     @GraphQLClientApi
     interface UnionApi {
         SuperHeroResponse find(String name);
+
+        List<SuperHeroResponse> findAll(String name);
     }
 
     @Test
     void shouldUnionFindSpiderMan() {
         fixture.returnsData("'find':{'__typename':'SuperHero','name':'Spider-Man'}");
-        UnionApi api = fixture.build(UnionApi.class);
+        var api = fixture.build(UnionApi.class);
 
-        SuperHeroResponse response = api.find("Spider-Man");
+        var response = api.find("Spider-Man");
 
         then(fixture.query()).isEqualTo("query find($name: String) { find(name: $name){" +
                 "__typename " +
@@ -64,9 +68,9 @@ class UnionBehavior {
     @Test
     void shouldNotUnionFindFoo() {
         fixture.returnsData("'find':{'__typename':'SuperHeroNotFound', 'message':'There is no hero named Foo'}");
-        UnionApi api = fixture.build(UnionApi.class);
+        var api = fixture.build(UnionApi.class);
 
-        SuperHeroResponse response = api.find("Foo");
+        var response = api.find("Foo");
 
         then(fixture.query()).isEqualTo("query find($name: String) { find(name: $name){" +
                 "__typename " +
@@ -80,7 +84,7 @@ class UnionBehavior {
     @Test
     void shouldNotUnionFindSomethingUnexpected() {
         fixture.returnsData("'find':{'__typename':'UnexpectedType', 'detail':'You dont know this type'}");
-        UnionApi api = fixture.build(UnionApi.class);
+        var api = fixture.build(UnionApi.class);
 
         var throwable = catchThrowable(() -> api.find("Expect the unexpected"));
 
@@ -91,5 +95,27 @@ class UnionBehavior {
         then(fixture.variables()).isEqualTo("{'name':'Expect the unexpected'}");
         then(throwable).isInstanceOf(RuntimeException.class)
                 .hasMessage("SRGQLDC035010: Cannot instantiate UnexpectedType");
+    }
+
+    @Test
+    void shouldUnionFindAll() {
+        fixture.returnsData("'findAll':[" +
+                "{'__typename':'SuperHero','name':'Spider-Man'}," +
+                "{'__typename':'SuperHeroNotFound','message':'The Nobody'}" +
+                "]");
+        var api = fixture.build(UnionApi.class);
+
+        var response = api.findAll("Spider-Man");
+
+        then(fixture.query()).isEqualTo("query findAll($name: String) { findAll(name: $name){" +
+                "__typename " +
+                "... on SuperHero {name} " +
+                "... on SuperHeroNotFound {message}} }");
+        then(fixture.variables()).isEqualTo("{'name':'Spider-Man'}");
+        then(response).hasSize(2);
+        then(response.get(0)).isInstanceOf(SuperHero.class);
+        then(((SuperHero) response.get(0)).getName()).isEqualTo("Spider-Man");
+        then(response.get(1)).isInstanceOf(NotFound.class);
+        then(((NotFound) response.get(1)).getMessage()).isEqualTo("The Nobody");
     }
 }

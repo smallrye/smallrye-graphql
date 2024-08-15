@@ -2,6 +2,8 @@ package tck.graphql.typesafe;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+import java.util.List;
+
 import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTypeInfo;
 
@@ -51,14 +53,16 @@ class InterfaceBehavior {
     @GraphQLClientApi
     interface UnionApi {
         SuperHero find(String name);
+
+        List<SuperHero> all();
     }
 
     @Test
     void shouldUnionFindBatman() {
         fixture.returnsData("'find':{'__typename':'MainCharacter','name':'Batman','superPower':'Money'}");
-        UnionApi api = fixture.build(UnionApi.class);
+        var api = fixture.build(UnionApi.class);
 
-        SuperHero response = api.find("Batman");
+        var response = api.find("Batman");
 
         then(fixture.query()).isEqualTo("query find($name: String) { find(name: $name){" +
                 "__typename " +
@@ -73,9 +77,9 @@ class InterfaceBehavior {
     @Test
     void shouldUnionFindRobin() {
         fixture.returnsData("'find':{'__typename':'SideKick', 'name':'Robin', 'mainCharacter':'Batman'}");
-        UnionApi api = fixture.build(UnionApi.class);
+        var api = fixture.build(UnionApi.class);
 
-        SuperHero response = api.find("Robin");
+        var response = api.find("Robin");
 
         then(fixture.query()).isEqualTo("query find($name: String) { find(name: $name){" +
                 "__typename " +
@@ -85,5 +89,29 @@ class InterfaceBehavior {
         then(response.getName()).isEqualTo("Robin");
         then(response).isInstanceOf(SideKick.class);
         then(((SideKick) response).getMainCharacter()).isEqualTo("Batman");
+    }
+
+    @Test
+    void shouldUnionFindAll() {
+        fixture.returnsData("'all':[" +
+                "{'__typename':'MainCharacter','name':'Batman','superPower':'Money'}," +
+                "{'__typename':'SideKick', 'name':'Robin', 'mainCharacter':'Batman'}" +
+                "]");
+        var api = fixture.build(UnionApi.class);
+
+        var response = api.all();
+
+        then(fixture.query()).isEqualTo("query all { all{" +
+                "__typename " +
+                "... on MainCharacter {name superPower} " +
+                "... on SideKick {name mainCharacter}} }");
+        then(fixture.variables()).isEqualTo("{}");
+        then(response).hasSize(2);
+        then(response.get(0).getName()).isEqualTo("Batman");
+        then(response.get(0)).isInstanceOf(MainCharacter.class);
+        then(((MainCharacter) response.get(0)).getSuperPower()).isEqualTo("Money");
+        then(response.get(1).getName()).isEqualTo("Robin");
+        then(response.get(1)).isInstanceOf(SideKick.class);
+        then(((SideKick) response.get(1)).getMainCharacter()).isEqualTo("Batman");
     }
 }

@@ -68,13 +68,6 @@ public class QueryBuilder {
     private String recursionCheckedFields(TypeInfo type) {
         while (type.isOptional() || type.isErrorOr() || type.isTypesafeResponse())
             type = type.getItemType();
-        if (type.isUnion() || type.isInterface()) {
-            return "{__typename " + type.subtypes()
-                    .sorted(Comparator.comparing(TypeInfo::getGraphQlTypeName)) // for deterministic order
-                    .map(this::fieldsFragment)
-                    .collect(joining(" ")) +
-                    "}";
-        }
         if (type.isScalar())
             return "";
         if (type.isCollection() || type.isAsync())
@@ -83,6 +76,13 @@ public class QueryBuilder {
             String keyFields = fields(type.getKeyType());
             String valueFields = fields(type.getValueType());
             return "{ key " + keyFields + " value " + valueFields + "}";
+        }
+        if (type.isUnion() || type.isInterface()) {
+            return "{__typename " + type.subtypes()
+                    .sorted(Comparator.comparing(TypeInfo::getGraphQlTypeName)) // for deterministic order
+                    .map(this::fieldsFragment)
+                    .collect(joining(" ")) +
+                    "}";
         }
         return type.fields()
                 .map(this::field)
