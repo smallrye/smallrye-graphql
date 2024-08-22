@@ -6,9 +6,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 import org.eclipse.microprofile.graphql.Input;
 import org.jboss.jandex.Index;
@@ -24,16 +25,16 @@ import tck.graphql.typesafe.TypesafeTCK;
 
 /**
  * This test suite is used only for the new client-model typesafe implementation using the Jandex scanning.
+ *
  */
-@ExcludeClassNamePatterns("^tck.graphql.typesafe.RecursionBehavior$")
+@ExcludeClassNamePatterns({ "^tck.graphql.typesafe.RecursionBehavior$" })
 class TypesafeTckClientModelSuite extends TypesafeTCK {
     public final static ClientModels CLIENT_MODELS;
 
     static {
         try {
             CLIENT_MODELS = ClientModelBuilder.build(createIndexExcludingClasses(
-                    new File(Animal.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()
-                            + "tck/graphql/typesafe"),
+                    new File(Animal.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()),
                     "RecursionBehavior"));
         } catch (URISyntaxException | IOException e) {
             throw new RuntimeException(e);
@@ -55,44 +56,48 @@ class TypesafeTckClientModelSuite extends TypesafeTCK {
     void minimalTest() {
     }
 
-    private static Index createIndexExcludingClasses(File directory, String classNameToExclude) throws IOException {
+    private static Index createIndexExcludingClasses(File file, String... classNamesToExclude) throws IOException {
         Indexer indexer = new Indexer();
-
-        // Get all files in the directory
-        File[] files = directory.listFiles();
-
-        if (files != null) {
-            for (File file : files) {
-                // Check if the file is a .class file and does not contain the excluded class name
-                if (file.isFile() && file.getName().endsWith(".class") && !file.getName().contains(classNameToExclude)) {
-                    try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                        // Index the class in the new index
-                        indexer.index(fileInputStream);
-                    }
-                } else if (file.isFile() && file.getName().endsWith(".jar")) {
-                    try (JarFile jarFile = new JarFile(file)) {
-                        Enumeration<JarEntry> entries = jarFile.entries();
-                        while (entries.hasMoreElements()) {
-                            JarEntry entry = entries.nextElement();
-                            if (entry.getName().endsWith(".class")) {
-                                try (InputStream in = jarFile.getInputStream(entry)) {
-                                    indexer.index(in);
-                                }
-                            }
+        if (!file.getName().endsWith(".jar")) {
+            file = new File(file.getPath()
+                    + File.separator + "tck"
+                    + File.separator + "graphql"
+                    + File.separator + "typesafe");
+            // Get all files in the directory
+            Stream.of(Objects.requireNonNull(file.listFiles()))
+                    .filter(File::isFile)
+                    .filter(f -> f.getName().endsWith(".class"))
+                    .filter(f -> Arrays.stream(classNamesToExclude)
+                            .noneMatch(classNameToExclude -> f.getName().contains(classNameToExclude)))
+                    .forEach(f -> {
+                        try (InputStream inputStream = new FileInputStream(f)) {
+                            // Index the class in the new index
+                            indexer.index(inputStream);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
-                    }
-                }
+                    });
+        } else { // .jar
+            try (JarFile jarFile = new JarFile(file)) {
+                jarFile.stream()
+                        .filter(jarEntry -> jarEntry.getName().endsWith(".class"))
+                        .filter(jarEntry -> Arrays.stream(classNamesToExclude)
+                                .noneMatch(classNameToExclude -> jarEntry.getName().contains(classNameToExclude)))
+                        .forEach(jarEntry -> {
+                            try (InputStream inputStream = jarFile.getInputStream(jarEntry)) {
+                                // Index the class in the new index
+                                indexer.index(inputStream);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
             }
-            // SOME OTHER CLASSES TO BE ADDED TO INDEX
-            try {
-                indexer.indexClass(Input.class);
-                indexer.indexClass(Closeable.class);
-                indexer.indexClass(AutoCloseable.class);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
         }
+        // SOME OTHER CLASSES TO BE ADDED TO INDEX
+        indexer.indexClass(Input.class);
+        indexer.indexClass(Closeable.class);
+        indexer.indexClass(AutoCloseable.class);
+
         // Build the new index
         return indexer.complete();
     }
