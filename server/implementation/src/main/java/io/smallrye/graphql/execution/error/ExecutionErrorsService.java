@@ -112,7 +112,12 @@ public class ExecutionErrorsService {
                         || (config.getErrorExtensionFields().isPresent()
                                 && config.getErrorExtensionFields().get().contains(entry.getKey()))) {
                     Object value = entry.getValue();
-                    addKeyValue(objectBuilder, entry.getKey(), value != null ? value.toString() : null);
+                    if (value instanceof JsonValue)
+                        addKeyValue(objectBuilder, entry.getKey(), (JsonValue) value);
+                    else if (value instanceof Map)
+                        addKeyValue(objectBuilder, entry.getKey(), JSON_PROVIDER.createObjectBuilder((Map) value).build());
+                    else
+                        addKeyValue(objectBuilder, entry.getKey(), value != null ? value.toString() : null);
                 }
             }
         }
