@@ -22,7 +22,6 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jakarta.json.Json;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonReaderFactory;
 import jakarta.json.bind.Jsonb;
@@ -55,6 +54,7 @@ import graphql.schema.GraphQLUnionType;
 import graphql.schema.TypeResolver;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import io.smallrye.graphql.JsonProviderHolder;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
@@ -1167,7 +1167,7 @@ public class Bootstrap {
 
     private static final String COMMA = ",";
 
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JsonProviderHolder.JSON_PROVIDER.createReaderFactory(null);
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";
     private static final String OBSERVES = "javax.enterprise.event.Observes";

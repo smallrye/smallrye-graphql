@@ -1,8 +1,9 @@
 package io.smallrye.graphql.entry.http;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.IOException;
 
-import jakarta.json.Json;
 import jakarta.json.JsonWriter;
 import jakarta.json.JsonWriterFactory;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +18,7 @@ import io.smallrye.graphql.execution.ExecutionResponseWriter;
  */
 public class HttpServletResponseWriter implements ExecutionResponseWriter {
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
-    private static final JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(null);
+    private static final JsonWriterFactory jsonWriterFactory = JSON_PROVIDER.createWriterFactory(null);
 
     private final HttpServletResponse response;
 

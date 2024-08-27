@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.error;
 
-import jakarta.json.Json;
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import jakarta.json.JsonString;
 
 import io.smallrye.graphql.api.ErrorExtensionProvider;
@@ -14,6 +15,6 @@ public class ExceptionNameErrorExtensionProvider implements ErrorExtensionProvid
 
     @Override
     public JsonString mapValueFrom(Throwable exception) {
-        return Json.createValue(exception.getClass().getName());
+        return JSON_PROVIDER.createValue(exception.getClass().getName());
     }
 }

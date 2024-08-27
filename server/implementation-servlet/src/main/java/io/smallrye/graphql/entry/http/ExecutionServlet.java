@@ -1,5 +1,7 @@
 package io.smallrye.graphql.entry.http;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -15,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
@@ -37,7 +38,7 @@ import io.smallrye.graphql.spi.config.Config;
 public class ExecutionServlet extends HttpServlet {
     private static final long serialVersionUID = -2859915918802356120L;
 
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
 
     @Inject
     ExecutionService executionService;
@@ -74,7 +75,8 @@ public class ExecutionServlet extends HttpServlet {
             if (request.getQueryString() != null && !request.getQueryString().isEmpty()
                     && config.isAllowPostWithQueryParameters()) {
                 JsonObject jsonObjectFromQueryParameters = getJsonObjectFromQueryParameters(request);
-                JsonObject mergedJsonObject = Json.createMergePatch(jsonObjectFromQueryParameters).apply(jsonObjectFromBody)
+                JsonObject mergedJsonObject = JSON_PROVIDER.createMergePatch(jsonObjectFromQueryParameters)
+                        .apply(jsonObjectFromBody)
                         .asJsonObject();
                 executionService.executeSync(mergedJsonObject, metaData, new HttpServletResponseWriter(response));
             } else {
@@ -87,7 +89,7 @@ public class ExecutionServlet extends HttpServlet {
     }
 
     private JsonObject getJsonObjectFromQueryParameters(HttpServletRequest request) throws UnsupportedEncodingException {
-        JsonObjectBuilder input = Json.createObjectBuilder();
+        JsonObjectBuilder input = JSON_PROVIDER.createObjectBuilder();
         // Query
         String query = request.getParameter(QUERY);
         if (query != null && !query.isEmpty()) {
@@ -123,7 +125,7 @@ public class ExecutionServlet extends HttpServlet {
             // If the content type is application/graphql, the query is in the body
             if (contentType != null && contentType.startsWith(APPLICATION_GRAPHQL)) {
                 String query = bufferedReader.lines().collect(Collectors.joining("\n"));
-                JsonObjectBuilder input = Json.createObjectBuilder();
+                JsonObjectBuilder input = JSON_PROVIDER.createObjectBuilder();
                 input.add(QUERY, query);
                 return input.build();
                 // Else we expect a Json in the content
@@ -139,7 +141,7 @@ public class ExecutionServlet extends HttpServlet {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
         }
-        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
+        try (JsonReader jsonReader = JSON_PROVIDER.createReader(new StringReader(jsonString))) {
             return jsonReader.readObject();
         }
     }

@@ -1,11 +1,12 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonWriter;
@@ -75,7 +76,7 @@ public class JsonObjectResponseWriter implements ExecutionResponseWriter {
 
     private String getPrettyJson(JsonObject jsonObject) {
 
-        JsonWriterFactory writerFactory = Json.createWriterFactory(JSON_PROPERTIES);
+        JsonWriterFactory writerFactory = JSON_PROVIDER.createWriterFactory(JSON_PROPERTIES);
 
         try (StringWriter sw = new StringWriter();
                 JsonWriter jsonWriter = writerFactory.createWriter(sw)) {
@@ -87,7 +88,7 @@ public class JsonObjectResponseWriter implements ExecutionResponseWriter {
     }
 
     private JsonObject toJsonObject(String graphQL) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
+        JsonObjectBuilder builder = JSON_PROVIDER.createObjectBuilder();
         builder.add("query", graphQL);
         return builder.build();
     }

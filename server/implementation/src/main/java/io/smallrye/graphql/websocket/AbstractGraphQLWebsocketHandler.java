@@ -1,5 +1,7 @@
 package io.smallrye.graphql.websocket;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.time.Duration;
@@ -8,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
@@ -34,8 +35,8 @@ import io.smallrye.mutiny.subscription.Cancellable;
 public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocketHandler {
     // TODO: Replace with prepared log messages
     protected static final Logger LOG = Logger.getLogger(GraphQLWebsocketHandler.class.getName());
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
 
     protected final ExecutionService executionService = LookupService.get().getInstance(ExecutionService.class).get();
     protected final GraphQLWebSocketSession session;
@@ -163,7 +164,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     }
 
     private JsonObject createConnectionAckMessage() {
-        return Json.createObjectBuilder()
+        return JSON_PROVIDER.createObjectBuilder()
                 .add("type", "connection_ack")
                 .build();
     }

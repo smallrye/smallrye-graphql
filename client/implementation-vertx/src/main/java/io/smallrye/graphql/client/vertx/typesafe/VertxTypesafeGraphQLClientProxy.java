@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.vertx.typesafe;
 
+import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
 import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 
@@ -24,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -64,7 +64,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientProxy.class);
 
-    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory jsonObjectFactory = JSON_PROVIDER.createBuilderFactory(null);
 
     private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
 
@@ -342,60 +342,60 @@ class VertxTypesafeGraphQLClientProxy {
 
     private JsonValue scalarValue(Object value) {
         if (value instanceof String) {
-            return Json.createValue((String) value);
+            return JSON_PROVIDER.createValue((String) value);
         }
         if (value instanceof java.sql.Date) {
-            return Json.createValue(value.toString());
+            return JSON_PROVIDER.createValue(value.toString());
         }
         if (value instanceof Date) {
-            return Json.createValue(((Date) value).toInstant().toString());
+            return JSON_PROVIDER.createValue(((Date) value).toInstant().toString());
         }
         if (value instanceof Calendar) {
-            return Json.createValue(((Calendar) value).toInstant().toString());
+            return JSON_PROVIDER.createValue(((Calendar) value).toInstant().toString());
         }
         if (value instanceof Enum) {
-            return Json.createValue(((Enum<?>) value).name());
+            return JSON_PROVIDER.createValue(((Enum<?>) value).name());
         }
         if (value instanceof Boolean) {
             return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
         }
         if (value instanceof Byte) {
-            return Json.createValue((Byte) value);
+            return JSON_PROVIDER.createValue((Byte) value);
         }
         if (value instanceof Short) {
-            return Json.createValue((Short) value);
+            return JSON_PROVIDER.createValue((Short) value);
         }
         if (value instanceof Integer) {
-            return Json.createValue((Integer) value);
+            return JSON_PROVIDER.createValue((Integer) value);
         }
         if (value instanceof Long) {
-            return Json.createValue((Long) value);
+            return JSON_PROVIDER.createValue((Long) value);
         }
         if (value instanceof Double) {
-            return Json.createValue((Double) value);
+            return JSON_PROVIDER.createValue((Double) value);
         }
         if (value instanceof Float) {
-            return Json.createValue((Float) value);
+            return JSON_PROVIDER.createValue((Float) value);
         }
         if (value instanceof BigInteger) {
-            return Json.createValue((BigInteger) value);
+            return JSON_PROVIDER.createValue((BigInteger) value);
         }
         if (value instanceof BigDecimal) {
-            return Json.createValue((BigDecimal) value);
+            return JSON_PROVIDER.createValue((BigDecimal) value);
         }
         if (value instanceof OptionalInt) {
             OptionalInt optionalValue = ((OptionalInt) value);
-            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsInt()) : JsonValue.NULL);
+            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsInt()) : JsonValue.NULL);
         }
         if (value instanceof OptionalLong) {
             OptionalLong optionalValue = ((OptionalLong) value);
-            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsLong()) : JsonValue.NULL);
+            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsLong()) : JsonValue.NULL);
         }
         if (value instanceof OptionalDouble) {
             OptionalDouble optionalValue = ((OptionalDouble) value);
-            return ((optionalValue.isPresent()) ? Json.createValue(optionalValue.getAsDouble()) : JsonValue.NULL);
+            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsDouble()) : JsonValue.NULL);
         }
-        return Json.createValue(value.toString());
+        return JSON_PROVIDER.createValue(value.toString());
     }
 
     private JsonArray arrayValue(Object value) {

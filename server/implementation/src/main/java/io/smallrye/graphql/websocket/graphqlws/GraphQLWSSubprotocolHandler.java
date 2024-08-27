@@ -1,10 +1,11 @@
 package io.smallrye.graphql.websocket.graphqlws;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 
@@ -18,7 +19,7 @@ import io.smallrye.graphql.websocket.GraphQLWebSocketSession;
  */
 public class GraphQLWSSubprotocolHandler extends AbstractGraphQLWebsocketHandler {
 
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
 
     private final String pingMessage;
 

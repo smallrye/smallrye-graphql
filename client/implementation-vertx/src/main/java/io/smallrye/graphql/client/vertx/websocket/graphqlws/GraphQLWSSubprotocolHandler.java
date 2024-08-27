@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.vertx.websocket.graphqlws;
 
+import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.StringReader;
 import java.time.Duration;
 import java.util.HashMap;
@@ -7,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -40,8 +41,8 @@ import io.vertx.core.http.WebSocket;
 public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler {
 
     private static final Logger log = Logger.getLogger(GraphQLWSSubprotocolHandler.class);
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
 
     private final Integer subscriptionInitializationTimeout;
 

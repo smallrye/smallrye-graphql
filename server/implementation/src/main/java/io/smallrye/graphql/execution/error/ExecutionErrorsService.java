@@ -1,11 +1,12 @@
 package io.smallrye.graphql.execution.error;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -30,8 +31,8 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class ExecutionErrorsService {
 
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
@@ -129,7 +130,7 @@ public class ExecutionErrorsService {
     }
 
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, String value) {
-        addKeyValue(objectBuilder, key, Json.createValue(value));
+        addKeyValue(objectBuilder, key, JSON_PROVIDER.createValue(value));
     }
 
     private void addKeyValue(JsonObjectBuilder objectBuilder, String key, JsonValue value) {
