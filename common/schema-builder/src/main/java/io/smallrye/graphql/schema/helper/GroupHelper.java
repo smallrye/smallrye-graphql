@@ -59,7 +59,7 @@ public class GroupHelper {
     /**
      * Get the description on a class type
      *
-     * @param annotations annotation on the class
+     * @param graphQLApiAnnotation annotation on the class
      * @return the optional description
      */
     private static Optional<String> getDescription(AnnotationInstance graphQLApiAnnotation) {
@@ -67,12 +67,15 @@ public class GroupHelper {
         if (apiClass.annotationsMap().containsKey(Annotations.DESCRIPTION)) {
             List<AnnotationInstance> descriptionAnnotations = apiClass.annotationsMap().get(Annotations.DESCRIPTION);
             if (descriptionAnnotations != null && !descriptionAnnotations.isEmpty()) {
-                AnnotationValue value = descriptionAnnotations.get(0).value();
-                if (value != null && value.asString() != null && !value.asString().isEmpty()) {
-                    return Optional.of(value.asString());
+                for (AnnotationInstance descriptionAnnotation : descriptionAnnotations) {
+                    if (descriptionAnnotation.target().equals(graphQLApiAnnotation.target())){
+                        AnnotationValue value = descriptionAnnotation.value();
+                        if (value != null && value.asString() != null && !value.asString().isEmpty()) {
+                            return Optional.of(value.asString());
+                        }
+                    }
                 }
             }
-
         }
         return Optional.empty();
     }
