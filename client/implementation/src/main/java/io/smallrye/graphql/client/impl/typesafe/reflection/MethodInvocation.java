@@ -36,12 +36,14 @@ public class MethodInvocation implements NamedElement {
     private final TypeInfo type;
     private final Method method;
     private final Object[] parameterValues;
+    private final String groupName;
     private List<ParameterInfo> parameters;
 
     private MethodInvocation(TypeInfo type, Method method, Object[] parameterValues) {
         this.type = type;
         this.method = method;
         this.parameterValues = parameterValues;
+        this.groupName = readGroupName(method);
     }
 
     @Override
@@ -258,5 +260,20 @@ public class MethodInvocation implements NamedElement {
             default:
                 return "query";
         }
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    private String readGroupName(Method method) {
+        Name annotation = method.getDeclaringClass().getAnnotation(Name.class);
+        if (annotation != null) {
+            String groupName = annotation.value().trim();
+            if (!groupName.isEmpty()) {
+                return groupName;
+            }
+        }
+        return null;
     }
 }

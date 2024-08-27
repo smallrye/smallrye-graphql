@@ -36,6 +36,7 @@ public class OperationModel implements NamedElement {
     private final Stack<String> expressionStack = new Stack<>();
     private Stack<TypeModel> rawParametrizedTypes = new Stack<>();
     private final List<DirectiveInstance> directives;
+    private final String groupName;
 
     /**
      * Creates a new {@code OperationModel} instance based on the provided Jandex {@link MethodInfo}.
@@ -49,6 +50,7 @@ public class OperationModel implements NamedElement {
                 getDirectiveLocation(), AnnotationTarget.Kind.METHOD)
                 .map(DirectiveInstance::of)
                 .collect(toList());
+        this.groupName = readGroupName(method);
     }
 
     /**
@@ -387,5 +389,24 @@ public class OperationModel implements NamedElement {
      */
     private boolean isRawParametrizedType(TypeModel type) {
         return type.isCustomParametrizedType() && !type.getFirstRawType().isTypeVariable();
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    private String readGroupName(MethodInfo method) {
+        List<AnnotationInstance> annotationInstances = method.declaringClass().annotations(NAME);
+        for (AnnotationInstance annotationInstance : annotationInstances) {
+            if (annotationInstance.target().kind() == AnnotationTarget.Kind.CLASS){
+                if (annotationInstance.target().asClass().name().equals(method.declaringClass().name())) {
+                    String groupName = annotationInstance.value().asString().trim();
+                    if (!groupName.isEmpty()) {
+                        return groupName;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
