@@ -39,6 +39,12 @@ public class QueryBuilder {
             request.append(method.valueParameters().stream().map(method::declare).collect(joining(", ", "(", ")")));
         }
 
+        String groupName = method.getGroupName();
+        if (groupName != null) {
+            request.append(" { ");
+            request.append(groupName);
+        }
+
         if (method.isSingle()) {
             request.append(" { ");
             request.append(method.getName());
@@ -57,6 +63,9 @@ public class QueryBuilder {
 
         if (method.isSingle())
             request.append(" }");
+
+        if (groupName != null)
+            request.append(" } ");
 
         return request.toString();
     }
