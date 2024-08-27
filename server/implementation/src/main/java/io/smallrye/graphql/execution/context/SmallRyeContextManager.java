@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution.context;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -7,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -41,7 +42,7 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContextManager {
-    private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory jsonbuilder = JSON_PROVIDER.createBuilderFactory(null);
     private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
     public static final String CONTEXT = "context";
 

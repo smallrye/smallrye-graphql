@@ -1,11 +1,12 @@
 package io.smallrye.graphql.client.impl;
 
+import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -16,7 +17,7 @@ import jakarta.json.bind.JsonbBuilder;
 import io.smallrye.graphql.client.Request;
 
 public class RequestImpl implements Request {
-    private static final JsonBuilderFactory JSON = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory JSON = JSON_PROVIDER.createBuilderFactory(null);
     private static final Jsonb JSONB = JsonbBuilder.create();
 
     private final String document;
@@ -72,7 +73,7 @@ public class RequestImpl implements Request {
             } else if (v == null) {
                 varBuilder.addNull(k);
             } else {
-                varBuilder.add(k, Json.createReader(new StringReader(JSONB.toJson(v))).read());
+                varBuilder.add(k, JSON_PROVIDER.createReader(new StringReader(JSONB.toJson(v))).read());
             }
         });
 

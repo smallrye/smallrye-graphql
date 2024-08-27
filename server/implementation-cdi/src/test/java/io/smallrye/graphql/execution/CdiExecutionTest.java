@@ -1,5 +1,6 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -365,7 +365,7 @@ public class CdiExecutionTest {
     }
 
     private JsonObject toJsonObject(String graphQL) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
+        JsonObjectBuilder builder = JSON_PROVIDER.createObjectBuilder();
         builder.add("query", graphQL);
         return builder.build();
     }

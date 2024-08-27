@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl;
 
+import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
@@ -23,7 +24,7 @@ import io.smallrye.graphql.client.InvalidResponseException;
 
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
 
     /**
      * Parse a GraphQL response from the input string.

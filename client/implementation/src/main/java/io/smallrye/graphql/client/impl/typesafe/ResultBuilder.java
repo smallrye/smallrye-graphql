@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.impl.typesafe;
 
+import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
 import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.stream.Collectors.joining;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -28,7 +28,7 @@ import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
 public class ResultBuilder {
-    private static final JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(null);
+    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
 
     private final MethodInvocation method;
     private final JsonObject response;
@@ -115,7 +115,7 @@ public class ResultBuilder {
         List<Object> path = getPath(error);
         if (data == null || path == null)
             return false;
-        JsonPointer pointer = Json.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
+        JsonPointer pointer = JSON_PROVIDER.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
         if (!exists(pointer))
             return false;
         JsonArrayBuilder errors = jsonBuilderFactory.createArrayBuilder();
@@ -152,6 +152,7 @@ public class ResultBuilder {
         return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
     }
 
-    private static final JsonPatch ERROR_MARK = Json.createPatchBuilder().add("/__typename", ErrorOr.class.getSimpleName())
+    private static final JsonPatch ERROR_MARK = JSON_PROVIDER.createPatchBuilder()
+            .add("/__typename", ErrorOr.class.getSimpleName())
             .build();
 }

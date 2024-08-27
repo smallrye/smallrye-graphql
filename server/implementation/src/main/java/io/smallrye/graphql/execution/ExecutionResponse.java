@@ -1,5 +1,7 @@
 package io.smallrye.graphql.execution;
 
+import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
+
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -11,7 +13,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
@@ -23,7 +24,6 @@ import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
-import jakarta.json.spi.JsonProvider;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
@@ -37,9 +37,8 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class ExecutionResponse {
 
-    private static final JsonProvider jsonProvider = JsonProvider.provider();
-    private static final JsonBuilderFactory jsonObjectFactory = Json.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(null);
+    private static final JsonBuilderFactory jsonObjectFactory = JSON_PROVIDER.createBuilderFactory(null);
+    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
     private static final Jsonb jsonB = JsonbBuilder.create(new JsonbConfig()
             .withNullValues(Boolean.TRUE)
             .withFormatting(Boolean.TRUE));
@@ -188,22 +187,22 @@ public class ExecutionResponse {
                 jsonValue = JsonValue.FALSE;
             }
         } else if (pojo instanceof String) {
-            jsonValue = jsonProvider.createValue(((String) pojo));
+            jsonValue = JSON_PROVIDER.createValue(((String) pojo));
         } else if (pojo instanceof Double) {
-            jsonValue = jsonProvider.createValue(((Number) pojo).doubleValue());
+            jsonValue = JSON_PROVIDER.createValue(((Number) pojo).doubleValue());
         } else if (pojo instanceof Float) {
             //upcast to double would lead to precision loss
-            jsonValue = jsonProvider.createValue(new BigDecimal(String.valueOf(((Number) pojo).floatValue())));
+            jsonValue = JSON_PROVIDER.createValue(new BigDecimal(String.valueOf(((Number) pojo).floatValue())));
         } else if (pojo instanceof Long) {
-            jsonValue = jsonProvider.createValue(((Long) pojo));
+            jsonValue = JSON_PROVIDER.createValue(((Long) pojo));
         } else if (pojo instanceof Integer || pojo instanceof Short || pojo instanceof Byte) {
-            jsonValue = jsonProvider.createValue(((Number) pojo).intValue());
+            jsonValue = JSON_PROVIDER.createValue(((Number) pojo).intValue());
         } else if (pojo instanceof BigDecimal) {
-            jsonValue = jsonProvider.createValue(((BigDecimal) pojo));
+            jsonValue = JSON_PROVIDER.createValue(((BigDecimal) pojo));
         } else if (pojo instanceof BigInteger) {
-            jsonValue = jsonProvider.createValue(((BigInteger) pojo));
+            jsonValue = JSON_PROVIDER.createValue(((BigInteger) pojo));
         } else if (pojo instanceof Enum<?>) {
-            jsonValue = jsonProvider.createValue(((Enum<?>) pojo).name());
+            jsonValue = JSON_PROVIDER.createValue(((Enum<?>) pojo).name());
         } else {
             String json = jsonB.toJson(pojo);
             try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
