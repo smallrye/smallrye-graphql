@@ -29,6 +29,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedSchemaElement;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLType;
 import io.smallrye.graphql.spi.config.Config;
 
@@ -65,7 +66,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                     }));
             return sequence(repsWithPositionPerType.entrySet().stream().map(e -> {
                 var fieldDefinition = fieldDefinitions.get(e.getKey());
-                if (getGraphqlTypeFromField(fieldDefinition) instanceof GraphQLList) {
+                if (getGraphqlTypeFromField(fieldDefinition.getField()) instanceof GraphQLList) {
                     //use batch loader if available
                     return executeList(fieldDefinition, environment, e.getValue());
                 } else {
@@ -79,26 +80,48 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                     .sorted(Comparator.comparingInt(r -> r.position)).map(r -> r.Result).collect(Collectors.toList()));
 
         }
-        Map<TypeAndArgumentNames, GraphQLFieldDefinition> cache = new HashMap<>();
+        Map<TypeAndArgumentNames, TypeFieldWrapper> cache = new HashMap<>();
         return sequence(representations.stream()
                 .map(rep -> fetchEntities(environment, rep,
                         cache.computeIfAbsent(rep.typeAndArgumentNames, this::findFieldDefinition)))
                 .collect(Collectors.toList())).thenApply(l -> l.stream().map(r -> r.Result).collect(Collectors.toList()));
     }
 
-    private GraphQLFieldDefinition findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+    private TypeFieldWrapper findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
         for (GraphQLFieldDefinition field : queryType.getFields()) {
-            if (matchesReturnTypeList(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
-                return field;
+            if (field.getType() instanceof GraphQLObjectType) {
+                for (GraphQLSchemaElement child : field.getType().getChildren()) {
+                    if (child instanceof GraphQLFieldDefinition) {
+                        GraphQLFieldDefinition definition = (GraphQLFieldDefinition) child;
+                        if (matchesReturnTypeList(definition, typeAndArgumentNames.type)
+                                && matchesArguments(typeAndArgumentNames, definition)) {
+                            return new TypeFieldWrapper((GraphQLObjectType) field.getType(), definition);
+                        }
+                    }
+                }
+            } else if (matchesReturnTypeList(field, typeAndArgumentNames.type)
+                    && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(queryType, field);
             }
         }
         return null;
     }
 
-    private GraphQLFieldDefinition findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+    private TypeFieldWrapper findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
         for (GraphQLFieldDefinition field : queryType.getFields()) {
-            if (matchesReturnType(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
-                return field;
+            if (field.getType() instanceof GraphQLObjectType) {
+                for (GraphQLSchemaElement child : field.getType().getChildren()) {
+                    if (child instanceof GraphQLFieldDefinition) {
+                        GraphQLFieldDefinition definition = (GraphQLFieldDefinition) child;
+                        if (matchesReturnType(definition, typeAndArgumentNames.type)
+                                && matchesArguments(typeAndArgumentNames, definition)) {
+                            return new TypeFieldWrapper((GraphQLObjectType) field.getType(), definition);
+                        }
+                    }
+                }
+            } else if (matchesReturnType(field, typeAndArgumentNames.type)
+                    && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(queryType, field);
             }
         }
         throw new RuntimeException(
@@ -106,8 +129,8 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     }
 
     private CompletableFuture<ResultObject> fetchEntities(DataFetchingEnvironment env, Representation representation,
-            GraphQLFieldDefinition field) {
-        return execute(field, env, representation);
+            TypeFieldWrapper wrapper) {
+        return execute(wrapper, env, representation);
     }
 
     private boolean matchesReturnType(GraphQLFieldDefinition field, String typename) {
@@ -140,9 +163,9 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
         return argumentNames.equals(typeAndArgumentNames.argumentNames);
     }
 
-    private CompletableFuture<List<ResultObject>> executeList(GraphQLFieldDefinition field, DataFetchingEnvironment env,
+    private CompletableFuture<List<ResultObject>> executeList(TypeFieldWrapper wrapper, DataFetchingEnvironment env,
             List<Representation> representations) {
-        DataFetcher<?> dataFetcher = codeRegistry.getDataFetcher(queryType, field);
+        DataFetcher<?> dataFetcher = codeRegistry.getDataFetcher(wrapper.getType(), wrapper.getField());
         Map<String, List<Object>> arguments = new HashMap<>();
         representations.forEach(r -> {
             r.arguments.forEach((argumentName, argumentValue) -> {
@@ -183,7 +206,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                     resultList = (List<Object>) results;
                 } else {
                     throw new IllegalStateException(
-                            "Result of batchDataFetcher for Field " + field.getName() + " needs to be a list"
+                            "Result of batchDataFetcher for Field " + wrapper.getField().getName() + " needs to be a list"
                                     + results.toString());
                 }
 
@@ -197,13 +220,13 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                         .collect(Collectors.toList());
             });
         } catch (Exception e) {
-            throw new RuntimeException("can't fetch data from " + field, e);
+            throw new RuntimeException("can't fetch data from " + wrapper.getField(), e);
         }
     }
 
-    private CompletableFuture<ResultObject> execute(GraphQLFieldDefinition field, DataFetchingEnvironment env,
+    private CompletableFuture<ResultObject> execute(TypeFieldWrapper wrapper, DataFetchingEnvironment env,
             Representation representation) {
-        DataFetcher<?> dataFetcher = codeRegistry.getDataFetcher(queryType, field);
+        DataFetcher<?> dataFetcher = codeRegistry.getDataFetcher(wrapper.getType(), wrapper.getField());
         DataFetchingEnvironment argsEnv = new DelegatingDataFetchingEnvironment(env) {
             @Override
             public Map<String, Object> getArguments() {
@@ -230,7 +253,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
             return Async.toCompletableFuture(dataFetcher.get(argsEnv))
                     .thenApply(o -> new ResultObject(o, representation.position));
         } catch (Exception e) {
-            throw new RuntimeException("can't fetch data from " + field, e);
+            throw new RuntimeException("can't fetch data from " + wrapper.getField(), e);
         }
     }
 
