@@ -18,11 +18,11 @@ class InterfaceBehavior {
             @JsonbSubtype(alias = "MainCharacter", type = MainCharacter.class),
             @JsonbSubtype(alias = "SideKick", type = SideKick.class)
     })
-    public interface SuperHero {
+    public interface SearchResult {
         String getName();
     }
 
-    public static class MainCharacter implements SuperHero {
+    public static class MainCharacter implements SearchResult {
         String name;
         String superPower;
 
@@ -36,7 +36,7 @@ class InterfaceBehavior {
         }
     }
 
-    public static class SideKick implements SuperHero {
+    public static class SideKick implements SearchResult {
         String name;
         String mainCharacter;
 
@@ -51,16 +51,16 @@ class InterfaceBehavior {
     }
 
     @GraphQLClientApi
-    interface UnionApi {
-        SuperHero find(String name);
+    interface InterfaceApi {
+        SearchResult find(String name);
 
-        List<SuperHero> all();
+        List<SearchResult> all();
     }
 
     @Test
-    void shouldUnionFindBatman() {
+    void shouldInterfaceFindBatman() {
         fixture.returnsData("'find':{'__typename':'MainCharacter','name':'Batman','superPower':'Money'}");
-        var api = fixture.build(UnionApi.class);
+        var api = fixture.build(InterfaceApi.class);
 
         var response = api.find("Batman");
 
@@ -75,9 +75,9 @@ class InterfaceBehavior {
     }
 
     @Test
-    void shouldUnionFindRobin() {
+    void shouldInterfaceFindRobin() {
         fixture.returnsData("'find':{'__typename':'SideKick', 'name':'Robin', 'mainCharacter':'Batman'}");
-        var api = fixture.build(UnionApi.class);
+        var api = fixture.build(InterfaceApi.class);
 
         var response = api.find("Robin");
 
@@ -92,12 +92,12 @@ class InterfaceBehavior {
     }
 
     @Test
-    void shouldUnionFindAll() {
+    void shouldInterfaceFindAll() {
         fixture.returnsData("'all':[" +
                 "{'__typename':'MainCharacter','name':'Batman','superPower':'Money'}," +
                 "{'__typename':'SideKick', 'name':'Robin', 'mainCharacter':'Batman'}" +
                 "]");
-        var api = fixture.build(UnionApi.class);
+        var api = fixture.build(InterfaceApi.class);
 
         var response = api.all();
 
