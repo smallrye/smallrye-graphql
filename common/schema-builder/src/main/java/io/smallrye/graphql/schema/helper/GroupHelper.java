@@ -68,7 +68,7 @@ public class GroupHelper {
             List<AnnotationInstance> descriptionAnnotations = apiClass.annotationsMap().get(Annotations.DESCRIPTION);
             if (descriptionAnnotations != null && !descriptionAnnotations.isEmpty()) {
                 for (AnnotationInstance descriptionAnnotation : descriptionAnnotations) {
-                    if (descriptionAnnotation.target().equals(graphQLApiAnnotation.target())){
+                    if (descriptionAnnotation.target().equals(graphQLApiAnnotation.target())) {
                         AnnotationValue value = descriptionAnnotation.value();
                         if (value != null && value.asString() != null && !value.asString().isEmpty()) {
                             return Optional.of(value.asString());
