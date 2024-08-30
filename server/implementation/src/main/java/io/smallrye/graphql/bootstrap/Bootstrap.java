@@ -252,11 +252,13 @@ public class Bootstrap {
     private void createGraphQLCustomScalarType(CustomScalarType customScalarType) {
         String scalarName = customScalarType.getName();
 
+        String description = getDescription(customScalarType);
+
         Coercing<?, ?> coercing = getCoercing(customScalarType);
 
         GraphQLScalarType graphQLScalarType = GraphQLScalarType.newScalar()
                 .name(scalarName)
-                .description("Scalar for " + scalarName)
+                .description(description)
                 .coercing(coercing)
                 .build();
 
@@ -264,6 +266,11 @@ public class Bootstrap {
                 scalarName,
                 customScalarType.getClassName(),
                 graphQLScalarType);
+    }
+
+    private static String getDescription(CustomScalarType customScalarType) {
+        return Optional.ofNullable(customScalarType.getDescription())
+                .orElse("Scalar for " + customScalarType.getName());
     }
 
     private static Coercing<?, ?> getCoercing(CustomScalarType customScalarType) {
