@@ -398,7 +398,7 @@ public class OperationModel implements NamedElement {
     private String readGroupName(MethodInfo method) {
         List<AnnotationInstance> annotationInstances = method.declaringClass().annotations(NAME);
         for (AnnotationInstance annotationInstance : annotationInstances) {
-            if (annotationInstance.target().kind() == AnnotationTarget.Kind.CLASS){
+            if (annotationInstance.target().kind() == AnnotationTarget.Kind.CLASS) {
                 if (annotationInstance.target().asClass().name().equals(method.declaringClass().name())) {
                     String groupName = annotationInstance.value().asString().trim();
                     if (!groupName.isEmpty()) {
