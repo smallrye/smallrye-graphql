@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,6 +39,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     public static final String TYPENAME = "__typename";
     private final GraphQLObjectType queryType;
     private final GraphQLCodeRegistry codeRegistry;
+    private final HashMap<TypeAndArgumentNames, TypeFieldWrapper> cache = new HashMap<>();
 
     public FederationDataFetcher(GraphQLObjectType queryType, GraphQLCodeRegistry codeRegistry) {
         this.queryType = queryType;
@@ -56,14 +58,10 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
             var repsWithPositionPerType = representations.stream().collect(Collectors.groupingBy(r -> r.typeAndArgumentNames));
             //then we search for the field definition to resolve the objects
             var fieldDefinitions = repsWithPositionPerType.keySet().stream()
-                    .collect(Collectors.toMap(Function.identity(), typeAndArgumentNames -> {
-                        var batchDefinition = findBatchFieldDefinition(typeAndArgumentNames);
-                        if (batchDefinition == null) {
-                            return findFieldDefinition(typeAndArgumentNames);
-                        } else {
-                            return batchDefinition;
-                        }
-                    }));
+                    .collect(Collectors.toMap(Function.identity(), typeAndArgumentNames -> cache.computeIfAbsent(
+                            typeAndArgumentNames, type -> Objects.requireNonNullElseGet(
+                                    findBatchFieldDefinition(type),
+                                    () -> findFieldDefinition(type)))));
             return sequence(repsWithPositionPerType.entrySet().stream().map(e -> {
                 var fieldDefinition = fieldDefinitions.get(e.getKey());
                 if (getGraphqlTypeFromField(fieldDefinition.getField()) instanceof GraphQLList) {
@@ -80,28 +78,39 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                     .sorted(Comparator.comparingInt(r -> r.position)).map(r -> r.Result).collect(Collectors.toList()));
 
         }
-        Map<TypeAndArgumentNames, TypeFieldWrapper> cache = new HashMap<>();
         return sequence(representations.stream()
                 .map(rep -> fetchEntities(environment, rep,
                         cache.computeIfAbsent(rep.typeAndArgumentNames, this::findFieldDefinition)))
                 .collect(Collectors.toList())).thenApply(l -> l.stream().map(r -> r.Result).collect(Collectors.toList()));
     }
 
-    private TypeFieldWrapper findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
-        for (GraphQLFieldDefinition field : queryType.getFields()) {
-            if (field.getType() instanceof GraphQLObjectType) {
-                for (GraphQLSchemaElement child : field.getType().getChildren()) {
-                    if (child instanceof GraphQLFieldDefinition) {
-                        GraphQLFieldDefinition definition = (GraphQLFieldDefinition) child;
-                        if (matchesReturnTypeList(definition, typeAndArgumentNames.type)
-                                && matchesArguments(typeAndArgumentNames, definition)) {
-                            return new TypeFieldWrapper((GraphQLObjectType) field.getType(), definition);
-                        }
+    private TypeFieldWrapper findRecursiveFieldDefinition(TypeAndArgumentNames typeAndArgumentNames,
+            GraphQLFieldDefinition field,
+            BiFunction<GraphQLFieldDefinition, String, Boolean> matchesReturnType) {
+        if (field.getType() instanceof GraphQLObjectType) {
+            for (GraphQLSchemaElement child : field.getType().getChildren()) {
+                if (child instanceof GraphQLFieldDefinition) {
+                    GraphQLFieldDefinition definition = (GraphQLFieldDefinition) child;
+                    if (matchesReturnType.apply(definition, typeAndArgumentNames.type)
+                            && matchesArguments(typeAndArgumentNames, definition)) {
+                        return new TypeFieldWrapper((GraphQLObjectType) field.getType(), definition);
+                    } else if (definition.getType() instanceof GraphQLObjectType) {
+                        return findRecursiveFieldDefinition(typeAndArgumentNames, definition, matchesReturnType);
                     }
                 }
-            } else if (matchesReturnTypeList(field, typeAndArgumentNames.type)
-                    && matchesArguments(typeAndArgumentNames, field)) {
-                return new TypeFieldWrapper(queryType, field);
+            }
+        } else if (matchesReturnType.apply(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
+            return new TypeFieldWrapper(queryType, field);
+        }
+        return null;
+    }
+
+    private TypeFieldWrapper findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+        for (GraphQLFieldDefinition field : queryType.getFields()) {
+            TypeFieldWrapper typeFieldWrapper = findRecursiveFieldDefinition(typeAndArgumentNames, field,
+                    this::matchesReturnTypeList);
+            if (typeFieldWrapper != null) {
+                return typeFieldWrapper;
             }
         }
         return null;
@@ -109,19 +118,10 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
 
     private TypeFieldWrapper findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
         for (GraphQLFieldDefinition field : queryType.getFields()) {
-            if (field.getType() instanceof GraphQLObjectType) {
-                for (GraphQLSchemaElement child : field.getType().getChildren()) {
-                    if (child instanceof GraphQLFieldDefinition) {
-                        GraphQLFieldDefinition definition = (GraphQLFieldDefinition) child;
-                        if (matchesReturnType(definition, typeAndArgumentNames.type)
-                                && matchesArguments(typeAndArgumentNames, definition)) {
-                            return new TypeFieldWrapper((GraphQLObjectType) field.getType(), definition);
-                        }
-                    }
-                }
-            } else if (matchesReturnType(field, typeAndArgumentNames.type)
-                    && matchesArguments(typeAndArgumentNames, field)) {
-                return new TypeFieldWrapper(queryType, field);
+            TypeFieldWrapper typeFieldWrapper = findRecursiveFieldDefinition(typeAndArgumentNames, field,
+                    this::matchesReturnType);
+            if (typeFieldWrapper != null) {
+                return typeFieldWrapper;
             }
         }
         throw new RuntimeException(
