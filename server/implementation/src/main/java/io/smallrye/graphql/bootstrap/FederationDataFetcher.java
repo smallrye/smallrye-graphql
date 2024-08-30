@@ -85,8 +85,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     }
 
     private TypeFieldWrapper findRecursiveFieldDefinition(TypeAndArgumentNames typeAndArgumentNames,
-            GraphQLFieldDefinition field,
-            BiFunction<GraphQLFieldDefinition, String, Boolean> matchesReturnType) {
+            GraphQLFieldDefinition field, BiFunction<GraphQLFieldDefinition, String, Boolean> matchesReturnType) {
         if (field.getType() instanceof GraphQLObjectType) {
             for (GraphQLSchemaElement child : field.getType().getChildren()) {
                 if (child instanceof GraphQLFieldDefinition) {
@@ -99,13 +98,16 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                     }
                 }
             }
-        } else if (matchesReturnType.apply(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
-            return new TypeFieldWrapper(queryType, field);
         }
         return null;
     }
 
     private TypeFieldWrapper findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+        for (GraphQLFieldDefinition field : queryType.getFields()) {
+            if (matchesReturnTypeList(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(queryType, field);
+            }
+        }
         for (GraphQLFieldDefinition field : queryType.getFields()) {
             TypeFieldWrapper typeFieldWrapper = findRecursiveFieldDefinition(typeAndArgumentNames, field,
                     this::matchesReturnTypeList);
@@ -118,12 +120,18 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
 
     private TypeFieldWrapper findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
         for (GraphQLFieldDefinition field : queryType.getFields()) {
+            if (matchesReturnType(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(queryType, field);
+            }
+        }
+        for (GraphQLFieldDefinition field : queryType.getFields()) {
             TypeFieldWrapper typeFieldWrapper = findRecursiveFieldDefinition(typeAndArgumentNames, field,
                     this::matchesReturnType);
             if (typeFieldWrapper != null) {
                 return typeFieldWrapper;
             }
         }
+
         throw new RuntimeException(
                 "no query found for " + typeAndArgumentNames.type + " by " + typeAndArgumentNames.argumentNames);
     }
