@@ -9,6 +9,7 @@ import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
@@ -99,6 +100,13 @@ public class OperationModel implements NamedElement {
             String keyFields = fields(type.getMapKeyType());
             String valueFields = fields(type.getMapValueType());
             return " {key" + keyFields + " value" + valueFields + "}";
+        }
+        if (type.isUnion() || type.isInterface()) {
+            return "{__typename " + type.subtypes()
+                    .sorted(Comparator.comparing(TypeModel::getGraphQlTypeName)) // for deterministic order
+                    .map(this::fieldsFragment)
+                    .collect(joining(" ")) +
+                    "}";
         }
         if (isRawParametrizedType(type)) {
             rawParametrizedTypes.push(type.getFirstRawType());
@@ -409,4 +417,8 @@ public class OperationModel implements NamedElement {
         }
         return null;
     }
+    private String fieldsFragment(TypeModel type) {
+        return "... on " + type.getGraphQlTypeName() + fields(type);
+    }
+
 }

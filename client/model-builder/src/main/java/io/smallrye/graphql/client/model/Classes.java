@@ -72,6 +72,14 @@ public class Classes {
                 || isMulti(type);
     }
 
+    public static boolean isInterface(Type type) {
+        if (Classes.isClass(type)) {
+            ClassInfo clazz = getIndex().getClassByName(type.asClassType().name());
+            return clazz != null && clazz.isInterface();
+        }
+        return false;
+    }
+
     public static boolean isUni(Type type) {
         return type.name().equals(UNI);
     }

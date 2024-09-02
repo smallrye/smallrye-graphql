@@ -3,6 +3,9 @@ package io.smallrye.graphql.client.model.helper;
 import static io.smallrye.graphql.client.model.Annotations.IGNORE;
 import static io.smallrye.graphql.client.model.Annotations.JACKSON_IGNORE;
 import static io.smallrye.graphql.client.model.Annotations.JAKARTA_JSONB_TRANSIENT;
+import static io.smallrye.graphql.client.model.Annotations.JAKARTA_JSONB_TYPE_INFO;
+import static io.smallrye.graphql.client.model.Annotations.TYPE;
+import static io.smallrye.graphql.client.model.Annotations.UNION;
 import static io.smallrye.graphql.client.model.Classes.ERROR_OR;
 import static io.smallrye.graphql.client.model.Classes.OBJECT;
 import static io.smallrye.graphql.client.model.Classes.OPTIONAL;
@@ -20,6 +23,7 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
@@ -362,6 +366,21 @@ public class TypeModel {
     }
 
     /**
+     * @see <a href="https://spec.graphql.org/draft/#sec-Unions">GraphQL Union</a>
+     */
+    public boolean isUnion() {
+        return type.hasAnnotation(UNION);
+    }
+
+    /**
+     * Is this a <em>GraphQL</em> Interface, i.e. a Java interface without a <code>&#64;Union</code> annotation.
+     *
+     */
+    public boolean isInterface() {
+        return Classes.isInterface(type) && !isUnion();
+    }
+
+    /**
      * Retrieves a stream of FieldModel instances representing the fields of the type.
      *
      * @return A stream of FieldModel instances.
@@ -476,5 +495,33 @@ public class TypeModel {
                 && !isErrorOr()
                 && !isMap()
                 && !isCollection();
+    }
+
+    public String getGraphQlTypeName() {
+        Optional<AnnotationInstance> annotationInstance = getClassAnnotation(TYPE);
+        if (annotationInstance.isPresent()) {
+            AnnotationValue value = annotationInstance.get().value();
+            if (value != null) {
+                return value.asString();
+            }
+        }
+        return getSimpleName();
+    }
+
+    /**
+     * Retrieves the subtypes of the current class based on the `JsonbTypeInfo` annotation.
+     *
+     * @return A stream of subtype models.
+     */
+    public Stream<TypeModel> subtypes() {
+        Optional<AnnotationInstance> jsonbTypeInfoAnnotation = getClassAnnotation(JAKARTA_JSONB_TYPE_INFO);
+        if (jsonbTypeInfoAnnotation.isEmpty()) {
+            return Stream.empty();
+        }
+
+        return Stream.of(jsonbTypeInfoAnnotation.get().value().asNestedArray())
+                .map(annotationInstance -> annotationInstance.value("type"))
+                .map(AnnotationValue::asClass)
+                .map(TypeModel::of);
     }
 }
