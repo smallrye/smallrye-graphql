@@ -578,6 +578,7 @@ public class Annotations {
     public static final DotName JAKARTA_JSONB_TRANSIENT = DotName.createSimple(JAKARTA_JSONB + "JsonbTransient");
     public static final DotName JAKARTA_JSONB_CREATOR = DotName.createSimple(JAKARTA_JSONB + "JsonbCreator");
     public static final DotName JAKARTA_JSONB_TYPE_ADAPTER = DotName.createSimple(JAKARTA_JSONB + "JsonbTypeAdapter");
+    public static final DotName JAKARTA_JSONB_TYPE_INFO = DotName.createSimple(JAKARTA_JSONB + "JsonbTypeInfo");
 
     // Jackson Annotations
     public static final DotName JACKSON_IGNORE = DotName.createSimple("com.fasterxml.jackson.annotation.JsonIgnore");

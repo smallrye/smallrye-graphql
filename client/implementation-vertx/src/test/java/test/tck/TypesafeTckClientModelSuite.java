@@ -45,7 +45,6 @@ class TypesafeTckClientModelSuite extends TypesafeTCK {
     static void beforeAll() {
         // These properties are for the ‘TypesafeGraphQLClientBuilder#builder’ to differentiate between the typesafe-client
         // using the client model and the one that does not.
-
         System.clearProperty("clientModelCase");
         System.setProperty("clientModelCase", "true");
     }
