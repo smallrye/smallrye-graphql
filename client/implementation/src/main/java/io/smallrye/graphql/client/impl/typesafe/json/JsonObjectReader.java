@@ -28,16 +28,24 @@ class JsonObjectReader extends Reader<JsonObject> {
     }
 
     private Object readObject() {
-        if (!type.isRecord()) {
+        if (type.isUnion() || type.isInterface()) {
+            var subtype = type.subtype(value.getString("__typename"));
+            var instance = subtype.newInstance(new Object[0]);
+            subtype.fields().forEach(field -> {
+                Object fieldValue = buildValue(location, value, field);
+                field.set(instance, fieldValue);
+            });
+            return instance;
+        } else if (type.isRecord()) {
+            Object[] values = type.fields().map(field -> buildValue(location, value, field)).toArray(Object[]::new);
+            return newInstance(values);
+        } else {
             Object instance = newInstance();
             type.fields().forEach(field -> {
                 Object fieldValue = buildValue(location, value, field);
                 field.set(instance, fieldValue);
             });
             return instance;
-        } else {
-            Object[] values = type.fields().map(field -> buildValue(location, value, field)).toArray(Object[]::new);
-            return newInstance(values);
         }
     }
 

@@ -2,6 +2,7 @@ package io.smallrye.graphql.client.impl.typesafe;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
@@ -76,9 +77,20 @@ public class QueryBuilder {
             String valueFields = fields(type.getValueType());
             return "{ key " + keyFields + " value " + valueFields + "}";
         }
+        if (type.isUnion() || type.isInterface()) {
+            return "{__typename " + type.subtypes()
+                    .sorted(Comparator.comparing(TypeInfo::getGraphQlTypeName)) // for deterministic order
+                    .map(this::fieldsFragment)
+                    .collect(joining(" ")) +
+                    "}";
+        }
         return type.fields()
                 .map(this::field)
                 .collect(joining(" ", " {", "}"));
+    }
+
+    private String fieldsFragment(TypeInfo typeInfo) {
+        return "... on " + typeInfo.getGraphQlTypeName() + fields(typeInfo);
     }
 
     private String field(FieldInfo field) {

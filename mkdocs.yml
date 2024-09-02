@@ -16,6 +16,7 @@ nav:
       - Inspecting executable directives: 'inspecting-executable-directives-on-server-side.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
+      - Unions and Interfaces: 'typesafe-client-unions-and-interfaces.md'
       - Reactive: 'typesafe-client-reactive-types.md'
       - Custom scalar types: 'typesafe-client-custom-scalars.md'
       - Adding headers: 'typesafe-client-headers.md'
