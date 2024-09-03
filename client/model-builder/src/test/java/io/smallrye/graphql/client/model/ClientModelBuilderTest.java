@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.jandex.Index;
 import org.junit.jupiter.api.Test;
@@ -208,6 +209,39 @@ public class ClientModelBuilderTest {
         assertOperation(clientModel,
                 new MethodKey("allStrings0", new Class[0]),
                 "query allStrings0 { allStrings0 }");
+    }
+
+    @Name("named")
+    @GraphQLClientApi(configKey = "string-api")
+    interface NamedClientApi {
+        @Query("findAll")
+        List<String> findAllStringsQuery();
+
+        @Name("findAll")
+        List<String> findAllStringsName();
+
+        @Mutation("update")
+        @Name("update")
+        String update(String s);
+    }
+
+    @Test
+    void namedClientModelTest() throws IOException {
+        String configKey = "string-api";
+        ClientModels clientModels = ClientModelBuilder
+                .build(Index.of(NamedClientApi.class));
+        assertNotNull(clientModels.getClientModelByConfigKey(configKey));
+        ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
+        assertEquals(3, clientModel.getOperationMap().size());
+        assertOperation(clientModel,
+                new MethodKey("findAllStringsQuery", new Class[0]),
+                "query findAll { named { findAll } } ");
+        assertOperation(clientModel,
+                new MethodKey("findAllStringsName", new Class[0]),
+                "query findAll { named { findAll } } ");
+        assertOperation(clientModel,
+                new MethodKey("update", new Class[]{String.class}),
+                "mutation update($s: String) { named { update(s: $s) } } ");
     }
 
     private void assertOperation(ClientModel clientModel, MethodKey methodKey, String expectedQuery) {
