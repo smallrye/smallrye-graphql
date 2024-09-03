@@ -240,7 +240,7 @@ public class ClientModelBuilderTest {
                 new MethodKey("findAllStringsName", new Class[0]),
                 "query findAll { named { findAll } } ");
         assertOperation(clientModel,
-                new MethodKey("update", new Class[]{String.class}),
+                new MethodKey("update", new Class[] { String.class }),
                 "mutation update($s: String) { named { update(s: $s) } } ");
     }
 
