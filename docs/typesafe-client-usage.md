@@ -145,3 +145,185 @@ interface TeamsApi {
 The value of the `@NestedParameter` annotation is the dot-delimited path
 to the nested field/method that the value should be added to.
 
+Example of server code
+```java
+@GraphQLApi
+public class RoleApi {
+    @Query
+    public List<Role> findAllRolesByUserId(@NonNull UUID userId) {
+        // return roles
+    }
+
+    public List<Permission> permission(@Source Roles role, @DefaultValue("5") int limit) {
+        // return permissions, based on roles
+    }
+
+    public List<PermissionType> permissionType(@Source Permission permission, @DefaultValue("5") int limit) {
+        // return permissionType, based on permission
+    }
+}
+```
+
+Query looks like
+```
+query {
+  findAllRolesByUserId(userId: ...) {
+    id
+    permission(limit: 2) {
+      id
+      permissionType(limit: 3) {
+        id
+      }
+    }
+  }
+}
+```
+
+On client side you can create next code
+```java
+public record PermissionType(Long id) {
+}
+
+public record Permission(Long id, List<PermissionType> permissionType) {
+}
+
+public record Role(UUID id, List<Permission> permission) {
+}
+
+@GraphQLClientApi
+public interface ApiClient {
+    List<Role> findAllRolesByUserId(
+            UUID userId,
+            @NestedParameter("permission") @Name("limit") int permissionLimit,
+            @NestedParameter("permission.permissionType") @Name("limit") int permissionTypeLimit
+    );
+}
+```
+
+Namespaces
+==========
+> [NOTE]
+> We strongly unrecommended the use namespaces with a type-safe client. 
+> It is possible to use the @Name annotation, with minimal changes to the code. 
+> However, for more complex cases it is better to use the dynamic client, since understanding the resulting code can be difficult.
+
+There are several ways to work with namespaces with the type-safe client.
+
+If only 1 level of nesting is used, then the interface can be marked with the @Name annotation.
+
+```
+query {
+    users {
+        findAll {
+         ....
+        }
+    }
+}
+```
+
+```java
+@Name("users")
+@GraphQLClientApi
+public interface ApiClient {
+    List<User> findAll();
+}
+```
+
+You also can use Wrapper class (but the code doesn't look great.).
+
+Modify server code from above.
+```java
+@Name("roles")  // Add namespace
+@GraphQLApi
+public class RoleApi {
+    ////
+}
+```
+
+Client code
+```java
+// Name field roles as method named
+public record RolesWrapper(List<RolesTest> findAllRolesByUserId) {
+}
+
+@GraphQLClientApi
+public interface ApiClient {
+    @Query("roles") // required naming as namespace
+    RolesWrapper getRoles( // extend nested params
+            @NestedParameter("findAllRolesByUserId") UUID userId, // here roles id name of field in wrapper class
+            @NestedParameter("findAllRolesByUserId.permission") @Name("limit") int permissionLimit,
+            @NestedParameter("findAllRolesByUserId.permission.permissionType") @Name("limit") int permissionTypeLimit
+    );
+}
+```
+
+If you have more than 1 level of nesting and want to use a type-safe client, the only way is with wrapper classes.
+```java
+@Name("admin")
+@GraphQLApi
+public class RoleApi {
+    public static class RoleQueryNamespace{ }
+
+    @Query("roles")
+    public RoleQueryNamespace roleQueryNamespace(){
+        return new RoleQueryNamespace();
+    }
+
+    public List<Role> findAll(@Source RoleQueryNamespace namespace, UUID userId) {}
+    public List<Permission> permission(@Source Role role, @DefaultValue("5") int limit) {}
+    public List<PermissionType> permissionType(@Source Permission permissions, @DefaultValue("5") int limit) {}
+}
+```
+
+Query will be like
+```
+query {
+  admin {
+    roles {
+      findAll(userId: ...) {
+        id
+        permission(limit: 1) {
+          id
+          permissionType(limit: 2) {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```java
+// Without Name annotation it must have name as is in schema
+public record AdminWrapper(RolesWrapper roles) { // namespace in schema
+    public record RolesWrapper(List<RolesTest> findAllRolesByUserId){} // name method in schema
+}
+
+@GraphQLClientApi(endpoint = "http://localhost:8081/graphql")
+public interface ApiClient {
+    @Query("admin")
+    AdminWrapper findAllRolesByUserId(
+            // nested params must be such as field names in wrapper class
+            @NestedParameter("roles.findAllRolesByUserId") UUID userId,
+            @NestedParameter("roles.findAllRolesByUserId.permission") @Name("limit") int permissionLimit,
+            @NestedParameter("roles.findAllRolesByUserId.permission.permissionType") @Name("limit") int permissionTypeLimit
+    );
+}
+/// or
+public record AdminWrapper(@Name("roles") RolesWrapper rolesWrapper) { // @Name like namespace in schema
+    public record RolesWrapper(@Name("findAllRolesByUserId") List<Role> roles){} // @Name like method name in schema
+}
+
+@GraphQLClientApi
+public interface ApiClient {
+    @Query("admin")
+    AdminWrapper findAllRolesByUserId(
+            // nested params value must be such as field names in wrapper class
+            @NestedParameter("rolesWrapper.roles") UUID userId,
+            @NestedParameter("rolesWrapper.roles.permission") @Name("limit") int permissionLimit,
+            @NestedParameter("rolesWrapper.roles.permission.permissionType") @Name("limit") int permissionTypeLimit
+    );
+}
+```
+As you can see, the code with wrapper classes is quite messy, so we don't recommend using this approach in a type-safe client.
