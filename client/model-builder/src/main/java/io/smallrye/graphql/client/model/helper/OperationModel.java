@@ -417,6 +417,7 @@ public class OperationModel implements NamedElement {
         }
         return null;
     }
+
     private String fieldsFragment(TypeModel type) {
         return "... on " + type.getGraphQlTypeName() + fields(type);
     }
