@@ -29,6 +29,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 
 import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.api.Namespace;
 import io.smallrye.graphql.api.OneOf;
 import io.smallrye.graphql.api.federation.Authenticated;
 import io.smallrye.graphql.api.federation.ComposeDirective;
@@ -125,7 +126,7 @@ public class IndexInitializer {
             indexer.index(convertClassToInputStream(ScopeItem.class));
             indexer.index(convertClassToInputStream(Shareable.class));
             indexer.index(convertClassToInputStream(Tag.class));
-            indexer.index(convertClassToInputStream(OneOf.class));
+            indexer.index(convertClassToInputStream(Namespace.class));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

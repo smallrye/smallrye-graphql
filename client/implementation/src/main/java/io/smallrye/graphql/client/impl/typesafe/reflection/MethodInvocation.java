@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -23,6 +24,7 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
+import io.smallrye.graphql.api.Namespace;
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.model.MethodKey;
@@ -36,14 +38,16 @@ public class MethodInvocation implements NamedElement {
     private final TypeInfo type;
     private final Method method;
     private final Object[] parameterValues;
-    private final String groupName;
+    private final List<String> namespaces;
+    private final String operationName;
     private List<ParameterInfo> parameters;
 
     private MethodInvocation(TypeInfo type, Method method, Object[] parameterValues) {
         this.type = type;
         this.method = method;
         this.parameterValues = parameterValues;
-        this.groupName = readGroupName(method);
+        this.namespaces = readNamespaces(method);
+        this.operationName = readOperationName(this.namespaces);
     }
 
     @Override
@@ -262,18 +266,41 @@ public class MethodInvocation implements NamedElement {
         }
     }
 
-    public String getGroupName() {
-        return groupName;
+    public List<String> getNamespaces() {
+        return namespaces;
     }
 
-    private String readGroupName(Method method) {
-        Name annotation = method.getDeclaringClass().getAnnotation(Name.class);
-        if (annotation != null) {
-            String groupName = annotation.value().trim();
-            if (!groupName.isEmpty()) {
-                return groupName;
+    public String getOperationName() {
+        return operationName;
+    }
+
+    private List<String> readNamespaces(Method method) {
+        if (method.getDeclaringClass().isAnnotationPresent(Namespace.class)) {
+            String[] names = method.getDeclaringClass().getAnnotation(Namespace.class).value();
+            if (names.length > 0) {
+                return List.of(names);
+            }
+        } else if (method.getDeclaringClass().isAnnotationPresent(Name.class)) {
+            String name = method.getDeclaringClass().getAnnotation(Name.class).value();
+            if (!name.isBlank()) {
+                return List.of(name);
             }
         }
-        return null;
+        return List.of();
+    }
+
+    private String readOperationName(List<String> names) {
+        if (names.isEmpty()) {
+            return getName();
+        } else {
+            String namespace = names.stream()
+                    .map(this::makeFirstLetterUppercase)
+                    .collect(Collectors.joining());
+            return namespace + makeFirstLetterUppercase(getName());
+        }
+    }
+
+    private String makeFirstLetterUppercase(String value) {
+        return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
 }

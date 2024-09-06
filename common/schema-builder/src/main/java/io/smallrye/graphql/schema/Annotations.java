@@ -595,6 +595,7 @@ public class Annotations {
     public static final DotName NULLABLE = DotName.createSimple("io.smallrye.graphql.api.Nullable");
     public static final DotName KOTLIN_METADATA = DotName.createSimple("kotlin.Metadata");
     public static final DotName ONE_OF = DotName.createSimple("io.smallrye.graphql.api.OneOf");
+    public static final DotName NAMESPACE = DotName.createSimple("io.smallrye.graphql.api.Namespace");
 
     // MicroProfile GraphQL Annotations
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");

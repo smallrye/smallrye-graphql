@@ -1,6 +1,8 @@
 package io.smallrye.graphql.client.model;
 
 import static io.smallrye.graphql.client.model.Annotations.GRAPHQL_CLIENT_API;
+import static io.smallrye.graphql.client.model.Annotations.NAME;
+import static io.smallrye.graphql.client.model.Annotations.NAMESPACE;
 import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
 
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
@@ -56,6 +59,8 @@ public class ClientModelBuilder {
         Collection<AnnotationInstance> graphQLApiAnnotations = getIndex()
                 .getAnnotations(GRAPHQL_CLIENT_API);
 
+        validateNamespaceAnnotations(graphQLApiAnnotations);
+
         graphQLApiAnnotations.forEach(graphQLApiAnnotation -> {
             ClientModel operationMap = new ClientModel();
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
@@ -73,6 +78,19 @@ public class ClientModelBuilder {
         });
         clientModels.setClientModelMap(clientModelMap);
         return clientModels;
+    }
+
+    private void validateNamespaceAnnotations(Collection<AnnotationInstance> graphQLApiAnnotations) {
+        List<String> errorInterfaces = graphQLApiAnnotations.stream()
+                .map(annotation -> annotation.target().asClass())
+                .filter(classInfo -> classInfo.hasDeclaredAnnotation(NAMESPACE) && classInfo.hasDeclaredAnnotation(NAME))
+                .map(classInfo -> classInfo.name().toString())
+                .collect(Collectors.toList());
+        if (!errorInterfaces.isEmpty()) {
+            throw new RuntimeException("You can only use one of the annotations - @Name or @Namespace " +
+                    "over the GraphQLClientApi interface. Please, fix the following interfaces: " +
+                    String.join(", ", errorInterfaces));
+        }
     }
 
     /**

@@ -525,6 +525,7 @@ public class Annotations {
     public static final DotName NON_BLOCKING = DotName.createSimple("io.smallrye.common.annotation.NonBlocking");
 
     // SmallRye GraphQL Annotations (Experimental)
+    public static final DotName NAMESPACE = DotName.createSimple("io.smallrye.graphql.api.Namespace");
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
     public static final DotName ADAPT_TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.AdaptToScalar");
     public static final DotName ADAPT_WITH = DotName.createSimple("io.smallrye.graphql.api.AdaptWith");

@@ -309,7 +309,7 @@ class VertxTypesafeGraphQLClientProxy {
         }
         request.add("query", query);
         request.add("variables", variables(method));
-        request.add("operationName", method.getName());
+        request.add("operationName", method.getOperationName());
         JsonObject result = request.build();
         log.tracef("full graphql request: %s", result.toString());
         return result;

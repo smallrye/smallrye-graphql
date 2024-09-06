@@ -2,12 +2,16 @@ package io.smallrye.graphql.schema;
 
 import static io.smallrye.graphql.schema.Annotations.CUSTOM_SCALAR;
 import static io.smallrye.graphql.schema.Annotations.DIRECTIVE;
+import static io.smallrye.graphql.schema.Annotations.GRAPHQL_API;
+import static io.smallrye.graphql.schema.Annotations.NAME;
+import static io.smallrye.graphql.schema.Annotations.NAMESPACE;
 import static io.smallrye.graphql.schema.Annotations.ONE_OF;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -40,12 +44,13 @@ import io.smallrye.graphql.schema.creator.type.UnionCreator;
 import io.smallrye.graphql.schema.helper.BeanValidationDirectivesHelper;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Directives;
-import io.smallrye.graphql.schema.helper.GroupHelper;
+import io.smallrye.graphql.schema.helper.NamespaceHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.ErrorInfo;
-import io.smallrye.graphql.schema.model.Group;
+import io.smallrye.graphql.schema.model.Namespace;
+import io.smallrye.graphql.schema.model.NamespaceContainer;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
@@ -119,10 +124,9 @@ public class SchemaBuilder {
     }
 
     private Schema generateSchema() {
-
         // Get all the @GraphQLAPI annotations
         Collection<AnnotationInstance> graphQLApiAnnotations = ScanningContext.getIndex()
-                .getAnnotations(Annotations.GRAPHQL_API);
+                .getAnnotations(GRAPHQL_API);
 
         final Schema schema = new Schema();
 
@@ -143,12 +147,18 @@ public class SchemaBuilder {
 
         addCustomScalarTypes(schema);
 
+        validateNamespaceAnnotations(graphQLApiAnnotations);
+        validateSubscriptions(graphQLApiAnnotations);
+
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
-            Optional<Group> group = GroupHelper.getGroup(graphQLApiAnnotation);
-            addOperations(group, schema, methods);
+            NamespaceHelper.getNamespace(graphQLApiAnnotation).ifPresentOrElse(
+                    namespace -> addNamespacedOperations(namespace, schema, methods),
+                    () -> addOperations(schema, methods));
         }
+
+        validateMethods(schema);
 
         // The above queries and mutations reference some models (input / type / interfaces / enum), let's create those
         addTypesToSchema(schema);
@@ -166,6 +176,61 @@ public class SchemaBuilder {
         referenceCreator.clear();
 
         return schema;
+    }
+
+    private List<String> findNamespacedMethodsErrors(Map<String, NamespaceContainer> namespaces, Set<Operation> operations) {
+        return operations.stream()
+                .filter(operation -> namespaces.containsKey(operation.getName()))
+                .map(operation -> "operation name: " + operation.getName() + ", class: " + operation.getClassName()
+                        + ", method name: " + operation.getMethodName())
+                .collect(Collectors.toList());
+    }
+
+    private void validateMethods(Schema schema) {
+        List<String> queryErrors = findNamespacedMethodsErrors(schema.getNamespacedQueries(), schema.getQueries());
+        List<String> mutationErrors = findNamespacedMethodsErrors(schema.getNamespacedMutations(), schema.getMutations());
+
+        if (!queryErrors.isEmpty() || !mutationErrors.isEmpty()) {
+            throw new RuntimeException("Inconsistent schema. Operation names overlap with namespaces." +
+                    queryErrors.stream().collect(Collectors.joining(", ", " queries - ", ";")) +
+                    mutationErrors.stream().collect(Collectors.joining(", ", " mutations - ", ";")));
+        }
+    }
+
+    private void validateSubscriptions(Collection<AnnotationInstance> graphQLApiAnnotations) {
+        List<String> errors = new ArrayList<>();
+
+        for (AnnotationInstance annotation : graphQLApiAnnotations) {
+            ClassInfo apiClass = annotation.target().asClass();
+            if (apiClass.hasDeclaredAnnotation(NAMESPACE) || apiClass.hasDeclaredAnnotation(NAME)) {
+                List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
+                for (MethodInfo methodInfo : methods) {
+                    Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+                    if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
+                        errors.add("class: " + apiClass.name().toString() + ", method: " + methodInfo.name());
+                    }
+                }
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new RuntimeException("Subscriptions can't be nested. " +
+                    "Move your subscriptions to another @GraphQLApi class, not marked @Namespace or @Name. " +
+                    "Check these places: " + String.join("; ", errors));
+        }
+    }
+
+    private void validateNamespaceAnnotations(Collection<AnnotationInstance> graphQLApiAnnotations) {
+        List<String> errorClasses = graphQLApiAnnotations.stream()
+                .map(annotation -> annotation.target().asClass())
+                .filter(classInfo -> classInfo.hasDeclaredAnnotation(NAMESPACE) && classInfo.hasDeclaredAnnotation(NAME))
+                .map(classInfo -> classInfo.name().toString())
+                .collect(Collectors.toList());
+        if (!errorClasses.isEmpty()) {
+            throw new RuntimeException("You can only use one of the annotations - @Name or @Namespace " +
+                    "over the GraphQLClientApi interface. Please, fix the following classes: " +
+                    String.join(", ", errorClasses));
+        }
     }
 
     private List<MethodInfo> getAllMethodsIncludingFromSuperClasses(ClassInfo classInfo) {
@@ -355,6 +420,19 @@ public class SchemaBuilder {
         return keepGoing;
     }
 
+    private void addNamespacedOperations(Namespace namespace, Schema schema, List<MethodInfo> methodInfoList) {
+        for (MethodInfo methodInfo : methodInfoList) {
+            Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+            if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
+                Operation query = operationCreator.createOperation(methodInfo, OperationType.QUERY, null);
+                schema.addNamespacedQuery(namespace, query);
+            } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
+                Operation mutation = operationCreator.createOperation(methodInfo, OperationType.MUTATION, null);
+                schema.addNamespacedMutation(namespace, mutation);
+            }
+        }
+    }
+
     /**
      * This inspect all method, looking for Query and Mutation annotations,
      * to create those Operations.
@@ -362,30 +440,18 @@ public class SchemaBuilder {
      * @param schema the schema to add the operation to.
      * @param methodInfoList the java methods.
      */
-    private void addOperations(Optional<Group> group, Schema schema, List<MethodInfo> methodInfoList) {
+    private void addOperations(Schema schema, List<MethodInfo> methodInfoList) {
         for (MethodInfo methodInfo : methodInfoList) {
             Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
             if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.QUERY)) {
                 Operation query = operationCreator.createOperation(methodInfo, OperationType.QUERY, null);
-                if (group.isPresent()) {
-                    schema.addGroupedQuery(group.get(), query);
-                } else {
-                    schema.addQuery(query);
-                }
+                schema.addQuery(query);
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
                 Operation mutation = operationCreator.createOperation(methodInfo, OperationType.MUTATION, null);
-                if (group.isPresent()) {
-                    schema.addGroupedMutation(group.get(), mutation);
-                } else {
-                    schema.addMutation(mutation);
-                }
+                schema.addMutation(mutation);
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
                 Operation subscription = operationCreator.createOperation(methodInfo, OperationType.SUBSCRIPTION, null);
-                if (group.isPresent()) {
-                    schema.addGroupedSubscription(group.get(), subscription);
-                } else {
-                    schema.addSubscription(subscription);
-                }
+                schema.addSubscription(subscription);
             }
         }
     }

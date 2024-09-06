@@ -34,16 +34,12 @@ public class QueryBuilder {
     public String build() {
         StringBuilder request = new StringBuilder(method.getOperationTypeAsString());
         request.append(" ");
-        request.append(method.getName()); // operationName
+        request.append(method.getOperationName());
         if (method.hasValueParameters()) {
             request.append(method.valueParameters().stream().map(method::declare).collect(joining(", ", "(", ")")));
         }
 
-        String groupName = method.getGroupName();
-        if (groupName != null) {
-            request.append(" { ");
-            request.append(groupName);
-        }
+        method.getNamespaces().forEach(namespace -> request.append(" { ").append(namespace));
 
         if (method.isSingle()) {
             request.append(" { ");
@@ -61,11 +57,11 @@ public class QueryBuilder {
 
         request.append(method.fields(method.getReturnType()));
 
-        if (method.isSingle())
+        if (method.isSingle()) {
             request.append(" }");
+        }
 
-        if (groupName != null)
-            request.append(" } ");
+        request.append(" }".repeat(method.getNamespaces().size()));
 
         return request.toString();
     }
