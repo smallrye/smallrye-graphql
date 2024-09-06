@@ -92,10 +92,12 @@ public class ResultBuilder {
     private JsonObject readData() {
         if (!response.containsKey("data") || response.isNull("data"))
             return null;
-        String groupName = method.getGroupName();
-        JsonObject data = groupName != null
-                ? response.getJsonObject("data").getJsonObject(groupName)
-                : response.getJsonObject("data");
+
+        JsonObject data = response.getJsonObject("data");
+        for (String namespace : method.getNamespaces()) {
+            data = data.getJsonObject(namespace);
+        }
+
         if (method.isSingle() && !data.containsKey(method.getName()))
             throw new InvalidResponseException("No data for '" + method.getName() + "'");
         return data;

@@ -1,20 +1,22 @@
 # Namespacing on the server side
 
-## Before you continue reading
 > [NOTE]
 > Using approaches to form namespaces in the schema can be useful for large APIs. There are several ways to do this.
 > However, read the documentation carefully, especially the limitations and possible problems.
 
-## How use namespaces
-There are 3 options how to use the name space - use the @Name annotation, @Source, or combine them.
+> [NOTE] You can only use one of the annotations - @Name or @Namespace over the GraphQLApi classes.
 
-### Using @Name annotation
-The easiest way is that you can separate your API into namespace areas using the annotation @Name with @GraphQLApi.
+## Using @Namespace annotation
+
+The annotation accepts an array of strings containing the nesting of the namespace. 
+This method allows you to create any nesting of namespaces.
+You can use any nesting and also combine different levels.
+
 ```java
 @GraphQLApi
-@Name("users")
-@Description("Users operations")
-public class UserApi {
+@Namespace({"admin", "users"})
+@Description("Admin users operations")
+public class AdminUsersApi {
     @Query
     public List<User> findAll() {
         //
@@ -22,11 +24,69 @@ public class UserApi {
 }
 
 @GraphQLApi
-@Name("roles")
-@Description("Roles operations")
-public class RoleApi {
+@Namespace({"admin"})
+@Description("Admin operations")
+public class AdminApi {
     @Query
-    public List<Role> findAll() {
+    public List<Admin> findAll() {
+        //
+    }
+}
+```
+
+Will be generated schema
+```
+"Query root"
+type Query {
+  admin: AdminQuery
+}
+
+"Admin operations"
+type AdminQuery {
+  users: AdminUsersQuery
+  findAll: [Admin]
+}
+
+"Admin users operations"
+type AdminUsersQuery {
+  findAll: [User]
+}
+
+type Admin {
+  id: BigInteger
+  ...
+}
+
+type User {
+  id: BigInteger
+  ...
+}
+```
+
+And you will can send such request
+```
+query {
+  admin {
+    users {
+      findAll {
+        id
+      }
+    }
+  }
+}
+```
+
+## Using @Name annotation (deprecated)
+> [NOTE] This feature may be removed in the future.
+
+Does the same thing as @Namespace, the only difference is that there can only be one nesting level.
+```java
+@GraphQLApi
+@Name("users")
+@Description("Users operations")
+public class UserApi {
+    @Query
+    public List<User> findAll() {
         //
     }
 }
@@ -39,117 +99,9 @@ query {
       ....
     }
   }
-  roles {
-    findAll {
-      ....
-    }
-  }
 }
 ```
-When using annotation @Name, will be generated type - NameQuery, NameMutation and NameSubscription 
-(Subscriptions placed in this type will not work. More details below).
 
-### Using @Source annotation for deep nesting
-You can use the @Source annotation to create deep nesting of namespaces.
-```java
-// create classes that represent namespaces
-public class AdminQueryNamespace {
-}
-
-public class AdminMutationNamespace {
-}
-
-public class UserQueryNamespace {
-}
-
-public class UserMutationNamespace {
-}
-
-@GraphQLApi
-public class UserApi {
-    @Query("admin")
-    public AdminQueryNamespace adminQueryNamespace() {
-        return new AdminQueryNamespace();
-    }
-
-    public UserQueryNamespace userQueryNamespace(@Source AdminQueryNamespace namespace) {
-        return new UserQueryNamespace();
-    }
-
-    public List<User> findAll(@Source UserQueryNamespace namespace) {
-        // return users;
-    }
-
-    @Mutation("admin")
-    public AdminMutationNamespace adminMutationNamespace() {
-        return new AdminMutationNamespace();
-    }
-
-    public UserMutationNamespace userMutationNamespace(@Source AdminMutationNamespace namespace) {
-        return new UserMutationNamespace();
-    }
-
-    public List<User> save(@Source UserMutationNamespace namespace, User user) {
-        // save user
-    }
-}
-```
-As a result, you will be able to execute the following query.
-```
-query {
-    admin {
-        users {
-            findAll {
-             ....
-            }
-        }
-    }
-}
-
-mutation {
-    admin {
-        users {
-            save (user: ...) {
-             ....
-            }
-        }
-    }
-}
-```
-### Using @Source and @Name annotations together for deep nesting
-
-You can also simplify this example by using @Name.
-```java
-// create classes that represent namespaces
-public class UserQueryNamespace {
-}
-
-public class UserMutationNamespace {
-}
-
-@GraphQLApi
-@Name("admin")
-@Description("Users operations")
-public class UserApi {
-    @Query("users")
-    public UserQueryNamespace userQueryNamespace() {
-        return new UserQueryNamespace();
-    }
-
-    public List<User> findAll(@Source UserQueryNamespace namespace) {
-        // return users;
-    }
-    
-    @Mutation("users")
-    public UserMutationNamespace userMutationNamespace() {
-        return new UserMutationNamespace();
-    }
-
-    public List<User> save(@Source UserMutationNamespace namespace, User user) {
-        // save user
-    }
-}
-```
 ## Problems
 While dividing APIs into namespaces may seem convenient, it has several issues that are important to be aware of.
 
@@ -170,7 +122,7 @@ As example, if you try to run such a subscription request, you will get an error
 
 ```java
 @GraphQLApi
-@Name("resource")
+@Namepace("resource")
 public class ResourceApi {
     @Subscription
     public Multi<ResourceSubscription> resourceChange() {

@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jakarta.json.JsonReader;
 import jakarta.json.JsonReaderFactory;
@@ -81,8 +80,8 @@ import io.smallrye.graphql.schema.model.DirectiveType;
 import io.smallrye.graphql.schema.model.EnumType;
 import io.smallrye.graphql.schema.model.EnumValue;
 import io.smallrye.graphql.schema.model.Field;
-import io.smallrye.graphql.schema.model.Group;
 import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.NamespaceContainer;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
@@ -155,12 +154,8 @@ public class Bootstrap {
         LookupService lookupService = LookupService.get();
         // This crazy stream operation basically collects all class names where we need to verify that
         // it belongs to an injectable bean
-        Stream.of(
-                schema.getQueries().stream().map(Operation::getClassName),
-                schema.getMutations().stream().map(Operation::getClassName),
-                schema.getGroupedQueries().values().stream().flatMap(Collection::stream).map(Operation::getClassName),
-                schema.getGroupedMutations().values().stream().flatMap(Collection::stream).map(Operation::getClassName))
-                .flatMap(stream -> stream)
+        schema.getAllOperations().stream()
+                .map(Operation::getClassName)
                 .distinct().forEach(beanClassName -> {
                     // verify that the bean is injectable
                     if (!lookupService.isResolvable(classloadingService.loadClass(beanClassName))) {
@@ -334,8 +329,8 @@ public class Bootstrap {
         if (schema.hasQueries()) {
             addRootObject(queryBuilder, schema.getQueries(), QUERY);
         }
-        if (schema.hasGroupedQueries()) {
-            addGroupedRootObject(queryBuilder, schema.getGroupedQueries(), QUERY);
+        if (schema.hasNamespaceQueries()) {
+            addNamespacedRootObject(queryBuilder, schema.getNamespacedQueries(), QUERY);
         }
 
         GraphQLObjectType query = queryBuilder.build();
@@ -350,8 +345,8 @@ public class Bootstrap {
         if (schema.hasMutations()) {
             addRootObject(mutationBuilder, schema.getMutations(), MUTATION);
         }
-        if (schema.hasGroupedMutations()) {
-            addGroupedRootObject(mutationBuilder, schema.getGroupedMutations(), MUTATION);
+        if (schema.hasNamespaceMutations()) {
+            addNamespacedRootObject(mutationBuilder, schema.getNamespacedMutations(), MUTATION);
         }
 
         GraphQLObjectType mutation = mutationBuilder.build();
@@ -367,9 +362,6 @@ public class Bootstrap {
 
         if (schema.hasSubscriptions()) {
             addRootObject(subscriptionBuilder, schema.getSubscriptions(), SUBSCRIPTION);
-        }
-        if (schema.hasGroupedSubscriptions()) {
-            addGroupedRootObject(subscriptionBuilder, schema.getGroupedSubscriptions(), SUBSCRIPTION);
         }
 
         GraphQLObjectType subscription = subscriptionBuilder.build();
@@ -389,48 +381,86 @@ public class Bootstrap {
         }
     }
 
-    private void addGroupedRootObject(GraphQLObjectType.Builder rootBuilder,
-            Map<Group, Set<Operation>> operationMap, String rootName) {
-        Set<Map.Entry<Group, Set<Operation>>> operationsSet = operationMap.entrySet();
-
-        for (Map.Entry<Group, Set<Operation>> operationsEntry : operationsSet) {
-            Group group = operationsEntry.getKey();
-            Set<Operation> operations = operationsEntry.getValue();
-
-            GraphQLObjectType namedType = createNamedType(rootName, group, operations);
-
-            GraphQLFieldDefinition.Builder graphQLFieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition()
-                    .name(group.getName()).description(group.getDescription());
-
-            graphQLFieldDefinitionBuilder.type(namedType);
-
-            DataFetcher<?> dummyDataFetcher = dfe -> namedType.getName();
-
-            GraphQLFieldDefinition namedField = graphQLFieldDefinitionBuilder.build();
-
-            this.codeRegistryBuilder.dataFetcherIfAbsent(
-                    FieldCoordinates.coordinates(rootName, namedField.getName()),
-                    dummyDataFetcher);
-
-            rootBuilder.field(namedField);
-        }
+    private String makeFirstLetterUppercase(String value) {
+        return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
 
-    private GraphQLObjectType createNamedType(String parent, Group group, Set<Operation> operations) {
-        String namedTypeName = group.getName() + parent;
+    private void addNamespacedRootObject(GraphQLObjectType.Builder rootBuilder,
+            Map<String, NamespaceContainer> namespaceMutations, String mutation) {
+        namespaceMutations.values()
+                .forEach(groupContainer -> addNamespacedRootObject(rootBuilder, groupContainer, "", mutation));
+    }
+
+    private List<GraphQLFieldDefinition> addNamespacedRootObject(GraphQLObjectType.Builder rootBuilder,
+            NamespaceContainer groupContainer, String rootName, String suffix) {
+        List<GraphQLFieldDefinition> graphQLFieldDefinitions = groupContainer.getContainer().isEmpty()
+                ? List.of()
+                : getGraphQLFieldDefinition(groupContainer, rootName, suffix);
+
+        if (groupContainer.getOperations().isEmpty() && graphQLFieldDefinitions.isEmpty()) {
+            return List.of();
+        }
+
+        GraphQLObjectType namedType = createNamespaceType(rootName, suffix, groupContainer,
+                groupContainer.getOperations(), graphQLFieldDefinitions);
+
+        GraphQLFieldDefinition.Builder graphQLFieldDefinitionBuilder = GraphQLFieldDefinition
+                .newFieldDefinition()
+                .name(groupContainer.getName())
+                .description(groupContainer.getDescription());
+
+        graphQLFieldDefinitionBuilder.type(namedType);
+
+        DataFetcher<?> dummyDataFetcher = dfe -> namedType.getName();
+
+        GraphQLFieldDefinition namedField = graphQLFieldDefinitionBuilder.build();
+
+        this.codeRegistryBuilder.dataFetcherIfAbsent(
+                FieldCoordinates.coordinates(rootName + suffix, namedField.getName()),
+                dummyDataFetcher);
+        rootBuilder.field(namedField);
+
+        return List.of(namedField);
+    }
+
+    private List<GraphQLFieldDefinition> getGraphQLFieldDefinition(NamespaceContainer groupContainer, String rootName,
+            String suffix) {
+        String name = makeFirstLetterUppercase(groupContainer.getName());
+        String namedTypeName = rootName + name + suffix;
+
+        GraphQLObjectType.Builder wrapperBuilder = GraphQLObjectType.newObject()
+                .name(namedTypeName)
+                .description(groupContainer.getDescription());
+
+        return groupContainer
+                .getContainer()
+                .values()
+                .stream()
+                .map(namespace -> addNamespacedRootObject(
+                        wrapperBuilder, namespace, rootName + makeFirstLetterUppercase(groupContainer.getName()), suffix))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    private GraphQLObjectType createNamespaceType(String root, String suffix, NamespaceContainer namespace,
+            Set<Operation> operations, List<GraphQLFieldDefinition> graphQLFieldDefinitions) {
+        String name = makeFirstLetterUppercase(namespace.getName());
+
+        String namedTypeName = root + name + suffix;
         GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject()
                 .name(namedTypeName)
-                .description(group.getDescription());
+                .description(namespace.getDescription());
 
         // Operations
         for (Operation operation : operations) {
             operation = eventEmitter.fireCreateOperation(operation);
 
-            GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(namedTypeName,
-                    operation);
+            GraphQLFieldDefinition graphQLFieldDefinition = createGraphQLFieldDefinitionFromOperation(
+                    namedTypeName, operation);
             objectTypeBuilder = objectTypeBuilder.field(graphQLFieldDefinition);
         }
 
+        objectTypeBuilder.fields(graphQLFieldDefinitions);
         return objectTypeBuilder.build();
     }
 
@@ -990,11 +1020,6 @@ public class Bootstrap {
             default:
                 return GraphQLTypeReference.typeRef(name);
         }
-    }
-
-    private GraphQLInputType referenceGraphQLInputType(Field field) {
-        Reference reference = getCorrectFieldReference(field);
-        return getGraphQLInputType(reference);
     }
 
     private GraphQLInputType getGraphQLInputType(Reference reference) {

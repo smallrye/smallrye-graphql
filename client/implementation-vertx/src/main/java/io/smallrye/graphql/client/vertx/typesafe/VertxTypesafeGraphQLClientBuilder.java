@@ -12,8 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.graphql.Name;
 import org.jboss.logging.Logger;
 
+import io.smallrye.graphql.api.Namespace;
 import io.smallrye.graphql.client.impl.ErrorMessageProvider;
 import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.impl.GraphQLClientsConfiguration;
@@ -145,6 +147,14 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
 
     @Override
     public <T> T build(Class<T> apiClass) {
+        Name nameAnnotation = apiClass.getAnnotation(Name.class);
+        Namespace namespaceAnnotation = apiClass.getAnnotation(Namespace.class);
+
+        if (nameAnnotation != null && namespaceAnnotation != null) {
+            throw new RuntimeException("You can only use one of the annotations - @Name or @Namespace " +
+                    "over the GraphQLClientApi interface. Please, fix the following interface: " + apiClass.getName());
+        }
+
         if (this.options == null) {
             this.options = new WebClientOptions();
         }
