@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,6 +89,23 @@ public class DirectiveType {
 
     public void addArgumentType(DirectiveArgument type) {
         this.argumentTypes.add(type);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DirectiveType that = (DirectiveType) o;
+        return repeatable == that.repeatable && Objects.equals(className, that.className) && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description) && Objects.equals(locations, that.locations)
+                && Objects.equals(argumentTypes, that.argumentTypes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(className, name, description, locations, argumentTypes, repeatable);
     }
 
     @Override

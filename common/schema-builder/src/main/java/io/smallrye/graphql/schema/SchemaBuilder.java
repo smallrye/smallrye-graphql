@@ -20,6 +20,7 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
@@ -100,7 +101,7 @@ public class SchemaBuilder {
      * @return the Schema
      */
     public static Schema build(IndexView index, TypeAutoNameStrategy autoNameStrategy) {
-        ScanningContext.register(index);
+        ScanningContext.register(CompositeIndex.create(index, DirectiveIndexer.directiveIndex()));
         return new SchemaBuilder(autoNameStrategy).generateSchema();
     }
 
@@ -185,6 +186,8 @@ public class SchemaBuilder {
     }
 
     private void addDirectiveTypes(Schema schema) {
+        Set<DirectiveType> directiveTypes = new HashSet<>();
+
         // custom directives from annotations
         for (AnnotationInstance annotationInstance : ScanningContext.getIndex().getAnnotations(DIRECTIVE)) {
             ClassInfo classInfo = annotationInstance.target().asClass();
@@ -193,10 +196,11 @@ public class SchemaBuilder {
             DotName packageName = classInfo.name().packagePrefixName();
             if ((packageName == null || !packageName.toString().startsWith(FEDERATION_ANNOTATIONS_PACKAGE.toString())
                     || federationEnabled) && !isGraphQLJavaDirective(classInfo)) {
-                schema.addDirectiveType(directiveTypeCreator.create(classInfo));
+                directiveTypes.add(directiveTypeCreator.create(classInfo));
             }
 
         }
+        directiveTypes.forEach(schema::addDirectiveType);
         // bean validation directives
         schema.addDirectiveType(BeanValidationDirectivesHelper.CONSTRAINT_DIRECTIVE_TYPE);
         // rolesAllowed directive
