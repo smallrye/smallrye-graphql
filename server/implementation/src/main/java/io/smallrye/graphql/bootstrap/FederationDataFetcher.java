@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     public static final String TYPENAME = "__typename";
     private final GraphQLObjectType queryType;
     private final GraphQLCodeRegistry codeRegistry;
-    private final HashMap<TypeAndArgumentNames, TypeFieldWrapper> cache = new HashMap<>();
+    private final ConcurrentHashMap<TypeAndArgumentNames, TypeFieldWrapper> cache = new ConcurrentHashMap<>();
 
     public FederationDataFetcher(GraphQLObjectType queryType, GraphQLCodeRegistry codeRegistry) {
         this.queryType = queryType;
