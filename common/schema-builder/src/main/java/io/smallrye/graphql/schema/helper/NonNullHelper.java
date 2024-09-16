@@ -5,6 +5,7 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 
 /**
  * Helping to figure out of some should be marked as Non null
@@ -55,7 +56,7 @@ public class NonNullHelper {
         boolean hasDefaultValue = hasDefaultValue(annotations);
         if (hasDefaultValue) {
             if (hasNonNull && !type.kind().equals(Type.Kind.PRIMITIVE)) {
-                LOG.warn("Ignoring non null on [" + type.name() + "] as there is a @DefaultValue");
+                throw new SchemaBuilderException("You can't have both @NonNull and @DefaultValue on [" + type.name() + "]");
             }
             return false;
         }

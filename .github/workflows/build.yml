@@ -120,7 +120,7 @@ jobs:
           cd quarkus && \
           ./mvnw install -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dquickly && \
           ./mvnw verify -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dnative \
-            -pl extensions/smallrye-graphql-client/deployment,extensions/smallrye-graphql-client/runtime,extensions/smallrye-graphql/deployment,extensions/smallrye-graphql/runtime,integration-tests/smallrye-graphql,integration-tests/smallrye-graphql-client,integration-tests/hibernate-orm-graphql-panache,extensions/oidc-client-graphql/deployment,extensions/oidc-client-graphql/runtime,tcks/microprofile-graphql -Ptcks
+            -pl extensions/smallrye-graphql-client/deployment,extensions/smallrye-graphql-client/runtime,extensions/smallrye-graphql/deployment,extensions/smallrye-graphql/runtime,integration-tests/smallrye-graphql,integration-tests/smallrye-graphql-client,integration-tests/hibernate-orm-graphql-panache,extensions/oidc-client-graphql/deployment,extensions/oidc-client-graphql/runtime,tcks/microprofile-graphql,integration-tests/devtools -Ptcks
 
   quality:
     needs: [build]
