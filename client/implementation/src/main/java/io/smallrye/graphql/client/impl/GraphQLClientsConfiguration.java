@@ -126,6 +126,10 @@ public class GraphQLClientsConfiguration {
                 .ifPresent(configuration::setExecuteSingleOperationsOverWebsocket);
         mpConfig.getOptionalValue(clientName + "/mp-graphql/allowUnexpectedResponseFields", Boolean.class)
                 .ifPresent(configuration::setAllowUnexpectedResponseFields);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/hostnameVerificationAlgorithm", String.class)
+                .ifPresent(configuration::setHostnameVerificationAlgorithm);
+        mpConfig.getOptionalValue(clientName + "/mp-graphql/usesSni", Boolean.class)
+                .ifPresent(configuration::setUsesSni);
         return configuration;
     }
 

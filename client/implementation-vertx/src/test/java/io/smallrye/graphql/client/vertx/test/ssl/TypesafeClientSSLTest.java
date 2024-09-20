@@ -34,7 +34,6 @@ public class TypesafeClientSSLTest {
             System.setProperty("ts/mp-graphql/truststore", "classpath:ssl/client.pkcs12.truststore");
             System.setProperty("ts/mp-graphql/truststorePassword", "clienttruststorepassword");
             System.setProperty("ts/mp-graphql/truststoreType", "PKCS12");
-
             try (MyClient client = TypesafeGraphQLClientBuilder.newBuilder()
                     .configKey("ts")
                     .endpoint("https://127.0.0.1:" + server.actualPort())
