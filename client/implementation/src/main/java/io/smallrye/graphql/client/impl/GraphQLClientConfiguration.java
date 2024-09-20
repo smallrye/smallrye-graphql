@@ -78,6 +78,33 @@ public class GraphQLClientConfiguration {
     private String keyStoreType;
 
     /**
+     * The key store options, already contains key store.
+     */
+    private Object tlsKeyStoreOptions;
+
+    /**
+     * The trust store options, already contains trust store.
+     */
+    private Object tlsTrustStoreOptions;
+
+    /**
+     * SSL options for connection.
+     */
+    private Object sslOptions;
+
+    /**
+     * Indicates whether Server Name Indication (SNI) is enabled for this connection.
+     * When SNI is enabled, the client sends the server name during the TLS handshake,
+     * allowing the server to select the appropriate certificate based on the hostname.
+     */
+    private Boolean usesSni;
+
+    /**
+     * Specifies the algorithm used for hostname verification during the TLS handshake.
+     */
+    private String hostnameVerificationAlgorithm;
+
+    /**
      * Hostname of the proxy to use.
      */
     private String proxyHost;
@@ -273,6 +300,46 @@ public class GraphQLClientConfiguration {
         this.allowUnexpectedResponseFields = allowUnexpectedResponseFields;
     }
 
+    public Object getTlsKeyStoreOptions() {
+        return tlsKeyStoreOptions;
+    }
+
+    public void setTlsKeyStoreOptions(Object tlsKeyStoreOptions) {
+        this.tlsKeyStoreOptions = tlsKeyStoreOptions;
+    }
+
+    public Object getTlsTrustStoreOptions() {
+        return tlsTrustStoreOptions;
+    }
+
+    public void setTlsTrustStoreOptions(Object tlsTrustStoreOptions) {
+        this.tlsTrustStoreOptions = tlsTrustStoreOptions;
+    }
+
+    public Boolean usesSni() {
+        return usesSni;
+    }
+
+    public void setUsesSni(Boolean usesSni) {
+        this.usesSni = usesSni;
+    }
+
+    public String getHostnameVerificationAlgorithm() {
+        return hostnameVerificationAlgorithm;
+    }
+
+    public void setHostnameVerificationAlgorithm(String hostnameVerificationAlgorithm) {
+        this.hostnameVerificationAlgorithm = hostnameVerificationAlgorithm;
+    }
+
+    public Object getSslOptions() {
+        return sslOptions;
+    }
+
+    public void setSslOptions(Object sslOptions) {
+        this.sslOptions = sslOptions;
+    }
+
     /**
      * Merge the `other` configuration into this one. Values in `other` take precedence.
      * This method has to be idempotent because it can be called multiple times to allow for changes in configuration.
@@ -349,6 +416,21 @@ public class GraphQLClientConfiguration {
         }
         if (other.allowUnexpectedResponseFields != null) {
             this.allowUnexpectedResponseFields = other.allowUnexpectedResponseFields;
+        }
+        if (other.tlsKeyStoreOptions != null) {
+            this.tlsKeyStoreOptions = other.tlsKeyStoreOptions;
+        }
+        if (other.tlsTrustStoreOptions != null) {
+            this.tlsTrustStoreOptions = other.tlsTrustStoreOptions;
+        }
+        if (other.usesSni != null) {
+            this.usesSni = other.usesSni;
+        }
+        if (other.hostnameVerificationAlgorithm != null) {
+            this.hostnameVerificationAlgorithm = other.hostnameVerificationAlgorithm;
+        }
+        if (other.sslOptions != null) {
+            this.sslOptions = other.sslOptions;
         }
         return this;
     }
