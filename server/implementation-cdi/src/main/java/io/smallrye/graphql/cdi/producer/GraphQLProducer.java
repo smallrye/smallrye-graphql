@@ -1,5 +1,8 @@
 package io.smallrye.graphql.cdi.producer;
 
+import java.util.Optional;
+import java.util.concurrent.SubmissionPublisher;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Produces;
@@ -21,6 +24,10 @@ public class GraphQLProducer {
 
     public void setSchema(Schema schema) {
         this.schema = schema;
+    }
+
+    public void setTraficPublisher(SubmissionPublisher<String> traficPublisher) {
+        this.traficPublisher = Optional.of(traficPublisher);
     }
 
     public GraphQLSchema initialize(Schema schema) {
@@ -50,7 +57,7 @@ public class GraphQLProducer {
             ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = Bootstrap.bootstrap(schema, allowMultipleDeployments);
-        this.executionService = new ExecutionService(graphQLSchema, this.schema, queryExecutionStrategy,
+        this.executionService = new ExecutionService(graphQLSchema, this.schema, this.traficPublisher, queryExecutionStrategy,
                 mutationExecutionStrategy);
         return this.graphQLSchema;
     }
@@ -71,6 +78,8 @@ public class GraphQLProducer {
 
     @Produces
     Schema schema;
+
+    private Optional<SubmissionPublisher<String>> traficPublisher = Optional.empty();
 
     @Produces
     @Dependent

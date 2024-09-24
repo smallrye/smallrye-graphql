@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.json.JsonObject;
@@ -76,14 +77,26 @@ public class ExecutionService {
     private final QueryCache queryCache;
     private final LogPayloadOption payloadOption;
 
+    private final Optional<SubmissionPublisher<String>> traficPublisher;
     private final ExecutionStrategy queryExecutionStrategy;
     private final ExecutionStrategy mutationExecutionStrategy;
 
     public ExecutionService(GraphQLSchema graphQLSchema, Schema schema) {
-        this(graphQLSchema, schema, null, null);
+        this(graphQLSchema, schema, Optional.empty(), null, null);
     }
 
-    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, ExecutionStrategy queryExecutionStrategy,
+    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, Optional<SubmissionPublisher<String>> traficPublisher) {
+        this(graphQLSchema, schema, traficPublisher, null, null);
+    }
+
+    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema,
+            ExecutionStrategy queryExecutionStrategy,
+            ExecutionStrategy mutationExecutionStrategy) {
+        this(graphQLSchema, schema, Optional.empty(), queryExecutionStrategy, mutationExecutionStrategy);
+    }
+
+    public ExecutionService(GraphQLSchema graphQLSchema, Schema schema, Optional<SubmissionPublisher<String>> traficPublisher,
+            ExecutionStrategy queryExecutionStrategy,
             ExecutionStrategy mutationExecutionStrategy) {
 
         this.graphQLSchema = graphQLSchema;
@@ -98,6 +111,7 @@ public class ExecutionService {
 
         Config config = Config.get();
         this.payloadOption = config.logPayload();
+        this.traficPublisher = traficPublisher;
     }
 
     @Deprecated
@@ -149,12 +163,8 @@ public class ExecutionService {
                 sendError("Missing 'query' field in the request", writer);
                 return;
             }
-            if (payloadOption.equals(LogPayloadOption.queryOnly)) {
-                log.payloadIn(query);
-            } else if (payloadOption.equals(LogPayloadOption.queryAndVariables)) {
-                log.payloadIn(query);
-                log.payloadIn(variables.toString());
-            }
+
+            logInput(query, variables);
 
             GraphQL g = getGraphQL();
             if (g != null) {
@@ -267,9 +277,8 @@ public class ExecutionService {
         eventEmitter.fireAfterExecute(smallRyeContext);
         ExecutionResponse executionResponse = new ExecutionResponse(smallRyeContext.unwrap(ExecutionResult.class),
                 smallRyeContext.getAddedExtensions());
-        if (!payloadOption.equals(LogPayloadOption.off)) {
-            log.payloadOut(executionResponse.toString());
-        }
+
+        logOutput(executionResponse);
 
         writer.write(executionResponse);
     }
@@ -375,6 +384,36 @@ public class ExecutionService {
                         .maxWhitespaceTokens(config.getParserMaxWhitespaceTokens().get());
             }
             ParserOptions.setDefaultParserOptions(parserOptionsBuilder.build());
+        }
+    }
+
+    private void logInput(String query, Optional<Map<String, Object>> variables) {
+        if (payloadOption.equals(LogPayloadOption.queryOnly)) {
+            log.payloadIn(query);
+        } else if (payloadOption.equals(LogPayloadOption.queryAndVariables)) {
+            log.payloadIn(query);
+            if (variables.isPresent()) {
+                log.payloadIn(variables.get().toString());
+            }
+        }
+
+        // Also submit to the provided publisher
+        if (traficPublisher.isPresent()) {
+            if (variables.isPresent()) {
+                traficPublisher.get().submit(variables.get().toString());
+            }
+            traficPublisher.get().submit("> " + query);
+        }
+    }
+
+    private void logOutput(ExecutionResponse executionResponse) {
+        if (!payloadOption.equals(LogPayloadOption.off)) {
+            log.payloadOut(executionResponse.getExecutionResultAsJsonObject().toString());
+        }
+
+        // Also submit to the provided publisher
+        if (traficPublisher.isPresent()) {
+            traficPublisher.get().submit("< " + executionResponse.getExecutionResultAsJsonObject().toString());
         }
     }
 }
