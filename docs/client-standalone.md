@@ -19,11 +19,10 @@ This is a full script runnable directly with [JBang](https://www.jbang.dev/) tha
 uses a dynamic client for connecting to [countries.trevorblades.com](https://countries.trevorblades.com)
 to obtain a list of countries from its database.
 
-```
+```java
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.smallrye:smallrye-graphql-client-implementation-vertx:1.5.0
+//DEPS io.smallrye:smallrye-graphql-client-implementation-vertx:RELEASE
 
-import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
@@ -55,4 +54,4 @@ class Client {
 }
 ```
 
-Save this file as `client.java` and execute with `jbang client.java`.
+Save this file as `Client.java` and execute with `jbang Client.java`.
