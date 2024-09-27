@@ -1,6 +1,7 @@
 package io.smallrye.graphql.validation;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -14,9 +15,11 @@ import jakarta.validation.Path;
 import org.eclipse.microprofile.graphql.Source;
 
 import graphql.execution.DataFetcherResult;
+import graphql.execution.ResultPath;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.NamedNode;
+import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Context;
 
@@ -27,11 +30,15 @@ public class BeanValidationUtil {
             Method method,
             DataFetcherResult.Builder<Object> builder,
             DataFetchingEnvironment dfe) {
+        ResultPath resultPath = dfe.getExecutionStepInfo().getPath();
         RequestNodeBuilder requestNodeBuilder = new RequestNodeBuilder(method, dfe);
-        violations.stream()
-                .map(violation -> new BeanValidationError(violation, requestNodeBuilder.build(violation)))
-                .forEach(builder::error);
-        return builder;
+        List<SourceLocation> sourceLocations = violations.stream()
+                .map(requestNodeBuilder::build)
+                .flatMap(List::stream)
+                .distinct()
+                .map(NamedNode::getSourceLocation)
+                .collect(toList());
+        return builder.error(new BeanValidationError(violations, resultPath, sourceLocations));
     }
 
     static class RequestNodeBuilder {
