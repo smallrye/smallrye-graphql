@@ -37,7 +37,7 @@
         <version.jakarta.servlet>6.0.0</version.jakarta.servlet>
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
         <version.graphql-java-federation>2.1.1</version.graphql-java-federation>
-        <version.graphql-java>21.1</version.graphql-java>
+        <version.graphql-java>21.5</version.graphql-java>
         <version.extended-scalars>21.0</version.extended-scalars>
         <verison.io.micrometer>1.11.3</verison.io.micrometer>
         <version.vertx>4.4.5</version.vertx>
