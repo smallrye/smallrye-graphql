@@ -20,6 +20,9 @@ directive @include(
 "test-description"
 directive @intArrayTestDirective(value: [Int]) on OBJECT | INTERFACE
 
+"Indicates an Input Object is a OneOf Input Object."
+directive @oneOf on INPUT_OBJECT
+
 directive @operationDirective on FIELD_DEFINITION
 
 "Used to specify the role required to execute a given field or operation."
