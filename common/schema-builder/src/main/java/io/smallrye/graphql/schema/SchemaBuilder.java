@@ -153,6 +153,7 @@ public class SchemaBuilder {
         for (AnnotationInstance graphQLApiAnnotation : graphQLApiAnnotations) {
             ClassInfo apiClass = graphQLApiAnnotation.target().asClass();
             List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
+            addResolvers(schema, methods);
             NamespaceHelper.getNamespace(graphQLApiAnnotation).ifPresentOrElse(
                     namespace -> addNamespacedOperations(namespace, schema, methods),
                     () -> addOperations(schema, methods));
@@ -452,6 +453,19 @@ public class SchemaBuilder {
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
                 Operation subscription = operationCreator.createOperation(methodInfo, OperationType.SUBSCRIPTION, null);
                 schema.addSubscription(subscription);
+            }
+        }
+    }
+
+    private void addResolvers(Schema schema, List<MethodInfo> methodInfoList) {
+        for (MethodInfo methodInfo : methodInfoList) {
+            Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+            if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.RESOLVER)) {
+                Operation resolver = operationCreator.createOperation(methodInfo, OperationType.RESOLVER, null);
+                String className = resolver.getClassName();
+                String resolverClassName = className.substring(className.lastIndexOf(".") + 1);
+                resolver.setName(resolverClassName + resolver.getName());
+                schema.addResolver(resolver);
             }
         }
     }

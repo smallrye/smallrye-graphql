@@ -23,6 +23,7 @@ public final class Schema implements Serializable {
     private Set<Operation> queries = new HashSet<>();
     private Set<Operation> mutations = new HashSet<>();
     private Set<Operation> subscriptions = new HashSet<>();
+    private Set<Operation> resolvers = new HashSet<>();
 
     private Map<String, NamespaceContainer> namespacedQueries = new HashMap<>();
     private Map<String, NamespaceContainer> namespacedMutations = new HashMap<>();
@@ -99,7 +100,7 @@ public final class Schema implements Serializable {
     public boolean hasOperations() {
         return hasQueries() || hasNamespaceQueries()
                 || hasMutations() || hasNamespaceMutations()
-                || hasSubscriptions();
+                || hasSubscriptions() || hasResolvers();
     }
 
     public boolean hasQueries() {
@@ -136,6 +137,22 @@ public final class Schema implements Serializable {
 
     public boolean hasSubscriptions() {
         return !this.subscriptions.isEmpty();
+    }
+
+    public Set<Operation> getResolvers() {
+        return resolvers;
+    }
+
+    public void setResolvers(Set<Operation> resolvers) {
+        this.resolvers = resolvers;
+    }
+
+    public void addResolver(Operation resolver) {
+        this.resolvers.add(resolver);
+    }
+
+    public boolean hasResolvers() {
+        return !this.resolvers.isEmpty();
     }
 
     public Map<String, InputType> getInputs() {
@@ -342,6 +359,7 @@ public final class Schema implements Serializable {
                 ", queries=" + queries +
                 ", mutations=" + mutations +
                 ", subscriptions=" + subscriptions +
+                ", resolvers=" + resolvers +
                 ", namespacedQueries=" + namespacedQueries +
                 ", namespacedMutations=" + namespacedMutations +
                 ", directiveTypes=" + directiveTypes +

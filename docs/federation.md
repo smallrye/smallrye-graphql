@@ -84,3 +84,122 @@ public class Prices {
 
 It is crucial that the sequence of argument list matches with the order of result list. Currently, the name of the Argument `id` must match with the property name in the type.
 
+## Federation Reference Resolver
+
+In federation you also may want extend external type by some fields, without publishing queries into schema. You can do it using @Resolver
+
+```java
+@Extends
+@Key(fields = @FieldSet("upc"))
+public final class Product {
+    @External
+    @NonNull
+    private String upc;
+    @External
+    private Integer weight;
+    @External
+    private Integer price;
+    private Boolean inStock;
+    @Requires(fields = @FieldSet("price weight"))
+    private Integer shippingPrice;
+}
+
+@GraphQLApi
+public class Api {
+    @Query // 0 query, that will be added into schema
+    public Product findByUPC(String upc) {
+        return new Product(upc , ...etc);
+    }
+    
+    @Resolver // 1 You dont receive external fields price weight here, just key
+    public Product resolveByUPC(String upc) {
+        return new Product(upc , ...etc);
+    }
+
+    @Resolver // 2 The order of variables doesn't matter
+    public Product resolveByUPCForShipping(int price, String upc, @Name("weight") int someWeight) {
+        return new Product(upc , someWeight, price, (price * someWeight) /*calculate shippingPrice */, ...etc);
+    }
+
+    @Resolver // 3 
+    public Product resolveByUPCForSource(int price, String upc) {
+        return new Product(upc, price, ...etc);
+    }
+
+    @Requires(fields = @FieldSet("price"))
+    public int anotherWeight(@Source Product product) {
+        return product.price() * 2;
+    }
+}
+```
+
+Will be generated next schema
+```
+type Product @extends @key(fields : "upc") {
+  anotherWeight: Int! @requires(fields : "price")
+  inStock: Boolean
+  price: Int @external
+  shippingPrice: Int @requires(fields : "price weight")
+  upc: String! @external
+  weight: Int @external
+}
+
+type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
+  _service: _Service!
+}
+```
+
+These methods will only be available to the federation router, which send next request
+```
+// request 1
+query {
+  _entities(representations: [{ 
+    "__typename": "Product", 
+    "upc": "1" // just id key
+  }]) {
+    __typename
+    ... on Product {
+      inStock
+    }
+  }
+}
+
+// request 2
+query {  
+  _entities(representations: [{ 
+    "__typename": "Product", 
+    "upc": "1", // id key
+    "price": 100, // shippingPrice requires this field
+    "weight": 100  // shippingPrice requires this field
+  }]) {
+    __typename
+    ... on Product {
+      inStock
+      shippingPrice
+    }
+  }
+}
+
+// request 3
+query {
+  _entities(representations: [{
+    "__typename": "Product",
+    "upc": "2",
+    "price": 1299  // anotherWeight requires this field
+  }
+  ]) {
+    __typename
+    ... on Product {
+      anotherWeight
+    }
+  }
+}
+```
+
+Unfortunately, you will have to make separate methods with different `@External` parameters. 
+
+It is not currently possible to combine them into one separate type.
+
+You also can using @Query (if you want add queries into schema) or @Resolver (requests 0 and 1). 
+And if it was request `_entities` - @Resolvers methods are checked first (they have higher priority). 

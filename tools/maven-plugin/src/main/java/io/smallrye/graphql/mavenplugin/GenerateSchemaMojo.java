@@ -254,7 +254,9 @@ public class GenerateSchemaMojo extends AbstractMojo {
         GraphQLSchema graphQLSchema = Bootstrap.bootstrap(internalSchema, true);
         if (graphQLSchema != null && enableFederation) {
             graphQLSchema = Federation.transform(graphQLSchema)
-                    .fetchEntities(new FederationDataFetcher(graphQLSchema.getQueryType(), graphQLSchema.getCodeRegistry()))
+                    .fetchEntities(new FederationDataFetcher(
+                            GraphQLObjectType.newObject().name("Resolver").build(),
+                            graphQLSchema.getQueryType(), graphQLSchema.getCodeRegistry()))
                     .resolveEntityType(fetchEntityType())
                     .setFederation2(true)
                     .build();

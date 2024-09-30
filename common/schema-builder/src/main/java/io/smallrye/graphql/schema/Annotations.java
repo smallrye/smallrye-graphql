@@ -590,6 +590,7 @@ public class Annotations {
     public static final DotName ERROR_CODE = DotName.createSimple("io.smallrye.graphql.api.ErrorCode");
     public static final DotName DATAFETCHER = DotName.createSimple("io.smallrye.graphql.api.DataFetcher");
     public static final DotName SUBCRIPTION = DotName.createSimple("io.smallrye.graphql.api.Subscription");
+    public static final DotName RESOLVER = DotName.createSimple("io.smallrye.graphql.api.federation.Resolver");
     public static final DotName DIRECTIVE = DotName.createSimple("io.smallrye.graphql.api.Directive");
     public static final DotName DEFAULT_NON_NULL = DotName.createSimple("io.smallrye.graphql.api.DefaultNonNull");
     public static final DotName NULLABLE = DotName.createSimple("io.smallrye.graphql.api.Nullable");

@@ -39,10 +39,13 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
 
     public static final String TYPENAME = "__typename";
     private final GraphQLObjectType queryType;
+    private final GraphQLObjectType resolversType;
     private final GraphQLCodeRegistry codeRegistry;
     private final ConcurrentHashMap<TypeAndArgumentNames, TypeFieldWrapper> cache = new ConcurrentHashMap<>();
 
-    public FederationDataFetcher(GraphQLObjectType queryType, GraphQLCodeRegistry codeRegistry) {
+    public FederationDataFetcher(GraphQLObjectType resolversType, GraphQLObjectType queryType,
+            GraphQLCodeRegistry codeRegistry) {
+        this.resolversType = resolversType;
         this.queryType = queryType;
         this.codeRegistry = codeRegistry;
     }
@@ -104,6 +107,11 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     }
 
     private TypeFieldWrapper findBatchFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+        for (GraphQLFieldDefinition field : resolversType.getFields()) {
+            if (matchesReturnTypeList(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(resolversType, field);
+            }
+        }
         for (GraphQLFieldDefinition field : queryType.getFields()) {
             if (matchesReturnTypeList(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
                 return new TypeFieldWrapper(queryType, field);
@@ -120,6 +128,11 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
     }
 
     private TypeFieldWrapper findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
+        for (GraphQLFieldDefinition field : resolversType.getFields()) {
+            if (matchesReturnType(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
+                return new TypeFieldWrapper(resolversType, field);
+            }
+        }
         for (GraphQLFieldDefinition field : queryType.getFields()) {
             if (matchesReturnType(field, typeAndArgumentNames.type) && matchesArguments(typeAndArgumentNames, field)) {
                 return new TypeFieldWrapper(queryType, field);
@@ -132,7 +145,6 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                 return typeFieldWrapper;
             }
         }
-
         throw new RuntimeException(
                 "no query found for " + typeAndArgumentNames.type + " by " + typeAndArgumentNames.argumentNames);
     }

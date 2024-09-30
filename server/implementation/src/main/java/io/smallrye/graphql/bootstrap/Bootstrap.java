@@ -29,6 +29,7 @@ import org.eclipse.microprofile.graphql.Name;
 
 import com.apollographql.federation.graphqljava.Federation;
 
+import graphql.Scalars;
 import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
@@ -180,7 +181,7 @@ public class Bootstrap {
         createGraphQLObjectTypes();
         createGraphQLInputObjectTypes();
 
-        addQueries(schemaBuilder);
+        GraphQLObjectType queryRootType = addQueries(schemaBuilder);
         addMutations(schemaBuilder);
         addSubscriptions(schemaBuilder);
         schemaBuilder.withSchemaAppliedDirectives(Arrays.stream(
@@ -209,15 +210,53 @@ public class Bootstrap {
 
         if (Config.get().isFederationEnabled()) {
             log.enableFederation();
+
+            // hack! For schema build success if queries are empty.
+            // It will be overrides in Federation transformation
+            addDummySdlQuery(schemaBuilder, queryRootType);
+
+            // Build reference resolvers type, without adding to schema (just for federation)
+            GraphQLObjectType resolversType = buildResolvers();
+
             GraphQLSchema rawSchema = schemaBuilder.build();
             this.graphQLSchema = Federation.transform(rawSchema)
-                    .fetchEntities(new FederationDataFetcher(rawSchema.getQueryType(), rawSchema.getCodeRegistry()))
+                    .fetchEntities(
+                            new FederationDataFetcher(resolversType, rawSchema.getQueryType(), rawSchema.getCodeRegistry()))
                     .resolveEntityType(fetchEntityType())
                     .setFederation2(true)
                     .build();
         } else {
             this.graphQLSchema = schemaBuilder.build();
         }
+    }
+
+    private void addDummySdlQuery(GraphQLSchema.Builder schemaBuilder, GraphQLObjectType queryRootType) {
+        GraphQLObjectType type = GraphQLObjectType.newObject()
+                .name("_Service")
+                .field(GraphQLFieldDefinition
+                        .newFieldDefinition().name("sdl")
+                        .type(new GraphQLNonNull(Scalars.GraphQLString))
+                        .build())
+                .build();
+
+        GraphQLFieldDefinition field = GraphQLFieldDefinition.newFieldDefinition()
+                .name("_service")
+                .type(GraphQLNonNull.nonNull(type))
+                .build();
+
+        GraphQLObjectType.Builder newQueryType = GraphQLObjectType.newObject(queryRootType);
+
+        newQueryType.field(field);
+        schemaBuilder.query(newQueryType.build());
+    }
+
+    private GraphQLObjectType buildResolvers() {
+        GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
+                .name("Resolver");
+        if (schema.hasResolvers()) {
+            addRootObject(queryBuilder, schema.getResolvers(), "Resolver");
+        }
+        return queryBuilder.build();
     }
 
     private TypeResolver fetchEntityType() {
@@ -321,7 +360,7 @@ public class Bootstrap {
         directiveTypes.add(directiveBuilder.build());
     }
 
-    private void addQueries(GraphQLSchema.Builder schemaBuilder) {
+    private GraphQLObjectType addQueries(GraphQLSchema.Builder schemaBuilder) {
         GraphQLObjectType.Builder queryBuilder = GraphQLObjectType.newObject()
                 .name(QUERY)
                 .description(QUERY_DESCRIPTION);
@@ -335,6 +374,7 @@ public class Bootstrap {
 
         GraphQLObjectType query = queryBuilder.build();
         schemaBuilder.query(query);
+        return query;
     }
 
     private void addMutations(GraphQLSchema.Builder schemaBuilder) {
