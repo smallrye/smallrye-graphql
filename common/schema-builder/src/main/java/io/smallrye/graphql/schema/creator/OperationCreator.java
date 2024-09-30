@@ -304,6 +304,8 @@ public class OperationCreator extends ModelCreator {
                 return Annotations.MUTATION;
             case SUBSCRIPTION:
                 return Annotations.SUBCRIPTION;
+            case RESOLVER:
+                return Annotations.RESOLVER;
             default:
                 break;
         }
