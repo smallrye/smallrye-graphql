@@ -1,6 +1,8 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
+
+import io.smallrye.graphql.client.core.factory.InputObjectFieldFactory;
 
 public interface InputObjectField extends Buildable {
 
@@ -9,7 +11,7 @@ public interface InputObjectField extends Buildable {
      */
     // (name, value)
     static InputObjectField prop(String name, Object value) {
-        InputObjectField inputObjectField = getNewInstanceOf(InputObjectField.class);
+        InputObjectField inputObjectField = getNewInstanceFromFactory(InputObjectFieldFactory.class);
 
         inputObjectField.setName(name);
         inputObjectField.setValue(value);
@@ -19,7 +21,7 @@ public interface InputObjectField extends Buildable {
 
     // (name, variable)
     static InputObjectField prop(String name, Variable var) {
-        InputObjectField inputObjectField = getNewInstanceOf(InputObjectField.class);
+        InputObjectField inputObjectField = getNewInstanceFromFactory(InputObjectFieldFactory.class);
 
         inputObjectField.setName(name);
         inputObjectField.setValue(var);

@@ -1,14 +1,21 @@
 package io.smallrye.graphql.client.core.utils;
 
+import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 public class ServiceUtils {
-    // TODO: check if 0 or >1 instance found. Throw exception if either.
-    public static <T> T getNewInstanceOf(Class<T> clazz) {
-        ServiceLoader<T> sl = ServiceLoader.load(clazz);
-        T t = sl.iterator().next();
+    private final static Map<Class<? extends Supplier<?>>, ServiceLoader<?>> cacheMemory = new ConcurrentHashMap<>();
 
-        return t;
+    public static <T> T getNewInstanceFromFactory(Class<? extends Supplier<T>> clazz) {
+        var sl = (ServiceLoader<? extends Supplier<T>>) cacheMemory.computeIfAbsent(clazz,
+                ServiceLoader::load);
+        if (sl.stream().count() != 1) {
+            throw new IllegalArgumentException(
+                    String.format("Expected exactly one implementation of %s. Found %d.", clazz.getName(), sl.stream().count()));
+        }
+        return sl.iterator().next().get();
     }
 
     private ServiceUtils() {

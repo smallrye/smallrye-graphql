@@ -1,11 +1,13 @@
 package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.OperationType.QUERY;
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.OperationFactory;
 
 public interface Operation extends FragmentOrOperation {
     /*
@@ -17,7 +19,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (fields)
     static Operation operation(FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName("");
@@ -30,7 +32,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (directives, fields)
     static Operation operationWithDirectives(List<Directive> directives, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName("");
@@ -43,7 +45,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (vars, fields)
     static Operation operation(List<Variable> vars, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName("");
@@ -56,7 +58,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (vars, directives, fields)
     static Operation operationWithDirectives(List<Variable> vars, List<Directive> directives, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName("");
@@ -69,7 +71,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (type, fields)
     static Operation operation(OperationType type, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName("");
@@ -84,7 +86,7 @@ public interface Operation extends FragmentOrOperation {
     static Operation operationWithDirectives(OperationType type,
             List<Directive> directives,
             FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName("");
@@ -97,7 +99,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (type, vars, fields)
     static Operation operation(OperationType type, List<Variable> vars, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName("");
@@ -113,7 +115,7 @@ public interface Operation extends FragmentOrOperation {
             List<Variable> vars,
             List<Directive> directives,
             FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName("");
@@ -126,7 +128,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (name, fields)
     static Operation operation(String name, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName(name);
@@ -139,7 +141,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (name, directives, fields)
     static Operation operationWithDirectives(String name, List<Directive> directives, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName(name);
@@ -152,7 +154,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (type, name, fields)
     static Operation operation(OperationType type, String name, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName(name);
@@ -168,7 +170,7 @@ public interface Operation extends FragmentOrOperation {
             String name,
             List<Directive> directives,
             FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName(name);
@@ -181,7 +183,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (name, vars, fields)
     static Operation operation(String name, List<Variable> vars, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName(name);
@@ -197,7 +199,7 @@ public interface Operation extends FragmentOrOperation {
             List<Variable> vars,
             List<Directive> directives,
             FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(QUERY);
         operation.setName(name);
@@ -210,7 +212,7 @@ public interface Operation extends FragmentOrOperation {
 
     // (type, name, vars, fields)
     static Operation operation(OperationType type, String name, List<Variable> vars, FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName(name);
@@ -227,7 +229,7 @@ public interface Operation extends FragmentOrOperation {
             List<Variable> vars,
             List<Directive> directives,
             FieldOrFragment... fields) {
-        Operation operation = getNewInstanceOf(Operation.class);
+        Operation operation = getNewInstanceFromFactory(OperationFactory.class);
 
         operation.setType(type);
         operation.setName(name);

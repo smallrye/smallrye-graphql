@@ -1,12 +1,14 @@
 package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.VariableType.varType;
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
 import java.util.Optional;
+
+import io.smallrye.graphql.client.core.factory.VariableFactory;
 
 public interface Variable extends Buildable {
     /*
@@ -18,7 +20,7 @@ public interface Variable extends Buildable {
 
     // (name, scalarType)
     static Variable var(String name, ScalarType scalarType) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(scalarType));
@@ -30,7 +32,7 @@ public interface Variable extends Buildable {
 
     // (name, scalarType, directives)
     static Variable varWithDirectives(String name, ScalarType scalarType, List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(scalarType));
@@ -42,7 +44,7 @@ public interface Variable extends Buildable {
 
     // (name, scalarType, defaultValue)
     static Variable var(String name, ScalarType scalarType, Object defaultValue) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(scalarType));
@@ -57,7 +59,7 @@ public interface Variable extends Buildable {
             ScalarType scalarType,
             Object defaultValue,
             List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(scalarType));
@@ -69,7 +71,7 @@ public interface Variable extends Buildable {
 
     // (name, objectType)
     static Variable var(String name, String objectTypeName) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(objectTypeName));
@@ -81,7 +83,7 @@ public interface Variable extends Buildable {
 
     // (name, objectType, directives)
     static Variable varWithDirectives(String name, String objectTypeName, List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(objectTypeName));
@@ -93,7 +95,7 @@ public interface Variable extends Buildable {
 
     // (name, objectType, defaultValue)
     static Variable var(String name, String objectTypeName, Object defaultValue) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(objectTypeName));
@@ -105,7 +107,7 @@ public interface Variable extends Buildable {
 
     // (name, objectType, defaultValue, directives)
     static Variable varWithDirectives(String name, String objectTypeName, Object defaultValue, List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType(objectTypeName));
@@ -117,7 +119,7 @@ public interface Variable extends Buildable {
 
     // (name, variableType)
     static Variable var(String name, VariableType varType) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType);
@@ -129,7 +131,7 @@ public interface Variable extends Buildable {
 
     // (name, variableType, directives)
     static Variable varWithDirectives(String name, VariableType varType, List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType);
@@ -141,7 +143,7 @@ public interface Variable extends Buildable {
 
     // (name, variableType, defaultValue)
     static Variable var(String name, VariableType varType, Object defaultValue) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType);
@@ -152,7 +154,7 @@ public interface Variable extends Buildable {
 
     // (name, variableType, defaultValue, directives)
     static Variable varWithDirectives(String name, VariableType varType, Object defaultValue, List<Directive> directives) {
-        Variable var = getNewInstanceOf(Variable.class);
+        Variable var = getNewInstanceFromFactory(VariableFactory.class);
 
         var.setName(name);
         var.setType(varType);

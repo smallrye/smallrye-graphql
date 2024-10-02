@@ -1,7 +1,9 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
+
+import io.smallrye.graphql.client.core.factory.VariableTypeFactory;
 
 public interface VariableType extends Buildable {
 
@@ -10,7 +12,7 @@ public interface VariableType extends Buildable {
      */
     // (objectTypeName)
     static VariableType varType(String objectTypeName) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName(validateName(objectTypeName));
         varType.setNonNull(false);
@@ -21,7 +23,7 @@ public interface VariableType extends Buildable {
 
     // (scalarType)
     static VariableType varType(ScalarType scalarType) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName(scalarType.toString());
         varType.setNonNull(false);
@@ -32,7 +34,7 @@ public interface VariableType extends Buildable {
 
     // nonNull(scalarType)
     static VariableType nonNull(ScalarType scalarType) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName(scalarType.toString());
         varType.setNonNull(true);
@@ -43,7 +45,7 @@ public interface VariableType extends Buildable {
 
     // nonNull(objectTypeName)
     static VariableType nonNull(String objectTypeName) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName(validateName(objectTypeName));
         varType.setNonNull(true);
@@ -60,7 +62,7 @@ public interface VariableType extends Buildable {
 
     // list(scalarType)
     static VariableType list(ScalarType scalarType) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName("list(" + scalarType.toString() + ")");
         varType.setNonNull(false);
@@ -71,7 +73,7 @@ public interface VariableType extends Buildable {
 
     // list(typeName)
     static VariableType list(String objectTypeName) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName("list(" + validateName(objectTypeName) + ")");
         varType.setNonNull(false);
@@ -82,7 +84,7 @@ public interface VariableType extends Buildable {
 
     // list(variableType)
     static VariableType list(VariableType childVarType) {
-        VariableType varType = getNewInstanceOf(VariableType.class);
+        VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
         varType.setName("list(" + childVarType.getName() + ")");
         varType.setNonNull(false);

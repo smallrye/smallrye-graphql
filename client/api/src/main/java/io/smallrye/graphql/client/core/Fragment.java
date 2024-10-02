@@ -1,12 +1,14 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateFragmentName;
 import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.FragmentFactory;
 
 /**
  * Represents a named fragment definition in a GraphQL document. Such definition consists of a name,
@@ -72,7 +74,7 @@ public interface Fragment extends FragmentOrOperation {
         }
 
         Fragment build() {
-            Fragment fragment = getNewInstanceOf(Fragment.class);
+            Fragment fragment = getNewInstanceFromFactory(FragmentFactory.class);
             fragment.setName(name);
             fragment.setTargetType(targetType);
             fragment.setDirectives(directives);

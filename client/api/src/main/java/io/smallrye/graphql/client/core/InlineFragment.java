@@ -1,10 +1,12 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.InlineFragmentFactory;
 
 /**
  * Represents an inline fragment in a GraphQL document. This can be used
@@ -13,7 +15,7 @@ import java.util.List;
 public interface InlineFragment extends FieldOrFragment {
 
     static InlineFragment on(String type, FieldOrFragment... fields) {
-        InlineFragment fragment = getNewInstanceOf(InlineFragment.class);
+        InlineFragment fragment = getNewInstanceFromFactory(InlineFragmentFactory.class);
 
         fragment.setType(type);
         fragment.setDirectives(emptyList());
@@ -23,7 +25,7 @@ public interface InlineFragment extends FieldOrFragment {
     }
 
     static InlineFragment on(String type, List<Directive> directives, FieldOrFragment... fields) {
-        InlineFragment fragment = getNewInstanceOf(InlineFragment.class);
+        InlineFragment fragment = getNewInstanceFromFactory(InlineFragmentFactory.class);
 
         fragment.setType(type);
         fragment.setDirectives(directives);

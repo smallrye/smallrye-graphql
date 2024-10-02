@@ -1,10 +1,12 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.FragmentReferenceFactory;
 
 /**
  * Represents a reference to a named fragment.
@@ -16,7 +18,7 @@ public interface FragmentReference extends FieldOrFragment {
      * In the resulting document, this will appear as `...FRAGMENTNAME`
      */
     static FragmentReference fragmentRef(String name) {
-        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        FragmentReference ref = getNewInstanceFromFactory(FragmentReferenceFactory.class);
         ref.setName(name);
         ref.setDirectives(emptyList());
         return ref;
@@ -28,7 +30,7 @@ public interface FragmentReference extends FieldOrFragment {
      * this will appear as `...FRAGMENTNAME`
      */
     static FragmentReference fragmentRef(Fragment fragment) {
-        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        FragmentReference ref = getNewInstanceFromFactory(FragmentReferenceFactory.class);
         ref.setName(fragment.getName());
         ref.setDirectives(emptyList());
         return ref;
@@ -39,7 +41,7 @@ public interface FragmentReference extends FieldOrFragment {
      * In the resulting document, this will appear as `...FRAGMENTNAME @DIRECTIVE`
      */
     static FragmentReference fragmentRefWithDirective(String name, Directive... directives) {
-        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        FragmentReference ref = getNewInstanceFromFactory(FragmentReferenceFactory.class);
         ref.setName(name);
         ref.setDirectives(asList(directives));
         return ref;
@@ -51,7 +53,7 @@ public interface FragmentReference extends FieldOrFragment {
      * this will appear as `...FRAGMENTNAME @DIRECTIVE`
      */
     static FragmentReference fragmentRefWithDirective(Fragment fragment, Directive... directives) {
-        FragmentReference ref = getNewInstanceOf(FragmentReference.class);
+        FragmentReference ref = getNewInstanceFromFactory(FragmentReferenceFactory.class);
         ref.setName(fragment.getName());
         ref.setDirectives(asList(directives));
         return ref;
