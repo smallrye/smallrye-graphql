@@ -1,9 +1,11 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.ArgumentFactory;
 
 public interface Argument extends Buildable {
     /*
@@ -15,7 +17,7 @@ public interface Argument extends Buildable {
 
     // (name, raw value)
     static Argument arg(String name, Object value) {
-        Argument argument = getNewInstanceOf(Argument.class);
+        Argument argument = getNewInstanceFromFactory(ArgumentFactory.class);
 
         argument.setName(name);
         argument.setValue(value);
@@ -25,7 +27,7 @@ public interface Argument extends Buildable {
 
     // (name, inputObject)
     static Argument arg(String name, InputObject inputObject) {
-        Argument argument = getNewInstanceOf(Argument.class);
+        Argument argument = getNewInstanceFromFactory(ArgumentFactory.class);
 
         argument.setName(name);
         argument.setValue(inputObject);
@@ -35,7 +37,7 @@ public interface Argument extends Buildable {
 
     // (name, variable)
     static Argument arg(String name, Variable var) {
-        Argument argument = getNewInstanceOf(Argument.class);
+        Argument argument = getNewInstanceFromFactory(ArgumentFactory.class);
 
         argument.setName(name);
         argument.setValue(var);

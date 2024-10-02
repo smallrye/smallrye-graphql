@@ -1,10 +1,12 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.DirectiveFactory;
 
 public interface Directive extends Buildable {
     static List<Directive> directives(Directive... directives) {
@@ -12,7 +14,7 @@ public interface Directive extends Buildable {
     }
 
     static Directive directive(String name) {
-        Directive directive = getNewInstanceOf(Directive.class);
+        Directive directive = getNewInstanceFromFactory(DirectiveFactory.class);
 
         directive.setName(name);
         directive.setDirectiveArguments(emptyList());
@@ -21,7 +23,7 @@ public interface Directive extends Buildable {
     }
 
     static Directive directive(String name, DirectiveArgument... directiveArguments) {
-        Directive directive = getNewInstanceOf(Directive.class);
+        Directive directive = getNewInstanceFromFactory(DirectiveFactory.class);
 
         directive.setName(name);
         directive.setDirectiveArguments(asList(directiveArguments));

@@ -1,10 +1,12 @@
 package io.smallrye.graphql.client.core;
 
-import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceOf;
+import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+
+import io.smallrye.graphql.client.core.factory.FieldFactory;
 
 public interface Field extends FieldOrFragment {
     /*
@@ -16,7 +18,7 @@ public interface Field extends FieldOrFragment {
 
     // (name)
     static Field field(String name) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(emptyList());
@@ -28,7 +30,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, subfields)
     static Field field(String name, FieldOrFragment... fields) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(emptyList());
@@ -40,7 +42,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, args)
     static Field field(String name, Argument... args) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(asList(args));
@@ -52,7 +54,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, directives)
     static Field fieldWithDirectives(String name, Directive... directives) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(emptyList());
@@ -64,7 +66,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, args, subfields)
     static Field field(String name, List<Argument> args, FieldOrFragment... fields) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(args);
@@ -76,7 +78,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, args, directives)
     static Field fieldWithDirectives(String name, List<Argument> args, List<Directive> directives) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(args);
@@ -88,7 +90,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, directives, fields)
     static Field fieldWithDirectives(String name, List<Directive> directives, FieldOrFragment... fields) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(emptyList());
@@ -100,7 +102,7 @@ public interface Field extends FieldOrFragment {
 
     // (name, args, directives, subfields)
     static Field fieldWithDirectives(String name, List<Argument> args, List<Directive> directives, FieldOrFragment... fields) {
-        Field field = getNewInstanceOf(Field.class);
+        Field field = getNewInstanceFromFactory(FieldFactory.class);
 
         field.setName(name);
         field.setArguments(args);
