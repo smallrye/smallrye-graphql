@@ -13,7 +13,8 @@ public class ServiceUtils {
                 ServiceLoader::load);
         if (sl.stream().count() != 1) {
             throw new IllegalArgumentException(
-                    String.format("Expected exactly one implementation of %s. Found %d.", clazz.getName(), sl.stream().count()));
+                    String.format("Expected exactly one implementation of %s. Found %d.", clazz.getName(),
+                            sl.stream().count()));
         }
         return sl.iterator().next().get();
     }
