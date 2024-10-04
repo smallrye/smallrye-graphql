@@ -211,8 +211,8 @@ public class Bootstrap {
         if (Config.get().isFederationEnabled()) {
             log.enableFederation();
 
-            // hack! For schema build success if queries are empty.
-            // It will be overrides in Federation transformation
+            // Hack: Prevents schema build errors when queries are empty.
+            // Will be overridden during the Federation transformation.
             addDummySdlQuery(schemaBuilder, queryRootType);
 
             // Build reference resolvers type, without adding to schema (just for federation)

@@ -37,15 +37,15 @@ support, you need to instantiate the API interface by using the builder:
 SuperHeroesApi api = TypesafeGraphQLClientBuilder.newBuilder().build(SuperHeroesApi.class);
 ```
 
-The basic idea of the Java code-first approach is that you start by
+The basic idea of the Java code-first approach is to start by
 writing the DTOs and query/mutation methods as you need them in your
 client. This ensures that you don’t request fields that you don’t need;
 the thinking is inspired by [Consumer Driven
 Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html).
 
 
-If the server uses names different from yours, you can simply use
-annotations to do a mapping:
+If the server uses names different from yours, you can use annotations to do a mapping:
+
 
 ### Name Mapping / Aliases
 
@@ -101,7 +101,7 @@ test system. Simply use [MicroProfile
 Config](https://download.eclipse.org/microprofile/microprofile-config-1.4/microprofile-config-spec.html)
 to set the endpoint; similar to the [MicroProfile Rest
 Client](https://download.eclipse.org/microprofile/microprofile-rest-client-1.4.1/microprofile-rest-client-1.4.1.html),
-the key for the endpoint is the fully qualified name of the api
+the key for the endpoint is the fully qualified name of the API
 interface, plus `/mp-graphql/url`, e.g.:
 
 ``` properties
@@ -177,7 +177,7 @@ query {
 }
 ```
 
-On client side you can create next code
+On the client side, you can declare the following code:
 ```java
 public record PermissionType(Long id) {
 }
@@ -200,19 +200,18 @@ public interface ApiClient {
 
 ## Namespaces
 
-There are several ways to work with namespaces in a type-safe client
-1. Using @Namespace
-2. Using @Name (deprecated)
+There are several ways to work with namespaces in a type-safe client:
+1. Using `@Namespace`
+2. Using `@Name` (deprecated)
 
-> [NOTE] You can only use one of the annotations - @Name or @Namespace over the GraphQLApi classes.
+> [NOTE] You can only use one of the annotations - `@Name` or `@Namespace` on a `GraphClientQLApi` interface.
 
 ### Using @Namespace annotation
 
-The annotation accepts an array of strings containing the nesting of the namespace.
-This method allows you to create any nesting of namespaces.
-You can use any nesting and also combine different levels.
+The `@Namespace` annotation accepts an array of strings specifying the nesting levels of the namespace.
+This flexible approach allows you to create namespaces with any desired level of nesting, combining different levels as needed.
 
-If remote graphql api has next schema
+If the remote GraphQL API has the following schema:
 ```
 "Query root"
 type Query {
@@ -229,11 +228,11 @@ type AdminUsersQuery {
 
 type User {
   id: BigInteger
-  ...
+  [...]
 }
 ```
 
-You can create next interface
+While declaring the following interface:
 ```java
 @Namespace({"admin", "users"})
 @GraphQLClientApi
@@ -242,7 +241,7 @@ public interface UsersClient {
 }
 ```
 
-Here will be generated next query
+Its outcome will be the following GraphQL query:
 ```
 query AminUsersFindAll {
   admin {
@@ -258,13 +257,12 @@ query AminUsersFindAll {
 ### Using @Name (deprecated)
 > [NOTE] This feature may be removed in the future.
 
-Does the same thing as @Namespace, the only difference is that there can only be one nesting level.
-
+The `@Name` annotation functions similarly to `@Namespace`, but it is limited to a single nesting level.
 ```
 query {
     users {
         findAll {
-         ....
+         ...
         }
     }
 }

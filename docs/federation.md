@@ -1,6 +1,6 @@
 # Federation
 
-Support for [GraphQL Federation](https://www.apollographql.com/docs/federation) is enabled by default. If you add one of the federation annotations, the corresponding directives will be declared to your schema and the additional Federation queries will be added automatically. You can also disable Federation completely by setting the `smallrye.graphql.federation.enabled` config key to `false`.
+Support for [GraphQL Federation](https://www.apollographql.com/docs/federation) is enabled by default. If you add one of the federation annotations, the corresponding directives will be declared in your schema, and the additional Federation queries will be added automatically. You can also disable Federation completely by setting the `smallrye.graphql.federation.enabled` config key to `false`.
 
 You can add the Federation directives by using the equivalent Java annotation, e.g. to extend a `Product` entity with a `price` field, you can write a class:
 
@@ -37,7 +37,7 @@ import org.eclipse.microprofile.graphql.Query;
 public class Prices {
     @Query
     public Product product(@Id String id) {
-        return ...
+        return [...]
     }
 }
 ```
@@ -62,9 +62,9 @@ type Query {
 If you can resolve, e.g., the product with different types of ids, you can add multiple `@Key` annotations.
 ## Federation Batch Resolver
 
-For better performance, there is the option to use batch resolvers with federation. This is not activated on default. It can be activated by setting `smallrye.graphql.federation.batchResolving.enabled` config key to `true`.
+For better performance, there is the option to use batch resolvers with federation. This is not activated by default. It can be activated by setting `smallrye.graphql.federation.batchResolving.enabled` config key to `true`.
 
-It is not needed to provide batch resolvers for all entities, if there is no batch resolver, a non-batch resolver is used.
+It is unnecessary to provide batch resolvers for all entities, if there is no batch resolver, a non-batch resolver is used.
 
 ```java
 package org.example.price;
@@ -77,16 +77,16 @@ import org.eclipse.microprofile.graphql.Query;
 public class Prices {
     @Query
     public List<Product> product(@Id List<String> id) {
-        return ...
+        return [...]
     }
 }
 ```
 
-It is crucial that the sequence of argument list matches with the order of result list. Currently, the name of the Argument `id` must match with the property name in the type.
+It is crucial that the sequence of the argument list matches the order of the result list. Currently, the name of the Argument `id` must match with the property name in the type.
 
 ## Federation Reference Resolver
 
-In federation you also may want extend external type by some fields, without publishing queries into schema. You can do it using @Resolver
+In federation, you may also want to extend the external type by some fields without publishing queries into the schema. You can do it by using the annotation `@Resolver`.
 
 ```java
 @Extends
@@ -133,7 +133,7 @@ public class Api {
 }
 ```
 
-Will be generated next schema
+Generates the following schema:
 ```
 type Product @extends @key(fields : "upc") {
   anotherWeight: Int! @requires(fields : "price")
@@ -150,7 +150,7 @@ type Query {
 }
 ```
 
-These methods will only be available to the federation router, which send next request
+These methods will only be available to the federation router, which may send requests like the following examples:
 ```
 // request 1
 query {
@@ -197,9 +197,9 @@ query {
 }
 ```
 
-Unfortunately, you will have to make separate methods with different `@External` parameters. 
+Unfortunately, you must make separate methods with different `@External` parameters.
 
 It is not currently possible to combine them into one separate type.
 
-You also can using @Query (if you want add queries into schema) or @Resolver (requests 0 and 1). 
-And if it was request `_entities` - @Resolvers methods are checked first (they have higher priority). 
+You also can use `@Query` (if you want to add queries into the schema) or `@Resolver` (requests 0 and 1).
+And if it was requested, `_entities` - `@Resolvers` methods are checked first (they have higher priority). 
