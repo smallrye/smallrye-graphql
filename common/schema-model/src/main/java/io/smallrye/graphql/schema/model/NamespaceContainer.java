@@ -3,6 +3,7 @@ package io.smallrye.graphql.schema.model;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,16 +62,15 @@ public class NamespaceContainer {
 
     public void add(Collection<String> names, String description, Operation operation) {
         if (names.isEmpty()) {
-            throw new RuntimeException("Namespaces can't be empty");
+            throw new IllegalArgumentException("Namespaces cannot be empty");
         }
-        ArrayDeque<String> queue = new ArrayDeque<>(names);
+        Deque<String> queue = new ArrayDeque<>(names);
         String name = queue.poll();
         add(name, description, queue, operation);
     }
 
-    private void add(String name, String description, ArrayDeque<String> queue, Operation operation) {
+    private void add(String name, String description, Deque<String> queue, Operation operation) {
         this.name = name;
-
         if (queue.isEmpty()) {
             this.description = description;
             this.operations.add(operation);
