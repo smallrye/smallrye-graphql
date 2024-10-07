@@ -2,6 +2,7 @@ package io.smallrye.graphql.gradle.tasks;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Repeatable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,11 +38,37 @@ import org.jboss.jandex.JarIndexer;
 import org.jboss.jandex.Result;
 
 import graphql.schema.GraphQLSchema;
+import io.smallrye.graphql.api.Deprecated;
+import io.smallrye.graphql.api.Entry;
+import io.smallrye.graphql.api.OneOf;
+import io.smallrye.graphql.api.federation.Authenticated;
+import io.smallrye.graphql.api.federation.ComposeDirective;
+import io.smallrye.graphql.api.federation.Extends;
+import io.smallrye.graphql.api.federation.External;
+import io.smallrye.graphql.api.federation.FieldSet;
+import io.smallrye.graphql.api.federation.Inaccessible;
+import io.smallrye.graphql.api.federation.InterfaceObject;
+import io.smallrye.graphql.api.federation.Key;
+import io.smallrye.graphql.api.federation.Override;
+import io.smallrye.graphql.api.federation.Provides;
+import io.smallrye.graphql.api.federation.Requires;
+import io.smallrye.graphql.api.federation.Shareable;
+import io.smallrye.graphql.api.federation.Tag;
+import io.smallrye.graphql.api.federation.link.Import;
+import io.smallrye.graphql.api.federation.link.Link;
+import io.smallrye.graphql.api.federation.link.Purpose;
+import io.smallrye.graphql.api.federation.policy.Policy;
+import io.smallrye.graphql.api.federation.policy.PolicyGroup;
+import io.smallrye.graphql.api.federation.policy.PolicyItem;
+import io.smallrye.graphql.api.federation.requiresscopes.RequiresScopes;
+import io.smallrye.graphql.api.federation.requiresscopes.ScopeGroup;
+import io.smallrye.graphql.api.federation.requiresscopes.ScopeItem;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.execution.SchemaPrinter;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
-import io.smallrye.graphql.spi.config.Config;
+
+import static io.smallrye.graphql.gradle.tasks.FederationDotNames.FEDERATION_DIRECTIVES_NAMES;
 
 /**
  * Generate schema task.
@@ -178,16 +206,30 @@ public class GenerateSchemaTask extends DefaultTask {
 
     @TaskAction
     public void generateSchema() throws Exception {
-        this.config = new GradleConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
+        config = new GradleConfig(includeScalars, includeDirectives, includeSchemaDefinition, includeIntrospectionTypes);
         ClassLoader classLoader = getClassLoader();
         Thread.currentThread().setContextClassLoader(classLoader);
         IndexView index = createIndex();
+
+        if (hasFederationDirectives(index)) {
+            config.setFederationEnabled(true);
+            System.setProperty("smallrye.graphql.federation.enabled", "true");
+            index = CompositeIndex.create(index, createFederationApiIndex());
+        }
+
         String schema = generateSchema(index);
         if (schema != null) {
             write(schema);
         } else {
             getLogger().warn("No Schema generated. Check that your code contains the MicroProfile GraphQL Annotations");
         }
+    }
+
+    private static boolean hasFederationDirectives(IndexView index) {
+        return index.getKnownClasses().stream()
+                .anyMatch(classInfo -> FEDERATION_DIRECTIVES_NAMES.stream()
+                        .anyMatch(classInfo::hasAnnotation)
+                );
     }
 
     private IndexView createIndex() {
@@ -225,6 +267,45 @@ public class GenerateSchemaTask extends DefaultTask {
         } else {
             return moduleIndex;
         }
+    }
+
+    private IndexView createFederationApiIndex() throws IOException {
+        Indexer indexer = new Indexer();
+        indexer.indexClass(Map.class);
+        indexer.indexClass(Entry.class);
+        indexer.indexClass(Repeatable.class);
+
+        indexer.indexClass(Deprecated.class);
+        indexer.indexClass(OneOf.class);
+
+        // directives from the API module
+        indexer.indexClass(Authenticated.class);
+        indexer.indexClass(ComposeDirective.class);
+        indexer.indexClass(Extends.class);
+        indexer.indexClass(External.class);
+        indexer.indexClass(FieldSet.class);
+        indexer.indexClass(Inaccessible.class);
+        indexer.indexClass(InterfaceObject.class);
+        indexer.indexClass(Key.class);
+        indexer.indexClass(Override.class);
+        indexer.indexClass(Provides.class);
+        indexer.indexClass(Requires.class);
+        indexer.indexClass(Shareable.class);
+        indexer.indexClass(Tag.class);
+
+        indexer.indexClass(Link.class);
+        indexer.indexClass(Import.class);
+        indexer.indexClass(Purpose.class);
+
+        indexer.indexClass(Policy.class);
+        indexer.indexClass(PolicyGroup.class);
+        indexer.indexClass(PolicyItem.class);
+
+        indexer.indexClass(RequiresScopes.class);
+        indexer.indexClass(ScopeGroup.class);
+        indexer.indexClass(ScopeItem.class);
+
+        return indexer.complete();
     }
 
     // index the classes of this Gradle module

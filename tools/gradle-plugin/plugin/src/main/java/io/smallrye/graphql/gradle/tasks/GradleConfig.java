@@ -10,7 +10,10 @@ public class GradleConfig {
 
     private final boolean includeIntrospectionTypes;
 
-    public GradleConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition, boolean includeIntrospectionTypes) {
+    private boolean federationEnabled;
+
+    public GradleConfig(boolean includeScalars, boolean includeDirectives, boolean includeSchemaDefinition,
+                        boolean includeIntrospectionTypes) {
         this.includeScalars = includeScalars;
         this.includeDirectives = includeDirectives;
         this.includeSchemaDefinition = includeSchemaDefinition;
@@ -31,5 +34,13 @@ public class GradleConfig {
 
     public boolean isIncludeIntrospectionTypes() {
         return includeIntrospectionTypes;
+    }
+
+    public void setFederationEnabled(boolean federationEnabled) {
+        this.federationEnabled = federationEnabled;
+    }
+
+    public boolean isFederationEnabled() {
+        return federationEnabled;
     }
 }
