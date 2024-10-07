@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation "io.smallrye:smallrye-graphql:1.3.2"
+    implementation "io.smallrye:smallrye-graphql:2.10.0"
 }
 
 repositories {
