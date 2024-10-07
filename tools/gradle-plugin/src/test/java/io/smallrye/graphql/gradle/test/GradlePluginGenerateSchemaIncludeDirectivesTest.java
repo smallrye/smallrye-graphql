@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.gradle.testkit.runner.BuildResult;
@@ -30,8 +29,13 @@ public class GradlePluginGenerateSchemaIncludeDirectivesTest {
 
     @Test
     public void testIncludeDirectives() throws IOException {
-        String schema = execute(Collections.singletonList("-DincludeDirectives=true"));
+        String schema = execute(List.of(
+                "-DincludeDirectives=true",
+                "-DincludeScalars=true",
+                "-DincludeSchemaDefinition=true"));
         assertTrue(schema.contains("directive @skip"), "Directives should be included: " + schema);
+        assertTrue(schema.contains("_entities(representations"));
+        assertTrue(schema.contains("type Foo @key(fields : \"id\")"));
     }
 
     private String execute(List<String> arguments) throws IOException {
