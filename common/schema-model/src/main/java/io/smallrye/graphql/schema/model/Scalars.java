@@ -214,7 +214,7 @@ public class Scalars {
         scalarMap.put(className, reference);
 
         // looking up by name
-        scalarNameMap.put(scalarName, reference);
+        scalarNameMap.putIfAbsent(scalarName, reference);
 
         //Currently, each scalar is formatted as String
         formattedScalarMap.put(className, new Reference.Builder()
