@@ -989,7 +989,7 @@ public class Bootstrap {
 
     private GraphQLInputType createGraphQLInputType(Field field) {
 
-        GraphQLInputType graphQLInputType = getGraphQLInputType(field.getReference());
+        GraphQLInputType graphQLInputType = referenceGraphQLInputType(field);
         Wrapper wrapper = dataFetcherFactory.unwrap(field, false);
         // Field can have a wrapper, like List<String>
         if (wrapper != null && wrapper.isCollectionOrArrayOrMap()) {
@@ -1045,6 +1045,11 @@ public class Bootstrap {
         }
 
         return graphQLOutputType;
+    }
+
+    private GraphQLInputType referenceGraphQLInputType(Field field) {
+        Reference reference = getCorrectFieldReference(field);
+        return getGraphQLInputType(reference);
     }
 
     private GraphQLOutputType referenceGraphQLOutputType(Field field) {

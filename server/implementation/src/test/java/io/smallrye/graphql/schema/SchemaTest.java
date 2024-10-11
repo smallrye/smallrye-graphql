@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.json.bind.adapter.JsonbAdapter;
+import jakarta.json.bind.annotation.JsonbTypeAdapter;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -35,12 +37,17 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLUnionType;
+import io.smallrye.graphql.api.AdaptToScalar;
+import io.smallrye.graphql.api.AdaptWith;
+import io.smallrye.graphql.api.Adapter;
 import io.smallrye.graphql.api.Directive;
 import io.smallrye.graphql.api.OneOf;
+import io.smallrye.graphql.api.Scalar;
 import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.Key.Keys;
 import io.smallrye.graphql.execution.SchemaPrinter;
@@ -513,6 +520,115 @@ class SchemaTest extends SchemaTestBase {
         assertEquals("[[Int!]]", graphQLObjectType.getField("dArray").getType().toString());
         assertEquals("[[Int!]]", graphQLInputObjectType.getField("dArray").getType().toString());
 
+    }
+
+    public static class ModelA {
+        @AdaptToScalar(Scalar.String.class)
+        private ModelB modelB;
+
+        @AdaptWith(CustomAdapter.class)
+        public Collection<Long> someField;
+
+        @JsonbTypeAdapter(CustomJsonbTypeAdapter.class)
+        public Float myOtherField;
+
+        public ModelA() {
+        }
+
+        public ModelB getModelB() {
+            return modelB;
+        }
+
+        public void setModelB(ModelB modelB) {
+            this.modelB = modelB;
+        }
+    }
+
+    public static class ModelB {
+        private String id;
+
+        public ModelB() {
+        }
+
+        // the `ModelB` object needs to have a constructor that takes a String (or Int / Date / etc.),
+        // or have a setter method for the String (or Int / Date / etc.),
+        // or have a fromString (or fromInt / fromDate - depending on the Scalar type) static method.
+        public static ModelB fromString(String id) {
+            ModelB modelB = new ModelB();
+            modelB.id = id;
+            return modelB;
+        }
+
+        @Override
+        public String toString() {
+            return id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+    }
+
+    @GraphQLApi
+    public static class AdaptApi {
+        @Query
+        public ModelA getSomeString(ModelA modelA) {
+            return modelA;
+        }
+    }
+
+    public static class CustomAdapter implements Adapter<Long, String> {
+
+        @Override
+        public String to(Long o) throws Exception {
+            return String.valueOf(o);
+        }
+
+        @Override
+        public Long from(String a) throws Exception {
+            return Long.parseLong(a);
+        }
+    }
+
+    public static class CustomJsonbTypeAdapter implements JsonbAdapter<Float, String> {
+
+        @Override
+        public String adaptToJson(Float aFloat) throws Exception {
+            return String.valueOf(aFloat);
+        }
+
+        @Override
+        public Float adaptFromJson(String s) throws Exception {
+            return Float.valueOf(s);
+        }
+    }
+
+    @Test
+    public void adaptTest() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(ModelA.class, ModelB.class, AdaptApi.class, CustomAdapter.class,
+                CustomJsonbTypeAdapter.class);
+
+        GraphQLFieldDefinition modelAQuery = graphQLSchema.getQueryType().getField("someString");
+        assertNotNull(modelAQuery);
+
+        GraphQLInputObjectType modelAInput = graphQLSchema.getTypeAs("ModelAInput");
+        assertNotNull(modelAInput);
+        assertEquals(3, modelAInput.getFields().size());
+        GraphQLInputObjectField modelBField = modelAInput.getField("modelB");
+        assertNotNull(modelBField);
+        assertEquals(GraphQLString, modelBField.getType());
+
+        GraphQLInputObjectField someFieldField = modelAInput.getField("someField");
+        assertNotNull(someFieldField);
+        assertEquals("[String]", someFieldField.getType().toString());
+
+        GraphQLInputObjectField myOtherFieldField = modelAInput.getField("myOtherField");
+        assertNotNull(myOtherFieldField);
+        assertEquals(GraphQLString, myOtherFieldField.getType());
     }
 
     private void assertRolesAllowedDirective(GraphQLFieldDefinition field, String roleValue) {

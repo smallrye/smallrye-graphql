@@ -166,7 +166,7 @@ public class ArgumentHelper extends AbstractHelper {
         if (methodName != null && !methodName.isEmpty()) {
             Class<?> mappingClass = classloadingService.loadClass(field.getReference().getClassName());
             try {
-                if (methodName.equals(CONTRUCTOR_METHOD_NAME)) {
+                if (methodName.equals(CONSTRUCTOR_METHOD_NAME)) {
                     // Try with contructor
                     Constructor<?> constructor = mappingClass.getConstructor(object.getClass());
                     return constructor.newInstance(object);
@@ -503,5 +503,5 @@ public class ArgumentHelper extends AbstractHelper {
         }
     }
 
-    private static final String CONTRUCTOR_METHOD_NAME = "<init>";
+    private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 }
