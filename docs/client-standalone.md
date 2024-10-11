@@ -13,6 +13,24 @@ it's probably because the client is maintaining a `Vertx` instance that it creat
 issue, you might need to create a `Vertx` instance on your own, pass it to the client builder, and then close it after
 closing the client. See the following JBang snippet for an example.
 
+## Logging with a standalone (Java SE) application using the SmallRye GraphQL Client
+
+If you want to properly configure logging in a standalone application, you
+will also need to add a logging implementation to the classpath. The client
+code uses the JBoss Logging facade, so you can, for example, use the JBoss
+Logmanager. Add the `org.jboss.logmanager:jboss-logmanager` dependency to
+your project(it needs to be on the runtime classpath). You will also need to
+run the application with this system property declared:
+`-Djava.util.logging.manager=org.jboss.logmanager.LogManager`.
+
+To customize logging levels etc, it picks up the `logging.properties` file
+from the root of the runtime classpath, so, for example if using Maven and
+the exec plugin to start the application, you would place the file into
+`src/main/resources/logging.properties`. For an example of the contents of
+this file, see
+https://github.com/jamezp/jboss-logging-example/blob/master/src/main/resources/logging.properties.
+
+
 ## Using with JBang
 
 This is a full script runnable directly with [JBang](https://www.jbang.dev/) that
@@ -55,3 +73,5 @@ class Client {
 ```
 
 Save this file as `Client.java` and execute with `jbang Client.java`.
+
+
