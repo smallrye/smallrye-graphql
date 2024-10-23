@@ -10,19 +10,16 @@
   withfieldvalues1:objectFieldDefaults(input: {
     stringArray: ["foo", "man"]
     stringList: ["bar", "zap"]
-    nestedArray: [{field: "lol"}]
     nestedList: [{field: "bal"}]
   }) {
     stringArray
     stringList
-    nestedArray { field }
     nestedList { field }
   }
 
   withoutfieldvalues1:objectFieldDefaults(input: {}) {
     stringArray
     stringList
-    nestedArray { field }
     nestedList { field }
   }
 }

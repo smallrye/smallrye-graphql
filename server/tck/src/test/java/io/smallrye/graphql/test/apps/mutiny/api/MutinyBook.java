@@ -8,7 +8,7 @@ public class MutinyBook {
     public String isbn;
     public String title;
     public LocalDate published;
-    public List<String> authors;
+    public List<String> fieldAuthors;
 
     public MutinyBook() {
     }
@@ -17,7 +17,7 @@ public class MutinyBook {
         this.isbn = isbn;
         this.title = title;
         this.published = published;
-        this.authors = Arrays.asList(authors);
+        this.fieldAuthors = Arrays.asList(authors);
     }
 
 }

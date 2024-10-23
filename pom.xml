@@ -45,18 +45,15 @@
 
 
         <!-- Test -->
-        <version.arquillian>1.8.0.Final</version.arquillian>
-        <version.arquillian.jetty>2.0.0.Final</version.arquillian.jetty>
-        <version.jetty>11.0.15</version.jetty>
         <version.hibernate-validator>8.0.1.Final</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
-        <version.weld-junit5>4.0.0.Final</version.weld-junit5>
         <version.rxjava>2.2.21</version.rxjava>
         <version.jackson>2.15.2</version.jackson>
         <version.mongo-bson>4.10.2</version.mongo-bson>
         <version.mockito>5.10.0</version.mockito>
-        <version.shrinkwrap>3.1.4</version.shrinkwrap>
         <version.weld.servlet>5.1.0.Final</version.weld.servlet>
+        <version.smallrye.testing>2.3.1</version.smallrye.testing>
+        <version.weld-junit5>4.0.0.Final</version.weld-junit5>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         
@@ -371,47 +368,6 @@
 
             <!-- Tests -->
             <dependency>
-                <groupId>org.jboss.arquillian.container</groupId>
-                <artifactId>arquillian-jetty-embedded-11</artifactId>
-                <version>${version.arquillian.jetty}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.arquillian.junit</groupId>
-                <artifactId>arquillian-junit-container</artifactId>
-                <version>${version.arquillian}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.arquillian.container</groupId>
-                <artifactId>arquillian-container-test-spi</artifactId>
-                <version>${version.arquillian}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-bom</artifactId>
-                <version>${version.jetty}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-jakarta-client</artifactId>
-                <version>${version.jetty}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-jakarta-server</artifactId>
-                <version>${version.jetty}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.weld.servlet</groupId>
-                <artifactId>weld-servlet-core</artifactId>
-                <version>${version.weld.servlet}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${version.hibernate-validator}</version>
@@ -421,12 +377,6 @@
                 <groupId>org.glassfish</groupId>
                 <artifactId>jakarta.el</artifactId>
                 <version>${version.glasfish-el}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.weld</groupId>
-                <artifactId>weld-junit5</artifactId>
-                <version>${version.weld-junit5}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -464,25 +414,6 @@
                 <artifactId>mockito-core</artifactId>
                 <version>${version.mockito}</version>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.shrinkwrap.resolver</groupId>
-                <artifactId>shrinkwrap-resolver-depchain</artifactId>
-                <type>pom</type>
-                <scope>test</scope>
-                <version>${version.shrinkwrap}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.shrinkwrap.resolver</groupId>
-                <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
-                <scope>test</scope>
-                <version>${version.shrinkwrap}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.shrinkwrap.resolver</groupId>
-                <artifactId>shrinkwrap-resolver-api-maven</artifactId>
-                <scope>test</scope>
-                <version>${version.shrinkwrap}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

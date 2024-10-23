@@ -3,7 +3,7 @@
         title
         published
         buyLink
-        authors {
+        sourceAuthors {
             name
             bornName
         }
