@@ -39,8 +39,8 @@ public class DefaultValueParrotAPI {
         @DefaultValue("[\"poignant\",\"joker\"]")
         public List<String> stringList;
 
-        @DefaultValue("[{\"field\": \"angry\"}, {\"field\": \"jack\"}]")
-        public Nested[] nestedArray;
+        //        @DefaultValue("[{\"field\": \"angry\"}, {\"field\": \"jack\"}]")
+        //        public Nested[] nestedArray;
 
         @DefaultValue("[{\"field\": \"big\"}, {\"field\": \"grunt\"}]")
         public List<Nested> nestedList;

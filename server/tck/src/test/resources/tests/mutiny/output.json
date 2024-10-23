@@ -4,7 +4,7 @@
       "title": "Lord of the Flies",
       "published": "1954-09-17",
       "buyLink": "https://www.amazon.com/s?k=Lord+of+the+Flies&i=stripbooks-intl-ship",
-      "authors": [
+      "sourceAuthors": [
         {
           "name": "William Golding",
           "bornName": "William Gerald Golding"

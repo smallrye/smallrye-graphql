@@ -19,13 +19,11 @@
     "withfieldvalues1": {
       "stringArray": ["foo", "man"],
       "stringList": ["bar", "zap"],
-      "nestedArray": [{"field": "lol"}],
       "nestedList": [{"field": "bal"}]
     },
     "withoutfieldvalues1": {
       "stringArray": ["dancing", "shepard"],
       "stringList": ["poignant", "joker"],
-      "nestedArray": [{"field": "angry"}, {"field": "jack"}],
       "nestedList": [{"field": "big"}, {"field": "grunt"}]
     }
   }

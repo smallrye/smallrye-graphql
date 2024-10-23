@@ -84,6 +84,7 @@
         <dependency>
             <groupId>org.jboss.weld</groupId>
             <artifactId>weld-junit5</artifactId>
+            <version>${version.weld-junit5}</version>
             <scope>test</scope>
         </dependency>
 <!--        <dependency>-->

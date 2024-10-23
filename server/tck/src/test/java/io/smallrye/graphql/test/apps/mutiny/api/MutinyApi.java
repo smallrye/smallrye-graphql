@@ -28,11 +28,11 @@ public class MutinyApi {
         return Uni.createFrom().item(() -> String.format(AMAZON_SEARCH_FORMAT, title));
     }
 
-    public Uni<List<List<MutinyAuthor>>> getAuthors(@Source List<MutinyBook> books) {
+    public Uni<List<List<MutinyAuthor>>> getSourceAuthors(@Source List<MutinyBook> books) {
         List<List<MutinyAuthor>> authorsOfAllBooks = new ArrayList<>();
         for (MutinyBook book : books) {
             List<MutinyAuthor> authors = new ArrayList<>();
-            for (String name : book.authors) {
+            for (String name : book.fieldAuthors) {
                 authors.add(AUTHORS.get(name));
             }
             authorsOfAllBooks.add(authors);
