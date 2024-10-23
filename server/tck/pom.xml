@@ -35,6 +35,12 @@
             <groupId>org.jboss.arquillian.container</groupId>
             <artifactId>arquillian-jetty-embedded-11</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -106,6 +112,12 @@
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>compile</scope>
+            <version>7.9.0</version>
         </dependency>
     </dependencies>
 
