@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: wildfly-extras/wildfly-graphql-feature-pack
-          ref: smallrye-graphql-2.11
+          ref: main
           path: wildfly-graphql-feature-pack
 
       - uses: actions/setup-java@v3.0.0
@@ -96,8 +96,8 @@ jobs:
       - name: checkout Quarkus repository
         uses: actions/checkout@v2
         with:
-          repository: jmartisk/quarkus
-          ref: smallrye-graphql-2.11
+          repository: quarkusio/quarkus
+          ref: main
           path: quarkus
 
       - uses: actions/setup-java@v4
