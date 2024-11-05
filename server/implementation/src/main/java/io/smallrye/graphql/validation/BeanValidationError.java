@@ -62,11 +62,13 @@ public class BeanValidationError implements GraphQLError {
     }
 
     private Map<String, Object> getViolationAttributes(ConstraintViolation<?> violation) {
-        return Map.of(
-                "message", violation.getMessage(),
-                "propertyPath", toStream(violation.getPropertyPath()).flatMap(this::items).collect(toList()),
-                "invalidValue", violation.getInvalidValue(),
-                "constraint", getConstraintAttributes(violation));
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("message", violation.getMessage());
+        attributes.put("propertyPath",
+                toStream(violation.getPropertyPath()).flatMap(this::items).collect(toList()));
+        attributes.put("invalidValue", violation.getInvalidValue());
+        attributes.put("constraint", getConstraintAttributes(violation));
+        return attributes;
     }
 
     private Stream<String> items(Path.Node node) {
