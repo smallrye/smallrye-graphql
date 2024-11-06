@@ -152,11 +152,12 @@ public class GraphQLClientsConfiguration {
     /**
      * Scan the passed Java interface for `@GraphQLClientApi` annotations and create and register
      * client configuration objects for it. This needs to be called by the runtime some time during initialization,
-     * before clients are actually created.
+     * before clients are actually created. Properties from the annotation will be overridden by {@code application.properties}.
      */
     public void initTypesafeClientApi(Class<?> api) {
         TypesafeClientConfigurationReader reader = new TypesafeClientConfigurationReader(api);
-        clients.merge(reader.getConfigKey(), reader.getClientConfiguration(), GraphQLClientConfiguration::merge);
+        clients.merge(reader.getConfigKey(), reader.getClientConfiguration(),
+                (graphQLClientConfiguration, fromAnnotations) -> fromAnnotations.merge(graphQLClientConfiguration));
     }
 
     public GraphQLClientConfiguration getClient(String key) {
