@@ -84,12 +84,12 @@ public class CustomScalarTest {
         assertThat(graphQLAssured
                 .post("query { inAsScalarRequired(scalar: null) }"))
                 .contains("NullValueForNonNullArgument@[inAsScalarRequired]")
-                .contains("\"data\":null");
+                .doesNotContain("\"data\":");
 
         assertThat(graphQLAssured
                 .post("query { inAsScalarRequired }"))
                 .contains("MissingFieldArgument@[inAsScalarRequired]")
-                .contains("\"data\":null");
+                .doesNotContain("\"data\":");
     }
 
     @Test
@@ -131,7 +131,7 @@ public class CustomScalarTest {
                 .post("query { inAsScalarListRequired(scalars: [null]) }"))
                 .contains("WrongType@[inAsScalarListRequired]")
                 .contains("must not be null")
-                .contains("\"data\":null");
+                .doesNotContain("\"data\":");
     }
 
     @Test
