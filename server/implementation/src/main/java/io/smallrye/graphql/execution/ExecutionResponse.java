@@ -100,6 +100,9 @@ public class ExecutionResponse {
     }
 
     private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
+        if (!executionResult.isDataPresent()) {
+            return returnObjectBuilder;
+        }
         Object pojoData = executionResult.getData();
         return addDataToResponse(returnObjectBuilder, pojoData);
     }
