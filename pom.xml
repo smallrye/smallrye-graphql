@@ -62,9 +62,9 @@
         
         <!-- JDK stuff -->
         <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
-        <maven.compiler.release>11</maven.compiler.release>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <version.impsort.plugin>1.8.0</version.impsort.plugin>
         <version.kotlinx.metadata.jvm>0.7.0</version.kotlinx.metadata.jvm>
         <version.kotlin.compiler>1.9.0</version.kotlin.compiler>
