@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
@@ -337,6 +338,9 @@ class VertxTypesafeGraphQLClientProxy {
         if (type.isMap()) {
             return mapValue(value);
         }
+        if (type.isOptional()) {
+            return optionalValue(value);
+        }
         return objectValue(value, type.fields());
     }
 
@@ -414,6 +418,11 @@ class VertxTypesafeGraphQLClientProxy {
             array.add(entryBuilder.build());
         });
         return array.build();
+    }
+
+    private JsonValue optionalValue(Object value) {
+        Optional<?> optional = (Optional<?>) value;
+        return value(optional.orElse(null));
     }
 
     private Collection<?> values(Object value) {
