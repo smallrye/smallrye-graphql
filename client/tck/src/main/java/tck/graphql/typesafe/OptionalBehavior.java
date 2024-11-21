@@ -181,7 +181,7 @@ class OptionalBehavior {
 
         List<Animal> listOfAnimalLegs = api.allAnimalLegs();
         then(fixture.query()).isEqualTo("query allAnimalLegs { allAnimalLegs {name numberOfLegs" +
-                " numberOfTeeth price} }");
+                " numberOfTeeth price alias} }");
         then(listOfAnimalLegs).containsExactly(
                 new Animal("Lion", OptionalInt.of(4)),
                 new Animal("Centipedes", OptionalInt.of(70)),
@@ -195,7 +195,7 @@ class OptionalBehavior {
         AnimalApi api = fixture.build(AnimalApi.class);
         List<Animal> listOfAnimalTeeth = api.allAnimalTeeth();
         then(fixture.query()).isEqualTo("query allAnimalTeeth { allAnimalTeeth {name numberOfLegs" +
-                " numberOfTeeth price} }");
+                " numberOfTeeth price alias} }");
         then(listOfAnimalTeeth).containsExactly(
                 new Animal("Lion", OptionalLong.of(30)),
                 new Animal("Centipedes", OptionalLong.of(0)),
@@ -209,7 +209,7 @@ class OptionalBehavior {
         AnimalApi api = fixture.build(AnimalApi.class);
         List<Animal> listOfAnimalPrice = api.allAnimalPrice();
         then(fixture.query()).isEqualTo("query allAnimalPrice { allAnimalPrice {name numberOfLegs" +
-                " numberOfTeeth price} }");
+                " numberOfTeeth price alias} }");
         then(listOfAnimalPrice).containsExactly(
                 new Animal("Lion", OptionalDouble.of(355655.74)),
                 new Animal("Centipedes", OptionalDouble.of(241.62)),
@@ -219,17 +219,18 @@ class OptionalBehavior {
     @Test
     void optionalIntParameterQuery() {
         fixture.returnsData("'animalsByLegs':[" +
-                "{'name':'Snake', 'numberOfLegs':0, 'numberOfTeeth':100, 'price':1648.28}]");
+                "{'name':'Snake', 'numberOfLegs':0, 'numberOfTeeth':100, 'price':1648.28, 'alias': 'Max'}]");
         AnimalApi api = fixture.build(AnimalApi.class);
         List<Animal> animals = api.getAnimalsByLegs(OptionalInt.of(0));
         then(fixture.query()).isEqualTo("query animalsByLegs($numberOfLegs: Int) { " +
-                "animalsByLegs(numberOfLegs: $numberOfLegs) {name numberOfLegs numberOfTeeth price} }");
+                "animalsByLegs(numberOfLegs: $numberOfLegs) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'numberOfLegs':0}");
         then(animals).containsExactly(
                 new Animal("Snake",
                         OptionalInt.of(0),
                         OptionalLong.of(100),
-                        OptionalDouble.of(1648.28)));
+                        OptionalDouble.of(1648.28),
+                        Optional.of("Max")));
     }
 
     @Test
@@ -238,36 +239,51 @@ class OptionalBehavior {
         AnimalApi api = fixture.build(AnimalApi.class);
         Animal animal = api.newAnimal(new Animal("Pig", OptionalInt.of(4)));
         then(fixture.query()).isEqualTo("mutation newAnimal($animal: AnimalInput) " +
-                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price} }");
+                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'animal':{'name':'Pig','numberOfLegs':" +
                 "4}}");
         then(animal).isEqualTo(new Animal("Pig", OptionalInt.of(4)));
     }
 
     @Test
+    void optionalStringMutationTest() {
+        fixture.returnsData("'newAnimal':{'name':'Pig', 'alias':'Joe'}");
+        AnimalApi api = fixture.build(AnimalApi.class);
+        Animal animal = api.newAnimal(new Animal("Pig", Optional.of("Joe")));
+        then(fixture.query()).isEqualTo("mutation newAnimal($animal: AnimalInput) " +
+                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price alias} }");
+        then(fixture.variables()).isEqualTo("{'animal':{'name':'Pig','alias':" +
+                "'Joe'}}");
+        then(animal).isEqualTo(new Animal("Pig", Optional.of("Joe")));
+    }
+
+    @Test
     void optionalLongParameterQuery() {
         fixture.returnsData("'animalsByTeeth':[" +
-                "{'name':'Lion', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':330705.0}, " +
-                "{'name':'Tiger', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':165352.5}, " +
-                "{'name':'Rhino', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':2215390.3}]");
+                "{'name':'Lion', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':330705.0, 'alias': 'Leo'}, " +
+                "{'name':'Tiger', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':165352.5, 'alias': 'Diego'}, " +
+                "{'name':'Rhino', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':2215390.3, 'alias': 'Gloria'}]");
         AnimalApi api = fixture.build(AnimalApi.class);
         List<Animal> animals = api.getAnimalsByTeeth(OptionalLong.of(30));
         then(fixture.query()).isEqualTo("query animalsByTeeth($numberOfTeeth: BigInteger) { " +
-                "animalsByTeeth(numberOfTeeth: $numberOfTeeth) {name numberOfLegs numberOfTeeth price} }");
+                "animalsByTeeth(numberOfTeeth: $numberOfTeeth) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'numberOfTeeth':30}");
         then(animals).containsExactly(
                 new Animal("Lion",
                         OptionalInt.of(4),
                         OptionalLong.of(30),
-                        OptionalDouble.of(330705.0)),
+                        OptionalDouble.of(330705.0),
+                        Optional.of("Leo")),
                 new Animal("Tiger",
                         OptionalInt.of(4),
                         OptionalLong.of(30),
-                        OptionalDouble.of(165352.5)),
+                        OptionalDouble.of(165352.5),
+                        Optional.of("Diego")),
                 new Animal("Rhino",
                         OptionalInt.of(4),
                         OptionalLong.of(30),
-                        OptionalDouble.of(2215390.3)));
+                        OptionalDouble.of(2215390.3),
+                        Optional.of("Gloria")));
     }
 
     @Test
@@ -276,7 +292,7 @@ class OptionalBehavior {
         AnimalApi api = fixture.build(AnimalApi.class);
         Animal animal = api.newAnimal(new Animal("Bat", OptionalLong.of(20)));
         then(fixture.query()).isEqualTo("mutation newAnimal($animal: AnimalInput) " +
-                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price} }");
+                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'animal':{'name':'Bat','numberOfTeeth':" +
                 "20}}");
         then(animal).isEqualTo(new Animal("Bat", OptionalLong.of(20)));
@@ -285,22 +301,24 @@ class OptionalBehavior {
     @Test
     void optionalDoubleParameterQuery() {
         fixture.returnsData("'animalsByPrice':[{'name':'Elephant'," +
-                " 'numberOfLegs':4, 'numberOfTeeth':26, 'price':2215390.3}," +
-                " {'name':'Rhino', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':2215390.3}]");
+                " 'numberOfLegs':4, 'numberOfTeeth':26, 'price':2215390.3, 'alias': 'Max'}," +
+                " {'name':'Rhino', 'numberOfLegs':4, 'numberOfTeeth':30, 'price':2215390.3, 'alias': 'Gloria'}]");
         AnimalApi api = fixture.build(AnimalApi.class);
         List<Animal> animals = api.getAnimalsByPrice(OptionalDouble.of(2215390.3));
         then(fixture.query()).isEqualTo("query animalsByPrice($price: Float) { " +
-                "animalsByPrice(price: $price) {name numberOfLegs numberOfTeeth price} }");
+                "animalsByPrice(price: $price) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'price':2215390.3}");
         then(animals).containsExactly(
                 new Animal("Elephant",
                         OptionalInt.of(4),
                         OptionalLong.of(26),
-                        OptionalDouble.of(2215390.3)),
+                        OptionalDouble.of(2215390.3),
+                        Optional.of("Max")),
                 new Animal("Rhino",
                         OptionalInt.of(4),
                         OptionalLong.of(30),
-                        OptionalDouble.of(2215390.3)));
+                        OptionalDouble.of(2215390.3),
+                        Optional.of("Gloria")));
     }
 
     @Test
@@ -309,7 +327,7 @@ class OptionalBehavior {
         AnimalApi api = fixture.build(AnimalApi.class);
         Animal animal = api.newAnimal(new Animal("Labrador", OptionalDouble.of(6610.50)));
         then(fixture.query()).isEqualTo("mutation newAnimal($animal: AnimalInput) " +
-                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price} }");
+                "{ newAnimal(animal: $animal) {name numberOfLegs numberOfTeeth price alias} }");
         then(fixture.variables()).isEqualTo("{'animal':{'name':'Labrador','price':" +
                 "6610.5}}");
         then(animal).isEqualTo(new Animal("Labrador", OptionalDouble.of(6610.50)));
