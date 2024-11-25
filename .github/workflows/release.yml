@@ -37,7 +37,7 @@ jobs:
 
       - name: Install graphviz
         run: sudo apt install graphviz
-        
+
       - name: maven release ${{steps.metadata.outputs.current-version}}
         env:
           MAVEN_DEPLOY_USERNAME: ${{secrets.MAVEN_DEPLOY_USERNAME}}
@@ -52,11 +52,10 @@ jobs:
           echo "version=${{steps.metadata.outputs.current-version}}" > tools/gradle-plugin/gradle.properties
           git add tools/gradle-plugin/gradle.properties
           git commit -m "Update Gradle plugin version"
-          # make sure the server/integration-tests-jdk16 gets its version updated too: include the jdk16plus profile
-          mvn -X -e -B release:prepare -Prelease -Pjdk16plus -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}
+          mvn -X -e -B release:prepare -Prelease -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}
           git checkout ${{github.base_ref}}
           git rebase release
-          mvn -X -e -B release:perform -Prelease -Pjdk16plus
+          mvn -X -e -B release:perform -Prelease
           git push
           git push --tags
 

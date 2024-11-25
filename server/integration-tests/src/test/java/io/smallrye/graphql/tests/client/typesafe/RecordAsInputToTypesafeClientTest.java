@@ -1,7 +1,9 @@
-package io.smallrye.graphql.tests.client;
+package io.smallrye.graphql.tests.client.typesafe;
 
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
+import static org.junit.Assert.assertEquals;
+
+import java.net.URL;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -13,9 +15,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.URL;
-
-import static org.junit.Assert.assertEquals;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 
 @RunWith(Arquillian.class)
 @RunAsClient

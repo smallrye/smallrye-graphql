@@ -1,25 +1,4 @@
-package io.smallrye.graphql.tests.records;
-
-import io.smallrye.graphql.client.Response;
-import io.smallrye.graphql.client.core.Document;
-import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
-import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
-import org.eclipse.microprofile.graphql.GraphQLApi;
-import org.eclipse.microprofile.graphql.NonNull;
-import org.eclipse.microprofile.graphql.Query;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import jakarta.json.bind.annotation.JsonbCreator;
-import java.net.URL;
-import java.util.Set;
+package io.smallrye.graphql.tests.client.dynamic;
 
 import static io.smallrye.graphql.client.core.Argument.arg;
 import static io.smallrye.graphql.client.core.Argument.args;
@@ -29,6 +8,28 @@ import static io.smallrye.graphql.client.core.InputObject.inputObject;
 import static io.smallrye.graphql.client.core.InputObjectField.prop;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static org.junit.Assert.assertEquals;
+
+import java.net.URL;
+import java.util.Set;
+
+import jakarta.json.bind.annotation.JsonbCreator;
+
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.Query;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import io.smallrye.graphql.client.Response;
+import io.smallrye.graphql.client.core.Document;
+import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
+import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
 /**
  * This test verifies that the server side can handle Java records in GraphQL apis, both as input and as output types.
