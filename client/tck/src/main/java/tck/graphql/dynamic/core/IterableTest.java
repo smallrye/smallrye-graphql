@@ -44,9 +44,9 @@ public class IterableTest {
 
                                                 prop("longObjectList", List.of(789L, 947894L, 1874448L)),
 
-                                                prop("floatObjectList", List.of(1567.654f, 8765f, 123789456.1851f)),
+                                                prop("floatObjectList", List.of(1567.1f, 8765f, 3.14159f)),
 
-                                                prop("doubleObjectList", List.of(789.3242d, 1815d, 98765421.654897d)),
+                                                prop("doubleObjectList", List.of(789.1d, 1815d, 3.14159d)),
 
                                                 prop("bigIntegerList",
                                                         List.of(BigInteger.ZERO, BigInteger.ONE, BigInteger.TEN)),

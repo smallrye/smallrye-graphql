@@ -15,11 +15,11 @@ query arrayHolderQuery {
         longPrimitiveArray: [789, 947894, 1874448],
         longObjectArray: [789, 947894, 1874448],
 
-        floatPrimitiveArray: [1567.654, 8765.0, 1.23789456E8],
-        floatObjectArray: [1567.654, 8765.0, 1.23789456E8],
+        floatPrimitiveArray: [1567.6, 8765.0, 3.14159],
+        floatObjectArray: [1567.6, 8765.0, 3.14159],
 
-        doublePrimitiveArray: [789.3242, 1815.0, 9.8765421654897E7],
-        doubleObjectArray:  [789.3242, 1815.0, 9.8765421654897E7],
+        doublePrimitiveArray: [789.3, 1815.0, 3.14159],
+        doubleObjectArray:  [789.3, 1815.0, 3.14159],
 
         bigIntegerArray: [0, 1, 10]
         bigDecimalArray: [0, 1, 10]

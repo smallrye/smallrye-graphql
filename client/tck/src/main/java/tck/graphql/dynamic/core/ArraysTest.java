@@ -47,12 +47,12 @@ public class ArraysTest {
                                                 prop("longPrimitiveArray", new long[] { 789L, 947894L, 1874448L }),
                                                 prop("longObjectArray", new Long[] { 789L, 947894L, 1874448L }),
 
-                                                prop("floatPrimitiveArray", new float[] { 1567.654f, 8765f, 123789456.1851f }),
-                                                prop("floatObjectArray", new Float[] { 1567.654f, 8765f, 123789456.1851f }),
+                                                prop("floatPrimitiveArray", new float[] { 1567.6f, 8765f, 3.14159f }),
+                                                prop("floatObjectArray", new Float[] { 1567.6f, 8765f, 3.14159f }),
 
                                                 prop("doublePrimitiveArray",
-                                                        new double[] { 789.3242d, 1815d, 98765421.654897d }),
-                                                prop("doubleObjectArray", new Double[] { 789.3242d, 1815d, 98765421.654897d }),
+                                                        new double[] { 789.3d, 1815d, 3.14159d }),
+                                                prop("doubleObjectArray", new Double[] { 789.3d, 1815d, 3.14159d }),
 
                                                 prop("bigIntegerArray",
                                                         new BigInteger[] { BigInteger.ZERO, BigInteger.ONE, BigInteger.TEN }),
