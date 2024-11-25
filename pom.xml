@@ -568,21 +568,6 @@
     </build>
 
     <profiles>
-        <!-- !!! make sure this profile appears before the 'release' module - we need the release module
-       to be the last one in the reactor to make sure it does its job. If integration-tests-jdk16 becomes the
-        last module, release pipeline will break, because nexus-staging-maven-plugin performs the upload
-        in the last module, so the last module can't have staging disabled (which the JDK16 module does have). -->
-        <profile>
-            <id>jdk16plus</id>
-            <activation>
-                <jdk>[16,)</jdk>
-            </activation>
-            <!-- the 'server' submodule also adds its 'integration-tests-jdk16' child in this profile -->
-            <modules>
-                <module>server/integration-tests-jdk16</module>
-            </modules>
-        </profile>
-
         <profile>
             <id>release</id>
             <activation>
