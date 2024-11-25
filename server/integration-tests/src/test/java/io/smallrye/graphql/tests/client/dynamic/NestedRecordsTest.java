@@ -85,6 +85,9 @@ public class NestedRecordsTest {
                                     field("needed"),
                                     field("notNeeded")))));
             Response response = client.executeSync(query);
+            System.err.println("=====================================");
+            System.err.println(response);
+            System.err.println("=====================================");
             JsonArray echoedRecords = response.getData().getJsonObject("testParentWithList").getJsonArray("testRecords");
 
             assertEquals("bla", echoedRecords.get(0).asJsonObject().getString("needed"));

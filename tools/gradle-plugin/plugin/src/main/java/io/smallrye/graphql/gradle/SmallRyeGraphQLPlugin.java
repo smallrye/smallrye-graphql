@@ -2,6 +2,7 @@ package io.smallrye.graphql.gradle;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 
 import io.smallrye.graphql.gradle.tasks.GenerateSchemaTask;
@@ -22,6 +23,7 @@ public class SmallRyeGraphQLPlugin implements Plugin<Project> {
 
     private void registerTasks(Project project) {
         TaskContainer tasks = project.getTasks();
-        tasks.create(GENERATE_SCHEMA_TASK_NAME, GenerateSchemaTask.class);
+        Task task = tasks.create(GENERATE_SCHEMA_TASK_NAME, GenerateSchemaTask.class);
+        task.dependsOn(tasks.findByName("compileJava").getPath());
     }
 }
