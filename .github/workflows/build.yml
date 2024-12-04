@@ -42,7 +42,7 @@ jobs:
         run: sudo apt install graphviz
         
       - name: build with maven
-        run: ./mvnw -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml
+        run: ./mvnw -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml -X
 
   wildfly-tests:
     runs-on: ubuntu-latest
