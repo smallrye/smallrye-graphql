@@ -63,7 +63,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <version.impsort.plugin>1.8.0</version.impsort.plugin>
-        <version.kotlinx.metadata.jvm>0.7.0</version.kotlinx.metadata.jvm> <!-- blabla-->
+        <version.kotlinx.metadata.jvm>0.9.0</version.kotlinx.metadata.jvm> <!-- blabla-->
         <version.kotlin.compiler>1.9.0</version.kotlin.compiler>
 
     </properties>
