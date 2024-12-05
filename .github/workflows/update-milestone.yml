@@ -1,0 +1,17 @@
+name: Update Milestone
+
+on:
+  pull_request_target:
+    types: [closed]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    name: update-milestone
+    if: ${{github.event.pull_request.merged == true}}
+
+    steps:
+      - uses: radcortez/milestone-set-action@main
+        name: milestone set
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
