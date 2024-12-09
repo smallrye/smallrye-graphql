@@ -1,5 +1,8 @@
 package io.smallrye.graphql.schema.creator.type;
 
+import static io.smallrye.graphql.schema.Annotations.NAME;
+import static io.smallrye.graphql.schema.Annotations.getAnnotationsForMethod;
+
 import java.util.List;
 
 import org.jboss.jandex.ClassInfo;
@@ -38,7 +41,8 @@ public class InterfaceCreator extends AbstractCreator {
 
         // Add all fields from interface itself
         for (MethodInfo methodInfo : classInfo.methods()) {
-            if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)) {
+            if (MethodHelper.isPropertyMethod(Direction.OUT, methodInfo)
+                    || getAnnotationsForMethod(methodInfo).containsKeyAndValidValue(NAME)) {
                 fieldCreator.createFieldForInterface(methodInfo, reference)
                         .ifPresent(interfaceType::addField);
             }
