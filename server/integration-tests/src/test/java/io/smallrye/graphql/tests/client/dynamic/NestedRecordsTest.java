@@ -9,6 +9,7 @@ import static io.smallrye.graphql.client.core.InputObjectField.prop;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assume.assumeFalse;
 
 import java.net.URL;
 import java.util.List;
@@ -25,7 +26,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,9 +69,12 @@ public class NestedRecordsTest {
         }
     }
 
-    @Ignore("In Java 21 this test fails due to a bug (presumably) in the JSON-B implementation – Yasson)")
     @Test
     public void testNestedRecordWithListWithMissingFieldInQuery() throws Exception {
+        int major = Integer.parseInt(System.getProperty("java.version").split("\\.")[0]);
+        assumeFalse(
+                "Skipping testNestedRecordWithListWithMissingFieldInQuery because of bug in JDK 21 and 22, see https://bugs.openjdk.org/browse/JDK-8320575",
+                major == 21 || major == 22);
         try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql").build()) {
             Document query = document(operation(
