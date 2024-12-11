@@ -38,9 +38,9 @@
 
         <!-- Kotlin support -->
         <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-metadata-jvm</artifactId>
-            <version>${version.kotlinx.metadata.jvm}</version>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-metadata-jvm</artifactId>
+            <version>${version.kotlin.metadata.jvm}</version>
         </dependency>
 
         <!-- Logging -->

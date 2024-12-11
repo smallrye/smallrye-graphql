@@ -25,14 +25,14 @@ import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
-import kotlinx.metadata.Flag;
-import kotlinx.metadata.KmClassifier;
-import kotlinx.metadata.KmFunction;
-import kotlinx.metadata.KmType;
-import kotlinx.metadata.KmTypeProjection;
-import kotlinx.metadata.KmValueParameter;
-import kotlinx.metadata.jvm.KotlinClassHeader;
-import kotlinx.metadata.jvm.KotlinClassMetadata;
+import kotlin.metadata.Attributes;
+import kotlin.metadata.KmClassifier;
+import kotlin.metadata.KmFunction;
+import kotlin.metadata.KmType;
+import kotlin.metadata.KmTypeProjection;
+import kotlin.metadata.KmValueParameter;
+import kotlin.metadata.jvm.KotlinClassHeader;
+import kotlin.metadata.jvm.KotlinClassMetadata;
 
 /**
  * Creates a Operation object
@@ -176,9 +176,7 @@ public class OperationCreator extends ModelCreator {
             return false;
         }
         KmTypeProjection arg = kotlinType.getArguments().get(0);
-        int flags = arg.getType().getFlags();
-        boolean nullable = Flag.Type.IS_NULLABLE.invoke(flags);
-        return nullable;
+        return Attributes.isNullable(arg.getType());
     }
 
     private boolean compareParameterLists(List<KmValueParameter> kotlinParameters,
@@ -196,7 +194,7 @@ public class OperationCreator extends ModelCreator {
         return true;
     }
 
-    private boolean compareJavaAndKotlinType(Type javaType, kotlinx.metadata.KmType kotlinType) {
+    private boolean compareJavaAndKotlinType(Type javaType, kotlin.metadata.KmType kotlinType) {
         if (kotlinType == null) {
             return false;
         }
@@ -261,7 +259,7 @@ public class OperationCreator extends ModelCreator {
                 metadata.value("xs") != null ? metadata.value("xs").asString() : null,
                 metadata.value("pn") != null ? metadata.value("pn").asString() : null,
                 metadata.value("xi").asInt());
-        return (KotlinClassMetadata.Class) KotlinClassMetadata.read(classHeader);
+        return (KotlinClassMetadata.Class) KotlinClassMetadata.readStrict(classHeader);
     }
 
     private static void validateFieldType(MethodInfo methodInfo, OperationType operationType) {
