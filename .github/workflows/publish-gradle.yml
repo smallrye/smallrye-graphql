@@ -1,0 +1,30 @@
+name: Publish Gradle
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        description: Tag version to perform release
+        type: string
+
+jobs:
+  publish-gradle:
+    name: Publish Gradle
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout ${{inputs.version}}
+        with:
+          ref: ${{inputs.version}}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: gradle release ${{inputs.version}}
+        run: |
+          mkdir -p ~/.gradle ; echo -e "gradle.publish.key=${{secrets.GRADLE_PUBLISH_KEY}}\ngradle.publish.secret=${{secrets.GRADLE_PUBLISH_SECRET}}" > ~/.gradle/gradle.properties
+          cd tools/gradle-plugin && gradle publishPlugins
