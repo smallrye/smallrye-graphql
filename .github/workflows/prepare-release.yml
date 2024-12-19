@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   prepare-gradle:
