@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 
 import org.eclipse.microprofile.graphql.Name;
@@ -25,11 +26,16 @@ public class FieldInfo {
     FieldInfo(TypeInfo container, Field field) {
         this.container = container;
         this.field = field;
-        JsonbProperty jsonbPropertyAnnotation = field.getAnnotation(JsonbProperty.class);
-        if (jsonbPropertyAnnotation != null) {
-            includeIfNull = jsonbPropertyAnnotation.nillable();
+        JsonbNillable jsonbNillableAnnotation = field.getAnnotation(JsonbNillable.class);
+        if (jsonbNillableAnnotation != null) {
+            this.includeIfNull = true;
         } else {
-            includeIfNull = false;
+            JsonbProperty jsonbPropertyAnnotation = field.getAnnotation(JsonbProperty.class);
+            if (jsonbPropertyAnnotation != null) {
+                this.includeIfNull = jsonbPropertyAnnotation.nillable();
+            } else {
+                this.includeIfNull = false;
+            }
         }
         this.name = computeName();
     }
