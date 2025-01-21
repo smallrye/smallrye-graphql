@@ -36,6 +36,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebsocketVersion;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
@@ -212,7 +213,8 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
             for (Map.Entry<String, Uni<String>> dynamicHeaderEntry : dynamicHeaders.entrySet()) {
                 allHeaders.add(dynamicHeaderEntry.getKey(), dynamicHeaderEntry.getValue().await().indefinitely());
             }
-            return executeSingleResultOperationOverHttp(json, allHeaders).await().indefinitely();
+            HttpResponse<Buffer> httpResponse = executeSingleResultOperationOverHttp(json, allHeaders).await().indefinitely();
+            return toResponse(httpResponse);
         }
     }
 
@@ -322,11 +324,12 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 }).replaceWithVoid());
             }
             if (unis.isEmpty()) {
-                return executeSingleResultOperationOverHttp(json, allHeaders);
+                return executeSingleResultOperationOverHttp(json, allHeaders).map(this::toResponse);
             } else {
                 return Uni.combine().all().unis(unis)
                         .combinedWith(f -> f).onItem()
-                        .transformToUni(f -> executeSingleResultOperationOverHttp(json, allHeaders));
+                        .transformToUni(f -> executeSingleResultOperationOverHttp(json, allHeaders))
+                        .map(this::toResponse);
             }
         }
     }
@@ -442,15 +445,18 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         });
     }
 
-    private Uni<Response> executeSingleResultOperationOverHttp(JsonObject json, MultiMap allHeaders) {
+    private Uni<HttpResponse<Buffer>> executeSingleResultOperationOverHttp(JsonObject json, MultiMap allHeaders) {
         return Uni.createFrom().completionStage(
                 url.get().subscribeAsCompletionStage().thenCompose(instanceUrl -> webClient.postAbs(instanceUrl)
                         .putHeaders(allHeaders)
                         .sendBuffer(Buffer.buffer(json.toString()))
-                        .toCompletionStage()))
-                .map(response -> ResponseReader.readFrom(response.bodyAsString(),
-                        convertHeaders(response.headers()), response.statusCode(), response.statusMessage(),
-                        allowUnexpectedResponseFields));
+                        .toCompletionStage()));
+    }
+
+    private Response toResponse(HttpResponse<Buffer> httpResponse) {
+        return ResponseReader.readFrom(httpResponse.bodyAsString(),
+                convertHeaders(httpResponse.headers()), httpResponse.statusCode(), httpResponse.statusMessage(),
+                allowUnexpectedResponseFields);
     }
 
     private Uni<Response> executeSingleResultOperationOverWebsocket(JsonObject json) {
