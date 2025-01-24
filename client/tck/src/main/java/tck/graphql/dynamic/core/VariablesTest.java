@@ -20,11 +20,13 @@ import static io.smallrye.graphql.client.core.VariableType.list;
 import static io.smallrye.graphql.client.core.VariableType.nonNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.core.ScalarType;
@@ -33,6 +35,8 @@ import tck.graphql.dynamic.helper.AssertGraphQL;
 import tck.graphql.dynamic.helper.Utils;
 
 public class VariablesTest {
+
+    private static final String NAME_URL = "https://spec.graphql.org/draft/#Name";
 
     @Test
     public void variablesDefaultValueTest() throws IOException, URISyntaxException {
@@ -188,13 +192,21 @@ public class VariablesTest {
     @Test
     public void variablesShouldThrowExceptionForInvalidNameTest() {
         ScalarType scalarType = GQL_INT;
-        assertThrows(IllegalArgumentException.class, () -> var("123", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var("my_var$", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var("va:r", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var("", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var(":var", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var("va:r:", scalarType));
-        assertThrows(IllegalArgumentException.class, () -> var(null, scalarType));
+        assertThrowsWithUrlMessage(() -> var("123", scalarType));
+        assertThrowsWithUrlMessage(() -> var("my_var$", scalarType));
+        assertThrowsWithUrlMessage(() -> var("va:r", scalarType));
+        assertThrowsWithUrlMessage(() -> var("", scalarType));
+        assertThrowsWithUrlMessage(() -> var(":var", scalarType));
+        assertThrowsWithUrlMessage(() -> var("va:r:", scalarType));
+        assertThrowsWithUrlMessage(() -> var(null, scalarType));
+        assertThrowsWithUrlMessage(() -> var("[var]", scalarType));
+        assertThrowsWithUrlMessage(() -> var("var!", scalarType));
+    }
+
+    private void assertThrowsWithUrlMessage(Executable lambda) {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, lambda);
+        assertTrue(ex.getMessage().contains(NAME_URL),
+                "Expected the '%s' message to contain '%s'".formatted(ex.getMessage(), NAME_URL));
     }
 
 }

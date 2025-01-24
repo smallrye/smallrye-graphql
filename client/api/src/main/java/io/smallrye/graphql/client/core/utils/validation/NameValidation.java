@@ -30,7 +30,9 @@ public class NameValidation {
         if (name == null || name.isEmpty()) {
             return "";
         } else if (!nameMatchesPattern(name, NAME_PATTERN)) {
-            throw new IllegalArgumentException("Invalid name: " + name);
+            throw new IllegalArgumentException(
+                    "Invalid name: '%s'. Name does not match the regex pattern %s, please check the GraphQL specification %s"
+                            .formatted(name, _NAME_REGEX, "https://spec.graphql.org/draft/#Name"));
         }
         return name;
     }
@@ -48,9 +50,11 @@ public class NameValidation {
      */
     public static String validateFragmentName(String name) {
         if (name == null || !nameMatchesPattern(name, NAME_PATTERN)) {
-            throw new IllegalArgumentException("Invalid fragment name: " + name);
+            throw new IllegalArgumentException(
+                    "Invalid fragment name '%s'. Fragment name does not match the regex pattern %s, please check the GraphQL specification %s"
+                            .formatted(name, _NAME_REGEX, "https://spec.graphql.org/draft/#sec-Language.Fragments"));
         } else if (name.equals("on")) {
-            throw new IllegalArgumentException("Fragment name cannot be 'on'");
+            throw new IllegalArgumentException("Invalid fragment name. Fragment name cannot be 'on'");
         }
         return name;
     }
@@ -65,7 +69,9 @@ public class NameValidation {
      */
     public static String validateName(String name) {
         if (name == null || !nameMatchesPattern(name, NAME_PATTERN)) {
-            throw new IllegalArgumentException("Invalid name: " + name);
+            throw new IllegalArgumentException(
+                    "Invalid name: '%s'. Name does not match the regex pattern %s, please check the GraphQL specification %s"
+                            .formatted(name, _NAME_REGEX, "https://spec.graphql.org/draft/#Name"));
         }
         return name;
     }
@@ -83,13 +89,37 @@ public class NameValidation {
      */
     public static String validateFieldName(String fieldName) {
         if (fieldName == null || !nameMatchesPattern(fieldName, FIELD_NAME_PATTERN)) {
-            throw new IllegalArgumentException("Invalid field name: " + fieldName);
+            throw new IllegalArgumentException(
+                    "Invalid field name: '%s'. Field name does not match the regex pattern %s, please check the GraphQL specification %s"
+                            .formatted(fieldName, _FIELD_NAME_REGEX, "https://spec.graphql.org/draft/#sec-Language.Fields"));
         }
         return fieldName;
+    }
+
+    public static String validateTypeName(String typeName) {
+        if (typeName == null) {
+            throw new IllegalArgumentException(
+                    "Invalid type name. Type name cannot be null");
+        }
+        if (typeName.contains("]") || typeName.contains("[")) {
+            throw new IllegalArgumentException(
+                    "Invalid type name: '%s'. Type name cannot contain '[' or ']', instead use the io.smallrye.graphql.client.core.VariableType.list method to wrap your type into a list type"
+                            .formatted(typeName));
+        }
+        if (typeName.contains("!")) {
+            throw new IllegalArgumentException(
+                    "Invalid type name: '%s'. Type name cannot contain '!', instead use the io.smallrye.graphql.client.core.VariableType.nonNull method to wrap your type into a non-null type"
+                            .formatted(typeName));
+        }
+        if (!nameMatchesPattern(typeName, NAME_PATTERN)) {
+            throw new IllegalArgumentException(
+                    "Invalid type name: '%s'. Type name does not match the regex pattern %s, please check the GraphQL specification %s"
+                            .formatted(typeName, _NAME_REGEX, "https://spec.graphql.org/draft/#sec-Type-References"));
+        }
+        return typeName;
     }
 
     private static boolean nameMatchesPattern(String name, Pattern pattern) {
         return pattern.matcher(name).matches();
     }
-
 }
