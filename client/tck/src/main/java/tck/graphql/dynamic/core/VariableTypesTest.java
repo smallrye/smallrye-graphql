@@ -5,10 +5,16 @@ import static io.smallrye.graphql.client.core.VariableType.nonNull;
 import static io.smallrye.graphql.client.core.VariableType.varType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 public class VariableTypesTest {
+    private static final String TYPE_NAME_URL = "https://spec.graphql.org/draft/#sec-Type-References";
+    private static final String LIST = "io.smallrye.graphql.client.core.VariableType.list";
+    private static final String NON_NULL = "io.smallrye.graphql.client.core.VariableType.nonNull";
+
     @Test
     public void varTypesShouldNotThrowExceptionForValidName() {
         assertDoesNotThrow(() -> varType("ValidName"));
@@ -24,12 +30,14 @@ public class VariableTypesTest {
 
     @Test
     public void varTypesShouldThrowExceptionForInvalidName() {
-        assertThrows(IllegalArgumentException.class, () -> varType("Invalid:Name"));
-        assertThrows(IllegalArgumentException.class, () -> varType("Invalid,Name"));
-        assertThrows(IllegalArgumentException.class, () -> varType("123InvalidName"));
-        assertThrows(IllegalArgumentException.class, () -> varType("invalid-Name"));
-        assertThrows(IllegalArgumentException.class, () -> varType("invalid name"));
-        assertThrows(IllegalArgumentException.class, () -> varType("@invalidName"));
+        assertThrowsWithUrlMessage(() -> varType("Invalid:Name"));
+        assertThrowsWithUrlMessage(() -> varType("Invalid,Name"));
+        assertThrowsWithUrlMessage(() -> varType("123InvalidName"));
+        assertThrowsWithUrlMessage(() -> varType("invalid-Name"));
+        assertThrowsWithUrlMessage(() -> varType("invalid name"));
+        assertThrowsWithUrlMessage(() -> varType("@invalidName"));
+        assertThrowsWithListMessage(() -> varType("[invalidName]"));
+        assertThrowsWithNonNullMessage(() -> varType("invalidName!"));
     }
 
     @Test
@@ -47,12 +55,14 @@ public class VariableTypesTest {
 
     @Test
     public void nonNullsShouldThrowExceptionForInvalidName() {
-        assertThrows(IllegalArgumentException.class, () -> nonNull("Invalid:Name"));
-        assertThrows(IllegalArgumentException.class, () -> nonNull("Invalid,Name"));
-        assertThrows(IllegalArgumentException.class, () -> nonNull("123InvalidName"));
-        assertThrows(IllegalArgumentException.class, () -> nonNull("invalid-Name"));
-        assertThrows(IllegalArgumentException.class, () -> nonNull("invalid name"));
-        assertThrows(IllegalArgumentException.class, () -> nonNull("@invalidName"));
+        assertThrowsWithUrlMessage(() -> nonNull("Invalid:Name"));
+        assertThrowsWithUrlMessage(() -> nonNull("Invalid,Name"));
+        assertThrowsWithUrlMessage(() -> nonNull("123InvalidName"));
+        assertThrowsWithUrlMessage(() -> nonNull("invalid-Name"));
+        assertThrowsWithUrlMessage(() -> nonNull("invalid name"));
+        assertThrowsWithUrlMessage(() -> nonNull("@invalidName"));
+        assertThrowsWithListMessage(() -> nonNull("[invalidName]"));
+        assertThrowsWithNonNullMessage(() -> nonNull("invalidName!"));
     }
 
     @Test
@@ -70,11 +80,31 @@ public class VariableTypesTest {
 
     @Test
     public void listsShouldThrowExceptionForInvalidName() {
-        assertThrows(IllegalArgumentException.class, () -> list("Invalid:Name"));
-        assertThrows(IllegalArgumentException.class, () -> list("Invalid,Name"));
-        assertThrows(IllegalArgumentException.class, () -> list("123InvalidName"));
-        assertThrows(IllegalArgumentException.class, () -> list("invalidName-"));
-        assertThrows(IllegalArgumentException.class, () -> list("invalid name"));
-        assertThrows(IllegalArgumentException.class, () -> list("@invalidName"));
+        assertThrowsWithUrlMessage(() -> list("Invalid:Name"));
+        assertThrowsWithUrlMessage(() -> list("Invalid,Name"));
+        assertThrowsWithUrlMessage(() -> list("123InvalidName"));
+        assertThrowsWithUrlMessage(() -> list("invalid-Name"));
+        assertThrowsWithUrlMessage(() -> list("invalid name"));
+        assertThrowsWithUrlMessage(() -> list("@invalidName"));
+        assertThrowsWithListMessage(() -> list("[invalidName]"));
+        assertThrowsWithNonNullMessage(() -> list("invalidName!"));
+    }
+
+    private void assertThrowsWithUrlMessage(Executable lambda) {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, lambda);
+        assertTrue(ex.getMessage().contains(TYPE_NAME_URL),
+                "Expected the '%s' message to contain '%s'".formatted(ex.getMessage(), TYPE_NAME_URL));
+    }
+
+    private void assertThrowsWithListMessage(Executable lambda) {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, lambda);
+        assertTrue(ex.getMessage().contains(LIST),
+                "Expected the '%s' message to contain '%s'".formatted(ex.getMessage(), LIST));
+    }
+
+    private void assertThrowsWithNonNullMessage(Executable lambda) {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, lambda);
+        assertTrue(ex.getMessage().contains(NON_NULL),
+                "Expected the '%s' message to contain '%s'".formatted(ex.getMessage(), NON_NULL));
     }
 }
