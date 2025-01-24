@@ -1,7 +1,7 @@
 package io.smallrye.graphql.client.core;
 
 import static io.smallrye.graphql.client.core.utils.ServiceUtils.getNewInstanceFromFactory;
-import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateName;
+import static io.smallrye.graphql.client.core.utils.validation.NameValidation.validateTypeName;
 
 import io.smallrye.graphql.client.core.factory.VariableTypeFactory;
 
@@ -14,7 +14,7 @@ public interface VariableType extends Buildable {
     static VariableType varType(String objectTypeName) {
         VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
-        varType.setName(validateName(objectTypeName));
+        varType.setName(validateTypeName(objectTypeName));
         varType.setNonNull(false);
         varType.setChild(null);
 
@@ -47,7 +47,7 @@ public interface VariableType extends Buildable {
     static VariableType nonNull(String objectTypeName) {
         VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
-        varType.setName(validateName(objectTypeName));
+        varType.setName(validateTypeName(objectTypeName));
         varType.setNonNull(true);
         varType.setChild(null);
 
@@ -75,7 +75,7 @@ public interface VariableType extends Buildable {
     static VariableType list(String objectTypeName) {
         VariableType varType = getNewInstanceFromFactory(VariableTypeFactory.class);
 
-        varType.setName("list(" + validateName(objectTypeName) + ")");
+        varType.setName("list(" + validateTypeName(objectTypeName) + ")");
         varType.setNonNull(false);
         varType.setChild(varType(objectTypeName));
 
