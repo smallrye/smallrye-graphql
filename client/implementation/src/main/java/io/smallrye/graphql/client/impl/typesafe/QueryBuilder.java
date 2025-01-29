@@ -95,6 +95,9 @@ public class QueryBuilder {
     }
 
     private String fieldsFragment(TypeInfo typeInfo) {
+        if (typeInfo.fields().findAny().isEmpty()) {
+            return "";
+        }
         return "... on " + typeInfo.getGraphQlTypeName() + fields(typeInfo);
     }
 
