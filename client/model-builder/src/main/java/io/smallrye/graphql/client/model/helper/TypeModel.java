@@ -141,7 +141,8 @@ public class TypeModel {
     public boolean isNonNull() {
         return isPrimitive() ||
                 type.hasAnnotation(Annotations.NON_NULL) ||
-                type.hasAnnotation(Annotations.JAKARTA_NON_NULL);
+                type.hasAnnotation(Annotations.JAKARTA_NON_NULL)
+                || type.hasAnnotation(Annotations.KOTLIN_NOT_NULL);
     }
 
     /**

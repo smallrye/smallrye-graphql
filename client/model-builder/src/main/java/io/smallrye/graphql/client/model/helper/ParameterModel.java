@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.MethodParameterInfo;
 
+import io.smallrye.graphql.client.model.Annotations;
 import io.smallrye.graphql.client.model.Scalars;
 import io.smallrye.graphql.client.typesafe.api.Header;
 
@@ -179,11 +180,11 @@ public class ParameterModel implements NamedElement {
     /**
      * Adds an optional exclamation mark to the GraphQL input type name based on nullability.
      *
-     * @param type The {@link TypeModel} representing the type of the parameter.
      * @return An optional exclamation mark.
      */
     private String optionalExclamationMark(TypeModel type) {
-        return type.isNonNull() ? "!" : "";
+        // for some reason KOTLIN_NOT_NULL is not applied on type, but on parameter
+        return (parameter.hasAnnotation(Annotations.KOTLIN_NOT_NULL) || type.isNonNull()) ? "!" : "";
     }
 
     /**
