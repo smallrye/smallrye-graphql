@@ -441,6 +441,9 @@ public class OperationModel implements NamedElement {
     }
 
     private String fieldsFragment(TypeModel type) {
+        if (type.fields().findAny().isEmpty()) {
+            return "";
+        }
         return "... on " + type.getGraphQlTypeName() + fields(type);
     }
 
