@@ -42,11 +42,34 @@ class UnionBehavior {
         }
     }
 
+    @Union
+    @JsonbTypeInfo(key = "__typename", value = {
+            @JsonbSubtype(alias = "Data", type = Data.class),
+            @JsonbSubtype(alias = "Hidden", type = Hidden.class),
+    })
+    public interface DetailsResponse {
+    }
+
+    @Type("SuperHeroDetailsData")
+    public static class Data implements DetailsResponse {
+        String data;
+
+        String getData() {
+            return data;
+        }
+    }
+
+    @Type("SuperHeroDetailsHidden")
+    public static class Hidden implements DetailsResponse {
+    }
+
     @GraphQLClientApi
     interface UnionApi {
         SuperHeroResponse find(String name);
 
         List<SuperHeroResponse> findAll(String name);
+
+        List<DetailsResponse> details(String name);
     }
 
     @Test
@@ -117,5 +140,28 @@ class UnionBehavior {
         then(((SuperHero) response.get(0)).getName()).isEqualTo("Spider-Man");
         then(response.get(1)).isInstanceOf(NotFound.class);
         then(((NotFound) response.get(1)).getMessage()).isEqualTo("The Nobody");
+    }
+
+    @Test
+    void shouldSkipEmptyTypes() {
+        fixture.returnsData("'details':[" +
+                "{'__typename':'SuperHeroDetailsData','data':'Speed'}," +
+                "{'__typename':'SuperHeroDetailsData','data':'Agility'}," +
+                "{'__typename':'SuperHeroDetailsHidden'}" +
+                "]");
+        var api = fixture.build(UnionApi.class);
+
+        var response = api.details("Spider-Man");
+
+        then(fixture.query()).isEqualTo("query details($name: String) { details(name: $name){" +
+                "__typename " +
+                "... on SuperHeroDetailsData {data} } }");
+        then(fixture.variables()).isEqualTo("{'name':'Spider-Man'}");
+        then(response).hasSize(3);
+        then(response.get(0)).isInstanceOf(Data.class);
+        then(((Data) response.get(0)).getData()).isEqualTo("Speed");
+        then(response.get(1)).isInstanceOf(Data.class);
+        then(((Data) response.get(1)).getData()).isEqualTo("Agility");
+        then(response.get(2)).isInstanceOf(Hidden.class);
     }
 }
