@@ -11,7 +11,7 @@
     <artifactId>smallrye-graphql-schema-builder</artifactId>
     <name>SmallRye: GraphQL Common :: Schema Builder</name>
     <description>Creates the model from a Jandex index</description>
-        
+
     <dependencies>
 
         <!-- The API -->
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-metadata-jvm</artifactId>
-            <version>${version.kotlin.metadata.jvm}</version>
+            <version>${version.kotlin}</version>
         </dependency>
 
         <!-- Logging -->

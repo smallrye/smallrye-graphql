@@ -40,7 +40,7 @@ public class ClientModelBuilderTest {
     }
 
     @Test
-    void sclarClientModelTest() throws IOException {
+    void scalarClientModelTest() throws IOException {
         String configKey = "scalar";
         ClientModels clientModels = ClientModelBuilder.build(Index.of(ScalarClientApi.class));
         assertNotNull(clientModels.getClientModelByConfigKey(configKey));
