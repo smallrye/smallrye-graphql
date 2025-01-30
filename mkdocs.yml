@@ -15,6 +15,7 @@ nav:
       - Custom scalars: 'custom-scalar.md'
       - Inspecting executable directives: 'inspecting-executable-directives-on-server-side.md'
       - Namespaces: 'namespaces-on-server-side.md'
+      - Kotlin support: 'kotlin.md'
   - Typesafe client:
       - Basic usage: 'typesafe-client-usage.md'
       - Unions and Interfaces: 'typesafe-client-unions-and-interfaces.md'
