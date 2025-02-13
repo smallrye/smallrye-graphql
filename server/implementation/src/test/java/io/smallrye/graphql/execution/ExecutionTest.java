@@ -65,9 +65,9 @@ public class ExecutionTest extends ExecutionTestBase {
         Boolean active2 = Boolean.valueOf(active2Pointer.getValue(data).toString());
 
         JsonPointer state1Pointer = new JsonPointerImpl("/objectsWithConfig1/0/configuredSources/configuration/state");
-        var state1 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString)state1Pointer.getValue(data)).getString());
+        var state1 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString) state1Pointer.getValue(data)).getString());
         JsonPointer state2Pointer = new JsonPointerImpl("/objectsWithConfig2/0/configuredSources/configuration/state");
-        var state2 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString)state2Pointer.getValue(data)).getString());
+        var state2 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString) state2Pointer.getValue(data)).getString());
 
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(active1).isNotEqualTo(active2);

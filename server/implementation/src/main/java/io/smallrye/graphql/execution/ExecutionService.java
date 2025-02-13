@@ -303,7 +303,7 @@ public class ExecutionService {
         return operation.getArguments().stream().allMatch(Argument::isSourceArgument);
     }
 
-    private <KEY> CacheKey<KEY> getCacheKeyFunction(){
+    private <KEY> CacheKey<KEY> getCacheKeyFunction() {
         return new CacheKey<>() {
             @Override
             public Object getKey(KEY input) {
@@ -318,7 +318,7 @@ public class ExecutionService {
                             .stream()
                             .mapToInt(Object::hashCode)
                             .reduce(Integer::sum);
-                } catch (Exception e){
+                } catch (Exception e) {
                     log.transformError(e);
                 }
                 if (cacheKey.isEmpty()) {

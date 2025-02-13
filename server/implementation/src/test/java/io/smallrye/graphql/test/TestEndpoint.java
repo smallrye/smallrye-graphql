@@ -18,7 +18,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 @GraphQLApi
 public class TestEndpoint {
 
-    private static final List<TestObject> persistedObjects = List.of(createTestObject("Alice"),createTestObject("Bob"));
+    private static final List<TestObject> persistedObjects = List.of(createTestObject("Alice"), createTestObject("Bob"));
 
     @Query
     public TestObject getTestObject(String yourname) {
@@ -30,7 +30,7 @@ public class TestEndpoint {
     public List<TestObject> getTestObjects() {
         TestObject p = createTestObject("Phillip");
         TestObject c = createTestObject("Charmaine");
-        return Arrays.asList(new TestObject[]{p, c});
+        return Arrays.asList(new TestObject[] { p, c });
     }
 
     @Query("testObjectsPersisted")
@@ -97,7 +97,8 @@ public class TestEndpoint {
     }
 
     @Name("configuredSources")
-    public List<TestSourceWithConfiguration> getTestSourcesWithConfiguration(@Source List<TestObject> testObjects, @NonNull TestSourceConfiguration configuration) {
+    public List<TestSourceWithConfiguration> getTestSourcesWithConfiguration(@Source List<TestObject> testObjects,
+            @NonNull TestSourceConfiguration configuration) {
         return testObjects.stream()
                 .map(testObject -> new TestSourceWithConfiguration(configuration))
                 .toList();
