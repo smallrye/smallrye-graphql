@@ -4,22 +4,14 @@ import static com.apollographql.federation.graphqljava.tracing.FederatedTracingI
 import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_VALUE;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.atomic.AtomicLong;
 
+import io.smallrye.graphql.schema.model.Argument;
 import jakarta.json.JsonObject;
 
-import org.dataloader.BatchLoaderWithContext;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderFactory;
-import org.dataloader.DataLoaderRegistry;
+import org.dataloader.*;
 
 import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation;
 import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.Options;
@@ -283,16 +275,58 @@ public class ExecutionService {
         writer.write(executionResponse);
     }
 
-    private <K, T> DataLoaderRegistry getDataLoaderRegistry(List<Operation> operations) {
+    private <KEY, VALUE> DataLoaderRegistry getDataLoaderRegistry(List<Operation> operations) {
         DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
-        for (Operation operation : operations) {
-            Map<String, Type> types = schema.getTypes();
-            BatchLoaderWithContext<K, T> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation,
-                    types.get(operation.getName()));
-            DataLoader<K, T> dataLoader = DataLoaderFactory.newDataLoader(batchLoader);
+        operations.forEach(operation -> {
+            DataLoader<KEY, VALUE> dataLoader = getDataLoaderForOperation(operation);
             dataLoaderRegistry.register(batchLoaderHelper.getName(operation), dataLoader);
-        }
+        });
         return dataLoaderRegistry;
+    }
+
+    private <KEY, VALUE> DataLoader<KEY, VALUE> getDataLoaderForOperation(Operation operation) {
+        Map<String, Type> types = schema.getTypes();
+        BatchLoaderWithContext<KEY, VALUE> batchLoader = dataFetcherFactory.getSourceBatchLoader(operation,
+                types.get(operation.getName()));
+        if (operationUsesNoArguments(operation)) {
+            return DataLoaderFactory.newDataLoader(batchLoader);
+        }
+        DataLoaderOptions loaderOptions = new DataLoaderOptions();
+        loaderOptions.setCacheKeyFunction(this.getCacheKeyFunction());
+        return DataLoaderFactory.newDataLoader(batchLoader, loaderOptions);
+    }
+
+    private boolean operationUsesNoArguments(Operation operation) {
+        if (operation.getArguments().isEmpty()) {
+            return true;
+        }
+        return operation.getArguments().stream().allMatch(Argument::isSourceArgument);
+    }
+
+    private <KEY> CacheKey<KEY> getCacheKeyFunction(){
+        return new CacheKey<>() {
+            @Override
+            public Object getKey(KEY input) {
+                return input;
+            }
+
+            @Override
+            public Object getKeyWithContext(KEY input, Object context) {
+                OptionalInt cacheKey = OptionalInt.empty();
+                try {
+                    cacheKey = ((List<?>) ((HashMap<?, ?>) context).get("arguments"))
+                            .stream()
+                            .mapToInt(Object::hashCode)
+                            .reduce(Integer::sum);
+                } catch (Exception e){
+                    log.transformError(e);
+                }
+                if (cacheKey.isEmpty()) {
+                    return getKey(input);
+                }
+                return cacheKey.getAsInt();
+            }
+        };
     }
 
     private GraphQL getGraphQL() {
