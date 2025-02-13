@@ -1,12 +1,14 @@
 package io.smallrye.graphql.execution;
 
-import io.smallrye.graphql.test.TestSourceConfiguration;
+import static org.junit.jupiter.api.Assertions.*;
+
 import jakarta.json.*;
+
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.eclipse.parsson.JsonPointerImpl;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import io.smallrye.graphql.test.TestSourceConfiguration;
 
 /**
  * Test a basic query

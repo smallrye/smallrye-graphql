@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.smallrye.graphql.schema.model.Argument;
 import jakarta.json.JsonObject;
 
 import org.dataloader.*;
@@ -39,6 +38,7 @@ import io.smallrye.graphql.execution.datafetcher.helper.BatchLoaderHelper;
 import io.smallrye.graphql.execution.error.ExceptionHandler;
 import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.execution.event.EventEmitter;
+import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
