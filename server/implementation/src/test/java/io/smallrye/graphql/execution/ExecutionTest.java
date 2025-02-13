@@ -1,13 +1,12 @@
 package io.smallrye.graphql.execution;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
+import io.smallrye.graphql.test.TestSourceConfiguration;
+import jakarta.json.*;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.eclipse.parsson.JsonPointerImpl;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test a basic query
@@ -54,7 +53,26 @@ public class ExecutionTest extends ExecutionTestBase {
         // Testing batch
         assertFalse(testObject.isNull("timestamp"), "timestamp should not be null");
         assertFalse(testObject.get("timestamp").asJsonObject().isNull("value"), "timestamp value should not be null");
+    }
 
+    @Test
+    public void testBatchSourceConfigurationQuery() {
+        JsonObject data = executeAndGetData(TEST_BATCH_SOURCE_CONFIGURATION_QUERY);
+
+        JsonPointer active1Pointer = new JsonPointerImpl("/objectsWithConfig1/0/configuredSources/configuration/active");
+        Boolean active1 = Boolean.valueOf(active1Pointer.getValue(data).toString());
+        JsonPointer active2Pointer = new JsonPointerImpl("/objectsWithConfig2/0/configuredSources/configuration/active");
+        Boolean active2 = Boolean.valueOf(active2Pointer.getValue(data).toString());
+
+        JsonPointer state1Pointer = new JsonPointerImpl("/objectsWithConfig1/0/configuredSources/configuration/state");
+        var state1 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString)state1Pointer.getValue(data)).getString());
+        JsonPointer state2Pointer = new JsonPointerImpl("/objectsWithConfig2/0/configuredSources/configuration/state");
+        var state2 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString)state2Pointer.getValue(data)).getString());
+
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(active1).isNotEqualTo(active2);
+            softly.assertThat(state1).isNotEqualTo(state2);
+        }
     }
 
     private static final String TEST_QUERY = "{\n" +
@@ -73,6 +91,29 @@ public class ExecutionTest extends ExecutionTestBase {
             "    name\n" +
             "    timestamp {\n" +
             "       value\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
+    private static final String TEST_BATCH_SOURCE_CONFIGURATION_QUERY = "{\n" +
+            "  objectsWithConfig1: testObjectsPersisted {\n" +
+            "    id\n" +
+            "    name\n" +
+            "    configuredSources(configuration: {active:true, state: PENDING}) {\n" +
+            "       configuration{\n" +
+            "           active\n" +
+            "           state\n" +
+            "       }\n" +
+            "    }\n" +
+            "  }\n" +
+            "  objectsWithConfig2: testObjectsPersisted {\n" +
+            "    id\n" +
+            "    name\n" +
+            "    configuredSources(configuration: {active:false, state: IN_PROGRESS}) {\n" +
+            "       configuration{\n" +
+            "           active\n" +
+            "           state\n" +
+            "       }\n" +
             "    }\n" +
             "  }\n" +
             "}";
