@@ -314,6 +314,7 @@ public class ExecutionService {
             public Object getKeyWithContext(KEY input, Object context) {
                 OptionalInt cacheKey = OptionalInt.empty();
                 try {
+                    // summarize hashcodes of all arguments
                     cacheKey = ((List<?>) ((HashMap<?, ?>) context).get("arguments"))
                             .stream()
                             .mapToInt(Object::hashCode)
@@ -324,7 +325,8 @@ public class ExecutionService {
                 if (cacheKey.isEmpty()) {
                     return getKey(input);
                 }
-                return cacheKey.getAsInt();
+                // add the hashcode of the key itself
+                return cacheKey.getAsInt() + input.hashCode();
             }
         };
     }
