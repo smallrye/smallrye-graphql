@@ -5,11 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.eclipse.microprofile.graphql.DefaultValue;
-import org.eclipse.microprofile.graphql.GraphQLApi;
-import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.Query;
-import org.eclipse.microprofile.graphql.Source;
+import org.eclipse.microprofile.graphql.*;
 
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
@@ -22,6 +18,8 @@ import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 @GraphQLApi
 public class TestEndpoint {
 
+    private static final List<TestObject> persistedObjects = List.of(createTestObject("Alice"), createTestObject("Bob"));
+
     @Query
     public TestObject getTestObject(String yourname) {
         TestObject testObject = createTestObject(yourname);
@@ -33,6 +31,11 @@ public class TestEndpoint {
         TestObject p = createTestObject("Phillip");
         TestObject c = createTestObject("Charmaine");
         return Arrays.asList(new TestObject[] { p, c });
+    }
+
+    @Query("testObjectsPersisted")
+    public List<TestObject> getTestObjectsPersisted() {
+        return persistedObjects;
     }
 
     @Query
@@ -93,6 +96,14 @@ public class TestEndpoint {
         return batched;
     }
 
+    @Name("configuredSources")
+    public List<TestSourceWithConfiguration> getTestSourcesWithConfiguration(@Source List<TestObject> testObjects,
+            @NonNull TestSourceConfiguration configuration) {
+        return testObjects.stream()
+                .map(testObject -> new TestSourceWithConfiguration(configuration))
+                .toList();
+    }
+
     @Query
     public ContextInfo testContext() {
         Context context = SmallRyeContextManager.getCurrentSmallRyeContext();
@@ -106,7 +117,7 @@ public class TestEndpoint {
         return contextInfo;
     }
 
-    private TestObject createTestObject(String name) {
+    private static TestObject createTestObject(String name) {
         String id = UUID.randomUUID().toString();
         TestObject testObject = new TestObject();
         testObject.setId(id);
