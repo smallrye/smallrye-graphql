@@ -4,13 +4,24 @@ import static com.apollographql.federation.graphqljava.tracing.FederatedTracingI
 import static com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.FEDERATED_TRACING_HEADER_VALUE;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.atomic.AtomicLong;
 
 import jakarta.json.JsonObject;
 
-import org.dataloader.*;
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.CacheKey;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
 
 import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation;
 import com.apollographql.federation.graphqljava.tracing.FederatedTracingInstrumentation.Options;
@@ -312,21 +323,19 @@ public class ExecutionService {
 
             @Override
             public Object getKeyWithContext(KEY input, Object context) {
-                OptionalInt cacheKey = OptionalInt.empty();
+                Integer cacheKey = null;
                 try {
-                    // summarize hashcodes of all arguments
-                    cacheKey = ((List<?>) ((HashMap<?, ?>) context).get("arguments"))
-                            .stream()
-                            .mapToInt(Object::hashCode)
-                            .reduce(Integer::sum);
+                    // generate hashcode for all arguments
+                    List<?> arguments = (List<?>) ((HashMap<?, ?>) context).get("arguments");
+                    cacheKey = Objects.hash(arguments.toArray());
                 } catch (Exception e) {
                     log.transformError(e);
                 }
-                if (cacheKey.isEmpty()) {
+                if (cacheKey == null) {
                     return getKey(input);
                 }
                 // add the hashcode of the key itself
-                return cacheKey.getAsInt() + input.hashCode();
+                return Objects.hash(cacheKey, input.hashCode());
             }
         };
     }
