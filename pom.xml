@@ -93,7 +93,6 @@
         <module>server</module>
         <module>client</module>
         <module>tools</module>
-        <module>docs</module>
     </modules>
     
     <dependencyManagement>
@@ -508,6 +507,20 @@
             </activation>
             <modules>
                 <module>release</module>
+            </modules>
+        </profile>
+
+        <!-- modules that should not be active when we're performing a release -->
+        <profile>
+            <id>unreleased-modules</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>docs</module>
             </modules>
         </profile>
     </profiles>
