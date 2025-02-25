@@ -8,5 +8,5 @@
     </parent>
 
     <artifactId>smallrye-graphql-client-model</artifactId>
-    <name>SmallRye: GraphQL Client :: model</name>
+    <name>SmallRye: GraphQL Client :: Model</name>
 </project>

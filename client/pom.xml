@@ -19,11 +19,26 @@
         <module>implementation</module>
         <module>implementation-vertx</module>
         <module>generator</module>
-        <module>generator-test</module>
-        <module>tck</module>
         <module>model</module>
         <module>model-builder</module>
     </modules>
+
+    <profiles>
+        <!-- modules that should not be active when we're performing a release -->
+        <profile>
+            <id>unreleased-modules</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>generator-test</module>
+                <module>tck</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <build>
         <defaultGoal>install</defaultGoal>
