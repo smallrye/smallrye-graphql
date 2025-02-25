@@ -20,9 +20,24 @@
         <module>implementation</module>
         <module>implementation-cdi</module>
         <module>implementation-servlet</module>
-        <module>tck</module>
-        <module>runner</module>
-        <module>integration-tests</module>
     </modules>
+
+    <profiles>
+        <!-- modules that should not be active when we're performing a release -->
+        <profile>
+            <id>unreleased-modules</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>tck</module>
+                <module>runner</module>
+                <module>integration-tests</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>
