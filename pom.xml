@@ -494,6 +494,33 @@
                     <lineEnding>LF</lineEnding>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>io.sundr</groupId>
+                <artifactId>sundr-maven-plugin</artifactId>
+                <version>0.200.0</version>
+                <inherited>false</inherited>
+                <configuration>
+                    <boms>
+                        <bom>
+                            <artifactId>smallrye-graphql-bom</artifactId>
+                            <name>SmallRye: GraphQL Bill Of Materials</name>
+
+                            <modules>
+                                <includes>
+                                    <include>io.smallrye:*</include>
+                                </includes>
+                            </modules>
+                        </bom>
+                    </boms>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-bom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
