@@ -509,6 +509,14 @@
                                 <includes>
                                     <include>io.smallrye:*</include>
                                 </includes>
+                                <excludes>
+                                    <exclude>io.smallrye:smallrye-graphql-integration-tests</exclude>
+                                    <exclude>io.smallrye:smallrye-graphql-client-generator-test</exclude>
+                                    <exclude>io.smallrye:smallrye-graphql-maven-plugin-tests</exclude>
+                                    <exclude>io.smallrye:smallrye-graphql-tck</exclude>
+                                    <exclude>io.smallrye:smallrye-graphql-client-tck</exclude>
+                                    <exclude>io.smallrye:smallrye-graphql-documentation</exclude>
+                                </excludes>
                             </modules>
                         </bom>
                     </boms>
