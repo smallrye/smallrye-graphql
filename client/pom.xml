@@ -21,6 +21,7 @@
         <module>generator</module>
         <module>model</module>
         <module>model-builder</module>
+        <module>tck</module>
     </modules>
 
     <profiles>
@@ -35,7 +36,6 @@
             </activation>
             <modules>
                 <module>generator-test</module>
-                <module>tck</module>
             </modules>
         </profile>
     </profiles>
