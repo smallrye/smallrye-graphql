@@ -20,6 +20,7 @@
         <module>implementation</module>
         <module>implementation-cdi</module>
         <module>implementation-servlet</module>
+        <module>tck</module>
     </modules>
 
     <profiles>
@@ -33,7 +34,6 @@
                 </property>
             </activation>
             <modules>
-                <module>tck</module>
                 <module>runner</module>
                 <module>integration-tests</module>
             </modules>
