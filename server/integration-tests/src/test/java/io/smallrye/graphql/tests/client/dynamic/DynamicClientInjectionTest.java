@@ -39,7 +39,7 @@ public class DynamicClientInjectionTest {
                         "dummy/mp-graphql/url=http://localhost:9090/client-injection-test/graphql\n" +
                                 "dummy/mp-graphql/header/My-Custom-Header=Header-Value"),
                         "META-INF/microprofile-config.properties")
-                .addClasses(DynamicClientApi.class, DummyObject.class, Dummy.class);
+                .addClasses(DynamicClientApi.class, DummyObject.class, DummyEnum.class, Dummy.class);
     }
 
     @Inject

@@ -49,5 +49,18 @@ public class RequestImplTest {
         map.put("ids", arr);
         request.setVariable("key", map);
         assertEquals("{\"query\":\"example\",\"variables\":{\"key\":{\"ids\":[1,2]}}}", request.toJson());
+
+        request.setVariable("key", new TestRecord(TestEnum.TEST));
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":{\"enumValue\":\"TEST\"}}}", request.toJson());
+
+        request.setVariable("key", TestEnum.TEST);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":\"TEST\"}}", request.toJson());
+    }
+
+    public record TestRecord(TestEnum enumValue) {
+    }
+
+    public enum TestEnum {
+        TEST
     }
 }

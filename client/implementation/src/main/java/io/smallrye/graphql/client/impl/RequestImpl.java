@@ -70,6 +70,8 @@ public class RequestImpl implements Request {
                 varBuilder.add(k, (Long) v);
             } else if (v instanceof Double) {
                 varBuilder.add(k, (Double) v);
+            } else if (v instanceof Enum<?>) {
+                varBuilder.add(k, ((Enum<?>) v).name());
             } else if (v == null) {
                 varBuilder.addNull(k);
             } else {
