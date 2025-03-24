@@ -36,7 +36,7 @@ public abstract class DynamicClientSingleOperationsTestBase {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "integration-test.war")
-                .addClasses(DynamicClientApi.class, DummyObject.class, Dummy.class);
+                .addClasses(DynamicClientApi.class, DummyObject.class, DummyEnum.class, Dummy.class);
     }
 
     @ArquillianResource
@@ -94,6 +94,17 @@ public abstract class DynamicClientSingleOperationsTestBase {
                 .getData();
         System.out.println(data);
         assertEquals("a", data.getJsonObject("queryWithArgument2").getJsonObject("dummyObject").getString("a"));
+    }
+
+    @Test
+    public void testStringQueryWithEnum() throws ExecutionException, InterruptedException {
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("x", DummyEnum.TWO);
+        JsonObject data = client
+                .executeSync("query($x: DummyEnum) {queryWithArgument3(obj: $x){integer}}", vars)
+                .getData();
+        System.out.println(data);
+        assertEquals(2, data.getJsonObject("queryWithArgument3").getInt("integer"));
     }
 
     @Test
