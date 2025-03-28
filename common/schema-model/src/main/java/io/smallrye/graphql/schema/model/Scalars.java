@@ -115,6 +115,10 @@ public class Scalars {
         populateScalar(UUID.class.getName(), "UUID", String.class.getName());
     }
 
+    public static void addObject() {
+        populateScalar(Object.class.getName(), "Object", Object.class.getName());
+    }
+
     static {
         // The main java type should go first.
 
