@@ -119,6 +119,10 @@ public class Scalars {
         populateScalar(Object.class.getName(), "Object", Object.class.getName());
     }
 
+    public static void addJson() {
+        populateScalar("jakarta.json.JsonObject", "JSON", Object.class.getName());
+    }
+
     static {
         // The main java type should go first.
 
