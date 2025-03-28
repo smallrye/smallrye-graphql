@@ -56,6 +56,16 @@ public class GraphQLScalarTypes {
         SCALARS_BY_NAME.put(ExtendedScalars.UUID.getName(), ExtendedScalars.UUID);
     }
 
+    public static void addObject() {
+        SCALAR_MAP.put(Object.class.getName(), ExtendedScalars.Object);
+        SCALARS_BY_NAME.put(ExtendedScalars.Object.getName(), ExtendedScalars.Object);
+    }
+
+    public static void addJson() {
+        SCALAR_MAP.put(Object.class.getName(), ExtendedScalars.Json);
+        SCALARS_BY_NAME.put(ExtendedScalars.Json.getName(), ExtendedScalars.Json);
+    }
+
     public static void registerCustomScalar(
             String graphQlScalarName,
             String valueClassName,
