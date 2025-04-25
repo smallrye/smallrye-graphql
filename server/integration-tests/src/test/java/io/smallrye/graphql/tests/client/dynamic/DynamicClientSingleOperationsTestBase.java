@@ -202,4 +202,13 @@ public abstract class DynamicClientSingleOperationsTestBase {
         assertEquals("foo2", ret.get(1).getRenamedField());
     }
 
+    @Test
+    public void testLongPayloadResponse() throws ExecutionException, InterruptedException {
+        Document document = document(operation(
+                field("longResponse",
+                        field("string"))));
+        Response response = client.executeSync(document);
+        Dummy ret = response.getObject(Dummy.class, "longResponse");
+        assertEquals("foo".repeat(500_000), ret.getString());
+    }
 }

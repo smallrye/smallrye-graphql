@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
+import io.vertx.ext.web.client.WebClientOptions;
 
 @RunWith(Arquillian.class)
 @RunAsClient
@@ -17,6 +18,7 @@ public class DynamicClientSingleOperationsOverWebsocketTest extends DynamicClien
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")
+                .options(new WebClientOptions().setMaxWebSocketMessageSize(Integer.MAX_VALUE))
                 .executeSingleOperationsOverWebsocket(true)
                 .build();
     }

@@ -72,4 +72,11 @@ public class DynamicClientApi {
         return list;
     }
 
+    @Query
+    public Dummy longResponse() {
+        Dummy dummy = new Dummy();
+        dummy.setString("foo".repeat(500_000));
+        return dummy;
+    }
+
 }
