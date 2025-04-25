@@ -140,12 +140,12 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
             // make an effectively final copy of this value to use it in a lambda expression
             Cancellable finalTimeoutWaitingForConnectionAckMessage = timeoutWaitingForConnectionAckMessage;
 
-            webSocket.handler(text -> {
+            webSocket.textMessageHandler(text -> {
                 if (log.isTraceEnabled()) {
                     log.trace("<<< " + text);
                 }
                 try {
-                    JsonObject message = parseIncomingMessage(text.toString());
+                    JsonObject message = parseIncomingMessage(text);
                     MessageType messageType = getMessageType(message);
                     switch (messageType) {
                         case PING:
