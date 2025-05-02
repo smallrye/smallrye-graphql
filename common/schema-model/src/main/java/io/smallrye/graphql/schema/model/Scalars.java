@@ -59,6 +59,7 @@ public class Scalars {
     private static final String IMPORT = "Import";
     private static final String POLICY = "Policy";
     private static final String SCOPE = "Scope";
+    private static final String JSON = "JSON";
 
     private Scalars() {
     }
@@ -120,7 +121,8 @@ public class Scalars {
     }
 
     public static void addJson() {
-        populateScalar("jakarta.json.JsonObject", "JSON", Object.class.getName());
+        populateScalar("jakarta.json.JsonValue", JSON, Object.class.getName());
+        populateScalar("jakarta.json.JsonObject", JSON, Object.class.getName());
     }
 
     static {
