@@ -326,6 +326,8 @@ public class OperationCreator extends ModelCreator {
             return Execute.BLOCKING;
         } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.NON_BLOCKING)) {
             return Execute.NON_BLOCKING;
+        } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.RUN_ON_VIRTUAL_THREAD)) {
+            return Execute.RUN_ON_VIRTUAL_THREAD;
         }
 
         // then check annotation on class
@@ -333,6 +335,8 @@ public class OperationCreator extends ModelCreator {
             return Execute.BLOCKING;
         } else if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.NON_BLOCKING)) {
             return Execute.NON_BLOCKING;
+        } else if (annotationsForClass.containsOneOfTheseAnnotations(Annotations.RUN_ON_VIRTUAL_THREAD)) {
+            return Execute.RUN_ON_VIRTUAL_THREAD;
         }
 
         // lastly use default based on return type
