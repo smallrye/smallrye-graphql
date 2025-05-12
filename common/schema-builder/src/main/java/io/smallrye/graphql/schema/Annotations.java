@@ -581,6 +581,8 @@ public class Annotations {
     // SmallRye Common Annotations
     public static final DotName BLOCKING = DotName.createSimple("io.smallrye.common.annotation.Blocking");
     public static final DotName NON_BLOCKING = DotName.createSimple("io.smallrye.common.annotation.NonBlocking");
+    public static final DotName RUN_ON_VIRTUAL_THREAD = DotName
+            .createSimple("io.smallrye.common.annotation.RunOnVirtualThread");
 
     // SmallRye GraphQL Annotations (Experimental)
     public static final DotName TO_SCALAR = DotName.createSimple("io.smallrye.graphql.api.ToScalar"); // TODO: Remove
