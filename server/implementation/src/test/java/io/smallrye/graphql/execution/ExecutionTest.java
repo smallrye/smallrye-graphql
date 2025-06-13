@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import jakarta.json.*;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.eclipse.parsson.JsonPointerImpl;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.test.TestSourceConfiguration;
@@ -61,15 +60,15 @@ public class ExecutionTest extends ExecutionTestBase {
     public void testBatchSourceConfigurationQuery() {
         JsonObject data = executeAndGetData(TEST_BATCH_SOURCE_CONFIGURATION_QUERY);
 
-        JsonPointer active1Pointer = new JsonPointerImpl("/objectsWithConfig1/0/configuredSources/configuration/active");
-        Boolean active1 = Boolean.valueOf(active1Pointer.getValue(data).toString());
-        JsonPointer active2Pointer = new JsonPointerImpl("/objectsWithConfig2/0/configuredSources/configuration/active");
-        Boolean active2 = Boolean.valueOf(active2Pointer.getValue(data).toString());
+        Boolean active1 = data.getJsonArray("objectsWithConfig1").get(0).asJsonObject().getJsonObject("configuredSources")
+                .getJsonObject("configuration").getBoolean("active");
+        Boolean active2 = data.getJsonArray("objectsWithConfig2").get(0).asJsonObject().getJsonObject("configuredSources")
+                .getJsonObject("configuration").getBoolean("active");
 
-        JsonPointer state1Pointer = new JsonPointerImpl("/objectsWithConfig1/0/configuredSources/configuration/state");
-        var state1 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString) state1Pointer.getValue(data)).getString());
-        JsonPointer state2Pointer = new JsonPointerImpl("/objectsWithConfig2/0/configuredSources/configuration/state");
-        var state2 = TestSourceConfiguration.TestSourceState.valueOf(((JsonString) state2Pointer.getValue(data)).getString());
+        var state1 = TestSourceConfiguration.TestSourceState.valueOf(data.getJsonArray("objectsWithConfig1").get(0)
+                .asJsonObject().getJsonObject("configuredSources").getJsonObject("configuration").getString("state"));
+        var state2 = TestSourceConfiguration.TestSourceState.valueOf(data.getJsonArray("objectsWithConfig2").get(0)
+                .asJsonObject().getJsonObject("configuredSources").getJsonObject("configuration").getString("state"));
 
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(active1).isNotEqualTo(active2);
