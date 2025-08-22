@@ -80,16 +80,17 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
 
             webSocket.closeHandler((v) -> {
                 onClose.run();
+                Exception exception;
                 if (webSocket.closeStatusCode() != null) {
                     if (webSocket.closeStatusCode() == 1000) {
                         log.debug("WebSocket closed with status code 1000");
+                        exception = new UnexpectedCloseException("Connection closed before data was received", 1000);
                         // even if the status code is OK, any unfinished single-result operation
                         // should be marked as failed
-                        uniOperations.forEach((id, emitter) -> emitter.fail(
-                                new UnexpectedCloseException("Connection closed before data was received", 1000)));
+                        uniOperations.forEach((id, emitter) -> emitter.fail(exception));
                         multiOperations.forEach((id, emitter) -> emitter.complete());
                     } else {
-                        UnexpectedCloseException exception = new UnexpectedCloseException(
+                        exception = new UnexpectedCloseException(
                                 "Server closed the websocket connection with code: "
                                         + webSocket.closeStatusCode() + " and reason: " + webSocket.closeReason(),
                                 webSocket.closeStatusCode());
@@ -97,10 +98,12 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                         multiOperations.forEach((id, emitter) -> emitter.fail(exception));
                     }
                 } else {
-                    InvalidResponseException exception = new InvalidResponseException("Connection closed");
+                    exception = new InvalidResponseException("Connection closed");
                     uniOperations.forEach((id, emitter) -> emitter.fail(exception));
                     multiOperations.forEach((id, emitter) -> emitter.fail(exception));
                 }
+
+                initializationEmitter.fail(exception);
             });
             webSocket.exceptionHandler(this::failAllActiveOperationsWith);
 
