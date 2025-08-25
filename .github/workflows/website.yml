@@ -14,7 +14,7 @@ jobs:
         name: Checkout code
         with:
           fetch-depth: 0 # fetch all commits and branches for mike to work properly
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v5
         name: Set up Java 17
         with:
           java-version: 17
