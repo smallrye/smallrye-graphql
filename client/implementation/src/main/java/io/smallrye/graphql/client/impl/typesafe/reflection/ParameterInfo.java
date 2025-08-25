@@ -35,28 +35,25 @@ public class ParameterInfo implements NamedElement {
     }
 
     public String graphQlInputTypeName() {
-        if (parameter.isAnnotationPresent(Id.class)) {
-            if (type.isCollection()) {
-                return "[ID" + optionalExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
-            } else {
-                return "ID" + optionalExclamationMark(type);
-            }
-        } else if (type.isCollection()) {
-            return "[" + withExclamationMark(type.getItemType()) + "]" + optionalExclamationMark(type);
-        } else if (type.isMap()) {
-            return "[Entry_" + withExclamationMark(type.getKeyType())
-                    + "_" + withExclamationMark(type.getValueType()) + "Input]"
-                    + optionalExclamationMark(type);
-        } else {
-            return withExclamationMark(type);
+        return graphQlInputTypeNameRecursion(this.type);
+    }
+
+    private String graphQlInputTypeNameRecursion(TypeInfo type) {
+        if (type.isCollection()) {
+            return "[" + graphQlInputTypeNameRecursion(type.getItemType()) + "]" + optionalExclamationMark(type);
         }
+        if (type.isMap()) {
+            String key = baseTypeName(type.getKeyType()) + optionalExclamationMark(type.getKeyType());
+            String value = baseTypeName(type.getValueType()) + optionalExclamationMark(type.getValueType());
+            return "[Entry_" + key + "_" + value + "Input]" + optionalExclamationMark(type);
+        }
+        if (parameter.isAnnotationPresent(Id.class)) {
+            return "ID" + optionalExclamationMark(type);
+        }
+        return baseTypeName(type) + optionalExclamationMark(type);
     }
 
-    private String withExclamationMark(TypeInfo itemType) {
-        return graphQlInputTypeName(itemType) + optionalExclamationMark(itemType);
-    }
-
-    private String graphQlInputTypeName(TypeInfo type) {
+    private String baseTypeName(TypeInfo type) {
         if (type.isAnnotated(Input.class)) {
             String value = type.getAnnotation(Input.class).value();
             if (!value.isEmpty()) {

@@ -595,7 +595,9 @@ class ScalarBehavior {
                 @Id Long longId,
                 @Id List<Long> longListId,
                 @Id Integer intId,
-                @Id UUID uuidId);
+                @Id UUID uuidId,
+                @Id List<List<String>> stringListListId,
+                @Id String[] stringArrayId);
     }
 
     @GraphQLClientApi
@@ -727,7 +729,8 @@ class ScalarBehavior {
             IdApi api = fixture.builder().build(IdApi.class);
 
             String out = api.idea("stringId", singletonList("x"), singletonList("x"), singletonList("x"), singletonList("x"),
-                    1L, 2, 3L, singletonList(5L), 4, UUID.randomUUID());
+                    1L, 2, 3L, singletonList(5L), 4, UUID.randomUUID(), singletonList(singletonList("x")),
+                    new String[] { "x" });
 
             then(fixture.query()).isEqualTo("query idea(" +
                     "$stringId: ID, " +
@@ -740,7 +743,9 @@ class ScalarBehavior {
                     "$longId: ID, " +
                     "$longListId: [ID], " +
                     "$intId: ID, " +
-                    "$uuidId: ID) " +
+                    "$uuidId: ID, " +
+                    "$stringListListId: [[ID]], " +
+                    "$stringArrayId: [ID]) " +
                     "{ idea(" +
                     "stringId: $stringId, " +
                     "stringListId: $stringListId, " +
@@ -752,7 +757,9 @@ class ScalarBehavior {
                     "longId: $longId, " +
                     "longListId: $longListId, " +
                     "intId: $intId, " +
-                    "uuidId: $uuidId) }");
+                    "uuidId: $uuidId, " +
+                    "stringListListId: $stringListListId, " +
+                    "stringArrayId: $stringArrayId) }");
             then(out).isEqualTo("out");
         }
 

@@ -8,7 +8,6 @@ import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.MethodParameterInfo;
@@ -51,15 +50,6 @@ public class ParameterModel implements NamedElement {
      */
     public static ParameterModel of(MethodParameterInfo parameter) {
         return new ParameterModel(parameter);
-    }
-
-    /**
-     * Checks if the parameter is associated with a {@link Header} annotation, indicating it is a header parameter.
-     *
-     * @return {@code true} if the parameter is a header parameter, otherwise {@code false}.
-     */
-    private boolean isHeaderParameter() {
-        return parameter.hasAnnotation(Header.class);
     }
 
     /**
@@ -125,41 +115,24 @@ public class ParameterModel implements NamedElement {
      * @return The GraphQL input type name.
      */
     public String graphQlInputTypeName() {
-        if (parameter.hasAnnotation(ID)) {
-            if (type.isCollectionOrArray()) {
-                return "[ID" + arrayOrCollectionHelper(this::optionalExclamationMark) + "]" + optionalExclamationMark(type);
-            }
-            return "ID" + optionalExclamationMark(type);
-        } else if (type.isCollectionOrArray()) {
-            return "[" + arrayOrCollectionHelper(this::withExclamationMark) + "]" + optionalExclamationMark(type);
-        } else if (type.isMap()) {
-            var keyType = type.getMapKeyType();
-            var valueType = type.getMapValueType();
-            return "[Entry_" + withExclamationMark(keyType)
-                    + "_" + withExclamationMark(valueType) + "Input]"
-                    + optionalExclamationMark(type);
-        } else {
-            return withExclamationMark(type);
-        }
+        return graphQlInputTypeNameRecursion(type);
+    }
+
+    @Override
+    public boolean hasDirectives() {
+        return !directives.isEmpty();
+    }
+
+    @Override
+    public List<DirectiveInstance> getDirectives() {
+        return directives;
     }
 
     /**
-     * Adds an exclamation mark to the GraphQL input type name if the type is non-nullable.
-     *
-     * @param type The {@link TypeModel} representing the type of the parameter.
-     * @return The GraphQL input type name with an optional exclamation mark.
+     * Base type name without container wrappers (no [] for collections/maps) and
+     * without trailing nullability marker.
      */
-    private String withExclamationMark(TypeModel type) {
-        return graphQlInputTypeName(type) + optionalExclamationMark(type);
-    }
-
-    /**
-     * Gets the GraphQL input type name for the specified {@code TypeModel}.
-     *
-     * @param type The {@link TypeModel} for which to get the GraphQL input type name.
-     * @return The GraphQL input type name.
-     */
-    private String graphQlInputTypeName(TypeModel type) {
+    private String baseTypeName(TypeModel type) {
         if (type.isSimpleClassType() && !type.isScalar()) {
             if (type.hasClassAnnotation(INPUT)) {
                 String value = type.getClassAnnotation(INPUT).orElseThrow().valueWithDefault(getIndex()).asString();
@@ -172,7 +145,7 @@ public class ParameterModel implements NamedElement {
             }
         }
         if (Scalars.isScalar(type.getName())) {
-            return Scalars.getScalar(type.getName()); // returns simplified name
+            return Scalars.getScalar(type.getName());
         }
         return type.getSimpleName() + (type.isEnum() ? "" : "Input");
     }
@@ -188,22 +161,56 @@ public class ParameterModel implements NamedElement {
     }
 
     /**
-     * Helper method for handling array or collection types in GraphQL input type names.
+     * Checks if the parameter is associated with a {@link Header} annotation,
+     * indicating it is a header parameter.
      *
-     * @param function The function to apply to the array or collection element type.
-     * @return The GraphQL input type name for array or collection types.
+     * @return {@code true} if the parameter is a header parameter, otherwise
+     *         {@code false}.
      */
-    private String arrayOrCollectionHelper(Function<TypeModel, String> function) {
-        return function.apply((type.isArray() ? type.getArrayElementType() : type.getCollectionElementType()));
+    private boolean isHeaderParameter() {
+        return parameter.hasAnnotation(Header.class);
     }
 
-    @Override
-    public boolean hasDirectives() {
-        return !directives.isEmpty();
-    }
+    /**
+     * Gets the GraphQL input type name for the specified {@code TypeModel}.
+     *
+     * @param type The {@link TypeModel} for which to get the GraphQL input type
+     *        name.
+     * @return The GraphQL input type name.
+     */
+    private String graphQlInputTypeNameRecursion(TypeModel type) {
+        if (type.isCollectionOrArray()) {
+            TypeModel elementType = type.isArray() ? type.getArrayElementType() : type.getCollectionElementType();
+            return "[" + graphQlInputTypeNameRecursion(elementType) + "]" + optionalExclamationMark(type);
+        }
 
-    @Override
-    public List<DirectiveInstance> getDirectives() {
-        return directives;
+        if (type.isMap()) {
+            var keyType = type.getMapKeyType();
+            var valueType = type.getMapValueType();
+            String key = baseTypeName(keyType) + optionalExclamationMark(keyType);
+            String value = baseTypeName(valueType) + optionalExclamationMark(valueType);
+            return "[Entry_" + key + "_" + value + "Input]" + optionalExclamationMark(type);
+        }
+
+        if (parameter.hasAnnotation(ID)) {
+            return "ID" + optionalExclamationMark(type);
+        }
+
+        if (type.isSimpleClassType() && !type.isScalar()) {
+            if (type.hasClassAnnotation(INPUT)) {
+                String value = type.getClassAnnotation(INPUT).orElseThrow().valueWithDefault(getIndex()).asString();
+                if (!value.isEmpty()) {
+                    return value + optionalExclamationMark(type);
+                }
+            }
+            if (type.hasClassAnnotation(NAME)) {
+                return type.getClassAnnotation(NAME).orElseThrow().value().asString() + optionalExclamationMark(type);
+            }
+        }
+
+        if (Scalars.isScalar(type.getName())) {
+            return Scalars.getScalar(type.getName()) + optionalExclamationMark(type);
+        }
+        return type.getSimpleName() + (type.isEnum() ? "" : "Input") + optionalExclamationMark(type);
     }
 }

@@ -783,4 +783,20 @@ class NestedBehavior {
 
         then(thrown).hasMessage("missing boolean value for " + MissingPrimitiveFieldApi.class.getName() + "#call.bar");
     }
+
+    @GraphQLClientApi
+    interface MultipleNestedStringApi {
+        String call(List<List<Set<String>>> input);
+    }
+
+    @Test
+    void shouldCallMultipleNestedStringQuery() {
+        fixture.returnsData("'call':'a,b'");
+        MultipleNestedStringApi api = fixture.build(MultipleNestedStringApi.class);
+
+        String result = api.call(List.of(List.of(Set.of("a")), List.of(Set.of("b"))));
+
+        then(fixture.query()).isEqualTo("query call($input: [[[String]]]) { call(input: $input) }");
+        then(result).isEqualTo("a,b");
+    }
 }
