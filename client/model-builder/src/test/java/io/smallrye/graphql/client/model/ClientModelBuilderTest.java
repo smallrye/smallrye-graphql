@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
@@ -272,9 +273,33 @@ public class ClientModelBuilderTest {
                 "mutation FirstSecondUpdate($s: String) { first { second { update(s: $s) } } }");
     }
 
+    @GraphQLClientApi(configKey = "nested-collection-api")
+    interface NestedCollectionApi {
+        @Query
+        String nestedParameterQuery(List<Collection<Set<String>>> param);
+
+        @Query
+        String nestedParameterWithIdQuery(@Id List<Collection<Set<String>>> idCollection);
+    }
+
+    @Test
+    void testNestedCollectionParameter() throws IOException {
+        String configKey = "nested-collection-api";
+        ClientModels clientModels = ClientModelBuilder
+                .build(Index.of(NestedCollectionApi.class));
+        assertNotNull(clientModels.getClientModelByConfigKey(configKey));
+        ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
+        assertEquals(2, clientModel.getOperationMap().size());
+        assertOperation(clientModel,
+                new MethodKey("nestedParameterQuery", new Class[] { List.class }),
+                "query nestedParameterQuery($param: [[[String]]]) { nestedParameterQuery(param: $param) }");
+        assertOperation(clientModel,
+                new MethodKey("nestedParameterWithIdQuery", new Class[] { List.class }),
+                "query nestedParameterWithIdQuery($idCollection: [[[ID]]]) { nestedParameterWithIdQuery(idCollection: $idCollection) }");
+    }
+
     private void assertOperation(ClientModel clientModel, MethodKey methodKey, String expectedQuery) {
         String actualQuery = clientModel.getOperationMap().get(methodKey);
         assertEquals(expectedQuery, actualQuery);
     }
-
 }
