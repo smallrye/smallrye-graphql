@@ -2,7 +2,6 @@ package io.smallrye.graphql.client.vertx.typesafe;
 
 import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
 import static java.util.stream.Collectors.*;
-import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -181,30 +180,34 @@ class VertxTypesafeGraphQLClientProxy {
 
     private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
             MultiMap headers) {
-        List<Uni<Void>> unis = new ArrayList<>();
-        MultiMap allHeaders = new HeadersMultiMap();
-        allHeaders.addAll(headers);
-        // obtain values of dynamic headers and add them to the request
-        for (Map.Entry<String, Uni<String>> stringUniEntry : dynamicHeaders.entrySet()) {
-            unis.add(stringUniEntry.getValue().onItem().invoke(headerValue -> {
-                allHeaders.add(stringUniEntry.getKey(), headerValue);
-            }).replaceWithVoid());
-        }
-        if (unis.isEmpty()) {
-            return Uni.createFrom().completionStage(postAsync(request.toString(), allHeaders))
-                    .map(response -> new ResultBuilder(method, response.bodyAsString(),
-                            response.statusCode(), response.statusMessage(), convertHeaders(allHeaders),
+        return Uni.createFrom().deferred(() -> {
+            // Fresh headers per (re)subscription
+            HeadersMultiMap attemptHeaders = new HeadersMultiMap();
+            attemptHeaders.addAll(headers);
+
+            // Gather dynamic headers, preserving multi-values
+            List<Uni<Void>> headerUnis = new ArrayList<>();
+            for (Map.Entry<String, Uni<String>> e : dynamicHeaders.entrySet()) {
+                headerUnis.add(
+                        e.getValue()
+                                .onItem().invoke(v -> attemptHeaders.add(e.getKey(), v))
+                                .replaceWithVoid());
+            }
+
+            Uni<Void> ready = headerUnis.isEmpty()
+                    ? Uni.createFrom().voidItem()
+                    : Uni.combine().all().unis(headerUnis).discardItems();
+
+            return ready
+                    .chain(() -> Uni.createFrom().completionStage(postAsync(request.toString(), attemptHeaders)))
+                    .map(response -> new ResultBuilder(
+                            method,
+                            response.bodyAsString(),
+                            response.statusCode(),
+                            response.statusMessage(),
+                            convertHeaders(attemptHeaders),
                             allowUnexpectedResponseFields).read());
-        } else {
-            // when all dynamic headers have been obtained, proceed with the request
-            return Uni.combine().all().unis(unis)
-                    .combinedWith(f -> f)
-                    .onItem().transformToUni(g -> Uni.createFrom()
-                            .completionStage(postAsync(request.toString(), allHeaders))
-                            .map(response -> new ResultBuilder(method, response.bodyAsString(),
-                                    response.statusCode(), response.statusMessage(), convertHeaders(allHeaders),
-                                    allowUnexpectedResponseFields).read()));
-        }
+        });
     }
 
     private Map<String, List<String>> convertHeaders(MultiMap input) {
