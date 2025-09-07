@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.annotation.Priority;
-import jakarta.enterprise.inject.Specializes;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 
@@ -25,8 +23,6 @@ import io.smallrye.graphql.schema.model.Field;
  * This way, we make sure that an @Inject-ed SmallRyeContext is never cached and calls to it always check
  * if there is a new context instance assigned to the current thread.
  */
-@Specializes
-@Priority(Integer.MAX_VALUE)
 public class CDISmallRyeContext extends SmallRyeContext {
 
     public CDISmallRyeContext(String createdBy) {
