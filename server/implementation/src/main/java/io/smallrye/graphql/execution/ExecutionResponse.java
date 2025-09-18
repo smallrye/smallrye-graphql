@@ -159,6 +159,8 @@ public class ExecutionResponse {
         final JsonValue jsonValue;
         if (pojo == null) {
             return JsonValue.NULL;
+        } else if (pojo instanceof JsonValue) {
+            return (JsonValue) pojo;
         } else if (pojo instanceof Map) {
             JsonObjectBuilder jsonObjectBuilder = jsonObjectFactory.createObjectBuilder();
             Map<String, Object> map = (Map<String, Object>) pojo;
