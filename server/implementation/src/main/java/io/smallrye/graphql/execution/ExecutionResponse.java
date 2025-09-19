@@ -160,7 +160,12 @@ public class ExecutionResponse {
         if (pojo == null) {
             return JsonValue.NULL;
         } else if (pojo instanceof JsonValue) {
-            return (JsonValue) pojo;
+            JsonValue value = (JsonValue) pojo;
+            if (Config.get().isExcludeNullFieldsInResponses()) {
+                return excludeNullFields(value);
+            } else {
+                return value;
+            }
         } else if (pojo instanceof Map) {
             JsonObjectBuilder jsonObjectBuilder = jsonObjectFactory.createObjectBuilder();
             Map<String, Object> map = (Map<String, Object>) pojo;
@@ -227,6 +232,28 @@ public class ExecutionResponse {
     private void popFromThePathBuffer() {
         if (pathBuffer != null) {
             pathBuffer.pop();
+        }
+    }
+
+    private static JsonValue excludeNullFields(JsonValue jsonValue) {
+        if (jsonValue instanceof JsonObject) {
+            JsonObject jsonObject = (JsonObject) jsonValue;
+            JsonObjectBuilder objectBuilder = jsonObjectFactory.createObjectBuilder();
+            jsonObject.forEach((key, value) -> {
+                if (value != null && value.getValueType() != JsonValue.ValueType.NULL) {
+                    objectBuilder.add(key, excludeNullFields(value));
+                }
+            });
+            return objectBuilder.build();
+        } else if (jsonValue instanceof JsonArray) {
+            JsonArray jsonArray = (JsonArray) jsonValue;
+            JsonArrayBuilder arrayBuilder = jsonObjectFactory.createArrayBuilder();
+            for (JsonValue value : jsonArray) {
+                arrayBuilder.add(excludeNullFields(value));
+            }
+            return arrayBuilder.build();
+        } else {
+            return jsonValue;
         }
     }
 
