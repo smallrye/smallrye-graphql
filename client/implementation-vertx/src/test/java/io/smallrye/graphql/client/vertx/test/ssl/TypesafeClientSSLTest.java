@@ -130,7 +130,8 @@ public class TypesafeClientSSLTest {
                 Assertions.fail("Should not be able to connect");
             } catch (Exception e) {
                 // verify that the server rejected the client's certificate
-                assertHasCauseContainingMessage(e, "Received fatal alert: bad_certificate");
+                assertHasCauseContainingMessage(e, "Received fatal alert: bad_certificate",
+                        "Received fatal alert: certificate_required");
             }
         } finally {
             server.close();
@@ -140,13 +141,15 @@ public class TypesafeClientSSLTest {
         }
     }
 
-    private void assertHasCauseContainingMessage(Throwable t, String message) {
+    private void assertHasCauseContainingMessage(Throwable t, String... messages) {
         Throwable throwable = t;
         while (throwable.getCause() != null) {
             throwable = throwable.getCause();
-            if (throwable.getMessage().contains(message)) {
-                t.printStackTrace();
-                return;
+            for (String message : messages) {
+                if (throwable.getMessage().contains(message)) {
+                    t.printStackTrace();
+                    return;
+                }
             }
         }
         throw new RuntimeException("Unexpected exception", t);
