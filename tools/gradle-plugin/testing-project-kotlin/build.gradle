@@ -13,6 +13,18 @@ repositories {
     mavenLocal()
 }
 
+compileJava {
+    options.encoding = 'UTF-8'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+}
+
 // FIXME: can we avoid requiring build scripts to contain this?
 // without it, the schema generation might run before compilation, and thus fail
 generateSchema {
