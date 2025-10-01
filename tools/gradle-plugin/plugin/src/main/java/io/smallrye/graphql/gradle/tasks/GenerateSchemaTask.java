@@ -245,7 +245,8 @@ public class GenerateSchemaTask extends DefaultTask {
             ConfigurationContainer configurationContainer = getProject().getConfigurations();
             for (String name : configurations) {
                 Configuration configuration = configurationContainer.getByName(name);
-                Configuration copiedConfiguration = configuration.copyRecursive();
+                Configuration copiedConfiguration = getProject().getConfigurations().create(name + "ForIndexing");
+                copiedConfiguration.extendsFrom(configuration);
                 copiedConfiguration.setCanBeResolved(true);
                 copiedConfiguration.setTransitive(includeTransitiveDependencies);
                 ResolvedConfiguration resolvedConfiguration = copiedConfiguration.getResolvedConfiguration();
@@ -353,7 +354,8 @@ public class GenerateSchemaTask extends DefaultTask {
         ConfigurationContainer configurationContainer = getProject().getConfigurations();
         for (String name : configurations) {
             Configuration configuration = configurationContainer.getByName(name);
-            Configuration copiedConfiguration = configuration.copyRecursive();
+            Configuration copiedConfiguration = getProject().getConfigurations().create(name + "ForClassLoading");
+            copiedConfiguration.extendsFrom(configuration);
             copiedConfiguration.setCanBeResolved(true);
             copiedConfiguration.setTransitive(includeTransitiveDependencies);
             ResolvedConfiguration resolvedConfiguration = copiedConfiguration.getResolvedConfiguration();

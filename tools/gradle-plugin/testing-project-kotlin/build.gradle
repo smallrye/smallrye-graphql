@@ -1,11 +1,11 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version "1.6.21"
-    id "org.jetbrains.kotlin.plugin.allopen" version "1.6.21"
+    id 'org.jetbrains.kotlin.jvm' version "2.2.20"
+    id "org.jetbrains.kotlin.plugin.allopen" version "2.2.20"
     id 'io.smallrye.graphql'
 }
 
 dependencies {
-    implementation "io.smallrye:smallrye-graphql:2.10.0"
+    implementation "io.smallrye:smallrye-graphql:2.12.1"
 }
 
 repositories {
