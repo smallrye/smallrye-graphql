@@ -1,21 +1,20 @@
 plugins {
-    id 'com.gradle.plugin-publish' version '0.18.0'
+    id 'com.gradle.plugin-publish' version '2.0.0'
     id 'java-gradle-plugin'
 }
 
 group "io.smallrye"
 
-if (JavaVersion.current().isJava9Compatible()) {
-    compileJava.options.compilerArgs.addAll(['--release', '8'])
-}
+compileJava.options.compilerArgs.addAll(['--release', '17'])
+
 sourceSets {
     main.java.srcDirs = ['plugin/src/main/java']
     main.resources.srcDirs = ['plugin/src/main/resources']
 }
 compileJava {
     options.encoding = 'UTF-8'
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 compileTestJava {
@@ -38,7 +37,8 @@ dependencies {
     implementation "org.jboss.logging:jboss-logging:3.4.3.Final"
 
     testImplementation gradleTestKit()
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.0'
 }
 
 test {
@@ -55,23 +55,26 @@ javadoc {
     options.addStringOption('encoding', 'UTF-8')
 }
 
-pluginBundle {
-    group = 'io.smallrye.graphql'
-    website = 'http://github.com/smallrye/smallrye-graphql/'
-    vcsUrl = 'https://github.com/smallrye/smallrye-graphql'
-    tags = ['smallrye', 'graphql', 'microprofile']
-    mavenCoordinates {
-        groupId = project.group
-    }
-}
-
 gradlePlugin {
     plugins {
         smallryeGraphQLPlugin {
             id = 'io.smallrye.graphql'
             implementationClass = 'io.smallrye.graphql.gradle.SmallRyeGraphQLPlugin'
+
+            website.set('https://github.com/smallrye/smallrye-graphql/')
+            vcsUrl.set('https://github.com/smallrye/smallrye-graphql')
+            tags.set(['smallrye', 'graphql', 'microprofile'])
+
             displayName = 'SmallRye: MicroProfile GraphQL Gradle Plugin'
             description = 'SmallRye: MicroProfile GraphQL Gradle Plugin'
+        }
+    }
+}
+
+publishing {
+    publications {
+        pluginMaven(MavenPublication) {
+            groupId = project.group
         }
     }
 }
