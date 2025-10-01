@@ -30,14 +30,28 @@ public class MetricsEmitter {
         // Find out which metrics API is available
         ServiceLoader<MetricsService> metricService = ServiceLoader.load(MetricsService.class);
         Iterator<MetricsService> it = metricService.iterator();
-        List<MetricsService> enabledServices = new ArrayList<>();
+        List<MetricsService> enabledServices;
 
-        while (enabled && it.hasNext()) {
-            try {
-                enabledServices.add(it.next());
-            } catch (Throwable t) {
-                // Ignore that service...
+        if (enabled) {
+            enabledServices = new ArrayList<>();
+            while (true) {
+                try {
+                    if (!it.hasNext()) {
+                        break;
+                    }
+                } catch (Throwable t) {
+                    // in Java 25, hasNext() will eagerly load the class
+                    continue;
+                }
+
+                try {
+                    enabledServices.add(it.next());
+                } catch (Throwable t) {
+                    // in previous Java versions, the class will be loaded there
+                }
             }
+        } else {
+            enabledServices = List.of();
         }
 
         this.enabledServices = enabledServices;
