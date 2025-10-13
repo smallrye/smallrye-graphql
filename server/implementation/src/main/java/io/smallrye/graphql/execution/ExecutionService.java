@@ -302,8 +302,9 @@ public class ExecutionService {
         if (operationUsesNoArguments(operation)) {
             return DataLoaderFactory.newDataLoader(batchLoader);
         }
-        DataLoaderOptions loaderOptions = new DataLoaderOptions();
-        loaderOptions.setCacheKeyFunction(this.getCacheKeyFunction());
+        DataLoaderOptions loaderOptions = DataLoaderOptions.newOptions()
+                .setCacheKeyFunction(this.getCacheKeyFunction())
+                .build();
         return DataLoaderFactory.newDataLoader(batchLoader, loaderOptions);
     }
 
