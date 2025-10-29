@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [17]
+        java: [17, 25]
     name: Quarkus tests
 
     steps:
