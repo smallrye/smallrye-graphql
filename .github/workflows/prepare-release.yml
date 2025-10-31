@@ -54,4 +54,6 @@ jobs:
     name: Prepare Release
     if: ${{ github.event.pull_request.merged == true}}
     uses: smallrye/.github/.github/workflows/prepare-release.yml@main
+    with:
+      ref: main # !!! when branching from main, this has to be updated to the name of the maintenance branch !!!
     secrets: inherit
