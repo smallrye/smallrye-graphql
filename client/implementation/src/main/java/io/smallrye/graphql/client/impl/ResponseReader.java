@@ -79,7 +79,8 @@ public class ResponseReader {
         if (jsonResponse == null) {
             throw new InvalidResponseException(
                     "Unexpected response. Code=" + statusCode + ", message=\"" + statusMessage + "\", " +
-                            "body=\"" + input + "\"");
+                            "body=\"" + input + "\"",
+                    null, headers);
         }
         JsonObject data = null;
         if (jsonResponse.containsKey("data")) {
