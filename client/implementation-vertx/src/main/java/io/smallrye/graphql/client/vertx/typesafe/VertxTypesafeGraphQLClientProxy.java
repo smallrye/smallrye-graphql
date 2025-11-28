@@ -200,6 +200,11 @@ class VertxTypesafeGraphQLClientProxy {
 
             return ready
                     .chain(() -> Uni.createFrom().completionStage(postAsync(request.toString(), attemptHeaders)))
+                    .invoke(response -> {
+                        if (log.isTraceEnabled() && response != null) {
+                            log.tracef("response graphql: %s", response.bodyAsString());
+                        }
+                    })
                     .map(response -> new ResultBuilder(
                             method,
                             response.bodyAsString(),
