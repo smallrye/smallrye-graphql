@@ -125,6 +125,13 @@ public class GraphQLClientConfiguration {
     private String proxyPassword;
 
     /**
+     * Type of proxy to use. The default is HTTP.
+     */
+    private ProxyType proxyType;
+
+    private List<String> nonProxyHosts;
+
+    /**
      * Maximum number of redirects to follow.
      */
     private Integer maxRedirects;
@@ -336,6 +343,22 @@ public class GraphQLClientConfiguration {
         return sslOptions;
     }
 
+    public ProxyType getProxyType() {
+        return proxyType;
+    }
+
+    public void setProxyType(ProxyType proxyType) {
+        this.proxyType = proxyType;
+    }
+
+    public List<String> getNonProxyHosts() {
+        return nonProxyHosts;
+    }
+
+    public void setNonProxyHosts(List<String> nonProxyHosts) {
+        this.nonProxyHosts = nonProxyHosts;
+    }
+
     public void setSslOptions(Object sslOptions) {
         this.sslOptions = sslOptions;
     }
@@ -408,6 +431,9 @@ public class GraphQLClientConfiguration {
         if (other.proxyPassword != null) {
             this.proxyPassword = other.proxyPassword;
         }
+        if (other.proxyType != null) {
+            this.proxyType = other.proxyType;
+        }
         if (other.maxRedirects != null) {
             this.maxRedirects = other.maxRedirects;
         }
@@ -434,4 +460,11 @@ public class GraphQLClientConfiguration {
         }
         return this;
     }
+
+    public enum ProxyType {
+        HTTP,
+        SOCKS4,
+        SOCKS5
+    }
+
 }

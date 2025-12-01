@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyCertOptions;
 import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.core.net.SSLOptions;
 import io.vertx.core.net.TrustOptions;
 
@@ -51,12 +52,29 @@ public class VertxClientOptionsHelper {
             proxyOptions.setPort(configuration.getProxyPort());
             proxyOptions.setUsername(configuration.getProxyUsername());
             proxyOptions.setPassword(configuration.getProxyPassword());
+            proxyOptions.setType(toVertxProxyType(configuration.getProxyType()));
+            if (configuration.getNonProxyHosts() != null) {
+                for (String nonProxyHost : configuration.getNonProxyHosts()) {
+                    options.addNonProxyHost(nonProxyHost);
+                }
+            }
             options.setProxyOptions(proxyOptions);
         }
 
         if (configuration.getMaxRedirects() != null) {
             options.setMaxRedirects(configuration.getMaxRedirects());
         }
+    }
+
+    private static ProxyType toVertxProxyType(GraphQLClientConfiguration.ProxyType proxyType) {
+        if (proxyType == null) {
+            return ProxyType.HTTP;
+        }
+        return switch (proxyType) {
+            case HTTP -> ProxyType.HTTP;
+            case SOCKS4 -> ProxyType.SOCKS4;
+            case SOCKS5 -> ProxyType.SOCKS5;
+        };
     }
 
     private static void configure(HttpClientOptions options, GraphQLClientConfiguration graphQLClientConfiguration) {
