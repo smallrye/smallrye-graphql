@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
 import jakarta.json.JsonValue;
 
 import org.jboss.logging.Logger;
@@ -12,7 +14,7 @@ public interface SmallRyeGraphQLClientLogging {
 
     // numbers reserved for this module are 30000-34999
 
-    SmallRyeGraphQLClientLogging log = Logger.getMessageLogger(SmallRyeGraphQLClientLogging.class,
+    SmallRyeGraphQLClientLogging log = Logger.getMessageLogger(lookup(), SmallRyeGraphQLClientLogging.class,
             SmallRyeGraphQLClientLogging.class.getPackage().getName());
 
     @LogMessage(level = Logger.Level.WARN)

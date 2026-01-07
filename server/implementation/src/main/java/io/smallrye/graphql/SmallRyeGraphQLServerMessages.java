@@ -1,5 +1,7 @@
 package io.smallrye.graphql;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
 import java.time.DateTimeException;
 
 import org.jboss.logging.Messages;
@@ -17,7 +19,7 @@ import io.smallrye.graphql.schema.model.Operation;
 @MessageBundle(projectCode = "SRGQL")
 public interface SmallRyeGraphQLServerMessages {
 
-    SmallRyeGraphQLServerMessages msg = Messages.getBundle(SmallRyeGraphQLServerMessages.class);
+    SmallRyeGraphQLServerMessages msg = Messages.getBundle(lookup(), SmallRyeGraphQLServerMessages.class);
 
     @Message(id = 0, value = "No concrete class named [%s] found for interface [%s]")
     ConcreteImplementationNotFoundException concreteClassNotFoundForInterface(String clazz, String iface);

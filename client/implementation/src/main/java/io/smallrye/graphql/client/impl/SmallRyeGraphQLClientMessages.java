@@ -1,5 +1,7 @@
 package io.smallrye.graphql.client.impl;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -13,7 +15,7 @@ import io.smallrye.graphql.client.InvalidResponseException;
 @MessageBundle(projectCode = "SRGQLDC")
 public interface SmallRyeGraphQLClientMessages {
 
-    SmallRyeGraphQLClientMessages msg = Messages.getBundle(SmallRyeGraphQLClientMessages.class);
+    SmallRyeGraphQLClientMessages msg = Messages.getBundle(lookup(), SmallRyeGraphQLClientMessages.class);
 
     // numbers reserved for this module are 35000-39999
 

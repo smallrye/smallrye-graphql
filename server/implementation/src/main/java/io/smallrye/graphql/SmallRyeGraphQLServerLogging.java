@@ -1,5 +1,7 @@
 package io.smallrye.graphql;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
 import org.jboss.logging.Logger;
 import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
@@ -11,7 +13,7 @@ public interface SmallRyeGraphQLServerLogging {
 
     // numbers reserved for this module are 10000-19999
 
-    SmallRyeGraphQLServerLogging log = Logger.getMessageLogger(SmallRyeGraphQLServerLogging.class,
+    SmallRyeGraphQLServerLogging log = Logger.getMessageLogger(lookup(), SmallRyeGraphQLServerLogging.class,
             SmallRyeGraphQLServerLogging.class.getPackage().getName());
 
     /* 10000-10999: bootstrap related logs */

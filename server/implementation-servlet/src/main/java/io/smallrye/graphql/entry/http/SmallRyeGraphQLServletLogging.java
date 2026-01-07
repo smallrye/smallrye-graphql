@@ -1,5 +1,7 @@
 package io.smallrye.graphql.entry.http;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
 import java.io.Reader;
 import java.net.URL;
 
@@ -14,7 +16,7 @@ public interface SmallRyeGraphQLServletLogging {
 
     // numbers reserved for this module are 20000-29999
 
-    SmallRyeGraphQLServletLogging log = Logger.getMessageLogger(SmallRyeGraphQLServletLogging.class,
+    SmallRyeGraphQLServletLogging log = Logger.getMessageLogger(lookup(), SmallRyeGraphQLServletLogging.class,
             SmallRyeGraphQLServletLogging.class.getPackage().getName());
 
     /* 20000-20999: bootstrap related logs */
