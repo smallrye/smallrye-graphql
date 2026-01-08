@@ -59,8 +59,8 @@ jobs:
       - name: checkout WildFly feature pack repository
         uses: actions/checkout@v2
         with:
-          repository: jmartisk/wildfly-graphql-feature-pack
-          ref: srgql-2.16.0
+          repository: wildfly-extras/wildfly-graphql-feature-pack
+          ref: main
           path: wildfly-graphql-feature-pack
 
       - uses: actions/setup-java@v5
@@ -98,8 +98,8 @@ jobs:
       - name: checkout Quarkus repository
         uses: actions/checkout@v2
         with:
-          repository: jmartisk/quarkus
-          ref: srgql-2.16.0
+          repository: quarkusio/quarkus
+          ref: main
           path: quarkus
 
       - uses: actions/setup-java@v5
