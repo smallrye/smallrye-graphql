@@ -11,51 +11,6 @@
     <artifactId>smallrye-graphql-client-implementation-vertx</artifactId>
     <name>SmallRye: GraphQL Client :: Implementation :: Vert.x</name>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <executions>
-                    <execution>
-                         <!--This configuration separates the execution of the `TypesafeTckClientModelSuite` tests
-                         from the default test execution (TypesafeTckSuite) to avoid conflicts or issues that might
-                         arise when executing the same tests multiple times in different test suites.-->
-                        <id>default-test</id>
-                        <configuration>
-                            <excludes>TypesafeTckClientModelSuite</excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>separate-execution-for-client-model-tests</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <test>TypesafeTckClientModelSuite</test>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Automatic-Module-Name>io.smallrye.graphql.client.vertx</Automatic-Module-Name>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>io.smallrye</groupId>
@@ -113,4 +68,48 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                         <!--This configuration separates the execution of the `TypesafeTckClientModelSuite` tests
+                         from the default test execution (TypesafeTckSuite) to avoid conflicts or issues that might
+                         arise when executing the same tests multiple times in different test suites.-->
+                        <id>default-test</id>
+                        <configuration>
+                            <excludes>TypesafeTckClientModelSuite</excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>separate-execution-for-client-model-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <test>TypesafeTckClientModelSuite</test>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Automatic-Module-Name>io.smallrye.graphql.client.vertx</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
