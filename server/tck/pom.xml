@@ -107,7 +107,7 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>compile</scope>
-            <version>7.9.0</version>
+            <version>7.11.0</version>
         </dependency>
     </dependencies>
 
