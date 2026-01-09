@@ -1,4 +1,4 @@
-package io.smallrye.graphql.entry.http;
+package io.smallrye.graphql.servlet;
 
 import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
 

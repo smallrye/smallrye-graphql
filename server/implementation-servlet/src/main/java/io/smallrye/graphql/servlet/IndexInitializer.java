@@ -1,4 +1,4 @@
-package io.smallrye.graphql.entry.http;
+package io.smallrye.graphql.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
