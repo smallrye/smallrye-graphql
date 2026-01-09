@@ -11,6 +11,26 @@
     <artifactId>smallrye-graphql-servlet</artifactId>
     <name>SmallRye: GraphQL Server :: Servlet</name>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Automatic-Module-Name>io.smallrye.graphql.servlet</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         
         <!-- The Implementation (with CDI) -->

@@ -12,6 +12,26 @@
     <name>SmallRye: GraphQL Client :: API</name>
     <description>SmallRye specific Client API, extending the MicroProfile client api, allowing us to play with the api first before we move it to the spec</description>
     
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Automatic-Module-Name>io.smallrye.graphql.client.api</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <!-- The API - for now, copied to SmallRye -->
 <!--        <dependency>-->
