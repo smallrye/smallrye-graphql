@@ -126,6 +126,40 @@ class AnnotationBehavior {
     }
 
     @GraphQLClientApi
+    interface GreetingWithIgnoreGetterApi {
+        GreetingWithIgnoreGetter greeting();
+    }
+
+    private static class GreetingWithIgnoreGetter {
+        String text;
+        String hidden;
+        boolean flagged;
+
+        @Ignore
+        public String getHidden() {
+            return hidden;
+        }
+
+        @Ignore
+        public boolean isFlagged() {
+            return flagged;
+        }
+    }
+
+    @Test
+    void shouldIgnoreFieldWhenGetterIsIgnored() {
+        fixture.returnsData("'greeting':{'text':'foo'}");
+        GreetingWithIgnoreGetterApi api = fixture.build(GreetingWithIgnoreGetterApi.class);
+
+        GreetingWithIgnoreGetter greeting = api.greeting();
+
+        then(fixture.query()).isEqualTo("query greeting { greeting {text} }");
+        then(greeting.text).isEqualTo("foo");
+        then(greeting.hidden).isNull();
+        then(greeting.flagged).isFalse();
+    }
+
+    @GraphQLClientApi
     interface HeroesAPI {
         HeroAndVillain heroAndVillain();
 

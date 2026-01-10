@@ -136,4 +136,8 @@ public class FieldModel implements NamedElement {
     public List<DirectiveInstance> getDirectives() {
         return directives;
     }
+
+    FieldInfo getFieldInfo() {
+        return field;
+    }
 }

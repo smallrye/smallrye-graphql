@@ -435,7 +435,8 @@ public class TypeModel {
         return !field.isStatic() &&
                 !field.isSynthetic() &&
                 !field.isTransient() &&
-                !isAnnotatedBy(field, IGNORE, JAKARTA_JSONB_TRANSIENT, JACKSON_IGNORE);
+                !isAnnotatedBy(field, IGNORE, JAKARTA_JSONB_TRANSIENT, JACKSON_IGNORE) &&
+                !isIgnoredByAccessor(field);
     }
 
     /**
@@ -447,6 +448,53 @@ public class TypeModel {
      */
     private boolean isAnnotatedBy(FieldModel field, DotName... annotationClasses) {
         return Arrays.stream(annotationClasses).anyMatch(field::hasAnnotation);
+    }
+
+    private boolean isIgnoredByAccessor(FieldModel field) {
+        return findAccessor(field)
+                .map(method -> isAnnotatedBy(method, IGNORE, JAKARTA_JSONB_TRANSIENT, JACKSON_IGNORE))
+                .orElse(false);
+    }
+
+    private Optional<MethodInfo> findAccessor(FieldModel field) {
+        FieldInfo fieldInfo = field.getFieldInfo();
+        String suffix = getterSuffix(fieldInfo.name());
+        ClassInfo type = fieldInfo.declaringClass();
+        while (type != null) {
+            final var currentType = type;
+            Optional<MethodInfo> getter = findGetter(currentType, "get", suffix, fieldInfo.type())
+                    .or(() -> findGetter(currentType, "is", suffix, fieldInfo.type()));
+            if (getter.isPresent()) {
+                return getter;
+            }
+            if (type.superClassType() == null) {
+                return Optional.empty();
+            }
+            type = getIndex().getClassByName(type.superClassType().name());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<MethodInfo> findGetter(ClassInfo type, String prefix, String suffix, Type fieldType) {
+        MethodInfo method = type.method(prefix + suffix, new Type[0]);
+        if (method == null) {
+            return Optional.empty();
+        }
+        return fieldType.equals(method.returnType()) ? Optional.of(method) : Optional.empty();
+    }
+
+    private boolean isAnnotatedBy(MethodInfo method, DotName... annotationClasses) {
+        return Arrays.stream(annotationClasses).anyMatch(method::hasAnnotation);
+    }
+
+    private String getterSuffix(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            return fieldName;
+        }
+        if (fieldName.length() > 1 && Character.isUpperCase(fieldName.charAt(1))) {
+            return fieldName;
+        }
+        return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 
     /**
