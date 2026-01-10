@@ -202,14 +202,52 @@ public class TypeInfo {
 
     private boolean isGraphQlField(Field field) {
         return !isStatic(field.getModifiers()) && !isSynthetic(field.getModifiers()) && !isTransient(field.getModifiers())
-                && !isAnnotatedBy(field, Ignore.class, JsonbTransient.class, JACKSON_JSON_IGNORE);
+                && !isAnnotatedBy(field, Ignore.class, JsonbTransient.class, JACKSON_JSON_IGNORE)
+                && !isIgnoredByAccessor(field);
     }
 
     @SafeVarargs
-    private boolean isAnnotatedBy(Field field, Class<? extends Annotation>... annotationClasses) {
+    private boolean isAnnotatedBy(AnnotatedElement element, Class<? extends Annotation>... annotationClasses) {
         return Stream.of(annotationClasses)
                 .filter(Objects::nonNull)
-                .anyMatch(field::isAnnotationPresent);
+                .anyMatch(element::isAnnotationPresent);
+    }
+
+    private boolean isIgnoredByAccessor(Field field) {
+        return findAccessor(field)
+                .filter(method -> isAnnotatedBy(method, Ignore.class, JsonbTransient.class, JACKSON_JSON_IGNORE))
+                .isPresent();
+    }
+
+    private Optional<Method> findAccessor(Field field) {
+        String suffix = getterSuffix(field.getName());
+        Class<?> type = field.getDeclaringClass();
+        while (type != null && !Object.class.equals(type)) {
+            final var currentType = type;
+            Optional<Method> getter = findGetter(field, currentType, "get", suffix)
+                    .or(() -> findGetter(field, currentType, "is", suffix));
+            if (getter.isPresent()) {
+                return getter;
+            }
+            type = type.getSuperclass();
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Method> findGetter(Field field, Class<?> type, String prefix, String suffix) {
+        return getDeclaredMethod(type, prefix + suffix)
+                .filter(method -> method.getParameterCount() == 0)
+                .filter(method -> field.getType().equals(method.getReturnType()));
+    }
+
+    private String getterSuffix(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            return fieldName;
+        }
+        if (fieldName.length() > 1 && Character.isUpperCase(fieldName.charAt(1))) {
+            return fieldName;
+        }
+        return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 
     /** Modifier.isSynthetic is package private */
