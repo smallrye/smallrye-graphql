@@ -1,5 +1,6 @@
 package io.smallrye.graphql.client.model
 
+import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi
 import org.eclipse.microprofile.graphql.Query
 import org.jboss.jandex.Index

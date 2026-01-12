@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.model;
+package io.smallrye.graphql.client.modelbuilder;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

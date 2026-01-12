@@ -1,6 +1,6 @@
 package io.smallrye.graphql.tests.client.typesafe.subscription;
 
-import static io.smallrye.graphql.client.model.ClientModelBuilder.build;
+import static io.smallrye.graphql.client.modelbuilder.ClientModelBuilder.build;
 
 import java.io.Closeable;
 import java.io.IOException;

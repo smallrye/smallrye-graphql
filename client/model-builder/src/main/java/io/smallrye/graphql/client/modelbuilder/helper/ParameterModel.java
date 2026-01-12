@@ -1,10 +1,10 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.model.Annotations.ID;
-import static io.smallrye.graphql.client.model.Annotations.INPUT;
-import static io.smallrye.graphql.client.model.Annotations.NAME;
-import static io.smallrye.graphql.client.model.Annotations.NESTED_PARAMETER;
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.ID;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.INPUT;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NESTED_PARAMETER;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.MethodParameterInfo;
 
-import io.smallrye.graphql.client.model.Annotations;
-import io.smallrye.graphql.client.model.Scalars;
+import io.smallrye.graphql.client.modelbuilder.Annotations;
+import io.smallrye.graphql.client.modelbuilder.Scalars;
 import io.smallrye.graphql.client.typesafe.api.Header;
 
 /**

@@ -18,8 +18,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 
-import io.smallrye.graphql.client.model.ClientModelBuilder;
 import io.smallrye.graphql.client.model.ClientModels;
+import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder;
 import tck.graphql.typesafe.Animal;
 import tck.graphql.typesafe.TypesafeTCK;
 

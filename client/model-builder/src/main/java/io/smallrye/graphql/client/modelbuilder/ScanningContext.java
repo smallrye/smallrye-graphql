@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.model;
+package io.smallrye.graphql.client.modelbuilder;
 
 import org.jboss.jandex.IndexView;
 

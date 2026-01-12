@@ -1,9 +1,9 @@
-package io.smallrye.graphql.client.model;
+package io.smallrye.graphql.client.modelbuilder;
 
-import static io.smallrye.graphql.client.model.Annotations.GRAPHQL_CLIENT_API;
-import static io.smallrye.graphql.client.model.Annotations.NAME;
-import static io.smallrye.graphql.client.model.Annotations.NAMESPACE;
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.GRAPHQL_CLIENT_API;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +19,9 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.Logger;
 
-import io.smallrye.graphql.client.model.helper.OperationModel;
+import io.smallrye.graphql.client.model.ClientModel;
+import io.smallrye.graphql.client.model.ClientModels;
+import io.smallrye.graphql.client.modelbuilder.helper.OperationModel;
 
 /**
  * Builder class for generating client models from Jandex index.

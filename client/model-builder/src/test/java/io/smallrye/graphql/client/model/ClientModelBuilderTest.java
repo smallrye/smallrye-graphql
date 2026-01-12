@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.api.Namespace;
 import io.smallrye.graphql.api.Subscription;
+import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 
 /**

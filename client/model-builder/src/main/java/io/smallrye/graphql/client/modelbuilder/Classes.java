@@ -1,6 +1,6 @@
-package io.smallrye.graphql.client.model;
+package io.smallrye.graphql.client.modelbuilder;
 
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 
 import java.util.ArrayList;
 import java.util.Collection;

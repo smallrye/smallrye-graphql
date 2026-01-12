@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
