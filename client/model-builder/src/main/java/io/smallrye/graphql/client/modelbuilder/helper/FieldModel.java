@@ -1,6 +1,6 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.model.Annotations.NAME;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Modifier;

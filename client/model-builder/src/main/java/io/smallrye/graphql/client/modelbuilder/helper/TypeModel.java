@@ -1,16 +1,16 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.model.Annotations.IGNORE;
-import static io.smallrye.graphql.client.model.Annotations.JACKSON_IGNORE;
-import static io.smallrye.graphql.client.model.Annotations.JAKARTA_JSONB_TRANSIENT;
-import static io.smallrye.graphql.client.model.Annotations.JAKARTA_JSONB_TYPE_INFO;
-import static io.smallrye.graphql.client.model.Annotations.TYPE;
-import static io.smallrye.graphql.client.model.Annotations.UNION;
-import static io.smallrye.graphql.client.model.Classes.ERROR_OR;
-import static io.smallrye.graphql.client.model.Classes.OBJECT;
-import static io.smallrye.graphql.client.model.Classes.OPTIONAL;
-import static io.smallrye.graphql.client.model.Classes.TYPESAFE_RESPONSE;
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.IGNORE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.JACKSON_IGNORE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.JAKARTA_JSONB_TRANSIENT;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.JAKARTA_JSONB_TYPE_INFO;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.TYPE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.UNION;
+import static io.smallrye.graphql.client.modelbuilder.Classes.ERROR_OR;
+import static io.smallrye.graphql.client.modelbuilder.Classes.OBJECT;
+import static io.smallrye.graphql.client.modelbuilder.Classes.OPTIONAL;
+import static io.smallrye.graphql.client.modelbuilder.Classes.TYPESAFE_RESPONSE;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Modifier;
@@ -30,9 +30,9 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
-import io.smallrye.graphql.client.model.Annotations;
-import io.smallrye.graphql.client.model.Classes;
-import io.smallrye.graphql.client.model.Scalars;
+import io.smallrye.graphql.client.modelbuilder.Annotations;
+import io.smallrye.graphql.client.modelbuilder.Classes;
+import io.smallrye.graphql.client.modelbuilder.Scalars;
 
 /**
  * Represents a model for handling GraphQL types, including information about the underlying Jandex Type.

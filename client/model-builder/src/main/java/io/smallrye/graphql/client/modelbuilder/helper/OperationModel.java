@@ -1,12 +1,12 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.model.Annotations.MULTIPLE;
-import static io.smallrye.graphql.client.model.Annotations.MUTATION;
-import static io.smallrye.graphql.client.model.Annotations.NAME;
-import static io.smallrye.graphql.client.model.Annotations.NAMESPACE;
-import static io.smallrye.graphql.client.model.Annotations.QUERY;
-import static io.smallrye.graphql.client.model.Annotations.SUBCRIPTION;
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.MULTIPLE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.MUTATION;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.QUERY;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBCRIPTION;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 

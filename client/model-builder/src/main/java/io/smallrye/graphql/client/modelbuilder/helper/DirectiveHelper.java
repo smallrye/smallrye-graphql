@@ -1,11 +1,11 @@
 /**
  * Helper class for resolving GraphQL directives from annotated elements using Jandex.
  */
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.model.Annotations.DIRECTIVE;
-import static io.smallrye.graphql.client.model.Annotations.REPEATABLE;
-import static io.smallrye.graphql.client.model.ScanningContext.getIndex;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.DIRECTIVE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.REPEATABLE;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.Arrays.stream;
 
 import java.util.Optional;

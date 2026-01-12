@@ -1,6 +1,6 @@
 package io.smallrye.graphql.tests.client.typesafe.directives;
 
-import static io.smallrye.graphql.client.model.ClientModelBuilder.build;
+import static io.smallrye.graphql.client.modelbuilder.ClientModelBuilder.build;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;

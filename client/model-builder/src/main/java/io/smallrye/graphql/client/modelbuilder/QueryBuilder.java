@@ -1,12 +1,12 @@
-package io.smallrye.graphql.client.model;
+package io.smallrye.graphql.client.modelbuilder;
 
-import static io.smallrye.graphql.client.model.helper.OperationModel.of;
+import static io.smallrye.graphql.client.modelbuilder.helper.OperationModel.of;
 import static java.util.stream.Collectors.joining;
 
 import org.jboss.jandex.MethodInfo;
 
-import io.smallrye.graphql.client.model.helper.DirectiveInstance;
-import io.smallrye.graphql.client.model.helper.OperationModel;
+import io.smallrye.graphql.client.modelbuilder.helper.DirectiveInstance;
+import io.smallrye.graphql.client.modelbuilder.helper.OperationModel;
 
 /**
  * A utility class for building GraphQL queries based on a given {@link MethodInfo} which will be scanned thanks

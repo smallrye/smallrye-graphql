@@ -1,4 +1,4 @@
-package io.smallrye.graphql.client.model.helper;
+package io.smallrye.graphql.client.modelbuilder.helper;
 
 import java.util.List;
 
