@@ -5,7 +5,7 @@ import static io.smallrye.graphql.client.modelbuilder.ClientModelBuilder.build;
 import java.io.IOException;
 
 import org.jboss.jandex.Index;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
@@ -15,7 +15,7 @@ public class TypesafeVoidMutationWithClientModelTest extends TypesafeVoidMutatio
 
     private boolean onlyOnce = false;
 
-    @Before
+    @BeforeEach
     @Override
     public void prepare() {
         if (!onlyOnce) {

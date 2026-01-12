@@ -1,19 +1,19 @@
 package io.smallrye.graphql.tests.client.typesafe.uni;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URL;
 import java.time.Duration;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 
@@ -22,7 +22,7 @@ import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuild
  * Generally, to the client, it should not matter at all whether the server-side query returns Uni or a synchronous type.
  * In either case, the client-side counterpart of the method can return a synchronous or an asynchronous type.
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class TypesafeClientUniTest {
 
@@ -37,7 +37,7 @@ public class TypesafeClientUniTest {
 
     private UniClientApi client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = new VertxTypesafeGraphQLClientBuilder()
                 .endpoint(testingURL.toString() + "graphql")

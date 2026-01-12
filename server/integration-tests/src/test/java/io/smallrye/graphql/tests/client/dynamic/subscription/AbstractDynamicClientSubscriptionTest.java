@@ -3,7 +3,7 @@ package io.smallrye.graphql.tests.client.dynamic.subscription;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URL;
 import java.time.Duration;
@@ -14,8 +14,8 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
@@ -40,7 +40,7 @@ public abstract class AbstractDynamicClientSubscriptionTest {
 
     protected static VertxDynamicGraphQLClient client;
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.close();
     }

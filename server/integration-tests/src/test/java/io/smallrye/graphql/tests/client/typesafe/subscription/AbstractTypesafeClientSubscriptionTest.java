@@ -1,9 +1,9 @@
 package io.smallrye.graphql.tests.client.typesafe.subscription;
 
 import static io.smallrye.graphql.client.core.Field.field;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,8 +18,8 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.mutiny.Multi;
@@ -40,7 +40,7 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
 
     static Duration DURATION = Duration.ofSeconds(5);
 
-    @After
+    @AfterEach
     public void cleanup() {
         try {
             client.close();
@@ -90,7 +90,7 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
                             end.countDown();
                         });
         end.await(20, TimeUnit.SECONDS);
-        assertNull("Should not receive any valid item", receivedItem.get());
+        assertNull(receivedItem.get(), "Should not receive any valid item");
         assertEquals(GraphQLClientException.class, receivedThrowable.get().getClass());
     }
 
@@ -106,8 +106,8 @@ public abstract class AbstractTypesafeClientSubscriptionTest {
             System.out.println("onComplete callback received");
         });
         boolean ended = end.await(10, TimeUnit.SECONDS);
-        assertTrue("The client-side multi should receive onFailure after the subscription fails due" +
-                " to an exception in server-side processing", ended);
+        assertTrue(ended, "The client-side multi should receive onFailure after the subscription fails due" +
+                " to an exception in server-side processing");
     }
 
     @Test

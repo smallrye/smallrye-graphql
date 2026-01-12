@@ -41,22 +41,27 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-server</artifactId>
+            <artifactId>jetty-websocket-jetty-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jakarta-client</artifactId>
+            <artifactId>jetty-websocket-jetty-client</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <groupId>org.eclipse.jetty.ee9.websocket</groupId>
+            <artifactId>jetty-ee9-websocket-jakarta-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit5</groupId>
+            <artifactId>arquillian-junit5-container</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

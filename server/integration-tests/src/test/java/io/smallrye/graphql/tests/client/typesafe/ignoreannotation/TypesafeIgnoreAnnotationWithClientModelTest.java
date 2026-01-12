@@ -5,7 +5,7 @@ import static io.smallrye.graphql.client.modelbuilder.ClientModelBuilder.build;
 import java.io.IOException;
 
 import org.jboss.jandex.Index;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
@@ -14,7 +14,7 @@ import io.smallrye.graphql.tests.client.typesafe.ignoreannotation.clientmodels.P
 public class TypesafeIgnoreAnnotationWithClientModelTest extends TypesafeIgnoreAnnotationTest {
 
     @Override
-    @Before
+    @BeforeEach
     public void prepare() {
         Index index = null;
         try {

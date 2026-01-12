@@ -40,7 +40,6 @@ public class StartupListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-
         try {
             Set<URL> warURLs = new HashSet<>();
             // Classes in the war

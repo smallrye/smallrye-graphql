@@ -3,7 +3,7 @@ package io.smallrye.graphql.tests.client.dynamic;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.ExecutionException;
@@ -24,7 +24,7 @@ import io.vertx.core.MultiMap;
 /**
  * Verify a named dynamic client injected via CDI and configured via MP Config properties
  */
-//@RunWith(Arquillian.class)
+//@ExtendWith(ArquillianExtension.class)
 public class DynamicClientInjectionTest {
 
     //@Deployment

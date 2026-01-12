@@ -3,7 +3,7 @@ package io.smallrye.graphql.tests.client.parsing;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URL;
 import java.util.Calendar;
@@ -12,21 +12,21 @@ import java.util.concurrent.ExecutionException;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class DynamicClientFormatAnnotationsTest {
 
@@ -41,14 +41,14 @@ public class DynamicClientFormatAnnotationsTest {
 
     private static VertxDynamicGraphQLClient client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")
                 .build();
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.close();
     }
@@ -65,9 +65,9 @@ public class DynamicClientFormatAnnotationsTest {
 
         // a sanity check to make sure that the server really returned the custom format
         // because if not, then this test would not be actually verifying anything
-        assertEquals("Sanity check failed: the server did not return the date in the desired custom format",
-                "May 1997 13 04,20,03 May Tue",
-                response.getData().getJsonObject("something").getString("date"));
+        assertEquals("May 1997 13 04,20,03 May Tue",
+                response.getData().getJsonObject("something").getString("date"),
+                "Sanity check failed: the server did not return the date in the desired custom format");
 
         ObjectWithFormattedFields objectWithFormattedFields = response.getObject(ObjectWithFormattedFields.class, "something");
         Date parsedDate = objectWithFormattedFields.getDate();
@@ -105,9 +105,8 @@ public class DynamicClientFormatAnnotationsTest {
                         field("doubleNumber"))));
         Response response = client.executeSync(document);
 
-        assertEquals("Sanity check failed: the server did not return the number in the desired custom format",
-                "12.345.678,9",
-                response.getData().getJsonObject("something").getString("doubleNumber"));
+        assertEquals("12.345.678,9", response.getData().getJsonObject("something").getString("doubleNumber"),
+                "Sanity check failed: the server did not return the number in the desired custom format");
 
         ObjectWithFormattedFields objectWithFormattedFields = response.getObject(ObjectWithFormattedFields.class, "something");
         Double parsedNumber = objectWithFormattedFields.getDoubleNumber();
