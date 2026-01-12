@@ -11,13 +11,13 @@ import jakarta.enterprise.context.Dependent;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.tests.GraphQLAssured;
 
@@ -25,7 +25,7 @@ import io.smallrye.graphql.tests.GraphQLAssured;
  * Test to verify that a @Dependent-scoped GraphQL API will get each instance destroyed after use,
  * to prevent leaks
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class DependentScopeApiTest {
 
     @Deployment
@@ -44,8 +44,8 @@ public class DependentScopeApiTest {
                 .post("query {hello}");
 
         assertThat(response).isEqualTo("{\"data\":{\"hello\":\"hi\"}}");
-        Assert.assertTrue("Instance of the API class has to be destroyed after each request",
-                DependentScopedApi.DESTROYED.get());
+        Assertions.assertTrue(DependentScopedApi.DESTROYED.get(),
+                "Instance of the API class has to be destroyed after each request");
     }
 
     @GraphQLApi

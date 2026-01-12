@@ -1,6 +1,6 @@
 package io.smallrye.graphql.tests.subscription;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -11,12 +11,12 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.Response;
@@ -33,7 +33,7 @@ import io.vertx.core.http.HttpClient;
  * This means that the internally created subscriber of the server-side Multi has
  * to receive an `onCancellation` callback.
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
 
     @Deployment
@@ -89,9 +89,10 @@ public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
         closeUnderlyingHttpClient(client);
 
         // assert that the internal subscriber of the Multi on the server side was closed
-        assertTrue("The server-side Multi's internal subscriber has to be cancelled " +
-                "after the client websocket connection is closed",
-                Foo.CANCELLED.await(10, TimeUnit.SECONDS));
+        assertTrue(
+                Foo.CANCELLED.await(10, TimeUnit.SECONDS),
+                "The server-side Multi's internal subscriber has to be cancelled " +
+                        "after the client websocket connection is closed");
     }
 
     private void closeUnderlyingHttpClient(DynamicGraphQLClient client) throws NoSuchFieldException, IllegalAccessException {

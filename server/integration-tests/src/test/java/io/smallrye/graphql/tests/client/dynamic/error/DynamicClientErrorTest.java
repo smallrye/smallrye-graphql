@@ -3,8 +3,8 @@ package io.smallrye.graphql.tests.client.dynamic.error;
 import static io.smallrye.graphql.client.core.Document.document;
 import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
@@ -14,13 +14,13 @@ import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.Response;
@@ -31,7 +31,7 @@ import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder
 /**
  * Test error handling features of the dynamic client
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class DynamicClientErrorTest {
 
@@ -46,7 +46,7 @@ public class DynamicClientErrorTest {
 
     private static VertxDynamicGraphQLClient client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")

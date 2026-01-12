@@ -11,13 +11,13 @@ import jakarta.json.Json;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
@@ -26,7 +26,7 @@ import io.smallrye.graphql.tests.client.typesafe.voidmutation.server.RectangleRe
 import io.smallrye.graphql.tests.client.typesafe.voidmutation.server.RectangleService;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class TypesafeVoidMutationTest {
 
@@ -42,7 +42,7 @@ public class TypesafeVoidMutationTest {
 
     protected RectangleClientApi client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = new VertxTypesafeGraphQLClientBuilder()
                 .endpoint(testingURL.toString() + "graphql")

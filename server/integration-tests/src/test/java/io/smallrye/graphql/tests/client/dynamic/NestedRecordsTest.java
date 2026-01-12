@@ -7,9 +7,9 @@ import static io.smallrye.graphql.client.core.Field.field;
 import static io.smallrye.graphql.client.core.InputObject.inputObject;
 import static io.smallrye.graphql.client.core.InputObjectField.prop;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.net.URL;
 import java.util.List;
@@ -22,12 +22,12 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -35,7 +35,7 @@ import io.smallrye.graphql.client.core.InputObject;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class NestedRecordsTest {
 
@@ -73,8 +73,8 @@ public class NestedRecordsTest {
     public void testNestedRecordWithListWithMissingFieldInQuery() throws Exception {
         int major = Integer.parseInt(System.getProperty("java.version").split("\\.")[0]);
         assumeFalse(
-                "Skipping testNestedRecordWithListWithMissingFieldInQuery because of bug in JDK 21 and 22, see https://bugs.openjdk.org/browse/JDK-8320575",
-                major == 21 || major == 22);
+                major == 21 || major == 22,
+                "Skipping testNestedRecordWithListWithMissingFieldInQuery because of bug in JDK 21 and 22, see https://bugs.openjdk.org/browse/JDK-8320575");
         try (DynamicGraphQLClient client = new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql").build()) {
             Document query = document(operation(

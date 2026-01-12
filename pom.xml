@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-parent</artifactId>
-        <version>47</version>
+        <version>48</version>
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
@@ -50,8 +50,8 @@
         <version.mongo-bson>4.10.2</version.mongo-bson>
         <version.mockito>5.21.0</version.mockito>
         <version.weld.servlet>5.1.0.Final</version.weld.servlet>
-        <version.smallrye.testing>2.3.1</version.smallrye.testing>
-        <version.weld-junit5>4.0.0.Final</version.weld-junit5>
+        <version.smallrye.testing>2.5.0</version.smallrye.testing>
+        <version.weld-junit5>5.0.3.Final</version.weld-junit5>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         
@@ -394,12 +394,14 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${version.mockito}</version>
+                <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${version.mockito}</version>
+                <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>

@@ -12,15 +12,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
@@ -31,7 +31,7 @@ import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder
  * In this test, a servlet is used to return a 418 I'm a teapot response with a custom header.
  * The client then makes a request and verifies that the InvalidResponseException contains the custom header.
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class InvalidResponseTest {
 
@@ -56,7 +56,7 @@ public class InvalidResponseTest {
 
     private static VertxDynamicGraphQLClient client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")
@@ -67,9 +67,9 @@ public class InvalidResponseTest {
     public void receiveImATeapotResponse() throws ExecutionException, InterruptedException {
         try {
             client.executeSync("{}");
-            Assert.fail();
+            Assertions.fail();
         } catch (InvalidResponseException ex) {
-            Assert.assertEquals("Yellow", ex.getTransportMeta().get("Teapot-Color").get(0));
+            Assertions.assertEquals("Yellow", ex.getTransportMeta().get("Teapot-Color").get(0));
         }
     }
 

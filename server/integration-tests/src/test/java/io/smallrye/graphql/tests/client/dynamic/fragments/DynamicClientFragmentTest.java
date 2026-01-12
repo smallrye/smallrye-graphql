@@ -6,8 +6,8 @@ import static io.smallrye.graphql.client.core.Fragment.fragment;
 import static io.smallrye.graphql.client.core.FragmentReference.fragmentRef;
 import static io.smallrye.graphql.client.core.InlineFragment.on;
 import static io.smallrye.graphql.client.core.Operation.operation;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
@@ -17,22 +17,22 @@ import jakarta.json.JsonObject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 @RunAsClient
 public class DynamicClientFragmentTest {
 
@@ -47,14 +47,14 @@ public class DynamicClientFragmentTest {
 
     private static VertxDynamicGraphQLClient client;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")
                 .build();
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.close();
     }
@@ -87,7 +87,7 @@ public class DynamicClientFragmentTest {
 
     private void validateResponse(Response response) {
         if (response.hasError()) {
-            Assert.fail("Error was returned: " + response.getErrors());
+            Assertions.fail("Error was returned: " + response.getErrors());
         }
 
         JsonArray vehicles = response.getData().getJsonArray("vehicles");

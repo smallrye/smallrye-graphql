@@ -1,6 +1,6 @@
 package io.smallrye.graphql.tests.context;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URL;
 import java.util.List;
@@ -8,13 +8,13 @@ import java.util.List;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import graphql.ErrorClassification;
 import graphql.ExecutionResult;
@@ -26,7 +26,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.spi.EventingService;
 import io.smallrye.graphql.tests.GraphQLAssured;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class AfterExecutionErrorTest {
 
     @GraphQLApi
