@@ -464,7 +464,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.12.0</version>
                 <configuration>
                     <doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
                     <docletArtifact>
@@ -472,6 +472,8 @@
                         <artifactId>umldoclet</artifactId>
                         <version>2.0.12</version>
                     </docletArtifact>
+                    <!-- FIXME: why is legacyMode needed for the release to pass? How to get rid of it? -->
+                    <legacyMode>true</legacyMode>
                 </configuration>
             </plugin>
             <plugin>
