@@ -150,6 +150,19 @@ class SchemaTest extends SchemaTestBase {
     }
 
     @Test
+    void schemaWithSourceFieldDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(OperationDirective.class, SourceFieldTestApi.class,
+                SourceFieldTestApi.SomeType.class, SourceFieldTestApi.SomeOtherType.class);
+        GraphQLObjectType typeWithSourceFields = graphQLSchema.getTypeAs("SomeType");
+
+        GraphQLFieldDefinition sourceField = typeWithSourceFields.getFieldDefinition("operation");
+        assertEquals(1, sourceField.getDirectives().size());
+
+        GraphQLFieldDefinition batchedSourceField = typeWithSourceFields.getFieldDefinition("batchOperation");
+        assertEquals(1, batchedSourceField.getDirectives().size());
+    }
+
+    @Test
     void schemaWithUnionDirectives() {
         GraphQLSchema graphQLSchema = createGraphQLSchema(UnionDirective.class, UnionTestApi.class,
                 UnionTestApi.SomeUnion.class, UnionTestApi.SomeClass.class);

@@ -830,8 +830,15 @@ public class Bootstrap {
             fieldBuilder = fieldBuilder.arguments(createGraphQLArguments(operation.getArguments()));
         }
 
-        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, getTypeForField(operation));
+        // Directives
+        if (operation.hasDirectiveInstances()) {
+            fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+        }
+
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
+
+        // DataFetcher
+        DataFetcher<?> datafetcher = new BatchDataFetcher<>(operation, getTypeForField(operation));
 
         this.codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(operationTypeName, graphQLFieldDefinition.getName()),
                 datafetcher);
