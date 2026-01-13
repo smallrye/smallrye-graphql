@@ -22,7 +22,7 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <jboss.extra.opts>--add-modules java.se</jboss.extra.opts>
         
-        <wildfly.version>26.1.0.Final</wildfly.version>
+        <wildfly.version>38.0.1.Final</wildfly.version>
     </properties>
 
     <dependencies>
