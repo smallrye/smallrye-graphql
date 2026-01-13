@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>24.0.1</version>
+            <version>26.0.2-1</version>
             <scope>test</scope>
         </dependency>
         <!-- Bean validation annotations are scanned via jandex so we don't need the validation API to run,
