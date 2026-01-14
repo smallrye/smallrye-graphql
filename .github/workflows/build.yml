@@ -28,7 +28,7 @@ jobs:
     name: build with jdk ${{matrix.java}}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         name: checkout
 
       - uses: actions/setup-java@v5
@@ -53,11 +53,11 @@ jobs:
     name: WildFly GraphQL feature pack tests
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         name: checkout
 
       - name: checkout WildFly feature pack repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           repository: wildfly-extras/wildfly-graphql-feature-pack
           ref: main
@@ -90,13 +90,13 @@ jobs:
     name: Quarkus tests
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         name: checkout
         with:
           path: smallrye-graphql
 
       - name: checkout Quarkus repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           repository: quarkusio/quarkus
           ref: main
@@ -133,7 +133,7 @@ jobs:
     name: quality
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
         with:
           java-version: 17
