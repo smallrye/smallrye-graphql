@@ -43,7 +43,7 @@
 
 
         <!-- Test -->
-        <version.hibernate-validator>8.0.1.Final</version.hibernate-validator>
+        <version.hibernate-validator>9.1.0.Final</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
         <version.rxjava>2.2.21</version.rxjava>
         <version.jackson>2.15.2</version.jackson>
