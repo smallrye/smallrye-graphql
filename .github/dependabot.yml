@@ -22,3 +22,9 @@ updates:
   - dependency-name: org.hibernate.validator:hibernate-validator
     versions:
     - 7.0.1.Final
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 2
+  rebase-strategy: disabled
