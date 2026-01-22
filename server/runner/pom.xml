@@ -145,7 +145,7 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>4.1.1.Final</version>    
+                <version>5.1.5.Final</version>    
                 <configuration>
                     <jbossHome>${project.build.directory}/wildfly-preview-${wildfly.version}</jbossHome> 
                     <server-config>standalone-microprofile.xml</server-config>
