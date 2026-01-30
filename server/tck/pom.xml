@@ -118,8 +118,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <dependenciesToScan>
-                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-server-tck</dependency> <!-- New 2.1-SNAPSHOT -->
-                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency> <!-- Old 2.0.x -->
+                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency>
                     </dependenciesToScan>
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
@@ -131,7 +130,7 @@
                         <smallrye.graphql.federation.enabled>true</smallrye.graphql.federation.enabled>
                         <java.util.logging.config.file>${project.basedir}/src/test/resources/logging.properties</java.util.logging.config.file>
                     </systemPropertyVariables>
-                    <skip>true</skip> <!-- FIXME!!!!! TCK fails intermittently in the CI -->
+                    <!-- TCK tests re-enabled after fixing beans.xml in microprofile-graphql-tck -->
                 </configuration>
             </plugin>
             <plugin>
