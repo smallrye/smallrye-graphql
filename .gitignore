@@ -78,3 +78,5 @@ client/shade/dependency-reduced-pom.xml
 
 # mkdocs output
 site
+/.claude/
+/CLAUDE.md
