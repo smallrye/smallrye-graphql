@@ -32,7 +32,7 @@
         <version.yasson>3.0.4</version.yasson>
         <version.jakarta-validation>3.0.2</version.jakarta-validation>
         <version.jakarta-annotation>3.0.0</version.jakarta-annotation>
-        <version.jakarta.servlet>6.0.0</version.jakarta.servlet>
+        <version.jakarta.servlet>6.1.0</version.jakarta.servlet>
         <version.jakarta.websocket>2.0.0</version.jakarta.websocket>
         <version.graphql-java-federation>5.5.0</version.graphql-java-federation>
 	    <version.graphql-java>25.0</version.graphql-java>
