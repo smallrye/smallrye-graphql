@@ -92,6 +92,8 @@ public class DataFetcherFactory {
             return (V) getMultiDataFetcher(operation, type);
         } else if (isPublisher(operation)) {
             return (V) getPublisherDataFetcher(operation, type);
+        } else if (isFlowPublisher(operation)) {
+            return (V) getPublisherDataFetcher(operation, type);
         } else if (isWrapped(operation)) {
             return (V) getOtherWrappedDataFetcher(operation, type);
         }
@@ -210,6 +212,14 @@ public class DataFetcherFactory {
         if (field.hasWrapper()) {
             String wrapperClassName = field.getWrapper().getWrapperClassName();
             return wrapperClassName.equals("org.reactivestreams.Publisher");
+        }
+        return false;
+    }
+
+    private boolean isFlowPublisher(Field field) {
+        if (field.hasWrapper()) {
+            String wrapperClassName = field.getWrapper().getWrapperClassName();
+            return wrapperClassName.equals("java.util.concurrent.Flow$Publisher");
         }
         return false;
     }

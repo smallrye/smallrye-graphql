@@ -6,6 +6,7 @@ import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
 import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
 import static io.smallrye.graphql.client.modelbuilder.Annotations.QUERY;
 import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBCRIPTION;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBSCRIPTION;
 import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -201,7 +202,7 @@ public class OperationModel implements NamedElement {
         if (method.hasAnnotation(MUTATION)) {
             return OperationType.MUTATION;
         }
-        if (method.hasAnnotation(SUBCRIPTION)) {
+        if (method.hasAnnotation(SUBSCRIPTION) || method.hasAnnotation(SUBCRIPTION)) {
             return OperationType.SUBSCRIPTION;
         }
         return OperationType.QUERY;
@@ -236,14 +237,22 @@ public class OperationModel implements NamedElement {
     }
 
     /**
-     * Gets the name of the GraphQL subscription, considering any io.smallrye.graphql.api.Subscription annotation.
+     * Gets the name of the GraphQL subscription, considering any @Subscription annotation
+     * (either org.eclipse.microprofile.graphql.Subscription or io.smallrye.graphql.api.Subscription).
      *
      * @return An optional containing the subscription name if specified, otherwise empty.
      */
     public Optional<String> subscriptionName() {
-        Optional<AnnotationInstance> subscriptionAnnotation = getMethodAnnotation(SUBCRIPTION);
+        // Check MicroProfile annotation first (preferred)
+        Optional<AnnotationInstance> subscriptionAnnotation = getMethodAnnotation(SUBSCRIPTION);
         if (subscriptionAnnotation.isPresent() && subscriptionAnnotation.orElseThrow().value() != null)
             return Optional.of(subscriptionAnnotation.orElseThrow().value().asString());
+
+        // Fall back to deprecated SmallRye annotation
+        subscriptionAnnotation = getMethodAnnotation(SUBCRIPTION);
+        if (subscriptionAnnotation.isPresent() && subscriptionAnnotation.orElseThrow().value() != null)
+            return Optional.of(subscriptionAnnotation.orElseThrow().value().asString());
+
         return Optional.empty();
     }
 

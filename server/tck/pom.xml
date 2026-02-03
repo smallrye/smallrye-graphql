@@ -109,6 +109,21 @@
             <scope>compile</scope>
             <version>7.11.0</version>
         </dependency>
+
+        <!-- Vert.x for WebSocket client in subscription tests -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>4.5.24</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Jetty WebSocket server support for @ServerEndpoint in tests -->
+        <dependency>
+            <groupId>org.eclipse.jetty.ee9.websocket</groupId>
+            <artifactId>jetty-ee9-websocket-jakarta-server</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -118,20 +133,15 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <dependenciesToScan>
-                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-server-tck</dependency> <!-- New 2.1-SNAPSHOT -->
-                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency> <!-- Old 2.0.x -->
+                        <dependency>org.eclipse.microprofile.graphql:microprofile-graphql-tck</dependency>
                     </dependenciesToScan>
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
-<!--                    <systemProperties>-->
-<!--                        -->
-<!--                    </systemProperties>-->
                     <systemPropertyVariables>
                         <smallrye.graphql.federation.enabled>true</smallrye.graphql.federation.enabled>
                         <java.util.logging.config.file>${project.basedir}/src/test/resources/logging.properties</java.util.logging.config.file>
                     </systemPropertyVariables>
-                    <skip>true</skip> <!-- FIXME!!!!! TCK fails intermittently in the CI -->
                 </configuration>
             </plugin>
             <plugin>

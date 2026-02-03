@@ -79,7 +79,18 @@ public class OperationCreator extends ModelCreator {
         Type fieldType = getReturnType(methodInfo);
 
         // Name
-        String name = getOperationName(methodInfo, operationType, annotationsForMethod);
+        // For source operations, find the @Source parameter to extract custom field name
+        Annotations sourceParameterAnnotations = null;
+        if (type != null) { // This is a source operation
+            for (short i = 0; i < methodInfo.parametersCount(); i++) {
+                Annotations paramAnnotations = Annotations.getAnnotationsForArgument(methodInfo, i);
+                if (paramAnnotations.containsOneOfTheseAnnotations(Annotations.SOURCE)) {
+                    sourceParameterAnnotations = paramAnnotations;
+                    break;
+                }
+            }
+        }
+        String name = getOperationName(methodInfo, operationType, annotationsForMethod, sourceParameterAnnotations);
 
         // Field Type
         validateFieldType(methodInfo, operationType);
@@ -278,9 +289,36 @@ public class OperationCreator extends ModelCreator {
      * @param methodInfo the java method
      * @param operationType the type (query, mutation)
      * @param annotations the annotations on this method
+     * @param sourceParameterAnnotations annotations for the @Source parameter (null if not a source operation)
      * @return the operation name
      */
-    private static String getOperationName(MethodInfo methodInfo, OperationType operationType, Annotations annotations) {
+    private static String getOperationName(MethodInfo methodInfo, OperationType operationType, Annotations annotations,
+            Annotations sourceParameterAnnotations) {
+        // For source operations, check the @Source annotation's value() and name() attributes first
+        if (sourceParameterAnnotations != null) {
+            Optional<AnnotationInstance> sourceAnnotation = sourceParameterAnnotations
+                    .getOneOfTheseAnnotations(Annotations.SOURCE);
+            if (sourceAnnotation.isPresent()) {
+                AnnotationInstance source = sourceAnnotation.get();
+
+                // Try value() first (current preferred way per MicroProfile GraphQL 2.1)
+                if (source.value("value") != null) {
+                    String valueAttr = source.value("value").asString();
+                    if (valueAttr != null && !valueAttr.isEmpty()) {
+                        return valueAttr;
+                    }
+                }
+
+                // Fall back to name() (deprecated but still supported)
+                if (source.value("name") != null) {
+                    String nameAttr = source.value("name").asString();
+                    if (nameAttr != null && !nameAttr.isEmpty()) {
+                        return nameAttr;
+                    }
+                }
+            }
+        }
+
         DotName operationAnnotation = getOperationAnnotation(operationType);
 
         // If the @Query or @Mutation annotation has a value, use that, else use name or jsonb property
@@ -301,7 +339,7 @@ public class OperationCreator extends ModelCreator {
             case MUTATION:
                 return Annotations.MUTATION;
             case SUBSCRIPTION:
-                return Annotations.SUBCRIPTION;
+                return Annotations.SUBSCRIPTION; // Also supports deprecated Annotations.SUBCRIPTION
             case RESOLVER:
                 return Annotations.RESOLVER;
             default:
