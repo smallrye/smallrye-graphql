@@ -1,6 +1,7 @@
 package io.smallrye.graphql.execution.datafetcher;
 
 import java.util.List;
+import java.util.concurrent.Flow;
 
 import org.reactivestreams.Publisher;
 
@@ -26,13 +27,33 @@ public class PublisherDataFetcher<K, T> extends AbstractStreamingDataFetcher<K, 
     @Override
     protected Multi<?> handleUserMethodCall(DataFetchingEnvironment dfe, final Object[] transformedArguments)
             throws Exception {
-        Publisher<?> publisher = operationInvoker.invoke(transformedArguments);
-        return (Multi<?>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
+        Object result = operationInvoker.invoke(transformedArguments);
+
+        // Handle both Flow.Publisher and org.reactivestreams.Publisher
+        if (result instanceof Flow.Publisher) {
+            Flow.Publisher<?> flowPublisher = (Flow.Publisher<?>) result;
+            // Convert Flow.Publisher directly to Multi
+            return Multi.createFrom().publisher(flowPublisher);
+        } else {
+            Publisher<?> publisher = (Publisher<?>) result;
+            // Convert ReactiveStreams Publisher to Flow.Publisher then to Multi
+            return (Multi<?>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
+        }
     }
 
     @Override
     protected Multi<List<T>> handleUserBatchLoad(DataFetchingEnvironment dfe, final Object[] arguments) throws Exception {
-        Publisher<List<T>> publisher = operationInvoker.invoke(arguments);
-        return (Multi<List<T>>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
+        Object result = operationInvoker.invoke(arguments);
+
+        // Handle both Flow.Publisher and org.reactivestreams.Publisher
+        if (result instanceof Flow.Publisher) {
+            Flow.Publisher<List<T>> flowPublisher = (Flow.Publisher<List<T>>) result;
+            // Convert Flow.Publisher directly to Multi
+            return Multi.createFrom().publisher(flowPublisher);
+        } else {
+            Publisher<List<T>> publisher = (Publisher<List<T>>) result;
+            // Convert ReactiveStreams Publisher to Flow.Publisher then to Multi
+            return (Multi<List<T>>) Multi.createFrom().publisher(AdaptersToFlow.publisher(publisher));
+        }
     }
 }

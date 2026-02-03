@@ -156,7 +156,8 @@ public class Classes {
                 || type.name().equals(COMPLETION_STAGE)
                 || type.name().equals(UNI)
                 || type.name().equals(MULTI)
-                || type.name().equals(PUBLISHER);
+                || type.name().equals(PUBLISHER)
+                || type.name().equals(FLOW_PUBLISHER);
     }
 
     /**
@@ -267,6 +268,8 @@ public class Classes {
     private static final DotName MULTI = DotName.createSimple("io.smallrye.mutiny.Multi");
     @Deprecated
     private static final DotName PUBLISHER = DotName.createSimple("org.reactivestreams.Publisher");
+    @Deprecated
+    private static final DotName FLOW_PUBLISHER = DotName.createSimple("java.util.concurrent.Flow$Publisher");
 
     public static final DotName SERIALIZABLE = DotName.createSimple(Serializable.class.getName());
     public static final DotName OBJECT = DotName.createSimple(Object.class.getName());

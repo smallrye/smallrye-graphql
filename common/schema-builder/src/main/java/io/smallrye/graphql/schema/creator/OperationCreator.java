@@ -339,7 +339,7 @@ public class OperationCreator extends ModelCreator {
             case MUTATION:
                 return Annotations.MUTATION;
             case SUBSCRIPTION:
-                return Annotations.SUBCRIPTION;
+                return Annotations.SUBSCRIPTION; // Also supports deprecated Annotations.SUBCRIPTION
             case RESOLVER:
                 return Annotations.RESOLVER;
             default:
