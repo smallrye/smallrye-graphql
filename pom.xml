@@ -23,7 +23,7 @@
         <version.jandex>3.5.3</version.jandex>
         <version.smallrye-config>3.16.0</version.smallrye-config>
         <version.smallrye-common>2.15.0</version.smallrye-common>
-        <version.smallrye-mutiny>3.1.0</version.smallrye-mutiny>
+        <version.smallrye-mutiny>3.1.1</version.smallrye-mutiny>
         <version.smallrye-mutiny-zero>1.1.1</version.smallrye-mutiny-zero>
         <version.smallrye-context-propagation>2.3.0</version.smallrye-context-propagation>
         <version.smallrye-stork>2.7.7</version.smallrye-stork>
