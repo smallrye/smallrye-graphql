@@ -63,7 +63,7 @@
         <version.kotlin>2.3.10</version.kotlin>
         <version.impsort.plugin>1.13.0</version.impsort.plugin>
         <version.kotlin.compiler>2.3.10</version.kotlin.compiler>
-        <version.maven-dependency-plugin>3.9.0</version.maven-dependency-plugin>
+        <version.maven-dependency-plugin>3.10.0</version.maven-dependency-plugin>
 
     </properties>
 
