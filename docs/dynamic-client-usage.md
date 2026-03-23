@@ -116,3 +116,25 @@ It's also possible to retrieve them directly without casting to `ResponseImpl` b
 
 HTTP headers, status codes and messages are only available for operations executed over pure HTTP, not via websockets!
 
+Sending extensions to the server
+=================================
+
+The GraphQL over HTTP specification allows clients to send an `extensions` map alongside the query. To do this
+with the dynamic client, build a `Request` using the `RequestImpl.builder` and pass it to `executeSync` or
+`executeAsync`:
+
+``` java
+Map<String, Object> extensions = Map.of("myKey", "myValue", "number", 42);
+
+Request request = RequestImpl.builder("{ myQuery }")
+        .variables(variables)           // optional
+        .operationName("MyOperation")   // optional
+        .extensions(extensions)
+        .build();
+
+Response response = client.executeSync(request);
+```
+
+On the server side, the extensions sent by the client can be read from `SmallRyeContext.getExtensionsFromClient()`.
+This is separate from `SmallRyeContext.getAddedExtensions()`, which is used for adding extensions to the
+outgoing response.

@@ -23,10 +23,55 @@ public class RequestImpl implements Request {
     private final String document;
     private Map<String, Object> variables;
     private String operationName;
+    private Map<String, Object> extensions;
 
     public RequestImpl(String document) {
         this.document = document;
         this.variables = new HashMap<>();
+    }
+
+    public static Builder builder(String query) {
+        return new Builder(query);
+    }
+
+    public static class Builder {
+        private final String query;
+        private Map<String, Object> variables;
+        private String operationName;
+        private Map<String, Object> extensions;
+
+        private Builder(String query) {
+            this.query = query;
+        }
+
+        public Builder variables(Map<String, Object> variables) {
+            this.variables = variables;
+            return this;
+        }
+
+        public Builder operationName(String operationName) {
+            this.operationName = operationName;
+            return this;
+        }
+
+        public Builder extensions(Map<String, Object> extensions) {
+            this.extensions = extensions;
+            return this;
+        }
+
+        public RequestImpl build() {
+            RequestImpl request = new RequestImpl(query);
+            if (variables != null) {
+                request.setVariables(variables);
+            }
+            if (operationName != null && !operationName.isEmpty()) {
+                request.setOperationName(operationName);
+            }
+            if (extensions != null && !extensions.isEmpty()) {
+                request.setExtensions(extensions);
+            }
+            return request;
+        }
     }
 
     @Override
@@ -37,6 +82,9 @@ public class RequestImpl implements Request {
         }
         if (operationName != null && !operationName.isEmpty()) {
             queryBuilder.add("operationName", operationName);
+        }
+        if (extensions != null && !extensions.isEmpty()) {
+            queryBuilder.add("extensions", _formatJsonMap(extensions));
         }
         return queryBuilder.build().toString();
     }
@@ -50,36 +98,42 @@ public class RequestImpl implements Request {
         if (operationName != null && !operationName.isEmpty()) {
             queryBuilder.add("operationName", operationName);
         }
+        if (extensions != null && !extensions.isEmpty()) {
+            queryBuilder.add("extensions", _formatJsonMap(extensions));
+        }
         return queryBuilder.build();
     }
 
     private JsonObject _formatJsonVariables() {
-        JsonObjectBuilder varBuilder = JSON.createObjectBuilder();
+        return _formatJsonMap(variables);
+    }
 
-        variables.forEach((k, v) -> {
-            // Other types to process here
+    private static JsonObject _formatJsonMap(Map<String, Object> map) {
+        JsonObjectBuilder builder = JSON.createObjectBuilder();
+
+        map.forEach((k, v) -> {
             if (v instanceof String) {
-                varBuilder.add(k, (String) v);
+                builder.add(k, (String) v);
             } else if (v instanceof Integer) {
-                varBuilder.add(k, (Integer) v);
+                builder.add(k, (Integer) v);
             } else if (v instanceof JsonValue) {
-                varBuilder.add(k, (JsonValue) v);
+                builder.add(k, (JsonValue) v);
             } else if (v instanceof Boolean) {
-                varBuilder.add(k, (Boolean) v);
+                builder.add(k, (Boolean) v);
             } else if (v instanceof Long) {
-                varBuilder.add(k, (Long) v);
+                builder.add(k, (Long) v);
             } else if (v instanceof Double) {
-                varBuilder.add(k, (Double) v);
+                builder.add(k, (Double) v);
             } else if (v instanceof Enum<?>) {
-                varBuilder.add(k, ((Enum<?>) v).name());
+                builder.add(k, ((Enum<?>) v).name());
             } else if (v == null) {
-                varBuilder.addNull(k);
+                builder.addNull(k);
             } else {
-                varBuilder.add(k, JSON_PROVIDER.createReader(new StringReader(JSONB.toJson(v))).read());
+                builder.add(k, JSON_PROVIDER.createReader(new StringReader(JSONB.toJson(v))).read());
             }
         });
 
-        return varBuilder.build();
+        return builder.build();
     }
 
     @Override
@@ -120,6 +174,16 @@ public class RequestImpl implements Request {
     public Request resetVariables() {
         variables.clear();
         return this;
+    }
+
+    @Override
+    public Map<String, Object> getExtensions() {
+        return extensions;
+    }
+
+    @Override
+    public void setExtensions(Map<String, Object> extensions) {
+        this.extensions = extensions;
     }
 
     @Override

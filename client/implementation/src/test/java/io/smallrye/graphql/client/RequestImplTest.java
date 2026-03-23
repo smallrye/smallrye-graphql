@@ -1,8 +1,10 @@
 package io.smallrye.graphql.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,5 +64,80 @@ public class RequestImplTest {
 
     public enum TestEnum {
         TEST
+    }
+
+    @Test
+    public void testBuilderQueryOnly() {
+        RequestImpl request = RequestImpl.builder("{ hello }").build();
+        assertEquals("{\"query\":\"{ hello }\"}", request.toJson());
+    }
+
+    @Test
+    public void testBuilderWithVariables() {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", "world");
+        RequestImpl request = RequestImpl.builder("query($name: String) { hello(name: $name) }")
+                .variables(variables)
+                .build();
+        assertEquals(
+                "{\"query\":\"query($name: String) { hello(name: $name) }\",\"variables\":{\"name\":\"world\"}}",
+                request.toJson());
+    }
+
+    @Test
+    public void testBuilderWithOperationName() {
+        RequestImpl request = RequestImpl.builder("query MyOp { hello }")
+                .operationName("MyOp")
+                .build();
+        assertEquals(
+                "{\"query\":\"query MyOp { hello }\",\"operationName\":\"MyOp\"}",
+                request.toJson());
+    }
+
+    @Test
+    public void testBuilderWithExtensions() {
+        Map<String, Object> extensions = new HashMap<>();
+        extensions.put("traceId", "abc-123");
+        extensions.put("priority", 1);
+        RequestImpl request = RequestImpl.builder("{ hello }")
+                .extensions(extensions)
+                .build();
+        jakarta.json.JsonObject obj = request.toJsonObject();
+        assertEquals("{ hello }", obj.getString("query"));
+        jakarta.json.JsonObject ext = obj.getJsonObject("extensions");
+        assertEquals("abc-123", ext.getString("traceId"));
+        assertEquals(1, ext.getInt("priority"));
+    }
+
+    @Test
+    public void testBuilderWithAllFields() {
+        Map<String, Object> variables = Map.of("id", 42);
+        Map<String, Object> extensions = Map.of("token", "secret");
+        RequestImpl request = RequestImpl.builder("query GetItem($id: Int) { item(id: $id) }")
+                .variables(variables)
+                .operationName("GetItem")
+                .extensions(extensions)
+                .build();
+        jakarta.json.JsonObject obj = request.toJsonObject();
+        assertEquals("query GetItem($id: Int) { item(id: $id) }", obj.getString("query"));
+        assertEquals("GetItem", obj.getString("operationName"));
+        assertEquals(42, obj.getJsonObject("variables").getInt("id"));
+        assertEquals("secret", obj.getJsonObject("extensions").getString("token"));
+    }
+
+    @Test
+    public void testBuilderNoExtensionsOmitsField() {
+        RequestImpl request = RequestImpl.builder("{ hello }").build();
+        jakarta.json.JsonObject obj = request.toJsonObject();
+        assertFalse(obj.containsKey("extensions"));
+    }
+
+    @Test
+    public void testBuilderEmptyExtensionsOmitsField() {
+        RequestImpl request = RequestImpl.builder("{ hello }")
+                .extensions(new HashMap<>())
+                .build();
+        jakarta.json.JsonObject obj = request.toJsonObject();
+        assertFalse(obj.containsKey("extensions"));
     }
 }
