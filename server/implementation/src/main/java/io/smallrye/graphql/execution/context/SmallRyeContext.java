@@ -55,7 +55,14 @@ public class SmallRyeContext implements Context {
     private QueryCache queryCache;
     private DocumentSupplier documentSupplier;
     private ExecutionResult executionResult;
+    /**
+     * Extensions to be added to the outgoing response sent back to the client.
+     */
     private Map<String, Object> addedExtensions = new ConcurrentHashMap<>();
+    /**
+     * Extensions received from the client as part of the incoming request.
+     */
+    private Map<String, Object> extensionsFromClient;
 
     public SmallRyeContext clone() {
         SmallRyeContext clone = new SmallRyeContext(createdBy);
@@ -79,6 +86,7 @@ public class SmallRyeContext implements Context {
         clone.documentSupplier = documentSupplier;
         clone.executionResult = executionResult;
         clone.addedExtensions = addedExtensions;
+        clone.extensionsFromClient = extensionsFromClient;
         return clone;
     }
 
@@ -105,6 +113,21 @@ public class SmallRyeContext implements Context {
      */
     public void addExtension(String key, Object value) {
         addedExtensions.put(key, value);
+    }
+
+    /**
+     * Returns the extensions that were received from the client as part of the incoming request.
+     * This is different from {@link #getAddedExtensions()}, which holds extensions to be added
+     * to the outgoing response sent back to the client.
+     *
+     * @return the extensions from the client request, or null if none were provided
+     */
+    public Map<String, Object> getExtensionsFromClient() {
+        return extensionsFromClient;
+    }
+
+    public void setExtensionsFromClient(Map<String, Object> extensionsFromClient) {
+        this.extensionsFromClient = extensionsFromClient;
     }
 
     public SmallRyeContext(String createdBy) {

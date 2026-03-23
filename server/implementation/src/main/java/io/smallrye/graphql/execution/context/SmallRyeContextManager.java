@@ -3,6 +3,7 @@ package io.smallrye.graphql.execution.context;
 import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,7 @@ public class SmallRyeContextManager {
 
         smallRyeContext.setRequest(request);
         smallRyeContext.setOperationName(getOperationName(request));
+        smallRyeContext.setExtensionsFromClient(getExtensions(request));
         current.set(smallRyeContext);
         return smallRyeContext;
     }
@@ -285,6 +287,55 @@ public class SmallRyeContextManager {
             return dataFetchingEnvironment.getOperationDefinition().getName();
         }
         return null;
+    }
+
+    private static final String EXTENSIONS = "extensions";
+
+    private static Map<String, Object> getExtensions(JsonObject request) {
+        if (request.containsKey(EXTENSIONS)
+                && request.get(EXTENSIONS) != null
+                && !request.get(EXTENSIONS).getValueType().equals(JsonValue.ValueType.NULL)) {
+            JsonObject extensionsJson = request.getJsonObject(EXTENSIONS);
+            Map<String, Object> result = new HashMap<>();
+            for (Map.Entry<String, JsonValue> entry : extensionsJson.entrySet()) {
+                result.put(entry.getKey(), convertJsonValue(entry.getValue()));
+            }
+            return result;
+        }
+        return null;
+    }
+
+    private static Object convertJsonValue(JsonValue value) {
+        switch (value.getValueType()) {
+            case STRING:
+                return ((jakarta.json.JsonString) value).getString();
+            case NUMBER:
+                jakarta.json.JsonNumber number = (jakarta.json.JsonNumber) value;
+                if (number.isIntegral()) {
+                    return number.longValueExact();
+                }
+                return number.doubleValue();
+            case TRUE:
+                return Boolean.TRUE;
+            case FALSE:
+                return Boolean.FALSE;
+            case NULL:
+                return null;
+            case OBJECT:
+                Map<String, Object> map = new HashMap<>();
+                for (Map.Entry<String, JsonValue> entry : value.asJsonObject().entrySet()) {
+                    map.put(entry.getKey(), convertJsonValue(entry.getValue()));
+                }
+                return map;
+            case ARRAY:
+                List<Object> list = new java.util.ArrayList<>();
+                for (JsonValue item : value.asJsonArray()) {
+                    list.add(convertJsonValue(item));
+                }
+                return list;
+            default:
+                return value.toString();
+        }
     }
 
 }
