@@ -384,18 +384,11 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     }
 
     private Request buildRequest(Document document, Map<String, Object> variables, String operationName) {
-        return buildRequest(document.build(), variables, operationName);
+        return RequestImpl.builder(document.build()).variables(variables).operationName(operationName).build();
     }
 
     private Request buildRequest(String query, Map<String, Object> variables, String operationName) {
-        RequestImpl request = new RequestImpl(query);
-        if (variables != null) {
-            request.setVariables(variables);
-        }
-        if (operationName != null && !operationName.isEmpty()) {
-            request.setOperationName(operationName);
-        }
-        return request;
+        return RequestImpl.builder(query).variables(variables).operationName(operationName).build();
     }
 
     @Override

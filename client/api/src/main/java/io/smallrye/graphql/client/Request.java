@@ -17,6 +17,10 @@ public interface Request {
 
     Request resetVariables();
 
+    Map<String, Object> getExtensions();
+
+    void setExtensions(Map<String, Object> extensions);
+
     String toJson();
 
     JsonObject toJsonObject();

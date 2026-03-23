@@ -37,7 +37,7 @@ import io.smallrye.graphql.execution.context.SmallRyeContext;
  */
 @ExtendWith(ArquillianExtension.class)
 @RunAsClient
-public class DynamicClientExtensionsTest {
+public class DynamicClientInboundExtensionsTest {
 
     @Deployment
     public static WebArchive deployment() {
