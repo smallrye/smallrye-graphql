@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SmallRye GraphQL is a Java implementation of Eclipse MicroProfile GraphQL, GraphQL over HTTP, GraphQL over WebSocket (both `graphql-ws` and `graphql-transport-ws` subprotocols), and Apollo GraphQL Federation. It targets the Jakarta namespace (not javax — enforced by maven-enforcer-plugin banning `javax.*`). Java 11+ is required.
+SmallRye GraphQL is a Java implementation of Eclipse MicroProfile GraphQL, GraphQL over HTTP, GraphQL over WebSocket (both `graphql-ws` and `graphql-transport-ws` subprotocols), and Apollo GraphQL Federation. It targets the Jakarta namespace (not javax — enforced by maven-enforcer-plugin banning `javax.*`). Java 17+ is required.
 
 ## Build Commands
 
@@ -12,7 +12,7 @@ SmallRye GraphQL is a Java implementation of Eclipse MicroProfile GraphQL, Graph
 # Full build with tests
 mvn clean install
 
-# CI build (what GitHub Actions runs on JDK 11 and 17)
+# CI build (what GitHub Actions runs on JDK 17, 21, and 25)
 mvn -B formatter:validate impsort:check javadoc:javadoc install
 
 # Build without tests
@@ -61,7 +61,7 @@ server/
   tck/              -> MicroProfile GraphQL TCK runner
   runner/           -> Manual TCK testing with GraphiQL
   integration-tests/    -> Integration tests (Arquillian + Jetty)
-  integration-tests-jdk16/ -> JDK 16+ specific tests (records, etc.) — auto-activated via jdk16plus profile
+
 
 client/
   api/              -> MicroProfile GraphQL Client API
@@ -117,7 +117,6 @@ ui/graphiql/        -> GraphiQL UI component
 ## Important Conventions
 
 - Jakarta namespace only — the build enforces a ban on `javax.*` dependencies via maven-enforcer-plugin
-- The `jdk16plus` profile is auto-activated on JDK 16+ to include record-specific tests
 - Logging uses `jboss-logging` with message localization (`SmallRyeGraphQLServerLogging`, `SmallRyeGraphQLServerMessages`)
 - JSON binding uses JSON-B (Yasson implementation), not Jackson
 - The `.mvn/` directory is gitignored and may contain local Maven settings (repo path, mirrors)
