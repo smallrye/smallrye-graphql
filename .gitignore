@@ -17,6 +17,7 @@ build
 .settings
 .metadata
 .checkstyle
+.mvn
 # ignore m2e annotation processing files
 .factorypath
 # ignore IDEA files
@@ -78,3 +79,6 @@ client/shade/dependency-reduced-pom.xml
 
 # mkdocs output
 site
+
+# claude code
+.claude
