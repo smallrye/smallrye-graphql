@@ -1,7 +1,12 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { GraphiQL, HISTORY_PLUGIN } from 'graphiql';
+import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import 'graphiql/setup-workers/esm.sh';
+
 const api = '/graphql';
 const logo = '/graphql-ui';
 const defaultQuery = '';
-const headerEditorEnabled = true;
 const shouldPersistHeaders = false;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -66,11 +71,6 @@ function onEditHeaders(newHeaders) {
 	updateURL();
 }
 
-function onEditOperationName(newOperationName) {
-	parameters.operationName = newOperationName;
-	updateURL();
-}
-
 function updateURL() {
 	var newSearch =
 		'?' +
@@ -89,35 +89,6 @@ function updateURL() {
 	history.replaceState(null, null, newSearch);
 }
 
-var defaultHeaders = {
-	Accept: 'application/json',
-	'Content-Type': 'application/json',
-};
-
-// Defines a GraphQL fetcher using the fetch API. You're not required to
-// use fetch, and could instead implement graphQLFetcher however you like,
-// as long as it returns a Promise or Observable.
-function graphQLFetcher() {
-	let mergedHeaders;
-	if (
-		typeof parameters.headers === 'undefined' ||
-		parameters.headers === null ||
-		parameters.headers.trim() === ''
-	) {
-		mergedHeaders = defaultHeaders;
-	} else {
-		mergedHeaders = {
-			...defaultHeaders,
-			...JSON.parse(parameters.headers),
-		};
-	}
-	return GraphiQL.createFetcher({
-		url: getUrl(),
-		subscriptionUrl: getWsUrl(),
-		headers: mergedHeaders,
-	});
-}
-
 function getWsUrl() {
 	var new_uri;
 	if (window.location.protocol === 'https:') {
@@ -126,7 +97,6 @@ function getWsUrl() {
 		new_uri = 'ws:';
 	}
 	new_uri += '//' + window.location.host + api;
-
 	return new_uri;
 }
 
@@ -134,36 +104,69 @@ function getUrl() {
 	return window.location.protocol + '//' + window.location.host + api;
 }
 
-ReactDOM.render(
-	React.createElement(GraphiQL, {
-		fetcher: graphQLFetcher(),
+var defaultHeaders = {
+	Accept: 'application/json',
+	'Content-Type': 'application/json',
+};
+
+let mergedHeaders;
+if (
+	typeof parameters.headers === 'undefined' ||
+	parameters.headers === null ||
+	parameters.headers.trim() === ''
+) {
+	mergedHeaders = defaultHeaders;
+} else {
+	mergedHeaders = {
+		...defaultHeaders,
+		...JSON.parse(parameters.headers),
+	};
+}
+
+const fetcher = createGraphiQLFetcher({
+	url: getUrl(),
+	subscriptionUrl: getWsUrl(),
+	headers: mergedHeaders,
+});
+
+const plugins = [HISTORY_PLUGIN];
+
+function App() {
+	return React.createElement(GraphiQL, {
+		fetcher: fetcher,
+		plugins: plugins,
 		query: parameters.query,
 		variables: parameters.variables,
 		headers: parameters.headers,
 		operationName: parameters.operationName,
-		onEditOperationName: onEditOperationName,
+		onEditQuery: onEditQuery,
 		onEditVariables: onEditVariables,
 		onEditHeaders: onEditHeaders,
-		onEditQuery: onEditQuery,
-		defaultSecondaryEditorOpen: true,
-		headerEditorEnabled: headerEditorEnabled,
+		defaultEditorToolsVisibility: true,
 		shouldPersistHeaders: shouldPersistHeaders,
 		defaultQuery: defaultQuery,
-		defaultEditorToolsVisibility: true,
-	}),
-	document.getElementById('graphiql')
-);
+	});
+}
+
+const container = document.getElementById('graphiql');
+const root = ReactDOM.createRoot(container);
+root.render(React.createElement(App));
 
 // LOGO (top-left corner)
 if (!embed) {
-	var sidebar = document.getElementsByClassName(
-		'graphiql-sidebar-section'
-	)[0];
-	var logoLink = document.createElement('a');
-	logoLink.id = 'graphQLUiLogoLink';
-	logoLink.className = 'graphiql-un-styled';
-	logoLink.href = logo;
-	logoLink.innerHTML =
-		"<img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'>";
-	sidebar.insertBefore(logoLink, sidebar.firstChild);
+	// Wait for the DOM to update after React render
+	setTimeout(function() {
+		var sidebar = document.getElementsByClassName(
+			'graphiql-sidebar'
+		)[0];
+		if (sidebar) {
+			var logoLink = document.createElement('a');
+			logoLink.id = 'graphQLUiLogoLink';
+			logoLink.className = 'graphiql-un-styled';
+			logoLink.href = logo;
+			logoLink.innerHTML =
+				"<img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'>";
+			sidebar.insertBefore(logoLink, sidebar.firstChild);
+		}
+	}, 500);
 }
