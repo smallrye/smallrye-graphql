@@ -70,7 +70,8 @@ client/shade/dependency-reduced-pom.xml
 # gradle
 .gradle
 
-
+# quarkus cli
+.quarkus
 
 # testing artifacts
 /tools/maven-plugin-tests/testing-project/log.txt
@@ -80,5 +81,7 @@ client/shade/dependency-reduced-pom.xml
 # mkdocs output
 site
 
-# claude code
+# agents
 .claude
+.playwright-mcp
+
