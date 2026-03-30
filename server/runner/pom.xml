@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-server-parent</artifactId>
-        <version>2.18.0-SNAPSHOT</version>
+        <version>2.18.0</version>
     </parent>
 
     <artifactId>smallrye-graphql-runner</artifactId>
@@ -179,4 +179,8 @@
         </plugins>
     </build>
 
+
+  <scm>
+    <tag>2.18.0</tag>
+  </scm>
 </project>
