@@ -3,8 +3,8 @@ package io.smallrye.graphql.schema.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,26 +20,26 @@ import java.util.stream.Collectors;
  */
 public final class Schema implements Serializable {
     private String description;
-    private Set<Operation> queries = new HashSet<>();
-    private Set<Operation> mutations = new HashSet<>();
-    private Set<Operation> subscriptions = new HashSet<>();
-    private Set<Operation> resolvers = new HashSet<>();
+    private Set<Operation> queries = new LinkedHashSet<>();
+    private Set<Operation> mutations = new LinkedHashSet<>();
+    private Set<Operation> subscriptions = new LinkedHashSet<>();
+    private Set<Operation> resolvers = new LinkedHashSet<>();
 
-    private Map<String, NamespaceContainer> namespacedQueries = new HashMap<>();
-    private Map<String, NamespaceContainer> namespacedMutations = new HashMap<>();
+    private Map<String, NamespaceContainer> namespacedQueries = new LinkedHashMap<>();
+    private Map<String, NamespaceContainer> namespacedMutations = new LinkedHashMap<>();
 
     private List<CustomScalarType> customScalarTypes = new ArrayList<>();
     private List<DirectiveType> directiveTypes = new ArrayList<>();
-    private Map<String, InputType> inputs = new HashMap<>();
-    private Map<String, Type> types = new HashMap<>();
-    private Map<String, Type> interfaces = new HashMap<>();
-    private Map<String, UnionType> unions = new HashMap<>();
-    private Map<String, EnumType> enums = new HashMap<>();
+    private Map<String, InputType> inputs = new LinkedHashMap<>();
+    private Map<String, Type> types = new LinkedHashMap<>();
+    private Map<String, Type> interfaces = new LinkedHashMap<>();
+    private Map<String, UnionType> unions = new LinkedHashMap<>();
+    private Map<String, EnumType> enums = new LinkedHashMap<>();
 
-    private Map<String, ErrorInfo> errors = new HashMap<>();
+    private Map<String, ErrorInfo> errors = new LinkedHashMap<>();
 
-    private Map<String, String> wrappedDataFetchers = new HashMap<>();
-    private Map<String, String> fieldDataFetchers = new HashMap<>();
+    private Map<String, String> wrappedDataFetchers = new LinkedHashMap<>();
+    private Map<String, String> fieldDataFetchers = new LinkedHashMap<>();
     private List<DirectiveInstance> directiveInstances = new ArrayList<>();
 
     public Schema() {
@@ -58,7 +58,7 @@ public final class Schema implements Serializable {
     }
 
     public Set<Operation> getAllOperations() {
-        Set<Operation> operations = new HashSet<>();
+        Set<Operation> operations = new LinkedHashSet<>();
         operations.addAll(queries);
         operations.addAll(mutations);
         operations.addAll(subscriptions);
