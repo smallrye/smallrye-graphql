@@ -15,7 +15,7 @@
     
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
-        <react.version>19.1.0</react.version>
+        <react.version>19.2.5</react.version>
         <graphiql.version>5.2.2</graphiql.version>
     </properties>
     
