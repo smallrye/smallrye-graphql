@@ -16,7 +16,7 @@ import io.smallrye.graphql.client.websocket.WebsocketSubprotocol;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
@@ -37,12 +37,13 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
     private Map<String, Uni<String>> dynamicHeaders;
     private final Map<String, Object> initPayload;
     private WebClientOptions options;
+    private WebSocketClientOptions webSocketClientOptions;
     private List<WebsocketSubprotocol> subprotocols;
     private Integer subscriptionInitializationTimeout;
     private Boolean allowUnexpectedResponseFields;
 
     public VertxDynamicGraphQLClientBuilder() {
-        headersMap = new HeadersMultiMap();
+        headersMap = MultiMap.caseInsensitiveMultiMap();
         dynamicHeaders = new HashMap<>();
         initPayload = new HashMap<>();
         headersMap.set("Content-Type", "application/json");
@@ -81,6 +82,11 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
 
     public VertxDynamicGraphQLClientBuilder options(WebClientOptions options) {
         this.options = options;
+        return this;
+    }
+
+    public VertxDynamicGraphQLClientBuilder webSocketClientOptions(WebSocketClientOptions webSocketClientOptions) {
+        this.webSocketClientOptions = webSocketClientOptions;
         return this;
     }
 
@@ -157,8 +163,9 @@ public class VertxDynamicGraphQLClientBuilder implements DynamicGraphQLClientBui
             allowUnexpectedResponseFields = false;
         }
         return new VertxDynamicGraphQLClient(toUseVertx, webClient, url, websocketUrl,
-                executeSingleOperationsOverWebsocket, headersMap, dynamicHeaders, initPayload, options, subprotocols,
-                subscriptionInitializationTimeout, allowUnexpectedResponseFields);
+                executeSingleOperationsOverWebsocket, headersMap, dynamicHeaders, initPayload, options,
+                webSocketClientOptions, subprotocols, subscriptionInitializationTimeout,
+                allowUnexpectedResponseFields);
     }
 
     /**

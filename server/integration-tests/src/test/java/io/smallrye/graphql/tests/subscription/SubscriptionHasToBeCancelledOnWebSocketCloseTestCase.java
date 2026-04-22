@@ -24,7 +24,7 @@ import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import io.smallrye.mutiny.Multi;
-import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.WebSocketClient;
 
 /**
  * Verify that subscription gets cancelled properly on the server side when a client websocket connection
@@ -96,9 +96,9 @@ public class SubscriptionHasToBeCancelledOnWebSocketCloseTestCase {
     }
 
     private void closeUnderlyingHttpClient(DynamicGraphQLClient client) throws NoSuchFieldException, IllegalAccessException {
-        Field httpClientField = VertxDynamicGraphQLClient.class.getDeclaredField("httpClient");
-        httpClientField.setAccessible(true);
-        HttpClient httpClient = (HttpClient) httpClientField.get(client);
-        httpClient.close();
+        Field webSocketClientField = VertxDynamicGraphQLClient.class.getDeclaredField("webSocketClient");
+        webSocketClientField.setAccessible(true);
+        WebSocketClient webSocketClient = (WebSocketClient) webSocketClientField.get(client);
+        webSocketClient.close();
     }
 }

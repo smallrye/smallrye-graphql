@@ -31,6 +31,8 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.WebSocketClient;
+import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
@@ -50,6 +52,8 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     private HttpClientOptions options;
     private WebClient webClient;
     private HttpClient httpClient;
+    private WebSocketClient webSocketClient;
+    private WebSocketClientOptions webSocketClientOptions;
     private Integer websocketInitializationTimeout;
     private Boolean allowUnexpectedResponseFields;
     private ClientModels clientModels;
@@ -77,6 +81,11 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     @SuppressWarnings("unused")
     public VertxTypesafeGraphQLClientBuilder options(HttpClientOptions options) {
         this.options = options;
+        return this;
+    }
+
+    public VertxTypesafeGraphQLClientBuilder webSocketClientOptions(WebSocketClientOptions webSocketClientOptions) {
+        this.webSocketClientOptions = webSocketClientOptions;
         return this;
     }
 
@@ -193,7 +202,7 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         VertxTypesafeGraphQLClientProxy graphQLClient = new VertxTypesafeGraphQLClientProxy(apiClass, clientModel, headers,
                 dynamicHeaders, initPayload,
                 endpoint,
-                websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, subprotocols,
+                websocketUrl, executeSingleOperationsOverWebsocket, httpClient, webClient, webSocketClient, subprotocols,
                 websocketInitializationTimeout,
                 allowUnexpectedResponseFields);
 
@@ -215,16 +224,19 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
     }
 
     private void initClients() {
+        Vertx vertxInstance = vertx();
         if (webClient == null) {
             if (httpClient == null) {
-                httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
+                httpClient = options != null ? vertxInstance.createHttpClient(options) : vertxInstance.createHttpClient();
             }
             webClient = WebClient.wrap(httpClient);
         } else {
             if (httpClient == null) {
-                httpClient = options != null ? vertx().createHttpClient(options) : vertx().createHttpClient();
+                httpClient = options != null ? vertxInstance.createHttpClient(options) : vertxInstance.createHttpClient();
             }
         }
+        webSocketClient = vertxInstance.createWebSocketClient(
+                VertxClientOptionsHelper.buildWebSocketClientOptions(options, webSocketClientOptions));
     }
 
     private Vertx vertx() {

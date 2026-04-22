@@ -18,10 +18,8 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -54,9 +52,8 @@ import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebsocketVersion;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.http.WebSocketClient;
+import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
@@ -75,6 +72,7 @@ class VertxTypesafeGraphQLClientProxy {
     private final ServiceURLSupplier websocketUrl;
     private final HttpClient httpClient;
     private final WebClient webClient;
+    private final WebSocketClient webSocketClient;
     private final List<WebsocketSubprotocol> subprotocols;
     private final Integer subscriptionInitializationTimeout;
     private final Class<?> api;
@@ -102,6 +100,7 @@ class VertxTypesafeGraphQLClientProxy {
             boolean executeSingleOperationsOverWebsocket,
             HttpClient httpClient,
             WebClient webClient,
+            WebSocketClient webSocketClient,
             List<WebsocketSubprotocol> subprotocols,
             Integer subscriptionInitializationTimeout,
             boolean allowUnexpectedResponseFields) {
@@ -131,6 +130,7 @@ class VertxTypesafeGraphQLClientProxy {
         this.executeSingleOperationsOverWebsocket = executeSingleOperationsOverWebsocket;
         this.httpClient = httpClient;
         this.webClient = webClient;
+        this.webSocketClient = webSocketClient;
         this.subprotocols = subprotocols;
         this.subscriptionInitializationTimeout = subscriptionInitializationTimeout;
         this.allowUnexpectedResponseFields = allowUnexpectedResponseFields;
@@ -141,7 +141,7 @@ class VertxTypesafeGraphQLClientProxy {
             return method.invoke(this);
         }
 
-        MultiMap headers = HeadersMultiMap.headers()
+        MultiMap headers = MultiMap.caseInsensitiveMultiMap()
                 .addAll(new HeaderBuilder(api, method, additionalHeaders).build());
         JsonObject request = request(method);
 
@@ -163,7 +163,7 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
-        MultiMap allHeaders = new HeadersMultiMap();
+        MultiMap allHeaders = MultiMap.caseInsensitiveMultiMap();
         allHeaders.addAll(headers);
         // obtain values of dynamic headers and add them to the request
         for (Map.Entry<String, Uni<String>> dynamicHeaderEntry : dynamicHeaders.entrySet()) {
@@ -182,7 +182,7 @@ class VertxTypesafeGraphQLClientProxy {
             MultiMap headers) {
         return Uni.createFrom().deferred(() -> {
             // Fresh headers per (re)subscription
-            HeadersMultiMap attemptHeaders = new HeadersMultiMap();
+            MultiMap attemptHeaders = MultiMap.caseInsensitiveMultiMap();
             attemptHeaders.addAll(headers);
 
             // Gather dynamic headers, preserving multi-values
@@ -199,7 +199,7 @@ class VertxTypesafeGraphQLClientProxy {
                     : Uni.combine().all().unis(headerUnis).discardItems();
 
             return ready
-                    .chain(() -> Uni.createFrom().completionStage(postAsync(request.toString(), attemptHeaders)))
+                    .chain(() -> postAsync(request.toString(), attemptHeaders))
                     .invoke(response -> {
                         if (log.isTraceEnabled() && response != null) {
                             log.tracef("response graphql: %s", response.bodyAsString());
@@ -281,24 +281,25 @@ class VertxTypesafeGraphQLClientProxy {
             if (currentValue == null) {
                 return Uni.createFrom().<WebSocketSubprotocolHandler> emitter(handlerEmitter -> {
                     List<String> subprotocolIds = subprotocols.stream().map(i -> i.getProtocolId()).collect(toList());
-                    MultiMap headers = HeadersMultiMap.headers()
+                    MultiMap headers = MultiMap.caseInsensitiveMultiMap()
                             .addAll(new HeaderBuilder(api, null, additionalHeaders).build());
                     websocketUrl.get().subscribe().with(wsUrl -> {
-                        httpClient.webSocketAbs(wsUrl, headers, WebsocketVersion.V13, subprotocolIds,
-                                result -> {
-                                    if (result.succeeded()) {
-                                        WebSocket webSocket = result.result();
-                                        WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
-                                                .createHandlerFor(webSocket.subProtocol(), webSocket,
-                                                        subscriptionInitializationTimeout, initPayload, () -> {
-                                                            webSocketHandler.set(null);
-                                                        });
-                                        handlerEmitter.complete(handler);
-                                        log.debug("Using websocket subprotocol handler: " + handler);
-                                    } else {
-                                        handlerEmitter.fail(result.cause());
-                                        webSocketHandler.set(null);
-                                    }
+                        webSocketClient.connect(new WebSocketConnectOptions()
+                                .setAbsoluteURI(wsUrl)
+                                .setHeaders(headers)
+                                .setSubProtocols(subprotocolIds))
+                                .onSuccess(webSocket -> {
+                                    WebSocketSubprotocolHandler handler = BuiltinWebsocketSubprotocolHandlers
+                                            .createHandlerFor(webSocket.subProtocol(), webSocket,
+                                                    subscriptionInitializationTimeout, initPayload, () -> {
+                                                        webSocketHandler.set(null);
+                                                    });
+                                    handlerEmitter.complete(handler);
+                                    log.debug("Using websocket subprotocol handler: " + handler);
+                                })
+                                .onFailure(err -> {
+                                    webSocketHandler.set(null);
+                                    handlerEmitter.fail(err);
                                 });
                     });
                 }).memoize().indefinitely();
@@ -463,28 +464,24 @@ class VertxTypesafeGraphQLClientProxy {
         return builder.build();
     }
 
-    private CompletionStage<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {
-        return endpoint.get().subscribeAsCompletionStage()
-                .thenCompose(url -> webClient.postAbs(url)
-                        .putHeaders(headers)
-                        .sendBuffer(Buffer.buffer(request))
-                        .toCompletionStage());
+    private Uni<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {
+        return endpoint.get()
+                .chain(url -> Uni.createFrom().completionStage(
+                        webClient.postAbs(url)
+                                .putHeaders(headers)
+                                .sendBuffer(Buffer.buffer(request))::toCompletionStage));
     }
 
     private HttpResponse<Buffer> postSync(String request, MultiMap headers) {
-        Future<HttpResponse<Buffer>> future = webClient.postAbs(endpoint.get().await().indefinitely())
+        return webClient.postAbs(endpoint.get().await().indefinitely())
                 .putHeaders(headers)
-                .sendBuffer(Buffer.buffer(request));
-        try {
-            return future.toCompletionStage().toCompletableFuture().get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Request failed", e);
-        }
+                .sendBuffer(Buffer.buffer(request))
+                .await();
     }
 
     void close() {
         try {
-            httpClient.close();
+            Future.join(httpClient.close(), webSocketClient.close()).await();
         } catch (Throwable t) {
             log.warn(t);
         }

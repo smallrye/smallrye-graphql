@@ -11,10 +11,10 @@ import graphql.Assert;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 
 public class DynamicClientHeadersTest {
 
@@ -33,13 +33,12 @@ public class DynamicClientHeadersTest {
                     LAST_REQUEST_SENT.set(event);
                     event.response().end();
                 })
-                .listen(0)
-                .toCompletionStage().toCompletableFuture().get();
+                .listen(0).await();
     }
 
     @AfterAll
     public static void stopHttpServer() throws ExecutionException, InterruptedException {
-        httpServer.close().toCompletionStage().toCompletableFuture().get();
+        httpServer.close().await();
     }
 
     @Test
@@ -47,7 +46,7 @@ public class DynamicClientHeadersTest {
         VertxDynamicGraphQLClient client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url("http://localhost:" + httpServer.actualPort())
                 .build();
-        HeadersMultiMap headers = new HeadersMultiMap();
+        MultiMap headers = MultiMap.caseInsensitiveMultiMap();
         headers.add("Header1", "Value1");
         try {
             client.executeSync("{foo {bar}}", headers);

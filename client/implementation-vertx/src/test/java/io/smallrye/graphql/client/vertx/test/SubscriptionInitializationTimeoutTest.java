@@ -64,6 +64,6 @@ public class SubscriptionInitializationTimeoutTest {
                 System.out.println("INITIALIZED");
             }
         });
-        return server.listen(0).toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+        return server.listen(0).await(10, TimeUnit.SECONDS);
     }
 }

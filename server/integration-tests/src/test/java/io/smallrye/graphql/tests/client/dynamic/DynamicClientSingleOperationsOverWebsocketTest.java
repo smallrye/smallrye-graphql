@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.core.http.WebSocketClientOptions;
 
 @ExtendWith(ArquillianExtension.class)
 @RunAsClient
@@ -18,7 +18,7 @@ public class DynamicClientSingleOperationsOverWebsocketTest extends DynamicClien
     public void prepare() {
         client = (VertxDynamicGraphQLClient) new VertxDynamicGraphQLClientBuilder()
                 .url(testingURL.toString() + "graphql")
-                .options(new WebClientOptions().setMaxWebSocketMessageSize(Integer.MAX_VALUE))
+                .webSocketClientOptions(new WebSocketClientOptions().setMaxMessageSize(Integer.MAX_VALUE))
                 .executeSingleOperationsOverWebsocket(true)
                 .build();
     }

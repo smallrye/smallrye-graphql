@@ -28,7 +28,7 @@ public class SSLTestingTools {
             KeyStore keyStore = SSLTools.createKeyStore(keystorePath, "PKCS12", keystorePassword);
             keystoreOptions.setValue(SSLTools.asBuffer(keyStore, keystorePassword.toCharArray()));
             keystoreOptions.setPassword(keystorePassword);
-            options.setKeyStoreOptions(keystoreOptions);
+            options.setKeyCertOptions(keystoreOptions);
         }
         if (truststorePath != null) {
             options.setClientAuth(ClientAuth.REQUIRED);
@@ -36,7 +36,7 @@ public class SSLTestingTools {
             KeyStore trustStore = SSLTools.createKeyStore(truststorePath, "PKCS12", truststorePassword);
             truststoreOptions.setValue(SSLTools.asBuffer(trustStore, truststorePassword.toCharArray()));
             truststoreOptions.setPassword(truststorePassword);
-            options.setTrustStoreOptions(truststoreOptions);
+            options.setTrustOptions(truststoreOptions);
         }
 
         HttpServer server = vertx.createHttpServer(options);
@@ -49,7 +49,7 @@ public class SSLTestingTools {
                     "}");
         });
 
-        return server.listen(0).toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+        return server.listen(0).await(10, TimeUnit.SECONDS);
     }
 
 }
