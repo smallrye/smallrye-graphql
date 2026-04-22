@@ -6,6 +6,8 @@ import io.smallrye.graphql.client.impl.GraphQLClientConfiguration;
 import io.smallrye.graphql.client.vertx.ssl.SSLTools;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.WebSocketClientOptions;
+import io.vertx.core.net.ClientOptionsBase;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyCertOptions;
 import io.vertx.core.net.ProxyOptions;
@@ -16,13 +18,20 @@ import io.vertx.core.net.TrustOptions;
 public class VertxClientOptionsHelper {
 
     public static void applyConfigToVertxOptions(HttpClientOptions options, GraphQLClientConfiguration configuration) {
-        configure(options, configuration);
+        applyConfigToClientOptions(options, configuration);
+        if (configuration.getMaxRedirects() != null) {
+            options.setMaxRedirects(configuration.getMaxRedirects());
+        }
+    }
+
+    public static void applyConfigToClientOptions(ClientOptionsBase options, GraphQLClientConfiguration configuration) {
+        configureSSL(options, configuration);
         TrustOptions tlsTrustStoreOptions = (TrustOptions) configuration.getTlsTrustStoreOptions();
         KeyCertOptions tlsKeyStoreOptions = (KeyCertOptions) configuration.getTlsKeyStoreOptions();
         if (tlsTrustStoreOptions != null) {
             options.setSsl(true);
             options.setTrustOptions(tlsTrustStoreOptions);
-        } else if (options.getTrustStoreOptions() == null && configuration.getTrustStore() != null) { // deprecated in Quarkus
+        } else if (options.getTrustOptions() == null && configuration.getTrustStore() != null) { // deprecated in Quarkus
             options.setSsl(true);
             JksOptions trustStoreOptions = new JksOptions();
             KeyStore trustStore = SSLTools.createKeyStore(configuration.getTrustStore(),
@@ -30,12 +39,12 @@ public class VertxClientOptionsHelper {
                     configuration.getTrustStorePassword());
             trustStoreOptions.setValue(SSLTools.asBuffer(trustStore, configuration.getTrustStorePassword().toCharArray()));
             trustStoreOptions.setPassword(new String(configuration.getTrustStorePassword()));
-            options.setTrustStoreOptions(trustStoreOptions);
+            options.setTrustOptions(trustStoreOptions);
         }
         if (tlsKeyStoreOptions != null) {
             options.setSsl(true);
             options.setKeyCertOptions(tlsKeyStoreOptions);
-        } else if (options.getKeyStoreOptions() == null && configuration.getKeyStore() != null) { // deprecated in Quarkus
+        } else if (options.getKeyCertOptions() == null && configuration.getKeyStore() != null) { // deprecated in Quarkus
             options.setSsl(true);
             JksOptions keyStoreOptions = new JksOptions();
             KeyStore keyStore = SSLTools.createKeyStore(configuration.getKeyStore(),
@@ -43,7 +52,7 @@ public class VertxClientOptionsHelper {
                     configuration.getKeyStorePassword());
             keyStoreOptions.setValue(SSLTools.asBuffer(keyStore, configuration.getKeyStorePassword().toCharArray()));
             keyStoreOptions.setPassword(new String(configuration.getKeyStorePassword()));
-            options.setKeyStoreOptions(keyStoreOptions);
+            options.setKeyCertOptions(keyStoreOptions);
         }
 
         if (options.getProxyOptions() == null && configuration.getProxyHost() != null) {
@@ -60,10 +69,6 @@ public class VertxClientOptionsHelper {
             }
             options.setProxyOptions(proxyOptions);
         }
-
-        if (configuration.getMaxRedirects() != null) {
-            options.setMaxRedirects(configuration.getMaxRedirects());
-        }
     }
 
     private static ProxyType toVertxProxyType(GraphQLClientConfiguration.ProxyType proxyType) {
@@ -77,11 +82,47 @@ public class VertxClientOptionsHelper {
         };
     }
 
-    private static void configure(HttpClientOptions options, GraphQLClientConfiguration graphQLClientConfiguration) {
-        options.setForceSni(graphQLClientConfiguration.usesSni() != null && graphQLClientConfiguration.usesSni());
+    public static WebSocketClientOptions buildWebSocketClientOptions(ClientOptionsBase httpOptions,
+            WebSocketClientOptions userOptions) {
+        WebSocketClientOptions wsOptions = userOptions != null
+                ? new WebSocketClientOptions(userOptions)
+                : new WebSocketClientOptions();
+        if (httpOptions != null) {
+            wsOptions.setSsl(httpOptions.isSsl());
+            wsOptions.setTrustAll(httpOptions.isTrustAll());
+            if (httpOptions.getTrustOptions() != null) {
+                wsOptions.setTrustOptions(httpOptions.getTrustOptions());
+            }
+            if (httpOptions.getKeyCertOptions() != null) {
+                wsOptions.setKeyCertOptions(httpOptions.getKeyCertOptions());
+            }
+            if (httpOptions.getProxyOptions() != null) {
+                wsOptions.setProxyOptions(httpOptions.getProxyOptions());
+            }
+            if (httpOptions.getNonProxyHosts() != null) {
+                for (String nonProxyHost : httpOptions.getNonProxyHosts()) {
+                    wsOptions.addNonProxyHost(nonProxyHost);
+                }
+            }
+            if (httpOptions instanceof HttpClientOptions httpClientOptions) {
+                wsOptions.setVerifyHost(httpClientOptions.isVerifyHost());
+            }
+        }
+        return wsOptions;
+    }
+
+    private static void configureSSL(ClientOptionsBase options, GraphQLClientConfiguration graphQLClientConfiguration) {
+        if (options instanceof HttpClientOptions httpOptions) {
+            httpOptions.setForceSni(
+                    graphQLClientConfiguration.usesSni() != null && graphQLClientConfiguration.usesSni());
+        }
         if (graphQLClientConfiguration.getHostnameVerificationAlgorithm() == null
                 || graphQLClientConfiguration.getHostnameVerificationAlgorithm().equals("NONE")) {
-            options.setVerifyHost(false);
+            if (options instanceof HttpClientOptions httpOptions) {
+                httpOptions.setVerifyHost(false);
+            } else if (options instanceof WebSocketClientOptions wsOptions) {
+                wsOptions.setVerifyHost(false);
+            }
         }
         SSLOptions sslOptions = (SSLOptions) graphQLClientConfiguration.getSslOptions();
         if (sslOptions != null) {

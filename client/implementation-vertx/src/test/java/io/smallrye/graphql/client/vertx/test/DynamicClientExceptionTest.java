@@ -70,7 +70,7 @@ public class DynamicClientExceptionTest {
                 event.response().end("BAD RESPONSE");
             }
         });
-        return server.listen(0).toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+        return server.listen(0).await(10, TimeUnit.SECONDS);
     }
 
     @AfterAll

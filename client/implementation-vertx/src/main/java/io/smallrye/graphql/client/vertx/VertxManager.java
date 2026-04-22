@@ -7,9 +7,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.file.FileSystemOptions;
-import io.vertx.core.spi.resolver.ResolverProvider;
 
 public class VertxManager {
+
+    public static final String VERTX_DISABLE_DNS_RESOLVER_SYS_PROP = "vertx.disableDnsResolver";
 
     private static volatile Vertx globalInstance;
     private static volatile Vertx customInstance;
@@ -70,8 +71,8 @@ public class VertxManager {
                     // when creating our own vert.x instance, we don't allow
                     // explicitly configuring it, but it should be reasonable
                     // to disable caching and the async DNS resolver
-                    if (!System.getProperties().contains(ResolverProvider.DISABLE_DNS_RESOLVER_PROP_NAME)) {
-                        System.setProperty(ResolverProvider.DISABLE_DNS_RESOLVER_PROP_NAME, "true");
+                    if (!System.getProperties().containsKey(VERTX_DISABLE_DNS_RESOLVER_SYS_PROP)) {
+                        System.setProperty(VERTX_DISABLE_DNS_RESOLVER_SYS_PROP, "true");
                     }
                     FileSystemOptions fso = new FileSystemOptions();
                     fso.setFileCachingEnabled(false);
