@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-ui-parent</artifactId>
-        <version>3.0.0.Beta1</version>
+        <version>3.0.0.Beta2-SNAPSHOT</version>
     </parent>
     
     <artifactId>smallrye-graphql-ui-graphiql</artifactId>
@@ -136,8 +136,4 @@
         </plugins>
         
     </build>
-
-  <scm>
-    <tag>3.0.0.Beta1</tag>
-  </scm>
 </project>
