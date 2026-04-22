@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-server-parent</artifactId>
-        <version>2.18.1-SNAPSHOT</version>
+        <version>3.0.0.Beta1</version>
     </parent>
     
     <artifactId>smallrye-graphql-cdi</artifactId>
@@ -255,4 +255,8 @@
             </build>
         </profile>
     </profiles>
+
+  <scm>
+    <tag>3.0.0.Beta1</tag>
+  </scm>
 </project>
