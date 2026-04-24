@@ -38,7 +38,7 @@
 	    <version.graphql-java>25.0</version.graphql-java>
         <version.extended-scalars>24.0</version.extended-scalars>
         <verison.io.micrometer>1.16.5</verison.io.micrometer>
-        <version.vertx>4.5.4</version.vertx>
+        <version.vertx>4.5.26</version.vertx>
         <version.smallrye-opentelemetry>2.12.0</version.smallrye-opentelemetry>
 
 
