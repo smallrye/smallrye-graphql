@@ -99,7 +99,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${version.kotlin.compiler}</version>
+                <version>${version.kotlin}</version>
                 <executions>
                     <execution>
                         <id>test-compile</id>
