@@ -6,23 +6,14 @@ updates:
     interval: daily
   open-pull-requests-limit: 10
   rebase-strategy: disabled
-  ignore:
-  - dependency-name: io.smallrye.config:smallrye-config
-    versions:
-    - 2.2.0
-  - dependency-name: org.eclipse.jetty:jetty-bom
-    versions:
-    - 11.0.1
-    - 11.0.2
-  - dependency-name: org.eclipse:yasson
-    versions:
-    - 2.0.2
-  - dependency-name: org.jboss.weld:weld-junit5
-    versions:
-    - 3.0.0.Final
-  - dependency-name: org.hibernate.validator:hibernate-validator
-    versions:
-    - 7.0.1.Final
+  target-branch: "main"
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  rebase-strategy: disabled
+  target-branch: "2.x"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
