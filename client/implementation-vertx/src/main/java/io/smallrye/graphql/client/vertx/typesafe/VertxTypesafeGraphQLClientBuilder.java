@@ -80,6 +80,14 @@ public class VertxTypesafeGraphQLClientBuilder implements TypesafeGraphQLClientB
         return this;
     }
 
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    public String getConfigKey() {
+        return configKey;
+    }
+
     @Override
     public VertxTypesafeGraphQLClientBuilder endpoint(URI endpoint) {
         this.endpoint = endpoint;

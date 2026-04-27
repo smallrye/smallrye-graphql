@@ -391,6 +391,10 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return RequestImpl.builder(query).variables(variables).operationName(operationName).build();
     }
 
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
     @Override
     public void close() {
         try {

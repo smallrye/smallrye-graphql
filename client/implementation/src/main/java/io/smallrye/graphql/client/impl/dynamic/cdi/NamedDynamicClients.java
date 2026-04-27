@@ -41,6 +41,10 @@ public class NamedDynamicClients {
                 name -> DynamicGraphQLClientBuilder.newBuilder().configKey(name).build());
     }
 
+    public Map<String, DynamicGraphQLClient> getCreatedClients() {
+        return createdClients;
+    }
+
     @PreDestroy
     void cleanup() {
         createdClients.values().forEach(client -> {
