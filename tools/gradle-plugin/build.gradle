@@ -28,17 +28,18 @@ repositories {
 
 dependencies {
     api gradleApi()
-    implementation "io.smallrye:jandex:3.0.0"
-    implementation "io.smallrye:smallrye-graphql:${version}"
-    implementation "io.smallrye:smallrye-graphql-schema-builder:${version}"
-    implementation "jakarta.json.bind:jakarta.json.bind-api:2.0.0"
-    implementation "jakarta.validation:jakarta.validation-api:3.0.2"
-    implementation "org.eclipse:yasson:2.0.4"
-    implementation "org.jboss.logging:jboss-logging:3.6.1.Final"
+    implementation enforcedPlatform("io.smallrye:smallrye-graphql-parent:${version}")
+    implementation "io.smallrye:jandex"
+    implementation "io.smallrye:smallrye-graphql"
+    implementation "io.smallrye:smallrye-graphql-schema-builder"
+    implementation "jakarta.json.bind:jakarta.json.bind-api"
+    implementation "jakarta.validation:jakarta.validation-api"
+    implementation "org.eclipse:yasson"
+    implementation "org.jboss.logging:jboss-logging"
 
     testImplementation gradleTestKit()
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.0'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
