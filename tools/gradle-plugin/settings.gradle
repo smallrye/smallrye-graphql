@@ -1,14 +1,14 @@
 plugins {
-    id "com.gradle.enterprise" version "3.19.2"
+    id "com.gradle.develocity" version "4.4.2"
 }
 
-gradleEnterprise {
+develocity {
     buildScan {
         // plugin configuration
-        //See also: https://docs.gradle.com/enterprise/gradle-plugin/
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service';
-        termsOfServiceAgree = 'yes'
-        publishOnFailure()
+        //See also: https://docs.gradle.com/develocity/gradle/4.4/gradle-plugin/
+        termsOfUseUrl = 'https://gradle.com/legal/gradle-technologies-terms-of-use/'
+        termsOfUseAgree = 'yes'
+        publishing.onlyIf { !it.buildResult.failures.empty }
     }
 }
 
