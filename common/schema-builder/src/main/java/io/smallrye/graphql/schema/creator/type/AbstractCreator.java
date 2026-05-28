@@ -57,7 +57,7 @@ abstract class AbstractCreator implements Creator<Type> {
                 annotations,
                 referenceCreator.getTypeAutoNameStrategy(),
                 referenceType(),
-                reference.getClassParametrizedTypes());
+                reference.isAddParametrizedTypeNameExtension() ? reference.getParametrizedTypes() : null);
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

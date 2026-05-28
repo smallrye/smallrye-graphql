@@ -445,39 +445,102 @@ public class SchemaBuilderTest {
         Map<String, Type> outputTypes = schema.getTypes();
         Map<String, InputType> inputTypes = schema.getInputs();
 
-        assertEquals(7, queries.size());
-        assertEquals(8, outputTypes.size());
-        assertEquals(8, inputTypes.size());
+        assertEquals(13, queries.size());
+        assertEquals(14, outputTypes.size());
+        assertEquals(14, inputTypes.size());
 
-        assertType(outputTypes, "Bar", Set.of(new Pair("Int", "barField")));
-        assertType(outputTypes, "FirstClass",
-                Set.of(new Pair("Int", "firstClassField"), new Pair<>("Bar", "secondClassField")));
-        assertType(outputTypes, "SecondClass_Bar", Set.of(new Pair("Bar", "secondClassField")));
-        assertType(outputTypes, "ThirdClass_String",
-                Set.of(new Pair("String", "secondClassField"), new Pair("String", "thirdClassField")));
-        assertType(outputTypes, "FourthClass",
-                Set.of(new Pair("String", "fourthClassField"), new Pair("Bar", "fifthClassField1"),
-                        new Pair("String", "fifthClassField2")));
-        assertType(outputTypes, "FifthClass_Bar_String",
-                Set.of(new Pair("Bar", "fifthClassField1"), new Pair("String", "fifthClassField2")));
-        assertType(outputTypes, "NewFirstClass",
-                Set.of(new Pair("Float", "renamedFirstClassField"), new Pair<>("Bar", "secondClassField")));
-        assertType(outputTypes, "NewSecondClass_Bar", Set.of(new Pair("Bar", "renamedSecondClassField")));
+        assertType(outputTypes, "Bar", Map.of("barField", "Int!"));
+        assertType(outputTypes, "FirstClass", Map.of(
+                "firstClassField", "Int!",
+                "secondClassField", "Bar"));
+        assertType(outputTypes, "SecondClass_Bar", Map.of("secondClassField", "Bar"));
+        assertType(outputTypes, "ThirdClass_String", Map.of(
+                "secondClassField", "String",
+                "thirdClassField", "String"));
+        assertType(outputTypes, "FourthClass", Map.of(
+                "fourthClassField", "String",
+                "fifthClassField1", "Bar",
+                "fifthClassField2", "String"));
+        assertType(outputTypes, "FifthClass_Bar_String", Map.of(
+                "fifthClassField1", "Bar",
+                "fifthClassField2", "String"));
+        assertType(outputTypes, "NewFirstClass", Map.of(
+                "renamedFirstClassField", "Float!",
+                "secondClassField", "Bar"));
+        assertType(outputTypes, "NewSecondClass_Bar", Map.of("renamedSecondClassField", "Bar"));
 
-        assertType(inputTypes, "BarInput", Set.of(new Pair("Int", "barField")));
-        assertType(inputTypes, "FirstClassInput",
-                Set.of(new Pair("Int", "firstClassField"), new Pair<>("BarInput", "secondClassField")));
-        assertType(inputTypes, "SecondClass_BarInputInput", Set.of(new Pair("BarInput", "secondClassField")));
-        assertType(inputTypes, "ThirdClass_StringInput",
-                Set.of(new Pair("String", "secondClassField"), new Pair("String", "thirdClassField")));
-        assertType(inputTypes, "FourthClassInput",
-                Set.of(new Pair("String", "fourthClassField"), new Pair("BarInput", "fifthClassField1"),
-                        new Pair("String", "fifthClassField2")));
-        assertType(inputTypes, "FifthClass_String_BarInputInput",
-                Set.of(new Pair("String", "fifthClassField1"), new Pair("BarInput", "fifthClassField2")));
-        assertType(inputTypes, "NewFirstClassInput",
-                Set.of(new Pair("Float", "renamedFirstClassField"), new Pair<>("BarInput", "secondClassField")));
-        assertType(inputTypes, "NewSecondClassInput_BarInput", Set.of(new Pair("BarInput", "renamedSecondClassField")));
+        assertType(inputTypes, "BarInput", Map.of("barField", "Int!"));
+        assertType(inputTypes, "FirstClassInput", Map.of(
+                "firstClassField", "Int!",
+                "secondClassField", "BarInput"));
+        assertType(inputTypes, "SecondClass_BarInputInput", Map.of("secondClassField", "BarInput"));
+        assertType(inputTypes, "ThirdClass_StringInput", Map.of(
+                "secondClassField", "String",
+                "thirdClassField", "String"));
+        assertType(inputTypes, "FourthClassInput", Map.of(
+                "fourthClassField", "String",
+                "fifthClassField1", "BarInput",
+                "fifthClassField2", "String"));
+        assertType(inputTypes, "FifthClass_String_BarInputInput", Map.of(
+                "fifthClassField1", "String",
+                "fifthClassField2", "BarInput"));
+        assertType(inputTypes, "NewFirstClassInput", Map.of(
+                "renamedFirstClassField", "Float!",
+                "secondClassField", "BarInput"));
+        assertType(inputTypes, "NewSecondClassInput_BarInput", Map.of("renamedSecondClassField", "BarInput"));
+
+        // GenericLeaf -> GenericSpecialized<Integer> -> GenericMiddle<Integer> ->
+        // GenericBase<Integer>
+        assertType(outputTypes, "GenericLeaf", Map.of(
+                "baseField", "Int",
+                "baseArrayField", "[Int]"));
+        assertType(inputTypes, "GenericLeafInput", Map.of(
+                "baseField", "Int",
+                "baseArrayField", "[Int]"));
+
+        // GenericMiddle<String> used directly in query; B->String must propagate to
+        // GenericBase's A->String
+        assertType(outputTypes, "GenericMiddle_String_String", Map.of(
+                "baseField", "String",
+                "baseArrayField", "[String]"));
+        assertType(inputTypes, "GenericMiddle_String_StringInput", Map.of(
+                "baseField", "String",
+                "baseArrayField", "[String]"));
+
+        // FullyConcretePair -> HalfConcretePair<Bar> -> GenericPair<Bar, String>
+        assertType(outputTypes, "FullyConcretePair", Map.of(
+                "first", "Bar",
+                "second", "String"));
+        assertType(inputTypes, "FullyConcretePairInput", Map.of(
+                "first", "BarInput",
+                "second", "String"));
+
+        // ConcreteFromNonGeneric -> NonGenericMiddle -> GenericRoot<String>
+        assertType(outputTypes, "ConcreteFromNonGeneric", Map.of(
+                "rootField", "String",
+                "concreteField", "Int!"));
+        assertType(inputTypes, "ConcreteFromNonGenericInput", Map.of(
+                "rootField", "String",
+                "concreteField", "Int!"));
+
+        assertType(outputTypes, "LeafFromMiddleWithT", Map.of(
+                "middleValue", "String",
+                "middleArrayValue", "[String]",
+                "baseValue", "Int"));
+        assertType(inputTypes, "LeafFromMiddleWithTInput", Map.of(
+                "middleValue", "String",
+                "middleArrayValue", "[String]",
+                "baseValue", "Int"));
+
+        // NestedCollections — List<Integer>, List<List<Integer>>, List<List<List<Integer>>>
+        assertType(outputTypes, "NestedCollections", Map.of(
+                "singleList", "[Int]",
+                "doubleList", "[[Int]]",
+                "tripleList", "[[[Int]]]"));
+        assertType(inputTypes, "NestedCollectionsInput", Map.of(
+                "singleList", "[Int]",
+                "doubleList", "[[Int]]",
+                "tripleList", "[[[Int]]]"));
     }
 
     private Operation getQueryByName(Schema schema, String name) {
@@ -519,48 +582,21 @@ public class SchemaBuilderTest {
         }
     }
 
-    private void assertType(Map<String, ? extends Reference> types, String typeName, Set<Pair<String, String>> expectedFields) {
+    private void assertType(Map<String, ? extends Reference> types, String typeName,
+            Map<String, String> expectedFields) {
         Reference type = types.get(typeName);
-        assertNotNull(type);
+        assertNotNull(type, "Type '" + typeName + "' not found in schema");
 
         final Map<String, Field> fields = (type instanceof Type) ? ((Type) type).getFields() : ((InputType) type).getFields();
 
         assertNotNull(fields);
         assertEquals(expectedFields.size(), fields.size());
 
-        expectedFields.forEach((expectedField) -> {
-            Field actualField = fields.get(expectedField.getVal2());
-            assertNotNull(actualField);
-            assertEquals(expectedField.getVal1(), actualField.getReference().getName());
+        expectedFields.forEach((fieldName, expectedGraphQLType) -> {
+            Field actualField = fields.get(fieldName);
+            assertNotNull(actualField, "Field '" + fieldName + "' not found in type '" + typeName + "'");
+            assertEquals(expectedGraphQLType, actualField.getGraphQLType(),
+                    "Field '" + fieldName + "' in type '" + typeName + "'");
         });
-    }
-
-    private static class Pair<K, V> {
-        private K val1;
-        private V val2;
-
-        public K getVal1() {
-            return val1;
-        }
-
-        public void setVal1(K val1) {
-            this.val1 = val1;
-        }
-
-        public V getVal2() {
-            return val2;
-        }
-
-        public void setVal2(V val2) {
-            this.val2 = val2;
-        }
-
-        public Pair(K val1, V val2) {
-            this.val1 = val1;
-            this.val2 = val2;
-        }
-
-        public Pair() {
-        }
     }
 }

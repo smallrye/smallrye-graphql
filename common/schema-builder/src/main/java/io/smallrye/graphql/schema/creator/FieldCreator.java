@@ -100,7 +100,8 @@ public class FieldCreator extends ModelCreator {
             Type fieldType = getFieldType(fieldInfo, methodType);
 
             Reference reference = referenceCreator.createReferenceForPojoField(fieldType, methodType,
-                    annotationsForPojo, direction, parentObjectReference);
+                    annotationsForPojo, direction, parentObjectReference,
+                    methodInfo.declaringClass().name().toString());
 
             Field field = new Field(methodInfo.name(), MethodHelper.getPropertyName(direction, methodInfo.name()), name,
                     reference);
@@ -126,7 +127,8 @@ public class FieldCreator extends ModelCreator {
         Type fieldType = getFieldType(fieldInfo, method.parameterType(position));
 
         Reference reference = referenceCreator.createReferenceForPojoField(fieldType,
-                method.parameterType(position), annotationsForPojo, Direction.IN, parentObjectReference);
+                method.parameterType(position), annotationsForPojo, Direction.IN, parentObjectReference,
+                method.declaringClass().name().toString());
 
         String fieldName = fieldInfo != null ? fieldInfo.name() : null;
         Field field = new Field(null, fieldName, name, reference);
@@ -157,7 +159,8 @@ public class FieldCreator extends ModelCreator {
             Type fieldType = getFieldType(fieldInfo);
 
             Reference reference = referenceCreator.createReferenceForPojoField(fieldType, fieldType,
-                    annotationsForPojo, direction, parentObjectReference);
+                    annotationsForPojo, direction, parentObjectReference,
+                    fieldInfo.declaringClass().name().toString());
 
             Field field = new Field(null,
                     fieldInfo.name(),

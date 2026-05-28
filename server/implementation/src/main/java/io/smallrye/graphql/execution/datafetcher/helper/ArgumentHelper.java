@@ -463,14 +463,13 @@ public class ArgumentHelper extends AbstractHelper {
      */
     private Type getType(Reference reference) {
         Class<?> ownerClass = classloadingService.loadClass(reference.getClassName());
-        if (reference.getAllParametrizedTypes() == null
-                || reference.getAllParametrizedTypes().isEmpty()) {
+        if (!reference.hasParametrizedTypes()) {
             return ownerClass;
         }
 
         List<Type> typeParameters = new ArrayList<>();
         for (final TypeVariable<?> typeParameter : ownerClass.getTypeParameters()) {
-            final Reference typeRef = reference.getClassParametrizedType(typeParameter.getName());
+            final Reference typeRef = reference.findByIdentifier(typeParameter.getName());
             typeParameters.add(getType(typeRef));
         }
         final Type[] types = typeParameters.toArray(new Type[0]);
