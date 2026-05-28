@@ -36,10 +36,8 @@ public class DefaultMapAdapter<K, V> {
         for (Object e : entries) {
             Map<K, V> graphQLJavaMap = (Map<K, V>) e; // The entry complex type comes from graphql-java as an Map
 
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getAllParametrizedTypes();
-
-            Reference keyReference = parametrizedTypeArguments.get("K");
-            Reference valueReference = parametrizedTypeArguments.get("V");
+            Reference keyReference = field.getReference().findByIdentifier("K");
+            Reference valueReference = field.getReference().findByIdentifier("V");
 
             K k = (K) toObject(keyReference, graphQLJavaMap.get(KEY));
             V v = (V) toObject(valueReference, graphQLJavaMap.get(VALUE));
@@ -58,8 +56,7 @@ public class DefaultMapAdapter<K, V> {
             }
         } else {
 
-            Map<String, Reference> parametrizedTypeArguments = field.getReference().getAllParametrizedTypes();
-            Reference keyReference = parametrizedTypeArguments.get("K");
+            Reference keyReference = field.getReference().findByIdentifier("K");
 
             for (K k : key) {
 

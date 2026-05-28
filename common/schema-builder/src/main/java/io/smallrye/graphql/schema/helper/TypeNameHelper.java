@@ -1,6 +1,8 @@
 package io.smallrye.graphql.schema.helper;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
@@ -10,7 +12,7 @@ import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
-import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.ParametrizedTypeEntry;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
 /**
@@ -51,9 +53,9 @@ public class TypeNameHelper {
             Annotations annotationsForThisClass,
             TypeAutoNameStrategy autoNameStrategy,
             ReferenceType referenceType,
-            Map<String, Reference> classParametrizedTypes) {
+            Map<String, ParametrizedTypeEntry> parametrizedTypes) {
 
-        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(classParametrizedTypes);
+        String parametrizedTypeNameExtension = createParametrizedTypeNameExtension(parametrizedTypes);
 
         if (Classes.isEnum(classInfo)) {
             return getNameForClassType(classInfo, annotationsForThisClass, Annotations.ENUM, parametrizedTypeNameExtension,
@@ -75,13 +77,16 @@ public class TypeNameHelper {
         }
     }
 
-    public static String createParametrizedTypeNameExtension(Map<String, Reference> classParametrizedTypes) {
-        if (classParametrizedTypes == null || classParametrizedTypes.isEmpty())
+    public static String createParametrizedTypeNameExtension(Map<String, ParametrizedTypeEntry> parametrizedTypes) {
+        if (parametrizedTypes == null || parametrizedTypes.isEmpty())
             return null;
         StringBuilder sb = new StringBuilder();
-        for (Reference gp : classParametrizedTypes.values()) {
-            sb.append(UNDERSCORE);
-            sb.append(gp.getName());
+        Set<String> seen = new LinkedHashSet<>();
+        for (ParametrizedTypeEntry entry : parametrizedTypes.values()) {
+            if (seen.add(entry.getIdentifier())) {
+                sb.append(UNDERSCORE);
+                sb.append(entry.getReference().getName());
+            }
         }
         return sb.toString();
     }

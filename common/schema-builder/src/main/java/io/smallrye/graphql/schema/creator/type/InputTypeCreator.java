@@ -61,7 +61,7 @@ public class InputTypeCreator implements Creator<InputType> {
                 annotations,
                 fieldCreator.getTypeAutoNameStrategy(),
                 ReferenceType.INPUT,
-                reference.getClassParametrizedTypes());
+                reference.isAddParametrizedTypeNameExtension() ? reference.getParametrizedTypes() : null);
 
         // Description
         String description = DescriptionHelper.getDescriptionForType(annotations).orElse(null);

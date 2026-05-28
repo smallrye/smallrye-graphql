@@ -1,5 +1,7 @@
 package io.smallrye.graphql.index.generic.parametrized;
 
+import java.util.List;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.Query;
@@ -175,6 +177,228 @@ public class ParametrizedTypesResources {
 
     @Query
     public RenamedSecondClass<Bar> seventhQuery(RenamedSecondClass<Bar> renamedSecondClass) {
+        return null;
+    }
+
+    static class GenericBase<A> {
+        A baseField;
+        A[] baseArrayField;
+
+        public GenericBase() {
+        }
+
+        public A getBaseField() {
+            return baseField;
+        }
+
+        public void setBaseField(A baseField) {
+            this.baseField = baseField;
+        }
+
+        public A[] getBaseArrayField() {
+            return baseArrayField;
+        }
+
+        public void setBaseArrayField(A[] baseArrayField) {
+            this.baseArrayField = baseArrayField;
+        }
+    }
+
+    static class GenericMiddle<B> extends GenericBase<B> {
+
+        public GenericMiddle() {
+        }
+    }
+
+    static class GenericSpecialized<C extends Number> extends GenericMiddle<C> {
+
+        public GenericSpecialized() {
+        }
+    }
+
+    static class GenericLeaf extends GenericSpecialized<Integer> {
+
+        public GenericLeaf() {
+        }
+    }
+
+    static class GenericPair<X, Y> {
+        X first;
+        Y second;
+
+        public GenericPair() {
+        }
+
+        public X getFirst() {
+            return first;
+        }
+
+        public void setFirst(X first) {
+            this.first = first;
+        }
+
+        public Y getSecond() {
+            return second;
+        }
+
+        public void setSecond(Y second) {
+            this.second = second;
+        }
+    }
+
+    static class HalfConcretePair<T> extends GenericPair<T, String> {
+
+        public HalfConcretePair() {
+        }
+    }
+
+    static class FullyConcretePair extends HalfConcretePair<Bar> {
+
+        public FullyConcretePair() {
+        }
+    }
+
+    static class GenericRoot<R> {
+        R rootField;
+
+        public GenericRoot() {
+        }
+
+        public R getRootField() {
+            return rootField;
+        }
+
+        public void setRootField(R rootField) {
+            this.rootField = rootField;
+        }
+    }
+
+    static class NonGenericMiddle extends GenericRoot<String> {
+
+        public NonGenericMiddle() {
+        }
+    }
+
+    static class ConcreteFromNonGeneric extends NonGenericMiddle {
+        int concreteField;
+
+        public ConcreteFromNonGeneric() {
+        }
+
+        public int getConcreteField() {
+            return concreteField;
+        }
+
+        public void setConcreteField(int concreteField) {
+            this.concreteField = concreteField;
+        }
+    }
+
+    static class BaseWithT<T> {
+        T baseValue;
+
+        public BaseWithT() {
+        }
+
+        public T getBaseValue() {
+            return baseValue;
+        }
+
+        public void setBaseValue(T baseValue) {
+            this.baseValue = baseValue;
+        }
+    }
+
+    static class MiddleWithT<T> extends BaseWithT<Integer> {
+        T middleValue;
+        T[] middleArrayValue;
+
+        public MiddleWithT() {
+        }
+
+        public T getMiddleValue() {
+            return middleValue;
+        }
+
+        public void setMiddleValue(T middleValue) {
+            this.middleValue = middleValue;
+        }
+
+        public T[] getMiddleArrayValue() {
+            return middleArrayValue;
+        }
+
+        public void setMiddleArrayValue(T[] middleArrayValue) {
+            this.middleArrayValue = middleArrayValue;
+        }
+    }
+
+    static class LeafFromMiddleWithT extends MiddleWithT<String> {
+
+        public LeafFromMiddleWithT() {
+        }
+    }
+
+    @Query
+    public GenericLeaf genericLeafQuery(GenericLeaf input) {
+        return null;
+    }
+
+    @Query
+    public GenericMiddle<String> genericMiddleQuery(GenericMiddle<String> input) {
+        return null;
+    }
+
+    @Query
+    public FullyConcretePair fullyConcretePairQuery(FullyConcretePair input) {
+        return null;
+    }
+
+    @Query
+    public ConcreteFromNonGeneric concreteFromNonGenericQuery(ConcreteFromNonGeneric input) {
+        return null;
+    }
+
+    @Query
+    public LeafFromMiddleWithT leafFromMiddleWithTQuery(LeafFromMiddleWithT input) {
+        return null;
+    }
+
+    static class NestedCollections {
+        List<Integer> singleList;
+        List<List<Integer>> doubleList;
+        List<List<List<Integer>>> tripleList;
+
+        public NestedCollections() {
+        }
+
+        public List<Integer> getSingleList() {
+            return singleList;
+        }
+
+        public void setSingleList(List<Integer> singleList) {
+            this.singleList = singleList;
+        }
+
+        public List<List<Integer>> getDoubleList() {
+            return doubleList;
+        }
+
+        public void setDoubleList(List<List<Integer>> doubleList) {
+            this.doubleList = doubleList;
+        }
+
+        public List<List<List<Integer>>> getTripleList() {
+            return tripleList;
+        }
+
+        public void setTripleList(List<List<List<Integer>>> tripleList) {
+            this.tripleList = tripleList;
+        }
+    }
+
+    @Query
+    public NestedCollections nestedCollectionsQuery(NestedCollections input) {
         return null;
     }
 

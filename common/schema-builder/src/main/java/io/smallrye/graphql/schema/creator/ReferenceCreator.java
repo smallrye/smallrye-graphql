@@ -1,7 +1,6 @@
 package io.smallrye.graphql.schema.creator;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,6 +28,7 @@ import io.smallrye.graphql.schema.helper.TypeAutoNameStrategy;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.AdaptTo;
 import io.smallrye.graphql.schema.model.AdaptWith;
+import io.smallrye.graphql.schema.model.ParametrizedTypeEntry;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Scalars;
@@ -179,7 +179,16 @@ public class ReferenceCreator {
             Annotations annotations,
             Direction direction,
             Reference parentObjectReference) {
-        return getReference(direction, fieldType, methodType, annotations, parentObjectReference);
+        return createReferenceForPojoField(fieldType, methodType, annotations, direction, parentObjectReference, null);
+    }
+
+    public Reference createReferenceForPojoField(Type fieldType,
+            Type methodType,
+            Annotations annotations,
+            Direction direction,
+            Reference parentObjectReference,
+            String declaringClassName) {
+        return getReference(direction, fieldType, methodType, annotations, parentObjectReference, declaringClassName);
     }
 
     /**
@@ -195,8 +204,7 @@ public class ReferenceCreator {
             ClassInfo classInfo,
             boolean createAdapedToType,
             boolean createAdapedWithType,
-            Map<String, Reference> classParametrizedTypes,
-            Map<String, Reference> extendedClassParametrizedTypes,
+            Map<String, ParametrizedTypeEntry> parametrizedTypes,
             boolean addParametrizedTypeNameExtension) {
 
         Annotations annotationsForClass = Annotations.getAnnotationsForClass(classInfo);
@@ -211,8 +219,7 @@ public class ReferenceCreator {
                 // TODO: First check the class annotations for @Type, if we get one that has that, use it, else any/all
                 // ?
 
-                // translate parametrizedTypeArgumentsReferences to match class implementing interface
-                Map<String, Reference> parametrizedTypeArgumentsReferencesImpl = null;
+                Map<String, ParametrizedTypeEntry> parametrizedTypeArgumentsReferencesImpl = null;
                 if (!classInfo.typeParameters().isEmpty()) {
                     ParameterizedType interfaceType = null;
                     for (Type it : impl.interfaceTypes()) {
@@ -220,22 +227,25 @@ public class ReferenceCreator {
                             interfaceType = it.asParameterizedType();
                         }
                     }
-                    parametrizedTypeArgumentsReferencesImpl = new HashMap<>();
+                    parametrizedTypeArgumentsReferencesImpl = new LinkedHashMap<>();
+                    String implClassName = impl.name().toString();
                     int i = 0;
                     for (TypeVariable tp : classInfo.typeParameters()) {
                         Type type = interfaceType.arguments().get(i++);
                         if (type.kind() == Type.Kind.TYPE_VARIABLE) {
-                            parametrizedTypeArgumentsReferencesImpl.put(
-                                    type.asTypeVariable().identifier(),
-                                    classParametrizedTypes.get(tp.identifier()));
+                            String implId = type.asTypeVariable().identifier();
+                            Reference ref = findReferenceByIdentifier(parametrizedTypes, tp.identifier());
+                            if (ref != null) {
+                                parametrizedTypeArgumentsReferencesImpl.put(
+                                        compositeKey(implClassName, implId),
+                                        new ParametrizedTypeEntry(implClassName, implId, ref));
+                            }
                         }
                     }
-
                 }
 
                 createReference(direction, impl, createAdapedToType, createAdapedWithType,
                         parametrizedTypeArgumentsReferencesImpl,
-                        null, // todo: maybe?
                         referenceType.equals(ReferenceType.INTERFACE));
             }
         }
@@ -244,7 +254,7 @@ public class ReferenceCreator {
                 annotationsForClass,
                 this.autoNameStrategy,
                 referenceType,
-                classParametrizedTypes);
+                addParametrizedTypeNameExtension ? parametrizedTypes : null);
 
         Reference existing = getIfExist(name, referenceType);
 
@@ -257,8 +267,7 @@ public class ReferenceCreator {
                 .className(className)
                 .name(name)
                 .type(referenceType)
-                .classParametrizedTypes(classParametrizedTypes)
-                .extendedClassParametrizedTypes(extendedClassParametrizedTypes)
+                .parametrizedTypes(parametrizedTypes)
                 .addParametrizedTypeNameExtension(addParametrizedTypeNameExtension)
                 .build();
 
@@ -309,6 +318,15 @@ public class ReferenceCreator {
             Type methodType,
             Annotations annotations,
             Reference parentObjectReference) {
+        return getReference(direction, fieldType, methodType, annotations, parentObjectReference, null);
+    }
+
+    private Reference getReference(Direction direction,
+            Type fieldType,
+            Type methodType,
+            Annotations annotations,
+            Reference parentObjectReference,
+            String declaringClassName) {
 
         // In some case, like operations and interfaces, there is no fieldType
         if (fieldType == null) {
@@ -335,27 +353,31 @@ public class ReferenceCreator {
             // Java Array
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
-            return getReference(direction, typeInArray, typeInMethodArray, annotations, parentObjectReference);
+            return getReference(direction, typeInArray, typeInMethodArray, annotations, parentObjectReference,
+                    declaringClassName);
         } else if (Classes.isCollection(fieldType) || Classes.isUnwrappedType(fieldType)) {
             // Collections and unwrapped types
             Type typeInCollection = fieldType.asParameterizedType().arguments().get(0);
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
-            return getReference(direction, typeInCollection, typeInMethodCollection, annotations, parentObjectReference);
+            return getReference(direction, typeInCollection, typeInMethodCollection, annotations, parentObjectReference,
+                    declaringClassName);
         } else if (Classes.isMap(fieldType)) {
             ParameterizedType parameterizedFieldType = fieldType.asParameterizedType();
             List<Type> fieldArguments = parameterizedFieldType.arguments();
             ParameterizedType entryType = ParameterizedType.create(Classes.ENTRY, fieldArguments.toArray(Type[]::new), null);
-            return getReference(direction, entryType, entryType, annotations, parentObjectReference);
+            return getReference(direction, entryType, entryType, annotations, parentObjectReference,
+                    declaringClassName);
         } else if (fieldType.kind().equals(Type.Kind.WILDCARD_TYPE)) {
             // <? extends Something>
             WildcardType wildcardType = fieldType.asWildcardType();
             Type extendsBound = wildcardType.extendsBound();
-            return getReference(direction, extendsBound, extendsBound, annotations, parentObjectReference);
+            return getReference(direction, extendsBound, extendsBound, annotations, parentObjectReference,
+                    declaringClassName);
         } else if (fieldType.kind().equals(Type.Kind.CLASS)) {
             ClassInfo classInfo = ScanningContext.getIndex().getClassByName(fieldType.name());
             if (classInfo != null) {
 
-                Map<String, Reference> extendedClassParametrizedTypeArgumentsReferences = null;
+                Map<String, ParametrizedTypeEntry> parametrizedTypeEntries = null;
                 ParameterizedType parametrizedParentType = findParametrizedParentType(classInfo);
                 if (parametrizedParentType != null) {
                     ClassInfo ci = ScanningContext.getIndex().getClassByName(parametrizedParentType.name());
@@ -364,7 +386,7 @@ public class ReferenceCreator {
                                 "No class info found for parametrizedParentType name [" + parametrizedParentType.name() + "]");
                     }
 
-                    extendedClassParametrizedTypeArgumentsReferences = collectParametrizedTypes(ci,
+                    parametrizedTypeEntries = collectParametrizedTypes(ci,
                             parametrizedParentType.arguments(),
                             direction, parentObjectReference);
                 }
@@ -372,8 +394,7 @@ public class ReferenceCreator {
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        null,
-                        extendedClassParametrizedTypeArgumentsReferences,
+                        parametrizedTypeEntries,
                         false);
             } else {
                 return getNonIndexedReference(direction, fieldType);
@@ -387,24 +408,31 @@ public class ReferenceCreator {
             if (classInfo != null) {
 
                 List<Type> parametrizedTypeArguments = fieldType.asParameterizedType().arguments();
-                Map<String, Reference> parametrizedTypeArgumentsReferences = collectParametrizedTypes(classInfo,
+                Map<String, ParametrizedTypeEntry> parametrizedTypeEntries = collectParametrizedTypes(classInfo,
                         parametrizedTypeArguments, direction, parentObjectReference);
                 boolean shouldCreateAdapedToType = AdaptToHelper.shouldCreateTypeInSchema(annotations);
                 boolean shouldCreateAdapedWithType = AdaptWithHelper.shouldCreateTypeInSchema(annotations);
                 return createReference(direction, classInfo, shouldCreateAdapedToType, shouldCreateAdapedWithType,
-                        parametrizedTypeArgumentsReferences, null, true);
+                        parametrizedTypeEntries, true);
             } else {
                 return getNonIndexedReference(direction, fieldType);
             }
         } else if (fieldType.kind().equals(Type.Kind.TYPE_VARIABLE)) {
-            if (parentObjectReference == null || parentObjectReference.getAllParametrizedTypes() == null) {
+            if (parentObjectReference == null || !parentObjectReference.hasParametrizedTypes()) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
                         + "] as parent object reference is missing or incomplete: " + parentObjectReference);
             }
 
-            LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: "
-                    + fieldType.asTypeVariable().identifier());
-            Reference ret = parentObjectReference.getAllParametrizedTypes().get(fieldType.asTypeVariable().identifier());
+            String identifier = fieldType.asTypeVariable().identifier();
+            LOG.debug("Type variable: " + fieldType.asTypeVariable().name() + " identifier: " + identifier);
+
+            Reference ret = null;
+            if (declaringClassName != null) {
+                ret = parentObjectReference.getParametrizedTypeByDeclaringClass(declaringClassName, identifier);
+            }
+            if (ret == null) {
+                ret = parentObjectReference.findByIdentifier(identifier);
+            }
 
             if (ret == null) {
                 throw new SchemaBuilderException("Don't know what to do with [" + fieldType + "] of kind [" + fieldType.kind()
@@ -418,36 +446,87 @@ public class ReferenceCreator {
         }
     }
 
-    private Map<String, Reference> collectParametrizedTypes(ClassInfo classInfo, List<? extends Type> parametrizedTypeArguments,
+    private Map<String, ParametrizedTypeEntry> collectParametrizedTypes(ClassInfo classInfo,
+            List<? extends Type> parametrizedTypeArguments,
             Direction direction, Reference parentObjectReference) {
-        Map<String, Reference> parametrizedTypeArgumentsReferences = null;
+        Map<String, ParametrizedTypeEntry> entries = null;
         if (parametrizedTypeArguments != null) {
-            List<TypeVariable> tvl = new ArrayList<>();
-            collectTypeVariables(tvl, classInfo);
-            parametrizedTypeArgumentsReferences = new LinkedHashMap<>();
+            List<TypeVariable> typeParams = classInfo.typeParameters();
+            entries = new LinkedHashMap<>();
+            String className = classInfo.name().toString();
             int i = 0;
             for (Type pat : parametrizedTypeArguments) {
-                if (i >= tvl.size()) {
+                if (i >= typeParams.size()) {
                     throw new SchemaBuilderException(
                             "List of type variables is not correct for class " + classInfo + " and generics argument " + pat);
                 } else {
-                    parametrizedTypeArgumentsReferences.put(tvl.get(i++).identifier(),
-                            getReference(direction, pat, null, null, parentObjectReference));
+                    String identifier = typeParams.get(i++).identifier();
+                    Reference ref = getReference(direction, pat, null, null, parentObjectReference);
+                    entries.put(compositeKey(className, identifier),
+                            new ParametrizedTypeEntry(className, identifier, ref));
                 }
             }
+            resolveAncestorTypeVariables(entries, classInfo, direction, parentObjectReference);
         }
-        return parametrizedTypeArgumentsReferences;
+        return entries;
     }
 
-    private void collectTypeVariables(List<TypeVariable> tvl, ClassInfo classInfo) {
-        if (classInfo == null)
-            return;
-        if (classInfo.typeParameters() != null) {
-            tvl.addAll(classInfo.typeParameters());
+    private String compositeKey(String className, String identifier) {
+        return className + ":" + identifier;
+    }
+
+    private Reference findReferenceByIdentifier(Map<String, ParametrizedTypeEntry> entries, String identifier) {
+        if (entries == null) {
+            return null;
         }
-        if (classInfo.superClassType() != null) {
-            collectTypeVariables(tvl, ScanningContext.getIndex().getClassByName(classInfo.superName()));
+        for (ParametrizedTypeEntry entry : entries.values()) {
+            if (entry.getIdentifier().equals(identifier)) {
+                return entry.getReference();
+            }
         }
+        return null;
+    }
+
+    private void resolveAncestorTypeVariables(Map<String, ParametrizedTypeEntry> resolved, ClassInfo classInfo,
+            Direction direction, Reference parentObjectReference) {
+        ClassInfo current = classInfo;
+        while (current != null && current.superClassType() != null) {
+            if (current.superClassType().kind() != Type.Kind.PARAMETERIZED_TYPE) {
+                current = ScanningContext.getIndex().getClassByName(current.superName());
+                continue;
+            }
+            ParameterizedType superType = current.superClassType().asParameterizedType();
+            current = ScanningContext.getIndex().getClassByName(superType.name());
+            if (current != null) {
+                mapSuperTypeParameters(resolved, current, superType, direction, parentObjectReference);
+            }
+        }
+    }
+
+    private void mapSuperTypeParameters(Map<String, ParametrizedTypeEntry> resolved, ClassInfo superClassInfo,
+            ParameterizedType superType, Direction direction, Reference parentObjectReference) {
+        List<TypeVariable> superTypeParams = superClassInfo.typeParameters();
+        List<Type> superArgs = superType.arguments();
+        String superClassName = superClassInfo.name().toString();
+        for (int i = 0; i < superTypeParams.size() && i < superArgs.size(); i++) {
+            String superParamId = superTypeParams.get(i).identifier();
+            String key = compositeKey(superClassName, superParamId);
+            if (resolved.containsKey(key)) {
+                continue;
+            }
+            Reference ref = resolveTypeArgument(superArgs.get(i), resolved, direction, parentObjectReference);
+            if (ref != null) {
+                resolved.put(key, new ParametrizedTypeEntry(superClassName, superParamId, ref));
+            }
+        }
+    }
+
+    private Reference resolveTypeArgument(Type arg, Map<String, ParametrizedTypeEntry> resolved,
+            Direction direction, Reference parentObjectReference) {
+        if (arg.kind() == Type.Kind.TYPE_VARIABLE) {
+            return findReferenceByIdentifier(resolved, arg.asTypeVariable().identifier());
+        }
+        return getReference(direction, arg, null, null, parentObjectReference);
     }
 
     private ParameterizedType findParametrizedParentType(ClassInfo classInfo) {
