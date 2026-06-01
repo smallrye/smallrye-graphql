@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -404,7 +403,9 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
     @Override
     public void close() {
         try {
-            Future.join(httpClient.close(), webSocketClient.close()).await(30, TimeUnit.SECONDS);
+            Uni.createFrom().completionStage(
+                    Future.join(httpClient.close(), webSocketClient.close())::toCompletionStage)
+                    .await().atMost(java.time.Duration.ofSeconds(30));
         } catch (Throwable t) {
             log.warn(t);
         }

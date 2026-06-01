@@ -473,15 +473,14 @@ class VertxTypesafeGraphQLClientProxy {
     }
 
     private HttpResponse<Buffer> postSync(String request, MultiMap headers) {
-        return webClient.postAbs(endpoint.get().await().indefinitely())
-                .putHeaders(headers)
-                .sendBuffer(Buffer.buffer(request))
-                .await();
+        return postAsync(request, headers).await().indefinitely();
     }
 
     void close() {
         try {
-            Future.join(httpClient.close(), webSocketClient.close()).await();
+            Uni.createFrom().completionStage(
+                    Future.join(httpClient.close(), webSocketClient.close())::toCompletionStage)
+                    .await().indefinitely();
         } catch (Throwable t) {
             log.warn(t);
         }
