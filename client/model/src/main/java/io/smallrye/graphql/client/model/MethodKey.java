@@ -35,7 +35,18 @@ public class MethodKey {
     @Override
     public int hashCode() {
         int result = Objects.hash(methodName);
-        result = 31 * result + Arrays.hashCode(parameterTypes);
+        result = 31 * result + parameterTypesHashCode();
+        return result;
+    }
+
+    private int parameterTypesHashCode() {
+        if (parameterTypes == null) {
+            return 0;
+        }
+        int result = 1;
+        for (Class<?> parameterType : parameterTypes) {
+            result = 31 * result + (parameterType == null ? 0 : parameterType.getName().hashCode());
+        }
         return result;
     }
 
