@@ -46,6 +46,10 @@ jobs:
         # the GITHUB* properties are a workaround for Stork whose MicroProfileConfigProvider blows up when it sees an empty property
 
   wildfly-tests:
+    # TODO: revert when WildFly upgrades to Vert.x 5.x
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref != 'main') ||
+      (github.event_name == 'push' && github.ref_name != 'main')
     runs-on: ubuntu-latest
     strategy:
       matrix:
