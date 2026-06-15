@@ -28,7 +28,7 @@ repositories {
 
 dependencies {
     api gradleApi()
-    implementation enforcedPlatform("io.smallrye:smallrye-graphql-parent:${version}")
+    implementation platform("io.smallrye:smallrye-graphql-parent:${version}")
     implementation "io.smallrye:jandex"
     implementation "io.smallrye:smallrye-graphql"
     implementation "io.smallrye:smallrye-graphql-schema-builder"
