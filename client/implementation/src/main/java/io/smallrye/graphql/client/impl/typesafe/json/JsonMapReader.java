@@ -49,7 +49,7 @@ class JsonMapReader extends Reader<ArrayNode> {
 
             Object keyDeserialized = JsonReader.readJson(keyLocation, keyType, keyJson, field);
             Object valueDeserialized = JsonReader.readJson(valueLocation, valueType,
-                    valueJson != null ? valueJson : entry.nullNode(), field);
+                    valueJson != null ? valueJson : com.fasterxml.jackson.databind.node.NullNode.getInstance(), field);
 
             result.put(keyDeserialized, valueDeserialized);
         }

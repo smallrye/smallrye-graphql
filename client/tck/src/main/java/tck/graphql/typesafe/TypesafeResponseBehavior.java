@@ -7,9 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import jakarta.json.Json;
-
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
@@ -51,10 +52,11 @@ public class TypesafeResponseBehavior {
 
         TypesafeResponse<String> result = api.greetings();
         then(fixture.query()).isEqualTo("query greetings { greetings }");
-        then(result.getExtensions()).isEqualTo(Json.createObjectBuilder()
-                .add("pi", 3.14159)
-                .add("extension", "bell")
-                .build());
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode expectedExtensions = mapper.createObjectNode();
+        expectedExtensions.put("pi", 3.14159);
+        expectedExtensions.put("extension", "bell");
+        then(result.getExtensions()).isEqualTo(expectedExtensions);
         then(result.getTransportMeta()).isEqualTo(
                 Map.of(
                         "Accept", List.of("application/json;charset=utf-8"),

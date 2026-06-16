@@ -10,10 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Request;
-import io.smallrye.graphql.jackson.jsonb.compat.JsonbCompatModule;
+import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 
 public class RequestImpl implements Request {
-    static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JsonbCompatModule());
+    public static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JsonbCompatModule());
 
     private final String document;
     private Map<String, Object> variables;
