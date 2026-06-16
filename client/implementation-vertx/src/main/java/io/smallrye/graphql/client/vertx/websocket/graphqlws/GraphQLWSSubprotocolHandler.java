@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jboss.logging.Logger;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;

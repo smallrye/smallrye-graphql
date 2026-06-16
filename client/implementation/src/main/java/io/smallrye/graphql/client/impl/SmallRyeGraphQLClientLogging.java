@@ -2,12 +2,12 @@ package io.smallrye.graphql.client.impl;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-
 import org.jboss.logging.Logger;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
+
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 @MessageLogger(projectCode = "SRGQL")
 public interface SmallRyeGraphQLClientLogging {

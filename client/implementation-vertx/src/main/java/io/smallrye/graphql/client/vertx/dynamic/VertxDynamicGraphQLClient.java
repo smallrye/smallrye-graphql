@@ -11,9 +11,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
