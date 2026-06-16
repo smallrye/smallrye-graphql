@@ -7,15 +7,18 @@ import java.util.Objects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 
 public class RequestImpl implements Request {
-    public static final ObjectMapper MAPPER = new ObjectMapper()
-            .registerModule(new JsonbCompatModule())
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+    public static final ObjectMapper MAPPER = JsonMapper.builder()
+            .addModule(new JsonbCompatModule())
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+            .disable(com.fasterxml.jackson.databind.cfg.JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES)
+            .build();
 
     private final String document;
     private Map<String, Object> variables;

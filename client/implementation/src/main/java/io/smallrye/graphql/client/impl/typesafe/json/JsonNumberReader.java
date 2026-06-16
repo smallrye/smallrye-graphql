@@ -43,7 +43,7 @@ class JsonNumberReader extends Reader<JsonNode> {
         if (BigInteger.class.equals(rawType))
             return value.bigIntegerValue();
         if (BigDecimal.class.equals(rawType) || Object.class.equals(rawType))
-            return value.decimalValue();
+            return new BigDecimal(value.asText());
         if (OptionalInt.class.equals(rawType))
             return OptionalInt.of(readIntExact(location, value));
         if (OptionalLong.class.equals(rawType))
@@ -55,14 +55,14 @@ class JsonNumberReader extends Reader<JsonNode> {
     }
 
     private int readIntExact(Location location, JsonNode value) {
-        if (!value.canConvertToInt()) {
+        if (value.isFloatingPointNumber() || !value.canConvertToInt()) {
             throw GraphQLClientValueHelper.fail(location, value);
         }
         return value.intValue();
     }
 
     private long readLongExact(Location location, JsonNode value) {
-        if (!value.canConvertToLong()) {
+        if (value.isFloatingPointNumber() || !value.canConvertToLong()) {
             throw GraphQLClientValueHelper.fail(location, value);
         }
         return value.longValue();

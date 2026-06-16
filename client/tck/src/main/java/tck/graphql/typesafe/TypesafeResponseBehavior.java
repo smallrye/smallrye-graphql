@@ -35,7 +35,7 @@ public class TypesafeResponseBehavior {
     }
 
     @Test
-    void shouldParseExtensionsInTypesafeResponse() {
+    void shouldParseExtensionsInTypesafeResponse() throws Exception {
         fixture
                 .returns("{" +
                         "\"data\":{\"greetings\":\"something\"}," +
@@ -52,10 +52,9 @@ public class TypesafeResponseBehavior {
 
         TypesafeResponse<String> result = api.greetings();
         then(fixture.query()).isEqualTo("query greetings { greetings }");
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode expectedExtensions = mapper.createObjectNode();
-        expectedExtensions.put("pi", 3.14159);
-        expectedExtensions.put("extension", "bell");
+        ObjectMapper mapper = new ObjectMapper()
+                .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+        ObjectNode expectedExtensions = (ObjectNode) mapper.readTree("{\"pi\":3.14159,\"extension\":\"bell\"}");
         then(result.getExtensions()).isEqualTo(expectedExtensions);
         then(result.getTransportMeta()).isEqualTo(
                 Map.of(
