@@ -2,7 +2,7 @@ package io.smallrye.graphql.client.impl;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 import org.jboss.logging.Logger;
 import org.jboss.logging.annotations.LogMessage;
@@ -28,10 +28,10 @@ public interface SmallRyeGraphQLClientLogging {
 
     @LogMessage(level = Logger.Level.WARN)
     @Message(id = 30002, value = "Unsupported path segment type %s (expecting only String or Number), ignoring")
-    void unknownPathSegmentType(JsonValue.ValueType type);
+    void unknownPathSegmentType(JsonNodeType type);
 
     @LogMessage(level = Logger.Level.WARN)
     @Message(id = 30003, value = "Unsupported extension type %s, ignoring")
-    void unknownExtensionType(JsonValue.ValueType valueType);
+    void unknownExtensionType(JsonNodeType nodeType);
 
 }

@@ -1,21 +1,17 @@
 package io.smallrye.graphql.client.impl;
 
-import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
-
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.jboss.logging.Logger;
 
@@ -24,7 +20,7 @@ import io.smallrye.graphql.client.InvalidResponseException;
 
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
-    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
+    private static final ObjectMapper MAPPER = RequestImpl.MAPPER;
 
     /**
      * Parse a GraphQL response from the input string.
@@ -33,21 +29,20 @@ public class ResponseReader {
      * at least one of the keys 'data', 'extensions' and 'errors', but NO OTHER key.
      * (see https://spec.graphql.org/draft/#sec-Response-Format)
      */
-    public static JsonObject parseGraphQLResponse(String input) {
+    public static ObjectNode parseGraphQLResponse(String input) {
         return parseGraphQLResponse(input, false);
     }
 
-    public static JsonObject parseGraphQLResponse(String input, Boolean allowUnexpectedResponseFields) {
+    public static ObjectNode parseGraphQLResponse(String input, Boolean allowUnexpectedResponseFields) {
         if (input == null) {
             return null;
         }
-        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(input))) {
-            JsonObject jsonResponse;
-            try {
-                jsonResponse = jsonReader.readObject();
-            } catch (Exception e) {
+        try {
+            JsonNode parsed = MAPPER.readTree(input);
+            if (!parsed.isObject()) {
                 return null;
             }
+            ObjectNode jsonResponse = (ObjectNode) parsed;
 
             // validate that this is what we consider a GraphQL response - else return null
             if (jsonResponse.size() >= 1) {
@@ -56,12 +51,16 @@ public class ResponseReader {
             } else {
                 return null;
             }
+        } catch (JsonProcessingException e) {
+            return null;
         }
     }
 
-    private static JsonObject checkExpectedResponseFields(JsonObject jsonResponse,
+    private static ObjectNode checkExpectedResponseFields(ObjectNode jsonResponse,
             Boolean allowUnexpectedResponseFields) {
-        for (String key : jsonResponse.keySet()) {
+        var fieldNames = jsonResponse.fieldNames();
+        while (fieldNames.hasNext()) {
+            String key = fieldNames.next();
             if (!key.equalsIgnoreCase("data")
                     && !key.equalsIgnoreCase("errors")
                     && !key.equalsIgnoreCase("extensions")) {
@@ -75,40 +74,41 @@ public class ResponseReader {
 
     public static ResponseImpl readFrom(String input, Map<String, List<String>> headers, Integer statusCode,
             String statusMessage, Boolean allowUnexpectedResponseFields) {
-        JsonObject jsonResponse = parseGraphQLResponse(input, allowUnexpectedResponseFields);
+        ObjectNode jsonResponse = parseGraphQLResponse(input, allowUnexpectedResponseFields);
         if (jsonResponse == null) {
             throw new InvalidResponseException(
                     "Unexpected response. Code=" + statusCode + ", message=\"" + statusMessage + "\", " +
                             "body=\"" + input + "\"",
                     null, headers);
         }
-        JsonObject data = null;
-        if (jsonResponse.containsKey("data")) {
-            if (!jsonResponse.isNull("data")) {
-                data = jsonResponse.getJsonObject("data");
+        ObjectNode data = null;
+        if (jsonResponse.has("data")) {
+            JsonNode dataNode = jsonResponse.get("data");
+            if (!dataNode.isNull()) {
+                data = (ObjectNode) dataNode;
             } else {
                 SmallRyeGraphQLClientLogging.log.noDataInResponse();
             }
         }
 
         List<GraphQLError> errors = null;
-        if (jsonResponse.containsKey("errors")) {
+        if (jsonResponse.has("errors")) {
             errors = new ArrayList<>();
-            for (JsonValue error : jsonResponse.getJsonArray("errors")) {
+            for (JsonNode error : jsonResponse.get("errors")) {
                 errors.add(readError(error));
             }
         }
 
-        boolean containsKeyExtension = jsonResponse.containsKey("extensions");
+        boolean containsKeyExtension = jsonResponse.has("extensions");
 
-        if (containsKeyExtension && !jsonResponse.isNull("extensions")
-                && !jsonResponse.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
+        if (containsKeyExtension && !jsonResponse.get("extensions").isNull()
+                && !jsonResponse.get("extensions").isObject()) {
             LOG.warn("Unexpected value of 'extensions' in response: " + jsonResponse.get("extensions"));
         }
 
-        JsonObject extensions = null;
-        if (containsKeyExtension && jsonResponse.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
-            extensions = jsonResponse.getJsonObject("extensions");
+        ObjectNode extensions = null;
+        if (containsKeyExtension && jsonResponse.get("extensions").isObject()) {
+            extensions = (ObjectNode) jsonResponse.get("extensions");
         }
 
         return new ResponseImpl(data, errors, extensions, headers, statusCode, statusMessage);
@@ -123,31 +123,31 @@ public class ResponseReader {
         return readFrom(input, headers, statusCode, statusMessage, false);
     }
 
-    public static GraphQLError readError(JsonValue errorJson) {
-        JsonObject errorObject = errorJson.asJsonObject();
+    public static GraphQLError readError(JsonNode errorJson) {
+        ObjectNode errorObject = (ObjectNode) errorJson;
         GraphQLErrorImpl decodedError = new GraphQLErrorImpl();
 
         try {
-            JsonValue message = errorObject.get("message");
-            if (message instanceof JsonString) {
-                decodedError.setMessage(errorObject.getString("message"));
+            JsonNode message = errorObject.get("message");
+            if (message != null && message.isTextual()) {
+                decodedError.setMessage(message.asText());
             }
         } catch (RuntimeException e) {
             LOG.warn(e);
         }
 
         try {
-            if (errorObject.containsKey("locations")
-                    && errorObject.get("locations").getValueType().equals(JsonValue.ValueType.ARRAY)) {
-                JsonArray locations = errorObject.getJsonArray("locations");
+            if (errorObject.has("locations")
+                    && errorObject.get("locations").isArray()) {
+                ArrayNode locations = (ArrayNode) errorObject.get("locations");
                 List<Map<String, Integer>> locationList = new ArrayList<>();
-                for (JsonValue jsonValue : locations) {
-                    JsonObject location = jsonValue.asJsonObject();
+                for (JsonNode jsonValue : locations) {
+                    ObjectNode location = (ObjectNode) jsonValue;
                     Map<String, Integer> map = new HashMap<>();
-                    location.forEach((key, value) -> {
+                    location.fields().forEachRemaining(entry -> {
                         // TODO: how to handle non-numeric location segments?
-                        if (value instanceof JsonNumber) {
-                            map.put(key, ((JsonNumber) value).intValue());
+                        if (entry.getValue().isNumber()) {
+                            map.put(entry.getKey(), entry.getValue().intValue());
                         }
                     });
                     locationList.add(map);
@@ -159,20 +159,21 @@ public class ResponseReader {
         }
 
         try {
-            if (errorObject.containsKey("path")
-                    && errorObject.get("path").getValueType().equals(JsonValue.ValueType.ARRAY)) {
-                Object[] path = new Object[errorObject.getJsonArray("path").size()];
+            if (errorObject.has("path")
+                    && errorObject.get("path").isArray()) {
+                ArrayNode pathArray = (ArrayNode) errorObject.get("path");
+                Object[] path = new Object[pathArray.size()];
                 int i = 0;
-                for (JsonValue segment : errorObject.getJsonArray("path")) {
-                    switch (segment.getValueType()) {
+                for (JsonNode segment : pathArray) {
+                    switch (segment.getNodeType()) {
                         case STRING:
-                            path[i] = ((JsonString) segment).getString();
+                            path[i] = segment.asText();
                             break;
                         case NUMBER:
-                            path[i] = ((JsonNumber) segment).intValue();
+                            path[i] = segment.intValue();
                             break;
                         default:
-                            SmallRyeGraphQLClientLogging.log.unknownPathSegmentType(segment.getValueType());
+                            SmallRyeGraphQLClientLogging.log.unknownPathSegmentType(segment.getNodeType());
                     }
                     i++;
                 }
@@ -183,12 +184,12 @@ public class ResponseReader {
         }
 
         try {
-            if (errorObject.containsKey("extensions")
-                    && errorObject.get("extensions").getValueType().equals(JsonValue.ValueType.OBJECT)) {
-                JsonObject extensions = errorObject.getJsonObject("extensions");
+            if (errorObject.has("extensions")
+                    && errorObject.get("extensions").isObject()) {
+                ObjectNode extensions = (ObjectNode) errorObject.get("extensions");
                 Map<String, Object> extensionMap = new HashMap<>();
-                extensions.forEach((key, value) -> {
-                    extensionMap.put(key, decode(value));
+                extensions.fields().forEachRemaining(entry -> {
+                    extensionMap.put(entry.getKey(), decode(entry.getValue()));
                 });
                 decodedError.setExtensions(extensionMap);
             } else {
@@ -201,14 +202,14 @@ public class ResponseReader {
         try {
             // check if there are any other fields beyond the ones described by the specification
             Map<String, Object> otherFields = new HashMap<>();
-            for (String key : errorObject.keySet()) {
+            errorObject.fieldNames().forEachRemaining(key -> {
                 if (!key.equals("extensions") &&
                         !key.equals("locations") &&
                         !key.equals("message") &&
                         !key.equals("path")) {
                     otherFields.put(key, decode(errorObject.get(key)));
                 }
-            }
+            });
             if (!otherFields.isEmpty()) {
                 decodedError.setOtherFields(otherFields);
             }
@@ -219,16 +220,14 @@ public class ResponseReader {
         return decodedError;
     }
 
-    private static Object decode(JsonValue value) {
-        switch (value.getValueType()) {
+    private static Object decode(JsonNode value) {
+        switch (value.getNodeType()) {
             case STRING:
-                return ((JsonString) value).getString();
+                return value.asText();
             case NUMBER:
-                return ((JsonNumber) value).longValue();
-            case FALSE:
-                return false;
-            case TRUE:
-                return true;
+                return value.longValue();
+            case BOOLEAN:
+                return value.booleanValue();
             case NULL:
                 return null;
             default:

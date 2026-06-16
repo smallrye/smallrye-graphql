@@ -6,11 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
@@ -23,18 +21,18 @@ public class ResponseImpl implements Response {
     public static final String STATUS_CODE = "<status-code>";
     public static final String STATUS_MESSAGE = "<status-message>";
 
-    private final JsonObject data;
+    private final ObjectNode data;
     private final List<GraphQLError> errors;
-    private final JsonObject extensions;
+    private final ObjectNode extensions;
     private final Map<String, List<String>> metadata;
 
-    public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers) {
+    public ResponseImpl(ObjectNode data, List<GraphQLError> errors, Map<String, List<String>> headers) {
         this(data, errors, null, headers);
     }
 
-    public ResponseImpl(JsonObject data,
+    public ResponseImpl(ObjectNode data,
             List<GraphQLError> errors,
-            JsonObject extensions,
+            ObjectNode extensions,
             Map<String, List<String>> headers) {
         this.data = data;
         this.errors = errors;
@@ -42,12 +40,12 @@ public class ResponseImpl implements Response {
         this.metadata = Collections.unmodifiableMap(headers != null ? headers : Collections.emptyMap());
     }
 
-    public ResponseImpl(JsonObject data, List<GraphQLError> errors, Map<String, List<String>> headers,
+    public ResponseImpl(ObjectNode data, List<GraphQLError> errors, Map<String, List<String>> headers,
             Integer statusCode, String statusMessage) {
         this(data, errors, null, headers, statusCode, statusMessage);
     }
 
-    public ResponseImpl(JsonObject data, List<GraphQLError> errors, JsonObject extensions,
+    public ResponseImpl(ObjectNode data, List<GraphQLError> errors, ObjectNode extensions,
             Map<String, List<String>> headers,
             Integer statusCode, String statusMessage) {
         this.data = data;
@@ -68,53 +66,53 @@ public class ResponseImpl implements Response {
 
     @Override
     public <T> T getObject(Class<T> dataType, String rootField) {
-        if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
+        if (data == null || data.isNull() || data.isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
         }
-        JsonValue value = data.get(rootField);
+        JsonNode value = data.get(rootField);
         if (value == null) {
             // field is missing in the response completely
-            throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
+            throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, fieldNames(data));
         }
-        if (value.getValueType().equals(JsonValue.ValueType.NULL)) {
+        if (value.isNull()) {
             // field is present in the response, but is null
             return null;
         }
-        if (value.getValueType().equals(JsonValue.ValueType.OBJECT)) {
-            return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), value.asJsonObject(), null);
-        } else if (value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
+        if (value.isObject()) {
+            return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), value, null);
+        } else if (value.isArray()) {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsArray(rootField);
         } else {
             Object scalarValue = getScalarValue(value);
             if (scalarValue != null) {
                 return (T) scalarValue;
             }
-            throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, value.getValueType().toString());
+            throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, value.getNodeType().toString());
         }
     }
 
     @Override
     public <T> List<T> getList(Class<T> dataType, String rootField) {
-        if (data == null || data.equals(JsonValue.NULL) || data.keySet().isEmpty()) {
+        if (data == null || data.isNull() || data.isEmpty()) {
             throw SmallRyeGraphQLClientMessages.msg.noDataInResponse();
         }
-        JsonValue item = data.get(rootField);
+        JsonNode item = data.get(rootField);
         if (item == null) {
-            throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, data.keySet());
+            throw SmallRyeGraphQLClientMessages.msg.fieldNotFoundInResponse(rootField, fieldNames(data));
         }
-        if (item.getValueType().equals(JsonValue.ValueType.NULL)) {
+        if (item.isNull()) {
             // field is present in the response, but is null
             return null;
         }
-        if (item instanceof JsonObject) {
+        if (item.isObject()) {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsSingleObject(rootField);
         }
-        if (item instanceof JsonArray) {
+        if (item.isArray()) {
             List<T> result = new ArrayList<>();
-            JsonArray jsonArray = (JsonArray) item;
+            ArrayNode jsonArray = (ArrayNode) item;
             TypeInfo type = TypeInfo.of(dataType);
             jsonArray.forEach(o -> {
-                if (o.getValueType().equals(JsonValue.ValueType.OBJECT)) {
+                if (o.isObject()) {
                     result.add((T) JsonReader.readJson(rootField, type, o, null));
                 } else {
                     result.add((T) getScalarValue(o));
@@ -122,26 +120,34 @@ public class ResponseImpl implements Response {
             });
             return result;
         }
-        throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, item.getValueType().toString());
+        throw SmallRyeGraphQLClientMessages.msg.unexpectedValueInResponse(rootField, item.getNodeType().toString());
     }
 
-    private Object getScalarValue(JsonValue value) {
-        switch (value.getValueType()) {
+    private Object getScalarValue(JsonNode value) {
+        switch (value.getNodeType()) {
             case NUMBER:
-                return ((JsonNumber) value).longValue();
+                return value.longValue();
             case STRING:
-                return ((JsonString) value).getString();
-            case TRUE:
-                return true;
-            case FALSE:
-                return false;
+                return value.asText();
+            case BOOLEAN:
+                return value.booleanValue();
             default:
                 return null;
         }
     }
 
+    /**
+     * Helper to collect field names from an ObjectNode into a Set-like structure
+     * for error reporting.
+     */
+    private static java.util.Set<String> fieldNames(ObjectNode node) {
+        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+        node.fieldNames().forEachRemaining(names::add);
+        return names;
+    }
+
     @Override
-    public JsonObject getData() {
+    public ObjectNode getData() {
         return data;
     }
 
@@ -151,7 +157,7 @@ public class ResponseImpl implements Response {
     }
 
     @Override
-    public JsonObject getExtensions() {
+    public ObjectNode getExtensions() {
         return extensions;
     }
 
