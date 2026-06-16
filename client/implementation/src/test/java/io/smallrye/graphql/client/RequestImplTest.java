@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.smallrye.graphql.client.impl.RequestImpl;
 
 /**
@@ -102,11 +104,11 @@ public class RequestImplTest {
         RequestImpl request = RequestImpl.builder("{ hello }")
                 .extensions(extensions)
                 .build();
-        jakarta.json.JsonObject obj = request.toJsonObject();
-        assertEquals("{ hello }", obj.getString("query"));
-        jakarta.json.JsonObject ext = obj.getJsonObject("extensions");
-        assertEquals("abc-123", ext.getString("traceId"));
-        assertEquals(1, ext.getInt("priority"));
+        ObjectNode obj = request.toJsonObject();
+        assertEquals("{ hello }", obj.get("query").asText());
+        ObjectNode ext = (ObjectNode) obj.get("extensions");
+        assertEquals("abc-123", ext.get("traceId").asText());
+        assertEquals(1, ext.get("priority").intValue());
     }
 
     @Test
@@ -118,18 +120,18 @@ public class RequestImplTest {
                 .operationName("GetItem")
                 .extensions(extensions)
                 .build();
-        jakarta.json.JsonObject obj = request.toJsonObject();
-        assertEquals("query GetItem($id: Int) { item(id: $id) }", obj.getString("query"));
-        assertEquals("GetItem", obj.getString("operationName"));
-        assertEquals(42, obj.getJsonObject("variables").getInt("id"));
-        assertEquals("secret", obj.getJsonObject("extensions").getString("token"));
+        ObjectNode obj = request.toJsonObject();
+        assertEquals("query GetItem($id: Int) { item(id: $id) }", obj.get("query").asText());
+        assertEquals("GetItem", obj.get("operationName").asText());
+        assertEquals(42, obj.get("variables").get("id").intValue());
+        assertEquals("secret", obj.get("extensions").get("token").asText());
     }
 
     @Test
     public void testBuilderNoExtensionsOmitsField() {
         RequestImpl request = RequestImpl.builder("{ hello }").build();
-        jakarta.json.JsonObject obj = request.toJsonObject();
-        assertFalse(obj.containsKey("extensions"));
+        ObjectNode obj = request.toJsonObject();
+        assertFalse(obj.has("extensions"));
     }
 
     @Test
@@ -137,7 +139,7 @@ public class RequestImplTest {
         RequestImpl request = RequestImpl.builder("{ hello }")
                 .extensions(new HashMap<>())
                 .build();
-        jakarta.json.JsonObject obj = request.toJsonObject();
-        assertFalse(obj.containsKey("extensions"));
+        ObjectNode obj = request.toJsonObject();
+        assertFalse(obj.has("extensions"));
     }
 }

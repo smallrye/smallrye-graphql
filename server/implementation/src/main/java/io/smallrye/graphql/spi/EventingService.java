@@ -3,7 +3,7 @@ package io.smallrye.graphql.spi;
 import java.util.Collections;
 import java.util.Map;
 
-import jakarta.json.bind.Jsonb;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
@@ -33,7 +33,7 @@ public interface EventingService {
         return operation;
     }
 
-    default Map<String, Jsonb> overrideJsonbConfig() {
+    default Map<String, ObjectMapper> overrideObjectMapperConfig() {
         return Collections.emptyMap();
     }
 

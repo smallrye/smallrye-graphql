@@ -1,6 +1,6 @@
 package io.smallrye.graphql.client.vertx.websocket;
 
-import jakarta.json.JsonObject;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.MultiEmitter;
@@ -30,7 +30,7 @@ public interface WebSocketSubprotocolHandler {
      * @param emitter Emitter that should receive the completion event (or an error) when the operation finishes.
      * @return The generated internal ID of this operation.
      */
-    String executeUni(JsonObject request, UniEmitter<? super String> emitter);
+    String executeUni(ObjectNode request, UniEmitter<? super String> emitter);
 
     /**
      * Requests an execution of a subscription operation over the websocket.
@@ -39,7 +39,7 @@ public interface WebSocketSubprotocolHandler {
      * @param emitter Emitter that should receive the completion events (or an error) from the subscription.
      * @return The generated internal ID of this operation.
      */
-    String executeMulti(JsonObject request, MultiEmitter<? super String> emitter);
+    String executeMulti(ObjectNode request, MultiEmitter<? super String> emitter);
 
     /**
      * Cancels an active single-result operation with the given ID. This does not do anything with the Emitter for this

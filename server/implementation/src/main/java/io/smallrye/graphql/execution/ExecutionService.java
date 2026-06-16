@@ -454,12 +454,12 @@ public class ExecutionService {
 
     private void logOutput(ExecutionResponse executionResponse) {
         if (!payloadOption.equals(LogPayloadOption.off)) {
-            log.payloadOut(executionResponse.getExecutionResultAsJsonObject().toString());
+            log.payloadOut(executionResponse.getExecutionResultAsString());
         }
 
         // Also submit to the provided publisher
         if (traficPublisher.isPresent()) {
-            traficPublisher.get().submit("< " + executionResponse.getExecutionResultAsJsonObject().toString());
+            traficPublisher.get().submit("< " + executionResponse.getExecutionResultAsString());
         }
     }
 }

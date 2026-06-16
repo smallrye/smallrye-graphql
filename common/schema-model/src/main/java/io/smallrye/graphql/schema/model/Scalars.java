@@ -123,6 +123,8 @@ public class Scalars {
     public static void addJson() {
         populateScalar("jakarta.json.JsonValue", JSON, Object.class.getName());
         populateScalar("jakarta.json.JsonObject", JSON, Object.class.getName());
+        populateScalar("com.fasterxml.jackson.databind.JsonNode", JSON, Object.class.getName());
+        populateScalar("com.fasterxml.jackson.databind.node.ObjectNode", JSON, Object.class.getName());
     }
 
     static {

@@ -8,55 +8,57 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import jakarta.json.JsonString;
 import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.json.bind.annotation.JsonbNumberFormat;
 
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NumberFormat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.ConstructionInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-class JsonStringReader extends Reader<JsonString> {
-    JsonStringReader(TypeInfo type, Location location, JsonString value, FieldInfo field) {
+class JsonStringReader extends Reader<JsonNode> {
+    JsonStringReader(TypeInfo type, Location location, JsonNode value, FieldInfo field) {
         super(type, location, value, field);
     }
 
     @Override
     Object read() {
+        String text = value.asText();
         if (char.class.equals(type.getRawType()) || Character.class.equals(type.getRawType())) {
-            if (value.getChars().length() != 1)
+            if (text.length() != 1)
                 throw GraphQLClientValueHelper.fail(location, value);
-            return value.getChars().charAt(0);
+            return text.charAt(0);
         }
         if (String.class.equals(type.getRawType()) || Object.class.equals(type.getRawType())) // TODO CharSequence
-            return value.getString();
+            return text;
         if (type.isEnum())
             return enumValue();
 
         if (java.util.Date.class.equals(this.type.getRawType())) {
-            return formattedDate(value.getString());
+            return formattedDate(text);
         }
         if (java.util.UUID.class.equals(this.type.getRawType()))
-            return java.util.UUID.fromString(value.getString());
+            return java.util.UUID.fromString(text);
         if (java.util.Calendar.class.isAssignableFrom(this.type.getRawType())) {
-            return formattedCalendar(value.getString());
+            return formattedCalendar(text);
         }
 
         if (Number.class.isAssignableFrom(this.type.getRawType())
                 && field != null &&
                 ((field.getAnnotation(NumberFormat.class) != null) ||
                         field.getAnnotation(JsonbNumberFormat.class) != null)) {
-            return formattedNumber(value.getString());
+            return formattedNumber(text);
         }
 
         ConstructionInfo constructor = type.scalarConstructor()
                 .orElseThrow(() -> GraphQLClientValueHelper.fail(location, value));
         try {
-            return constructor.execute(value.getString());
+            return constructor.execute(text);
         } catch (Exception e) {
             throw new RuntimeException("can't create scalar " + location, e);
         }
@@ -181,6 +183,6 @@ class JsonStringReader extends Reader<JsonString> {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private Enum<?> enumValue() {
-        return Enum.valueOf((Class) type.getRawType(), value.getString());
+        return Enum.valueOf((Class) type.getRawType(), value.asText());
     }
 }

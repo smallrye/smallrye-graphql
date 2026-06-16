@@ -1,57 +1,56 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static jakarta.json.JsonValue.ValueType.OBJECT;
-
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JsonUtils {
-    public static Object toValue(JsonValue value) {
-        switch (value.getValueType()) {
+    public static Object toValue(JsonNode value) {
+        switch (value.getNodeType()) {
             case NULL:
                 return null;
-            case TRUE:
-                return true;
-            case FALSE:
-                return false;
+            case BOOLEAN:
+                return value.booleanValue();
             case STRING:
-                return ((JsonString) value).getString();
+                return value.asText();
             case NUMBER:
-                return ((JsonNumber) value).numberValue();
+                return value.numberValue();
             case ARRAY:
-                return toList(value.asJsonArray());
+                return toList((ArrayNode) value);
             case OBJECT:
-                return toMap(value.asJsonObject());
+                return toMap((ObjectNode) value);
+            default:
+                break;
         }
         throw new UnsupportedOperationException();
     }
 
-    public static Object toList(JsonArray value) {
-        return value.stream().map(JsonUtils::toValue).collect(Collectors.toList());
+    public static List<Object> toList(ArrayNode value) {
+        List<Object> result = new ArrayList<>();
+        for (JsonNode node : value) {
+            result.add(toValue(node));
+        }
+        return result;
     }
 
-    public static Map<String, Object> toMap(JsonObject jsonObject) {
+    public static Map<String, Object> toMap(ObjectNode jsonObject) {
         if (jsonObject == null)
             return null;
         Map<String, Object> map = new LinkedHashMap<>();
-        for (Entry<String, JsonValue> entry : jsonObject.entrySet())
-            map.put(entry.getKey(), toValue(entry.getValue()));
+        jsonObject.fields().forEachRemaining(entry -> map.put(entry.getKey(), toValue(entry.getValue())));
         return map;
     }
 
-    public static boolean isListOf(JsonValue jsonValue, String typename) {
-        return jsonValue.getValueType() == ARRAY &&
-                jsonValue.asJsonArray().size() > 0 &&
-                jsonValue.asJsonArray().get(0).getValueType() == OBJECT &&
-                typename.equals(jsonValue.asJsonArray().get(0).asJsonObject().getString("__typename", null));
+    public static boolean isListOf(JsonNode jsonValue, String typename) {
+        return jsonValue.isArray()
+                && jsonValue.size() > 0
+                && jsonValue.get(0).isObject()
+                && typename.equals(
+                        jsonValue.get(0).has("__typename") ? jsonValue.get(0).get("__typename").asText(null) : null);
     }
 }

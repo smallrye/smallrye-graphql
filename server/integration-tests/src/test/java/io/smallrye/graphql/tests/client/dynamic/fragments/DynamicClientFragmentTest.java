@@ -12,9 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -26,6 +23,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -90,16 +90,16 @@ public class DynamicClientFragmentTest {
             Assertions.fail("Error was returned: " + response.getErrors());
         }
 
-        JsonArray vehicles = response.getData().getJsonArray("vehicles");
+        ArrayNode vehicles = (ArrayNode) response.getData().get("vehicles");
 
-        JsonObject car = vehicles.getJsonObject(0);
-        assertEquals(4, car.getInt("wheelsCount"));
-        assertEquals(8, car.getInt("engineCylinders"));
+        ObjectNode car = (ObjectNode) vehicles.get(0);
+        assertEquals(4, car.get("wheelsCount").asInt());
+        assertEquals(8, car.get("engineCylinders").asInt());
         assertNull(car.get("frameSize"));
 
-        JsonObject bicycle = vehicles.getJsonObject(1);
-        assertEquals(2, bicycle.getInt("wheelsCount"));
-        assertEquals(15, bicycle.getInt("frameSize"));
+        ObjectNode bicycle = (ObjectNode) vehicles.get(1);
+        assertEquals(2, bicycle.get("wheelsCount").asInt());
+        assertEquals(15, bicycle.get("frameSize").asInt());
         assertNull(bicycle.get("engineCylinders"));
     }
 

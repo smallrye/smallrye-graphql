@@ -24,15 +24,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
-
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.smallrye.graphql.index.app.SomeDirective;
 import io.smallrye.graphql.schema.SchemaBuilder;
@@ -52,7 +52,7 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilderTest {
-    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
+    private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
     public void testSchemaModelCreation() {
@@ -60,6 +60,14 @@ public class SchemaBuilderTest {
         IndexView index = getTCKIndex();
         Schema schema = SchemaBuilder.build(index);
         assertNotNull(schema);
+    }
+
+    private static String toJson(Object obj) {
+        try {
+            return MAPPER.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -91,7 +99,7 @@ public class SchemaBuilderTest {
         assertNotNull(heroSchema);
         assertNotNull(movieSchema);
 
-        String basicSchemaString = JSONB.toJson(basicSchema);
+        String basicSchemaString = toJson(basicSchema);
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicType"));
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInput"));
         assertTrue(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic.api.BasicInterface"));
@@ -99,7 +107,7 @@ public class SchemaBuilderTest {
         assertFalse(basicSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero"));
         assertFalse(basicSchemaString.contains("io.smallrye.graphql"));
 
-        String heroSchemaString = JSONB.toJson(heroSchema);
+        String heroSchemaString = toJson(heroSchema);
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.SuperHero"));
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Sidekick"));
         assertTrue(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.superhero.model.Team"));
@@ -107,7 +115,7 @@ public class SchemaBuilderTest {
         assertFalse(heroSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));
         assertFalse(heroSchemaString.contains("io.smallrye.graphql"));
 
-        String movieSchemaString = JSONB.toJson(movieSchema);
+        String movieSchemaString = toJson(movieSchema);
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Movie"));
         assertTrue(movieSchemaString.contains("io.smallrye.graphql.index.app.Person"));
         assertFalse(movieSchemaString.contains("org.eclipse.microprofile.graphql.tck.apps.basic"));

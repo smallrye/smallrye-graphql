@@ -6,16 +6,16 @@ import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.toMap;
 
 import java.util.Map;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-class JsonObjectReader extends Reader<JsonObject> {
-    JsonObjectReader(TypeInfo type, Location location, JsonObject value, FieldInfo field) {
+class JsonObjectReader extends Reader<ObjectNode> {
+    JsonObjectReader(TypeInfo type, Location location, ObjectNode value, FieldInfo field) {
         super(type, location, value, field);
     }
 
@@ -29,7 +29,7 @@ class JsonObjectReader extends Reader<JsonObject> {
 
     private Object readObject() {
         if (type.isUnion() || type.isInterface()) {
-            var subtype = type.subtype(value.getString("__typename"));
+            var subtype = type.subtype(value.get("__typename").asText());
             var instance = subtype.newInstance(new Object[0]);
             subtype.fields().forEach(field -> {
                 Object fieldValue = buildValue(location, value, field);
@@ -61,10 +61,10 @@ class JsonObjectReader extends Reader<JsonObject> {
         return newInstance(new Object[0]);
     }
 
-    private Object buildValue(Location location, JsonObject value, FieldInfo field) {
+    private Object buildValue(Location location, ObjectNode value, FieldInfo field) {
         String fieldName = field.getAlias().orElseGet(field::getName);
         Location fieldLocation = new Location(field.getType(), location.getDescription() + "." + fieldName);
-        JsonValue jsonFieldValue = value.get(fieldName);
+        JsonNode jsonFieldValue = value.get(fieldName);
         if (jsonFieldValue == null) {
             if (field.isNonNull())
                 throw new InvalidResponseException("missing " + fieldLocation);

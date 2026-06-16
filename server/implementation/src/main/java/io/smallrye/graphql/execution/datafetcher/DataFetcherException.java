@@ -1,8 +1,8 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.smallrye.graphql.schema.model.Operation;
 
@@ -12,17 +12,25 @@ import io.smallrye.graphql.schema.model.Operation;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DataFetcherException extends RuntimeException {
-    private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT);
 
     public DataFetcherException() {
     }
 
     public DataFetcherException(Operation operation) {
-        super("Problem while fetching data for operation \n" + JSONB.toJson(operation));
+        super("Problem while fetching data for operation \n" + toJson(operation));
     }
 
     public DataFetcherException(Operation operation, Exception ex) {
-        super("Problem while fetching data for operation \n" + JSONB.toJson(operation), ex);
+        super("Problem while fetching data for operation \n" + toJson(operation), ex);
     }
 
+    private static String toJson(Operation operation) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(operation);
+        } catch (JsonProcessingException e) {
+            return operation.toString();
+        }
+    }
 }

@@ -1,12 +1,10 @@
 package io.smallrye.graphql.servlet;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
 import java.io.IOException;
 
-import jakarta.json.JsonWriter;
-import jakarta.json.JsonWriterFactory;
 import jakarta.servlet.http.HttpServletResponse;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionResponseWriter;
@@ -18,7 +16,7 @@ import io.smallrye.graphql.execution.ExecutionResponseWriter;
  */
 public class HttpServletResponseWriter implements ExecutionResponseWriter {
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
-    private static final JsonWriterFactory jsonWriterFactory = JSON_PROVIDER.createWriterFactory(null);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final HttpServletResponse response;
 
@@ -29,9 +27,9 @@ public class HttpServletResponseWriter implements ExecutionResponseWriter {
     @Override
     public void write(ExecutionResponse executionResponse) {
         if (executionResponse != null) {
-            try (JsonWriter jsonWriter = jsonWriterFactory.createWriter(response.getOutputStream())) {
-                response.setContentType(APPLICATION_JSON_UTF8);
-                jsonWriter.writeObject(executionResponse.getExecutionResultAsJsonObject());
+            response.setContentType(APPLICATION_JSON_UTF8);
+            try {
+                OBJECT_MAPPER.writeValue(response.getOutputStream(), executionResponse.getExecutionResultAsJsonObject());
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

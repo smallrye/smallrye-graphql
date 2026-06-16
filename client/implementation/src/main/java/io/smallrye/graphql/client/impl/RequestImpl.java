@@ -1,24 +1,24 @@
 package io.smallrye.graphql.client.impl;
 
-import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
-
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonValue;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Request;
+import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 
 public class RequestImpl implements Request {
-    private static final JsonBuilderFactory JSON = JSON_PROVIDER.createBuilderFactory(null);
-    private static final Jsonb JSONB = JsonbBuilder.create();
+    public static final ObjectMapper MAPPER = JsonMapper.builder()
+            .addModule(new JsonbCompatModule())
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+            .disable(com.fasterxml.jackson.databind.cfg.JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES)
+            .build();
 
     private final String document;
     private Map<String, Object> variables;
@@ -76,64 +76,41 @@ public class RequestImpl implements Request {
 
     @Override
     public String toJson() {
-        JsonObjectBuilder queryBuilder = JSON.createObjectBuilder().add("query", document);
-        if (!variables.isEmpty()) {
-            queryBuilder.add("variables", _formatJsonVariables());
+        try {
+            return MAPPER.writeValueAsString(toJsonObject());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize request to JSON", e);
         }
-        if (operationName != null && !operationName.isEmpty()) {
-            queryBuilder.add("operationName", operationName);
-        }
-        if (extensions != null && !extensions.isEmpty()) {
-            queryBuilder.add("extensions", _formatJsonMap(extensions));
-        }
-        return queryBuilder.build().toString();
     }
 
     @Override
-    public JsonObject toJsonObject() {
-        JsonObjectBuilder queryBuilder = JSON.createObjectBuilder().add("query", document);
+    public ObjectNode toJsonObject() {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put("query", document);
         if (!variables.isEmpty()) {
-            queryBuilder.add("variables", _formatJsonVariables());
+            node.set("variables", _formatJsonMap(variables));
         }
         if (operationName != null && !operationName.isEmpty()) {
-            queryBuilder.add("operationName", operationName);
+            node.put("operationName", operationName);
         }
         if (extensions != null && !extensions.isEmpty()) {
-            queryBuilder.add("extensions", _formatJsonMap(extensions));
+            node.set("extensions", _formatJsonMap(extensions));
         }
-        return queryBuilder.build();
+        return node;
     }
 
-    private JsonObject _formatJsonVariables() {
-        return _formatJsonMap(variables);
-    }
-
-    private static JsonObject _formatJsonMap(Map<String, Object> map) {
-        JsonObjectBuilder builder = JSON.createObjectBuilder();
-
+    private ObjectNode _formatJsonMap(Map<String, Object> map) {
+        ObjectNode node = MAPPER.createObjectNode();
         map.forEach((k, v) -> {
-            if (v instanceof String) {
-                builder.add(k, (String) v);
-            } else if (v instanceof Integer) {
-                builder.add(k, (Integer) v);
-            } else if (v instanceof JsonValue) {
-                builder.add(k, (JsonValue) v);
-            } else if (v instanceof Boolean) {
-                builder.add(k, (Boolean) v);
-            } else if (v instanceof Long) {
-                builder.add(k, (Long) v);
-            } else if (v instanceof Double) {
-                builder.add(k, (Double) v);
-            } else if (v instanceof Enum<?>) {
-                builder.add(k, ((Enum<?>) v).name());
-            } else if (v == null) {
-                builder.addNull(k);
+            if (v == null) {
+                node.putNull(k);
+            } else if (v instanceof JsonNode) {
+                node.set(k, (JsonNode) v);
             } else {
-                builder.add(k, JSON_PROVIDER.createReader(new StringReader(JSONB.toJson(v))).read());
+                node.set(k, MAPPER.valueToTree(v));
             }
         });
-
-        return builder.build();
+        return node;
     }
 
     @Override

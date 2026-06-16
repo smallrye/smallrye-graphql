@@ -3,14 +3,14 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-class JsonMapReader extends Reader<JsonArray> {
+class JsonMapReader extends Reader<ArrayNode> {
 
     // these two strings denote the expected keys in the JSON representation of a map entry
     // for example, a single map entry can be serialized as `{"key":2,"value":"b"}` where the `key` and `value`
@@ -23,7 +23,7 @@ class JsonMapReader extends Reader<JsonArray> {
     // type of values expected to be present in the map
     private final TypeInfo valueType;
 
-    JsonMapReader(TypeInfo type, Location location, JsonArray value, FieldInfo field) {
+    JsonMapReader(TypeInfo type, Location location, ArrayNode value, FieldInfo field) {
         super(type, location, value, field);
         this.keyType = type.getKeyType();
         this.valueType = type.getValueType();
@@ -34,21 +34,22 @@ class JsonMapReader extends Reader<JsonArray> {
         GraphQLClientValueHelper.check(location, value, type.isMap());
         MapLocationBuilder locationBuilder = new MapLocationBuilder(location);
         Map result = new HashMap<>();
-        for (JsonValue entry : value) {
+        for (JsonNode entry : value) {
             Location keyLocation = locationBuilder.nextKeyLocation();
             Location valueLocation = locationBuilder.nextValueLocation();
 
-            JsonValue keyJson = entry.asJsonObject().get(JSON_KEY_FOR_KEY);
-            if (keyJson.getValueType() == JsonValue.ValueType.NULL) {
+            JsonNode keyJson = entry.get(JSON_KEY_FOR_KEY);
+            if (keyJson == null || keyJson.isNull()) {
                 throw new InvalidResponseException("unexpected null key at " + keyLocation);
             }
-            JsonValue valueJson = entry.asJsonObject().get(JSON_KEY_FOR_VALUE);
-            if (valueJson.getValueType() == JsonValue.ValueType.NULL && valueType.isNonNull()) {
+            JsonNode valueJson = entry.get(JSON_KEY_FOR_VALUE);
+            if ((valueJson == null || valueJson.isNull()) && valueType.isNonNull()) {
                 throw new InvalidResponseException("unexpected null value at " + keyLocation);
             }
 
             Object keyDeserialized = JsonReader.readJson(keyLocation, keyType, keyJson, field);
-            Object valueDeserialized = JsonReader.readJson(valueLocation, valueType, valueJson, field);
+            Object valueDeserialized = JsonReader.readJson(valueLocation, valueType,
+                    valueJson != null ? valueJson : com.fasterxml.jackson.databind.node.NullNode.getInstance(), field);
 
             result.put(keyDeserialized, valueDeserialized);
         }
