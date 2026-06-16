@@ -2,7 +2,7 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import jakarta.json.bind.Jsonb;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.smallrye.graphql.schema.model.InputType;
 
@@ -21,15 +21,15 @@ public class JsonInputRegistry {
     }
 
     public static void register(InputType inputType) {
-        JsonBCreator.register(inputType);
+        JacksonCreator.register(inputType);
         InputFieldsInfo.register(inputType);
     }
 
     /**
-     * Override Jsonb config for particular classes by the Jsonb instances
+     * Override ObjectMapper config for particular classes by the ObjectMapper instances
      * supplied by the user via an EventingService
      */
-    public static void override(Map<String, Jsonb> overrides) {
-        JsonBCreator.override(overrides);
+    public static void override(Map<String, ObjectMapper> overrides) {
+        JacksonCreator.override(overrides);
     }
 }

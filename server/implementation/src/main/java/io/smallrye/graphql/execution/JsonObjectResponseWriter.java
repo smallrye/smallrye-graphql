@@ -52,7 +52,7 @@ public class JsonObjectResponseWriter implements ExecutionResponseWriter {
 
     public void logOutput() {
         if (executionResponse != null) {
-            String prettyData = getPrettyJson(executionResponse.getExecutionResultAsJsonObject());
+            String prettyData = getPrettyJson(executionResponse.getExecutionResultAsJsonPObject());
             LOG.info(prettyData);
         } else if (throwable != null) {
             LOG.error("ERROR", throwable);
@@ -65,7 +65,7 @@ public class JsonObjectResponseWriter implements ExecutionResponseWriter {
 
     public JsonObject getOutput() {
         if (this.executionResponse != null) {
-            return this.executionResponse.getExecutionResultAsJsonObject();
+            return this.executionResponse.getExecutionResultAsJsonPObject();
         }
         return JsonObject.EMPTY_JSON_OBJECT;
     }

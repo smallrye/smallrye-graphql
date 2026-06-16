@@ -17,14 +17,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
-import io.smallrye.graphql.json.JsonBCreator;
+import io.smallrye.graphql.json.JacksonCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
@@ -386,8 +386,12 @@ public class ArgumentHelper extends AbstractHelper {
         m = includeNullCreatorParameters(m, field);
 
         // Create a valid jsonString from a map
-        String jsonString = JsonBCreator.getJsonB(className).toJson(m);
-        return correctComplexObjectFromJsonString(jsonString, field);
+        try {
+            String jsonString = JacksonCreator.getObjectMapper(className).writeValueAsString(m);
+            return correctComplexObjectFromJsonString(jsonString, field);
+        } catch (JsonProcessingException e) {
+            throw new TransformException(e, field, m);
+        }
     }
 
     /**
@@ -448,10 +452,10 @@ public class ArgumentHelper extends AbstractHelper {
         }
 
         try {
-            Jsonb jsonb = JsonBCreator.getJsonB(className);
-            return jsonb.fromJson(jsonString, type);
-        } catch (JsonbException jbe) {
-            throw new TransformException(jbe, field, jsonString);
+            ObjectMapper objectMapper = JacksonCreator.getObjectMapper(className);
+            return objectMapper.readValue(jsonString, objectMapper.constructType(type));
+        } catch (JsonProcessingException jpe) {
+            throw new TransformException(jpe, field, jsonString);
         }
     }
 
