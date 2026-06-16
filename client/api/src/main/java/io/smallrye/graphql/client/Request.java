@@ -2,7 +2,7 @@ package io.smallrye.graphql.client;
 
 import java.util.Map;
 
-import jakarta.json.JsonObject;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface Request {
     String getDocument();
@@ -23,6 +23,6 @@ public interface Request {
 
     String toJson();
 
-    JsonObject toJsonObject();
+    ObjectNode toJsonObject();
 
 }

@@ -3,17 +3,15 @@ package io.smallrye.graphql.client;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface Response {
 
     /**
      * The 'data' object contained in the response.
-     * Can be JsonValue.NULL if the response contains an empty field, or `null` if the response
-     * does not contain this field at all.
+     * Can be null if the response does not contain this field at all or contains a null value.
      */
-    JsonObject getData();
+    ObjectNode getData();
 
     /**
      * List of errors contained in this response.
@@ -23,7 +21,7 @@ public interface Response {
     /**
      * List of user-made extensions contained in this response.
      */
-    JsonObject getExtensions();
+    ObjectNode getExtensions();
 
     /**
      * Transform the contents of the `rootField` from this response into a list of objects

@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import jakarta.json.JsonObject;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLError;
 
 public final class TypesafeResponse<T> extends ErrorOr<T> {
     private Map<String, List<String>> transportMeta;
-    private JsonObject extensions;
+    private ObjectNode extensions;
 
     public static <T> TypesafeResponse<T> of(T value) {
         return new TypesafeResponse<>(value, null);
@@ -33,7 +33,7 @@ public final class TypesafeResponse<T> extends ErrorOr<T> {
 
     private TypesafeResponse(TypesafeResponse<T> typesafeResponse,
             Map<String, List<String>> transportMeta,
-            JsonObject extensions) {
+            ObjectNode extensions) {
         super(
                 (typesafeResponse.isPresent()) ? typesafeResponse.get() : null,
                 (typesafeResponse.hasErrors()) ? typesafeResponse.getErrors() : null);
@@ -43,7 +43,7 @@ public final class TypesafeResponse<T> extends ErrorOr<T> {
 
     public static <T> TypesafeResponse<T> withTransportMetaAndExtensions(TypesafeResponse<T> typesafeResponse,
             Map<String, List<String>> transportMeta,
-            JsonObject responseExtensions) {
+            ObjectNode responseExtensions) {
         return new TypesafeResponse(typesafeResponse, transportMeta, responseExtensions);
     }
 
@@ -56,9 +56,9 @@ public final class TypesafeResponse<T> extends ErrorOr<T> {
     }
 
     /**
-     * Returns a JsonObject containing extensions to the GraphQL response, if any.
+     * Returns an ObjectNode containing extensions to the GraphQL response, if any.
      */
-    public JsonObject getExtensions() {
+    public ObjectNode getExtensions() {
         return extensions;
     }
 
