@@ -56,7 +56,7 @@ public abstract class AbstractDynamicClientSubscriptionTest {
                 .collect(Collectors.toList());
         for (int i = 0; i < 5; i++) {
             Response response = responses.get(i);
-            assertEquals(i, response.getData().getInt("countToFive"));
+            assertEquals(i, response.getData().get("countToFive").asInt());
             assertNoErrors(response.getErrors());
         }
     }

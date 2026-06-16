@@ -12,7 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class JsonbAnnotationIntrospectorTest {
 
     private final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JsonbCompatModule());
+            .registerModule(new JsonbCompatModule())
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
     // -- @JsonbProperty --
 
@@ -75,5 +76,100 @@ class JsonbAnnotationIntrospectorTest {
         CreatorBean bean = mapper.readValue("{\"name\":\"Alice\",\"age\":30}", CreatorBean.class);
         assertThat(bean.getName()).isEqualTo("Alice");
         assertThat(bean.getAge()).isEqualTo(30);
+    }
+
+    // -- @JsonbNillable --
+
+    @jakarta.json.bind.annotation.JsonbNillable
+    static class NillableBean {
+        public String name = null;
+        public String other = "value";
+    }
+
+    @Test
+    void jsonbNillableIncludesNullFields() throws Exception {
+        String json = mapper.writeValueAsString(new NillableBean());
+        assertThat(json).contains("\"name\":null").contains("\"other\":\"value\"");
+    }
+
+    // -- @JsonbDateFormat --
+
+    static class DateFormatBean {
+        @jakarta.json.bind.annotation.JsonbDateFormat("dd.MM.yyyy")
+        public java.time.LocalDate date = java.time.LocalDate.of(2026, 6, 15);
+    }
+
+    @Test
+    void jsonbDateFormatSerializesWithPattern() throws Exception {
+        String json = mapper.writeValueAsString(new DateFormatBean());
+        assertThat(json).contains("\"15.06.2026\"");
+    }
+
+    @Test
+    void jsonbDateFormatDeserializesWithPattern() throws Exception {
+        DateFormatBean bean = mapper.readValue("{\"date\":\"15.06.2026\"}", DateFormatBean.class);
+        assertThat(bean.date).isEqualTo(java.time.LocalDate.of(2026, 6, 15));
+    }
+
+    // -- @JsonbNumberFormat --
+
+    static class NumberFormatBean {
+        @jakarta.json.bind.annotation.JsonbNumberFormat("#,##0.00")
+        public double price = 1234.5;
+    }
+
+    @Test
+    void jsonbNumberFormatSerializesWithPattern() throws Exception {
+        ObjectMapper usMapper = new ObjectMapper()
+                .registerModule(new JsonbCompatModule())
+                .setLocale(java.util.Locale.US);
+        String json = usMapper.writeValueAsString(new NumberFormatBean());
+        assertThat(json).contains("\"1,234.50\"");
+    }
+
+    // -- @JsonbTypeInfo / @JsonbSubtype --
+
+    @jakarta.json.bind.annotation.JsonbTypeInfo(key = "__typename", value = {
+            @jakarta.json.bind.annotation.JsonbSubtype(alias = "Dog", type = Dog.class),
+            @jakarta.json.bind.annotation.JsonbSubtype(alias = "Cat", type = Cat.class)
+    })
+    interface Animal {
+        String getName();
+    }
+
+    static class Dog implements Animal {
+        public String name;
+        public String breed;
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    static class Cat implements Animal {
+        public String name;
+        public int lives;
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    @Test
+    void jsonbTypeInfoDeserializesPolymorphicType() throws Exception {
+        String json = "{\"__typename\":\"Dog\",\"name\":\"Rex\",\"breed\":\"Labrador\"}";
+        Animal animal = mapper.readValue(json, Animal.class);
+        assertThat(animal).isInstanceOf(Dog.class);
+        assertThat(((Dog) animal).breed).isEqualTo("Labrador");
+    }
+
+    @Test
+    void jsonbTypeInfoSerializesPolymorphicType() throws Exception {
+        Dog dog = new Dog();
+        dog.name = "Rex";
+        dog.breed = "Labrador";
+        String json = mapper.writeValueAsString(dog);
+        // Should include the type discriminator
+        assertThat(json).contains("\"name\":\"Rex\"").contains("\"breed\":\"Labrador\"");
     }
 }

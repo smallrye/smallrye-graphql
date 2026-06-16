@@ -66,7 +66,7 @@ public class DynamicClientFormatAnnotationsTest {
         // a sanity check to make sure that the server really returned the custom format
         // because if not, then this test would not be actually verifying anything
         assertEquals("May 1997 13 04,20,03 May Tue",
-                response.getData().getJsonObject("something").getString("date"),
+                response.getData().get("something").get("date").asText(),
                 "Sanity check failed: the server did not return the date in the desired custom format");
 
         ObjectWithFormattedFields objectWithFormattedFields = response.getObject(ObjectWithFormattedFields.class, "something");
@@ -105,7 +105,7 @@ public class DynamicClientFormatAnnotationsTest {
                         field("doubleNumber"))));
         Response response = client.executeSync(document);
 
-        assertEquals("12.345.678,9", response.getData().getJsonObject("something").getString("doubleNumber"),
+        assertEquals("12.345.678,9", response.getData().get("something").get("doubleNumber").asText(),
                 "Sanity check failed: the server did not return the number in the desired custom format");
 
         ObjectWithFormattedFields objectWithFormattedFields = response.getObject(ObjectWithFormattedFields.class, "something");

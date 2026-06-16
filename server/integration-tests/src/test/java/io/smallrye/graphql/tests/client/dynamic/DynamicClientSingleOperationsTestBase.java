@@ -17,13 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import jakarta.json.JsonObject;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -50,9 +50,9 @@ public abstract class DynamicClientSingleOperationsTestBase {
                 field("simple",
                         field("string"),
                         field("integer"))));
-        JsonObject data = client.executeSync(document).getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync(document).getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     @Test
@@ -64,77 +64,78 @@ public abstract class DynamicClientSingleOperationsTestBase {
                         args(arg("number", var)), // the query has a 'number' parameter
                         field("integer")))); // field we want to retrieve
         Map<String, Object> variableValues = Collections.singletonMap("x", 12345);
-        JsonObject data = client.executeSync(document, variableValues).getData();
-        assertEquals(12345, data.getJsonObject("queryWithArgument").getInt("integer"));
+        ObjectNode data = client.executeSync(document, variableValues).getData();
+        assertEquals(12345, ((ObjectNode) data.get("queryWithArgument")).get("integer").asInt());
     }
 
     @Test
     public void testStringQuery() throws ExecutionException, InterruptedException {
-        JsonObject data = client.executeSync("query {simple{string integer}}").getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync("query {simple{string integer}}").getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryWithVars() throws ExecutionException, InterruptedException {
         Map<String, Object> vars = new HashMap<>();
         vars.put("x", 67);
-        JsonObject data = client
+        ObjectNode data = client
                 .executeSync("query($x:Int) {queryWithArgument(number: $x){integer}}", vars)
                 .getData();
-        assertEquals(67, data.getJsonObject("queryWithArgument").getInt("integer"));
+        assertEquals(67, ((ObjectNode) data.get("queryWithArgument")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryWithObject() throws ExecutionException, InterruptedException {
         Map<String, Object> vars = new HashMap<>();
         vars.put("x", new DummyObject("a", "b"));
-        JsonObject data = client
+        ObjectNode data = client
                 .executeSync("query($x: DummyObjectInput) {queryWithArgument2(obj: $x){dummyObject{a}}}", vars)
                 .getData();
         System.out.println(data);
-        assertEquals("a", data.getJsonObject("queryWithArgument2").getJsonObject("dummyObject").getString("a"));
+        assertEquals("a",
+                ((ObjectNode) ((ObjectNode) data.get("queryWithArgument2")).get("dummyObject")).get("a").asText());
     }
 
     @Test
     public void testStringQueryWithEnum() throws ExecutionException, InterruptedException {
         Map<String, Object> vars = new HashMap<>();
         vars.put("x", DummyEnum.TWO);
-        JsonObject data = client
+        ObjectNode data = client
                 .executeSync("query($x: DummyEnum) {queryWithArgument3(obj: $x){integer}}", vars)
                 .getData();
         System.out.println(data);
-        assertEquals(2, data.getJsonObject("queryWithArgument3").getInt("integer"));
+        assertEquals(2, ((ObjectNode) data.get("queryWithArgument3")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryWithMultipleOperations() throws ExecutionException, InterruptedException {
         String query = "query a {simple{integer}} " +
                 "query b {simple2{integer}}";
-        JsonObject data = client.executeSync(query, "a").getData();
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync(query, "a").getData();
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
         data = client.executeSync(query, "b").getData();
-        assertEquals(31, data.getJsonObject("simple2").getInt("integer"));
+        assertEquals(31, ((ObjectNode) data.get("simple2")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryWithName() throws ExecutionException, InterruptedException {
-        JsonObject data = client.executeSync("query MyAwesomeQuery {simple{string integer}}").getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync("query MyAwesomeQuery {simple{string integer}}").getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryUnspecified() throws ExecutionException, InterruptedException {
-        JsonObject data = client.executeSync("{simple{string integer}}").getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync("{simple{string integer}}").getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     @Test
     public void testStringQueryWithArguments() throws ExecutionException, InterruptedException {
-        JsonObject data = client.executeSync("query {queryWithArgument(number: 20){integer}}").getData();
-        assertEquals(20, data.getJsonObject("queryWithArgument").getInt("integer"));
+        ObjectNode data = client.executeSync("query {queryWithArgument(number: 20){integer}}").getData();
+        assertEquals(20, ((ObjectNode) data.get("queryWithArgument")).get("integer").asInt());
     }
 
     @Test
@@ -146,11 +147,11 @@ public abstract class DynamicClientSingleOperationsTestBase {
                 field("simple2",
                         field("string"),
                         field("integer"))));
-        JsonObject data = client.executeSync(document).getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
-        assertEquals("asdfgh", data.getJsonObject("simple2").getString("string"));
-        assertEquals(31, data.getJsonObject("simple2").getInt("integer"));
+        ObjectNode data = client.executeSync(document).getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
+        assertEquals("asdfgh", ((ObjectNode) data.get("simple2")).get("string").asText());
+        assertEquals(31, ((ObjectNode) data.get("simple2")).get("integer").asInt());
     }
 
     @Test
@@ -159,10 +160,10 @@ public abstract class DynamicClientSingleOperationsTestBase {
                 field("simple",
                         field("string"),
                         field("integer"))));
-        JsonObject data = client.executeAsync(document)
+        ObjectNode data = client.executeAsync(document)
                 .await().atMost(Duration.ofSeconds(30)).getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     @Test
@@ -172,8 +173,8 @@ public abstract class DynamicClientSingleOperationsTestBase {
                         args(arg("number", 12)),
                         field("integer"))));
         Response response = client.executeSync(document);
-        JsonObject data = response.getData();
-        assertEquals(12, data.getJsonObject("queryWithArgument").getInt("integer"));
+        ObjectNode data = response.getData();
+        assertEquals(12, ((ObjectNode) data.get("queryWithArgument")).get("integer").asInt());
     }
 
     /**

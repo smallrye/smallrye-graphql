@@ -6,9 +6,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Source;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -18,6 +15,8 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.Response;
@@ -105,16 +104,16 @@ public class SubscriptionFieldBatchingTest {
                         .isNotNull();
                 assertThat(response.getErrors()).isNull();
 
-                JsonObject content = response.getData().get("subscriptionOperation").asJsonObject();
+                ObjectNode content = (ObjectNode) response.getData().get("subscriptionOperation");
                 assertThat(content).isNotNull();
 
-                assertThat(content.containsKey("field1")).isTrue();
-                assertThat(content.containsKey("field2")).isTrue();
-                assertThat(content.containsKey("sourceBatchField")).isTrue();
+                assertThat(content.has("field1")).isTrue();
+                assertThat(content.has("field2")).isTrue();
+                assertThat(content.has("sourceBatchField")).isTrue();
 
-                assertThat(content.get("field1")).isEqualTo(Json.createValue(111 * (i + 1)));
-                assertThat(content.get("field2")).isEqualTo(Json.createValue("bar" + (i + 1)));
-                assertThat(content.get("sourceBatchField")).isEqualTo(Json.createValue(i + 1));
+                assertThat(content.get("field1").asInt()).isEqualTo(111 * (i + 1));
+                assertThat(content.get("field2").asText()).isEqualTo("bar" + (i + 1));
+                assertThat(content.get("sourceBatchField").asInt()).isEqualTo(i + 1);
             }
         }
     }
