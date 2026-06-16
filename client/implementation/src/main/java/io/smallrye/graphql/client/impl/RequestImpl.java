@@ -13,7 +13,9 @@ import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 
 public class RequestImpl implements Request {
-    public static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JsonbCompatModule());
+    public static final ObjectMapper MAPPER = new ObjectMapper()
+            .registerModule(new JsonbCompatModule())
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 
     private final String document;
     private Map<String, Object> variables;

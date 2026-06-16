@@ -33,9 +33,9 @@ class JsonNumberReader extends Reader<JsonNode> {
         if (short.class.equals(rawType) || Short.class.equals(rawType))
             return (short) readIntBetween(location, value, Short.MIN_VALUE, Short.MAX_VALUE);
         if (int.class.equals(rawType) || Integer.class.equals(rawType))
-            return value.intValue();
+            return readIntExact(location, value);
         if (long.class.equals(rawType) || Long.class.equals(rawType))
-            return value.longValue();
+            return readLongExact(location, value);
         if (float.class.equals(rawType) || Float.class.equals(rawType))
             return (float) value.doubleValue();
         if (double.class.equals(rawType) || Double.class.equals(rawType))
@@ -45,17 +45,31 @@ class JsonNumberReader extends Reader<JsonNode> {
         if (BigDecimal.class.equals(rawType) || Object.class.equals(rawType))
             return value.decimalValue();
         if (OptionalInt.class.equals(rawType))
-            return OptionalInt.of(value.intValue());
+            return OptionalInt.of(readIntExact(location, value));
         if (OptionalLong.class.equals(rawType))
-            return OptionalLong.of(value.longValue());
+            return OptionalLong.of(readLongExact(location, value));
         if (OptionalDouble.class.equals(rawType))
             return OptionalDouble.of(value.doubleValue());
 
         throw GraphQLClientValueHelper.fail(location, value);
     }
 
+    private int readIntExact(Location location, JsonNode value) {
+        if (!value.canConvertToInt()) {
+            throw GraphQLClientValueHelper.fail(location, value);
+        }
+        return value.intValue();
+    }
+
+    private long readLongExact(Location location, JsonNode value) {
+        if (!value.canConvertToLong()) {
+            throw GraphQLClientValueHelper.fail(location, value);
+        }
+        return value.longValue();
+    }
+
     private int readIntBetween(Location location, JsonNode value, int minValue, int maxValue) {
-        int intValue = value.intValue();
+        int intValue = readIntExact(location, value);
         GraphQLClientValueHelper.check(location, value, intValue >= minValue);
         GraphQLClientValueHelper.check(location, value, intValue <= maxValue);
         return intValue;
