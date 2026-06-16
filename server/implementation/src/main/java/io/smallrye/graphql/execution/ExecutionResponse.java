@@ -264,7 +264,7 @@ public class ExecutionResponse {
     private static ObjectMapper createObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.disable(SerializationFeature.INDENT_OUTPUT);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
     }
