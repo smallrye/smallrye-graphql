@@ -4,11 +4,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import jakarta.json.JsonObject;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
@@ -35,7 +35,7 @@ public class DynamicClientExceptionTest {
                     .url("http://localhost:" + server.actualPort())
                     .build();
             try {
-                JsonObject data = client.executeSync("{something-whatever}").getData();
+                ObjectNode data = client.executeSync("{something-whatever}").getData();
                 Assertions.fail("Expected an exception");
             } catch (Exception e) {
                 Assertions.assertTrue(e instanceof InvalidResponseException);

@@ -5,17 +5,16 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
 
-import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
@@ -35,7 +34,7 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
     private Integer statusCode;
     private String statusMessage;
     private String response;
-    private JsonObject requestSent;
+    private JsonNode requestSent;
     private Map<String, List<String>> transportMeta;
 
     public VertxTypesafeGraphQLClientFixture() {
@@ -116,18 +115,19 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
 
     @Override
     public String rawVariables() {
-        JsonObject variables = requestSent().getJsonObject("variables");
+        JsonNode variables = requestSent().get("variables");
         return String.valueOf(variables);
     }
 
     @Override
     public String operationName() {
-        return requestSent().getString("operationName", "null");
+        JsonNode operationName = requestSent().get("operationName");
+        return operationName != null ? operationName.asText() : "null";
     }
 
     @Override
     public String query() {
-        return requestSent().getString("query").replace('\"', '\'');
+        return requestSent().get("query").asText().replace('\"', '\'');
     }
 
     @Override
@@ -135,13 +135,16 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
         return transportMeta;
     }
 
-    private JsonObject requestSent() {
+    private JsonNode requestSent() {
         if (requestSent == null) {
             ArgumentCaptor<Buffer> captor = ArgumentCaptor.forClass(Buffer.class);
             then(mockHttpRequest).should().sendBuffer(captor.capture());
             String requestString = captor.getValue().toString();
-            requestSent = Json.createReader(
-                    new StringReader(requestString)).readObject();
+            try {
+                requestSent = new ObjectMapper().readTree(requestString);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse request JSON", e);
+            }
         }
         return requestSent;
     }
