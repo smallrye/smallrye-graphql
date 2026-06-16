@@ -2,14 +2,14 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import jakarta.json.bind.config.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 /**
- * Naming strategy that take GraphQL annotations into account
+ * Naming strategy that takes GraphQL annotations into account
  *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
-public class GraphQLNamingStrategy implements PropertyNamingStrategy {
+public class GraphQLNamingStrategy extends PropertyNamingStrategies.NamingBase {
     private final Map<String, String> customFieldNameMapping;
 
     public GraphQLNamingStrategy(Map<String, String> customFieldNameMapping) {
@@ -17,11 +17,8 @@ public class GraphQLNamingStrategy implements PropertyNamingStrategy {
     }
 
     @Override
-    public String translateName(String string) {
+    public String translate(String name) {
         // Name mapping for input transformation
-        if (customFieldNameMapping.containsKey(string)) {
-            return customFieldNameMapping.get(string);
-        }
-        return string;
+        return customFieldNameMapping.getOrDefault(name, name);
     }
 }

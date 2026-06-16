@@ -17,14 +17,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
-import io.smallrye.graphql.json.JsonBCreator;
+import io.smallrye.graphql.json.JacksonCreator;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
@@ -299,7 +299,10 @@ public class ArgumentHelper extends AbstractHelper {
             throws AbstractDataFetcherException {
         String receivedClassName = argumentValue.getClass().getName();
 
-        if (Map.class.isAssignableFrom(argumentValue.getClass())) {
+        if (Map.class.isAssignableFrom(argumentValue.getClass())
+                && isJacksonJsonNodeType(field.getReference().getClassName())) {
+            return JacksonCreator.getObjectMapper().valueToTree(argumentValue);
+        } else if (Map.class.isAssignableFrom(argumentValue.getClass())) {
             return correctComplexObjectFromMap((Map) argumentValue, field, dfe);
         } else if (receivedClassName.equals(String.class.getName())) {
             // Edge case for ObjectId: If the field is of type org.bson.types.ObjectId, return the argument value.
@@ -333,6 +336,12 @@ public class ArgumentHelper extends AbstractHelper {
      * @param field the field as created while scanning
      * @return a java object of this type.
      */
+    private static boolean isJacksonJsonNodeType(String className) {
+        return "com.fasterxml.jackson.databind.JsonNode".equals(className)
+                || "com.fasterxml.jackson.databind.node.ObjectNode".equals(className)
+                || "com.fasterxml.jackson.databind.node.ArrayNode".equals(className);
+    }
+
     private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
@@ -368,6 +377,11 @@ public class ArgumentHelper extends AbstractHelper {
             }
         }
 
+        // Save adapted map fields to set them after JSON round-trip.
+        // Complex-keyed maps can't survive JSON serialization because Jackson
+        // serializes Map keys using toString(), losing the original key data.
+        Map<String, Object> deferredMapFields = new HashMap<>();
+
         if (InputFieldsInfo.hasAdaptWithFields(className)) {
             Map<String, Field> adaptingFields = InputFieldsInfo.getAdaptWithFields(className);
 
@@ -377,7 +391,14 @@ public class ArgumentHelper extends AbstractHelper {
                     Object valueThatShouldAdapt = m.get(fieldName);
                     Field fieldThatShouldAdapt = entry.getValue();
                     Object valueThatAdapted = super.recursiveAdapting(valueThatShouldAdapt, fieldThatShouldAdapt, dfe);
-                    m.put(fieldName, valueThatAdapted);
+                    if (fieldThatShouldAdapt.hasWrapper() && fieldThatShouldAdapt.getWrapper().isMap()) {
+                        // Defer map fields: remove from the map before JSON round-trip
+                        // so Jackson doesn't try to serialize complex map keys via toString()
+                        deferredMapFields.put(fieldThatShouldAdapt.getPropertyName(), valueThatAdapted);
+                        m.remove(fieldName);
+                    } else {
+                        m.put(fieldName, valueThatAdapted);
+                    }
                 }
             }
         }
@@ -386,8 +407,28 @@ public class ArgumentHelper extends AbstractHelper {
         m = includeNullCreatorParameters(m, field);
 
         // Create a valid jsonString from a map
-        String jsonString = JsonBCreator.getJsonB(className).toJson(m);
-        return correctComplexObjectFromJsonString(jsonString, field);
+        try {
+            String jsonString = JacksonCreator.getObjectMapper(className).writeValueAsString(m);
+            Object result = correctComplexObjectFromJsonString(jsonString, field);
+
+            // Set deferred map fields directly via reflection
+            if (!deferredMapFields.isEmpty()) {
+                Class<?> resultClass = result.getClass();
+                for (Map.Entry<String, Object> deferred : deferredMapFields.entrySet()) {
+                    try {
+                        java.lang.reflect.Field javaField = findField(resultClass, deferred.getKey());
+                        javaField.setAccessible(true);
+                        javaField.set(result, deferred.getValue());
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException("Failed to set deferred map field: " + deferred.getKey(), e);
+                    }
+                }
+            }
+
+            return result;
+        } catch (JsonProcessingException e) {
+            throw new TransformException(e, field, m);
+        }
     }
 
     /**
@@ -448,10 +489,10 @@ public class ArgumentHelper extends AbstractHelper {
         }
 
         try {
-            Jsonb jsonb = JsonBCreator.getJsonB(className);
-            return jsonb.fromJson(jsonString, type);
-        } catch (JsonbException jbe) {
-            throw new TransformException(jbe, field, jsonString);
+            ObjectMapper objectMapper = JacksonCreator.getObjectMapper(className);
+            return objectMapper.readValue(jsonString, objectMapper.constructType(type));
+        } catch (JsonProcessingException jpe) {
+            throw new TransformException(jpe, field, jsonString);
         }
     }
 
@@ -500,6 +541,21 @@ public class ArgumentHelper extends AbstractHelper {
         public Type[] getActualTypeArguments() {
             return types;
         }
+    }
+
+    /**
+     * Find a declared field in the class hierarchy.
+     */
+    private static java.lang.reflect.Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(fieldName);
     }
 
     private static final String CONSTRUCTOR_METHOD_NAME = "<init>";

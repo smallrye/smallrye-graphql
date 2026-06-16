@@ -1,25 +1,22 @@
 package io.smallrye.graphql.client.impl.typesafe;
 
-import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
 import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
-import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonException;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonPatch;
-import jakarta.json.JsonPointer;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.impl.RequestImpl;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
@@ -28,15 +25,15 @@ import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
 public class ResultBuilder {
-    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
+    private static final ObjectMapper MAPPER = RequestImpl.MAPPER;
 
     private final MethodInvocation method;
-    private final JsonObject response;
+    private final ObjectNode response;
     private final String responseString;
     private final Integer statusCode;
     private final String statusMessage;
-    private JsonObject data;
-    private JsonObject extensions;
+    private ObjectNode data;
+    private ObjectNode extensions;
     private Map<String, List<String>> transportMeta;
 
     public ResultBuilder(MethodInvocation method, String responseString, boolean allowUnexpectedResponseFields) {
@@ -67,7 +64,7 @@ public class ResultBuilder {
         readErrors();
         if (data == null)
             return null;
-        JsonValue value = method.isSingle() ? data.get(method.getName()) : data;
+        JsonNode value = method.isSingle() ? data.get(method.getName()) : data;
         Object result;
         if (method.getReturnType().isTypesafeResponse()) {
             extensions = readExtensions();
@@ -89,75 +86,105 @@ public class ResultBuilder {
         return result;
     }
 
-    private JsonObject readData() {
-        if (!response.containsKey("data") || response.isNull("data"))
+    private ObjectNode readData() {
+        if (!response.has("data") || response.get("data").isNull())
             return null;
 
-        JsonObject data = response.getJsonObject("data");
+        ObjectNode data = (ObjectNode) response.get("data");
         for (String namespace : method.getNamespaces()) {
-            data = data.getJsonObject(namespace);
+            data = (ObjectNode) data.get(namespace);
         }
 
-        if (method.isSingle() && !data.containsKey(method.getName()))
+        if (method.isSingle() && !data.has(method.getName()))
             throw new InvalidResponseException("No data for '" + method.getName() + "'");
         return data;
     }
 
     private void readErrors() {
-        if (!response.containsKey("errors") || response.isNull("errors"))
+        if (!response.has("errors") || response.get("errors").isNull())
             return;
-        JsonArray jsonErrors = response.getJsonArray("errors");
-        if (jsonErrors == null)
+        JsonNode errorsNode = response.get("errors");
+        if (!errorsNode.isArray())
             return;
-        JsonArray unapplied = jsonErrors.stream().filter(error -> !apply(error)).collect(toJsonArray());
+        ArrayNode jsonErrors = (ArrayNode) errorsNode;
+        ArrayNode unapplied = MAPPER.createArrayNode();
+        for (JsonNode error : jsonErrors) {
+            if (!apply(error)) {
+                unapplied.add(error);
+            }
+        }
         if (unapplied.isEmpty())
             return;
         throw new GraphQLClientException("errors from service",
-                unapplied.stream().map(ResponseReader::readError).collect(Collectors.toList()));
+                StreamSupport.stream(unapplied.spliterator(), false)
+                        .map(ResponseReader::readError)
+                        .collect(Collectors.toList()));
     }
 
-    private boolean apply(JsonValue error) {
+    private boolean apply(JsonNode error) {
         List<Object> path = getPath(error);
         if (data == null || path == null)
             return false;
-        JsonPointer pointer = JSON_PROVIDER.createPointer(path.stream().map(Object::toString).collect(joining("/", "/", "")));
-        if (!exists(pointer))
+        String pointerString = path.stream().map(Object::toString).collect(joining("/", "/", ""));
+        JsonPointer pointer = JsonPointer.compile(pointerString);
+        JsonNode existing = data.at(pointer);
+        if (existing.isMissingNode())
             return false;
-        JsonArrayBuilder errors = jsonBuilderFactory.createArrayBuilder();
-        if (pointer.containsValue(data) && isListOf(pointer.getValue(data), ErrorOr.class.getSimpleName()))
-            pointer.getValue(data).asJsonArray().forEach(errors::add);
-        errors.add(ERROR_MARK.apply((JsonObject) error));
-        this.data = pointer.replace(data, errors.build());
+
+        // Build the error-marked array
+        ArrayNode errors = MAPPER.createArrayNode();
+        if (isListOf(existing, ErrorOr.class.getSimpleName())) {
+            for (JsonNode e : existing) {
+                errors.add(e);
+            }
+        }
+        // Add __typename to error object to mark it
+        ObjectNode errorCopy = ((ObjectNode) error).deepCopy();
+        errorCopy.put("__typename", ErrorOr.class.getSimpleName());
+        errors.add(errorCopy);
+
+        // Set the error array at the pointer location in data
+        setAtPointer(data, pointer, errors);
         return true;
     }
 
-    private JsonObject readExtensions() {
-        if (!response.containsKey("extensions") || response.isNull("extensions"))
-            return null;
-        return response.getJsonObject("extensions");
-    }
+    /**
+     * Set a value at a given JsonPointer location in the tree.
+     */
+    private void setAtPointer(ObjectNode root, JsonPointer pointer, JsonNode newValue) {
+        // Navigate to the parent and set the value
+        JsonPointer head = pointer.head();
+        String lastSegment = pointer.last().getMatchingProperty();
 
-    private boolean exists(JsonPointer pointer) {
-        try {
-            pointer.containsValue(data);
-            return true;
-        } catch (JsonException e) {
-            return false;
-        }
-    }
-
-    private static List<Object> getPath(JsonValue jsonValue) {
-        JsonValue value = jsonValue.asJsonObject().get("path");
-        JsonArray jsonArray;
-        if (value != null && value.getValueType().equals(JsonValue.ValueType.ARRAY)) {
-            jsonArray = value.asJsonArray();
+        JsonNode parent;
+        if (head != null && !head.toString().isEmpty()) {
+            parent = root.at(head);
         } else {
-            jsonArray = null;
+            parent = root;
         }
-        return (jsonArray == null) ? null : jsonArray.stream().map(JsonUtils::toValue).collect(Collectors.toList());
+
+        if (parent.isObject()) {
+            ((ObjectNode) parent).set(lastSegment, newValue);
+        } else if (parent.isArray()) {
+            int index = Integer.parseInt(lastSegment);
+            ((ArrayNode) parent).set(index, newValue);
+        }
     }
 
-    private static final JsonPatch ERROR_MARK = JSON_PROVIDER.createPatchBuilder()
-            .add("/__typename", ErrorOr.class.getSimpleName())
-            .build();
+    private ObjectNode readExtensions() {
+        if (!response.has("extensions") || response.get("extensions").isNull())
+            return null;
+        return (ObjectNode) response.get("extensions");
+    }
+
+    private static List<Object> getPath(JsonNode jsonValue) {
+        JsonNode value = jsonValue.get("path");
+        if (value == null || !value.isArray()) {
+            return null;
+        }
+        ArrayNode jsonArray = (ArrayNode) value;
+        return StreamSupport.stream(jsonArray.spliterator(), false)
+                .map(JsonUtils::toValue)
+                .collect(Collectors.toList());
+    }
 }

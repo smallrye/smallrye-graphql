@@ -1,11 +1,10 @@
 package io.smallrye.graphql.tests.json;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Map;
 
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.smallrye.graphql.spi.EventingService;
 
@@ -17,8 +16,9 @@ public class CustomJsonbService implements EventingService {
     }
 
     @Override
-    public Map<String, Jsonb> overrideJsonbConfig() {
-        JsonbConfig config = new JsonbConfig().withDateFormat("MM dd yyyy HH:mm Z", null);
-        return Collections.singletonMap(DateWrapper.class.getName(), JsonbBuilder.create(config));
+    public Map<String, ObjectMapper> overrideObjectMapperConfig() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(new SimpleDateFormat("MM dd yyyy HH:mm Z"));
+        return Collections.singletonMap(DateWrapper.class.getName(), mapper);
     }
 }

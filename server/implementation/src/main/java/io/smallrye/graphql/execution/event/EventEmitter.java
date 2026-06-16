@@ -10,9 +10,10 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 import jakarta.annotation.Priority;
-import jakarta.json.bind.Jsonb;
 
 import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
@@ -176,16 +177,16 @@ public class EventEmitter {
         return operation;
     }
 
-    public Map<String, Jsonb> fireOverrideJsonbConfig() {
-        Map<String, Jsonb> overrides = new HashMap<>();
+    public Map<String, ObjectMapper> fireOverrideObjectMapperConfig() {
+        Map<String, ObjectMapper> overrides = new HashMap<>();
         for (EventingService extensionService : enabledServices) {
-            Map<String, Jsonb> map = extensionService.overrideJsonbConfig();
-            map.forEach((clazz, jsonb) -> {
-                LOG.debug("Registering custom JsonB config for class " + clazz + " (it was returned by "
+            Map<String, ObjectMapper> map = extensionService.overrideObjectMapperConfig();
+            map.forEach((clazz, objectMapper) -> {
+                LOG.debug("Registering custom ObjectMapper config for class " + clazz + " (it was returned by "
                         + extensionService.getClass()
                                 .getName()
                         + ")");
-                overrides.put(clazz, jsonb);
+                overrides.put(clazz, objectMapper);
             });
         }
         return overrides;

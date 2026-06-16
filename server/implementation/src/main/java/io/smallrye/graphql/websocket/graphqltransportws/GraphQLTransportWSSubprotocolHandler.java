@@ -83,7 +83,7 @@ public class GraphQLTransportWSSubprotocolHandler extends AbstractGraphQLWebsock
     @Override
     protected void sendErrorMessage(String operationId, ExecutionResponse executionResponse) throws IOException {
         session.sendMessage(createErrorMessage(operationId,
-                executionResponse.getExecutionResultAsJsonObject().getJsonArray("errors")).toString());
+                executionResponse.getExecutionResultAsJsonPObject().getJsonArray("errors")).toString());
     }
 
     private JsonObject createErrorMessage(String operationId, JsonArray errors) {

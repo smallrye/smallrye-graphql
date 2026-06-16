@@ -23,8 +23,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.json.bind.adapter.JsonbAdapter;
-import jakarta.json.bind.annotation.JsonbTypeAdapter;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.NonNull;
@@ -542,7 +540,7 @@ class SchemaTest extends SchemaTestBase {
         @AdaptWith(CustomAdapter.class)
         public Collection<Long> someField;
 
-        @JsonbTypeAdapter(CustomJsonbTypeAdapter.class)
+        @AdaptWith(CustomFloatToStringAdapter.class)
         public Float myOtherField;
 
         public ModelA() {
@@ -607,23 +605,23 @@ class SchemaTest extends SchemaTestBase {
         }
     }
 
-    public static class CustomJsonbTypeAdapter implements JsonbAdapter<Float, String> {
+    public static class CustomFloatToStringAdapter implements Adapter<Float, String> {
 
         @Override
-        public String adaptToJson(Float aFloat) throws Exception {
-            return String.valueOf(aFloat);
+        public String to(Float o) throws Exception {
+            return String.valueOf(o);
         }
 
         @Override
-        public Float adaptFromJson(String s) throws Exception {
-            return Float.valueOf(s);
+        public Float from(String a) throws Exception {
+            return Float.valueOf(a);
         }
     }
 
     @Test
     public void adaptTest() {
         GraphQLSchema graphQLSchema = createGraphQLSchema(ModelA.class, ModelB.class, AdaptApi.class, CustomAdapter.class,
-                CustomJsonbTypeAdapter.class);
+                CustomFloatToStringAdapter.class);
 
         GraphQLFieldDefinition modelAQuery = graphQLSchema.getQueryType().getField("someString");
         assertNotNull(modelAQuery);

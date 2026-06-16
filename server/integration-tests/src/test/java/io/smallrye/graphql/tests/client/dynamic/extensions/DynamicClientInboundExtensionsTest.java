@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import jakarta.inject.Inject;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -26,6 +24,9 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
@@ -66,11 +67,15 @@ public class DynamicClientInboundExtensionsTest {
     }
 
     @Test
-    public void addedExtensionsTest() throws ExecutionException, InterruptedException {
+    public void addedExtensionsTest() throws Exception {
         Response response = client.executeSync(document(operation(
                 field("poolWithExtensions",
                         field("volume")))));
-        assertEquals(getJsonMap(), response.getExtensions());
+        // Compare structurally by converting both to JsonNode through a common JSON round-trip
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode expected = mapper.readTree(mapper.writeValueAsString(getMap()));
+        JsonNode actual = mapper.readTree(response.getExtensions().toString());
+        assertEquals(expected, actual);
     }
 
     @GraphQLApi
@@ -123,16 +128,4 @@ public class DynamicClientInboundExtensionsTest {
         return map;
     }
 
-    private JsonObject getJsonMap() {
-        JsonObject result = Json.createObjectBuilder()
-                .add("int", 23)
-                .add("double", 3.1415926535)
-                .add("list of strings", Json.createArrayBuilder().add("1").add("2").add("3").add("4").build())
-                .add("subMap", Json.createObjectBuilder()
-                        .add("1", "Paul")
-                        .add("3", "John")
-                        .build())
-                .build();
-        return result;
-    }
 }

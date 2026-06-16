@@ -63,6 +63,8 @@ public class GraphQLScalarTypes {
 
     public static void addJson() {
         SCALAR_MAP.put(Object.class.getName(), ExtendedScalars.Json);
+        SCALAR_MAP.put("com.fasterxml.jackson.databind.JsonNode", ExtendedScalars.Json);
+        SCALAR_MAP.put("com.fasterxml.jackson.databind.node.ObjectNode", ExtendedScalars.Json);
         SCALARS_BY_NAME.put(ExtendedScalars.Json.getName(), ExtendedScalars.Json);
     }
 

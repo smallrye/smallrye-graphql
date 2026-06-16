@@ -1,6 +1,5 @@
 package io.smallrye.graphql.client.vertx.typesafe;
 
-import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
 import static java.util.stream.Collectors.*;
 
 import java.lang.reflect.Array;
@@ -23,16 +22,16 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonValue;
-
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.impl.RequestImpl;
 import io.smallrye.graphql.client.impl.discovery.ServiceURLSupplier;
 import io.smallrye.graphql.client.impl.discovery.StaticURLSupplier;
 import io.smallrye.graphql.client.impl.discovery.StorkServiceURLSupplier;
@@ -61,7 +60,8 @@ class VertxTypesafeGraphQLClientProxy {
 
     private static final Logger log = Logger.getLogger(VertxTypesafeGraphQLClientProxy.class);
 
-    private static final JsonBuilderFactory jsonObjectFactory = JSON_PROVIDER.createBuilderFactory(null);
+    private static final ObjectMapper MAPPER = RequestImpl.MAPPER;
+    private static final JsonNodeFactory NODES = JsonNodeFactory.instance;
 
     private final ConcurrentMap<String, String> queryCache = new ConcurrentHashMap<>();
 
@@ -143,7 +143,7 @@ class VertxTypesafeGraphQLClientProxy {
 
         MultiMap headers = MultiMap.caseInsensitiveMultiMap()
                 .addAll(new HeaderBuilder(api, method, additionalHeaders).build());
-        JsonObject request = request(method);
+        ObjectNode request = request(method);
 
         if (method.getReturnType().isUni()) {
             if (executeSingleOperationsOverWebsocket) {
@@ -162,7 +162,7 @@ class VertxTypesafeGraphQLClientProxy {
         }
     }
 
-    private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, JsonObject request, MultiMap headers) {
+    private Object executeSingleResultOperationOverHttpSync(MethodInvocation method, ObjectNode request, MultiMap headers) {
         MultiMap allHeaders = MultiMap.caseInsensitiveMultiMap();
         allHeaders.addAll(headers);
         // obtain values of dynamic headers and add them to the request
@@ -178,7 +178,7 @@ class VertxTypesafeGraphQLClientProxy {
                 allowUnexpectedResponseFields).read();
     }
 
-    private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, JsonObject request,
+    private Uni<Object> executeSingleResultOperationOverHttpAsync(MethodInvocation method, ObjectNode request,
             MultiMap headers) {
         return Uni.createFrom().deferred(() -> {
             // Fresh headers per (re)subscription
@@ -221,7 +221,7 @@ class VertxTypesafeGraphQLClientProxy {
                         mapping(Map.Entry::getValue, toList())));
     }
 
-    private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, JsonObject request) {
+    private Uni<Object> executeSingleResultOperationOverWebsocket(MethodInvocation method, ObjectNode request) {
         AtomicReference<String> operationId = new AtomicReference<>();
         AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
         Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
@@ -252,7 +252,7 @@ class VertxTypesafeGraphQLClientProxy {
 
     }
 
-    private Multi<Object> executeSubscriptionOverWebsocket(MethodInvocation method, JsonObject request) {
+    private Multi<Object> executeSubscriptionOverWebsocket(MethodInvocation method, ObjectNode request) {
         AtomicReference<String> operationId = new AtomicReference<>();
         AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
         Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {
@@ -309,33 +309,32 @@ class VertxTypesafeGraphQLClientProxy {
         });
     }
 
-    private JsonObject request(MethodInvocation method) {
-        JsonObjectBuilder request = jsonObjectFactory.createObjectBuilder();
+    private ObjectNode request(MethodInvocation method) {
+        ObjectNode request = MAPPER.createObjectNode();
         String query;
         if (clientModel == null) {
             query = queryCache.computeIfAbsent(method.getKey(), key -> new QueryBuilder(method).build());
         } else {
             query = clientModel.getOperationMap().get(method.getMethodKey());
         }
-        request.add("query", query);
-        request.add("variables", variables(method));
-        request.add("operationName", method.getOperationName());
-        JsonObject result = request.build();
-        log.tracef("full graphql request: %s", result.toString());
-        return result;
+        request.put("query", query);
+        request.set("variables", variables(method));
+        request.put("operationName", method.getOperationName());
+        log.tracef("full graphql request: %s", request.toString());
+        return request;
     }
 
-    private JsonObjectBuilder variables(MethodInvocation method) {
-        JsonObjectBuilder builder = jsonObjectFactory.createObjectBuilder();
-        method.valueParameters().forEach(parameter -> builder.add(parameter.getRawName(), value(parameter.getValue())));
+    private ObjectNode variables(MethodInvocation method) {
+        ObjectNode builder = MAPPER.createObjectNode();
+        method.valueParameters().forEach(parameter -> builder.set(parameter.getRawName(), value(parameter.getValue())));
         return builder;
     }
 
     // TODO: the logic for serializing objects into JSON should probably be shared with server-side module
     // through a common module. Also this is not vert.x specific, another reason to move it out of this module
-    private JsonValue value(Object value) {
+    private JsonNode value(Object value) {
         if (value == null) {
-            return JsonValue.NULL;
+            return NODES.nullNode();
         }
         TypeInfo type = TypeInfo.of(value.getClass());
         if (type.isScalar()) {
@@ -353,83 +352,83 @@ class VertxTypesafeGraphQLClientProxy {
         return objectValue(value, type.fields());
     }
 
-    private JsonValue scalarValue(Object value) {
+    private JsonNode scalarValue(Object value) {
         if (value instanceof String) {
-            return JSON_PROVIDER.createValue((String) value);
+            return NODES.textNode((String) value);
         }
         if (value instanceof java.sql.Date) {
-            return JSON_PROVIDER.createValue(value.toString());
+            return NODES.textNode(value.toString());
         }
         if (value instanceof Date) {
-            return JSON_PROVIDER.createValue(((Date) value).toInstant().toString());
+            return NODES.textNode(((Date) value).toInstant().toString());
         }
         if (value instanceof Calendar) {
-            return JSON_PROVIDER.createValue(((Calendar) value).toInstant().toString());
+            return NODES.textNode(((Calendar) value).toInstant().toString());
         }
         if (value instanceof Enum) {
-            return JSON_PROVIDER.createValue(((Enum<?>) value).name());
+            return NODES.textNode(((Enum<?>) value).name());
         }
         if (value instanceof Boolean) {
-            return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
+            return NODES.booleanNode((Boolean) value);
         }
         if (value instanceof Byte) {
-            return JSON_PROVIDER.createValue((Byte) value);
+            return NODES.numberNode((Byte) value);
         }
         if (value instanceof Short) {
-            return JSON_PROVIDER.createValue((Short) value);
+            return NODES.numberNode((Short) value);
         }
         if (value instanceof Integer) {
-            return JSON_PROVIDER.createValue((Integer) value);
+            return NODES.numberNode((Integer) value);
         }
         if (value instanceof Long) {
-            return JSON_PROVIDER.createValue((Long) value);
+            return NODES.numberNode((Long) value);
         }
         if (value instanceof Double) {
-            return JSON_PROVIDER.createValue((Double) value);
+            return NODES.numberNode((Double) value);
         }
         if (value instanceof Float) {
-            return JSON_PROVIDER.createValue((Float) value);
+            return NODES.numberNode((Float) value);
         }
         if (value instanceof BigInteger) {
-            return JSON_PROVIDER.createValue((BigInteger) value);
+            return NODES.numberNode((BigInteger) value);
         }
         if (value instanceof BigDecimal) {
-            return JSON_PROVIDER.createValue((BigDecimal) value);
+            return NODES.numberNode((BigDecimal) value);
         }
         if (value instanceof OptionalInt) {
             OptionalInt optionalValue = ((OptionalInt) value);
-            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsInt()) : JsonValue.NULL);
+            return optionalValue.isPresent() ? NODES.numberNode(optionalValue.getAsInt()) : NODES.nullNode();
         }
         if (value instanceof OptionalLong) {
             OptionalLong optionalValue = ((OptionalLong) value);
-            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsLong()) : JsonValue.NULL);
+            return optionalValue.isPresent() ? NODES.numberNode(optionalValue.getAsLong()) : NODES.nullNode();
         }
         if (value instanceof OptionalDouble) {
             OptionalDouble optionalValue = ((OptionalDouble) value);
-            return ((optionalValue.isPresent()) ? JSON_PROVIDER.createValue(optionalValue.getAsDouble()) : JsonValue.NULL);
+            return optionalValue.isPresent() ? NODES.numberNode(optionalValue.getAsDouble()) : NODES.nullNode();
         }
-        return JSON_PROVIDER.createValue(value.toString());
+        return NODES.textNode(value.toString());
     }
 
-    private JsonArray arrayValue(Object value) {
-        JsonArrayBuilder array = jsonObjectFactory.createArrayBuilder();
+    private ArrayNode arrayValue(Object value) {
+        ArrayNode array = MAPPER.createArrayNode();
         values(value).forEach(item -> array.add(value(item)));
-        return array.build();
+        return array;
     }
 
-    private JsonArray mapValue(Object value) {
+    private ArrayNode mapValue(Object value) {
         Map<?, ?> map = (Map<?, ?>) value;
-        JsonArrayBuilder array = jsonObjectFactory.createArrayBuilder();
+        ArrayNode array = MAPPER.createArrayNode();
         map.forEach((k, v) -> {
-            JsonObjectBuilder entryBuilder = jsonObjectFactory.createObjectBuilder();
-            entryBuilder.add("key", value(k));
-            entryBuilder.add("value", value(v));
-            array.add(entryBuilder.build());
+            ObjectNode entryNode = MAPPER.createObjectNode();
+            entryNode.set("key", value(k));
+            entryNode.set("value", value(v));
+            array.add(entryNode);
         });
-        return array.build();
+        return array;
     }
 
-    private JsonValue optionalValue(Object value) {
+    private JsonNode optionalValue(Object value) {
         Optional<?> optional = (Optional<?>) value;
         return value(optional.orElse(null));
     }
@@ -454,14 +453,14 @@ class VertxTypesafeGraphQLClientProxy {
         return out;
     }
 
-    private JsonObject objectValue(Object object, Stream<FieldInfo> fields) {
-        JsonObjectBuilder builder = jsonObjectFactory.createObjectBuilder();
+    private ObjectNode objectValue(Object object, Stream<FieldInfo> fields) {
+        ObjectNode builder = MAPPER.createObjectNode();
         fields.forEach(field -> {
             if (field.isIncludeNull() || field.get(object) != null) {
-                builder.add(field.getName(), value(field.get(object)));
+                builder.set(field.getName(), value(field.get(object)));
             }
         });
-        return builder.build();
+        return builder;
     }
 
     private Uni<HttpResponse<Buffer>> postAsync(String request, MultiMap headers) {

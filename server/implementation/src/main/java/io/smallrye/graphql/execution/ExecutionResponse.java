@@ -1,7 +1,5 @@
 package io.smallrye.graphql.execution;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -13,17 +11,20 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.JsonValue;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
+import jakarta.json.spi.JsonProvider;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
@@ -37,11 +38,8 @@ import io.smallrye.graphql.spi.config.Config;
  */
 public class ExecutionResponse {
 
-    private static final JsonBuilderFactory jsonObjectFactory = JSON_PROVIDER.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
-    private static final Jsonb jsonB = JsonbBuilder.create(new JsonbConfig()
-            .withNullValues(Boolean.TRUE)
-            .withFormatting(Boolean.TRUE));
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+    private static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
     private static final ExecutionErrorsService errorsService = new ExecutionErrorsService();
 
     private final ExecutionResult executionResult;
@@ -72,155 +70,167 @@ public class ExecutionResponse {
         return this.executionResult;
     }
 
-    public JsonObject getExecutionResultAsJsonObject() {
-        JsonObjectBuilder returnObjectBuilder = jsonObjectFactory.createObjectBuilder();
+    public ObjectNode getExecutionResultAsJsonObject() {
+        ObjectNode returnObject = NODE_FACTORY.objectNode();
         // Errors
-        returnObjectBuilder = addErrorsToResponse(returnObjectBuilder, executionResult);
+        addErrorsToResponse(returnObject, executionResult);
         // Data
-        returnObjectBuilder = addDataToResponse(returnObjectBuilder, executionResult);
+        addDataToResponse(returnObject, executionResult);
         // Extensions
-        returnObjectBuilder = addExtensionsToResponse(returnObjectBuilder, executionResult);
+        addExtensionsToResponse(returnObject, executionResult);
 
-        return returnObjectBuilder.build();
-    }
-
-    public String getExecutionResultAsString() {
-        return getExecutionResultAsJsonObject().toString();
-    }
-
-    private JsonObjectBuilder addErrorsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
-        List<GraphQLError> errors = executionResult.getErrors();
-        if (errors != null) {
-            JsonArray jsonArray = errorsService.toJsonErrors(errors);
-            if (!jsonArray.isEmpty()) {
-                returnObjectBuilder = returnObjectBuilder.add(ERRORS, jsonArray);
-            }
-        }
-        return returnObjectBuilder;
-    }
-
-    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
-        if (!executionResult.isDataPresent()) {
-            return returnObjectBuilder;
-        }
-        Object pojoData = executionResult.getData();
-        return addDataToResponse(returnObjectBuilder, pojoData);
-    }
-
-    private JsonObjectBuilder addDataToResponse(JsonObjectBuilder returnObjectBuilder, Object pojoData) {
-        if (pojoData != null) {
-            JsonValue data = toJsonValue(pojoData);
-            return returnObjectBuilder.add(DATA, data);
-        } else {
-            return returnObjectBuilder.addNull(DATA);
-        }
-    }
-
-    private JsonObjectBuilder addExtensionsToResponse(JsonObjectBuilder returnObjectBuilder, ExecutionResult executionResult) {
-        final Map<Object, Object> extensions = executionResult.getExtensions();
-        if (extensions != null) { // ERRORS
-            returnObjectBuilder = addExtensionToBuilder(extensions, returnObjectBuilder);
-        } else if (addedExtensions != null && !addedExtensions.isEmpty()) { // ADDED EXTENSIONS
-            returnObjectBuilder = addExtensionToBuilder(new HashMap(addedExtensions), returnObjectBuilder);
-        }
-        return returnObjectBuilder;
-    }
-
-    private JsonObjectBuilder addExtensionToBuilder(Map<Object, Object> extensions, JsonObjectBuilder returnObjectBuilder) {
-        JsonObject extensionsObject = buildExtensions(extensions);
-        return returnObjectBuilder.add(EXTENSIONS, extensionsObject);
-    }
-
-    private JsonObject buildExtensions(final Map<Object, Object> extensions) {
-        JsonObjectBuilder extensionsBuilder = jsonObjectFactory.createObjectBuilder();
-        for (final Map.Entry<Object, Object> entry : extensions.entrySet()) {
-            if (entry.getKey() instanceof String) {
-                String key = ((String) entry.getKey());
-                final JsonValue value = toJsonValue(entry.getValue());
-                extensionsBuilder.add(key, value);
-            }
-        }
-        return extensionsBuilder.build();
+        return returnObject;
     }
 
     /**
-     * Build a JsonValue from the provided Object.
+     * Bridge method: converts the Jackson ObjectNode to a JSON-P JsonObject.
+     * This is needed for callers that still use JSON-P types (websocket handlers, JsonObjectResponseWriter).
+     * Will be removed when those callers are migrated to Jackson.
+     */
+    public JsonObject getExecutionResultAsJsonPObject() {
+        String jsonString = getExecutionResultAsString();
+        JsonProvider jsonProvider = JsonProvider.provider();
+        try (StringReader sr = new StringReader(jsonString);
+                JsonReader reader = jsonProvider.createReader(sr)) {
+            return reader.readObject();
+        }
+    }
+
+    public String getExecutionResultAsString() {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(getExecutionResultAsJsonObject());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void addErrorsToResponse(ObjectNode returnObject, ExecutionResult executionResult) {
+        List<GraphQLError> errors = executionResult.getErrors();
+        if (errors != null) {
+            ArrayNode jsonArray = errorsService.toJsonErrors(errors);
+            if (jsonArray.size() > 0) {
+                returnObject.set(ERRORS, jsonArray);
+            }
+        }
+    }
+
+    private void addDataToResponse(ObjectNode returnObject, ExecutionResult executionResult) {
+        if (!executionResult.isDataPresent()) {
+            return;
+        }
+        Object pojoData = executionResult.getData();
+        addDataToResponse(returnObject, pojoData);
+    }
+
+    private void addDataToResponse(ObjectNode returnObject, Object pojoData) {
+        if (pojoData != null) {
+            JsonNode data = toJsonNode(pojoData);
+            returnObject.set(DATA, data);
+        } else {
+            returnObject.putNull(DATA);
+        }
+    }
+
+    private void addExtensionsToResponse(ObjectNode returnObject, ExecutionResult executionResult) {
+        final Map<Object, Object> extensions = executionResult.getExtensions();
+        if (extensions != null) { // ERRORS
+            addExtensionToBuilder(extensions, returnObject);
+        } else if (addedExtensions != null && !addedExtensions.isEmpty()) { // ADDED EXTENSIONS
+            addExtensionToBuilder(new HashMap(addedExtensions), returnObject);
+        }
+    }
+
+    private void addExtensionToBuilder(Map<Object, Object> extensions, ObjectNode returnObject) {
+        ObjectNode extensionsObject = buildExtensions(extensions);
+        returnObject.set(EXTENSIONS, extensionsObject);
+    }
+
+    private ObjectNode buildExtensions(final Map<Object, Object> extensions) {
+        ObjectNode extensionsNode = NODE_FACTORY.objectNode();
+        for (final Map.Entry<Object, Object> entry : extensions.entrySet()) {
+            if (entry.getKey() instanceof String) {
+                String key = ((String) entry.getKey());
+                final JsonNode value = toJsonNode(entry.getValue());
+                extensionsNode.set(key, value);
+            }
+        }
+        return extensionsNode;
+    }
+
+    /**
+     * Build a JsonNode from the provided Object.
      * <p>
      * </p>
      * GraphQL returns a limited set of values ({@code Collection}, {@code Map}, {@code Number}, {@code Boolean}, {@code Enum}),
-     * so the json value is build by hand.
-     * Additionally, {@code JsonB} is used as a fallback if an different type is encountered.
+     * so the json value is built by hand.
+     * Additionally, Jackson's {@code ObjectMapper} is used as a fallback if a different type is encountered.
      *
      * @param pojo a java object, limited to {@code Collection}, {@code Map}, {@code Number}, {@code Boolean} and {@code Enum}
-     * @return the json value
+     * @return the json node
      */
-    private JsonValue toJsonValue(Object pojo) {
+    private JsonNode toJsonNode(Object pojo) {
 
-        final JsonValue jsonValue;
         if (pojo == null) {
-            return JsonValue.NULL;
-        } else if (pojo instanceof JsonValue) {
-            JsonValue value = (JsonValue) pojo;
+            return NullNode.getInstance();
+        } else if (pojo instanceof JsonNode) {
+            JsonNode node = (JsonNode) pojo;
             if (Config.get().isExcludeNullFieldsInResponses()) {
-                return excludeNullFields(value);
+                return excludeNullFields(node);
             } else {
-                return value;
+                return node;
             }
         } else if (pojo instanceof Map) {
-            JsonObjectBuilder jsonObjectBuilder = jsonObjectFactory.createObjectBuilder();
+            ObjectNode objectNode = NODE_FACTORY.objectNode();
             Map<String, Object> map = (Map<String, Object>) pojo;
             map.forEach((key, value) -> {
                 pushToPathBuffer(key);
-                JsonValue convertedValue = toJsonValue(value);
-                if ((!Config.get().isExcludeNullFieldsInResponses()) || (convertedValue != JsonValue.NULL
+                JsonNode convertedValue = toJsonNode(value);
+                if ((!Config.get().isExcludeNullFieldsInResponses()) || (!convertedValue.isNull()
                         || errorPaths.contains(pathBuffer))) {
-                    jsonObjectBuilder.add(key, convertedValue);
+                    objectNode.set(key, convertedValue);
                 }
                 popFromThePathBuffer();
             });
-            jsonValue = jsonObjectBuilder.build();
+            return objectNode;
         } else if (pojo instanceof Collection) {
-            Collection<Object> map = ((Collection<Object>) pojo);
-            JsonArrayBuilder builder = jsonObjectFactory.createArrayBuilder();
+            Collection<Object> collection = ((Collection<Object>) pojo);
+            ArrayNode arrayNode = NODE_FACTORY.arrayNode();
             int index = 0;
-            for (final Object o : map) {
+            for (final Object o : collection) {
                 pushToPathBuffer(index);
-                builder.add(toJsonValue(o));
+                arrayNode.add(toJsonNode(o));
                 popFromThePathBuffer();
                 index++;
             }
-            jsonValue = builder.build();
+            return arrayNode;
         } else if (pojo instanceof Boolean) {
-            if (((Boolean) pojo)) {
-                jsonValue = JsonValue.TRUE;
-            } else {
-                jsonValue = JsonValue.FALSE;
-            }
+            return NODE_FACTORY.booleanNode((Boolean) pojo);
         } else if (pojo instanceof String) {
-            jsonValue = JSON_PROVIDER.createValue(((String) pojo));
+            return NODE_FACTORY.textNode((String) pojo);
         } else if (pojo instanceof Double) {
-            jsonValue = JSON_PROVIDER.createValue(((Number) pojo).doubleValue());
+            return NODE_FACTORY.numberNode((Double) pojo);
         } else if (pojo instanceof Float) {
             //upcast to double would lead to precision loss
-            jsonValue = JSON_PROVIDER.createValue(new BigDecimal(String.valueOf(((Number) pojo).floatValue())));
+            return NODE_FACTORY.numberNode(new BigDecimal(String.valueOf(((Number) pojo).floatValue())));
         } else if (pojo instanceof Long) {
-            jsonValue = JSON_PROVIDER.createValue(((Long) pojo));
+            return NODE_FACTORY.numberNode((Long) pojo);
         } else if (pojo instanceof Integer || pojo instanceof Short || pojo instanceof Byte) {
-            jsonValue = JSON_PROVIDER.createValue(((Number) pojo).intValue());
+            return NODE_FACTORY.numberNode(((Number) pojo).intValue());
         } else if (pojo instanceof BigDecimal) {
-            jsonValue = JSON_PROVIDER.createValue(((BigDecimal) pojo));
+            return NODE_FACTORY.numberNode((BigDecimal) pojo);
         } else if (pojo instanceof BigInteger) {
-            jsonValue = JSON_PROVIDER.createValue(((BigInteger) pojo));
+            return NODE_FACTORY.numberNode((BigInteger) pojo);
         } else if (pojo instanceof Enum<?>) {
-            jsonValue = JSON_PROVIDER.createValue(((Enum<?>) pojo).name());
+            return NODE_FACTORY.textNode(((Enum<?>) pojo).name());
+        } else if (pojo instanceof jakarta.json.JsonValue) {
+            return jsonPValueToJsonNode((jakarta.json.JsonValue) pojo);
         } else {
-            String json = jsonB.toJson(pojo);
-            try (StringReader sr = new StringReader(json); JsonReader reader = jsonReaderFactory.createReader(sr)) {
-                jsonValue = reader.readValue();
+            try {
+                return OBJECT_MAPPER.valueToTree(pojo);
+            } catch (IllegalArgumentException e) {
+                return NODE_FACTORY.textNode(pojo.toString());
             }
         }
-
-        return jsonValue;
     }
 
     private void pushToPathBuffer(Object object) {
@@ -235,26 +245,72 @@ public class ExecutionResponse {
         }
     }
 
-    private static JsonValue excludeNullFields(JsonValue jsonValue) {
-        if (jsonValue instanceof JsonObject) {
-            JsonObject jsonObject = (JsonObject) jsonValue;
-            JsonObjectBuilder objectBuilder = jsonObjectFactory.createObjectBuilder();
-            jsonObject.forEach((key, value) -> {
-                if (value != null && value.getValueType() != JsonValue.ValueType.NULL) {
-                    objectBuilder.add(key, excludeNullFields(value));
+    private static JsonNode jsonPValueToJsonNode(jakarta.json.JsonValue jsonPValue) {
+        switch (jsonPValue.getValueType()) {
+            case OBJECT:
+                ObjectNode objectNode = NODE_FACTORY.objectNode();
+                jakarta.json.JsonObject jsonPObject = jsonPValue.asJsonObject();
+                for (String key : jsonPObject.keySet()) {
+                    objectNode.set(key, jsonPValueToJsonNode(jsonPObject.get(key)));
+                }
+                return objectNode;
+            case ARRAY:
+                ArrayNode arrayNode = NODE_FACTORY.arrayNode();
+                for (jakarta.json.JsonValue item : jsonPValue.asJsonArray()) {
+                    arrayNode.add(jsonPValueToJsonNode(item));
+                }
+                return arrayNode;
+            case STRING:
+                return NODE_FACTORY.textNode(((jakarta.json.JsonString) jsonPValue).getString());
+            case NUMBER:
+                jakarta.json.JsonNumber jsonPNumber = (jakarta.json.JsonNumber) jsonPValue;
+                if (jsonPNumber.isIntegral()) {
+                    try {
+                        return NODE_FACTORY.numberNode(jsonPNumber.longValueExact());
+                    } catch (ArithmeticException e) {
+                        return NODE_FACTORY.numberNode(jsonPNumber.bigIntegerValue());
+                    }
+                }
+                return NODE_FACTORY.numberNode(jsonPNumber.bigDecimalValue());
+            case TRUE:
+                return NODE_FACTORY.booleanNode(true);
+            case FALSE:
+                return NODE_FACTORY.booleanNode(false);
+            case NULL:
+                return NODE_FACTORY.nullNode();
+            default:
+                return NODE_FACTORY.nullNode();
+        }
+    }
+
+    private static JsonNode excludeNullFields(JsonNode jsonNode) {
+        if (jsonNode instanceof ObjectNode) {
+            ObjectNode objectNode = (ObjectNode) jsonNode;
+            ObjectNode result = NODE_FACTORY.objectNode();
+            objectNode.fields().forEachRemaining(entry -> {
+                if (entry.getValue() != null && !entry.getValue().isNull()) {
+                    result.set(entry.getKey(), excludeNullFields(entry.getValue()));
                 }
             });
-            return objectBuilder.build();
-        } else if (jsonValue instanceof JsonArray) {
-            JsonArray jsonArray = (JsonArray) jsonValue;
-            JsonArrayBuilder arrayBuilder = jsonObjectFactory.createArrayBuilder();
-            for (JsonValue value : jsonArray) {
-                arrayBuilder.add(excludeNullFields(value));
+            return result;
+        } else if (jsonNode instanceof ArrayNode) {
+            ArrayNode arrayNode = (ArrayNode) jsonNode;
+            ArrayNode result = NODE_FACTORY.arrayNode();
+            for (JsonNode value : arrayNode) {
+                result.add(excludeNullFields(value));
             }
-            return arrayBuilder.build();
+            return result;
         } else {
-            return jsonValue;
+            return jsonNode;
         }
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        mapper.disable(SerializationFeature.INDENT_OUTPUT);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
     }
 
     private static final String DATA = "data";

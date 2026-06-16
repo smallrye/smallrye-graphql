@@ -5,7 +5,6 @@ import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FI
 import static graphql.schema.visibility.NoIntrospectionGraphqlFieldVisibility.NO_INTROSPECTION_FIELD_VISIBILITY;
 import static io.smallrye.graphql.SmallRyeGraphQLServerLogging.log;
 
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,13 +20,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.bind.Jsonb;
-
 import org.eclipse.microprofile.graphql.Name;
 
 import com.apollographql.federation.graphqljava.Federation;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.Scalars;
 import graphql.introspection.Introspection.DirectiveLocation;
@@ -54,7 +51,6 @@ import graphql.schema.GraphQLUnionType;
 import graphql.schema.TypeResolver;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
-import io.smallrye.graphql.JsonProviderHolder;
 import io.smallrye.graphql.SmallRyeGraphQLServerMessages;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.execution.datafetcher.BatchDataFetcher;
@@ -66,7 +62,7 @@ import io.smallrye.graphql.execution.resolver.InterfaceOutputRegistry;
 import io.smallrye.graphql.execution.resolver.InterfaceResolver;
 import io.smallrye.graphql.execution.resolver.UnionOutputRegistry;
 import io.smallrye.graphql.execution.resolver.UnionResolver;
-import io.smallrye.graphql.json.JsonBCreator;
+import io.smallrye.graphql.json.JacksonCreator;
 import io.smallrye.graphql.json.JsonInputRegistry;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.scalar.custom.FloatCoercing;
@@ -205,7 +201,7 @@ public class Bootstrap {
         // Allow custom extension
         schemaBuilder = eventEmitter.fireBeforeSchemaBuild(schemaBuilder);
 
-        Map<String, Jsonb> overrides = eventEmitter.fireOverrideJsonbConfig();
+        Map<String, ObjectMapper> overrides = eventEmitter.fireOverrideObjectMapperConfig();
         JsonInputRegistry.override(overrides);
 
         if (Config.get().isFederationEnabled()) {
@@ -1180,8 +1176,12 @@ public class Bootstrap {
                 }
             }
 
-            Jsonb jsonB = JsonBCreator.getJsonB(deserType.getName());
-            return jsonB.fromJson(jsonString, deserType);
+            ObjectMapper objectMapper = JacksonCreator.getObjectMapper(deserType.getName());
+            try {
+                return objectMapper.readValue(jsonString, deserType);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to deserialize default value: " + jsonString, e);
+            }
         }
 
         if (Classes.isNumberLikeType(field.getReference().getGraphQLClassName())) {
@@ -1197,10 +1197,8 @@ public class Bootstrap {
 
     private boolean isJsonString(String string) {
         if (string != null && !string.isEmpty() && (string.contains("{") || string.contains("["))) {
-            try (StringReader stringReader = new StringReader(string);
-                    JsonReader jsonReader = jsonReaderFactory.createReader(stringReader)) {
-
-                jsonReader.readValue();
+            try {
+                JSON_OBJECT_MAPPER.readTree(string);
                 return true;
             } catch (Exception ex) {
                 // Not a valid json
@@ -1250,7 +1248,7 @@ public class Bootstrap {
 
     private static final String COMMA = ",";
 
-    private static final JsonReaderFactory jsonReaderFactory = JsonProviderHolder.JSON_PROVIDER.createReaderFactory(null);
+    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";
     private static final String OBSERVES = "javax.enterprise.event.Observes";

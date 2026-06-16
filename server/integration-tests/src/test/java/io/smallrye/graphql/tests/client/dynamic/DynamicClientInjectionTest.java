@@ -9,11 +9,12 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ExecutionException;
 
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.graphql.client.core.Document;
@@ -53,9 +54,9 @@ public class DynamicClientInjectionTest {
                         field("simple",
                                 field("string"),
                                 field("integer"))));
-        JsonObject data = client.executeSync(document).getData();
-        assertEquals("asdf", data.getJsonObject("simple").getString("string"));
-        assertEquals(30, data.getJsonObject("simple").getInt("integer"));
+        ObjectNode data = client.executeSync(document).getData();
+        assertEquals("asdf", ((ObjectNode) data.get("simple")).get("string").asText());
+        assertEquals(30, ((ObjectNode) data.get("simple")).get("integer").asInt());
     }
 
     // check that the injected client instance passes the HTTP header that was requested in the configuration

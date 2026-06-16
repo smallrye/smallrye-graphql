@@ -7,7 +7,7 @@ import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 
 import jakarta.inject.Inject;
-import jakarta.json.JsonArray;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -31,7 +31,7 @@ public class MyClientUsage {
                 field("superPowers"))));
         Response response = client.executeSync(document); // <2>
 
-        JsonArray heroesArray = response.getData().getJsonArray("allHeroesIn");  // <3>
+        ArrayNode heroesArray = (ArrayNode) response.getData().get("allHeroesIn");  // <3>
         List<SuperHero> heroes = response.getList(SuperHero.class, "allHeroesIn"); // <4>
     }
 }

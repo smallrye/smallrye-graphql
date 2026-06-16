@@ -9,14 +9,11 @@ import static io.smallrye.graphql.client.core.InputObjectField.prop;
 import static io.smallrye.graphql.client.core.Operation.operation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.net.URL;
 import java.util.List;
-
-import jakarta.json.JsonArray;
-import jakarta.json.JsonValue;
-import jakarta.json.bind.annotation.JsonbCreator;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -28,6 +25,9 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -62,10 +62,11 @@ public class NestedRecordsTest {
                                     field("needed"),
                                     field("notNeeded")))));
             Response response = client.executeSync(query);
-            assertEquals("bla", response.getData().getJsonObject("testParent").getJsonObject("testRecord").getString("needed"));
-            assertEquals(JsonValue.NULL,
-                    response.getData().getJsonObject("testParent").getJsonObject("testRecord").get("notNeeded"));
-            assertNull(response.getData().getJsonObject("testParent").get("s"));
+            ObjectNode testParent = (ObjectNode) response.getData().get("testParent");
+            ObjectNode testRecord = (ObjectNode) testParent.get("testRecord");
+            assertEquals("bla", testRecord.get("needed").asText());
+            assertTrue(testRecord.get("notNeeded").isNull());
+            assertNull(testParent.get("s"));
         }
     }
 
@@ -90,12 +91,13 @@ public class NestedRecordsTest {
                                     field("needed"),
                                     field("notNeeded")))));
             Response response = client.executeSync(query);
-            JsonArray echoedRecords = response.getData().getJsonObject("testParentWithList").getJsonArray("testRecords");
+            ArrayNode echoedRecords = (ArrayNode) ((ObjectNode) response.getData().get("testParentWithList"))
+                    .get("testRecords");
 
-            assertEquals("bla", echoedRecords.get(0).asJsonObject().getString("needed"));
-            assertEquals(JsonValue.NULL, echoedRecords.get(0).asJsonObject().get("notNeeded"));
-            assertEquals("bla2", echoedRecords.get(1).asJsonObject().getString("needed"));
-            assertEquals(JsonValue.NULL, echoedRecords.get(1).asJsonObject().get("notNeeded"));
+            assertEquals("bla", ((ObjectNode) echoedRecords.get(0)).get("needed").asText());
+            assertTrue(((ObjectNode) echoedRecords.get(0)).get("notNeeded").isNull());
+            assertEquals("bla2", ((ObjectNode) echoedRecords.get(1)).get("needed").asText());
+            assertTrue(((ObjectNode) echoedRecords.get(1)).get("notNeeded").isNull());
         }
     }
 
@@ -116,12 +118,13 @@ public class NestedRecordsTest {
                                     field("needed"),
                                     field("notNeeded")))));
             Response response = client.executeSync(query);
-            JsonArray echoedRecords = response.getData().getJsonObject("testParentWithArray").getJsonArray("testRecords");
+            ArrayNode echoedRecords = (ArrayNode) ((ObjectNode) response.getData().get("testParentWithArray"))
+                    .get("testRecords");
 
-            assertEquals("bla", echoedRecords.get(0).asJsonObject().getString("needed"));
-            assertEquals(JsonValue.NULL, echoedRecords.get(0).asJsonObject().get("notNeeded"));
-            assertEquals("bla2", echoedRecords.get(1).asJsonObject().getString("needed"));
-            assertEquals(JsonValue.NULL, echoedRecords.get(1).asJsonObject().get("notNeeded"));
+            assertEquals("bla", ((ObjectNode) echoedRecords.get(0)).get("needed").asText());
+            assertTrue(((ObjectNode) echoedRecords.get(0)).get("notNeeded").isNull());
+            assertEquals("bla2", ((ObjectNode) echoedRecords.get(1)).get("needed").asText());
+            assertTrue(((ObjectNode) echoedRecords.get(1)).get("notNeeded").isNull());
         }
     }
 
@@ -137,8 +140,9 @@ public class NestedRecordsTest {
                             field("needed"),
                             field("notNeeded"))));
             Response response = client.executeSync(query);
-            assertEquals("bla", response.getData().getJsonObject("echo").getString("needed"));
-            assertEquals(JsonValue.NULL, response.getData().getJsonObject("echo").get("notNeeded"));
+            ObjectNode echo = (ObjectNode) response.getData().get("echo");
+            assertEquals("bla", echo.get("needed").asText());
+            assertTrue(echo.get("notNeeded").isNull());
         }
     }
 
@@ -169,28 +173,24 @@ public class NestedRecordsTest {
 
     public record ParentRecord(String s,
             TestRecord testRecord) {
-        @JsonbCreator
         public ParentRecord {
         }
     }
 
     public record ParentRecordWithList(String s,
             List<TestRecord> testRecords) {
-        @JsonbCreator
         public ParentRecordWithList {
         }
     }
 
     public record ParentRecordWithArray(String s,
             TestRecord[] testRecords) {
-        @JsonbCreator
         public ParentRecordWithArray {
         }
     }
 
     public record TestRecord(String needed,
             String notNeeded) {
-        @JsonbCreator
         public TestRecord {
         }
     }

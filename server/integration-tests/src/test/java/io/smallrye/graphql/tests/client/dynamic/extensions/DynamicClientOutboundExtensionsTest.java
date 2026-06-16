@@ -64,7 +64,7 @@ public class DynamicClientOutboundExtensionsTest {
                 .build();
 
         Response response = client.executeSync(request);
-        assertEquals("myValue", response.getData().getString("echoExtension"));
+        assertEquals("myValue", response.getData().get("echoExtension").asText());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DynamicClientOutboundExtensionsTest {
         Request request = RequestImpl.builder("{ echoExtension(key: \"myKey\") }").build();
 
         Response response = client.executeSync(request);
-        assertEquals("null", response.getData().getString("echoExtension"));
+        assertEquals("null", response.getData().get("echoExtension").asText());
     }
 
     @GraphQLApi

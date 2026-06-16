@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.URL;
 import java.util.Set;
 
-import jakarta.json.bind.annotation.JsonbCreator;
-
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
@@ -25,6 +23,11 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -58,8 +61,9 @@ public class RecordTest {
                             field("a"),
                             field("b"))));
             Response response = client.executeSync(query);
-            assertEquals("a", response.getData().getJsonObject("simple").getString("a"));
-            assertEquals("b", response.getData().getJsonObject("simple").getString("b"));
+            ObjectNode simple = (ObjectNode) response.getData().get("simple");
+            assertEquals("a", simple.get("a").asText());
+            assertEquals("b", simple.get("b").asText());
         }
     }
 
@@ -81,12 +85,15 @@ public class RecordTest {
             Response response = client.executeSync(query);
             System.out.println(response);
             System.out.println("query.build() = " + query.build());
-            assertEquals("a", response.getData().getJsonObject("simpleWithFactory").getString("a"));
-            assertEquals("b", response.getData().getJsonObject("simpleWithFactory").getString("b"));
-            assertEquals("c", response.getData().getJsonObject("simpleWithFactory").getJsonArray("c").getString(0));
-            assertEquals("cc", response.getData().getJsonObject("simpleWithFactory").getJsonArray("c").getString(1));
-            assertEquals("dd", response.getData().getJsonObject("simpleWithFactory").getJsonArray("d").getString(0));
-            assertEquals("d", response.getData().getJsonObject("simpleWithFactory").getJsonArray("d").getString(1));
+            ObjectNode simpleWithFactory = (ObjectNode) response.getData().get("simpleWithFactory");
+            assertEquals("a", simpleWithFactory.get("a").asText());
+            assertEquals("b", simpleWithFactory.get("b").asText());
+            ArrayNode c = (ArrayNode) simpleWithFactory.get("c");
+            assertEquals("c", c.get(0).asText());
+            assertEquals("cc", c.get(1).asText());
+            ArrayNode d = (ArrayNode) simpleWithFactory.get("d");
+            assertEquals("dd", d.get(0).asText());
+            assertEquals("d", d.get(1).asText());
         }
     }
 
@@ -103,8 +110,9 @@ public class RecordTest {
             Response response = client.executeSync(query);
             System.out.println(response);
             System.out.println("query.build() = " + query.build());
-            assertEquals(1, response.getData().getJsonObject("simpleWithParameterizedConstructor").getInt("a"));
-            assertEquals("b", response.getData().getJsonObject("simpleWithParameterizedConstructor").getString("b"));
+            ObjectNode result = (ObjectNode) response.getData().get("simpleWithParameterizedConstructor");
+            assertEquals(1, result.get("a").asInt());
+            assertEquals("b", result.get("b").asText());
         }
     }
 
@@ -135,7 +143,6 @@ public class RecordTest {
 
     public record SimpleRecordWithFactory(String a, String b, String[] c, Set<String> d) {
 
-        @JsonbCreator
         public static SimpleRecordWithFactory build(String a, String b, String[] c, Set<String> d) {
             return new SimpleRecordWithFactory(a, b, c, d);
         }
@@ -144,8 +151,8 @@ public class RecordTest {
 
     public record SimpleRecordWithParameterizedConstructor(@NonNull Integer a, @NonNull String b) {
 
-        @JsonbCreator
-        public SimpleRecordWithParameterizedConstructor(String b) {
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public SimpleRecordWithParameterizedConstructor(@JsonProperty("b") String b) {
             this(1, b);
         }
 

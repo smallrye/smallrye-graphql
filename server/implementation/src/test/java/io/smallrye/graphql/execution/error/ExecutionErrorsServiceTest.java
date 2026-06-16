@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
@@ -43,13 +43,13 @@ class ExecutionErrorsServiceTest {
                 graphqlErrorException, new SourceLocation(1, 1));
 
         // When
-        JsonArray jsonArray = executionErrorsService.toJsonErrors(singletonList(exceptionWhileDataFetching));
+        ArrayNode jsonArray = executionErrorsService.toJsonErrors(singletonList(exceptionWhileDataFetching));
 
         // Then
-        JsonObject extensionJsonObject = jsonArray.getJsonObject(0).getJsonObject("extensions");
-        assertThat(extensionJsonObject.getString("exception")).isEqualTo("graphql.GraphqlErrorException");
-        assertThat(extensionJsonObject.getString("classification")).isEqualTo("DataFetchingException");
-        assertThat(extensionJsonObject.getString("code")).isEqualTo("OPERATION_FAILED");
+        ObjectNode extensionJsonObject = (ObjectNode) jsonArray.get(0).get("extensions");
+        assertThat(extensionJsonObject.get("exception").asText()).isEqualTo("graphql.GraphqlErrorException");
+        assertThat(extensionJsonObject.get("classification").asText()).isEqualTo("DataFetchingException");
+        assertThat(extensionJsonObject.get("code").asText()).isEqualTo("OPERATION_FAILED");
     }
 
     @Test
@@ -65,15 +65,15 @@ class ExecutionErrorsServiceTest {
                 .build();
 
         // When
-        JsonArray jsonArray = executionErrorsService.toJsonErrors(singletonList(validationError));
+        ArrayNode jsonArray = executionErrorsService.toJsonErrors(singletonList(validationError));
 
         // Then
-        JsonObject extensionJsonObject = jsonArray.getJsonObject(0).getJsonObject("extensions");
-        assertThat(extensionJsonObject.getString("description")).isEqualTo("TestDescription");
-        assertThat(extensionJsonObject.getString("validationErrorType")).isEqualTo("UnknownDirective");
-        assertThat(extensionJsonObject.getJsonArray("queryPath").getString(0)).isEqualTo("Test-Path");
-        assertThat(extensionJsonObject.getString("classification")).isEqualTo("ValidationError");
-        assertThat(extensionJsonObject.getString("code")).isEqualTo("OPERATION_FAILED");
+        ObjectNode extensionJsonObject = (ObjectNode) jsonArray.get(0).get("extensions");
+        assertThat(extensionJsonObject.get("description").asText()).isEqualTo("TestDescription");
+        assertThat(extensionJsonObject.get("validationErrorType").asText()).isEqualTo("UnknownDirective");
+        assertThat(extensionJsonObject.get("queryPath").get(0).asText()).isEqualTo("Test-Path");
+        assertThat(extensionJsonObject.get("classification").asText()).isEqualTo("ValidationError");
+        assertThat(extensionJsonObject.get("code").asText()).isEqualTo("OPERATION_FAILED");
     }
 
     @Test
@@ -84,14 +84,14 @@ class ExecutionErrorsServiceTest {
             }
         }
 
-        JsonArray jsonArray = whenConverting(new DummyBusinessException("dummy-message"));
+        ArrayNode jsonArray = whenConverting(new DummyBusinessException("dummy-message"));
 
-        JsonObject extensions = jsonArray.getJsonObject(0).getJsonObject("extensions");
-        assertThat(extensions.getString("exception")).isEqualTo(DummyBusinessException.class.getName());
-        assertThat(extensions.getString("code", null)).isEqualTo("dummy-business");
+        ObjectNode extensions = (ObjectNode) jsonArray.get(0).get("extensions");
+        assertThat(extensions.get("exception").asText()).isEqualTo(DummyBusinessException.class.getName());
+        assertThat(extensions.get("code").asText()).isEqualTo("dummy-business");
     }
 
-    private JsonArray whenConverting(RuntimeException exception) {
+    private ArrayNode whenConverting(RuntimeException exception) {
         ResultPath path = ResultPath.parse("/foo/bar");
         SourceLocation location = new SourceLocation(12, 34);
         GraphQLError graphQLError = new GraphQLExceptionWhileDataFetching(path, exception, location);

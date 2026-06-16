@@ -2,12 +2,12 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 
 import static java.util.Objects.requireNonNull;
 
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-abstract class Reader<T extends JsonValue> {
+abstract class Reader<T extends JsonNode> {
     protected final TypeInfo type;
     protected final Location location;
     protected final T value;
