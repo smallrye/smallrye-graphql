@@ -222,6 +222,8 @@ public class ExecutionResponse {
             return NODE_FACTORY.numberNode((BigInteger) pojo);
         } else if (pojo instanceof Enum<?>) {
             return NODE_FACTORY.textNode(((Enum<?>) pojo).name());
+        } else if (pojo instanceof jakarta.json.JsonValue) {
+            return jsonPValueToJsonNode((jakarta.json.JsonValue) pojo);
         } else {
             return OBJECT_MAPPER.valueToTree(pojo);
         }
@@ -236,6 +238,44 @@ public class ExecutionResponse {
     private void popFromThePathBuffer() {
         if (pathBuffer != null) {
             pathBuffer.pop();
+        }
+    }
+
+    private static JsonNode jsonPValueToJsonNode(jakarta.json.JsonValue jsonPValue) {
+        switch (jsonPValue.getValueType()) {
+            case OBJECT:
+                ObjectNode objectNode = NODE_FACTORY.objectNode();
+                jakarta.json.JsonObject jsonPObject = jsonPValue.asJsonObject();
+                for (String key : jsonPObject.keySet()) {
+                    objectNode.set(key, jsonPValueToJsonNode(jsonPObject.get(key)));
+                }
+                return objectNode;
+            case ARRAY:
+                ArrayNode arrayNode = NODE_FACTORY.arrayNode();
+                for (jakarta.json.JsonValue item : jsonPValue.asJsonArray()) {
+                    arrayNode.add(jsonPValueToJsonNode(item));
+                }
+                return arrayNode;
+            case STRING:
+                return NODE_FACTORY.textNode(((jakarta.json.JsonString) jsonPValue).getString());
+            case NUMBER:
+                jakarta.json.JsonNumber jsonPNumber = (jakarta.json.JsonNumber) jsonPValue;
+                if (jsonPNumber.isIntegral()) {
+                    try {
+                        return NODE_FACTORY.numberNode(jsonPNumber.longValueExact());
+                    } catch (ArithmeticException e) {
+                        return NODE_FACTORY.numberNode(jsonPNumber.bigIntegerValue());
+                    }
+                }
+                return NODE_FACTORY.numberNode(jsonPNumber.bigDecimalValue());
+            case TRUE:
+                return NODE_FACTORY.booleanNode(true);
+            case FALSE:
+                return NODE_FACTORY.booleanNode(false);
+            case NULL:
+                return NODE_FACTORY.nullNode();
+            default:
+                return NODE_FACTORY.nullNode();
         }
     }
 
