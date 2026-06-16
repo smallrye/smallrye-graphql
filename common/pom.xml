@@ -17,5 +17,6 @@
     <modules>
         <module>schema-model</module>
         <module>schema-builder</module>
+        <module>jackson-jsonb-compat</module>
     </modules>
 </project>
