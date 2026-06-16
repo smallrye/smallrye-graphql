@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import jakarta.json.JsonObject;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.jboss.logging.Logger;
 
@@ -207,7 +207,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return executeSync(buildRequest(query, variables, operationName).toJsonObject(), headers);
     }
 
-    private Response executeSync(JsonObject json, MultiMap additionalHeaders) {
+    private Response executeSync(ObjectNode json, MultiMap additionalHeaders) {
         if (executeSingleOperationsOverWebsocket) {
             return executeSingleResultOperationOverWebsocket(json).await().indefinitely();
         } else {
@@ -314,7 +314,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return executeAsync(buildRequest(query, variables, operationName).toJsonObject(), headers);
     }
 
-    private Uni<Response> executeAsync(JsonObject json, MultiMap additionalHeaders) {
+    private Uni<Response> executeAsync(ObjectNode json, MultiMap additionalHeaders) {
         if (executeSingleOperationsOverWebsocket) {
             return executeSingleResultOperationOverWebsocket(json);
         } else {
@@ -384,7 +384,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         return subscription0(buildRequest(query, variables, operationName).toJsonObject());
     }
 
-    private Multi<Response> subscription0(JsonObject json) {
+    private Multi<Response> subscription0(ObjectNode json) {
         return executeSubscriptionOverWebsocket(json);
     }
 
@@ -447,7 +447,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
         });
     }
 
-    private Uni<HttpResponse<Buffer>> executeSingleResultOperationOverHttp(JsonObject json, MultiMap allHeaders) {
+    private Uni<HttpResponse<Buffer>> executeSingleResultOperationOverHttp(ObjectNode json, MultiMap allHeaders) {
         return url.get()
                 .chain(instanceUrl -> Uni.createFrom().completionStage(
                         webClient.postAbs(instanceUrl)
@@ -461,7 +461,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 allowUnexpectedResponseFields);
     }
 
-    private Uni<Response> executeSingleResultOperationOverWebsocket(JsonObject json) {
+    private Uni<Response> executeSingleResultOperationOverWebsocket(ObjectNode json) {
         AtomicReference<String> operationId = new AtomicReference<>();
         AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
         Uni<String> rawUni = Uni.createFrom().emitter(rawEmitter -> {
@@ -483,7 +483,7 @@ public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
                 .onItem().transform(data -> ResponseReader.readFrom(data, Collections.emptyMap()));
     }
 
-    private Multi<Response> executeSubscriptionOverWebsocket(JsonObject json) {
+    private Multi<Response> executeSubscriptionOverWebsocket(ObjectNode json) {
         AtomicReference<String> operationId = new AtomicReference<>();
         AtomicReference<WebSocketSubprotocolHandler> handlerRef = new AtomicReference<>();
         Multi<String> rawMulti = Multi.createFrom().emitter(rawEmitter -> {

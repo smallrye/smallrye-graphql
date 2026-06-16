@@ -1,22 +1,15 @@
 package io.smallrye.graphql.client.vertx.websocket.graphqlws;
 
-import static io.smallrye.graphql.client.impl.JsonProviderHolder.JSON_PROVIDER;
-
-import java.io.StringReader;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
-import jakarta.json.stream.JsonParsingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.jboss.logging.Logger;
 
@@ -24,6 +17,7 @@ import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.UnexpectedCloseException;
+import io.smallrye.graphql.client.impl.RequestImpl;
 import io.smallrye.graphql.client.impl.ResponseReader;
 import io.smallrye.graphql.client.vertx.websocket.WebSocketSubprotocolHandler;
 import io.smallrye.graphql.client.vertx.websocket.opid.IncrementingNumberOperationIDGenerator;
@@ -41,8 +35,7 @@ import io.vertx.core.http.WebSocket;
 public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler {
 
     private static final Logger log = Logger.getLogger(GraphQLWSSubprotocolHandler.class);
-    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
-    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
+    private static final ObjectMapper MAPPER = RequestImpl.MAPPER;
 
     private final Integer subscriptionInitializationTimeout;
 
@@ -128,11 +121,12 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                     log.trace("<<< " + text);
                 }
                 try {
-                    JsonObject message = parseIncomingMessage(text);
+                    ObjectNode message = parseIncomingMessage(text);
                     MessageType messageType = getMessageType(message);
                     switch (messageType) {
                         case GQL_CONNECTION_ERROR:
-                            failAllActiveOperationsWith(new InvalidResponseException(message.get("payload").toString()));
+                            failAllActiveOperationsWith(
+                                    new InvalidResponseException(message.get("payload").toString()));
                             webSocket.close();
                             break;
                         case GQL_CONNECTION_ACK:
@@ -142,13 +136,13 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                             initializationEmitter.complete(null);
                             break;
                         case GQL_DATA:
-                            handleData(message.getString("id"), message.getJsonObject("payload"));
+                            handleData(message.get("id").asText(), (ObjectNode) message.get("payload"));
                             break;
                         case GQL_ERROR:
-                            handleOperationError(message.getString("id"), message.getJsonObject("payload"));
+                            handleOperationError(message.get("id").asText(), (ObjectNode) message.get("payload"));
                             break;
                         case GQL_COMPLETE:
-                            handleComplete(message.getString("id"));
+                            handleComplete(message.get("id").asText());
                             break;
                         case GQL_START:
                         case GQL_STOP:
@@ -157,7 +151,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
                         case GQL_CONNECTION_TERMINATE:
                             break;
                     }
-                } catch (JsonParsingException | IllegalArgumentException e) {
+                } catch (IllegalArgumentException e) {
                     log.error("Unexpected message from server: " + text);
                     // should we fail the operations here?
                 }
@@ -171,22 +165,22 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
     }
 
     @Override
-    public String executeUni(JsonObject request, UniEmitter<? super String> emitter) {
+    public String executeUni(ObjectNode request, UniEmitter<? super String> emitter) {
         String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             uniOperations.put(id, emitter);
-            JsonObject subscribe = createSubscribeMessage(request, id);
+            ObjectNode subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
         return id;
     }
 
     @Override
-    public String executeMulti(JsonObject request, MultiEmitter<? super String> emitter) {
+    public String executeMulti(ObjectNode request, MultiEmitter<? super String> emitter) {
         String id = operationIdGenerator.generate();
         ensureInitialized().subscribe().with(ready -> {
             multiOperations.put(id, emitter);
-            JsonObject subscribe = createSubscribeMessage(request, id);
+            ObjectNode subscribe = createSubscribeMessage(request, id);
             send(webSocket, subscribe);
         }, emitter::fail);
         return id;
@@ -213,17 +207,19 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         }
     }
 
-    private JsonObject parseIncomingMessage(String message) {
-        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
-            return jsonReader.readObject();
+    private ObjectNode parseIncomingMessage(String message) {
+        try {
+            return (ObjectNode) MAPPER.readTree(message);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to parse incoming message", e);
         }
     }
 
-    private MessageType getMessageType(JsonObject message) {
-        return MessageType.fromString(message.getString("type"));
+    private MessageType getMessageType(ObjectNode message) {
+        return MessageType.fromString(message.get("type").asText());
     }
 
-    private Uni<Void> send(WebSocket webSocket, JsonObject message) {
+    private Uni<Void> send(WebSocket webSocket, ObjectNode message) {
         String string = message.toString();
         if (log.isTraceEnabled()) {
             log.trace(">>> " + string);
@@ -231,47 +227,46 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         return Uni.createFrom().completionStage(webSocket.writeTextMessage(string).toCompletionStage());
     }
 
-    private JsonObject createConnectionInitMessage() {
-        JsonObjectBuilder payloadBuilder = jsonBuilderFactory.createObjectBuilder();
+    private ObjectNode createConnectionInitMessage() {
+        ObjectNode msg = MAPPER.createObjectNode();
+        msg.put("type", "connection_init");
         if (!initPayload.isEmpty()) {
-            payloadBuilder.add("payload", jsonBuilderFactory.createObjectBuilder(initPayload));
+            msg.set("payload", MAPPER.valueToTree(initPayload));
         }
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", "connection_init")
-                .addAll(payloadBuilder)
-                .build();
+        return msg;
     }
 
-    private JsonObject createStopMessage(String id) {
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", "stop")
-                .add("id", id)
-                .build();
+    private ObjectNode createStopMessage(String id) {
+        ObjectNode msg = MAPPER.createObjectNode();
+        msg.put("type", "stop");
+        msg.put("id", id);
+        return msg;
     }
 
-    private JsonObject createConnectionTerminateMessage() {
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", "connection_terminate")
-                .build();
+    private ObjectNode createConnectionTerminateMessage() {
+        ObjectNode msg = MAPPER.createObjectNode();
+        msg.put("type", "connection_terminate");
+        return msg;
     }
 
-    private JsonObject createSubscribeMessage(JsonObject request, String id) {
-        JsonObjectBuilder payload = jsonBuilderFactory.createObjectBuilder();
+    private ObjectNode createSubscribeMessage(ObjectNode request, String id) {
+        ObjectNode payload = MAPPER.createObjectNode();
 
-        payload.add("query", request.getString("query"));
-        JsonValue operationName = request.get("operationName");
-        if (operationName instanceof JsonString) {
-            payload.add("operationName", operationName);
+        payload.put("query", request.get("query").asText());
+        JsonNode operationName = request.get("operationName");
+        if (operationName != null && operationName.isTextual()) {
+            payload.set("operationName", operationName);
         }
-        JsonObject variables = request.getJsonObject("variables");
-        if (variables != null) {
-            payload.add("variables", variables);
+        JsonNode variables = request.get("variables");
+        if (variables != null && variables.isObject()) {
+            payload.set("variables", variables);
         }
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", "start")
-                .add("id", id)
-                .add("payload", payload)
-                .build();
+
+        ObjectNode msg = MAPPER.createObjectNode();
+        msg.put("type", "start");
+        msg.put("id", id);
+        msg.set("payload", payload);
+        return msg;
     }
 
     private void failAllActiveOperationsWith(Throwable throwable) {
@@ -290,7 +285,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         }
     }
 
-    private void handleData(String operationId, JsonObject data) {
+    private void handleData(String operationId, ObjectNode data) {
         // If this is a uni operation, we remove it right away from the active operation map,
         // even though we still should receive a 'complete' message later - we don't wait for it.
         // This is to prevent a potential memory leak in case that the server doesn't actually send it.
@@ -314,7 +309,7 @@ public class GraphQLWSSubprotocolHandler implements WebSocketSubprotocolHandler 
         }
     }
 
-    private void handleOperationError(String operationId, JsonObject error) {
+    private void handleOperationError(String operationId, ObjectNode error) {
         GraphQLError parsedError = ResponseReader.readError(error);
         GraphQLClientException exception = new GraphQLClientException("Received an error", parsedError);
         UniEmitter<? super String> emitter = uniOperations.remove(operationId);
