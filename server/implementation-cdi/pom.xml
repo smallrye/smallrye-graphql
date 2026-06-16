@@ -100,6 +100,12 @@
             <artifactId>smallrye-graphql-schema-builder</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Needed for MicroProfile GraphQL TCK test apps (SidekickDatabase uses JsonbBuilder) -->
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <build>
