@@ -8,12 +8,11 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.stream.StreamSupport;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
@@ -24,24 +23,24 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 
-public class JsonReader extends Reader<JsonValue> {
-    public static Object readJson(String description, TypeInfo type, JsonValue value, FieldInfo field) {
+public class JsonReader extends Reader<JsonNode> {
+    public static Object readJson(String description, TypeInfo type, JsonNode value, FieldInfo field) {
         return readJson(new Location(type, description), type, value, field);
     }
 
-    public static Object readJsonTypesafeResponse(String description, TypeInfo type, JsonValue value, FieldInfo field) {
+    public static Object readJsonTypesafeResponse(String description, TypeInfo type, JsonNode value, FieldInfo field) {
         return readJsonTypesafeResponse(new Location(type, description), type, value, field);
     }
 
-    static Object readJson(Location location, TypeInfo type, JsonValue value, FieldInfo field) {
+    static Object readJson(Location location, TypeInfo type, JsonNode value, FieldInfo field) {
         return new JsonReader(type, location, value, field).read();
     }
 
-    static Object readJsonTypesafeResponse(Location location, TypeInfo type, JsonValue value, FieldInfo field) {
+    static Object readJsonTypesafeResponse(Location location, TypeInfo type, JsonNode value, FieldInfo field) {
         return new JsonReader(type, location, value, field).typesafeResponseRead();
     }
 
-    private JsonReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
+    private JsonReader(TypeInfo type, Location location, JsonNode value, FieldInfo field) {
         super(type, location, value, field);
     }
 
@@ -85,12 +84,12 @@ public class JsonReader extends Reader<JsonValue> {
     }
 
     private List<GraphQLError> readGraphQlClientErrors() {
-        return value.asJsonArray().stream()
+        return StreamSupport.stream(value.spliterator(), false)
                 .map(ResponseReader::readError)
                 .collect(toList());
     }
 
-    private boolean isListOfErrors(JsonValue jsonValue) {
+    private boolean isListOfErrors(JsonNode jsonValue) {
         return isListOf(jsonValue, ErrorOr.class.getSimpleName());
     }
 
@@ -104,28 +103,30 @@ public class JsonReader extends Reader<JsonValue> {
     }
 
     private Reader<?> reader(Location location) {
-        switch (value.getValueType()) {
+        switch (value.getNodeType()) {
             case ARRAY: {
                 if (type.isCollection()) {
-                    return new JsonArrayReader(type, location, (JsonArray) value, field);
+                    return new JsonArrayReader(type, location, (ArrayNode) value, field);
                 } else if (type.isMap()) {
-                    return new JsonMapReader(type, location, (JsonArray) value, field);
+                    return new JsonMapReader(type, location, (ArrayNode) value, field);
                 } else {
                     throw new InvalidResponseException(
                             "invalid " + type.getTypeName() + " value for " + location.getDescription() + ": " + value);
                 }
             }
             case OBJECT:
-                return new JsonObjectReader(type, location, (JsonObject) value, field);
+                return new JsonObjectReader(type, location, (ObjectNode) value, field);
             case STRING:
-                return new JsonStringReader(type, location, (JsonString) value, field);
+                return new JsonStringReader(type, location, value, field);
             case NUMBER:
-                return new JsonNumberReader(type, location, (JsonNumber) value, field);
-            case TRUE:
-            case FALSE:
+                return new JsonNumberReader(type, location, value, field);
+            case BOOLEAN:
                 return new JsonBooleanReader(type, location, value, field);
             case NULL:
+            case MISSING:
                 return new JsonNullReader(type, location, value, field);
+            default:
+                break;
         }
         throw new InvalidResponseException("unexpected value type for " + location.getDescription() + ": " + value);
     }

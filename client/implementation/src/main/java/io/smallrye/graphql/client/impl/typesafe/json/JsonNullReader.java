@@ -2,13 +2,13 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 
 import static io.smallrye.graphql.client.impl.typesafe.json.GraphQLClientValueHelper.check;
 
-import jakarta.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-class JsonNullReader extends Reader<JsonValue> {
-    JsonNullReader(TypeInfo type, Location location, JsonValue value, FieldInfo field) {
+class JsonNullReader extends Reader<JsonNode> {
+    JsonNullReader(TypeInfo type, Location location, JsonNode value, FieldInfo field) {
         super(type, location, value, field);
     }
 

@@ -7,22 +7,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
+import java.util.stream.StreamSupport;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonValue;
-import jakarta.json.JsonValue.ValueType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
-class JsonArrayReader extends Reader<JsonArray> {
+class JsonArrayReader extends Reader<ArrayNode> {
 
     private Class<?> collectionType;
     private TypeInfo itemType;
 
-    JsonArrayReader(TypeInfo type, Location location, JsonArray value, FieldInfo field) {
+    JsonArrayReader(TypeInfo type, Location location, ArrayNode value, FieldInfo field) {
         super(type, location, value, field);
     }
 
@@ -30,13 +30,15 @@ class JsonArrayReader extends Reader<JsonArray> {
     Object read() {
         GraphQLClientValueHelper.check(location, value, type.isCollection());
         IndexedLocationBuilder locationBuilder = new IndexedLocationBuilder(location);
-        return value.stream().map(item -> readItem(locationBuilder, item)).collect(collector());
+        return StreamSupport.stream(value.spliterator(), false)
+                .map(item -> readItem(locationBuilder, item))
+                .collect(collector());
     }
 
-    private Object readItem(IndexedLocationBuilder locationBuilder, JsonValue itemValue) {
+    private Object readItem(IndexedLocationBuilder locationBuilder, JsonNode itemValue) {
         Location itemLocation = locationBuilder.nextLocation();
         TypeInfo it = getItemType();
-        if (itemValue.getValueType() == ValueType.NULL && it.isNonNull())
+        if (itemValue.isNull() && it.isNonNull())
             throw new InvalidResponseException("invalid null " + itemLocation);
         return JsonReader.readJson(itemLocation, it, itemValue, field);
     }
