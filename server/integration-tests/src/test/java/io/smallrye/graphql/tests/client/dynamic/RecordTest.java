@@ -24,6 +24,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -149,7 +151,8 @@ public class RecordTest {
 
     public record SimpleRecordWithParameterizedConstructor(@NonNull Integer a, @NonNull String b) {
 
-        public SimpleRecordWithParameterizedConstructor(String b) {
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public SimpleRecordWithParameterizedConstructor(@JsonProperty("b") String b) {
             this(1, b);
         }
 

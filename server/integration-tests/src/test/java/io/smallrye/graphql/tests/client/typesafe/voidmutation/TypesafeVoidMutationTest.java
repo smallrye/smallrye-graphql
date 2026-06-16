@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URL;
 
-import jakarta.json.Json;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -94,9 +92,7 @@ public class TypesafeVoidMutationTest {
         assertNull(result.get());
         assertThat(client.findAllRectangles().size()).isEqualTo(4);
         assertThat(client.findAllRectangles()).contains(rectangle);
-        assertThat(result.getExtensions()).isEqualTo(Json.createObjectBuilder()
-                .add("pi", 3.1415)
-                .build());
+        assertThat(result.getExtensions().toString()).isEqualTo("{\"pi\":3.1415}");
     }
 
     @Test

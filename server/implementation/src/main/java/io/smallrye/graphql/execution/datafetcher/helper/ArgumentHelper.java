@@ -368,6 +368,11 @@ public class ArgumentHelper extends AbstractHelper {
             }
         }
 
+        // Save adapted map fields to set them after JSON round-trip.
+        // Complex-keyed maps can't survive JSON serialization because Jackson
+        // serializes Map keys using toString(), losing the original key data.
+        Map<String, Object> deferredMapFields = new HashMap<>();
+
         if (InputFieldsInfo.hasAdaptWithFields(className)) {
             Map<String, Field> adaptingFields = InputFieldsInfo.getAdaptWithFields(className);
 
@@ -377,7 +382,14 @@ public class ArgumentHelper extends AbstractHelper {
                     Object valueThatShouldAdapt = m.get(fieldName);
                     Field fieldThatShouldAdapt = entry.getValue();
                     Object valueThatAdapted = super.recursiveAdapting(valueThatShouldAdapt, fieldThatShouldAdapt, dfe);
-                    m.put(fieldName, valueThatAdapted);
+                    if (fieldThatShouldAdapt.hasWrapper() && fieldThatShouldAdapt.getWrapper().isMap()) {
+                        // Defer map fields: remove from the map before JSON round-trip
+                        // so Jackson doesn't try to serialize complex map keys via toString()
+                        deferredMapFields.put(fieldThatShouldAdapt.getPropertyName(), valueThatAdapted);
+                        m.remove(fieldName);
+                    } else {
+                        m.put(fieldName, valueThatAdapted);
+                    }
                 }
             }
         }
@@ -388,7 +400,23 @@ public class ArgumentHelper extends AbstractHelper {
         // Create a valid jsonString from a map
         try {
             String jsonString = JacksonCreator.getObjectMapper(className).writeValueAsString(m);
-            return correctComplexObjectFromJsonString(jsonString, field);
+            Object result = correctComplexObjectFromJsonString(jsonString, field);
+
+            // Set deferred map fields directly via reflection
+            if (!deferredMapFields.isEmpty()) {
+                Class<?> resultClass = result.getClass();
+                for (Map.Entry<String, Object> deferred : deferredMapFields.entrySet()) {
+                    try {
+                        java.lang.reflect.Field javaField = findField(resultClass, deferred.getKey());
+                        javaField.setAccessible(true);
+                        javaField.set(result, deferred.getValue());
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException("Failed to set deferred map field: " + deferred.getKey(), e);
+                    }
+                }
+            }
+
+            return result;
         } catch (JsonProcessingException e) {
             throw new TransformException(e, field, m);
         }
@@ -504,6 +532,21 @@ public class ArgumentHelper extends AbstractHelper {
         public Type[] getActualTypeArguments() {
             return types;
         }
+    }
+
+    /**
+     * Find a declared field in the class hierarchy.
+     */
+    private static java.lang.reflect.Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(fieldName);
     }
 
     private static final String CONSTRUCTOR_METHOD_NAME = "<init>";

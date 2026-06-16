@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.smallrye.graphql.api.CustomFloatScalar;
@@ -89,6 +90,7 @@ public class JacksonCreator {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JsonbCompatModule());
         mapper.registerModule(new JavaTimeModule());
+        mapper.registerModule(new Jdk8Module());
         mapper.registerModule(CUSTOM_SCALARS_MODULE);
         mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
