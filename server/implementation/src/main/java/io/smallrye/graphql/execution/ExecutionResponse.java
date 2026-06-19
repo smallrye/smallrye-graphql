@@ -225,7 +225,11 @@ public class ExecutionResponse {
         } else if (pojo instanceof jakarta.json.JsonValue) {
             return jsonPValueToJsonNode((jakarta.json.JsonValue) pojo);
         } else {
-            return OBJECT_MAPPER.valueToTree(pojo);
+            try {
+                return OBJECT_MAPPER.valueToTree(pojo);
+            } catch (IllegalArgumentException e) {
+                return NODE_FACTORY.textNode(pojo.toString());
+            }
         }
     }
 
