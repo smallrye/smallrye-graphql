@@ -87,10 +87,6 @@ jobs:
           ./mvnw -B install -Dversion.io.smallrye.graphql=$SMALLRYE_VERSION --file wildfly-graphql-feature-pack/pom.xml
 
   quarkus-tests:
-    # TODO: revert when Quarkus upgrades to Vert.x 5.x
-    if: >-
-      (github.event_name == 'pull_request' && github.base_ref != 'main') ||
-      (github.event_name == 'push' && github.ref_name != 'main')
     runs-on: ubuntu-latest
     strategy:
       matrix:
