@@ -60,11 +60,11 @@ public class SmallRyeGraphQLArchiveProcessor implements ApplicationArchiveProces
 
                 WebArchive war = (WebArchive) applicationArchive;
 
-                // Exclude the TCK beans in the deployed app. The TCK jar also has a beans.xml which causes duplicated beans
+                // Exclude the TCK test infrastructure but keep the API classes as CDI beans
                 war.addAsWebInfResource(new StringAsset(
                         "<beans bean-discovery-mode=\"all\">\n" +
                                 "    <scan>\n" +
-                                "        <exclude name=\"org.eclipse.microprofile.graphql.tck.**\"/>\n" +
+                                "        <exclude name=\"org.eclipse.microprofile.graphql.tck.dynamic.**\"/>\n" +
                                 "    </scan>\n" +
                                 "</beans>"),
                         "beans.xml");
