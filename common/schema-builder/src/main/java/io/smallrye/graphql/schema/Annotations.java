@@ -604,6 +604,7 @@ public class Annotations {
     public static final DotName GRAPHQL_API = DotName.createSimple("org.eclipse.microprofile.graphql.GraphQLApi");
     public static final DotName QUERY = DotName.createSimple("org.eclipse.microprofile.graphql.Query");
     public static final DotName MUTATION = DotName.createSimple("org.eclipse.microprofile.graphql.Mutation");
+    public static final DotName SUBSCRIPTION = DotName.createSimple("org.eclipse.microprofile.graphql.Subscription");
     public static final DotName INPUT = DotName.createSimple("org.eclipse.microprofile.graphql.Input");
     public static final DotName TYPE = DotName.createSimple("org.eclipse.microprofile.graphql.Type");
     public static final DotName INTERFACE = DotName.createSimple("org.eclipse.microprofile.graphql.Interface");
