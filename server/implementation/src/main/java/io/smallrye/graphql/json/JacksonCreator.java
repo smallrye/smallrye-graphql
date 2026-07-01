@@ -9,14 +9,20 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.KeyDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -92,6 +98,7 @@ public class JacksonCreator {
         mapper.registerModule(new JavaTimeModule());
         mapper.registerModule(new Jdk8Module());
         mapper.registerModule(CUSTOM_SCALARS_MODULE);
+        mapper.registerModule(createComplexKeyModule());
         mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -221,6 +228,50 @@ public class JacksonCreator {
         });
 
         return module;
+    }
+
+    private static com.fasterxml.jackson.databind.Module createComplexKeyModule() {
+        return new com.fasterxml.jackson.databind.Module() {
+            @Override
+            public String getModuleName() {
+                return "ComplexMapKeys";
+            }
+
+            @Override
+            public com.fasterxml.jackson.core.Version version() {
+                return com.fasterxml.jackson.core.Version.unknownVersion();
+            }
+
+            @Override
+            public void setupModule(SetupContext context) {
+                context.addKeyDeserializers(new KeyDeserializers() {
+                    @Override
+                    public KeyDeserializer findKeyDeserializer(JavaType keyType, DeserializationConfig config,
+                            BeanDescription beanDesc) throws JsonMappingException {
+                        Class<?> raw = keyType.getRawClass();
+                        if (!isComplexKeyType(raw)) {
+                            return null;
+                        }
+                        return new KeyDeserializer() {
+                            @Override
+                            public Object deserializeKey(String key, DeserializationContext ctxt) throws IOException {
+                                ObjectMapper mapper = (ObjectMapper) ctxt.getParser().getCodec();
+                                return mapper.readValue(key, keyType);
+                            }
+                        };
+                    }
+                });
+            }
+        };
+    }
+
+    private static boolean isComplexKeyType(Class<?> type) {
+        if (type.isPrimitive() || type.isEnum() || type.isArray()) {
+            return false;
+        }
+        String name = type.getName();
+        return !name.startsWith("java.") && !name.startsWith("javax.")
+                && !name.startsWith("jakarta.") && !name.startsWith("com.fasterxml.");
     }
 
     private static jakarta.json.JsonValue jacksonNodeToJsonPValue(JsonNode node) {

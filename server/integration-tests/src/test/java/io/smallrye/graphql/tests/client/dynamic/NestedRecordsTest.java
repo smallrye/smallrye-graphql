@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import java.net.URL;
 import java.util.List;
 
+import jakarta.json.bind.annotation.JsonbCreator;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -173,24 +175,28 @@ public class NestedRecordsTest {
 
     public record ParentRecord(String s,
             TestRecord testRecord) {
+        @JsonbCreator
         public ParentRecord {
         }
     }
 
     public record ParentRecordWithList(String s,
             List<TestRecord> testRecords) {
+        @JsonbCreator
         public ParentRecordWithList {
         }
     }
 
     public record ParentRecordWithArray(String s,
             TestRecord[] testRecords) {
+        @JsonbCreator
         public ParentRecordWithArray {
         }
     }
 
     public record TestRecord(String needed,
             String notNeeded) {
+        @JsonbCreator
         public TestRecord {
         }
     }

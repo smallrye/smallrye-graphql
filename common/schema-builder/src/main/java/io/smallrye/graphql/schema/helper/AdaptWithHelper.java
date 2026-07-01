@@ -8,7 +8,6 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
-import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
@@ -27,8 +26,6 @@ import io.smallrye.graphql.schema.model.Scalars;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class AdaptWithHelper {
-
-    private static final Logger LOG = Logger.getLogger(AdaptWithHelper.class.getName());
 
     private AdaptWithHelper() {
     }
@@ -137,11 +134,23 @@ public class AdaptWithHelper {
                 }
             }
 
-            // Warn about deprecated @JsonbTypeAdapter
-            if (annotations.containsOneOfTheseAnnotations(Annotations.JAKARTA_JSONB_TYPE_ADAPTER,
-                    Annotations.JAVAX_JSONB_TYPE_ADAPTER)) {
-                LOG.warn("@JsonbTypeAdapter is no longer supported. "
-                        + "Use @AdaptWith or Jackson @JsonSerialize/@JsonDeserialize annotations instead.");
+            if (annotations.containsOneOfTheseAnnotations(Annotations.JAKARTA_JSONB_TYPE_ADAPTER)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.JAKARTA_JSONB_TYPE_ADAPTER);
+                if (annotationValue != null) {
+                    AdaptWith adaptWith = new AdaptWith(Classes.JAKARTA_JSONB_ADAPTER.toString(),
+                            "adaptFromJson", "adaptToJson");
+                    Type type = annotationValue.asClass();
+                    return new AdapterType(type, adaptWith);
+                }
+            }
+            if (annotations.containsOneOfTheseAnnotations(Annotations.JAVAX_JSONB_TYPE_ADAPTER)) {
+                AnnotationValue annotationValue = annotations.getAnnotationValue(Annotations.JAVAX_JSONB_TYPE_ADAPTER);
+                if (annotationValue != null) {
+                    AdaptWith adaptWith = new AdaptWith(Classes.JAVAX_JSONB_ADAPTER.toString(),
+                            "adaptFromJson", "adaptToJson");
+                    Type type = annotationValue.asClass();
+                    return new AdapterType(type, adaptWith);
+                }
             }
 
             // Jackson @JsonSerialize(converter=...)

@@ -213,6 +213,8 @@ public class ArgumentHelper extends AbstractHelper {
                 argumentValue = correctComplexObjectFromMap((Map) argumentValue, field, dfe);
             }
 
+            argumentValue = coerceToParameterType(argumentValue, reflectionInvoker.getMethod());
+
             try {
                 Object adaptedObject = reflectionInvoker.invoke(argumentValue);
                 return adaptedObject;
@@ -222,6 +224,36 @@ public class ArgumentHelper extends AbstractHelper {
             }
         }
         return argumentValue;
+    }
+
+    private static Object coerceToParameterType(Object value, java.lang.reflect.Method method) {
+        if (value == null || method == null || method.getParameterCount() == 0) {
+            return value;
+        }
+        Class<?> expected = method.getParameterTypes()[0];
+        if (expected.isInstance(value)) {
+            return value;
+        }
+        if (value instanceof Number) {
+            Number num = (Number) value;
+            if (expected == Long.class || expected == long.class) {
+                return num.longValue();
+            } else if (expected == Integer.class || expected == int.class) {
+                return num.intValue();
+            } else if (expected == Short.class || expected == short.class) {
+                return num.shortValue();
+            } else if (expected == Byte.class || expected == byte.class) {
+                return num.byteValue();
+            } else if (expected == Double.class || expected == double.class) {
+                return num.doubleValue();
+            } else if (expected == Float.class || expected == float.class) {
+                return num.floatValue();
+            }
+        }
+        if (expected == String.class) {
+            return value.toString();
+        }
+        return value;
     }
 
     private Object transformInput(Field field, Object object) throws AbstractDataFetcherException {
