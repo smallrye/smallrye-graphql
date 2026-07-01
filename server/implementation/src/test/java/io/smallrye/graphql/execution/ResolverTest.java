@@ -23,6 +23,7 @@ import io.smallrye.graphql.api.federation.Extends;
 import io.smallrye.graphql.api.federation.External;
 import io.smallrye.graphql.api.federation.Key;
 import io.smallrye.graphql.api.federation.Requires;
+import io.smallrye.graphql.api.federation.Target;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
@@ -49,7 +50,7 @@ public class ResolverTest {
         config.federationEnabled = true;
         System.setProperty("smallrye.graphql.federation.enabled", "true");
 
-        IndexView index = buildIndex(Directive.class, Key.class, External.class, Key.Keys.class,
+        IndexView index = buildIndex(Directive.class, Key.class, External.class, Key.Keys.class, Target.class,
                 Extends.class, Requires.class, ExtendedType.class, ExtendedApi.class);
 
         GraphQLSchema graphQLSchema = createGraphQLSchema(index);
@@ -128,6 +129,24 @@ public class ResolverTest {
         assertEquals(((JsonString) jsonValue).getString(), "idnamekey");
     }
 
+    @Test
+    public void targetTest() {
+        JsonObject jsonObject = executeAndGetResult(TEST_TARGET_QUERY);
+        assertNotNull(jsonObject);
+
+        JsonValue jsonValue = jsonObject.getJsonObject("data")
+                .getJsonArray("_entities")
+                .getJsonObject(0)
+                .get("id");
+        assertEquals("target_id", ((JsonString) jsonValue).getString());
+
+        jsonValue = jsonObject.getJsonObject("data")
+                .getJsonArray("_entities")
+                .getJsonObject(0)
+                .get("value");
+        assertEquals("target:target_id:target_key", ((JsonString) jsonValue).getString());
+    }
+
     private static final String TEST_ID_QUERY = "query {\n" +
             "_entities(\n" +
             "    representations: { id: \"id\", __typename: \"ExtendedType\" }\n" +
@@ -147,6 +166,19 @@ public class ResolverTest {
             "    ... on ExtendedType {\n" +
             "        id\n" +
             "        name\n" +
+            "        key\n" +
+            "        value\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
+    private static final String TEST_TARGET_QUERY = "query {\n" +
+            "_entities(\n" +
+            "    representations: { id: \"target_id\", key: \"target_key\", __typename: \"ExtendedType\" }\n" +
+            ") {\n" +
+            "    __typename\n" +
+            "    ... on ExtendedType {\n" +
+            "        id\n" +
             "        key\n" +
             "        value\n" +
             "    }\n" +

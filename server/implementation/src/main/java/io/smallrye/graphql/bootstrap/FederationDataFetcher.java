@@ -124,7 +124,7 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                 return typeFieldWrapper;
             }
         }
-        return null;
+        return findNoArgumentResolverFieldDefinition(typeAndArgumentNames, this::matchesReturnTypeList);
     }
 
     private TypeFieldWrapper findFieldDefinition(TypeAndArgumentNames typeAndArgumentNames) {
@@ -145,8 +145,29 @@ public class FederationDataFetcher implements DataFetcher<CompletableFuture<List
                 return typeFieldWrapper;
             }
         }
+        TypeFieldWrapper typeFieldWrapper = findNoArgumentResolverFieldDefinition(typeAndArgumentNames,
+                this::matchesReturnType);
+        if (typeFieldWrapper != null) {
+            return typeFieldWrapper;
+        }
         throw new RuntimeException(
                 "no query found for " + typeAndArgumentNames.type + " by " + typeAndArgumentNames.argumentNames);
+    }
+
+    private TypeFieldWrapper findNoArgumentResolverFieldDefinition(TypeAndArgumentNames typeAndArgumentNames,
+            BiFunction<GraphQLFieldDefinition, String, Boolean> matchesReturnType) {
+        List<GraphQLFieldDefinition> candidates = resolversType.getFields().stream()
+                .filter(field -> field.getArguments().isEmpty())
+                .filter(field -> matchesReturnType.apply(field, typeAndArgumentNames.type))
+                .collect(Collectors.toList());
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        if (candidates.size() > 1) {
+            throw new IllegalArgumentException("multiple resolver methods found for " + typeAndArgumentNames.type
+                    + " without exposed arguments");
+        }
+        return new TypeFieldWrapper(resolversType, candidates.get(0));
     }
 
     private CompletableFuture<ResultObject> fetchEntities(DataFetchingEnvironment env, Representation representation,

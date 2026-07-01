@@ -13,6 +13,7 @@ public final class Argument extends Field {
 
     private String methodArgumentName; // This is the java method argument name
     private boolean sourceArgument = false; // Flag if this is a source argument
+    private boolean targetArgument = false; // Flag if this is a target argument
 
     public Argument() {
     }
@@ -38,8 +39,17 @@ public final class Argument extends Field {
         return sourceArgument;
     }
 
+    public void setTargetArgument(boolean targetArgument) {
+        this.targetArgument = targetArgument;
+    }
+
+    public boolean isTargetArgument() {
+        return targetArgument;
+    }
+
     @Override
     public String toString() {
-        return "Argument{" + "methodArgumentName=" + methodArgumentName + ", sourceArgument=" + sourceArgument + '}';
+        return "Argument{" + "methodArgumentName=" + methodArgumentName + ", sourceArgument=" + sourceArgument
+                + ", targetArgument=" + targetArgument + '}';
     }
 }
