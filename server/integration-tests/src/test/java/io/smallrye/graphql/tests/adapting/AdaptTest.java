@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URL;
 import java.util.Collection;
 
+import jakarta.json.bind.adapter.JsonbAdapter;
+import jakarta.json.bind.annotation.JsonbTypeAdapter;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -29,7 +32,7 @@ public class AdaptTest {
     @Deployment
     public static WebArchive deployment() {
         return ShrinkWrap.create(WebArchive.class, "adapt-test.war")
-                .addClasses(ModelA.class, ModelB.class, AdaptApi.class, MyOtherFieldAdapter.class, CustomAdapter.class);
+                .addClasses(ModelA.class, ModelB.class, AdaptApi.class, CustomJsonbTypeAdapter.class, CustomAdapter.class);
     }
 
     @ArquillianResource
@@ -42,7 +45,7 @@ public class AdaptTest {
         @AdaptWith(CustomAdapter.class)
         public Collection<Long> someField;
 
-        @AdaptWith(MyOtherFieldAdapter.class)
+        @JsonbTypeAdapter(CustomJsonbTypeAdapter.class)
         public String myOtherField;
 
         public ModelA() {
@@ -107,16 +110,16 @@ public class AdaptTest {
         }
     }
 
-    public static class MyOtherFieldAdapter implements Adapter<String, Integer> {
+    public static class CustomJsonbTypeAdapter implements JsonbAdapter<String, Long> {
 
         @Override
-        public Integer to(String o) throws Exception {
-            return Integer.parseInt(o);
+        public Long adaptToJson(String s) throws Exception {
+            return Long.parseLong(s);
         }
 
         @Override
-        public String from(Integer a) throws Exception {
-            return String.valueOf(a);
+        public String adaptFromJson(Long aLong) throws Exception {
+            return String.valueOf(aLong);
         }
     }
 

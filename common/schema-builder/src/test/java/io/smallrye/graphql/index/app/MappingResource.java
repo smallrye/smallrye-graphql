@@ -2,6 +2,8 @@ package io.smallrye.graphql.index.app;
 
 import java.util.Currency;
 
+import jakarta.json.bind.annotation.JsonbTypeAdapter;
+
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
@@ -35,6 +37,7 @@ public class MappingResource {
         public String name;
 
         @ToScalar(Scalar.String.class)
+        @JsonbTypeAdapter(CurrencyAdapter.class)
         public Currency currency;
 
         @ToScalar(Scalar.String.class)
