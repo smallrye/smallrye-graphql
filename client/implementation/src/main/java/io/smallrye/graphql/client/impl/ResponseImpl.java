@@ -3,8 +3,10 @@ package io.smallrye.graphql.client.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -140,8 +142,8 @@ public class ResponseImpl implements Response {
      * Helper to collect field names from an ObjectNode into a Set-like structure
      * for error reporting.
      */
-    private static java.util.Set<String> fieldNames(ObjectNode node) {
-        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+    private static Set<String> fieldNames(ObjectNode node) {
+        Set<String> names = new LinkedHashSet<>();
         node.fieldNames().forEachRemaining(names::add);
         return names;
     }
