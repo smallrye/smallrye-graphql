@@ -4,10 +4,10 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.execution.ExecutionResponse;
 import io.smallrye.graphql.execution.ExecutionResponseWriter;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Writing the response to HTTP servlet
@@ -16,7 +16,7 @@ import io.smallrye.graphql.execution.ExecutionResponseWriter;
  */
 public class HttpServletResponseWriter implements ExecutionResponseWriter {
     private static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final HttpServletResponse response;
 

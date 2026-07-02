@@ -642,9 +642,9 @@ public class Annotations {
     public static final DotName JACKSON_CREATOR = DotName.createSimple("com.fasterxml.jackson.annotation.JsonCreator");
     public static final DotName JACKSON_FORMAT = DotName.createSimple("com.fasterxml.jackson.annotation.JsonFormat");
     public static final DotName JACKSON_SERIALIZE = DotName
-            .createSimple("com.fasterxml.jackson.databind.annotation.JsonSerialize");
+            .createSimple("tools.jackson.databind.annotation.JsonSerialize");
     public static final DotName JACKSON_DESERIALIZE = DotName
-            .createSimple("com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+            .createSimple("tools.jackson.databind.annotation.JsonDeserialize");
 
     // Bean Validation Annotations (SmallRye extra, not part of the spec)
     public static final DotName JAVAX_BEAN_VALIDATION_NOT_NULL = DotName.createSimple("javax.validation.constraints.NotNull");

@@ -1,15 +1,14 @@
 package io.smallrye.graphql.jackson.jsonb;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-public class JsonbNumberFormatSerializer extends JsonSerializer<Number> {
+public class JsonbNumberFormatSerializer extends ValueSerializer<Number> {
 
     private final String pattern;
     private final String locale;
@@ -20,13 +19,13 @@ public class JsonbNumberFormatSerializer extends JsonSerializer<Number> {
     }
 
     @Override
-    public void serialize(Number value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(Number value, JsonGenerator gen, SerializationContext serializers) {
         Locale loc = resolveLocale(serializers);
         DecimalFormat fmt = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(loc));
         gen.writeString(fmt.format(value));
     }
 
-    private Locale resolveLocale(SerializerProvider serializers) {
+    private Locale resolveLocale(SerializationContext serializers) {
         if (locale != null && !locale.isEmpty()
                 && !jakarta.json.bind.annotation.JsonbNumberFormat.DEFAULT_LOCALE.equals(locale)) {
             return Locale.forLanguageTag(locale);

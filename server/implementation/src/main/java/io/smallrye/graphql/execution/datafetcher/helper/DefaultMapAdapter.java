@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.api.Entry;
 import io.smallrye.graphql.json.JacksonCreator;
 import io.smallrye.graphql.schema.model.Field;
@@ -17,6 +14,8 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.schema.model.WrapperType;
 import io.smallrye.graphql.spi.ClassloadingService;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * The adapter to change map to Entry Set.Users can also supply their own adapter.
@@ -80,7 +79,7 @@ public class DefaultMapAdapter<K, V> {
                 ObjectMapper objectMapper = JacksonCreator.getObjectMapper(className);
                 Class<?> clazz = classloadingService.loadClass(className);
                 return (T) objectMapper.readValue(jsonString, clazz);
-            } catch (JsonProcessingException jpe) {
+            } catch (JacksonException jpe) {
                 throw new RuntimeException(jpe);
             }
         }

@@ -1,31 +1,11 @@
 package io.smallrye.graphql.json;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.deser.KeyDeserializers;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.smallrye.graphql.api.CustomFloatScalar;
 import io.smallrye.graphql.api.CustomIntScalar;
@@ -34,6 +14,23 @@ import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.spi.ClassloadingService;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.KeyDeserializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.deser.KeyDeserializers;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Here we create ObjectMapper instances for certain input objects.
@@ -87,40 +84,39 @@ public class JacksonCreator {
     }
 
     private static ObjectMapper createObjectMapper(Map<String, String> customFieldNameMapping) {
-        ObjectMapper mapper = createDefaultObjectMapper();
-        mapper.setPropertyNamingStrategy(new GraphQLNamingStrategy(customFieldNameMapping));
-        return mapper;
+        return defaultMapperBuilder()
+                .propertyNamingStrategy(new GraphQLNamingStrategy(customFieldNameMapping))
+                .build();
     }
 
     private static ObjectMapper createDefaultObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JsonbCompatModule());
-        mapper.registerModule(new JavaTimeModule());
-        mapper.registerModule(new Jdk8Module());
-        mapper.registerModule(CUSTOM_SCALARS_MODULE);
-        mapper.registerModule(createComplexKeyModule());
-        mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        // Include null values in serialization (required by @JsonbCreator / Jackson creator methods)
-        mapper.setDefaultPropertyInclusion(JsonInclude.Include.ALWAYS);
-        return mapper;
+        return defaultMapperBuilder().build();
+    }
+
+    private static JsonMapper.Builder defaultMapperBuilder() {
+        return JsonMapper.builder()
+                .addModule(new JsonbCompatModule())
+                .addModule(CUSTOM_SCALARS_MODULE)
+                .addModule(createComplexKeyModule())
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(JsonInclude.Include.ALWAYS,
+                        JsonInclude.Include.ALWAYS));
     }
 
     private static SimpleModule createCustomScalarsModule() {
         SimpleModule module = new SimpleModule("CustomScalars");
 
         // CustomStringScalar serializer/deserializer
-        module.addSerializer(CustomStringScalar.class, new JsonSerializer<CustomStringScalar>() {
+        module.addSerializer(CustomStringScalar.class, new ValueSerializer<CustomStringScalar>() {
             @Override
-            public void serialize(CustomStringScalar value, JsonGenerator gen, SerializerProvider serializers)
-                    throws IOException {
+            public void serialize(CustomStringScalar value, JsonGenerator gen, SerializationContext serializers) {
                 gen.writeString(value.stringValueForSerialization());
             }
         });
-        module.addDeserializer(CustomStringScalar.class, new JsonDeserializer<CustomStringScalar>() {
+        module.addDeserializer(CustomStringScalar.class, new ValueDeserializer<CustomStringScalar>() {
             @Override
-            public CustomStringScalar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public CustomStringScalar deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 if (node == null || node.isNull()) {
                     return null;
@@ -141,16 +137,15 @@ public class JacksonCreator {
         });
 
         // CustomIntScalar serializer/deserializer
-        module.addSerializer(CustomIntScalar.class, new JsonSerializer<CustomIntScalar>() {
+        module.addSerializer(CustomIntScalar.class, new ValueSerializer<CustomIntScalar>() {
             @Override
-            public void serialize(CustomIntScalar value, JsonGenerator gen, SerializerProvider serializers)
-                    throws IOException {
+            public void serialize(CustomIntScalar value, JsonGenerator gen, SerializationContext serializers) {
                 gen.writeNumber(value.intValueForSerialization());
             }
         });
-        module.addDeserializer(CustomIntScalar.class, new JsonDeserializer<CustomIntScalar>() {
+        module.addDeserializer(CustomIntScalar.class, new ValueDeserializer<CustomIntScalar>() {
             @Override
-            public CustomIntScalar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public CustomIntScalar deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 if (node == null || node.isNull()) {
                     return null;
@@ -171,16 +166,15 @@ public class JacksonCreator {
         });
 
         // CustomFloatScalar serializer/deserializer
-        module.addSerializer(CustomFloatScalar.class, new JsonSerializer<CustomFloatScalar>() {
+        module.addSerializer(CustomFloatScalar.class, new ValueSerializer<CustomFloatScalar>() {
             @Override
-            public void serialize(CustomFloatScalar value, JsonGenerator gen, SerializerProvider serializers)
-                    throws IOException {
+            public void serialize(CustomFloatScalar value, JsonGenerator gen, SerializationContext serializers) {
                 gen.writeNumber(value.floatValueForSerialization());
             }
         });
-        module.addDeserializer(CustomFloatScalar.class, new JsonDeserializer<CustomFloatScalar>() {
+        module.addDeserializer(CustomFloatScalar.class, new ValueDeserializer<CustomFloatScalar>() {
             @Override
-            public CustomFloatScalar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public CustomFloatScalar deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 if (node == null || node.isNull()) {
                     return null;
@@ -201,27 +195,27 @@ public class JacksonCreator {
         });
 
         // jakarta.json.JsonObject deserializer — needed for JSON scalar type support
-        module.addDeserializer(jakarta.json.JsonObject.class, new JsonDeserializer<jakarta.json.JsonObject>() {
+        module.addDeserializer(jakarta.json.JsonObject.class, new ValueDeserializer<jakarta.json.JsonObject>() {
             @Override
-            public jakarta.json.JsonObject deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public jakarta.json.JsonObject deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 return (jakarta.json.JsonObject) jacksonNodeToJsonPValue(node);
             }
         });
 
         // jakarta.json.JsonArray deserializer
-        module.addDeserializer(jakarta.json.JsonArray.class, new JsonDeserializer<jakarta.json.JsonArray>() {
+        module.addDeserializer(jakarta.json.JsonArray.class, new ValueDeserializer<jakarta.json.JsonArray>() {
             @Override
-            public jakarta.json.JsonArray deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public jakarta.json.JsonArray deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 return (jakarta.json.JsonArray) jacksonNodeToJsonPValue(node);
             }
         });
 
         // jakarta.json.JsonValue deserializer
-        module.addDeserializer(jakarta.json.JsonValue.class, new JsonDeserializer<jakarta.json.JsonValue>() {
+        module.addDeserializer(jakarta.json.JsonValue.class, new ValueDeserializer<jakarta.json.JsonValue>() {
             @Override
-            public jakarta.json.JsonValue deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            public jakarta.json.JsonValue deserialize(JsonParser p, DeserializationContext ctxt) {
                 JsonNode node = p.readValueAsTree();
                 return jacksonNodeToJsonPValue(node);
             }
@@ -230,16 +224,16 @@ public class JacksonCreator {
         return module;
     }
 
-    private static com.fasterxml.jackson.databind.Module createComplexKeyModule() {
-        return new com.fasterxml.jackson.databind.Module() {
+    private static tools.jackson.databind.JacksonModule createComplexKeyModule() {
+        return new tools.jackson.databind.JacksonModule() {
             @Override
             public String getModuleName() {
                 return "ComplexMapKeys";
             }
 
             @Override
-            public com.fasterxml.jackson.core.Version version() {
-                return com.fasterxml.jackson.core.Version.unknownVersion();
+            public tools.jackson.core.Version version() {
+                return tools.jackson.core.Version.unknownVersion();
             }
 
             @Override
@@ -247,16 +241,17 @@ public class JacksonCreator {
                 context.addKeyDeserializers(new KeyDeserializers() {
                     @Override
                     public KeyDeserializer findKeyDeserializer(JavaType keyType, DeserializationConfig config,
-                            BeanDescription beanDesc) throws JsonMappingException {
+                            BeanDescription.Supplier beanDescSupplier) {
                         Class<?> raw = keyType.getRawClass();
                         if (!isComplexKeyType(raw)) {
                             return null;
                         }
                         return new KeyDeserializer() {
                             @Override
-                            public Object deserializeKey(String key, DeserializationContext ctxt) throws IOException {
-                                ObjectMapper mapper = (ObjectMapper) ctxt.getParser().getCodec();
-                                return mapper.readValue(key, keyType);
+                            public Object deserializeKey(String key, DeserializationContext ctxt) {
+                                try (JsonParser parser = ctxt.tokenStreamFactory().createParser(key)) {
+                                    return ctxt.readValue(parser, keyType);
+                                }
                             }
                         };
                     }
@@ -271,7 +266,8 @@ public class JacksonCreator {
         }
         String name = type.getName();
         return !name.startsWith("java.") && !name.startsWith("javax.")
-                && !name.startsWith("jakarta.") && !name.startsWith("com.fasterxml.");
+                && !name.startsWith("jakarta.") && !name.startsWith("com.fasterxml.")
+                && !name.startsWith("tools.jackson.");
     }
 
     private static jakarta.json.JsonValue jacksonNodeToJsonPValue(JsonNode node) {
@@ -280,7 +276,7 @@ public class JacksonCreator {
         }
         if (node.isObject()) {
             jakarta.json.JsonObjectBuilder builder = jakarta.json.Json.createObjectBuilder();
-            node.fields().forEachRemaining(entry -> builder.add(entry.getKey(), jacksonNodeToJsonPValue(entry.getValue())));
+            node.properties().forEach(entry -> builder.add(entry.getKey(), jacksonNodeToJsonPValue(entry.getValue())));
             return builder.build();
         }
         if (node.isArray()) {

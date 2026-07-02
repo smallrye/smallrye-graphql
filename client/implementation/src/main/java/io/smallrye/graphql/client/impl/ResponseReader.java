@@ -8,14 +8,13 @@ import java.util.Map;
 
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class ResponseReader {
     private static final Logger LOG = Logger.getLogger(ResponseReader.class.getName());
@@ -50,16 +49,14 @@ public class ResponseReader {
             } else {
                 return null;
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return null;
         }
     }
 
     private static ObjectNode checkExpectedResponseFields(ObjectNode jsonResponse,
             Boolean allowUnexpectedResponseFields) {
-        var fieldNames = jsonResponse.fieldNames();
-        while (fieldNames.hasNext()) {
-            String key = fieldNames.next();
+        for (String key : jsonResponse.propertyNames()) {
             if (!key.equalsIgnoreCase("data")
                     && !key.equalsIgnoreCase("errors")
                     && !key.equalsIgnoreCase("extensions")) {
@@ -143,7 +140,7 @@ public class ResponseReader {
                 for (JsonNode jsonValue : locations) {
                     ObjectNode location = (ObjectNode) jsonValue;
                     Map<String, Integer> map = new HashMap<>();
-                    location.fields().forEachRemaining(entry -> {
+                    location.properties().forEach(entry -> {
                         // TODO: how to handle non-numeric location segments?
                         if (entry.getValue().isNumber()) {
                             map.put(entry.getKey(), entry.getValue().intValue());
@@ -187,7 +184,7 @@ public class ResponseReader {
                     && errorObject.get("extensions").isObject()) {
                 ObjectNode extensions = (ObjectNode) errorObject.get("extensions");
                 Map<String, Object> extensionMap = new HashMap<>();
-                extensions.fields().forEachRemaining(entry -> {
+                extensions.properties().forEach(entry -> {
                     extensionMap.put(entry.getKey(), decode(entry.getValue()));
                 });
                 decodedError.setExtensions(extensionMap);
@@ -201,7 +198,7 @@ public class ResponseReader {
         try {
             // check if there are any other fields beyond the ones described by the specification
             Map<String, Object> otherFields = new HashMap<>();
-            errorObject.fieldNames().forEachRemaining(key -> {
+            errorObject.propertyNames().forEach(key -> {
                 if (!key.equals("extensions") &&
                         !key.equals("locations") &&
                         !key.equals("message") &&

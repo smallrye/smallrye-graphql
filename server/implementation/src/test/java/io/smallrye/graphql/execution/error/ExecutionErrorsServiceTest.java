@@ -10,9 +10,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorException;
@@ -21,6 +18,8 @@ import graphql.language.SourceLocation;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test for {@link ExecutionErrorsService}

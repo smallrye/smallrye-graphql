@@ -3,12 +3,11 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 class JsonMapReader extends Reader<ArrayNode> {
 
@@ -49,7 +48,7 @@ class JsonMapReader extends Reader<ArrayNode> {
 
             Object keyDeserialized = JsonReader.readJson(keyLocation, keyType, keyJson, field);
             Object valueDeserialized = JsonReader.readJson(valueLocation, valueType,
-                    valueJson != null ? valueJson : com.fasterxml.jackson.databind.node.NullNode.getInstance(), field);
+                    valueJson != null ? valueJson : tools.jackson.databind.node.NullNode.getInstance(), field);
 
             result.put(keyDeserialized, valueDeserialized);
         }

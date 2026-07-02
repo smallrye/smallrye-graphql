@@ -9,12 +9,12 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TypesafeResponseBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
@@ -52,8 +52,9 @@ public class TypesafeResponseBehavior {
 
         TypesafeResponse<String> result = api.greetings();
         then(fixture.query()).isEqualTo("query greetings { greetings }");
-        ObjectMapper mapper = new ObjectMapper()
-                .enable(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+        ObjectMapper mapper = JsonMapper.builder()
+                .enable(tools.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+                .build();
         ObjectNode expectedExtensions = (ObjectNode) mapper.readTree("{\"pi\":3.14159,\"extension\":\"bell\"}");
         then(result.getExtensions()).isEqualTo(expectedExtensions);
         then(result.getTransportMeta()).isEqualTo(

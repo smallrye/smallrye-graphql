@@ -1,15 +1,14 @@
 package io.smallrye.graphql.jackson.jsonb;
 
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-public class JsonbDateFormatSerializer extends JsonSerializer<TemporalAccessor> {
+public class JsonbDateFormatSerializer extends ValueSerializer<TemporalAccessor> {
 
     private final DateTimeFormatter formatter;
 
@@ -19,7 +18,7 @@ public class JsonbDateFormatSerializer extends JsonSerializer<TemporalAccessor> 
     }
 
     @Override
-    public void serialize(TemporalAccessor value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(TemporalAccessor value, JsonGenerator gen, SerializationContext serializers) {
         gen.writeString(formatter.format(value));
     }
 }

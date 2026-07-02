@@ -1,10 +1,9 @@
 package io.smallrye.graphql.client.vertx.websocket;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.subscription.MultiEmitter;
 import io.smallrye.mutiny.subscription.UniEmitter;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * An implementation of this interface is responsible for handling a particular subscription websocket protocol.

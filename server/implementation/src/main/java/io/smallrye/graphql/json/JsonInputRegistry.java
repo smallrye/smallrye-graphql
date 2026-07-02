@@ -2,9 +2,8 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.schema.model.InputType;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Here we register input objects to be used when creating method calls

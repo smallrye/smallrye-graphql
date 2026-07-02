@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLError;
+import tools.jackson.databind.node.ObjectNode;
 
 public final class TypesafeResponse<T> extends ErrorOr<T> {
     private Map<String, List<String>> transportMeta;

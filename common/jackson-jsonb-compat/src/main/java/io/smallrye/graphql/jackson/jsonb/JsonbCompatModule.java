@@ -1,6 +1,6 @@
 package io.smallrye.graphql.jackson.jsonb;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.module.SimpleModule;
 
 public class JsonbCompatModule extends SimpleModule {
 

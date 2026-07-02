@@ -8,15 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class ResponseImpl implements Response {
 
@@ -144,7 +143,7 @@ public class ResponseImpl implements Response {
      */
     private static Set<String> fieldNames(ObjectNode node) {
         Set<String> names = new LinkedHashSet<>();
-        node.fieldNames().forEachRemaining(names::add);
+        node.propertyNames().forEach(names::add);
         return names;
     }
 
