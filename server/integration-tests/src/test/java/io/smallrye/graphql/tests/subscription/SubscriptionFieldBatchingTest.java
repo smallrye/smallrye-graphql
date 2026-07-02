@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Source;
+import org.eclipse.microprofile.graphql.Subscription;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;

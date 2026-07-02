@@ -1,13 +1,14 @@
 package io.smallrye.graphql.test.apps.subscription.api;
 
 import java.util.List;
+import java.util.concurrent.Flow;
 
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Subscription;
 import org.reactivestreams.Publisher;
 
-import io.smallrye.graphql.api.Subscription;
 import io.smallrye.mutiny.Multi;
 import mutiny.zero.flow.adapters.AdaptersToFlow;
 
@@ -43,6 +44,12 @@ public class StocksApi {
     @Description("Test an Array subscription")
     public Multi<String[]> arraySubscription() {
         return Multi.createFrom().empty();
+    }
+
+    @Subscription
+    @Description("Get stock quote changes using Flow.Publisher (MicroProfile spec requirement)")
+    public Flow.Publisher<Stock> getStockQuoteFlow(String stockCode) {
+        return AdaptersToFlow.publisher(STOCK_TICKER_PUBLISHER.getPublisher());
     }
 
     // TODO: Support other Publisher types ?

@@ -346,8 +346,12 @@ public class Bootstrap {
                     .type(inputType);
 
             if (argumentType.hasDefaultValue()) {
-                argumentBuilder = argumentBuilder.defaultValueProgrammatic(
-                        sanitizeDefaultValue(argumentType));
+                Object sanitized = sanitizeDefaultValue(argumentType);
+                argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitized);
+                if (sanitized != null) {
+                    argumentBuilder = argumentBuilder.defaultValueLiteral(
+                            DefaultValueAstHelper.toAstValue(sanitized));
+                }
             }
 
             directiveBuilder = directiveBuilder.argument(argumentBuilder.build());
@@ -771,7 +775,12 @@ public class Bootstrap {
                     .valueProgrammatic(entry.getValue());
 
             if (argumentType.hasDefaultValue()) {
-                argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitizeDefaultValue(argumentType));
+                Object sanitized = sanitizeDefaultValue(argumentType);
+                argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitized);
+                if (sanitized != null) {
+                    argumentBuilder = argumentBuilder.defaultValueLiteral(
+                            DefaultValueAstHelper.toAstValue(sanitized));
+                }
             }
 
             directiveBuilder.argument(argumentBuilder.build());
@@ -795,7 +804,12 @@ public class Bootstrap {
                         .type(inputType);
 
                 if (argumentType.hasDefaultValue()) {
-                    argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitizeDefaultValue(argumentType));
+                    Object sanitized = sanitizeDefaultValue(argumentType);
+                    argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitized);
+                    if (sanitized != null) {
+                        argumentBuilder = argumentBuilder.defaultValueLiteral(
+                                DefaultValueAstHelper.toAstValue(sanitized));
+                    }
                 }
 
                 directiveBuilder.argument(argumentBuilder.build());
@@ -983,7 +997,13 @@ public class Bootstrap {
 
         // Default value (on method)
         if (field.hasDefaultValue()) {
-            inputFieldBuilder = inputFieldBuilder.defaultValueProgrammatic(sanitizeDefaultValue(field));
+            Object sanitized = sanitizeDefaultValue(field);
+            inputFieldBuilder = inputFieldBuilder.defaultValueProgrammatic(sanitized);
+            // Also set literal value for schema printing
+            if (sanitized != null) {
+                inputFieldBuilder = inputFieldBuilder.defaultValueLiteral(
+                        DefaultValueAstHelper.toAstValue(sanitized));
+            }
         }
 
         return inputFieldBuilder.build();
@@ -1134,7 +1154,13 @@ public class Bootstrap {
                 .description(argument.getDescription());
 
         if (argument.hasDefaultValue()) {
-            argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitizeDefaultValue(argument));
+            Object sanitized = sanitizeDefaultValue(argument);
+            argumentBuilder = argumentBuilder.defaultValueProgrammatic(sanitized);
+            // Also set literal value for schema printing
+            if (sanitized != null) {
+                argumentBuilder = argumentBuilder.defaultValueLiteral(
+                        DefaultValueAstHelper.toAstValue(sanitized));
+            }
         }
 
         GraphQLInputType graphQLInputType = createGraphQLInputType(argument);
@@ -1170,7 +1196,8 @@ public class Bootstrap {
                 ReferenceType referenceType = reference.getType();
 
                 if (referenceType.equals(ReferenceType.INPUT) || referenceType.equals(ReferenceType.TYPE)) {
-                    deserType = Map.class;
+                    // Use LinkedHashMap to preserve field order from JSON
+                    deserType = java.util.LinkedHashMap.class;
                 } else {
                     deserType = classloadingService.loadClass(field.getReference().getClassName());
                 }
