@@ -7,7 +7,7 @@ import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 
 import jakarta.inject.Inject;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ArrayNode;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

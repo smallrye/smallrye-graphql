@@ -30,10 +30,6 @@ import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import io.smallrye.graphql.index.app.SomeDirective;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.SchemaBuilderException;
@@ -45,6 +41,10 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.schema.model.Type;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Test the model creation
@@ -52,7 +52,7 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SchemaBuilderTest {
-    private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper MAPPER = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build();
 
     @Test
     public void testSchemaModelCreation() {
@@ -65,7 +65,7 @@ public class SchemaBuilderTest {
     private static String toJson(Object obj) {
         try {
             return MAPPER.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

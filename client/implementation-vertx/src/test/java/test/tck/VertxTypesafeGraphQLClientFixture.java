@@ -13,9 +13,6 @@ import java.util.Map;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.client.typesafe.api.TypesafeGraphQLClientBuilder;
 import io.smallrye.graphql.client.vertx.typesafe.VertxTypesafeGraphQLClientBuilder;
 import io.vertx.core.MultiMap;
@@ -25,6 +22,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import tck.graphql.typesafe.TypesafeGraphQLClientFixture;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientFixture {
     private final WebClient mockWebClient = Mockito.mock(WebClient.class);
@@ -141,7 +140,7 @@ public class VertxTypesafeGraphQLClientFixture implements TypesafeGraphQLClientF
             then(mockHttpRequest).should().sendBuffer(captor.capture());
             String requestString = captor.getValue().toString();
             try {
-                requestSent = new ObjectMapper().readTree(requestString);
+                requestSent = JsonMapper.builder().build().readTree(requestString);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to parse request JSON", e);
             }

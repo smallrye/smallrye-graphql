@@ -5,9 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class JsonUtils {
     public static Object toValue(JsonNode value) {
@@ -42,7 +42,7 @@ public class JsonUtils {
         if (jsonObject == null)
             return null;
         Map<String, Object> map = new LinkedHashMap<>();
-        jsonObject.fields().forEachRemaining(entry -> map.put(entry.getKey(), toValue(entry.getValue())));
+        jsonObject.properties().forEach(entry -> map.put(entry.getKey(), toValue(entry.getValue())));
         return map;
     }
 

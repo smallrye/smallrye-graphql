@@ -6,10 +6,9 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
 
 class JsonNumberReader extends Reader<JsonNode> {
     JsonNumberReader(TypeInfo type, Location location, JsonNode value, FieldInfo field) {

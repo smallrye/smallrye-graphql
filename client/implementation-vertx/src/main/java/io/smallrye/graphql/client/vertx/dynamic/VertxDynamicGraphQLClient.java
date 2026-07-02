@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
@@ -41,6 +39,7 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import tools.jackson.databind.node.ObjectNode;
 
 public class VertxDynamicGraphQLClient implements DynamicGraphQLClient {
 

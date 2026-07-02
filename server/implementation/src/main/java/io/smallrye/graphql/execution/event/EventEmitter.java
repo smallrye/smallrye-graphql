@@ -13,14 +13,13 @@ import jakarta.annotation.Priority;
 
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Fire some events while booting or executing.

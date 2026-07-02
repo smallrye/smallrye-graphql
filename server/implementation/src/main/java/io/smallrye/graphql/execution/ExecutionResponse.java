@@ -16,20 +16,21 @@ import jakarta.json.JsonReader;
 import jakarta.json.spi.JsonProvider;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import io.smallrye.graphql.execution.error.ExecutionErrorsService;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Response from an execution
@@ -99,7 +100,7 @@ public class ExecutionResponse {
     public String getExecutionResultAsString() {
         try {
             return OBJECT_MAPPER.writeValueAsString(getExecutionResultAsJsonObject());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -287,7 +288,7 @@ public class ExecutionResponse {
         if (jsonNode instanceof ObjectNode) {
             ObjectNode objectNode = (ObjectNode) jsonNode;
             ObjectNode result = NODE_FACTORY.objectNode();
-            objectNode.fields().forEachRemaining(entry -> {
+            objectNode.properties().forEach(entry -> {
                 if (entry.getValue() != null && !entry.getValue().isNull()) {
                     result.set(entry.getKey(), excludeNullFields(entry.getValue()));
                 }
@@ -306,11 +307,12 @@ public class ExecutionResponse {
     }
 
     private static ObjectMapper createObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-        mapper.disable(SerializationFeature.INDENT_OUTPUT);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
+        return JsonMapper.builder()
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(JsonInclude.Include.ALWAYS,
+                        JsonInclude.Include.ALWAYS))
+                .build();
     }
 
     private static final String DATA = "data";

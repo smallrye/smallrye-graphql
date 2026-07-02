@@ -4,9 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.spi.EventingService;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CustomJsonbService implements EventingService {
 
@@ -17,8 +17,9 @@ public class CustomJsonbService implements EventingService {
 
     @Override
     public Map<String, ObjectMapper> overrideObjectMapperConfig() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setDateFormat(new SimpleDateFormat("MM dd yyyy HH:mm Z"));
+        ObjectMapper mapper = JsonMapper.builder()
+                .defaultDateFormat(new SimpleDateFormat("MM dd yyyy HH:mm Z"))
+                .build();
         return Collections.singletonMap(DateWrapper.class.getName(), mapper);
     }
 }

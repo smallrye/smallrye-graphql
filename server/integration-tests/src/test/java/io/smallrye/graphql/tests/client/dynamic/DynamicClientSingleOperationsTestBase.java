@@ -23,13 +23,12 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.core.Document;
 import io.smallrye.graphql.client.core.ScalarType;
 import io.smallrye.graphql.client.core.Variable;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
+import tools.jackson.databind.node.ObjectNode;
 
 public abstract class DynamicClientSingleOperationsTestBase {
 

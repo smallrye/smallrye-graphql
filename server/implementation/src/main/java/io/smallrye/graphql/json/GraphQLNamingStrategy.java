@@ -2,7 +2,7 @@ package io.smallrye.graphql.json;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.PropertyNamingStrategies;
 
 /**
  * Naming strategy that takes GraphQL annotations into account

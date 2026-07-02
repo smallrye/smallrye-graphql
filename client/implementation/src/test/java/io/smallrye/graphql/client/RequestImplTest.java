@@ -8,9 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.impl.RequestImpl;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Validates the JSON serialization of the query and variables in a RequestImpl

@@ -3,13 +3,12 @@ package io.smallrye.graphql.spi;
 import java.util.Collections;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.schema.model.Operation;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Some events during bootstrap and execution that allows extension

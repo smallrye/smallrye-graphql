@@ -1,6 +1,5 @@
 package io.smallrye.graphql.jackson.jsonb;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,13 +13,12 @@ import java.util.Locale;
 
 import jakarta.json.bind.annotation.JsonbDateFormat;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
-public class JsonbDateFormatDeserializer extends JsonDeserializer<Object> implements ContextualDeserializer {
+public class JsonbDateFormatDeserializer extends ValueDeserializer<Object> {
 
     private DateTimeFormatter formatter;
     private Class<?> targetType;
@@ -36,7 +34,7 @@ public class JsonbDateFormatDeserializer extends JsonDeserializer<Object> implem
     }
 
     @Override
-    public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
+    public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
         if (property != null) {
             JsonbDateFormat ann = property.getAnnotation(JsonbDateFormat.class);
             if (ann != null) {
@@ -48,7 +46,7 @@ public class JsonbDateFormatDeserializer extends JsonDeserializer<Object> implem
     }
 
     @Override
-    public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) {
         String text = p.getText();
         TemporalAccessor parsed = formatter.parse(text);
 

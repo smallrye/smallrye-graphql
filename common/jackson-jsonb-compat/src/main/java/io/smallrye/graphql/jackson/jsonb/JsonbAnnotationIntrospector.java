@@ -15,25 +15,23 @@ import jakarta.json.bind.annotation.JsonbTypeInfo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.PropertyName;
-import com.fasterxml.jackson.databind.cfg.MapperConfig;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
-import com.fasterxml.jackson.databind.introspect.AnnotatedField;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
-import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
+
+import tools.jackson.databind.PropertyName;
+import tools.jackson.databind.cfg.MapperConfig;
+import tools.jackson.databind.introspect.Annotated;
+import tools.jackson.databind.introspect.AnnotatedField;
+import tools.jackson.databind.introspect.AnnotatedMember;
+import tools.jackson.databind.introspect.AnnotatedMethod;
+import tools.jackson.databind.introspect.NopAnnotationIntrospector;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 
 public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public PropertyName findNameForSerialization(Annotated a) {
+    public PropertyName findNameForSerialization(MapperConfig<?> config, Annotated a) {
         JsonbProperty prop = a.getAnnotation(JsonbProperty.class);
         if (prop != null && !prop.value().isEmpty()) {
             return PropertyName.construct(prop.value());
@@ -42,7 +40,7 @@ public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
     }
 
     @Override
-    public PropertyName findNameForDeserialization(Annotated a) {
+    public PropertyName findNameForDeserialization(MapperConfig<?> config, Annotated a) {
         JsonbProperty prop = a.getAnnotation(JsonbProperty.class);
         if (prop != null && !prop.value().isEmpty()) {
             return PropertyName.construct(prop.value());
@@ -51,12 +49,12 @@ public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
     }
 
     @Override
-    public boolean hasIgnoreMarker(AnnotatedMember m) {
+    public boolean hasIgnoreMarker(MapperConfig<?> config, AnnotatedMember m) {
         return m.hasAnnotation(JsonbTransient.class);
     }
 
     @Override
-    public JsonInclude.Value findPropertyInclusion(Annotated a) {
+    public JsonInclude.Value findPropertyInclusion(MapperConfig<?> config, Annotated a) {
         // Field-level: @JsonbProperty(nillable = true)
         JsonbProperty prop = a.getAnnotation(JsonbProperty.class);
         if (prop != null && prop.nillable()) {
@@ -77,7 +75,7 @@ public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
     }
 
     @Override
-    public Object findSerializer(Annotated a) {
+    public Object findSerializer(MapperConfig<?> config, Annotated a) {
         JsonbDateFormat dateFormat = a.getAnnotation(JsonbDateFormat.class);
         if (dateFormat != null) {
             return new JsonbDateFormatSerializer(dateFormat.value(), dateFormat.locale());
@@ -90,7 +88,7 @@ public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
     }
 
     @Override
-    public Object findDeserializer(Annotated a) {
+    public Object findDeserializer(MapperConfig<?> config, Annotated a) {
         JsonbDateFormat dateFormat = a.getAnnotation(JsonbDateFormat.class);
         if (dateFormat != null) {
             Class<?> rawType = resolveRawType(a);
@@ -119,20 +117,16 @@ public class JsonbAnnotationIntrospector extends NopAnnotationIntrospector {
     }
 
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(MapperConfig<?> config, AnnotatedClass ac, JavaType baseType) {
+    public Object findTypeResolverBuilder(MapperConfig<?> config, Annotated ac) {
         JsonbTypeInfo typeInfo = ac.getAnnotation(JsonbTypeInfo.class);
         if (typeInfo != null) {
-            StdTypeResolverBuilder builder = new StdTypeResolverBuilder();
-            builder.init(JsonTypeInfo.Id.NAME, null);
-            builder.inclusion(JsonTypeInfo.As.PROPERTY);
-            builder.typeProperty(typeInfo.key());
-            return builder;
+            return new StdTypeResolverBuilder(JsonTypeInfo.Id.NAME, JsonTypeInfo.As.PROPERTY, typeInfo.key());
         }
         return null;
     }
 
     @Override
-    public List<NamedType> findSubtypes(Annotated a) {
+    public List<NamedType> findSubtypes(MapperConfig<?> config, Annotated a) {
         JsonbTypeInfo typeInfo = a.getAnnotation(JsonbTypeInfo.class);
         if (typeInfo != null) {
             List<NamedType> subtypes = new ArrayList<>();

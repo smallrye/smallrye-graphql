@@ -25,13 +25,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClient;
 import io.smallrye.graphql.client.vertx.dynamic.VertxDynamicGraphQLClientBuilder;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Test extension(s) features of the dynamic client
@@ -72,7 +72,7 @@ public class DynamicClientInboundExtensionsTest {
                 field("poolWithExtensions",
                         field("volume")))));
         // Compare structurally by converting both to JsonNode through a common JSON round-trip
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonMapper.builder().build();
         JsonNode expected = mapper.readTree(mapper.writeValueAsString(getMap()));
         JsonNode actual = mapper.readTree(response.getExtensions().toString());
         assertEquals(expected, actual);

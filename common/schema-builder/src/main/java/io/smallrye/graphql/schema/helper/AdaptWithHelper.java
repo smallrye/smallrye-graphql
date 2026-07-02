@@ -161,7 +161,7 @@ public class AdaptWithHelper {
                     AnnotationValue converterValue = serializeAnn.value("converter");
                     if (converterValue != null) {
                         AdaptWith adaptWith = new AdaptWith(
-                                "com.fasterxml.jackson.databind.util.StdConverter",
+                                "tools.jackson.databind.util.StdConverter",
                                 "convert", "convert");
                         Type type = converterValue.asClass();
                         return new AdapterType(type, adaptWith);

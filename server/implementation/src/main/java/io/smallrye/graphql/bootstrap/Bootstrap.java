@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 import org.eclipse.microprofile.graphql.Name;
 
 import com.apollographql.federation.graphqljava.Federation;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.Scalars;
 import graphql.introspection.Introspection.DirectiveLocation;
@@ -89,6 +87,9 @@ import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Bootstrap MicroProfile GraphQL
@@ -1179,7 +1180,7 @@ public class Bootstrap {
             ObjectMapper objectMapper = JacksonCreator.getObjectMapper(deserType.getName());
             try {
                 return objectMapper.readValue(jsonString, deserType);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException("Failed to deserialize default value: " + jsonString, e);
             }
         }
@@ -1248,7 +1249,7 @@ public class Bootstrap {
 
     private static final String COMMA = ",";
 
-    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper JSON_OBJECT_MAPPER = JsonMapper.builder().build();
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";
     private static final String OBSERVES = "javax.enterprise.event.Observes";

@@ -1,6 +1,5 @@
 package io.smallrye.graphql.jackson.jsonb;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -10,13 +9,13 @@ import java.util.Locale;
 
 import jakarta.json.bind.annotation.JsonbNumberFormat;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
-public class JsonbNumberFormatDeserializer extends JsonDeserializer<Object> implements ContextualDeserializer {
+public class JsonbNumberFormatDeserializer extends ValueDeserializer<Object> {
 
     private String pattern;
     private String locale;
@@ -33,7 +32,7 @@ public class JsonbNumberFormatDeserializer extends JsonDeserializer<Object> impl
     }
 
     @Override
-    public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
+    public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
         if (property != null) {
             JsonbNumberFormat ann = property.getAnnotation(JsonbNumberFormat.class);
             if (ann != null) {
@@ -45,7 +44,7 @@ public class JsonbNumberFormatDeserializer extends JsonDeserializer<Object> impl
     }
 
     @Override
-    public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) {
         String text = p.getText();
         Locale loc = resolveLocale(ctxt);
         DecimalFormat fmt = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(loc));
@@ -55,7 +54,7 @@ public class JsonbNumberFormatDeserializer extends JsonDeserializer<Object> impl
         try {
             parsed = fmt.parse(text);
         } catch (ParseException e) {
-            throw new IOException("Failed to parse number from '" + text + "' with pattern '" + pattern + "'", e);
+            throw DatabindException.from(p, "Failed to parse number from '" + text + "' with pattern '" + pattern + "'", e);
         }
 
         if (targetType == int.class || targetType == Integer.class) {
