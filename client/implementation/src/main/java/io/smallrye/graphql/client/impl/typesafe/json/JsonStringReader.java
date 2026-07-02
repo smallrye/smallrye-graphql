@@ -14,12 +14,11 @@ import jakarta.json.bind.annotation.JsonbNumberFormat;
 import org.eclipse.microprofile.graphql.DateFormat;
 import org.eclipse.microprofile.graphql.NumberFormat;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.typesafe.reflection.ConstructionInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
 
 class JsonStringReader extends Reader<JsonNode> {
     JsonStringReader(TypeInfo type, Location location, JsonNode value, FieldInfo field) {

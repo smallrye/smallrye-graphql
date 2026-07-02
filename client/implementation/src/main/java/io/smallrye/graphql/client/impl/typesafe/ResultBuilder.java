@@ -7,12 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.RequestImpl;
@@ -22,6 +16,11 @@ import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class ResultBuilder {
     private static final ObjectMapper MAPPER = RequestImpl.MAPPER;

@@ -2,10 +2,9 @@ package io.smallrye.graphql.client.impl.typesafe.json;
 
 import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
 
 abstract class Reader<T extends JsonNode> {
     protected final TypeInfo type;

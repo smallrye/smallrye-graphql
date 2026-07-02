@@ -2,7 +2,7 @@ package io.smallrye.graphql.client;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public interface Request {
     String getDocument();

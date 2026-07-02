@@ -6,16 +6,16 @@ import java.util.Optional;
 
 import jakarta.json.JsonValue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Help to create the exceptions
@@ -25,7 +25,7 @@ import io.smallrye.graphql.spi.config.Config;
 public class ExecutionErrorsService {
 
     private static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final ErrorExtensionProviders errorExtensionProviders = new ErrorExtensionProviders();
 

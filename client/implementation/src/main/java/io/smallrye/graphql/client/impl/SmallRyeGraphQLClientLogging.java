@@ -7,7 +7,7 @@ import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
 
-import com.fasterxml.jackson.databind.node.JsonNodeType;
+import tools.jackson.databind.node.JsonNodeType;
 
 @MessageLogger(projectCode = "SRGQL")
 public interface SmallRyeGraphQLClientLogging {

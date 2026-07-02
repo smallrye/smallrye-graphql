@@ -10,12 +10,6 @@ import java.util.stream.StreamSupport;
 
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
@@ -30,6 +24,11 @@ import io.smallrye.mutiny.subscription.Cancellable;
 import io.smallrye.mutiny.subscription.MultiEmitter;
 import io.smallrye.mutiny.subscription.UniEmitter;
 import io.vertx.core.http.WebSocket;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Implementation of the `graphql-transport-ws` protocol. The protocol specification is at
@@ -302,7 +301,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     private ObjectNode parseIncomingMessage(String message) {
         try {
             return (ObjectNode) MAPPER.readTree(message);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Failed to parse incoming message", e);
         }
     }

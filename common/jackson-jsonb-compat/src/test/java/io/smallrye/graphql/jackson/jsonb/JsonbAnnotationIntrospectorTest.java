@@ -16,14 +16,14 @@ import jakarta.json.bind.annotation.JsonbTypeInfo;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class JsonbAnnotationIntrospectorTest {
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JsonbCompatModule())
-            .registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .addModule(new JsonbCompatModule())
+            .build();
 
     // -- @JsonbProperty --
 
@@ -130,9 +130,10 @@ class JsonbAnnotationIntrospectorTest {
 
     @Test
     void jsonbNumberFormatSerializesWithPattern() throws Exception {
-        ObjectMapper usMapper = new ObjectMapper()
-                .registerModule(new JsonbCompatModule())
-                .setLocale(Locale.US);
+        ObjectMapper usMapper = JsonMapper.builder()
+                .addModule(new JsonbCompatModule())
+                .defaultLocale(Locale.US)
+                .build();
         String json = usMapper.writeValueAsString(new NumberFormatBean());
         assertThat(json).contains("\"1,234.50\"");
     }

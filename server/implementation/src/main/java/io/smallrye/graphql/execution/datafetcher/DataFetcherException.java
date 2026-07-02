@@ -1,10 +1,10 @@
 package io.smallrye.graphql.execution.datafetcher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import io.smallrye.graphql.schema.model.Operation;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * There was an issue when fetching data.
@@ -12,8 +12,9 @@ import io.smallrye.graphql.schema.model.Operation;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class DataFetcherException extends RuntimeException {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
 
     public DataFetcherException() {
     }
@@ -29,7 +30,7 @@ public class DataFetcherException extends RuntimeException {
     private static String toJson(Operation operation) {
         try {
             return OBJECT_MAPPER.writeValueAsString(operation);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return operation.toString();
         }
     }

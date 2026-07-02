@@ -17,9 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
@@ -34,6 +31,8 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
 import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Help with the arguments when doing reflection calls
@@ -369,9 +368,9 @@ public class ArgumentHelper extends AbstractHelper {
      * @return a java object of this type.
      */
     private static boolean isJacksonJsonNodeType(String className) {
-        return "com.fasterxml.jackson.databind.JsonNode".equals(className)
-                || "com.fasterxml.jackson.databind.node.ObjectNode".equals(className)
-                || "com.fasterxml.jackson.databind.node.ArrayNode".equals(className);
+        return "tools.jackson.databind.JsonNode".equals(className)
+                || "tools.jackson.databind.node.ObjectNode".equals(className)
+                || "tools.jackson.databind.node.ArrayNode".equals(className);
     }
 
     private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
@@ -458,7 +457,7 @@ public class ArgumentHelper extends AbstractHelper {
             }
 
             return result;
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new TransformException(e, field, m);
         }
     }
@@ -523,7 +522,7 @@ public class ArgumentHelper extends AbstractHelper {
         try {
             ObjectMapper objectMapper = JacksonCreator.getObjectMapper(className);
             return objectMapper.readValue(jsonString, objectMapper.constructType(type));
-        } catch (JsonProcessingException jpe) {
+        } catch (JacksonException jpe) {
             throw new TransformException(jpe, field, jsonString);
         }
     }
