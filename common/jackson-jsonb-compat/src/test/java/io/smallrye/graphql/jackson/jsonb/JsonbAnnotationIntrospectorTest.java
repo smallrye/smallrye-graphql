@@ -2,18 +2,28 @@ package io.smallrye.graphql.jackson.jsonb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+import java.util.Locale;
+
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbDateFormat;
+import jakarta.json.bind.annotation.JsonbNillable;
+import jakarta.json.bind.annotation.JsonbNumberFormat;
 import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbTypeInfo;
 
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 class JsonbAnnotationIntrospectorTest {
 
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JsonbCompatModule())
-            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            .registerModule(new JavaTimeModule());
 
     // -- @JsonbProperty --
 
@@ -54,7 +64,7 @@ class JsonbAnnotationIntrospectorTest {
         private final String name;
         private final int age;
 
-        @jakarta.json.bind.annotation.JsonbCreator
+        @JsonbCreator
         public CreatorBean(
                 @JsonbProperty("name") String name,
                 @JsonbProperty("age") int age) {
@@ -80,7 +90,7 @@ class JsonbAnnotationIntrospectorTest {
 
     // -- @JsonbNillable --
 
-    @jakarta.json.bind.annotation.JsonbNillable
+    @JsonbNillable
     static class NillableBean {
         public String name = null;
         public String other = "value";
@@ -95,8 +105,8 @@ class JsonbAnnotationIntrospectorTest {
     // -- @JsonbDateFormat --
 
     static class DateFormatBean {
-        @jakarta.json.bind.annotation.JsonbDateFormat("dd.MM.yyyy")
-        public java.time.LocalDate date = java.time.LocalDate.of(2026, 6, 15);
+        @JsonbDateFormat("dd.MM.yyyy")
+        public LocalDate date = LocalDate.of(2026, 6, 15);
     }
 
     @Test
@@ -108,13 +118,13 @@ class JsonbAnnotationIntrospectorTest {
     @Test
     void jsonbDateFormatDeserializesWithPattern() throws Exception {
         DateFormatBean bean = mapper.readValue("{\"date\":\"15.06.2026\"}", DateFormatBean.class);
-        assertThat(bean.date).isEqualTo(java.time.LocalDate.of(2026, 6, 15));
+        assertThat(bean.date).isEqualTo(LocalDate.of(2026, 6, 15));
     }
 
     // -- @JsonbNumberFormat --
 
     static class NumberFormatBean {
-        @jakarta.json.bind.annotation.JsonbNumberFormat("#,##0.00")
+        @JsonbNumberFormat("#,##0.00")
         public double price = 1234.5;
     }
 
@@ -122,16 +132,16 @@ class JsonbAnnotationIntrospectorTest {
     void jsonbNumberFormatSerializesWithPattern() throws Exception {
         ObjectMapper usMapper = new ObjectMapper()
                 .registerModule(new JsonbCompatModule())
-                .setLocale(java.util.Locale.US);
+                .setLocale(Locale.US);
         String json = usMapper.writeValueAsString(new NumberFormatBean());
         assertThat(json).contains("\"1,234.50\"");
     }
 
     // -- @JsonbTypeInfo / @JsonbSubtype --
 
-    @jakarta.json.bind.annotation.JsonbTypeInfo(key = "__typename", value = {
-            @jakarta.json.bind.annotation.JsonbSubtype(alias = "Dog", type = Dog.class),
-            @jakarta.json.bind.annotation.JsonbSubtype(alias = "Cat", type = Cat.class)
+    @JsonbTypeInfo(key = "__typename", value = {
+            @JsonbSubtype(alias = "Dog", type = Dog.class),
+            @JsonbSubtype(alias = "Cat", type = Cat.class)
     })
     interface Animal {
         String getName();

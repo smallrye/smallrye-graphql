@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.jboss.logging.Logger;
@@ -209,7 +208,7 @@ public class GraphQLTransportWSSubprotocolHandler implements WebSocketSubprotoco
     private void handleOperationError(String operationId, ArrayNode errors) {
         List<GraphQLError> parsedErrors = StreamSupport.stream(errors.spliterator(), false)
                 .map(ResponseReader::readError)
-                .collect(Collectors.toList());
+                .toList();
         GraphQLClientException exception = new GraphQLClientException("Received an error", parsedErrors);
         UniEmitter<? super String> emitter = uniOperations.remove(operationId);
         if (emitter != null) {

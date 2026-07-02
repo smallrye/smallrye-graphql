@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonPointer;
@@ -118,7 +117,7 @@ public class ResultBuilder {
         throw new GraphQLClientException("errors from service",
                 StreamSupport.stream(unapplied.spliterator(), false)
                         .map(ResponseReader::readError)
-                        .collect(Collectors.toList()));
+                        .toList());
     }
 
     private boolean apply(JsonNode error) {
@@ -185,6 +184,6 @@ public class ResultBuilder {
         ArrayNode jsonArray = (ArrayNode) value;
         return StreamSupport.stream(jsonArray.spliterator(), false)
                 .map(JsonUtils::toValue)
-                .collect(Collectors.toList());
+                .toList();
     }
 }
