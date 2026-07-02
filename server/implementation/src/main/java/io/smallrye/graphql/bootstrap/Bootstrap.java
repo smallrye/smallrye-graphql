@@ -1121,7 +1121,8 @@ public class Bootstrap {
     private List<GraphQLArgument> createGraphQLArguments(List<Argument> arguments) {
         List<GraphQLArgument> graphQLArguments = new ArrayList<>();
         for (Argument argument : arguments) {
-            if (!argument.isSourceArgument() && !IGNORABLE_ARGUMENTS.contains(argument.getReference().getClassName())) {
+            if (!argument.isSourceArgument() && !argument.isTargetArgument()
+                    && !IGNORABLE_ARGUMENTS.contains(argument.getReference().getClassName())) {
                 graphQLArguments.add(createGraphQLArgument(argument));
             }
         }

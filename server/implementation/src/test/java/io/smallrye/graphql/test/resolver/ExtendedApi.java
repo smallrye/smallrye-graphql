@@ -3,6 +3,7 @@ package io.smallrye.graphql.test.resolver;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 
 import io.smallrye.graphql.api.federation.Resolver;
+import io.smallrye.graphql.api.federation.Target;
 
 @GraphQLApi
 public class ExtendedApi {
@@ -21,5 +22,11 @@ public class ExtendedApi {
         extendedType.setKey(key);
         extendedType.setValue(id + name + key);
         return extendedType;
+    }
+
+    @Resolver
+    public ExtendedType extendedTypeByTarget(@Target ExtendedType target) {
+        target.setValue("target:" + target.getId() + ":" + target.getKey());
+        return target;
     }
 }

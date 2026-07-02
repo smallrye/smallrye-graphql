@@ -45,6 +45,7 @@ import io.smallrye.graphql.api.federation.Requires;
 import io.smallrye.graphql.api.federation.Resolver;
 import io.smallrye.graphql.api.federation.Shareable;
 import io.smallrye.graphql.api.federation.Tag;
+import io.smallrye.graphql.api.federation.Target;
 import io.smallrye.graphql.api.federation.link.Import;
 import io.smallrye.graphql.api.federation.link.Link;
 import io.smallrye.graphql.api.federation.link.Purpose;
@@ -127,6 +128,7 @@ public class IndexInitializer {
             indexer.index(convertClassToInputStream(ScopeItem.class));
             indexer.index(convertClassToInputStream(Shareable.class));
             indexer.index(convertClassToInputStream(Tag.class));
+            indexer.index(convertClassToInputStream(Target.class));
             indexer.index(convertClassToInputStream(Namespace.class));
             indexer.index(convertClassToInputStream(Resolver.class));
         } catch (IOException ex) {

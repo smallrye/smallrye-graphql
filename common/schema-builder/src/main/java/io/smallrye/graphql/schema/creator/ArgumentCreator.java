@@ -18,6 +18,7 @@ import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
@@ -75,7 +76,10 @@ public class ArgumentCreator extends ModelCreator {
                 .orElse(defaultName);
 
         Reference reference;
-        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
+        boolean sourceArgument = isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation);
+        boolean targetArgument = isTargetAnnotationOnResolverOperation(annotationsForThisArgument, operation);
+
+        if (sourceArgument || targetArgument) {
             reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
         } else if (!argumentType.name().equals(CONTEXT)) {
             reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
@@ -89,9 +93,8 @@ public class ArgumentCreator extends ModelCreator {
                 name,
                 reference);
 
-        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
-            argument.setSourceArgument(true);
-        }
+        argument.setSourceArgument(sourceArgument);
+        argument.setTargetArgument(targetArgument);
 
         if (validationHelper != null) {
             List<DirectiveInstance> constraintDirectives = validationHelper
@@ -127,6 +130,12 @@ public class ArgumentCreator extends ModelCreator {
             Operation operation) {
         return operation.isSourceField() &&
                 annotationsForArgument.containsOneOfTheseAnnotations(Annotations.SOURCE);
+    }
+
+    private static boolean isTargetAnnotationOnResolverOperation(Annotations annotationsForArgument,
+            Operation operation) {
+        return operation.getOperationType() == OperationType.RESOLVER &&
+                annotationsForArgument.containsOneOfTheseAnnotations(Annotations.TARGET);
     }
 
     private static final DotName CONTEXT = DotName.createSimple("io.smallrye.graphql.api.Context");

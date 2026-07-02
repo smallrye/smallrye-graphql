@@ -99,6 +99,11 @@ public class ArgumentHelper extends AbstractHelper {
                 return source;
             }
         }
+        if (argument.isTargetArgument()) {
+            Map<String, Object> target = new HashMap<>(dfe.getArguments());
+            target.remove("__typename");
+            return transformOrAdapt(target, argument, dfe);
+        }
 
         // Else, get the argument value as if is from graphql-java
         // graphql-java will also populate the value with the default value if needed.
