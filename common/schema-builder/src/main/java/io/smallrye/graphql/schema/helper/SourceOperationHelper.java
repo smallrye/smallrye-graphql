@@ -25,7 +25,6 @@ import io.smallrye.graphql.schema.ScanningContext;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SourceOperationHelper {
-    private final Logger LOG = Logger.getLogger(SourceOperationHelper.class.getName());
 
     private Map<DotName, List<MethodParameterInfo>> sourceAnnotations = scanAllSourceAnnotations(false, false,
             Type.Kind.CLASS,
@@ -45,7 +44,8 @@ public class SourceOperationHelper {
         return sourceListAnnotations;
     }
 
-    private Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(boolean includeCollections, boolean includeMap,
+    private static Map<DotName, List<MethodParameterInfo>> scanAllSourceAnnotations(boolean includeCollections,
+            boolean includeMap,
             Type.Kind... forReturnType) {
         Map<DotName, List<MethodParameterInfo>> sourceFields = new HashMap<>();
         Collection<AnnotationInstance> sourceAnnotations = ScanningContext.getIndex().getAnnotations(Annotations.SOURCE);
@@ -68,14 +68,14 @@ public class SourceOperationHelper {
                     }
                 }
             } else {
-                LOG.warn("Ignoring " + ai.target() + " on kind " + ai.target().kind() + ". Only expecting @"
-                        + Annotations.SOURCE.local() + " on Method parameters");
+                Logger.getLogger(SourceOperationHelper.class.getName()).warn("Ignoring " + ai.target() + " on kind "
+                        + ai.target().kind() + ". Only expecting @" + Annotations.SOURCE.local() + " on Method parameters");
             }
         }
         return sourceFields;
     }
 
-    private DotName getName(Type returnType) {
+    private static DotName getName(Type returnType) {
         if (returnType.kind().equals(Type.Kind.PARAMETERIZED_TYPE)) {
             Type typeInCollection = returnType.asParameterizedType().arguments().get(0);
             return getName(typeInCollection);
@@ -85,5 +85,4 @@ public class SourceOperationHelper {
         }
         return returnType.name();
     }
-
 }

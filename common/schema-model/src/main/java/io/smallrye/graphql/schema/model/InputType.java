@@ -20,6 +20,8 @@ public final class InputType extends Reference {
 
     private Map<String, Field> fields = new LinkedHashMap<>();
 
+    private Map<String, Operation> targetFields = new LinkedHashMap<>();
+
     /**
      * All fields which are required by the creator method (e.g. {@code @JsonbCreator}).
      */
@@ -61,6 +63,26 @@ public final class InputType extends Reference {
         return this.fields.containsKey(fieldName);
     }
 
+    public Map<String, Operation> getTargetFields() {
+        return targetFields;
+    }
+
+    public void setTargetFields(Map<String, Operation> targetFields) {
+        this.targetFields = targetFields;
+    }
+
+    public void addTargetField(Operation targetField) {
+        this.targetFields.put(targetField.getName(), targetField);
+    }
+
+    public boolean hasTargetFields() {
+        return !this.targetFields.isEmpty();
+    }
+
+    public boolean hasTargetField(String fieldName) {
+        return this.targetFields.containsKey(fieldName);
+    }
+
     public List<Field> getCreatorParameters() {
         return creatorParameters;
     }
@@ -75,8 +97,8 @@ public final class InputType extends Reference {
 
     @Override
     public String toString() {
-        return "InputType{" + "description=" + description + ", fields=" + fields + ", creatorParameters=" + creatorParameters
-                + '}';
+        return "InputType{" + "description=" + description + ", fields=" + fields + ", targetFields="
+                + targetFields + ", creatorParameters=" + creatorParameters + '}';
     }
 
 }

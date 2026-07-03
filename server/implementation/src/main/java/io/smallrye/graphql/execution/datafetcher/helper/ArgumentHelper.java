@@ -26,6 +26,7 @@ import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Field;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -376,6 +377,7 @@ public class ArgumentHelper extends AbstractHelper {
     private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
+        Map<String, Object> targetValues = removeTargetValues(m, className);
 
         // Let's see if there are any fields that needs transformation or adaption
         if (InputFieldsInfo.hasTransformationFields(className)) {
@@ -456,10 +458,68 @@ public class ArgumentHelper extends AbstractHelper {
                 }
             }
 
-            return result;
+            return invokeTargetFields(result, className, targetValues, dfe);
         } catch (JacksonException e) {
             throw new TransformException(e, field, m);
         }
+    }
+
+    private Map<String, Object> removeTargetValues(Map m, String className) {
+        Map<String, Object> targetValues = new HashMap<>();
+        if (InputFieldsInfo.hasTargetFields(className)) {
+            for (String targetFieldName : InputFieldsInfo.getTargetFields(className).keySet()) {
+                if (m.containsKey(targetFieldName)) {
+                    targetValues.put(targetFieldName, m.remove(targetFieldName));
+                }
+            }
+        }
+        return targetValues;
+    }
+
+    private Object invokeTargetFields(Object target, String className, Map<String, Object> targetValues,
+            DataFetchingEnvironment dfe) throws AbstractDataFetcherException {
+        if (targetValues.isEmpty()) {
+            return target;
+        }
+        Map<String, Operation> targetFields = InputFieldsInfo.getTargetFields(className);
+        Object currentTarget = target;
+        for (Map.Entry<String, Object> entry : targetValues.entrySet()) {
+            Operation targetField = targetFields.get(entry.getKey());
+            Object result = invokeTargetField(targetField, currentTarget, entry.getValue(), dfe);
+            if (result != null && currentTarget.getClass().isAssignableFrom(result.getClass())) {
+                currentTarget = result;
+            }
+        }
+        return currentTarget;
+    }
+
+    private Object invokeTargetField(Operation targetField, Object target, Object targetValue, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
+        Object[] transformedArguments = new Object[targetField.getParameterClassNames().size()];
+        transformedArguments[targetField.getTargetParameterPosition()] = target;
+        transformedArguments[targetField.getValueParameterPosition()] = getTargetValue(targetValue, targetField, dfe);
+        try {
+            ReflectionInvoker reflectionInvoker = new ReflectionInvoker(targetField.getClassName(),
+                    targetField.getMethodName(),
+                    targetField.getParameterClassNames());
+            return reflectionInvoker.invoke(transformedArguments);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Object getTargetValue(Object targetValue, Operation targetField, DataFetchingEnvironment dfe)
+            throws AbstractDataFetcherException {
+        if (targetValue == null) {
+            if (targetField.hasWrapper() && targetField.getWrapper().isOptional()) {
+                return Optional.empty();
+            }
+            return null;
+        }
+        if (targetField.hasWrapper() && targetField.getWrapper().isOptional()) {
+            targetValue = Optional.of(targetValue);
+        }
+        return transformOrAdapt(targetValue, targetField, dfe);
     }
 
     /**

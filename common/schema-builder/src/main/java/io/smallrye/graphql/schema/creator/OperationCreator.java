@@ -1,6 +1,7 @@
 package io.smallrye.graphql.schema.creator;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,7 @@ import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.helper.DeprecatedDirectivesHelper;
+import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
@@ -25,6 +27,7 @@ import io.smallrye.graphql.schema.model.Execute;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.Wrapper;
 import kotlin.metadata.Attributes;
 import kotlin.metadata.KmClassifier;
 import kotlin.metadata.KmFunction;
@@ -110,6 +113,45 @@ public class OperationCreator extends ModelCreator {
         populateField(Direction.OUT, operation, fieldType, annotationsForMethod);
 
         checkWrappedTypeKotlinNullability(methodInfo, annotationsForClass, operation);
+        return operation;
+    }
+
+    /**
+     * Creates an operation that is exposed as an input field by @Target.
+     */
+    public Operation createTargetOperation(MethodInfo methodInfo, Reference targetFieldOn) {
+        if (!Modifier.isPublic(methodInfo.flags())) {
+            throw new IllegalArgumentException(
+                    "Method " + methodInfo.declaringClass().name().toString() + "#" + methodInfo.name()
+                            + " is used as a target input field, but is not public");
+        }
+
+        short[] parameterPositions = getTargetParameterPositions(methodInfo);
+        short targetPosition = parameterPositions[0];
+        short valuePosition = parameterPositions[1];
+
+        Type valueType = methodInfo.parameterType(valuePosition);
+        Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
+        Annotations annotationsForValue = Annotations.getAnnotationsForArgument(methodInfo, valuePosition);
+
+        String name = getTargetFieldName(methodInfo, annotationsForMethod);
+        Reference reference = referenceCreator.createReferenceForOperationArgument(valueType, annotationsForValue);
+
+        Operation operation = new Operation(methodInfo.declaringClass().name().toString(),
+                methodInfo.name(),
+                name,
+                name,
+                reference,
+                null,
+                null);
+        operation.setTargetFieldOn(targetFieldOn);
+        operation.setParameterClassNames(getParameterClassNames(methodInfo));
+        operation.setTargetParameterPosition(targetPosition);
+        operation.setValueParameterPosition(valuePosition);
+
+        populateField(Direction.IN, operation, valueType, annotationsForValue);
+        DescriptionHelper.getDescriptionForField(annotationsForMethod, valueType).ifPresent(operation::setDescription);
+
         return operation;
     }
 
@@ -294,6 +336,51 @@ public class OperationCreator extends ModelCreator {
 
     }
 
+    private short[] getTargetParameterPositions(MethodInfo methodInfo) {
+        short targetPosition = -1;
+        short valuePosition = -1;
+        int targetCount = 0;
+        int valueCount = 0;
+        for (short i = 0; i < methodInfo.parametersCount(); i++) {
+            Annotations annotations = Annotations.getAnnotationsForArgument(methodInfo, i);
+            if (annotations.containsOneOfTheseAnnotations(Annotations.TARGET)) {
+                targetPosition = i;
+                targetCount++;
+            } else if (!methodInfo.parameterType(i).name().equals(CONTEXT)) {
+                valuePosition = i;
+                valueCount++;
+            }
+        }
+        if (targetCount != 1 || valueCount != 1) {
+            throw new SchemaBuilderException("Target input field method [" + methodInfo.declaringClass().name()
+                    + "#" + methodInfo.name() + "] must declare exactly one @Target parameter and one input value parameter");
+        }
+        return new short[] { targetPosition, valuePosition };
+    }
+
+    private List<String> getParameterClassNames(MethodInfo methodInfo) {
+        List<String> parameterClassNames = new ArrayList<>();
+        for (Type parameterType : methodInfo.parameterTypes()) {
+            parameterClassNames.add(getParameterClassName(parameterType));
+        }
+        return parameterClassNames;
+    }
+
+    private String getParameterClassName(Type parameterType) {
+        return WrapperCreator.createWrapper(parameterType)
+                .map(Wrapper::getWrapperClassName)
+                .orElse(parameterType.name().toString());
+    }
+
+    private static String getTargetFieldName(MethodInfo methodInfo, Annotations annotations) {
+        return annotations.getOneOfTheseMethodAnnotationsValue(
+                Annotations.NAME,
+                Annotations.JAKARTA_JSONB_PROPERTY,
+                Annotations.JAVAX_JSONB_PROPERTY,
+                Annotations.JACKSON_PROPERTY)
+                .orElse(methodInfo.name());
+    }
+
     private static DotName getOperationAnnotation(OperationType operationType) {
         switch (operationType) {
             case QUERY:
@@ -372,4 +459,6 @@ public class OperationCreator extends ModelCreator {
     public String getDirectiveLocation() {
         return "FIELD_DEFINITION";
     }
+
+    private static final DotName CONTEXT = DotName.createSimple("io.smallrye.graphql.api.Context");
 }
