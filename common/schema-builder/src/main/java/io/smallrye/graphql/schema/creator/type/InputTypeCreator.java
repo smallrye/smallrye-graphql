@@ -8,22 +8,28 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.schema.Annotations;
 import io.smallrye.graphql.schema.Classes;
 import io.smallrye.graphql.schema.ScanningContext;
+import io.smallrye.graphql.schema.SchemaBuilderException;
 import io.smallrye.graphql.schema.creator.FieldCreator;
+import io.smallrye.graphql.schema.creator.OperationCreator;
 import io.smallrye.graphql.schema.helper.DescriptionHelper;
 import io.smallrye.graphql.schema.helper.Direction;
 import io.smallrye.graphql.schema.helper.Directives;
 import io.smallrye.graphql.schema.helper.MethodHelper;
+import io.smallrye.graphql.schema.helper.TargetOperationHelper;
 import io.smallrye.graphql.schema.helper.TypeNameHelper;
 import io.smallrye.graphql.schema.model.DirectiveInstance;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 
@@ -38,10 +44,12 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 public class InputTypeCreator implements Creator<InputType> {
     private static final Logger LOG = Logger.getLogger(InputTypeCreator.class.getName());
     private final FieldCreator fieldCreator;
+    private final OperationCreator operationCreator;
     private Directives directives;
 
-    public InputTypeCreator(FieldCreator fieldCreator) {
+    public InputTypeCreator(FieldCreator fieldCreator, OperationCreator operationCreator) {
         this.fieldCreator = fieldCreator;
+        this.operationCreator = operationCreator;
     }
 
     @Override
@@ -186,6 +194,37 @@ public class InputTypeCreator implements Creator<InputType> {
             }
         }
 
+        addTargetFields(inputType, classInfo);
+    }
+
+    private void addTargetFields(InputType inputType, ClassInfo classInfo) {
+        TargetOperationHelper targetOperationHelper = new TargetOperationHelper();
+        Map<DotName, List<MethodParameterInfo>> targetFields = targetOperationHelper.getTargetAnnotations();
+        if (!targetFields.containsKey(classInfo.name())) {
+            return;
+        }
+
+        List<MethodParameterInfo> methodParameterInfos = targetFields.get(classInfo.name());
+        for (MethodParameterInfo methodParameterInfo : methodParameterInfos) {
+            MethodInfo methodInfo = methodParameterInfo.method();
+            Operation targetOperation = operationCreator.createTargetOperation(methodInfo, inputType);
+            validateTargetFieldName(inputType, targetOperation);
+            inputType.addTargetField(targetOperation);
+        }
+    }
+
+    private void validateTargetFieldName(InputType inputType, Operation targetOperation) {
+        if (inputType.hasField(targetOperation.getName())) {
+            throw new SchemaBuilderException(String.format("Input type '%s' already contains field named '%s'" +
+                    " so target input field, with the same name, cannot be applied. You can resolve this conflict using @Name on the target method.",
+                    inputType.getName(),
+                    targetOperation.getName()));
+        }
+        if (inputType.hasTargetField(targetOperation.getName())) {
+            throw new SchemaBuilderException(String.format("Input type '%s' already contains target input field named '%s'",
+                    inputType.getName(),
+                    targetOperation.getName()));
+        }
     }
 
     private static final String JAVA_DOT = "java.";
