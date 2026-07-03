@@ -7,6 +7,7 @@ formatter-maven-cache.properties
 
 # ignore Gradle generated build folders
 build
+bin
 
 # ignore downloaded maven
 /tools/maven

@@ -659,9 +659,9 @@ public class Bootstrap {
         }
 
         // Fields
-        if (inputType.hasFields()) {
+        if (inputType.hasFields() || inputType.hasTargetFields()) {
             inputObjectTypeBuilder = inputObjectTypeBuilder
-                    .fields(createGraphQLInputObjectFieldsFromFields(inputType.getFields().values()));
+                    .fields(createGraphQLInputObjectFieldsFromInputType(inputType));
             // Register this input for possible JsonB usage
             JsonInputRegistry.register(inputType);
         }
@@ -960,10 +960,22 @@ public class Bootstrap {
         return Optional.empty();
     }
 
-    private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Collection<Field> fields) {
+    private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromFields(Collection<? extends Field> fields) {
         List<GraphQLInputObjectField> graphQLInputObjectFields = new ArrayList<>();
         for (Field field : fields) {
             graphQLInputObjectFields.add(createGraphQLInputObjectFieldFromField(field));
+        }
+        return graphQLInputObjectFields;
+    }
+
+    private List<GraphQLInputObjectField> createGraphQLInputObjectFieldsFromInputType(InputType inputType) {
+        List<GraphQLInputObjectField> graphQLInputObjectFields = new ArrayList<>();
+        if (inputType.hasFields()) {
+            graphQLInputObjectFields.addAll(createGraphQLInputObjectFieldsFromFields(inputType.getFields().values()));
+        }
+        if (inputType.hasTargetFields()) {
+            graphQLInputObjectFields.addAll(
+                    createGraphQLInputObjectFieldsFromFields(inputType.getTargetFields().values()));
         }
         return graphQLInputObjectFields;
     }
