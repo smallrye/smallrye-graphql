@@ -76,7 +76,7 @@ public class TypesafeResponseBehavior {
                 /**//**/"\"queryPath\":[\"greeting\"]," +
                 /**//**/"\"classification\":\"DataFetchingException\"," +
                 /**//**/"\"code\":\"no-greetings\"}" +
-                "}]}}");
+                "}]}");
         StringApi api = fixture.build(StringApi.class);
         assertThrows(NoSuchElementException.class, () -> api.greetings().get());
         GraphQLError error = api.greetings().getErrors().get(0);

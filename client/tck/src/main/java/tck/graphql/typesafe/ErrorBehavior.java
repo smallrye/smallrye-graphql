@@ -39,7 +39,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"greeting\"]," +
                 /**//**/"\"classification\":\"DataFetchingException\"," +
                 /**//**/"\"code\":\"no-greeting\"}" +
-                "}]}}");
+                "}]}");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
@@ -101,7 +101,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"greeting\"]," +
                 /**//**/"\"classification\":\"DataFetchingException\"," +
                 /**//**/"\"code\":\"no-greeting\"}" +
-                "}]}}");
+                "}]}");
         StringApi api = fixture.build(StringApi.class);
 
         GraphQLClientException thrown = catchThrowableOfType(api::greeting, GraphQLClientException.class);
@@ -287,7 +287,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
@@ -314,7 +314,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
@@ -349,7 +349,7 @@ class ErrorBehavior {
                 /**//**/"\"description\":\"not feeling so well\"," +
                 /**//**/"\"queryPath\":[\"bar\"]," +
                 /**//**/"\"code\":\"dizzy\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         ErrorOr<List<Team>> response = api.teams();
@@ -383,7 +383,7 @@ class ErrorBehavior {
                 /**//**/"\"queryPath\":[\"foo\"]," +
                 /**//**/"\"classification\":\"ValidationError\"," +
                 /**//**/"\"code\":\"team-search-disabled\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
@@ -406,7 +406,7 @@ class ErrorBehavior {
                 /**/"\"path\": [\"teams\",\"name\"],\n" +
                 /**/"\"extensions\":{" +
                 /**//**/"\"code\":\"team-name-disabled\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroApi api = fixture.build(SuperHeroApi.class);
 
         GraphQLClientException throwable = catchThrowableOfType(api::teams, GraphQLClientException.class);
@@ -471,7 +471,7 @@ class ErrorBehavior {
                 /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
                 /**/"\"path\": [\"find\",\"teams\"],\n" +
                 /**/"\"extensions\":{\"code\":\"team-search-disabled\"}" +
-                "}]}}");
+                "}]}");
         SuperHeroWrappedApi api = fixture.build(SuperHeroWrappedApi.class);
 
         Wrapper response = api.find();
@@ -597,7 +597,7 @@ class ErrorBehavior {
                 /**/"\"locations\":[{\"line\":1,\"column\":2,\"sourceName\":\"loc\"}]," +
                 /**/"\"path\": [\"outer\",\"inner\",\"content\"],\n" +
                 /**/"\"extensions\":{\"code\":\"dummy-code\"}" +
-                "}]}}";
+                "}]}";
     }
 
     private void thenDeeplyNestedErrorException(GraphQLClientException throwable) {
