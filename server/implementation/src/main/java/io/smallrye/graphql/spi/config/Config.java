@@ -199,7 +199,7 @@ public interface Config {
     }
 
     default Optional<Integer> getQueryDepthInstrumentation() {
-        return Optional.empty();
+        return Optional.of(DEFAULT_QUERY_DEPTH_LIMIT);
     }
 
     default boolean isExcludeNullFieldsInResponses() {
@@ -217,6 +217,8 @@ public interface Config {
     default <T> T getConfigValue(String key, Class<T> type, T defaultValue) {
         return defaultValue;
     }
+
+    public static final int DEFAULT_QUERY_DEPTH_LIMIT = 10;
 
     public static final String SERVER_ERROR_DEFAULT_MESSAGE = "System error";
     public static final String FIELD_VISIBILITY_DEFAULT = "default";
