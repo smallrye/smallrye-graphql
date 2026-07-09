@@ -290,7 +290,7 @@ public class MicroProfileConfig implements Config {
             org.eclipse.microprofile.config.Config microProfileConfig = ConfigProvider.getConfig();
             queryDepthInstrumentation = microProfileConfig
                     .getOptionalValue(ConfigKey.INSTRUMENTATION_QUERY_DEPTH, Integer.class)
-                    .orElse(null);
+                    .orElse(DEFAULT_QUERY_DEPTH_LIMIT);
         }
         return Optional.ofNullable(queryDepthInstrumentation);
     }
