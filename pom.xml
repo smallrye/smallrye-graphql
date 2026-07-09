@@ -38,7 +38,7 @@
         <version.graphql-java-federation>6.0.0</version.graphql-java-federation>
 	    <version.graphql-java>25.0</version.graphql-java>
         <version.extended-scalars>24.0</version.extended-scalars>
-        <version.io.micrometer>1.16.5</version.io.micrometer>
+        <version.io.micrometer>1.17.0</version.io.micrometer>
         <version.vertx>5.0.12</version.vertx>
         <version.smallrye-opentelemetry>2.13.0</version.smallrye-opentelemetry>
 
