@@ -144,14 +144,6 @@ public class Field implements Serializable {
     public String getGraphQLType() {
         StringBuilder builder = new StringBuilder();
 
-        if (wrapper == null || !wrapper.isCollectionOrArrayOrMap()) {
-            builder.append(reference.getName());
-            if (notNull) {
-                builder.append('!');
-            }
-            return builder.toString();
-        }
-
         Deque<Wrapper> stack = new ArrayDeque<>();
         for (Wrapper w = wrapper; w != null; w = w.getWrapper()) {
             if (!w.isCollectionOrArrayOrMap()) {

@@ -442,6 +442,38 @@ public class SchemaBuilderTest {
     }
 
     @Test
+    public void testKotlinTypeWrappedInUniAndCollectionNullability() {
+        Indexer indexer = new Indexer();
+        indexDirectory(indexer, "io/smallrye/graphql/kotlin");
+        IndexView index = indexer.complete();
+        Schema schema = SchemaBuilder.build(index);
+
+        // Uni<List<Foo>> -> [Foo!]!
+        var uniListNonNullItems = getQueryByName(schema, "uniListNonNullItems");
+        assertEquals("[Foo!]!", uniListNonNullItems.getGraphQLType());
+        assertTrue(uniListNonNullItems.isNotNull());
+        assertTrue(uniListNonNullItems.getWrapper().getWrapper().isWrappedTypeNotNull());
+
+        // Uni<List<Foo?>> -> [Foo]!
+        var uniListNullableItems = getQueryByName(schema, "uniListNullableItems");
+        assertEquals("[Foo]!", uniListNullableItems.getGraphQLType());
+        assertTrue(uniListNullableItems.isNotNull());
+        assertFalse(uniListNullableItems.getWrapper().getWrapper().isWrappedTypeNotNull());
+
+        // Uni<List<Foo>?> -> [Foo!]
+        var uniNullableListNonNullItems = getQueryByName(schema, "uniNullableListNonNullItems");
+        assertEquals("[Foo!]", uniNullableListNonNullItems.getGraphQLType());
+        assertFalse(uniNullableListNonNullItems.isNotNull());
+        assertTrue(uniNullableListNonNullItems.getWrapper().getWrapper().isWrappedTypeNotNull());
+
+        // Uni<List<Foo?>?> -> [Foo]
+        var uniNullableListNullableItems = getQueryByName(schema, "uniNullableListNullableItems");
+        assertEquals("[Foo]", uniNullableListNullableItems.getGraphQLType());
+        assertFalse(uniNullableListNullableItems.isNotNull());
+        assertFalse(uniNullableListNullableItems.getWrapper().getWrapper().isWrappedTypeNotNull());
+    }
+
+    @Test
     public void testParametrizedGenericTypes() {
         Indexer indexer = new Indexer();
         indexDirectory(indexer, "io/smallrye/graphql/index/generic/parametrized");
