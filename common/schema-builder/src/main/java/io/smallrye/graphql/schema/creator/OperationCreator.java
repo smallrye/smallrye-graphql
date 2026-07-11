@@ -22,9 +22,11 @@ import io.smallrye.graphql.schema.helper.MethodHelper;
 import io.smallrye.graphql.schema.helper.RolesAllowedDirectivesHelper;
 import io.smallrye.graphql.schema.model.Argument;
 import io.smallrye.graphql.schema.model.Execute;
+import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.OperationType;
 import io.smallrye.graphql.schema.model.Reference;
+import io.smallrye.graphql.schema.model.Wrapper;
 import kotlin.metadata.Attributes;
 import kotlin.metadata.KmClassifier;
 import kotlin.metadata.KmFunction;
@@ -134,20 +136,8 @@ public class OperationCreator extends ModelCreator {
             if (function.isPresent()) {
                 // handle return type
                 if (operation.hasWrapper()) {
-                    KmType returnType = function.get().getReturnType();
-                    var nullable = isKotlinWrappedTypeNullable(returnType);
-                    if (operation.getWrapper().isCollectionOrArrayOrMap()) {
-                        operation.getWrapper().setWrappedTypeNotNull(!nullable);
-                        // workaround: consistent behavior to java: if wrapped type is non null, collection will be marked as non null
-                        if (!nullable && !operation.isNotNull()) {
-                            operation.setNotNull(true);
-                        }
-                    } else {
-                        // Uni, etc
-                        if (nullable) {
-                            operation.setNotNull(false);
-                        }
-                    }
+                    applyKotlinWrapperNullability(operation, operation.getWrapper(),
+                            function.get().getReturnType(), true);
                 }
 
                 // handle arguments
@@ -156,14 +146,12 @@ public class OperationCreator extends ModelCreator {
                 if (arguments.size() == valueParameters.size()) {
                     for (int i = 0; i < arguments.size(); i++) {
                         Argument argument = arguments.get(i);
-                        if (argument.hasWrapper() && argument.getWrapper().isCollectionOrArrayOrMap()) {
-                            KmValueParameter typeParameter = valueParameters.get(i);
-                            var paramNullable = isKotlinWrappedTypeNullable(typeParameter.getType());
-                            argument.getWrapper().setWrappedTypeNotNull(!paramNullable);
-                            // workaround:  consistent behavior to java: if wrapped type is not null, collection will be marked as not null
-                            if (!paramNullable && !argument.isNotNull()) {
-                                argument.setNotNull(true);
-                            }
+                        if (argument.hasWrapper()) {
+                            // Arguments cannot be async wrappers (Uni etc.), so only collection-like
+                            // wrappers may control the argument's own nullability.
+                            applyKotlinWrapperNullability(argument, argument.getWrapper(),
+                                    valueParameters.get(i).getType(),
+                                    argument.getWrapper().isCollectionOrArrayOrMap());
                         }
                     }
                 }
@@ -171,12 +159,50 @@ public class OperationCreator extends ModelCreator {
         }
     }
 
-    private static boolean isKotlinWrappedTypeNullable(KmType kotlinType) {
-        if (kotlinType.getArguments().isEmpty()) {
-            return false;
+    /**
+     * Apply Kotlin nullability metadata to the whole wrapper chain of a field.
+     * <p>
+     * For a plain {@code List<String>}, the collection wrapper's wrapped-type nullability comes from
+     * {@code String}. For {@code Uni<List<String>>}, the async wrapper's type-argument nullability
+     * controls the field/operation nullability, and the nested collection wrapper still needs the
+     * list-item nullability from {@code String}.
+     *
+     * @param field the field/operation/argument being configured
+     * @param wrapper the current wrapper in the chain
+     * @param kotlinType the Kotlin type corresponding to that wrapper
+     * @param controlsFieldNullability whether this level should update {@code field.notNull}
+     */
+    private static void applyKotlinWrapperNullability(Field field,
+            Wrapper wrapper,
+            KmType kotlinType,
+            boolean controlsFieldNullability) {
+        if (wrapper == null || kotlinType == null || kotlinType.getArguments().isEmpty()) {
+            return;
         }
-        KmTypeProjection arg = kotlinType.getArguments().get(0);
-        return Attributes.isNullable(arg.getType());
+        KmTypeProjection projection = kotlinType.getArguments().get(0);
+        if (projection.getType() == null) {
+            // star projection carries no nullability information
+            return;
+        }
+        KmType argType = projection.getType();
+        boolean argNullable = Attributes.isNullable(argType);
+
+        if (wrapper.isCollectionOrArrayOrMap()) {
+            wrapper.setWrappedTypeNotNull(!argNullable);
+            // workaround: consistent behavior to java: if wrapped type is non null, collection will be marked as non null
+            if (controlsFieldNullability && !argNullable && !field.isNotNull()) {
+                field.setNotNull(true);
+            }
+        } else if (controlsFieldNullability && argNullable) {
+            // Uni, CompletionStage, etc.: nullability of the immediate wrapped type maps to the GraphQL field
+            field.setNotNull(false);
+        }
+
+        if (wrapper.hasWrapper()) {
+            // Nested wrappers (e.g. List inside Uni) must still receive item nullability, but must not
+            // override field nullability already decided by an outer async wrapper.
+            applyKotlinWrapperNullability(field, wrapper.getWrapper(), argType, false);
+        }
     }
 
     private boolean compareParameterLists(List<KmValueParameter> kotlinParameters,
