@@ -2,10 +2,6 @@ package io.smallrye.graphql.execution;
 
 import java.util.Map;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +10,10 @@ import graphql.schema.GraphQLSchema;
 import io.smallrye.graphql.bootstrap.Bootstrap;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Base class for execution tests
@@ -43,46 +43,46 @@ public abstract class ExecutionTestBase {
         return Indexer.getAllTestIndex();
     }
 
-    protected JsonObject executeAndGetData(String graphQL) {
+    protected ObjectNode executeAndGetData(String graphQL) {
         return executeAndGetData(graphQL, null);
     }
 
-    protected JsonObject executeAndGetData(String graphQL, Map<String, Object> context) {
-        JsonObject result = executeAndGetResult(graphQL, context);
-        JsonValue value = result.get(DATA);
+    protected ObjectNode executeAndGetData(String graphQL, Map<String, Object> context) {
+        ObjectNode result = executeAndGetResult(graphQL, context);
+        JsonNode value = result.get(DATA);
         if (value != null) {
-            return result.getJsonObject(DATA);
+            return (ObjectNode) result.get(DATA);
         }
-        return JsonObject.EMPTY_JSON_OBJECT;
+        return JsonNodeFactory.instance.objectNode();
     }
 
-    protected JsonArray executeAndGetErrors(String graphQL) {
+    protected ArrayNode executeAndGetErrors(String graphQL) {
         return executeAndGetErrors(graphQL, null);
     }
 
-    protected JsonArray executeAndGetErrors(String graphQL, Map<String, Object> context) {
-        JsonObject result = executeAndGetResult(graphQL, context);
-        JsonValue value = result.get(ERRORS);
+    protected ArrayNode executeAndGetErrors(String graphQL, Map<String, Object> context) {
+        ObjectNode result = executeAndGetResult(graphQL, context);
+        JsonNode value = result.get(ERRORS);
         if (value != null) {
-            return result.getJsonArray(ERRORS);
+            return (ArrayNode) result.get(ERRORS);
         }
         return null;
     }
 
-    protected JsonObject executeAndGetExtensions(String graphQL) {
+    protected ObjectNode executeAndGetExtensions(String graphQL) {
         return executeAndGetExtensions(graphQL, null);
     }
 
-    protected JsonObject executeAndGetExtensions(String graphQL, Map<String, Object> context) {
-        JsonObject result = executeAndGetResult(graphQL, context);
-        JsonValue value = result.get(EXTENSIONS);
+    protected ObjectNode executeAndGetExtensions(String graphQL, Map<String, Object> context) {
+        ObjectNode result = executeAndGetResult(graphQL, context);
+        JsonNode value = result.get(EXTENSIONS);
         if (value != null) {
-            return result.getJsonObject(EXTENSIONS);
+            return (ObjectNode) result.get(EXTENSIONS);
         }
         return null;
     }
 
-    protected JsonObject executeAndGetResult(String graphQL, Map<String, Object> context) {
+    protected ObjectNode executeAndGetResult(String graphQL, Map<String, Object> context) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
         if (context == null) {

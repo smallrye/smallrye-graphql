@@ -2,9 +2,9 @@ package io.smallrye.graphql.execution;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import jakarta.json.JsonObject;
-
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test against unions
@@ -15,46 +15,46 @@ public class ExecutionUnionsTest extends ExecutionTestBase {
 
     @Test
     public void testBasicUnion() {
-        JsonObject data = executeAndGetData(TEST_BASIC_UNION);
-        JsonObject testObject = data.getJsonObject("basicUnion");
+        ObjectNode data = executeAndGetData(TEST_BASIC_UNION);
+        ObjectNode testObject = (ObjectNode) data.get("basicUnion");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("my name", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("my name", testObject.get("name").asText());
     }
 
     @Test
     public void testUnionOfInterfacesReturningDirectImplementer() {
-        JsonObject data = executeAndGetData(TEST_NESTED_INTERFACE_DIRECT_IMPL);
-        JsonObject testObject = data.getJsonObject("unionOfInterfacesDirectImplementor");
+        ObjectNode data = executeAndGetData(TEST_NESTED_INTERFACE_DIRECT_IMPL);
+        ObjectNode testObject = (ObjectNode) data.get("unionOfInterfacesDirectImplementor");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("message"), "message should not be null");
-        assertEquals("im in many unions", testObject.getString("message"));
+        assertFalse(testObject.has("message") && testObject.get("message").isNull(), "message should not be null");
+        assertEquals("im in many unions", testObject.get("message").asText());
     }
 
     @Test
     public void testUnionOfInterfacesReturningNestedInterfaceImpl1() {
-        JsonObject data = executeAndGetData(TEST_NESTED_INTERFACE_1);
-        JsonObject testObject = data.getJsonObject("unionOfInterfacesNestedInterface1");
+        ObjectNode data = executeAndGetData(TEST_NESTED_INTERFACE_1);
+        ObjectNode testObject = (ObjectNode) data.get("unionOfInterfacesNestedInterface1");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("my name", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("my name", testObject.get("name").asText());
     }
 
     @Test
     public void testUnionOfInterfacesReturningNestedInterfaceImpl2() {
-        JsonObject data = executeAndGetData(TEST_NESTED_INTERFACE_2);
-        JsonObject testObject = data.getJsonObject("unionOfInterfacesNestedInterface2");
+        ObjectNode data = executeAndGetData(TEST_NESTED_INTERFACE_2);
+        ObjectNode testObject = (ObjectNode) data.get("unionOfInterfacesNestedInterface2");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("color"), "color should not be null");
-        assertEquals("purple", testObject.getString("color"));
+        assertFalse(testObject.has("color") && testObject.get("color").isNull(), "color should not be null");
+        assertEquals("purple", testObject.get("color").asText());
     }
 
     private static final String TEST_BASIC_UNION = "{\n" +

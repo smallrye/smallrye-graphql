@@ -1,19 +1,13 @@
 package io.smallrye.graphql.execution;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonWriter;
-import jakarta.json.JsonWriterFactory;
-import jakarta.json.stream.JsonGenerator;
-
 import org.jboss.logging.Logger;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * A default implementation for Execution Response Writer
@@ -23,15 +17,20 @@ import org.jboss.logging.Logger;
 public class JsonObjectResponseWriter implements ExecutionResponseWriter {
     protected static final Logger LOG = Logger.getLogger(JsonObjectResponseWriter.class.getName());
 
+    private static final ObjectMapper PRETTY_MAPPER = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
+    private static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
+
     private ExecutionResponse executionResponse = null;
     private Throwable throwable = null;
-    private final JsonObject input;
+    private final ObjectNode input;
 
     JsonObjectResponseWriter(String graphQL) {
-        this.input = toJsonObject(graphQL);
+        this.input = NODE_FACTORY.objectNode().put("query", graphQL);
     }
 
-    JsonObjectResponseWriter(JsonObject input) {
+    JsonObjectResponseWriter(ObjectNode input) {
         this.input = input;
     }
 
@@ -46,55 +45,37 @@ public class JsonObjectResponseWriter implements ExecutionResponseWriter {
     }
 
     public void logInput() {
-        String prettyInput = getPrettyJson(input);
-        LOG.info(prettyInput);
+        LOG.info(getPrettyJson(input));
     }
 
     public void logOutput() {
         if (executionResponse != null) {
-            String prettyData = getPrettyJson(executionResponse.getExecutionResultAsJsonPObject());
-            LOG.info(prettyData);
+            LOG.info(getPrettyJson(executionResponse.getExecutionResultAsJsonObject()));
         } else if (throwable != null) {
             LOG.error("ERROR", throwable);
         }
     }
 
-    public JsonObject getInput() {
+    public ObjectNode getInput() {
         return this.input;
     }
 
-    public JsonObject getOutput() {
+    public ObjectNode getOutput() {
         if (this.executionResponse != null) {
-            return this.executionResponse.getExecutionResultAsJsonPObject();
+            return this.executionResponse.getExecutionResultAsJsonObject();
         }
-        return JsonObject.EMPTY_JSON_OBJECT;
+        return NODE_FACTORY.objectNode();
     }
 
     public ExecutionResponse getExecutionResponse() {
         return this.executionResponse;
     }
 
-    private String getPrettyJson(JsonObject jsonObject) {
-
-        JsonWriterFactory writerFactory = JSON_PROVIDER.createWriterFactory(JSON_PROPERTIES);
-
-        try (StringWriter sw = new StringWriter();
-                JsonWriter jsonWriter = writerFactory.createWriter(sw)) {
-            jsonWriter.writeObject(jsonObject);
-            return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+    private String getPrettyJson(ObjectNode node) {
+        try {
+            return PRETTY_MAPPER.writeValueAsString(node);
+        } catch (JacksonException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    private JsonObject toJsonObject(String graphQL) {
-        JsonObjectBuilder builder = JSON_PROVIDER.createObjectBuilder();
-        builder.add("query", graphQL);
-        return builder.build();
-    }
-
-    private static final Map<String, Object> JSON_PROPERTIES = new HashMap<>(1);
-    static {
-        JSON_PROPERTIES.put(JsonGenerator.PRETTY_PRINTING, true);
     }
 }

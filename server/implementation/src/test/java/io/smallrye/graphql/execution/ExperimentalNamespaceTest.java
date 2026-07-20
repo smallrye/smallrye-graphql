@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
 
-import jakarta.json.JsonObject;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,6 +17,7 @@ import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.test.namespace.ExperimentalNamespaceApi;
 import io.smallrye.graphql.test.namespace.ExperimentalNamespaceWithErrorApi;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test for Federated namespaces
@@ -53,7 +52,7 @@ public class ExperimentalNamespaceTest {
         return graphQLSchema;
     }
 
-    private static JsonObject executeAndGetResult(String graphQL) {
+    private static ObjectNode executeAndGetResult(String graphQL) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
         executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
@@ -69,13 +68,13 @@ public class ExperimentalNamespaceTest {
         Schema schema = SchemaBuilder.build(index);
         executionService = new ExecutionService(graphQLSchema, schema);
 
-        JsonObject jsonObject = executeAndGetResult(NAMESPACED_QUERY);
+        ObjectNode jsonObject = executeAndGetResult(NAMESPACED_QUERY);
         assertNotNull(jsonObject);
 
-        String result = jsonObject.getJsonObject("data")
-                .getJsonObject("admin")
-                .getJsonObject("users")
-                .getString("find");
+        String result = ((ObjectNode) ((ObjectNode) ((ObjectNode) jsonObject.get("data"))
+                .get("admin"))
+                .get("users"))
+                .get("find").asText();
         assertEquals(result, "AdminUsersFind");
     }
 

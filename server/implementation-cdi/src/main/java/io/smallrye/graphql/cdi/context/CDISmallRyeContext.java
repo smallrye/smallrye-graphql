@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
 import graphql.ExecutionInput;
 import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.execution.QueryCache;
@@ -14,6 +11,8 @@ import io.smallrye.graphql.execution.context.DocumentSupplier;
 import io.smallrye.graphql.execution.context.SmallRyeContext;
 import io.smallrye.graphql.execution.context.SmallRyeContextManager;
 import io.smallrye.graphql.schema.model.Field;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Class that serves as a proxy decorator for obtaining the current SmallRyeContext. It always calls
@@ -105,22 +104,22 @@ public class CDISmallRyeContext extends SmallRyeContext {
     }
 
     @Override
-    public void setSelectedAndSourceFields(JsonArray selectedAndSourceFields) {
+    public void setSelectedAndSourceFields(ArrayNode selectedAndSourceFields) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setSelectedAndSourceFields(selectedAndSourceFields);
     }
 
     @Override
-    public JsonArray getSelectedAndSourceFields() {
+    public ArrayNode getSelectedAndSourceFields() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getSelectedAndSourceFields();
     }
 
     @Override
-    public void setSelectedFields(JsonArray selectedFields) {
+    public void setSelectedFields(ArrayNode selectedFields) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setSelectedFields(selectedFields);
     }
 
     @Override
-    public JsonArray getSelectedFields() {
+    public ArrayNode getSelectedFields() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getSelectedFields();
     }
 
@@ -185,12 +184,12 @@ public class CDISmallRyeContext extends SmallRyeContext {
     }
 
     @Override
-    public void setRequest(JsonObject request) {
+    public void setRequest(ObjectNode request) {
         SmallRyeContextManager.getCurrentSmallRyeContext().setRequest(request);
     }
 
     @Override
-    public JsonObject getRequest() {
+    public ObjectNode getRequest() {
         return SmallRyeContextManager.getCurrentSmallRyeContext().getRequest();
     }
 
