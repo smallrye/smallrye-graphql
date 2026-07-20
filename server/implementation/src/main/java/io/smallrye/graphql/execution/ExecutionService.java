@@ -14,8 +14,6 @@ import java.util.Optional;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.atomic.AtomicLong;
 
-import jakarta.json.JsonObject;
-
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.CacheKey;
 import org.dataloader.DataLoader;
@@ -56,6 +54,7 @@ import io.smallrye.graphql.schema.model.Type;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.spi.config.LogPayloadOption;
 import io.smallrye.mutiny.Uni;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Executing the GraphQL request
@@ -118,7 +117,7 @@ public class ExecutionService {
     }
 
     @Deprecated
-    public ExecutionResponse execute(JsonObject jsonInput) {
+    public ExecutionResponse execute(ObjectNode jsonInput) {
         try {
             JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(jsonInput);
             executeSync(jsonInput, jsonObjectResponseWriter);
@@ -132,27 +131,27 @@ public class ExecutionService {
         }
     }
 
-    public void executeSync(JsonObject jsonInput, ExecutionResponseWriter writer) {
+    public void executeSync(ObjectNode jsonInput, ExecutionResponseWriter writer) {
         executeSync(jsonInput, new HashMap<>(), writer);
     }
 
-    public void executeSync(JsonObject jsonInput, Map<String, Object> context, ExecutionResponseWriter writer) {
+    public void executeSync(ObjectNode jsonInput, Map<String, Object> context, ExecutionResponseWriter writer) {
         execute(jsonInput, context, writer, false);
     }
 
-    public void executeAsync(JsonObject jsonInput, ExecutionResponseWriter writer) {
+    public void executeAsync(ObjectNode jsonInput, ExecutionResponseWriter writer) {
         executeAsync(jsonInput, new HashMap<>(), writer);
     }
 
-    public void executeAsync(JsonObject jsonInput, Map<String, Object> context, ExecutionResponseWriter writer) {
+    public void executeAsync(ObjectNode jsonInput, Map<String, Object> context, ExecutionResponseWriter writer) {
         execute(jsonInput, context, writer, true);
     }
 
-    public void execute(JsonObject jsonInput, ExecutionResponseWriter writer, boolean async) {
+    public void execute(ObjectNode jsonInput, ExecutionResponseWriter writer, boolean async) {
         execute(jsonInput, new HashMap<>(), writer, async);
     }
 
-    public void execute(JsonObject jsonInput, Map<String, Object> context, ExecutionResponseWriter writer, boolean async) {
+    public void execute(ObjectNode jsonInput, Map<String, Object> context, ExecutionResponseWriter writer, boolean async) {
         SmallRyeContext smallRyeContext = SmallRyeContextManager.fromInitialRequest(jsonInput);
 
         // ExecutionId

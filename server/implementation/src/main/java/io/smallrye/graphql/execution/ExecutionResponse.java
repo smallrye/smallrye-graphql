@@ -1,6 +1,5 @@
 package io.smallrye.graphql.execution;
 
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -10,10 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.spi.JsonProvider;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -81,20 +76,6 @@ public class ExecutionResponse {
         addExtensionsToResponse(returnObject, executionResult);
 
         return returnObject;
-    }
-
-    /**
-     * Bridge method: converts the Jackson ObjectNode to a JSON-P JsonObject.
-     * This is needed for callers that still use JSON-P types (websocket handlers, JsonObjectResponseWriter).
-     * Will be removed when those callers are migrated to Jackson.
-     */
-    public JsonObject getExecutionResultAsJsonPObject() {
-        String jsonString = getExecutionResultAsString();
-        JsonProvider jsonProvider = JsonProvider.provider();
-        try (StringReader sr = new StringReader(jsonString);
-                JsonReader reader = jsonProvider.createReader(sr)) {
-            return reader.readObject();
-        }
     }
 
     public String getExecutionResultAsString() {
@@ -223,8 +204,6 @@ public class ExecutionResponse {
             return NODE_FACTORY.numberNode((BigInteger) pojo);
         } else if (pojo instanceof Enum<?>) {
             return NODE_FACTORY.textNode(((Enum<?>) pojo).name());
-        } else if (pojo instanceof jakarta.json.JsonValue) {
-            return jsonPValueToJsonNode((jakarta.json.JsonValue) pojo);
         } else {
             try {
                 return OBJECT_MAPPER.valueToTree(pojo);
@@ -243,44 +222,6 @@ public class ExecutionResponse {
     private void popFromThePathBuffer() {
         if (pathBuffer != null) {
             pathBuffer.pop();
-        }
-    }
-
-    private static JsonNode jsonPValueToJsonNode(jakarta.json.JsonValue jsonPValue) {
-        switch (jsonPValue.getValueType()) {
-            case OBJECT:
-                ObjectNode objectNode = NODE_FACTORY.objectNode();
-                jakarta.json.JsonObject jsonPObject = jsonPValue.asJsonObject();
-                for (String key : jsonPObject.keySet()) {
-                    objectNode.set(key, jsonPValueToJsonNode(jsonPObject.get(key)));
-                }
-                return objectNode;
-            case ARRAY:
-                ArrayNode arrayNode = NODE_FACTORY.arrayNode();
-                for (jakarta.json.JsonValue item : jsonPValue.asJsonArray()) {
-                    arrayNode.add(jsonPValueToJsonNode(item));
-                }
-                return arrayNode;
-            case STRING:
-                return NODE_FACTORY.textNode(((jakarta.json.JsonString) jsonPValue).getString());
-            case NUMBER:
-                jakarta.json.JsonNumber jsonPNumber = (jakarta.json.JsonNumber) jsonPValue;
-                if (jsonPNumber.isIntegral()) {
-                    try {
-                        return NODE_FACTORY.numberNode(jsonPNumber.longValueExact());
-                    } catch (ArithmeticException e) {
-                        return NODE_FACTORY.numberNode(jsonPNumber.bigIntegerValue());
-                    }
-                }
-                return NODE_FACTORY.numberNode(jsonPNumber.bigDecimalValue());
-            case TRUE:
-                return NODE_FACTORY.booleanNode(true);
-            case FALSE:
-                return NODE_FACTORY.booleanNode(false);
-            case NULL:
-                return NODE_FACTORY.nullNode();
-            default:
-                return NODE_FACTORY.nullNode();
         }
     }
 

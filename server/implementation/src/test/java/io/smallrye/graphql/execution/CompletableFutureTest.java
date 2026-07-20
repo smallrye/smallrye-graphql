@@ -3,11 +3,11 @@ package io.smallrye.graphql.execution;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test a basic async endpoint
@@ -22,16 +22,16 @@ public class CompletableFutureTest extends ExecutionTestBase {
 
     @Test
     public void testBasicQuery() {
-        JsonObject data = executeAndGetData(TEST_QUERY);
+        ObjectNode data = executeAndGetData(TEST_QUERY);
 
-        JsonValue jsonValue = data.get("book");
+        JsonNode jsonValue = data.get("book");
         assertNotNull(jsonValue);
 
-        JsonObject book = jsonValue.asJsonObject();
+        ObjectNode book = (ObjectNode) jsonValue;
 
         assertNotNull(book);
 
-        assertFalse(book.isNull("title"), "title should not be null");
+        assertFalse(book.has("title") && book.get("title").isNull(), "title should not be null");
     }
 
     private static final String TEST_QUERY = "{\n" +

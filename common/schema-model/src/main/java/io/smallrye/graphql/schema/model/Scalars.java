@@ -121,10 +121,9 @@ public class Scalars {
     }
 
     public static void addJson() {
-        populateScalar("jakarta.json.JsonValue", JSON, Object.class.getName());
-        populateScalar("jakarta.json.JsonObject", JSON, Object.class.getName());
         populateScalar("tools.jackson.databind.JsonNode", JSON, Object.class.getName());
         populateScalar("tools.jackson.databind.node.ObjectNode", JSON, Object.class.getName());
+        populateScalar("tools.jackson.databind.node.ArrayNode", JSON, Object.class.getName());
     }
 
     static {
@@ -138,10 +137,6 @@ public class Scalars {
         populateScalar(URL.class.getName(), STRING, String.class.getName());
         populateScalar(URI.class.getName(), STRING, String.class.getName());
         populateScalar("org.bson.types.ObjectId", STRING, String.class.getName());
-        populateScalar("javax.json.JsonObject", STRING, String.class.getName());
-        populateScalar("javax.json.JsonArray", STRING, String.class.getName());
-        populateScalar("jakarta.json.JsonObject", STRING, String.class.getName());
-        populateScalar("jakarta.json.JsonArray", STRING, String.class.getName());
 
         // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);

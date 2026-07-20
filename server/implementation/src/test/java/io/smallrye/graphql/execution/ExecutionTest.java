@@ -2,12 +2,12 @@ package io.smallrye.graphql.execution;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import jakarta.json.*;
-
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.test.TestSourceConfiguration;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test a basic query
@@ -18,57 +18,59 @@ public class ExecutionTest extends ExecutionTestBase {
 
     @Test
     public void testBasicQuery() {
-        JsonObject data = executeAndGetData(TEST_QUERY);
+        ObjectNode data = executeAndGetData(TEST_QUERY);
 
-        JsonObject testObject = data.getJsonObject("testObject");
+        ObjectNode testObject = (ObjectNode) data.get("testObject");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("Phillip", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("Phillip", testObject.get("name").asText());
 
-        assertFalse(testObject.isNull("id"), "id should not be null");
+        assertFalse(testObject.has("id") && testObject.get("id").isNull(), "id should not be null");
 
         // Testing source
-        assertFalse(testObject.isNull("timestamp"), "timestamp should not be null");
-        assertFalse(testObject.get("timestamp").asJsonObject().isNull("value"), "timestamp value should not be null");
+        assertFalse(testObject.has("timestamp") && testObject.get("timestamp").isNull(), "timestamp should not be null");
+        assertFalse(((ObjectNode) testObject.get("timestamp")).has("value")
+                && ((ObjectNode) testObject.get("timestamp")).get("value").isNull(), "timestamp value should not be null");
 
     }
 
     @Test
     public void testBasicListQuery() {
-        JsonObject data = executeAndGetData(TEST_LIST_QUERY);
+        ObjectNode data = executeAndGetData(TEST_LIST_QUERY);
 
-        JsonArray testObjects = data.getJsonArray("testObjects");
+        ArrayNode testObjects = (ArrayNode) data.get("testObjects");
 
         assertNotNull(testObjects);
         assertEquals(2, testObjects.size());
-        JsonObject testObject = testObjects.getJsonObject(0);
+        ObjectNode testObject = (ObjectNode) testObjects.get(0);
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("Phillip", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("Phillip", testObject.get("name").asText());
 
-        assertFalse(testObject.isNull("id"), "id should not be null");
+        assertFalse(testObject.has("id") && testObject.get("id").isNull(), "id should not be null");
 
         // Testing batch
-        assertFalse(testObject.isNull("timestamp"), "timestamp should not be null");
-        assertFalse(testObject.get("timestamp").asJsonObject().isNull("value"), "timestamp value should not be null");
+        assertFalse(testObject.has("timestamp") && testObject.get("timestamp").isNull(), "timestamp should not be null");
+        assertFalse(((ObjectNode) testObject.get("timestamp")).has("value")
+                && ((ObjectNode) testObject.get("timestamp")).get("value").isNull(), "timestamp value should not be null");
     }
 
     @Test
     public void testBatchSourceConfigurationQuery() {
-        JsonObject data = executeAndGetData(TEST_BATCH_SOURCE_CONFIGURATION_QUERY);
+        ObjectNode data = executeAndGetData(TEST_BATCH_SOURCE_CONFIGURATION_QUERY);
 
-        Boolean active1 = data.getJsonArray("objectsWithConfig1").get(0).asJsonObject().getJsonObject("configuredSources")
-                .getJsonObject("configuration").getBoolean("active");
-        Boolean active2 = data.getJsonArray("objectsWithConfig2").get(0).asJsonObject().getJsonObject("configuredSources")
-                .getJsonObject("configuration").getBoolean("active");
+        Boolean active1 = ((ObjectNode) ((ObjectNode) ((ObjectNode) ((ArrayNode) data.get("objectsWithConfig1")).get(0))
+                .get("configuredSources")).get("configuration")).get("active").asBoolean();
+        Boolean active2 = ((ObjectNode) ((ObjectNode) ((ObjectNode) ((ArrayNode) data.get("objectsWithConfig2")).get(0))
+                .get("configuredSources")).get("configuration")).get("active").asBoolean();
 
-        var state1 = TestSourceConfiguration.TestSourceState.valueOf(data.getJsonArray("objectsWithConfig1").get(0)
-                .asJsonObject().getJsonObject("configuredSources").getJsonObject("configuration").getString("state"));
-        var state2 = TestSourceConfiguration.TestSourceState.valueOf(data.getJsonArray("objectsWithConfig2").get(0)
-                .asJsonObject().getJsonObject("configuredSources").getJsonObject("configuration").getString("state"));
+        var state1 = TestSourceConfiguration.TestSourceState.valueOf(((ObjectNode) ((ObjectNode) ((ObjectNode) ((ArrayNode) data
+                .get("objectsWithConfig1")).get(0)).get("configuredSources")).get("configuration")).get("state").asText());
+        var state2 = TestSourceConfiguration.TestSourceState.valueOf(((ObjectNode) ((ObjectNode) ((ObjectNode) ((ArrayNode) data
+                .get("objectsWithConfig2")).get(0)).get("configuredSources")).get("configuration")).get("state").asText());
 
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(active1).isNotEqualTo(active2);
