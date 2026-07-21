@@ -2,9 +2,7 @@
   {
     "version": "3.0.0.Beta5",
     "title": "3.0.0.Beta5",
-    "aliases": [
-      "latest"
-    ]
+    "aliases": []
   },
   {
     "version": "3.0.0.Beta4",
@@ -25,6 +23,13 @@
     "version": "3.0.0.Beta1",
     "title": "3.0.0.Beta1",
     "aliases": []
+  },
+  {
+    "version": "2.18.4",
+    "title": "2.18.4",
+    "aliases": [
+      "latest"
+    ]
   },
   {
     "version": "2.18.3",
