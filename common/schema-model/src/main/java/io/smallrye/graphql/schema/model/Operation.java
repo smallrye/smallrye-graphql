@@ -1,5 +1,6 @@
 package io.smallrye.graphql.schema.model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,6 +34,15 @@ public final class Operation extends Field {
      * If this is a source fields, the object it's on
      */
     private Reference sourceFieldOn = null;
+
+    /**
+     * If this is a target input field, the input object it's on
+     */
+    private Reference targetFieldOn = null;
+
+    private List<String> parameterClassNames = new ArrayList<>();
+    private short targetParameterPosition;
+    private short valueParameterPosition;
 
     /**
      * If this should be executed blocking. By default all normal object returns will be blocking, except if marked
@@ -96,6 +106,42 @@ public final class Operation extends Field {
         return this.sourceFieldOn != null;
     }
 
+    public Reference getTargetFieldOn() {
+        return targetFieldOn;
+    }
+
+    public void setTargetFieldOn(Reference targetFieldOn) {
+        this.targetFieldOn = targetFieldOn;
+    }
+
+    public boolean isTargetField() {
+        return this.targetFieldOn != null;
+    }
+
+    public List<String> getParameterClassNames() {
+        return parameterClassNames;
+    }
+
+    public void setParameterClassNames(List<String> parameterClassNames) {
+        this.parameterClassNames = parameterClassNames;
+    }
+
+    public short getTargetParameterPosition() {
+        return targetParameterPosition;
+    }
+
+    public void setTargetParameterPosition(short targetParameterPosition) {
+        this.targetParameterPosition = targetParameterPosition;
+    }
+
+    public short getValueParameterPosition() {
+        return valueParameterPosition;
+    }
+
+    public void setValueParameterPosition(short valueParameterPosition) {
+        this.valueParameterPosition = valueParameterPosition;
+    }
+
     public Execute getExecute() {
         return execute;
     }
@@ -107,6 +153,6 @@ public final class Operation extends Field {
     @Override
     public String toString() {
         return "Operation{" + "className=" + className + ", arguments=" + arguments + ", operationType=" + operationType
-                + ", sourceFieldOn=" + sourceFieldOn + '}';
+                + ", sourceFieldOn=" + sourceFieldOn + ", targetFieldOn=" + targetFieldOn + '}';
     }
 }

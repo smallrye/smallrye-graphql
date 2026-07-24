@@ -180,6 +180,24 @@ public class SchemaBuilderTest {
     }
 
     @Test
+    public void testSchemaWithTargetInputFieldNameDuplicates() {
+        try {
+            Indexer indexer = new Indexer();
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/targetinput");
+            indexDirectory(indexer, "io/smallrye/graphql/index/duplicates/targetinput/targetfield");
+            IndexView index = indexer.complete();
+            SchemaBuilder.build(index);
+            Assertions.fail(
+                    "Schema should not build when there are both input field and target input field with the same defined name");
+        } catch (SchemaBuilderException e) {
+            // ok
+            assertEquals("Input type 'SomeInputInput' already contains field named 'password'" +
+                    " so target input field, with the same name, cannot be applied. You can resolve this conflict using @Name on the target method.",
+                    e.getMessage());
+        }
+    }
+
+    @Test
     public void testSchemaWithInheritFieldBySubtype() {
         Indexer indexer = new Indexer();
         indexDirectory(indexer, "io/smallrye/graphql/index/inherit/");

@@ -39,6 +39,7 @@ import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLUnionType;
@@ -160,6 +161,21 @@ class SchemaTest extends SchemaTestBase {
 
         GraphQLFieldDefinition batchedSourceField = typeWithSourceFields.getFieldDefinition("batchOperation");
         assertEquals(1, batchedSourceField.getDirectives().size());
+    }
+
+    @Test
+    void schemaWithTargetInputField() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(TargetInputFieldTestApi.class,
+                TargetInputFieldTestApi.TargetType.class);
+        GraphQLInputObjectType inputType = graphQLSchema.getTypeAs("TargetTypeInput");
+
+        GraphQLInputObjectField targetField = inputType.getField("renamed");
+        assertNotNull(targetField);
+        assertEquals("Int", ((GraphQLNamedType) targetField.getType()).getName());
+        assertEquals("Target field description", targetField.getDescription());
+
+        GraphQLObjectType outputType = graphQLSchema.getTypeAs("TargetType");
+        assertNull(outputType.getFieldDefinition("renamed"));
     }
 
     @Test

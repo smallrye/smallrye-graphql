@@ -9,6 +9,7 @@ import java.util.Map;
 
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
+import io.smallrye.graphql.schema.model.Operation;
 
 /**
  * Here we create a mapping of all fields in a input type that needs transformation and mapping
@@ -21,6 +22,7 @@ public class InputFieldsInfo {
     private static final Map<String, Map<String, Field>> inputFieldAdaptingToMap = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldAdaptingWithMap = new HashMap<>();
     private static final Map<String, List<Field>> creatorParameters = new HashMap<>();
+    private static final Map<String, Map<String, Operation>> targetFields = new HashMap<>();
 
     private InputFieldsInfo() {
     }
@@ -70,6 +72,9 @@ public class InputFieldsInfo {
                 inputFieldAdaptingWithMap.put(inputType.getClassName(), fieldsThatNeedsAdaptingWith);
             }
         }
+        if (inputType.hasTargetFields()) {
+            targetFields.put(inputType.getClassName(), inputType.getTargetFields());
+        }
     }
 
     public static boolean hasTransformationFields(String className) {
@@ -110,6 +115,17 @@ public class InputFieldsInfo {
             return creatorParameters.get(className);
         }
         return Collections.emptyList();
+    }
+
+    public static boolean hasTargetFields(String className) {
+        return targetFields.containsKey(className);
+    }
+
+    public static Map<String, Operation> getTargetFields(String className) {
+        if (targetFields.containsKey(className)) {
+            return targetFields.get(className);
+        }
+        return Collections.emptyMap();
     }
 
 }

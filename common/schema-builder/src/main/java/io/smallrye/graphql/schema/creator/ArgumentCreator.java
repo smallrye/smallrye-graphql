@@ -75,7 +75,9 @@ public class ArgumentCreator extends ModelCreator {
                 .orElse(defaultName);
 
         Reference reference;
-        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
+        boolean sourceArgument = isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation);
+
+        if (sourceArgument) {
             reference = referenceCreator.createReferenceForSourceArgument(argumentType, annotationsForThisArgument);
         } else if (!argumentType.name().equals(CONTEXT)) {
             reference = referenceCreator.createReferenceForOperationArgument(argumentType, annotationsForThisArgument);
@@ -89,9 +91,7 @@ public class ArgumentCreator extends ModelCreator {
                 name,
                 reference);
 
-        if (isSourceAnnotationOnSourceOperation(annotationsForThisArgument, operation)) {
-            argument.setSourceArgument(true);
-        }
+        argument.setSourceArgument(sourceArgument);
 
         if (validationHelper != null) {
             List<DirectiveInstance> constraintDirectives = validationHelper
