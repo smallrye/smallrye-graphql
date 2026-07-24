@@ -118,6 +118,6 @@ ui/graphiql/        -> GraphiQL UI component
 
 - Jakarta namespace only — the build enforces a ban on `javax.*` dependencies via maven-enforcer-plugin
 - Logging uses `jboss-logging` with message localization (`SmallRyeGraphQLServerLogging`, `SmallRyeGraphQLServerMessages`)
-- JSON binding uses JSON-B (Yasson implementation), not Jackson
+- JSON processing uses Jackson 3.x (tools.jackson). JSON-B annotations are supported via the jackson-jsonb-compat module
 - The `.mvn/` directory is gitignored and may contain local Maven settings (repo path, mirrors)
 - The graphql-java library (currently v21.1) is the underlying GraphQL execution engine

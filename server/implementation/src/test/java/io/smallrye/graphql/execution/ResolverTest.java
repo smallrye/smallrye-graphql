@@ -8,10 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +25,9 @@ import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.spi.config.Config;
 import io.smallrye.graphql.test.resolver.ExtendedApi;
 import io.smallrye.graphql.test.resolver.ExtendedType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test for Federated namespaces
@@ -84,7 +83,7 @@ public class ResolverTest {
         return graphQLSchema;
     }
 
-    private static JsonObject executeAndGetResult(String graphQL) {
+    private static ObjectNode executeAndGetResult(String graphQL) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
         executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
@@ -94,38 +93,38 @@ public class ResolverTest {
 
     @Test
     public void findByIdTest() {
-        JsonObject jsonObject = executeAndGetResult(TEST_ID_QUERY);
+        ObjectNode jsonObject = executeAndGetResult(TEST_ID_QUERY);
         assertNotNull(jsonObject);
 
-        JsonValue jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        JsonNode jsonValue = ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0)
                 .get("id");
-        assertEquals(((JsonString) jsonValue).getString(), "id");
+        assertEquals(jsonValue.asText(), "id");
 
-        jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        jsonValue = ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0)
                 .get("value");
         assertNull(jsonValue);
     }
 
     @Test
     public void extendsTest() {
-        JsonObject jsonObject = executeAndGetResult(TEST_ID_NAME_KEY_QUERY);
+        ObjectNode jsonObject = executeAndGetResult(TEST_ID_NAME_KEY_QUERY);
         assertNotNull(jsonObject);
 
-        JsonValue jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        JsonNode jsonValue = ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0)
                 .get("id");
-        assertEquals(((JsonString) jsonValue).getString(), "id");
+        assertEquals(jsonValue.asText(), "id");
 
-        jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        jsonValue = ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0)
                 .get("value");
-        assertEquals(((JsonString) jsonValue).getString(), "idnamekey");
+        assertEquals(jsonValue.asText(), "idnamekey");
     }
 
     private static final String TEST_ID_QUERY = "query {\n" +

@@ -194,33 +194,6 @@ public class JacksonCreator {
             }
         });
 
-        // jakarta.json.JsonObject deserializer — needed for JSON scalar type support
-        module.addDeserializer(jakarta.json.JsonObject.class, new ValueDeserializer<jakarta.json.JsonObject>() {
-            @Override
-            public jakarta.json.JsonObject deserialize(JsonParser p, DeserializationContext ctxt) {
-                JsonNode node = p.readValueAsTree();
-                return (jakarta.json.JsonObject) jacksonNodeToJsonPValue(node);
-            }
-        });
-
-        // jakarta.json.JsonArray deserializer
-        module.addDeserializer(jakarta.json.JsonArray.class, new ValueDeserializer<jakarta.json.JsonArray>() {
-            @Override
-            public jakarta.json.JsonArray deserialize(JsonParser p, DeserializationContext ctxt) {
-                JsonNode node = p.readValueAsTree();
-                return (jakarta.json.JsonArray) jacksonNodeToJsonPValue(node);
-            }
-        });
-
-        // jakarta.json.JsonValue deserializer
-        module.addDeserializer(jakarta.json.JsonValue.class, new ValueDeserializer<jakarta.json.JsonValue>() {
-            @Override
-            public jakarta.json.JsonValue deserialize(JsonParser p, DeserializationContext ctxt) {
-                JsonNode node = p.readValueAsTree();
-                return jacksonNodeToJsonPValue(node);
-            }
-        });
-
         return module;
     }
 
@@ -270,32 +243,4 @@ public class JacksonCreator {
                 && !name.startsWith("tools.jackson.");
     }
 
-    private static jakarta.json.JsonValue jacksonNodeToJsonPValue(JsonNode node) {
-        if (node == null || node.isNull()) {
-            return jakarta.json.JsonValue.NULL;
-        }
-        if (node.isObject()) {
-            jakarta.json.JsonObjectBuilder builder = jakarta.json.Json.createObjectBuilder();
-            node.properties().forEach(entry -> builder.add(entry.getKey(), jacksonNodeToJsonPValue(entry.getValue())));
-            return builder.build();
-        }
-        if (node.isArray()) {
-            jakarta.json.JsonArrayBuilder builder = jakarta.json.Json.createArrayBuilder();
-            node.forEach(item -> builder.add(jacksonNodeToJsonPValue(item)));
-            return builder.build();
-        }
-        if (node.isTextual()) {
-            return jakarta.json.Json.createValue(node.asText());
-        }
-        if (node.isBoolean()) {
-            return node.asBoolean() ? jakarta.json.JsonValue.TRUE : jakarta.json.JsonValue.FALSE;
-        }
-        if (node.isIntegralNumber()) {
-            return jakarta.json.Json.createValue(node.longValue());
-        }
-        if (node.isFloatingPointNumber()) {
-            return jakarta.json.Json.createValue(node.decimalValue());
-        }
-        return jakarta.json.JsonValue.NULL;
-    }
 }

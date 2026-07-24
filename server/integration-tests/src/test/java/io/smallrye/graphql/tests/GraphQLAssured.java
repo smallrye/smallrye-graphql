@@ -1,18 +1,17 @@
 package io.smallrye.graphql.tests;
 
-import java.io.StringReader;
 import java.net.URL;
 import java.util.Map;
-
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonReader;
 
 import io.restassured.RestAssured;
 import io.restassured.config.EncoderConfig;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Using RestAssured for GraphQL
@@ -23,6 +22,8 @@ public class GraphQLAssured {
 
     private static final String MEDIATYPE_JSON = "application/json";
     private static final String MEDIATYPE_GRAPHQL = "application/graphql";
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
+    private static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
 
     protected URL testingURL;
 
@@ -88,27 +89,28 @@ public class GraphQLAssured {
     }
 
     private String getPayload(String query, String variables) {
-        JsonObject jsonObject = createRequestBody(query, variables);
-        return jsonObject.toString();
+        ObjectNode jsonObject = createRequestBody(query, variables);
+        try {
+            return OBJECT_MAPPER.writeValueAsString(jsonObject);
+        } catch (JacksonException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private JsonObject createRequestBody(String graphQL, String variables) {
-        // Create the request
-
-        JsonObject vjo = Json.createObjectBuilder().build();
+    private ObjectNode createRequestBody(String graphQL, String variables) {
+        ObjectNode vjo = NODE_FACTORY.objectNode();
 
         if (variables != null && !variables.isEmpty()) {
-            try (JsonReader jsonReader = Json.createReader(new StringReader(variables))) {
-                vjo = jsonReader.readObject();
-            }
+            vjo = (ObjectNode) OBJECT_MAPPER.readTree(variables);
         }
 
-        JsonObjectBuilder job = Json.createObjectBuilder();
+        ObjectNode job = NODE_FACTORY.objectNode();
         if (graphQL != null && !graphQL.isEmpty()) {
-            job.add(QUERY, graphQL);
+            job.put(QUERY, graphQL);
         }
 
-        return job.add(VARIABLES, vjo).build();
+        job.set(VARIABLES, vjo);
+        return job;
     }
 
     private static final String QUERY = "query";

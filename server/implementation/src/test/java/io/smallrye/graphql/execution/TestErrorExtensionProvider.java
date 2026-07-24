@@ -1,9 +1,8 @@
 package io.smallrye.graphql.execution;
 
-import jakarta.json.Json;
-import jakarta.json.JsonNumber;
-
 import io.smallrye.graphql.api.ErrorExtensionProvider;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class TestErrorExtensionProvider implements ErrorExtensionProvider {
     @Override
@@ -12,7 +11,7 @@ public class TestErrorExtensionProvider implements ErrorExtensionProvider {
     }
 
     @Override
-    public JsonNumber mapValueFrom(Throwable exception) {
-        return Json.createValue(exception.getClass().getSimpleName().length());
+    public JsonNode mapValueFrom(Throwable exception) {
+        return JsonNodeFactory.instance.numberNode(exception.getClass().getSimpleName().length());
     }
 }

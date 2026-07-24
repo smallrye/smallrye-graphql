@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.language.Document;
@@ -17,6 +14,8 @@ import graphql.schema.DataFetchingEnvironment;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.schema.model.Field;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Implements the Context from MicroProfile API.
@@ -37,15 +36,15 @@ import io.smallrye.graphql.schema.model.Field;
 public class SmallRyeContext implements Context {
     private final String createdBy;
     private String fetchId;
-    private JsonObject request;
+    private ObjectNode request;
     private String executionId;
     private Field field;
     private String fieldName;
     private Map<String, ?> arguments;
     private Object source;
     private String path;
-    private JsonArray selectedFields;
-    private JsonArray selectedAndSourceFields;
+    private ArrayNode selectedFields;
+    private ArrayNode selectedAndSourceFields;
     private String operationType;
     private List<String> requestedOperationTypes;
     private String parentTypeName;
@@ -135,11 +134,11 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public JsonObject getRequest() {
+    public ObjectNode getRequest() {
         return this.request;
     }
 
-    public void setRequest(JsonObject request) {
+    public void setRequest(ObjectNode request) {
         this.request = request;
     }
 
@@ -197,20 +196,20 @@ public class SmallRyeContext implements Context {
     }
 
     @Override
-    public JsonArray getSelectedFields() {
+    public ArrayNode getSelectedFields() {
         return this.selectedFields;
     }
 
-    public void setSelectedFields(JsonArray selectedFields) {
+    public void setSelectedFields(ArrayNode selectedFields) {
         this.selectedFields = selectedFields;
     }
 
     @Override
-    public JsonArray getSelectedAndSourceFields() {
+    public ArrayNode getSelectedAndSourceFields() {
         return selectedAndSourceFields;
     }
 
-    public void setSelectedAndSourceFields(JsonArray selectedAndSourceFields) {
+    public void setSelectedAndSourceFields(ArrayNode selectedAndSourceFields) {
         this.selectedAndSourceFields = selectedAndSourceFields;
     }
 

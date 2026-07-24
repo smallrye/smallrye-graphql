@@ -8,10 +8,6 @@ import java.io.InputStream;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,6 +29,9 @@ import io.smallrye.graphql.test.namespace.SourceNamespaceModel;
 import io.smallrye.graphql.test.namespace.SourceNamespaceTestApi;
 import io.smallrye.graphql.test.namespace.UnamedModel;
 import io.smallrye.graphql.test.namespace.UnnamedTestApi;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test for Federated namespaces
@@ -92,7 +91,7 @@ public class FederatedNamespaceTest {
         return graphQLSchema;
     }
 
-    private static JsonObject executeAndGetResult(String graphQL) {
+    private static ObjectNode executeAndGetResult(String graphQL) {
         JsonObjectResponseWriter jsonObjectResponseWriter = new JsonObjectResponseWriter(graphQL);
         jsonObjectResponseWriter.logInput();
         executionService.executeSync(jsonObjectResponseWriter.getInput(), jsonObjectResponseWriter);
@@ -101,14 +100,14 @@ public class FederatedNamespaceTest {
     }
 
     private void test(String type, String id) {
-        JsonObject jsonObject = executeAndGetResult(TEST_QUERY.apply(type, id));
+        ObjectNode jsonObject = executeAndGetResult(TEST_QUERY.apply(type, id));
         assertNotNull(jsonObject);
 
-        JsonValue jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        JsonNode jsonValue = ((ObjectNode) ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0))
                 .get("value");
-        String value = ((JsonString) jsonValue).getString();
+        String value = jsonValue.asText();
         assertEquals(value, id);
     }
 
@@ -131,23 +130,23 @@ public class FederatedNamespaceTest {
     public void findEntityWithWithGroupedKeyAndNamespace() {
         String id = "grouped_key";
 
-        JsonObject jsonObject = executeAndGetResult(GROUPED_KEY_QUERY.apply(
+        ObjectNode jsonObject = executeAndGetResult(GROUPED_KEY_QUERY.apply(
                 NamedNamespaceWIthGroupingKeyModel.class.getSimpleName(),
                 id));
         assertNotNull(jsonObject);
 
-        JsonValue jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        JsonNode jsonValue = ((ObjectNode) ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0))
                 .get("value");
-        String value = ((JsonString) jsonValue).getString();
+        String value = jsonValue.asText();
         assertEquals(value, id);
 
-        jsonValue = jsonObject.getJsonObject("data")
-                .getJsonArray("_entities")
-                .getJsonObject(0)
+        jsonValue = ((ObjectNode) ((ArrayNode) ((ObjectNode) jsonObject.get("data"))
+                .get("_entities"))
+                .get(0))
                 .get("anotherId");
-        String anotherId = ((JsonString) jsonValue).getString();
+        String anotherId = jsonValue.asText();
         assertEquals(anotherId, "otherKey_" + id);
     }
 
