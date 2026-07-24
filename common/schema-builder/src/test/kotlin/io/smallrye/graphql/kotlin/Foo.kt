@@ -60,4 +60,17 @@ class Example {
 
   @Query("yyy5")
   fun yyy5(): List<Foo>? = listOf()
+
+  // Uni-wrapped lists: list-item nullability must be preserved (quarkusio/quarkus#48350)
+  @Query("uniListNonNullItems")
+  fun uniListNonNullItems(): Uni<List<Foo>> = Uni.createFrom().item(listOf())
+
+  @Query("uniListNullableItems")
+  fun uniListNullableItems(): Uni<List<Foo?>> = Uni.createFrom().item(listOf())
+
+  @Query("uniNullableListNonNullItems")
+  fun uniNullableListNonNullItems(): Uni<List<Foo>?> = Uni.createFrom().nullItem()
+
+  @Query("uniNullableListNullableItems")
+  fun uniNullableListNullableItems(): Uni<List<Foo?>?> = Uni.createFrom().nullItem()
 }
