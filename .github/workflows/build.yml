@@ -10,6 +10,8 @@ on:
       - 'LICENSE'
       - 'NOTICE'
       - 'README*'
+      - '.github/**'
+      - '!.github/workflows/build.yml'
   pull_request:
     paths-ignore:
       - '.gitignore'
@@ -17,6 +19,9 @@ on:
       - 'LICENSE'
       - 'NOTICE'
       - 'README*'
+      - '.github/**'
+      - '!.github/workflows/build.yml'
+      - '!.github/project.yml' # allow CI to run to see the current results (before the release)
 
 jobs:
   build:
