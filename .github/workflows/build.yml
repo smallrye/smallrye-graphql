@@ -23,6 +23,10 @@ on:
       - '!.github/workflows/build.yml'
       - '!.github/project.yml' # allow CI to run to see the current results (before the release)
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
