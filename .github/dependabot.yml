@@ -15,7 +15,7 @@ updates:
   rebase-strategy: disabled
   target-branch: "2.x"
   commit-message:
-    prefix: "[2.x]"
+    prefix: "[2.x] "
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
