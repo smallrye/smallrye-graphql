@@ -2,8 +2,8 @@ package io.smallrye.graphql.tests.client.dynamic.subscription;
 
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Subscription;
 
-import io.smallrye.graphql.api.Subscription;
 import io.smallrye.mutiny.Multi;
 
 @GraphQLApi

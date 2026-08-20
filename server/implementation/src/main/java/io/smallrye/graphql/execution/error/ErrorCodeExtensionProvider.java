@@ -2,16 +2,13 @@ package io.smallrye.graphql.execution.error;
 
 import static java.util.Locale.ROOT;
 
-import jakarta.json.JsonValue;
-import jakarta.json.spi.JsonProvider;
-
 import io.smallrye.graphql.api.ErrorExtensionProvider;
 import io.smallrye.graphql.schema.model.ErrorInfo;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class ErrorCodeExtensionProvider implements ErrorExtensionProvider {
-
-    private static final JsonProvider JSON_PROVIDER = JsonProvider.provider();
 
     @Override
     public String getKey() {
@@ -19,8 +16,8 @@ public class ErrorCodeExtensionProvider implements ErrorExtensionProvider {
     }
 
     @Override
-    public JsonValue mapValueFrom(Throwable exception) {
-        return JSON_PROVIDER.createValue(errorCode(exception));
+    public JsonNode mapValueFrom(Throwable exception) {
+        return JsonNodeFactory.instance.textNode(errorCode(exception));
     }
 
     private String errorCode(Throwable exception) {

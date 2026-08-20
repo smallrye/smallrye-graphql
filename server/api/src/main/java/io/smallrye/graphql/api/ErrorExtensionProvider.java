@@ -1,6 +1,6 @@
 package io.smallrye.graphql.api;
 
-import jakarta.json.JsonValue;
+import tools.jackson.databind.JsonNode;
 
 /**
  * To add you own GraphQL error <code>extension</code> fields, you can add your own implementations
@@ -9,5 +9,5 @@ import jakarta.json.JsonValue;
 public interface ErrorExtensionProvider {
     String getKey();
 
-    JsonValue mapValueFrom(Throwable exception);
+    JsonNode mapValueFrom(Throwable exception);
 }

@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.json.JsonValue;
-
 import graphql.ExceptionWhileDataFetching;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
@@ -87,28 +85,9 @@ public class ExecutionErrorsService {
     private void addErrorExtensions(ObjectNode objectNode, Throwable exception) {
         errorExtensionProviders.get()
                 .forEach(provider -> {
-                    JsonValue jsonValue = provider.mapValueFrom(exception);
-                    // Convert jakarta.json.JsonValue to Jackson JsonNode
-                    JsonNode jacksonNode = convertJsonValueToJsonNode(jsonValue);
+                    JsonNode jacksonNode = provider.mapValueFrom(exception);
                     addKeyValue(objectNode, provider.getKey(), jacksonNode);
                 });
-    }
-
-    /**
-     * Bridge method: converts a jakarta.json.JsonValue to a Jackson JsonNode.
-     * This is needed because ErrorExtensionProvider (in server/api) returns JSON-P types.
-     */
-    private JsonNode convertJsonValueToJsonNode(JsonValue jsonValue) {
-        if (jsonValue == null) {
-            return NODE_FACTORY.nullNode();
-        }
-        try {
-            // Use the JSON-P toString() which produces valid JSON, then parse with Jackson
-            return OBJECT_MAPPER.readTree(jsonValue.toString());
-        } catch (Exception e) {
-            // fallback: treat as string
-            return NODE_FACTORY.textNode(jsonValue.toString());
-        }
     }
 
     private void populateCustomExtensions(ObjectNode objectNode, Map<String, Object> extensions) {
@@ -120,8 +99,6 @@ public class ExecutionErrorsService {
                     Object value = entry.getValue();
                     if (value instanceof JsonNode) {
                         addKeyValue(objectNode, entry.getKey(), (JsonNode) value);
-                    } else if (value instanceof JsonValue) {
-                        addKeyValue(objectNode, entry.getKey(), convertJsonValueToJsonNode((JsonValue) value));
                     } else if (value instanceof Map) {
                         addKeyValue(objectNode, entry.getKey(), OBJECT_MAPPER.valueToTree(value));
                     } else {

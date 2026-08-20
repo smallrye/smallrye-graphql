@@ -1,26 +1,20 @@
 package io.smallrye.graphql.servlet;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +22,11 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Executing the GraphQL request
@@ -38,7 +37,8 @@ import io.smallrye.graphql.spi.config.Config;
 public class ExecutionServlet extends HttpServlet {
     private static final long serialVersionUID = -2859915918802356120L;
 
-    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
+    private static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
 
     @Inject
     ExecutionService executionService;
@@ -56,7 +56,7 @@ public class ExecutionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             if (config.isAllowGet()) {
-                JsonObject jsonObject = getJsonObjectFromQueryParameters(request);
+                ObjectNode jsonObject = getObjectNodeFromQueryParameters(request);
                 executionService.executeSync(jsonObject, getMetaData(request), new HttpServletResponseWriter(response));
             } else {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "GET Queries is not enabled");
@@ -71,16 +71,14 @@ public class ExecutionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             Map<String, Object> metaData = getMetaData(request);
-            JsonObject jsonObjectFromBody = getJsonObjectFromBody(request);
+            ObjectNode objectNodeFromBody = getObjectNodeFromBody(request);
             if (request.getQueryString() != null && !request.getQueryString().isEmpty()
                     && config.isAllowPostWithQueryParameters()) {
-                JsonObject jsonObjectFromQueryParameters = getJsonObjectFromQueryParameters(request);
-                JsonObject mergedJsonObject = JSON_PROVIDER.createMergePatch(jsonObjectFromQueryParameters)
-                        .apply(jsonObjectFromBody)
-                        .asJsonObject();
-                executionService.executeSync(mergedJsonObject, metaData, new HttpServletResponseWriter(response));
+                ObjectNode objectNodeFromQueryParameters = getObjectNodeFromQueryParameters(request);
+                ObjectNode mergedNode = mergeNodes(objectNodeFromBody, objectNodeFromQueryParameters);
+                executionService.executeSync(mergedNode, metaData, new HttpServletResponseWriter(response));
             } else {
-                executionService.executeSync(jsonObjectFromBody, metaData, new HttpServletResponseWriter(response));
+                executionService.executeSync(objectNodeFromBody, metaData, new HttpServletResponseWriter(response));
             }
         } catch (IOException ex) {
             SmallRyeGraphQLServletLogging.log.ioException(ex);
@@ -88,62 +86,72 @@ public class ExecutionServlet extends HttpServlet {
         }
     }
 
-    private JsonObject getJsonObjectFromQueryParameters(HttpServletRequest request) throws UnsupportedEncodingException {
-        JsonObjectBuilder input = JSON_PROVIDER.createObjectBuilder();
+    private ObjectNode getObjectNodeFromQueryParameters(HttpServletRequest request) throws UnsupportedEncodingException {
+        ObjectNode input = NODE_FACTORY.objectNode();
         // Query
         String query = request.getParameter(QUERY);
         if (query != null && !query.isEmpty()) {
-            input.add(QUERY, URLDecoder.decode(query, StandardCharsets.UTF_8));
+            input.put(QUERY, URLDecoder.decode(query, StandardCharsets.UTF_8));
         }
         // OperationName
         String operationName = request.getParameter(OPERATION_NAME);
         if (operationName != null && !operationName.isEmpty()) {
-            input.add(OPERATION_NAME, URLDecoder.decode(query, StandardCharsets.UTF_8));
+            input.put(OPERATION_NAME, URLDecoder.decode(operationName, StandardCharsets.UTF_8));
         }
 
         // Variables
         String variables = request.getParameter(VARIABLES);
         if (variables != null && !variables.isEmpty()) {
-            JsonObject jsonObject = toJsonObject(URLDecoder.decode(variables, StandardCharsets.UTF_8));
-            input.add(VARIABLES, jsonObject);
+            ObjectNode jsonObject = toObjectNode(URLDecoder.decode(variables, StandardCharsets.UTF_8));
+            input.set(VARIABLES, jsonObject);
         }
 
         // Extensions
         String extensions = request.getParameter(EXTENSIONS);
         if (extensions != null && !extensions.isEmpty()) {
-            JsonObject jsonObject = toJsonObject(URLDecoder.decode(extensions, StandardCharsets.UTF_8));
-            input.add(EXTENSIONS, jsonObject);
+            ObjectNode jsonObject = toObjectNode(URLDecoder.decode(extensions, StandardCharsets.UTF_8));
+            input.set(EXTENSIONS, jsonObject);
         }
 
-        return input.build();
+        return input;
     }
 
-    private JsonObject getJsonObjectFromBody(HttpServletRequest request) throws IOException {
+    private ObjectNode getObjectNodeFromBody(HttpServletRequest request) throws IOException {
 
         String contentType = request.getContentType();
         try (BufferedReader bufferedReader = request.getReader()) {
-            // If the content type is application/graphql, the query is in the body
             if (contentType != null && contentType.startsWith(APPLICATION_GRAPHQL)) {
                 String query = bufferedReader.lines().collect(Collectors.joining("\n"));
-                JsonObjectBuilder input = JSON_PROVIDER.createObjectBuilder();
-                input.add(QUERY, query);
-                return input.build();
-                // Else we expect a Json in the content
+                return NODE_FACTORY.objectNode().put(QUERY, query);
             } else {
-                try (JsonReader jsonReader = jsonReaderFactory.createReader(bufferedReader)) {
-                    return jsonReader.readObject();
-                }
+                return (ObjectNode) OBJECT_MAPPER.readTree(bufferedReader);
             }
         }
     }
 
-    private static JsonObject toJsonObject(String jsonString) {
+    private static ObjectNode toObjectNode(String jsonString) {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
         }
-        try (JsonReader jsonReader = JSON_PROVIDER.createReader(new StringReader(jsonString))) {
-            return jsonReader.readObject();
+        return (ObjectNode) OBJECT_MAPPER.readTree(jsonString);
+    }
+
+    /**
+     * RFC 7386 JSON Merge Patch: fields from patch override fields in target;
+     * null-valued fields in patch remove the field from target.
+     */
+    private static ObjectNode mergeNodes(ObjectNode target, ObjectNode patch) {
+        ObjectNode result = target.deepCopy();
+        Iterator<Map.Entry<String, JsonNode>> fields = patch.properties().iterator();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            if (entry.getValue().isNull()) {
+                result.remove(entry.getKey());
+            } else {
+                result.set(entry.getKey(), entry.getValue());
+            }
         }
+        return result;
     }
 
     protected Map<String, Object> getMetaData(HttpServletRequest request) {

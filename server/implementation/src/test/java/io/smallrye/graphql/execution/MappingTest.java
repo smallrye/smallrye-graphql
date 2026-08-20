@@ -9,44 +9,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.api.Context;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 public class MappingTest {
+
+    private static final JsonNodeFactory NF = JsonNodeFactory.instance;
 
     @Test
     public void toMap_string() {
         Map<String, Object> expected = Collections.singletonMap("firstName", "John");
-        JsonObject jo = Json.createObjectBuilder()
-                .add("firstName", "John")
-                .build();
-        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get());
+        ObjectNode jo = NF.objectNode().put("firstName", "John");
+        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).get("variables")).get());
     }
 
     @Test
     public void toMap_boolean() {
         Map<String, Object> expected = Collections.singletonMap("certified", true);
-        JsonObject jo = Json.createObjectBuilder().add("certified", true).build();
-        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get());
+        ObjectNode jo = NF.objectNode().put("certified", true);
+        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).get("variables")).get());
 
         expected = Collections.singletonMap("refurbished", false);
-        jo = Json.createObjectBuilder().add("refurbished", false).build();
-        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get());
+        jo = NF.objectNode().put("refurbished", false);
+        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).get("variables")).get());
     }
 
     @Test
     public void toMap_numbers() {
-        JsonObject jo = Json.createObjectBuilder()
-                .add("weight", 17.003)
-                .add("block_count", 1025)
-                .add("bigNum", 1234567890987654321L)
-                .add("float", 0.00000023f)
-                .build();
-        Map<String, Object> returned = Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get();
+        ObjectNode jo = NF.objectNode()
+                .put("weight", 17.003)
+                .put("block_count", 1025)
+                .put("bigNum", 1234567890987654321L)
+                .put("float", 0.00000023f);
+        Map<String, Object> returned = Context.VariablesParser.toMap(toInput(jo).get("variables")).get();
         assertEquals(4, returned.size());
         assertEquals(17.003, ((BigDecimal) returned.get("weight")).doubleValue(), 0.001);
         assertEquals(1025, ((BigDecimal) returned.get("block_count")).intValue());
@@ -69,55 +67,35 @@ public class MappingTest {
         childMap2.put("state", "AL");
         childMap2.put("zip", "99992");
 
-        JsonObject jo = Json.createObjectBuilder()
-                .add("customer", Json.createObjectBuilder()
-                        .add("name", "Joe Busy")
-                        .add("address", Json.createObjectBuilder()
-                                .add("street_num", "1003")
-                                .add("street_name", "Elm Boulevard")
-                                .add("city", "Nowhere")
-                                .add("state", "AL")
-                                .add("zip", "99992")
-                                .build())
-                        .add("acct", 12345)
-                        .build())
-                .build();
-        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get());
+        ObjectNode address = NF.objectNode()
+                .put("street_num", "1003")
+                .put("street_name", "Elm Boulevard")
+                .put("city", "Nowhere")
+                .put("state", "AL")
+                .put("zip", "99992");
+        ObjectNode customer = NF.objectNode()
+                .put("name", "Joe Busy");
+        customer.set("address", address);
+        customer.put("acct", 12345);
+        ObjectNode jo = NF.objectNode();
+        jo.set("customer", customer);
+
+        assertEquals(expected, Context.VariablesParser.toMap(toInput(jo).get("variables")).get());
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void toMap_array() {
-        JsonObject jo = Json.createObjectBuilder()
-                .add("names", Json.createArrayBuilder()
-                        .add("bob")
-                        .add("tom")
-                        .add("dick")
-                        .build())
-                .add("games", Json.createArrayBuilder()
-                        .add("basketball")
-                        .add("hockey")
-                        .add("rugby")
-                        .add("baseball")
-                        .build())
-                .add("numbers", Json.createArrayBuilder()
-                        .add(3.14)
-                        .add(17)
-                        .add(20.003f)
-                        .add(98765432123456789L)
-                        .build())
-                .add("mixed", Json.createArrayBuilder()
-                        .add(65535)
-                        .add("fred")
-                        .add(true)
-                        .add(Json.createObjectBuilder()
-                                .add("name", "Widget")
-                                .add("length", 29)
-                                .build())
-                        .build())
-                .add("empty", Json.createArrayBuilder().build())
-                .build();
-        Map<String, Object> returned = Context.VariablesParser.toMap(toInput(jo).getJsonObject("variables")).get();
+        ObjectNode jo = NF.objectNode();
+        jo.set("names", NF.arrayNode().add("bob").add("tom").add("dick"));
+        jo.set("games", NF.arrayNode().add("basketball").add("hockey").add("rugby").add("baseball"));
+        jo.set("numbers", NF.arrayNode().add(3.14).add(17).add(20.003f).add(98765432123456789L));
+
+        ObjectNode widget = NF.objectNode().put("name", "Widget").put("length", 29);
+        jo.set("mixed", NF.arrayNode().add(65535).add("fred").add(true).add(widget));
+        jo.set("empty", NF.arrayNode());
+
+        Map<String, Object> returned = Context.VariablesParser.toMap(toInput(jo).get("variables")).get();
         assertEquals(5, returned.size());
         assertEquals(Arrays.asList("bob", "tom", "dick"), returned.get("names"));
         assertEquals(Arrays.asList("basketball", "hockey", "rugby", "baseball"), returned.get("games"));
@@ -142,7 +120,9 @@ public class MappingTest {
         assertEquals(Collections.emptyList(), returned.get("empty"));
     }
 
-    private JsonObject toInput(JsonObject jo) {
-        return Json.createObjectBuilder().add("variables", jo).build();
+    private ObjectNode toInput(ObjectNode jo) {
+        ObjectNode input = NF.objectNode();
+        input.set("variables", jo);
+        return input;
     }
 }

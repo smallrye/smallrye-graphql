@@ -1,7 +1,6 @@
 package io.smallrye.graphql;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -20,15 +19,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-
 import org.eclipse.microprofile.graphql.tck.dynamic.ExecutionDynamicTest;
 import org.eclipse.microprofile.graphql.tck.dynamic.SchemaDynamicValidityTest;
 import org.jboss.logging.Logger;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
+
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This allows us to override the input and output of the spec's TCK.
@@ -183,7 +181,7 @@ public class TestInterceptor extends TestListenerAdapter {
                             }
                             case "variables.json": {
                                 String content = getFileContent(file);
-                                testData.setVariables(toJsonObject(content));
+                                testData.setVariables(toVariablesMap(content));
                                 break;
                             }
                             case "test.properties": {
@@ -291,12 +289,18 @@ public class TestInterceptor extends TestListenerAdapter {
         return line.trim().startsWith(COMMENT);
     }
 
-    private JsonObject toJsonObject(String jsonString) {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
+    };
+
+    private Map<String, Object> toVariablesMap(String jsonString) {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
         }
-        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
-            return jsonReader.readObject();
+        try {
+            return OBJECT_MAPPER.readValue(jsonString, MAP_TYPE);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

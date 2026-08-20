@@ -1,30 +1,28 @@
 package io.smallrye.graphql.test.apps.jsonp.api;
 
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 @GraphQLApi
 public class JsonPApi {
 
     @Query("jsonpObject")
-    public JsonObject getRawToken() {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        builder.add("foo", "bar");
-        return builder.build();
+    public ObjectNode getRawToken() {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("foo", "bar");
+        return node;
     }
 
     @Query("jsonpArray")
-    public JsonArray getRawTokens() {
-        JsonArrayBuilder builder = Json.createArrayBuilder();
-        builder.add("foo");
-        builder.add("bar");
-        return builder.build();
+    public ArrayNode getRawTokens() {
+        ArrayNode array = JsonNodeFactory.instance.arrayNode();
+        array.add("foo");
+        array.add("bar");
+        return array;
     }
 
     @Query("jsonpField")
