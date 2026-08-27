@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v7
         name: checkout
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         name: set up jdk ${{matrix.java}}
         with:
           java-version: ${{matrix.java}}
@@ -76,7 +76,7 @@ jobs:
           ref: main
           path: wildfly-graphql-feature-pack
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         name: set up jdk ${{matrix.java}}
         with:
           java-version: ${{matrix.java}}
@@ -115,7 +115,7 @@ jobs:
           ref: main
           path: quarkus
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         name: set up jdk ${{matrix.java}}
         with:
           java-version: ${{matrix.java}}
@@ -147,7 +147,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           java-version: 17
           distribution: 'temurin'
