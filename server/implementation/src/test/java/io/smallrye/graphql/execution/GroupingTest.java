@@ -3,10 +3,10 @@ package io.smallrye.graphql.execution;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import jakarta.json.JsonObject;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test a basic grouping
@@ -21,13 +21,13 @@ public class GroupingTest extends ExecutionTestBase {
 
     @Test
     public void testBasicQuery() {
-        JsonObject data = executeAndGetData(TEST_QUERY);
+        ObjectNode data = executeAndGetData(TEST_QUERY);
 
-        JsonObject books = data.getJsonObject("books");
+        ObjectNode books = (ObjectNode) data.get("books");
 
         assertNotNull(books);
 
-        assertFalse(books.isNull("book"), "book should not be null");
+        assertFalse(books.has("book") && books.get("book").isNull(), "book should not be null");
     }
 
     private static final String TEST_QUERY = "{\n" +

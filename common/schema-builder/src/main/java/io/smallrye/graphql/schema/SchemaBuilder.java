@@ -207,7 +207,7 @@ public class SchemaBuilder {
                 List<MethodInfo> methods = getAllMethodsIncludingFromSuperClasses(apiClass);
                 for (MethodInfo methodInfo : methods) {
                     Annotations annotationsForMethod = Annotations.getAnnotationsForMethod(methodInfo);
-                    if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
+                    if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBSCRIPTION, Annotations.SUBCRIPTION)) {
                         errors.add("class: " + apiClass.name().toString() + ", method: " + methodInfo.name());
                     }
                 }
@@ -450,7 +450,7 @@ public class SchemaBuilder {
             } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.MUTATION)) {
                 Operation mutation = operationCreator.createOperation(methodInfo, OperationType.MUTATION, null);
                 schema.addMutation(mutation);
-            } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBCRIPTION)) {
+            } else if (annotationsForMethod.containsOneOfTheseAnnotations(Annotations.SUBSCRIPTION, Annotations.SUBCRIPTION)) {
                 Operation subscription = operationCreator.createOperation(methodInfo, OperationType.SUBSCRIPTION, null);
                 schema.addSubscription(subscription);
             }

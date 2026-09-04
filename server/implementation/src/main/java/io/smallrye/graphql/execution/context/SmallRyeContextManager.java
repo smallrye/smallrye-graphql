@@ -1,21 +1,13 @@
 package io.smallrye.graphql.execution.context;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonValue;
 
 import graphql.ExecutionInput;
 import graphql.GraphQLContext;
@@ -36,6 +28,10 @@ import io.smallrye.graphql.execution.error.UnparseableDocumentException;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Type;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Adds methods to make the life cycle of the context easy to implement
@@ -43,7 +39,7 @@ import io.smallrye.graphql.schema.model.Type;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContextManager {
-    private static final JsonBuilderFactory jsonbuilder = JSON_PROVIDER.createBuilderFactory(null);
+    private static final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
     private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
     public static final String CONTEXT = "context";
 
@@ -72,7 +68,7 @@ public class SmallRyeContextManager {
      * @param request the original request
      * @return the initial context
      */
-    public static SmallRyeContext fromInitialRequest(JsonObject request) {
+    public static SmallRyeContext fromInitialRequest(ObjectNode request) {
 
         SmallRyeContext smallRyeContext = getCurrentSmallRyeContext();
         if (smallRyeContext == null) {
@@ -165,42 +161,42 @@ public class SmallRyeContextManager {
         return definition.getOperation().toString();
     }
 
-    private static JsonArray buildSelectedFields(Type type, DataFetchingEnvironment dfe, Field field,
+    private static ArrayNode buildSelectedFields(Type type, DataFetchingEnvironment dfe, Field field,
             boolean includeSourceFields) {
         DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
         Set<SelectedField> fields = new LinkedHashSet<>(selectionSet.getFields());
-        return toJsonArrayBuilder(type, fields, field, includeSourceFields).build();
+        return toArrayNode(type, fields, field, includeSourceFields);
     }
 
-    private static JsonArrayBuilder toJsonArrayBuilder(Type type, Set<SelectedField> fields, Field field,
+    private static ArrayNode toArrayNode(Type type, Set<SelectedField> fields, Field field,
             boolean includeSourceFields) {
-        JsonArrayBuilder builder = jsonbuilder.createArrayBuilder();
+        ArrayNode arrayNode = nodeFactory.arrayNode();
 
         for (SelectedField selectedField : fields) {
             if (!isFlattenScalar(selectedField)) {
                 if (includeSourceFields || !isSourceField(type, selectedField)) {
                     if (isScalar(selectedField)) {
-                        builder = builder.add(selectedField.getName());
+                        arrayNode.add(selectedField.getName());
                     } else {
-                        builder = builder.add(toJsonObjectBuilder(type, selectedField, field, includeSourceFields));
+                        arrayNode.add(toObjectNode(type, selectedField, field, includeSourceFields));
                     }
                 }
             }
         }
-        return builder;
+        return arrayNode;
     }
 
     private static boolean isFlattenScalar(SelectedField field) {
         return field.getQualifiedName().contains("/");
     }
 
-    private static JsonObjectBuilder toJsonObjectBuilder(Type type, SelectedField selectedField, Field field,
+    private static ObjectNode toObjectNode(Type type, SelectedField selectedField, Field field,
             boolean includeSourceFields) {
-        JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
+        ObjectNode objectNode = nodeFactory.objectNode();
         Set<SelectedField> fields = new LinkedHashSet<>(selectedField.getSelectionSet().getFields());
-        builder = builder.add(selectedField.getName(),
-                toJsonArrayBuilder(type, fields, field, includeSourceFields));
-        return builder;
+        objectNode.set(selectedField.getName(),
+                toArrayNode(type, fields, field, includeSourceFields));
+        return objectNode;
     }
 
     private static boolean isSourceField(Type type, SelectedField selectedField) {
@@ -269,12 +265,12 @@ public class SmallRyeContextManager {
         return allRequestedTypes;
     }
 
-    private static String getOperationName(JsonObject request) {
-        if (request.containsKey(Context.OPERATION_NAME)
+    private static String getOperationName(ObjectNode request) {
+        if (request.has(Context.OPERATION_NAME)
                 && request.get(Context.OPERATION_NAME) != null
-                && !request.get(Context.OPERATION_NAME).getValueType().equals(JsonValue.ValueType.NULL)) {
+                && !request.get(Context.OPERATION_NAME).isNull()) {
 
-            return request.getString(Context.OPERATION_NAME);
+            return request.get(Context.OPERATION_NAME).asText();
         }
         return null;
     }
@@ -291,51 +287,50 @@ public class SmallRyeContextManager {
 
     private static final String EXTENSIONS = "extensions";
 
-    private static Map<String, Object> getExtensions(JsonObject request) {
-        if (request.containsKey(EXTENSIONS)
+    private static Map<String, Object> getExtensions(ObjectNode request) {
+        if (request.has(EXTENSIONS)
                 && request.get(EXTENSIONS) != null
-                && !request.get(EXTENSIONS).getValueType().equals(JsonValue.ValueType.NULL)) {
-            JsonObject extensionsJson = request.getJsonObject(EXTENSIONS);
+                && !request.get(EXTENSIONS).isNull()) {
+            ObjectNode extensionsJson = (ObjectNode) request.get(EXTENSIONS);
             Map<String, Object> result = new HashMap<>();
-            for (Map.Entry<String, JsonValue> entry : extensionsJson.entrySet()) {
-                result.put(entry.getKey(), convertJsonValue(entry.getValue()));
+            Iterator<Map.Entry<String, JsonNode>> fields = extensionsJson.properties().iterator();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                result.put(entry.getKey(), convertJsonNode(entry.getValue()));
             }
             return result;
         }
         return null;
     }
 
-    private static Object convertJsonValue(JsonValue value) {
-        switch (value.getValueType()) {
-            case STRING:
-                return ((jakarta.json.JsonString) value).getString();
-            case NUMBER:
-                jakarta.json.JsonNumber number = (jakarta.json.JsonNumber) value;
-                if (number.isIntegral()) {
-                    return number.longValueExact();
-                }
-                return number.doubleValue();
-            case TRUE:
-                return Boolean.TRUE;
-            case FALSE:
-                return Boolean.FALSE;
-            case NULL:
-                return null;
-            case OBJECT:
-                Map<String, Object> map = new HashMap<>();
-                for (Map.Entry<String, JsonValue> entry : value.asJsonObject().entrySet()) {
-                    map.put(entry.getKey(), convertJsonValue(entry.getValue()));
-                }
-                return map;
-            case ARRAY:
-                List<Object> list = new java.util.ArrayList<>();
-                for (JsonValue item : value.asJsonArray()) {
-                    list.add(convertJsonValue(item));
-                }
-                return list;
-            default:
-                return value.toString();
+    private static Object convertJsonNode(JsonNode node) {
+        if (node == null || node.isNull()) {
+            return null;
+        } else if (node.isTextual()) {
+            return node.asText();
+        } else if (node.isNumber()) {
+            if (node.isIntegralNumber()) {
+                return node.longValue();
+            }
+            return node.doubleValue();
+        } else if (node.isBoolean()) {
+            return node.booleanValue();
+        } else if (node.isObject()) {
+            Map<String, Object> map = new HashMap<>();
+            Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                map.put(entry.getKey(), convertJsonNode(entry.getValue()));
+            }
+            return map;
+        } else if (node.isArray()) {
+            List<Object> list = new ArrayList<>();
+            for (JsonNode item : node) {
+                list.add(convertJsonNode(item));
+            }
+            return list;
         }
+        return node.toString();
     }
 
 }
