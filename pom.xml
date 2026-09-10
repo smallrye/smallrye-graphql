@@ -50,7 +50,7 @@
         <version.mongo-bson>5.11.0</version.mongo-bson>
         <version.mockito>5.23.0</version.mockito>
         <version.weld.servlet>5.1.0.Final</version.weld.servlet>
-        <version.smallrye.testing>2.5.0</version.smallrye.testing>
+        <version.smallrye.testing>2.5.1</version.smallrye.testing>
         <version.weld-junit5>5.0.3.Final</version.weld-junit5>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/tck/target/site/jacoco-aggregate/jacoco.xml,${project.basedir}/../tck/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
