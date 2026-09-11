@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import jakarta.json.JsonObject;
-
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test against generics
@@ -17,33 +17,33 @@ public class ExecutionGenericsTest extends ExecutionTestBase {
 
     @Test
     public void testQueryGeneric1() {
-        JsonObject data = executeAndGetData(TEST_QUERY_GENERIC_1);
+        ObjectNode data = executeAndGetData(TEST_QUERY_GENERIC_1);
 
-        JsonObject testObject = data.getJsonObject("generic1");
+        ObjectNode testObject = (ObjectNode) data.get("generic1");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("my name", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("my name", testObject.get("name").asText());
 
-        assertFalse(testObject.isNull("param1"), "param1 should not be null");
-        assertEquals("my param 1", testObject.getString("param1"));
+        assertFalse(testObject.has("param1") && testObject.get("param1").isNull(), "param1 should not be null");
+        assertEquals("my param 1", testObject.get("param1").asText());
 
     }
 
     @Test
     public void testQueryGeneric2() {
-        JsonObject data = executeAndGetData(TEST_QUERY_GENERIC_2);
+        ObjectNode data = executeAndGetData(TEST_QUERY_GENERIC_2);
 
-        JsonObject testObject = data.getJsonObject("generic2");
+        ObjectNode testObject = (ObjectNode) data.get("generic2");
 
         assertNotNull(testObject);
 
-        assertFalse(testObject.isNull("name"), "name should not be null");
-        assertEquals("my name", testObject.getString("name"));
+        assertFalse(testObject.has("name") && testObject.get("name").isNull(), "name should not be null");
+        assertEquals("my name", testObject.get("name").asText());
 
-        assertFalse(testObject.isNull("param1"), "param1 should not be null");
-        assertEquals(22, testObject.getInt("param1"));
+        assertFalse(testObject.has("param1") && testObject.get("param1").isNull(), "param1 should not be null");
+        assertEquals(22, testObject.get("param1").asInt());
 
     }
 

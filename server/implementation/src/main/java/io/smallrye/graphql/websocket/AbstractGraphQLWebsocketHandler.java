@@ -1,20 +1,11 @@
 package io.smallrye.graphql.websocket;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
-
 import java.io.IOException;
-import java.io.StringReader;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.stream.JsonParsingException;
 
 import org.jboss.logging.Logger;
 import org.reactivestreams.Publisher;
@@ -31,12 +22,17 @@ import io.smallrye.graphql.execution.ExecutionService;
 import io.smallrye.graphql.spi.LookupService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.subscription.Cancellable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocketHandler {
     // TODO: Replace with prepared log messages
     protected static final Logger LOG = Logger.getLogger(GraphQLWebsocketHandler.class.getName());
-    private static final JsonReaderFactory jsonReaderFactory = JSON_PROVIDER.createReaderFactory(null);
-    private static final JsonBuilderFactory jsonBuilderFactory = JSON_PROVIDER.createBuilderFactory(null);
+    protected static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
+    protected static final JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance;
 
     protected final ExecutionService executionService = LookupService.get().getInstance(ExecutionService.class).get();
     protected final GraphQLWebSocketSession session;
@@ -53,7 +49,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         this.dataMessageTypeName = dataMessageTypeName;
         this.context = context;
         this.connectionInitialized = new AtomicBoolean(false);
-        this.connectionAckMessage = createConnectionAckMessage().toString();
+        this.connectionAckMessage = writeValueAsString(createConnectionAckMessage());
         this.activeOperations = new ConcurrentHashMap<>();
         this.keepAliveSender = Multi.createFrom().ticks()
                 .startingAfter(Duration.ofSeconds(10))
@@ -66,7 +62,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         if (LOG.isTraceEnabled()) {
             LOG.trace("<<< " + text);
         }
-        onMessage(getMessageAsJsonObject(text));
+        onMessage(getMessageAsObjectNode(text));
     }
 
     @Override
@@ -101,10 +97,10 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    protected void onOperationRequest(JsonObject message) {
-        String operationId = message.getString("id");
+    protected void onOperationRequest(ObjectNode message) {
+        String operationId = message.get("id").asText();
         if (validSubscription(operationId)) {
-            JsonObject payload = message.getJsonObject("payload");
+            ObjectNode payload = (ObjectNode) message.get("payload");
             executionService.executeAsync(payload, context, new ExecutionResponseWriter() {
 
                 @Override
@@ -133,22 +129,14 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                     if (executionResult != null) {
                         try {
                             if (!executionResult.isDataPresent()) {
-                                // this means a validation error
                                 sendErrorMessage(operationId, executionResponse);
                             } else {
                                 Object data = executionResponse.getExecutionResult().getData();
                                 if (data instanceof Map) {
-                                    // this means the operation is a query or mutation
-                                    // only send the response if the operation hasn't been cancelled
                                     sendSingleMessage(operationId, executionResponse);
                                 } else if (data instanceof Publisher) {
-                                    // this means the operation is a subscription
                                     sendStreamingMessage(operationId, executionResponse);
                                 } else if (data == null) {
-                                    // if isDataPresent() == true && but data == null,
-                                    // then this is probably a subscription, but the subscription
-                                    // method threw an exception instead of returning
-                                    // a failed Multi
                                     sendErrorMessage(operationId, executionResponse);
                                 } else {
                                     logUnknownResult(executionResult);
@@ -163,16 +151,15 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    private JsonObject createConnectionAckMessage() {
-        return JSON_PROVIDER.createObjectBuilder()
-                .add("type", "connection_ack")
-                .build();
+    private ObjectNode createConnectionAckMessage() {
+        return NODE_FACTORY.objectNode()
+                .put("type", "connection_ack");
     }
 
-    private JsonObject getMessageAsJsonObject(String text) {
+    private ObjectNode getMessageAsObjectNode(String text) {
         try {
             return parseIncomingMessage(text);
-        } catch (JsonParsingException ex) {
+        } catch (JacksonException ex) {
             session.close((short) 4400, ex.getMessage());
             return null;
         } catch (NullPointerException | IllegalArgumentException ex) {
@@ -182,25 +169,22 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     }
 
     // TODO: we need more validation on the incoming messages (correct fields and types etc)
-    private JsonObject parseIncomingMessage(String message) {
-        try (JsonReader jsonReader = jsonReaderFactory.createReader(new StringReader(message))) {
-            return jsonReader.readObject();
-        }
+    private ObjectNode parseIncomingMessage(String message) {
+        return (ObjectNode) OBJECT_MAPPER.readTree(message);
     }
 
-    private JsonObject createCompleteMessage(String operationId) {
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", "complete")
-                .add("id", operationId)
-                .build();
+    private ObjectNode createCompleteMessage(String operationId) {
+        return NODE_FACTORY.objectNode()
+                .put("type", "complete")
+                .put("id", operationId);
     }
 
-    private JsonObject createDataMessage(String operationId, JsonObject payload) {
-        return jsonBuilderFactory.createObjectBuilder()
-                .add("type", this.dataMessageTypeName)
-                .add("id", operationId)
-                .add("payload", payload)
-                .build();
+    private ObjectNode createDataMessage(String operationId, ObjectNode payload) {
+        ObjectNode msg = NODE_FACTORY.objectNode()
+                .put("type", this.dataMessageTypeName)
+                .put("id", operationId);
+        msg.set("payload", payload);
+        return msg;
     }
 
     private void logUnknownResult(ExecutionResult executionResult) {
@@ -211,10 +195,9 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
     private void sendSingleMessage(String operationId, ExecutionResponse executionResponse) throws IOException {
         if (activeOperations.remove(operationId) != null) {
             session.sendMessage(
-                    createDataMessage(operationId,
-                            executionResponse.getExecutionResultAsJsonPObject())
-                            .toString());
-            session.sendMessage(createCompleteMessage(operationId).toString());
+                    writeValueAsString(createDataMessage(operationId,
+                            executionResponse.getExecutionResultAsJsonObject())));
+            session.sendMessage(writeValueAsString(createCompleteMessage(operationId)));
         }
     }
 
@@ -223,8 +206,6 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         Publisher<ExecutionResult> stream = executionResponse.getExecutionResult()
                 .getData();
         if (stream != null) {
-            // this is actually a subscription, so replace the `activeOperation` entry
-            // with the actual subscriber
             activeOperations.put(operationId, subscriber);
             stream.subscribe(subscriber);
         }
@@ -239,8 +220,8 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    protected void sendCancelMessage(JsonObject message) {
-        String opId = message.getString("id");
+    protected void sendCancelMessage(ObjectNode message) {
+        String opId = message.get("id").asText();
         boolean cancelled = cancelOperation(opId);
         if (cancelled) {
             if (LOG.isDebugEnabled()) {
@@ -255,8 +236,6 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    // cancel the operation with this id, returns true if it actually cancels an operation,
-    // false if no such operation is active
     private boolean cancelOperation(String opId) {
         Subscriber<ExecutionResult> subscriber = activeOperations.remove(opId);
         if (subscriber != null) {
@@ -281,7 +260,15 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         return true;
     }
 
-    protected abstract void onMessage(JsonObject message);
+    protected static String writeValueAsString(ObjectNode node) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(node);
+        } catch (JacksonException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected abstract void onMessage(ObjectNode message);
 
     protected abstract void sendErrorMessage(String operationId, ExecutionResponse executionResponse) throws IOException;
 
@@ -293,9 +280,6 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         return context;
     }
 
-    /**
-     * The middleman that subscribes to an execution result and forwards its events to the websocket channel.
-     */
     private class SubscriptionSubscriber implements Subscriber<ExecutionResult> {
 
         private final AtomicReference<Subscription> subscription = new AtomicReference<>();
@@ -319,9 +303,8 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                 ExecutionResponse executionResponse = new ExecutionResponse(executionResult);
                 try {
                     session.sendMessage(
-                            createDataMessage(operationId,
-                                    executionResponse.getExecutionResultAsJsonPObject())
-                                    .toString());
+                            writeValueAsString(createDataMessage(operationId,
+                                    executionResponse.getExecutionResultAsJsonObject())));
                 } catch (IOException e) {
                     LOG.warn(e);
                 }
@@ -331,7 +314,6 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
 
         @Override
         public void onError(Throwable t) {
-            // TODO: I'm not sure if/when this can happen. Even if the operation's root fails, it goes into `onNext`.
             t.printStackTrace();
         }
 
@@ -341,7 +323,7 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
                 LOG.trace("Subscription with id " + operationId + " completed");
             }
             try {
-                session.sendMessage(createCompleteMessage(operationId).toString());
+                session.sendMessage(writeValueAsString(createCompleteMessage(operationId)));
             } catch (IOException e) {
                 LOG.warn(e);
             }
@@ -356,7 +338,6 @@ public abstract class AbstractGraphQLWebsocketHandler implements GraphQLWebsocke
         }
     }
 
-    // dummy value to put into the `activeOperations` map for single-result operations
     private static final Subscriber<ExecutionResult> SINGLE_RESULT_MARKER = new Subscriber<ExecutionResult>() {
         @Override
         public void onSubscribe(Subscription s) {

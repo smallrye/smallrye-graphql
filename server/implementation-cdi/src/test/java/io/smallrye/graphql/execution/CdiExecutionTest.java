@@ -1,6 +1,5 @@
 package io.smallrye.graphql.execution;
 
-import static io.smallrye.graphql.JsonProviderHolder.JSON_PROVIDER;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 
 import org.eclipse.microprofile.graphql.tck.apps.basic.api.ScalarTestApi;
 import org.eclipse.microprofile.graphql.tck.apps.superhero.api.HeroFinder;
@@ -27,6 +24,7 @@ import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.model.Schema;
 import io.smallrye.graphql.spi.LookupService;
 import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -394,10 +392,8 @@ public class CdiExecutionTest {
         return (ArrayNode) result.getExecutionResultAsJsonObject().get(ERRORS);
     }
 
-    private JsonObject toJsonObject(String graphQL) {
-        JsonObjectBuilder builder = JSON_PROVIDER.createObjectBuilder();
-        builder.add("query", graphQL);
-        return builder.build();
+    private ObjectNode toJsonObject(String graphQL) {
+        return JsonNodeFactory.instance.objectNode().put("query", graphQL);
     }
 
     private static final String DATA = "data";

@@ -2,7 +2,8 @@ package io.smallrye.graphql.tests.client.typesafe.subscription;
 
 import java.io.Closeable;
 
-import io.smallrye.graphql.api.Subscription;
+import org.eclipse.microprofile.graphql.Subscription;
+
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import io.smallrye.mutiny.Multi;
 

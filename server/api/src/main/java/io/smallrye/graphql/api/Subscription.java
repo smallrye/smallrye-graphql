@@ -46,6 +46,10 @@ import java.lang.annotation.Target;
  *    stockQuote(stockCode: string): [Stock]
  * }
  * </pre>
+ *
+ * @deprecated Use {@link org.eclipse.microprofile.graphql.Subscription} instead.
+ *             This annotation has been added to the MicroProfile GraphQL specification
+ *             and this SmallRye-specific version will be removed in a future release.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

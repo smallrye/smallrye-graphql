@@ -1,14 +1,9 @@
 package io.smallrye.graphql.test.apps.context.api;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import jakarta.inject.Inject;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonWriter;
 
 import org.eclipse.microprofile.context.ThreadContext;
 import org.eclipse.microprofile.graphql.DefaultValue;
@@ -17,6 +12,8 @@ import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
 import io.smallrye.graphql.api.Context;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 @GraphQLApi
 public class ContextApi {
@@ -89,14 +86,11 @@ public class ContextApi {
                         threadContext.currentContextExecutor()));
     }
 
-    private String toString(JsonArray jsonArray) {
-        try (StringWriter sw = new StringWriter();
-                JsonWriter writer = Json.createWriter(sw)) {
-            writer.writeArray(jsonArray);
-            writer.close();
-            return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+    private String toString(ArrayNode arrayNode) {
+        try {
+            return new ObjectMapper().writeValueAsString(arrayNode);
+        } catch (tools.jackson.core.JacksonException e) {
+            throw new RuntimeException(e);
         }
     }
 }
