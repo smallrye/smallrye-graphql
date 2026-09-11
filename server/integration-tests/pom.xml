@@ -37,6 +37,15 @@
                     <groupId>javax.annotation</groupId>
                     <artifactId>javax.annotation-api</artifactId>
                 </exclusion>
+                <!-- RESTEasy (6.2.18+, pulled in via smallrye-testing 2.5.1) drags in the legacy
+                     org.jboss:jandex, which shares the org.jboss.jandex package with io.smallrye:jandex
+                     and shadows it on the classpath, breaking schema building (NoSuchMethodError for
+                     ClassInfo.hasDeclaredAnnotation). Exclude it so only io.smallrye:jandex is used.
+                     FIXME: after updating smallrye-testing further, check if this workaround can be removed -->
+                <exclusion>
+                    <groupId>org.jboss</groupId>
+                    <artifactId>jandex</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
