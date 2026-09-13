@@ -1,13 +1,15 @@
 package io.smallrye.graphql.client.impl.core.utils;
 
-import java.lang.reflect.Array;
-import java.time.LocalDate;
-import java.util.UUID;
-
+import io.smallrye.graphql.api.CustomFloatScalar;
+import io.smallrye.graphql.api.CustomIntScalar;
+import io.smallrye.graphql.api.CustomStringScalar;
 import io.smallrye.graphql.client.core.exceptions.BuildException;
 import io.smallrye.graphql.client.impl.core.EnumImpl;
 import io.smallrye.graphql.client.impl.core.InputObjectImpl;
 import io.smallrye.graphql.client.impl.core.VariableImpl;
+import java.lang.reflect.Array;
+import java.time.LocalDate;
+import java.util.UUID;
 
 public class ValueFormatter {
 
@@ -39,6 +41,15 @@ public class ValueFormatter {
             return _processArray(value);
         } else if (value instanceof Iterable) {
             return _processIterable((Iterable<?>) value);
+        } else if (value instanceof CustomStringScalar) {
+            CustomStringScalar css = (CustomStringScalar) value;
+            return _getAsQuotedString(String.valueOf(css.stringValueForSerialization()));
+        } else if (value instanceof CustomIntScalar) {
+            CustomIntScalar cis = (CustomIntScalar) value;
+            return cis.intValueForSerialization().toString();
+        } else if (value instanceof CustomFloatScalar) {
+            CustomFloatScalar cfs = (CustomFloatScalar) value;
+            return cfs.floatValueForSerialization().toString();
         } else {
             if (assignableFrom(value.getClass(), QUOTED_VALUES)) {
                 return _getAsQuotedString(String.valueOf(value));
