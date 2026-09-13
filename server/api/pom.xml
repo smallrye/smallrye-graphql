@@ -45,10 +45,10 @@
             <artifactId>smallrye-common-annotation</artifactId>
         </dependency>
         
-        <!-- From other MP Platform apis -->
+        <!-- Jackson for Context API types -->
         <dependency>
-            <groupId>jakarta.json</groupId>
-            <artifactId>jakarta.json-api</artifactId>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

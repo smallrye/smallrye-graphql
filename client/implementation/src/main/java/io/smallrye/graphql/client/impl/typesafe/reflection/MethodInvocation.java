@@ -25,7 +25,6 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.api.Namespace;
-import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.model.MethodKey;
 import io.smallrye.graphql.client.typesafe.api.Multiple;
@@ -67,7 +66,8 @@ public class MethodInvocation implements NamedElement {
         if (method.isAnnotationPresent(Mutation.class)) {
             return OperationType.MUTATION;
         }
-        if (method.isAnnotationPresent(Subscription.class)) {
+        if (method.isAnnotationPresent(org.eclipse.microprofile.graphql.Subscription.class)
+                || method.isAnnotationPresent(io.smallrye.graphql.api.Subscription.class)) {
             return OperationType.SUBSCRIPTION;
         }
         return OperationType.QUERY;
@@ -99,9 +99,18 @@ public class MethodInvocation implements NamedElement {
     }
 
     private Optional<String> subscriptionName() {
-        Subscription annotation = method.getAnnotation(Subscription.class);
-        if (annotation != null && !annotation.value().isEmpty())
-            return Optional.of(annotation.value());
+        // Check MicroProfile annotation first (preferred)
+        org.eclipse.microprofile.graphql.Subscription mpAnnotation = method
+                .getAnnotation(org.eclipse.microprofile.graphql.Subscription.class);
+        if (mpAnnotation != null && !mpAnnotation.value().isEmpty())
+            return Optional.of(mpAnnotation.value());
+
+        // Fall back to deprecated SmallRye annotation
+        io.smallrye.graphql.api.Subscription srAnnotation = method
+                .getAnnotation(io.smallrye.graphql.api.Subscription.class);
+        if (srAnnotation != null && !srAnnotation.value().isEmpty())
+            return Optional.of(srAnnotation.value());
+
         return Optional.empty();
     }
 

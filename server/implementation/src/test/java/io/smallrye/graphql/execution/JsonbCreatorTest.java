@@ -2,13 +2,11 @@ package io.smallrye.graphql.execution;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.test.jsonbCreator.CreatorApi;
+import tools.jackson.databind.node.ObjectNode;
 
 public class JsonbCreatorTest extends ExecutionTestBase {
 
@@ -18,97 +16,97 @@ public class JsonbCreatorTest extends ExecutionTestBase {
 
     @Test
     public void testWithValue() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  withJsonbCreator(input: {field: \"A\"}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("withJsonbCreator");
+        ObjectNode testObject = (ObjectNode) data.get("withJsonbCreator");
         assertNotNull(testObject);
 
-        String field = testObject.getJsonString("field").getString();
+        String field = testObject.get("field").asText();
         assertEquals("A", field);
     }
 
     @Test
     public void testWithStaticFactory() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  withStaticFactory(input: {field: \"A\"}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("withStaticFactory");
+        ObjectNode testObject = (ObjectNode) data.get("withStaticFactory");
         assertNotNull(testObject);
 
-        String field = testObject.getJsonString("field").getString();
+        String field = testObject.get("field").asText();
         assertEquals("A", field);
     }
 
     @Test
     public void testWithMissingValue() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  withJsonbCreator(input: {}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("withJsonbCreator");
+        ObjectNode testObject = (ObjectNode) data.get("withJsonbCreator");
 
         assertNotNull(testObject);
-        assertEquals(JsonValue.ValueType.NULL, testObject.get("field").getValueType());
+        assertTrue(testObject.get("field").isNull());
     }
 
     @Test
     public void testWithTransformation() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  creatorWithTransformation(input: {field: \"1\"}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("creatorWithTransformation");
+        ObjectNode testObject = (ObjectNode) data.get("creatorWithTransformation");
         assertNotNull(testObject);
 
-        String field = testObject.getJsonString("field").getString();
+        String field = testObject.get("field").asText();
         assertEquals("1", field);
     }
 
     @Test
     public void testWithDefault() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  creatorWithFieldDefault(input: {}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("creatorWithFieldDefault");
+        ObjectNode testObject = (ObjectNode) data.get("creatorWithFieldDefault");
 
         assertNotNull(testObject);
 
-        String field = testObject.getJsonString("field").getString();
+        String field = testObject.get("field").asText();
         assertEquals("Some value", field);
     }
 
     @Test
     public void testWithParameterDefault() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  creatorWithParameterDefault(input: {}) {\n"
                 + "    field\n"
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("creatorWithParameterDefault");
+        ObjectNode testObject = (ObjectNode) data.get("creatorWithParameterDefault");
         assertNotNull(testObject);
 
-        String field = testObject.getJsonString("field").getString();
+        String field = testObject.get("field").asText();
         assertEquals("Some value", field);
     }
 
     @Test
     public void testWithMultipleParameters() {
-        JsonObject data = executeAndGetData("{\n"
+        ObjectNode data = executeAndGetData("{\n"
                 + "  creatorWithMultipleParameters(input: {string: \"Foobar\", localDate:\"2021-01-01\"}) {\n"
                 + "    string\n"
                 + "    integer\n"
@@ -116,16 +114,15 @@ public class JsonbCreatorTest extends ExecutionTestBase {
                 + "  }\n"
                 + "}");
 
-        JsonObject testObject = data.getJsonObject("creatorWithMultipleParameters");
+        ObjectNode testObject = (ObjectNode) data.get("creatorWithMultipleParameters");
         assertNotNull(testObject);
 
-        String string = testObject.getJsonString("string").getString();
+        String string = testObject.get("string").asText();
         assertEquals("Foobar", string);
 
-        JsonValue integer = testObject.get("integer");
-        assertEquals(JsonValue.ValueType.NULL, integer.getValueType());
+        assertTrue(testObject.has("integer") && testObject.get("integer").isNull());
 
-        String localDate = testObject.getJsonString("localDate").getString();
+        String localDate = testObject.get("localDate").asText();
         assertEquals("2021-01-01", localDate);
     }
 }
