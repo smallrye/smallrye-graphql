@@ -130,11 +130,13 @@ jobs:
 
       - name: run Quarkus tests
         run: |
+          # add scalpel.enabled=false because scalpel detects a base branch using the GITHUB_BASE_REF=main variable which is passed into CI and that makes it 
+          # skip all modules in the build because it detects zero changes compared to that branch
           SMALLRYE_VERSION=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' smallrye-graphql/pom.xml) && \
           echo "SMALLRYE_VERSION=$SMALLRYE_VERSION" && \
           cd quarkus && \
-          ./mvnw -B install -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dquickly && \
-          ./mvnw -B verify -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dnative \
+          ./mvnw -B install -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dquickly -Dscalpel.enabled=false && \
+          ./mvnw -B verify -Dsmallrye-graphql.version=$SMALLRYE_VERSION -Dnative -Dscalpel.enabled=false \
             -pl extensions/smallrye-graphql-client/deployment,extensions/smallrye-graphql-client/runtime,extensions/smallrye-graphql/deployment,extensions/smallrye-graphql/runtime,integration-tests/smallrye-graphql,integration-tests/smallrye-graphql-client,integration-tests/hibernate-orm-graphql-panache,extensions/oidc-client-graphql/deployment,extensions/oidc-client-graphql/runtime,tcks/microprofile-graphql -Ptcks
 
   quality:
