@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import jakarta.json.JsonValue;
+
 import io.smallrye.graphql.client.Request;
 import io.smallrye.graphql.jackson.jsonb.JsonbCompatModule;
 import tools.jackson.core.JacksonException;
@@ -105,6 +107,8 @@ public class RequestImpl implements Request {
                 node.putNull(k);
             } else if (v instanceof JsonNode) {
                 node.set(k, (JsonNode) v);
+            } else if (v instanceof JsonValue) {
+                node.set(k, MAPPER.readTree(v.toString()));
             } else {
                 node.set(k, MAPPER.valueToTree(v));
             }

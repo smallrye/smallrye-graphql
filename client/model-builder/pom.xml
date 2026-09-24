@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-client-parent</artifactId>
-        <version>3.0.0.Beta-SNAPSHOT</version>
+        <version>3.0.0.Beta-jsonfields-SNAPSHOT</version>
     </parent>
 
     <artifactId>smallrye-graphql-client-model-builder</artifactId>
@@ -54,6 +54,16 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
             <version>${version.kotlin}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

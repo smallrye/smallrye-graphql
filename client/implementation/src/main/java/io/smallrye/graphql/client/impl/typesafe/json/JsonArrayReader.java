@@ -27,7 +27,8 @@ class JsonArrayReader extends Reader<ArrayNode> {
 
     @Override
     Object read() {
-        GraphQLClientValueHelper.check(location, value, type.isCollection());
+        boolean isCollection = type.isCollection();
+        GraphQLClientValueHelper.check(location, value, isCollection);
         IndexedLocationBuilder locationBuilder = new IndexedLocationBuilder(location);
         return StreamSupport.stream(value.spliterator(), false)
                 .map(item -> readItem(locationBuilder, item))

@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye</groupId>
         <artifactId>smallrye-graphql-client-parent</artifactId>
-        <version>3.0.0.Beta-SNAPSHOT</version>
+        <version>3.0.0.Beta-jsonfields-SNAPSHOT</version>
     </parent>
 
     <artifactId>smallrye-graphql-client-tck</artifactId>
@@ -86,6 +86,11 @@
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-graphql-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <version>1.1.9</version>
         </dependency>
     </dependencies>
 </project>

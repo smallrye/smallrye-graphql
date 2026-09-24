@@ -1,31 +1,25 @@
 package tck.graphql.typesafe;
 
-import static java.time.ZoneOffset.UTC;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.assertj.core.api.BDDAssertions.then;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import jakarta.json.Json;
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.JsonNodeFactory;
 
-import io.smallrye.graphql.client.InvalidResponseException;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.BDDAssertions.then;
 
 class ScalarBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();
@@ -40,79 +34,11 @@ class ScalarBehavior {
         Boolean bool(Boolean in);
     }
 
-    @Nested
-    class BooleanBehavior {
-        @Test
-        void shouldCallBoolQuery() {
-            fixture.returnsData("'bool':true");
-            BoolApi api = fixture.build(BoolApi.class);
+    @GraphQLClientApi
+    interface JsonNodeApi {
+        Giraffe giraffe();
 
-            boolean bool = api.bool(true);
-
-            then(fixture.query()).isEqualTo("query bool($in: Boolean!) { bool(in: $in) }");
-            then(bool).isTrue();
-        }
-
-        @Test
-        void shouldFailToAssignNullToBool() {
-            fixture.returnsData("'bool':null");
-            BoolApi api = fixture.build(BoolApi.class);
-
-            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
-
-            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: null");
-        }
-
-        @Test
-        void shouldFailToAssignStringToBool() {
-            fixture.returnsData("'bool':'xxx'");
-            BoolApi api = fixture.build(BoolApi.class);
-
-            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
-
-            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: \"xxx\"");
-        }
-
-        @Test
-        void shouldFailToAssignNumberToBool() {
-            fixture.returnsData("'bool':123");
-            BoolApi api = fixture.build(BoolApi.class);
-
-            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
-
-            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: 123");
-        }
-
-        @Test
-        void shouldFailToAssignListToBool() {
-            fixture.returnsData("'bool':[123]");
-            BoolApi api = fixture.build(BoolApi.class);
-
-            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
-
-            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: [123]");
-        }
-
-        @Test
-        void shouldFailToAssignObjectToBool() {
-            fixture.returnsData("'bool':{'foo':'bar'}");
-            BoolApi api = fixture.build(BoolApi.class);
-
-            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
-
-            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: {\"foo\":\"bar\"}");
-        }
-
-        @Test
-        void shouldCallBooleanQuery() {
-            fixture.returnsData("'bool':true");
-            BooleanApi api = fixture.build(BooleanApi.class);
-
-            Boolean bool = api.bool(true);
-
-            then(fixture.query()).isEqualTo("query bool($in: Boolean) { bool(in: $in) }");
-            then(bool).isTrue();
-        }
+        Zebra zebra();
     }
 
     @GraphQLClientApi
@@ -1148,6 +1074,153 @@ class ScalarBehavior {
             then(fixture.query()).isEqualTo("query foo($uuid: NestedUuidIdInput) { foo(uuid: $uuid) {id} }");
             then(fixture.variables()).isEqualTo("{'uuid':{'id':'" + in.id + "'}}");
             then(value.id).isEqualTo(out.id);
+        }
+    }
+
+    @Nested
+    class BooleanBehavior {
+        @Test
+        void shouldCallBoolQuery() {
+            fixture.returnsData("'bool':true");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            boolean bool = api.bool(true);
+
+            then(fixture.query()).isEqualTo("query bool($in: Boolean!) { bool(in: $in) }");
+            then(bool).isTrue();
+        }
+
+        @Test
+        void shouldFailToAssignNullToBool() {
+            fixture.returnsData("'bool':null");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
+
+            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: null");
+        }
+
+        @Test
+        void shouldFailToAssignStringToBool() {
+            fixture.returnsData("'bool':'xxx'");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
+
+            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: \"xxx\"");
+        }
+
+        @Test
+        void shouldFailToAssignNumberToBool() {
+            fixture.returnsData("'bool':123");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
+
+            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: 123");
+        }
+
+        @Test
+        void shouldFailToAssignListToBool() {
+            fixture.returnsData("'bool':[123]");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
+
+            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: [123]");
+        }
+
+        @Test
+        void shouldFailToAssignObjectToBool() {
+            fixture.returnsData("'bool':{'foo':'bar'}");
+            BoolApi api = fixture.build(BoolApi.class);
+
+            InvalidResponseException thrown = catchThrowableOfType(() -> api.bool(true), InvalidResponseException.class);
+
+            then(thrown).hasMessage("invalid boolean value for " + BoolApi.class.getName() + "#bool: {\"foo\":\"bar\"}");
+        }
+
+        @Test
+        void shouldCallBooleanQuery() {
+            fixture.returnsData("'bool':true");
+            BooleanApi api = fixture.build(BooleanApi.class);
+
+            Boolean bool = api.bool(true);
+
+            then(fixture.query()).isEqualTo("query bool($in: Boolean) { bool(in: $in) }");
+            then(bool).isTrue();
+        }
+    }
+
+    @Nested
+    class JsonBehavior {
+        @Test
+        void shouldCallJsonNodeQuery() {
+            JsonNodeApi api = fixture.build(JsonNodeApi.class);
+
+            // then check frank again
+            Giraffe frank = new Giraffe();
+            frank.setHeight(25.2);
+            frank.setName("frank");
+            frank.setMeta(JsonNodeFactory.instance.objectNode().put("base_colour", "yellow").put("spots", "many"));
+            fixture.returnsData("'giraffe': {'name':'frank', 'height': 25.2, 'meta': {'base_colour':'yellow','spots':'many'}}");
+            Giraffe value = api.giraffe();
+
+            then(value).isEqualTo(frank);
+
+            // then check alfred again
+            Giraffe alfred = new Giraffe();
+            alfred.setHeight(12.34);
+            alfred.setName("alfred");
+            alfred.setMeta(JsonNodeFactory.instance
+                    .arrayNode()
+                    .add(JsonNodeFactory.instance
+                            .objectNode()
+                            .put("base_colour", "yellow").put("spots", "not-as-many")));
+            fixture.returnsData(
+                    "'giraffe': {'name':'alfred', 'height': 12.34, 'meta': [{'base_colour':'yellow','spots':'not-as-many'}]}");
+            value = api.giraffe();
+
+            then(value).isEqualTo(alfred);
+        }
+
+        @Test
+        void shouldCallJsonValueQuery() {
+            // first: check john: could be removed later
+            Zebra carl = new Zebra();
+            carl.setName("carl");
+            carl.setHorns(0);
+            carl.setMeta(Json.createArrayBuilder()
+                    .add(Json.createObjectBuilder()
+                            .add("base_colour", "white")
+                            .add("spots", "none")
+                            .add("stripes", "bigillions")
+                            .build())
+                    .build());
+            fixture.returnsData(
+                    "'zebra': {'name':'carl', 'horns': 0, 'meta': [{'base_colour':'white','spots':'none','stripes':'bigillions'}]}");
+
+            JsonNodeApi api = fixture.build(JsonNodeApi.class);
+            Zebra value = api.zebra();
+
+            then(fixture.query()).isEqualTo("query zebra { zebra {name horns meta} }");
+            then(value).isEqualTo(carl);
+
+            Zebra harold = new Zebra();
+            harold.setName("harold");
+            harold.setHorns(2);
+            harold.setMeta(Json.createObjectBuilder()
+                    .add("base_colour", "white")
+                    .add("spots", "none")
+                    .add("stripes", "horizontal?!")
+                    .build());
+            fixture.returnsData(
+                    "'zebra': {'name':'harold', 'horns': 2, 'meta': {'base_colour':'white','spots':'none','stripes':'horizontal?!'}}");
+
+            value = api.zebra();
+
+            then(fixture.query()).isEqualTo("query zebra { zebra {name horns meta} }");
+            then(value).isEqualTo(harold);
         }
     }
 }
