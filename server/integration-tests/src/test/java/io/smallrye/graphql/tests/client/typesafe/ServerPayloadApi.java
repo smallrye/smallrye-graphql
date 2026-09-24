@@ -6,6 +6,7 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.execution.context.SmallRyeContext;
+import tools.jackson.databind.json.JsonMapper;
 
 @GraphQLApi
 public class ServerPayloadApi {
@@ -14,12 +15,11 @@ public class ServerPayloadApi {
 
     @Query
     public String getPayloadResult(String value) {
-        if (!(smallRyeContext
+        Object initPayload = smallRyeContext
                 .getDataFetchingEnvironment()
                 .getGraphQlContext()
-                .get("init-payload")
-                .toString())
-                .equals(value)) {
+                .get("init-payload");
+        if (!JsonMapper.shared().writeValueAsString(initPayload).equals(value)) {
             throw new RuntimeException();
         }
         return "ok";
