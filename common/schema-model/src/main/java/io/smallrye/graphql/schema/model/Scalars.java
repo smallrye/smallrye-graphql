@@ -137,6 +137,8 @@ public class Scalars {
         populateScalar(URL.class.getName(), STRING, String.class.getName());
         populateScalar(URI.class.getName(), STRING, String.class.getName());
         populateScalar("org.bson.types.ObjectId", STRING, String.class.getName());
+        populateScalar("tools.jackson.databind.node.ObjectNode", STRING, String.class.getName());
+        populateScalar("tools.jackson.databind.node.ArrayNode", STRING, String.class.getName());
 
         // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);

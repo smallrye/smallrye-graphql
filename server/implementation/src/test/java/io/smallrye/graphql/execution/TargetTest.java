@@ -4,13 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.test.targetinput.TargetApi;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TargetTest extends ExecutionTestBase {
     @Override
@@ -20,44 +18,41 @@ public class TargetTest extends ExecutionTestBase {
 
     @Test
     public void shouldExecuteTargetMethodForInputField() {
-        JsonObject response = executeAndGetResult(TARGET_MUTATION, null);
-        JsonArray errors = response.getJsonArray("errors");
-        JsonObject data = response.getJsonObject("data");
-
-        JsonObject result = data.getJsonObject("save");
-        assertEquals("SmallRye", result.getString("title"));
-        assertEquals("target:SmallRye:GraphQL", result.getString("value"));
-        assertNull(errors);
+        ObjectNode response = executeAndGetResult(TARGET_MUTATION, null);
+        ObjectNode result = (ObjectNode) response.get("data").get("save");
+        assertEquals("SmallRye", result.get("title").asText());
+        assertEquals("target:SmallRye:GraphQL", result.get("value").asText());
+        assertNull(response.get("errors"));
     }
 
     @Test
     public void shouldNotExecuteTargetMethodWhenInputFieldIsOmitted() {
-        JsonObject response = executeAndGetResult(TARGET_OMITTED_MUTATION, null);
-        JsonObject result = response.getJsonObject("data").getJsonObject("save");
+        ObjectNode response = executeAndGetResult(TARGET_OMITTED_MUTATION, null);
+        ObjectNode result = (ObjectNode) response.get("data").get("save");
 
-        assertEquals("SmallRye", result.getString("title"));
-        assertTrue(result.isNull("value"));
-        assertNull(response.getJsonArray("errors"));
+        assertEquals("SmallRye", result.get("title").asText());
+        assertTrue(result.get("value").isNull());
+        assertNull(response.get("errors"));
     }
 
     @Test
     public void shouldTransformTargetInputFieldValue() {
-        JsonObject response = executeAndGetResult(TARGET_NUMBER_MUTATION, null);
-        JsonObject result = response.getJsonObject("data").getJsonObject("save");
+        ObjectNode response = executeAndGetResult(TARGET_NUMBER_MUTATION, null);
+        ObjectNode result = (ObjectNode) response.get("data").get("save");
 
-        assertEquals("SmallRye", result.getString("title"));
-        assertEquals("number:42", result.getString("value"));
-        assertNull(response.getJsonArray("errors"));
+        assertEquals("SmallRye", result.get("title").asText());
+        assertEquals("number:42", result.get("value").asText());
+        assertNull(response.get("errors"));
     }
 
     @Test
     public void shouldInjectContextIntoTargetMethod() {
-        JsonObject response = executeAndGetResult(TARGET_CONTEXT_MUTATION, null);
-        JsonObject result = response.getJsonObject("data").getJsonObject("save");
+        ObjectNode response = executeAndGetResult(TARGET_CONTEXT_MUTATION, null);
+        ObjectNode result = (ObjectNode) response.get("data").get("save");
 
-        assertEquals("SmallRye", result.getString("title"));
-        assertEquals("context:save:GraphQL", result.getString("value"));
-        assertNull(response.getJsonArray("errors"));
+        assertEquals("SmallRye", result.get("title").asText());
+        assertEquals("context:save:GraphQL", result.get("value").asText());
+        assertNull(response.get("errors"));
     }
 
     private static final String TARGET_MUTATION = "mutation {\n" +
