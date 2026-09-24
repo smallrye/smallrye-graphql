@@ -239,7 +239,7 @@ public class OperationModel implements NamedElement {
     /**
      * Gets the name of the GraphQL subscription, considering any {@code @Subscription} annotation
      * (either {@link org.eclipse.microprofile.graphql.Subscription} or
-     * {@link io.smallrye.graphql.api.Subscription}).
+     * {@code io.smallrye.graphql.api.Subscription}).
      *
      * @return An optional containing the subscription name if specified, otherwise empty.
      */
