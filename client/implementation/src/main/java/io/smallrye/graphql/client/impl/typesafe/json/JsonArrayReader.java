@@ -1,7 +1,11 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
+import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
+import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -9,12 +13,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.StreamSupport;
 
-import io.smallrye.graphql.client.InvalidResponseException;
-import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
-import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
-import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 class JsonArrayReader extends Reader<ArrayNode> {
 
@@ -27,8 +27,7 @@ class JsonArrayReader extends Reader<ArrayNode> {
 
     @Override
     Object read() {
-        boolean isCollection = type.isCollection();
-        GraphQLClientValueHelper.check(location, value, isCollection);
+        GraphQLClientValueHelper.check(location, value, type.isCollection());
         IndexedLocationBuilder locationBuilder = new IndexedLocationBuilder(location);
         return StreamSupport.stream(value.spliterator(), false)
                 .map(item -> readItem(locationBuilder, item))
