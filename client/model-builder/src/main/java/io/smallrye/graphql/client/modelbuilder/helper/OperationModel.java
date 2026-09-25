@@ -1,29 +1,22 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.MULTIPLE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.MUTATION;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.QUERY;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBCRIPTION;
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
+import jakarta.json.Json;
+import jakarta.json.stream.JsonParser;
+import org.jboss.jandex.*;
 
+import java.io.Reader;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.JandexReflection;
-import org.jboss.jandex.MethodInfo;
-
-import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.model.MethodKey;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents a model for a GraphQL operation method, providing methods to generate GraphQL query fields,
@@ -132,6 +125,20 @@ public class OperationModel implements NamedElement {
      */
     public String field(FieldModel field) {
         TypeModel type = field.getType();
+        if (!type.isPrimitive() && type.isScalar()) {
+            try {
+                if (jakarta.json.JsonValue.class.isAssignableFrom(Class.forName(field.getType().getName()))) {
+                    // is there any JsonParserImpl present?
+                    try (JsonParser parser = Json.createParser(Reader.nullReader())) {
+                    }
+                }
+            } catch (ClassNotFoundException ex) {
+                throw new UnsupportedOperationException(String.format("Class not found: %s", field.getType().getName()), ex);
+            } catch (jakarta.json.JsonException ex1) {
+                throw new UnsupportedOperationException(
+                        "JsonParserImpl not found: is Parsson present and loaded in the classpath?", ex1);
+            }
+        }
         if (type.isTypeVariable()) {
             type = rawParametrizedTypes.peek();
         }

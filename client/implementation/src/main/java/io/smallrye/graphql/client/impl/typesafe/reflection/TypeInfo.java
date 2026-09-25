@@ -1,50 +1,39 @@
 package io.smallrye.graphql.client.impl.typesafe.reflection;
 
-import static java.lang.reflect.Modifier.isStatic;
-import static java.lang.reflect.Modifier.isTransient;
-import static java.util.Objects.requireNonNull;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.AnnotatedParameterizedType;
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
-
-import jakarta.json.bind.annotation.JsonbSubtype;
-import jakarta.json.bind.annotation.JsonbTransient;
-import jakarta.json.bind.annotation.JsonbTypeInfo;
-
-import org.eclipse.microprofile.graphql.Ignore;
-import org.eclipse.microprofile.graphql.NonNull;
-
 import io.smallrye.graphql.api.Union;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import jakarta.json.bind.annotation.JsonbSubtype;
+import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbTypeInfo;
+import org.eclipse.microprofile.graphql.Ignore;
+import org.eclipse.microprofile.graphql.NonNull;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
+
+import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Modifier.isTransient;
+import static java.util.Objects.requireNonNull;
 
 public class TypeInfo {
     private static final Class<? extends Annotation> JACKSON_JSON_IGNORE = findAnnotation(
@@ -250,7 +239,9 @@ public class TypeInfo {
         return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 
-    /** Modifier.isSynthetic is package private */
+    /**
+     * Modifier.isSynthetic is package private
+     */
     private static boolean isSynthetic(int mod) {
         return (mod & 0x00001000) != 0;
     }
@@ -277,9 +268,13 @@ public class TypeInfo {
         return isAnnotated(Union.class);
     }
 
-    /** Is this a <em>GraphQL</em> Interface, i.e. a Java interface without a <code>&#64;Union</code> annotation */
+    /**
+     * Is this a <em>GraphQL</em> Interface, i.e. a Java interface without a <code>&#64;Union</code> annotation
+     */
     public boolean isInterface() {
-        return getRawType().isInterface() && !isUnion();
+        return getRawType().isInterface() && !isUnion()
+                && !jakarta.json.JsonValue.class.equals(getRawType())
+                && !JsonNode.class.equals(getRawType());
     }
 
     public boolean isScalar() {
@@ -296,7 +291,8 @@ public class TypeInfo {
                 || scalarConstructor().isPresent()
                 || java.util.OptionalInt.class.equals(getRawType())
                 || java.util.OptionalLong.class.equals(getRawType())
-                || java.util.OptionalDouble.class.equals(getRawType());
+                || java.util.OptionalDouble.class.equals(getRawType())
+                || isJson();
     }
 
     public boolean isPrimitive() {
@@ -315,6 +311,48 @@ public class TypeInfo {
         } else {
             return ifClass(Class::isEnum);
         }
+    }
+
+    public boolean isJson() {
+        return isJsonObject()
+                || isJsonArray()
+                || JsonNode.class.isAssignableFrom(getRawType())
+                || JsonValue.class.isAssignableFrom(getRawType());
+    }
+
+    public boolean isJakartaJson() {
+        return JsonObject.class.isAssignableFrom(getRawType())
+                || JsonArray.class.isAssignableFrom(getRawType())
+                || JsonValue.class.isAssignableFrom(getRawType());
+    }
+
+    public Object buildJson() {
+        if (JsonObject.class.isAssignableFrom(getRawType())) {
+            return Json.createObjectBuilder().build();
+        }
+        if (JsonArray.class.isAssignableFrom(getRawType())) {
+            return Json.createArrayBuilder().build();
+        }
+        if (ObjectNode.class.isAssignableFrom(getRawType())) {
+            return JsonNodeFactory.instance.objectNode();
+        }
+        if (ArrayNode.class.isAssignableFrom(getRawType())) {
+            return JsonNodeFactory.instance.arrayNode();
+        }
+        if (JsonValue.class.isAssignableFrom(getRawType())) {
+            return Json.createObjectBuilder().build();
+        }
+        return JsonNodeFactory.instance.objectNode();
+    }
+
+    public boolean isJsonObject() {
+        return JsonObject.class.isAssignableFrom(getRawType())
+                || ObjectNode.class.isAssignableFrom(getRawType());
+    }
+
+    public boolean isJsonArray() {
+        return JsonArray.class.isAssignableFrom(getRawType())
+                || ArrayNode.class.isAssignableFrom(getRawType());
     }
 
     public Optional<ConstructionInfo> scalarConstructor() {
@@ -343,11 +381,14 @@ public class TypeInfo {
 
     public Object newInstance(Object[] args) {
         try {
-            if (args.length == 0) {
+            if (args.length == 0 && !isJson()) {
                 Constructor<?> noArgsConstructor = getDeclaredConstructor(getRawType());
                 noArgsConstructor.setAccessible(true);
                 return noArgsConstructor.newInstance();
             } else {
+                if (isJson()) {
+                    return buildJson();
+                }
                 Class<?> rawType = getRawType();
                 Optional<Constructor<?>> constructor = Arrays.stream(rawType.getDeclaredConstructors())
                         .filter(c -> !c.getDeclaringClass().equals(Class.class))
@@ -412,14 +453,18 @@ public class TypeInfo {
         return this.itemType;
     }
 
-    /** Get the type of keys included in this Map. This only works when this type is a Map */
+    /**
+     * Get the type of keys included in this Map. This only works when this type is a Map
+     */
     public TypeInfo getKeyType() {
         if (keyType == null)
             keyType = new TypeInfo(this, computeParameterType(0), computeAnnotatedItemType());
         return this.keyType;
     }
 
-    /** Get the type of values included in this Map. This only works when this type is a Map */
+    /**
+     * Get the type of values included in this Map. This only works when this type is a Map
+     */
     public TypeInfo getValueType() {
         if (valueType == null)
             valueType = new TypeInfo(this, computeParameterType(1), computeAnnotatedItemType());
@@ -488,7 +533,9 @@ public class TypeInfo {
         return enclosingTypes().anyMatch(that::equals);
     }
 
-    /** <code>this</code> and all enclosing types, i.e. the types this type is nested in. */
+    /**
+     * <code>this</code> and all enclosing types, i.e. the types this type is nested in.
+     */
     public Stream<TypeInfo> enclosingTypes() {
         // requires JDK 9: return Stream.iterate(this, TypeInfo::hasEnclosingType, TypeInfo::enclosingType);
         Builder<TypeInfo> builder = Stream.builder();
