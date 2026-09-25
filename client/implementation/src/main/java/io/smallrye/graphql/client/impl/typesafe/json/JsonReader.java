@@ -11,6 +11,7 @@ import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParser;
+import org.jboss.logging.Logger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -43,6 +44,8 @@ public class JsonReader extends Reader<JsonNode> {
         super(type, location, value, field);
     }
 
+    private static final Logger log = Logger.getLogger(JsonReader.class);
+
     @Override
     Object read() {
         if (type.isOptional())
@@ -60,14 +63,27 @@ public class JsonReader extends Reader<JsonNode> {
             return value;
         }
         if (type.isJakartaJson()) {
-            JsonValue result = null;
-            JsonParser parser = Json.createParser(new StringReader(value.toString()));
-            while (parser.hasNext()) {
-                JsonParser.Event event = parser.next();
-                result = parser.getValue();
+            try {
+                try (JsonParser parser = Json.createParser(new StringReader(value.toString()))) {
+                    JsonValue result = null;
+                    int i = 0;
+                    while (parser.hasNext()) {
+                        if (i != 0) {
+                            throw new IllegalArgumentException(
+                                    "the parser got an unexpected number of elements for \"" + field + "\": expected 1");
+                        }
+                        // it should be one
+                        JsonParser.Event event = parser.next();
+                        result = parser.getValue();
+                        ++i;
+                    }
+                    parser.close();
+                    return result;
+                }
+            } catch (jakarta.json.JsonException ex) {
+                throw new UnsupportedOperationException(
+                        "Unable to create JsonParser: is Parsson present and loaded in the classpath?", ex);
             }
-            parser.close();
-            return result;
         }
         Reader<?> reader = reader(location);
         Object result = reader.read();
