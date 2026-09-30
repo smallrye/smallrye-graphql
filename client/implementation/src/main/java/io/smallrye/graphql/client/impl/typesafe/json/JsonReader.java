@@ -59,37 +59,42 @@ public class JsonReader extends Reader<JsonNode> {
             throw new IllegalArgumentException("TypesafeResponse type should be only on the highest level of recursion");
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
-        if (type.isJson() && !type.isJakartaJson()) {
+
+        if (type.isJson()) {
+            if (type.isJakartaJson()) {
+                return extractFieldValue(value);
+            }
             return value;
         }
-        if (type.isJakartaJson()) {
-            try {
-                try (JsonParser parser = Json.createParser(new StringReader(value.toString()))) {
-                    JsonValue result = null;
-                    int i = 0;
-                    while (parser.hasNext()) {
-                        if (i != 0) {
-                            throw new IllegalArgumentException(
-                                    "the parser got an unexpected number of elements for \"" + field + "\": expected 1");
-                        }
-                        // it should be one
-                        JsonParser.Event event = parser.next();
-                        result = parser.getValue();
-                        ++i;
-                    }
-                    parser.close();
-                    return result;
-                }
-            } catch (jakarta.json.JsonException ex) {
-                throw new UnsupportedOperationException(
-                        "Unable to create JsonParser: is Parsson present and loaded in the classpath?", ex);
-            }
-        }
+
         Reader<?> reader = reader(location);
         Object result = reader.read();
         if (type.isOptionalNumber() && result == null)
             return optionalNumberEmpty();
         return result;
+    }
+
+    private JsonValue extractFieldValue(JsonNode value) {
+        if (!JsonUtils.IS_PARSON_PRESENT) {
+            throw new UnsupportedOperationException(
+                    "Unable to create JsonParser: is Parsson present and loaded in the classpath?");
+        }
+        try (JsonParser parser = Json.createParser(new StringReader(value.toString()))) {
+            JsonValue result = null;
+            int i = 0;
+            while (parser.hasNext()) {
+                // it should be one
+                if (i != 0) {
+                    throw new IllegalArgumentException(
+                            String.format("too many elements in field \"%s\": expected 1", field.getName()));
+                }
+                JsonParser.Event event = parser.next();
+                result = parser.getValue();
+                ++i;
+            }
+            parser.close();
+            return result;
+        }
     }
 
     Object typesafeResponseRead() {

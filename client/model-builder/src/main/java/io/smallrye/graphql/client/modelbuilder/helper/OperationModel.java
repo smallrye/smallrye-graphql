@@ -2,11 +2,8 @@ package io.smallrye.graphql.client.modelbuilder.helper;
 
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.model.MethodKey;
-import jakarta.json.Json;
-import jakarta.json.stream.JsonParser;
 import org.jboss.jandex.*;
 
-import java.io.Reader;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -125,20 +122,9 @@ public class OperationModel implements NamedElement {
      */
     public String field(FieldModel field) {
         TypeModel type = field.getType();
-        if (!type.isPrimitive() && type.isScalar()) {
-            try {
-                if (jakarta.json.JsonValue.class.isAssignableFrom(Class.forName(field.getType().getName()))) {
-                    // is there any JsonParserImpl present?
-                    try (JsonParser parser = Json.createParser(Reader.nullReader())) {
-                    }
-                }
-            } catch (ClassNotFoundException ex) {
-                throw new UnsupportedOperationException(String.format("Class not found: %s", field.getType().getName()), ex);
-            } catch (jakarta.json.JsonException ex1) {
-                throw new UnsupportedOperationException(
-                        "JsonParserImpl not found: is Parsson present and loaded in the classpath?", ex1);
-            }
-        }
+
+        fieldNeedsParsson(field.getType());
+
         if (type.isTypeVariable()) {
             type = rawParametrizedTypes.peek();
         }
@@ -454,4 +440,16 @@ public class OperationModel implements NamedElement {
         return "... on " + type.getGraphQlTypeName() + fields(type);
     }
 
+    /**
+     * Checks if type could need Parsson to be present.
+     *
+     * @param type of the field
+     * @throws UnsupportedOperationException if type is jakarta.json.JsonStructure and Parsson is not present
+     */
+    private void fieldNeedsParsson(TypeModel type) {
+        if (!JsonUtils.IS_PARSON_PRESENT) {
+            if (type.isJakartaJson())
+                throw new UnsupportedOperationException("JsonParserImpl not found: is Parsson present and loaded in the classpath?");
+        }
+    }
 }
