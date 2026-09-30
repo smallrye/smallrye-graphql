@@ -339,10 +339,7 @@ public class TypeInfo {
         if (ArrayNode.class.isAssignableFrom(getRawType())) {
             return JsonNodeFactory.instance.arrayNode();
         }
-        if (JsonValue.class.isAssignableFrom(getRawType())) {
-            return Json.createObjectBuilder().build();
-        }
-        return JsonNodeFactory.instance.objectNode();
+        throw new UnsupportedOperationException("Field must be an object or an array");
     }
 
     public boolean isJsonObject() {
