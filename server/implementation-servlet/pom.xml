@@ -84,7 +84,12 @@
             <artifactId>jakarta.websocket-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+        <dependency>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-client-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.jboss.logging</groupId>
