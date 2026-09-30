@@ -347,6 +347,15 @@ public class OperationModel implements NamedElement {
     }
 
     /**
+     * Checks if the GraphQL operation needs Parsson to be present, e.i: returns a Jakarta Json
+     *
+     * @return {@code true} if the operation result needs Parsson, otherwise {@code false}.
+     */
+    public boolean needsParsson() {
+        return getReturnType().isJakartaJson();
+    }
+
+    /**
      * Gets the key for identifying the GraphQL operation method.
      *
      * @return The {@link MethodKey} representing the key for the operation method (name, parameters types).
@@ -449,7 +458,8 @@ public class OperationModel implements NamedElement {
     private void fieldNeedsParsson(TypeModel type) {
         if (!JsonUtils.IS_PARSON_PRESENT) {
             if (type.isJakartaJson())
-                throw new UnsupportedOperationException("JsonParserImpl not found: is Parsson present and loaded in the classpath?");
+                throw new UnsupportedOperationException(
+                        "JsonParserImpl not found: is Parsson present and loaded in the classpath?");
         }
     }
 }

@@ -1,21 +1,16 @@
 package io.smallrye.graphql.client.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import jakarta.json.JsonValue;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
+
+import java.util.*;
 
 public class ResponseImpl implements Response {
 
@@ -79,7 +74,7 @@ public class ResponseImpl implements Response {
             // field is present in the response, but is null
             return null;
         }
-        if (value.isObject()) {
+        if (value.isObject() || JsonNode.class.isAssignableFrom(dataType) || JsonValue.class.isAssignableFrom(dataType)) {
             return (T) JsonReader.readJson(rootField, TypeInfo.of(dataType), value, null);
         } else if (value.isArray()) {
             throw SmallRyeGraphQLClientMessages.msg.responseContainsArray(rootField);
