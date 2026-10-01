@@ -196,6 +196,10 @@ public class Classes {
     private static final DotName JAKARTA_JSON_ARRAY = DotName.createSimple(JsonArray.class.getName());
     private static final List<DotName> JAKARTA_JSONS = new ArrayList<>();
 
+
+    private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
+    private static final List<DotName> KNOWN_MAPS = new ArrayList<>();
+
     static {
         KNOWN_COLLECTIONS.add(COLLECTION);
         KNOWN_COLLECTIONS.add(LIST);
@@ -221,9 +225,6 @@ public class Classes {
         JAKARTA_JSONS.add(JAKARTA_JSON_OBJECT);
         JAKARTA_JSONS.add(JAKARTA_JSON_ARRAY);
     }
-
-    private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
-    private static final List<DotName> KNOWN_MAPS = new ArrayList<>();
 
     public static boolean isJakartaJson(Type type) {
         return JAKARTA_JSONS.contains(type.name());
