@@ -1,16 +1,17 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import jakarta.json.Json;
-import jakarta.json.stream.JsonParser;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.json.Json;
+import jakarta.json.stream.JsonParser;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class JsonUtils {
     public static Object toValue(JsonNode value) {
