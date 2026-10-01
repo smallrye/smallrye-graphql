@@ -3,7 +3,6 @@ package io.smallrye.graphql.client.modelbuilder.helper;
 import io.smallrye.graphql.client.modelbuilder.Annotations;
 import io.smallrye.graphql.client.modelbuilder.Classes;
 import io.smallrye.graphql.client.modelbuilder.Scalars;
-import jakarta.json.JsonValue;
 import org.jboss.jandex.*;
 
 import java.lang.reflect.Modifier;
@@ -25,8 +24,8 @@ import static java.util.stream.Collectors.toList;
  * @author mskacelik
  */
 public class TypeModel {
-    private Type type;
-    private boolean isJakartaJson;
+    private final Type type;
+    private final boolean isJakartaJson;
 
     /**
      * Factory method to create a TypeModel from a Jandex Type.
@@ -45,7 +44,7 @@ public class TypeModel {
      */
     TypeModel(Type type) {
         this.type = type;
-        this.isJakartaJson = JsonValue.class.isAssignableFrom(type.getClass());
+        this.isJakartaJson = Classes.isJakartaJson(type);
     }
 
     /**
