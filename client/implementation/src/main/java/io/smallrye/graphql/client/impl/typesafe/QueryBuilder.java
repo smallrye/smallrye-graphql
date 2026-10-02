@@ -1,16 +1,17 @@
 package io.smallrye.graphql.client.impl.typesafe;
 
-import static java.util.stream.Collectors.joining;
+import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
+import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
+import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
+import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
+import io.smallrye.graphql.client.impl.typesafe.reflection.ParameterInfo;
+import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
-import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
-import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
-import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
-import io.smallrye.graphql.client.impl.typesafe.reflection.ParameterInfo;
-import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import static java.util.stream.Collectors.joining;
 
 public class QueryBuilder {
     private final MethodInvocation method;
@@ -25,6 +26,11 @@ public class QueryBuilder {
         StringBuilder request = new StringBuilder(method.getOperationTypeAsString());
         request.append(" ");
         request.append(method.getOperationName());
+
+        if (method.needsParsson() && !JsonUtils.IS_PARSON_PRESENT) {
+            throw new IllegalStateException("JsonParserImpl not found: is Parsson present and loaded in the classpath?");
+        }
+
         if (method.hasValueParameters())
             request.append(method.valueParameters().map(this::declare).collect(joining(", ", "(", ")")));
 

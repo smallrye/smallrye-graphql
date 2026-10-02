@@ -1,12 +1,12 @@
 package io.smallrye.graphql.client.modelbuilder;
 
-import static io.smallrye.graphql.client.modelbuilder.helper.OperationModel.of;
-import static java.util.stream.Collectors.joining;
-
+import io.smallrye.graphql.client.modelbuilder.helper.DirectiveInstance;
+import io.smallrye.graphql.client.modelbuilder.helper.JsonUtils;
+import io.smallrye.graphql.client.modelbuilder.helper.OperationModel;
 import org.jboss.jandex.MethodInfo;
 
-import io.smallrye.graphql.client.modelbuilder.helper.DirectiveInstance;
-import io.smallrye.graphql.client.modelbuilder.helper.OperationModel;
+import static io.smallrye.graphql.client.modelbuilder.helper.OperationModel.of;
+import static java.util.stream.Collectors.joining;
 
 /**
  * A utility class for building GraphQL queries based on a given {@link MethodInfo} which will be scanned thanks
@@ -35,6 +35,11 @@ public class QueryBuilder {
         StringBuilder request = new StringBuilder(method.getOperationTypeAsString());
         request.append(" ");
         request.append(method.getOperationName());
+
+        if (method.needsParsson() && !JsonUtils.IS_PARSON_PRESENT) {
+            throw new IllegalStateException("JsonParserImpl not found: is Parsson present and loaded in the classpath?");
+        }
+
         if (method.hasValueParameters()) {
             request.append(method.valueParameters().stream().map(method::declare).collect(joining(", ", "(", ")")));
         }

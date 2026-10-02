@@ -1,17 +1,17 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static io.smallrye.graphql.client.impl.typesafe.json.GraphQLClientValueHelper.check;
-import static io.smallrye.graphql.client.impl.typesafe.json.JsonReader.readJson;
-import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.toMap;
-
-import java.util.Map;
-
 import io.smallrye.graphql.client.InvalidResponseException;
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
+
+import java.util.Map;
+
+import static io.smallrye.graphql.client.impl.typesafe.json.GraphQLClientValueHelper.check;
+import static io.smallrye.graphql.client.impl.typesafe.json.JsonReader.readJson;
+import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.toMap;
 
 class JsonObjectReader extends Reader<ObjectNode> {
     JsonObjectReader(TypeInfo type, Location location, ObjectNode value, FieldInfo field) {

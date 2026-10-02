@@ -1,14 +1,8 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.MULTIPLE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.MUTATION;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.QUERY;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBCRIPTION;
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
+import org.jboss.jandex.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -16,14 +10,10 @@ import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.JandexReflection;
-import org.jboss.jandex.MethodInfo;
-
-import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.model.MethodKey;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents a model for a GraphQL operation method, providing methods to generate GraphQL query fields,
@@ -132,6 +122,9 @@ public class OperationModel implements NamedElement {
      */
     public String field(FieldModel field) {
         TypeModel type = field.getType();
+
+        fieldNeedsParsson(field.getType());
+
         if (type.isTypeVariable()) {
             type = rawParametrizedTypes.peek();
         }
@@ -354,6 +347,15 @@ public class OperationModel implements NamedElement {
     }
 
     /**
+     * Checks if the GraphQL operation needs Parsson to be present, e.i: returns a Jakarta Json
+     *
+     * @return {@code true} if the operation result needs Parsson, otherwise {@code false}.
+     */
+    public boolean needsParsson() {
+        return getReturnType().isJakartaJson();
+    }
+
+    /**
      * Gets the key for identifying the GraphQL operation method.
      *
      * @return The {@link MethodKey} representing the key for the operation method (name, parameters types).
@@ -447,4 +449,17 @@ public class OperationModel implements NamedElement {
         return "... on " + type.getGraphQlTypeName() + fields(type);
     }
 
+    /**
+     * Checks if type could need Parsson to be present.
+     *
+     * @param type of the field
+     * @throws UnsupportedOperationException if type is jakarta.json.JsonStructure and Parsson is not present
+     */
+    private void fieldNeedsParsson(TypeModel type) {
+        if (!JsonUtils.IS_PARSON_PRESENT) {
+            if (type.isJakartaJson())
+                throw new UnsupportedOperationException(
+                        "JsonParserImpl not found: is Parsson present and loaded in the classpath?");
+        }
+    }
 }

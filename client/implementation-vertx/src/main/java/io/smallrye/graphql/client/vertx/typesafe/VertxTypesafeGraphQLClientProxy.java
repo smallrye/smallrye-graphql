@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import jakarta.json.JsonValue;
+
 import org.jboss.logging.Logger;
 
 import io.smallrye.graphql.client.InvalidResponseException;
@@ -393,6 +395,12 @@ class VertxTypesafeGraphQLClientProxy {
         }
         if (value instanceof BigDecimal) {
             return NODES.numberNode((BigDecimal) value);
+        }
+        if (value instanceof JsonNode) { // jackson jsonnode could be returned directly
+            return (JsonNode) value;
+        }
+        if (value instanceof JsonValue) { // Jsonb fields must be converted to string first
+            return MAPPER.readTree(value.toString());
         }
         if (value instanceof OptionalInt) {
             OptionalInt optionalValue = ((OptionalInt) value);

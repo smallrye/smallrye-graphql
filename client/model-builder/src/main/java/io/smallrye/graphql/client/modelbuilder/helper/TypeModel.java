@@ -1,17 +1,9 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.IGNORE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.JACKSON_IGNORE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.JAKARTA_JSONB_TRANSIENT;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.JAKARTA_JSONB_TYPE_INFO;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.TYPE;
-import static io.smallrye.graphql.client.modelbuilder.Annotations.UNION;
-import static io.smallrye.graphql.client.modelbuilder.Classes.ERROR_OR;
-import static io.smallrye.graphql.client.modelbuilder.Classes.OBJECT;
-import static io.smallrye.graphql.client.modelbuilder.Classes.OPTIONAL;
-import static io.smallrye.graphql.client.modelbuilder.Classes.TYPESAFE_RESPONSE;
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
-import static java.util.stream.Collectors.toList;
+import io.smallrye.graphql.client.modelbuilder.Annotations;
+import io.smallrye.graphql.client.modelbuilder.Classes;
+import io.smallrye.graphql.client.modelbuilder.Scalars;
+import org.jboss.jandex.*;
 
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
@@ -21,18 +13,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.FieldInfo;
-import org.jboss.jandex.MethodInfo;
-import org.jboss.jandex.Type;
-
-import io.smallrye.graphql.client.modelbuilder.Annotations;
-import io.smallrye.graphql.client.modelbuilder.Classes;
-import io.smallrye.graphql.client.modelbuilder.Scalars;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.Classes.*;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents a model for handling GraphQL types, including information about the underlying Jandex Type.
@@ -40,7 +24,8 @@ import io.smallrye.graphql.client.modelbuilder.Scalars;
  * @author mskacelik
  */
 public class TypeModel {
-    private Type type;
+    private final Type type;
+    private final boolean isJakartaJson;
 
     /**
      * Factory method to create a TypeModel from a Jandex Type.
@@ -59,6 +44,7 @@ public class TypeModel {
      */
     TypeModel(Type type) {
         this.type = type;
+        this.isJakartaJson = Classes.isJakartaJson(type);
     }
 
     /**
@@ -379,6 +365,10 @@ public class TypeModel {
      */
     public boolean isInterface() {
         return Classes.isInterface(type) && !isUnion();
+    }
+
+    public boolean isJakartaJson() {
+        return this.isJakartaJson;
     }
 
     /**

@@ -1,15 +1,5 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.stream.StreamSupport;
-
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
@@ -18,9 +8,20 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
+import jakarta.json.Json;
+import jakarta.json.JsonValue;
+import jakarta.json.stream.JsonParser;
+import org.jboss.logging.Logger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
+
+import java.io.StringReader;
+import java.util.*;
+import java.util.stream.StreamSupport;
+
+import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
+import static java.util.stream.Collectors.toList;
 
 public class JsonReader extends Reader<JsonNode> {
     public static Object readJson(String description, TypeInfo type, JsonNode value, FieldInfo field) {
@@ -43,6 +44,8 @@ public class JsonReader extends Reader<JsonNode> {
         super(type, location, value, field);
     }
 
+    private static final Logger log = Logger.getLogger(JsonReader.class);
+
     @Override
     Object read() {
         if (type.isOptional())
@@ -56,11 +59,42 @@ public class JsonReader extends Reader<JsonNode> {
             throw new IllegalArgumentException("TypesafeResponse type should be only on the highest level of recursion");
         if (isListOfErrors(value) && !isGraphQlErrorsType())
             throw cantApplyErrors(readGraphQlClientErrors());
+
+        if (type.isJson()) {
+            if (type.isJakartaJson()) {
+                return extractFieldValue(value);
+            }
+            return value;
+        }
+
         Reader<?> reader = reader(location);
         Object result = reader.read();
         if (type.isOptionalNumber() && result == null)
             return optionalNumberEmpty();
         return result;
+    }
+
+    private JsonValue extractFieldValue(JsonNode value) {
+        if (!JsonUtils.IS_PARSON_PRESENT) {
+            throw new UnsupportedOperationException(
+                    "Unable to create JsonParser: is Parsson present and loaded in the classpath?");
+        }
+        try (JsonParser parser = Json.createParser(new StringReader(value.toString()))) {
+            JsonValue result = null;
+            int i = 0;
+            while (parser.hasNext()) {
+                // it should be one
+                if (i != 0) {
+                    throw new IllegalArgumentException(
+                            String.format("too many elements in field \"%s\": expected 1", field.getName()));
+                }
+                JsonParser.Event event = parser.next();
+                result = parser.getValue();
+                ++i;
+            }
+            parser.close();
+            return result;
+        }
     }
 
     Object typesafeResponseRead() {
@@ -104,7 +138,7 @@ public class JsonReader extends Reader<JsonNode> {
     private Reader<?> reader(Location location) {
         switch (value.getNodeType()) {
             case ARRAY: {
-                if (type.isCollection()) {
+                if (type.isCollection() || value.isArray()) {
                     return new JsonArrayReader(type, location, (ArrayNode) value, field);
                 } else if (type.isMap()) {
                     return new JsonMapReader(type, location, (ArrayNode) value, field);

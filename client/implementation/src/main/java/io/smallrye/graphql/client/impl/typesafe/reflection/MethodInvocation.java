@@ -1,6 +1,14 @@
 package io.smallrye.graphql.client.impl.typesafe.reflection;
 
-import static java.util.stream.Collectors.toList;
+import io.smallrye.graphql.api.Namespace;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
+import jakarta.enterprise.inject.Stereotype;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.Query;
 
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
@@ -18,17 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import jakarta.enterprise.inject.Stereotype;
-
-import org.eclipse.microprofile.graphql.Mutation;
-import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.Query;
-
-import io.smallrye.graphql.api.Namespace;
-import io.smallrye.graphql.api.Subscription;
-import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.model.MethodKey;
-import io.smallrye.graphql.client.typesafe.api.Multiple;
+import static java.util.stream.Collectors.toList;
 
 public class MethodInvocation implements NamedElement {
     public static MethodInvocation of(Method method, Object... args) {
@@ -244,6 +242,10 @@ public class MethodInvocation implements NamedElement {
 
     public boolean isSingle() {
         return !method.getReturnType().isAnnotationPresent(Multiple.class);
+    }
+
+    public boolean needsParsson() {
+        return this.type.isJakartaJson();
     }
 
     public boolean isDeclaredInObject() {
