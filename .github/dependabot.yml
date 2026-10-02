@@ -16,6 +16,9 @@ updates:
   target-branch: "2.x"
   commit-message:
     prefix: "[2.x] "
+  ignore:
+    - dependency-name: "*"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
