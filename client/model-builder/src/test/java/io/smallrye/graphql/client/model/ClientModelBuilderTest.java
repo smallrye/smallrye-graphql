@@ -1,23 +1,25 @@
 package io.smallrye.graphql.client.model;
 
-import io.smallrye.graphql.api.Namespace;
-import io.smallrye.graphql.api.Subscription;
-import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.IOException;
+import java.util.*;
+
 import jakarta.json.JsonValue;
+
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.jboss.jandex.Index;
 import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.api.Namespace;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
 import tools.jackson.databind.JsonNode;
-
-import java.io.IOException;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Testing query building using the client model implementation.

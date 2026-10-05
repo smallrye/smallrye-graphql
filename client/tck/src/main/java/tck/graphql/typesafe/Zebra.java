@@ -1,8 +1,8 @@
 package tck.graphql.typesafe;
 
-import jakarta.json.JsonValue;
-
 import java.util.Objects;
+
+import jakarta.json.JsonValue;
 
 public class Zebra {
     String name;

@@ -1,11 +1,7 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
-import io.smallrye.graphql.client.InvalidResponseException;
-import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
-import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
-import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,8 +9,12 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.StreamSupport;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.impl.typesafe.CollectionUtils;
+import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
+import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 class JsonArrayReader extends Reader<ArrayNode> {
 

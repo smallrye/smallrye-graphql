@@ -1,9 +1,9 @@
 package tck.graphql.typesafe;
 
+import java.util.Objects;
+
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.JsonNodeFactory;
-
-import java.util.Objects;
 
 public class Giraffe {
     String name;

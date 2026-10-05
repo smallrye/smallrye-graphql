@@ -1,5 +1,18 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
+import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
+import static java.util.stream.Collectors.toList;
+
+import java.io.StringReader;
+import java.util.*;
+import java.util.stream.StreamSupport;
+
+import jakarta.json.Json;
+import jakarta.json.JsonValue;
+import jakarta.json.stream.JsonParser;
+
+import org.jboss.logging.Logger;
+
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.InvalidResponseException;
@@ -8,20 +21,9 @@ import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
 import io.smallrye.graphql.client.typesafe.api.ErrorOr;
 import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
-import jakarta.json.Json;
-import jakarta.json.JsonValue;
-import jakarta.json.stream.JsonParser;
-import org.jboss.logging.Logger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-
-import java.io.StringReader;
-import java.util.*;
-import java.util.stream.StreamSupport;
-
-import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
-import static java.util.stream.Collectors.toList;
 
 public class JsonReader extends Reader<JsonNode> {
     public static Object readJson(String description, TypeInfo type, JsonNode value, FieldInfo field) {

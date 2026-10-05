@@ -1,16 +1,17 @@
 package io.smallrye.graphql.client.impl;
 
+import java.util.*;
+
+import jakarta.json.JsonValue;
+
 import io.smallrye.graphql.client.GraphQLClientException;
 import io.smallrye.graphql.client.GraphQLError;
 import io.smallrye.graphql.client.Response;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonReader;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-import jakarta.json.JsonValue;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-
-import java.util.*;
 
 public class ResponseImpl implements Response {
 

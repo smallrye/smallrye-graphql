@@ -1,13 +1,9 @@
 package tck.graphql.typesafe;
 
-import io.smallrye.graphql.client.InvalidResponseException;
-import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
-import jakarta.json.Json;
-import org.eclipse.microprofile.graphql.Id;
-import org.eclipse.microprofile.graphql.NonNull;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import tools.jackson.databind.node.JsonNodeFactory;
+import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.BDDAssertions.then;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -16,10 +12,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.assertj.core.api.BDDAssertions.then;
+import jakarta.json.Json;
+
+import org.eclipse.microprofile.graphql.Id;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.InvalidResponseException;
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 class ScalarBehavior {
     private final TypesafeGraphQLClientFixture fixture = TypesafeGraphQLClientFixture.load();

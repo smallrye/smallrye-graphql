@@ -1,9 +1,9 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import io.smallrye.graphql.client.modelbuilder.Annotations;
-import io.smallrye.graphql.client.modelbuilder.Classes;
-import io.smallrye.graphql.client.modelbuilder.Scalars;
-import org.jboss.jandex.*;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.Classes.*;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
@@ -13,10 +13,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
-import static io.smallrye.graphql.client.modelbuilder.Classes.*;
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
-import static java.util.stream.Collectors.toList;
+import org.jboss.jandex.*;
+
+import io.smallrye.graphql.client.modelbuilder.Annotations;
+import io.smallrye.graphql.client.modelbuilder.Classes;
+import io.smallrye.graphql.client.modelbuilder.Scalars;
 
 /**
  * Represents a model for handling GraphQL types, including information about the underlying Jandex Type.

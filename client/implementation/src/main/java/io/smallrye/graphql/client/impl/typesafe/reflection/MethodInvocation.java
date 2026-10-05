@@ -1,14 +1,6 @@
 package io.smallrye.graphql.client.impl.typesafe.reflection;
 
-import io.smallrye.graphql.api.Namespace;
-import io.smallrye.graphql.api.Subscription;
-import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.model.MethodKey;
-import io.smallrye.graphql.client.typesafe.api.Multiple;
-import jakarta.enterprise.inject.Stereotype;
-import org.eclipse.microprofile.graphql.Mutation;
-import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.Query;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
@@ -26,7 +18,17 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
+import jakarta.enterprise.inject.Stereotype;
+
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.Query;
+
+import io.smallrye.graphql.api.Namespace;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
+import io.smallrye.graphql.client.typesafe.api.Multiple;
 
 public class MethodInvocation implements NamedElement {
     public static MethodInvocation of(Method method, Object... args) {

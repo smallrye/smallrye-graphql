@@ -1,24 +1,8 @@
 package io.smallrye.graphql.client.impl.typesafe.reflection;
 
-import io.smallrye.graphql.api.Union;
-import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
-import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-import jakarta.json.bind.annotation.JsonbSubtype;
-import jakarta.json.bind.annotation.JsonbTransient;
-import jakarta.json.bind.annotation.JsonbTypeInfo;
-import org.eclipse.microprofile.graphql.Ignore;
-import org.eclipse.microprofile.graphql.NonNull;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
+import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Modifier.isTransient;
+import static java.util.Objects.requireNonNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -31,9 +15,27 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
-import static java.lang.reflect.Modifier.isStatic;
-import static java.lang.reflect.Modifier.isTransient;
-import static java.util.Objects.requireNonNull;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import jakarta.json.bind.annotation.JsonbSubtype;
+import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbTypeInfo;
+
+import org.eclipse.microprofile.graphql.Ignore;
+import org.eclipse.microprofile.graphql.NonNull;
+
+import io.smallrye.graphql.api.Union;
+import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
+import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TypeInfo {
     private static final Class<? extends Annotation> JACKSON_JSON_IGNORE = findAnnotation(

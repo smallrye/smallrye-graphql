@@ -1,17 +1,19 @@
 package io.smallrye.graphql.client;
 
-import io.smallrye.graphql.client.impl.ResponseImpl;
-import io.smallrye.graphql.client.impl.ResponseReader;
-import jakarta.json.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.json.*;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.graphql.client.impl.ResponseImpl;
+import io.smallrye.graphql.client.impl.ResponseReader;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class ResponseReaderTest {
     private static final String EXAMPLE_RESPONSE_ONE_ITEM = "{\n" +

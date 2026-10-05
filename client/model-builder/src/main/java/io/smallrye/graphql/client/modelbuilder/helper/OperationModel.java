@@ -1,8 +1,9 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import io.smallrye.graphql.client.core.OperationType;
-import io.smallrye.graphql.client.model.MethodKey;
-import org.jboss.jandex.*;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Comparator;
 import java.util.List;
@@ -10,10 +11,10 @@ import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import org.jboss.jandex.*;
+
+import io.smallrye.graphql.client.core.OperationType;
+import io.smallrye.graphql.client.model.MethodKey;
 
 /**
  * Represents a model for a GraphQL operation method, providing methods to generate GraphQL query fields,

@@ -1,17 +1,17 @@
 package io.smallrye.graphql.client.impl.typesafe;
 
+import static java.util.stream.Collectors.joining;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Stack;
+
 import io.smallrye.graphql.client.impl.SmallRyeGraphQLClientMessages;
 import io.smallrye.graphql.client.impl.typesafe.json.JsonUtils;
 import io.smallrye.graphql.client.impl.typesafe.reflection.FieldInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.MethodInvocation;
 import io.smallrye.graphql.client.impl.typesafe.reflection.ParameterInfo;
 import io.smallrye.graphql.client.impl.typesafe.reflection.TypeInfo;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Stack;
-
-import static java.util.stream.Collectors.joining;
 
 public class QueryBuilder {
     private final MethodInvocation method;

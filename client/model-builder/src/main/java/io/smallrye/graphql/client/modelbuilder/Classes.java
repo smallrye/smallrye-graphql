@@ -1,20 +1,22 @@
 package io.smallrye.graphql.client.modelbuilder;
 
-import io.smallrye.graphql.client.typesafe.api.ErrorOr;
-import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
+import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+
+import java.util.*;
+
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
+
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
 
-import java.util.*;
-
-import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
+import io.smallrye.graphql.client.typesafe.api.ErrorOr;
+import io.smallrye.graphql.client.typesafe.api.TypesafeResponse;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 
 public class Classes {
 
@@ -195,7 +197,6 @@ public class Classes {
     private static final DotName JAKARTA_JSON_OBJECT = DotName.createSimple(JsonObject.class.getName());
     private static final DotName JAKARTA_JSON_ARRAY = DotName.createSimple(JsonArray.class.getName());
     private static final List<DotName> JAKARTA_JSONS = new ArrayList<>();
-
 
     private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
     private static final List<DotName> KNOWN_MAPS = new ArrayList<>();

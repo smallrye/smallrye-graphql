@@ -1,9 +1,9 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
+import java.io.Reader;
+
 import jakarta.json.Json;
 import jakarta.json.stream.JsonParser;
-
-import java.io.Reader;
 
 public class JsonUtils {
     public static boolean IS_PARSON_PRESENT = checkParsson();
