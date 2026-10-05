@@ -4,11 +4,7 @@ import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
 import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 import jakarta.json.Json;
@@ -144,7 +140,7 @@ public class JsonReader extends Reader<JsonNode> {
     private Reader<?> reader(Location location) {
         switch (value.getNodeType()) {
             case ARRAY: {
-                if (type.isCollection() || value.isArray()) {
+                if (!type.isMap() && type.isCollection()) {
                     return new JsonArrayReader(type, location, (ArrayNode) value, field);
                 } else if (type.isMap()) {
                     return new JsonMapReader(type, location, (ArrayNode) value, field);
