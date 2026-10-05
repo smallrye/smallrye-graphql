@@ -1,6 +1,11 @@
 package io.smallrye.graphql.client.modelbuilder.helper;
 
-import static io.smallrye.graphql.client.modelbuilder.Annotations.*;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.MULTIPLE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.MUTATION;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAME;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.NAMESPACE;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.QUERY;
+import static io.smallrye.graphql.client.modelbuilder.Annotations.SUBCRIPTION;
 import static io.smallrye.graphql.client.modelbuilder.ScanningContext.getIndex;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -11,7 +16,11 @@ import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jboss.jandex.*;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.JandexReflection;
+import org.jboss.jandex.MethodInfo;
 
 import io.smallrye.graphql.client.core.OperationType;
 import io.smallrye.graphql.client.model.MethodKey;

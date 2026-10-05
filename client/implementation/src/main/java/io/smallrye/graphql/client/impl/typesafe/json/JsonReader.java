@@ -4,7 +4,11 @@ import static io.smallrye.graphql.client.impl.typesafe.json.JsonUtils.isListOf;
 import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.stream.StreamSupport;
 
 import jakarta.json.Json;
