@@ -51,7 +51,7 @@ jobs:
         run: sudo apt install graphviz
         
       - name: build with maven
-        run: GITHUB_ACTION_REPOSITORY=whatever GITHUB_ACTION_REF=whatever ./mvnw -B formatter:validate impsort:check javadoc:javadoc install --file pom.xml 
+        run: GITHUB_ACTION_REPOSITORY=whatever GITHUB_ACTION_REF=whatever ./mvnw -B formatter:validate impsort:check checkstyle:check javadoc:javadoc install --file pom.xml
         # the GITHUB* properties are a workaround for Stork whose MicroProfileConfigProvider blows up when it sees an empty property
 
   wildfly-tests:

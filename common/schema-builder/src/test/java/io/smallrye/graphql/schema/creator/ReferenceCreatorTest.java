@@ -1,6 +1,8 @@
 package io.smallrye.graphql.schema.creator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;

@@ -1,8 +1,11 @@
 package io.smallrye.graphql.execution;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import jakarta.json.*;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.Test;

@@ -64,6 +64,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <version.kotlin>2.4.20</version.kotlin>
         <version.impsort.plugin>1.13.0</version.impsort.plugin>
+        <version.checkstyle.plugin>3.6.0</version.checkstyle.plugin>
         <version.maven-dependency-plugin>3.11.0</version.maven-dependency-plugin>
 
     </properties>
@@ -426,6 +427,17 @@
                 <groupId>net.revelc.code</groupId>
                 <artifactId>impsort-maven-plugin</artifactId>
                 <version>${version.impsort.plugin}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${version.checkstyle.plugin}</version>
+                <configuration>
+                    <configLocation>${maven.multiModuleProjectDirectory}/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <violationSeverity>warning</violationSeverity>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

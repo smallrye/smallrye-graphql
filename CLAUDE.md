@@ -13,7 +13,7 @@ SmallRye GraphQL is a Java implementation of Eclipse MicroProfile GraphQL, Graph
 mvn clean install
 
 # CI build (what GitHub Actions runs on JDK 17, 21, and 25)
-mvn -B formatter:validate impsort:check javadoc:javadoc install
+mvn -B formatter:validate impsort:check checkstyle:check javadoc:javadoc install
 
 # Build without tests
 mvn clean install -DskipTests
@@ -42,6 +42,7 @@ LANG=C mvn clean install
 The CI enforces these checks — run before submitting PRs:
 - **Formatter**: `mvn formatter:validate` — code formatting rules
 - **Import sorting**: `mvn impsort:check` — import statement ordering
+- **Checkstyle**: `mvn checkstyle:check` — disallows star imports (config in `checkstyle.xml`)
 - **Javadoc**: `mvn javadoc:javadoc` — Javadoc must compile
 
 Fix formatting/imports automatically: `mvn formatter:format impsort:sort`
