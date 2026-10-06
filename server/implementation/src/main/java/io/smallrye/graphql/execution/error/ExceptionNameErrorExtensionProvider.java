@@ -1,14 +1,11 @@
 package io.smallrye.graphql.execution.error;
 
-import jakarta.json.JsonString;
-import jakarta.json.spi.JsonProvider;
-
 import io.smallrye.graphql.api.ErrorExtensionProvider;
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class ExceptionNameErrorExtensionProvider implements ErrorExtensionProvider {
-
-    private static final JsonProvider JSON_PROVIDER = JsonProvider.provider();
 
     @Override
     public String getKey() {
@@ -16,7 +13,7 @@ public class ExceptionNameErrorExtensionProvider implements ErrorExtensionProvid
     }
 
     @Override
-    public JsonString mapValueFrom(Throwable exception) {
-        return JSON_PROVIDER.createValue(exception.getClass().getName());
+    public JsonNode mapValueFrom(Throwable exception) {
+        return JsonNodeFactory.instance.textNode(exception.getClass().getName());
     }
 }

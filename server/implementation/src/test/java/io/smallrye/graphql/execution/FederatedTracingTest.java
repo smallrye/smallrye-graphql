@@ -11,13 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.spi.config.Config;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Test for Federated tracing
@@ -39,7 +38,7 @@ public class FederatedTracingTest extends ExecutionTestBase {
 
         Map<String, Object> metaData = createMetaData(ftKey);
 
-        JsonObject extensions = executeAndGetExtensions(TEST_QUERY, metaData);
+        ObjectNode extensions = executeAndGetExtensions(TEST_QUERY, metaData);
         assertNull(extensions);
     }
 
@@ -50,13 +49,13 @@ public class FederatedTracingTest extends ExecutionTestBase {
 
         Map<String, Object> metaData = createMetaData(ftKey);
 
-        JsonObject extensions = executeAndGetExtensions(TEST_QUERY, metaData);
+        ObjectNode extensions = executeAndGetExtensions(TEST_QUERY, metaData);
         assertNotNull(extensions);
-        assertTrue(extensions.containsKey(ftKey));
+        assertTrue(extensions.has(ftKey));
 
-        JsonString ftValue = extensions.getJsonString(ftKey);
+        JsonNode ftValue = extensions.get(ftKey);
         assertNotNull(ftValue);
-        assertFalse(ftValue.getString().isEmpty());
+        assertFalse(ftValue.asText().isEmpty());
     }
 
     @Test
@@ -66,7 +65,7 @@ public class FederatedTracingTest extends ExecutionTestBase {
 
         Map<String, Object> metaData = createMetaData(ftKey);
 
-        JsonObject extensions = executeAndGetExtensions(TEST_QUERY, metaData);
+        ObjectNode extensions = executeAndGetExtensions(TEST_QUERY, metaData);
         assertNull(extensions);
     }
 

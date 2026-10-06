@@ -18,18 +18,15 @@ package io.smallrye.graphql.api;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
 
 import io.smallrye.common.annotation.Experimental;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Holing context for the current request
@@ -48,9 +45,9 @@ public interface Context {
      * Get the full body of the request.
      * This includes the query, variables and operation name
      *
-     * @return JsonObject
+     * @return ObjectNode
      */
-    public JsonObject getRequest();
+    public ObjectNode getRequest();
 
     /**
      * Check if there is a request set
@@ -58,7 +55,7 @@ public interface Context {
      * @return
      */
     default boolean hasRequest() {
-        JsonObject request = getRequest();
+        ObjectNode request = getRequest();
         return request != null;
     }
 
@@ -69,7 +66,8 @@ public interface Context {
      * @return raw string query
      */
     default String getQuery() {
-        return getRequest().getString(QUERY, null);
+        JsonNode node = getRequest().get(QUERY);
+        return (node != null && !node.isNull()) ? node.asText() : null;
     }
 
     /**
@@ -96,11 +94,11 @@ public interface Context {
      * @return
      */
     default Optional<Map<String, Object>> getVariables() {
-        if (getRequest().containsKey(VARIABLES)
+        if (getRequest().has(VARIABLES)
                 && getRequest().get(VARIABLES) != null
-                && !getRequest().get(VARIABLES).getValueType().equals(JsonValue.ValueType.NULL)) {
-            JsonValue jsonValue = getRequest().get(VARIABLES);
-            return VariablesParser.toMap(jsonValue);
+                && !getRequest().get(VARIABLES).isNull()) {
+            JsonNode node = getRequest().get(VARIABLES);
+            return VariablesParser.toMap(node);
         }
         return Optional.empty();
     }
@@ -197,14 +195,14 @@ public interface Context {
      *
      * @return JsonArray of fields selected
      */
-    public JsonArray getSelectedFields();
+    public ArrayNode getSelectedFields();
 
     /**
      * Return the fields and source fields in the request
      *
      * @return JsonArray of fields selected
      */
-    public JsonArray getSelectedAndSourceFields();
+    public ArrayNode getSelectedAndSourceFields();
 
     /**
      * Return the current type (Query, Mutation ext)
@@ -245,61 +243,44 @@ public interface Context {
      */
     class VariablesParser {
 
-        public static Optional<Map<String, Object>> toMap(JsonValue jsonValue) {
-            if (null != jsonValue
-                    && !JsonValue.NULL.equals(jsonValue)
-                    && !JsonValue.EMPTY_JSON_OBJECT.equals(jsonValue)
-                    && !JsonValue.EMPTY_JSON_ARRAY.equals(jsonValue)) {
-                return Optional.of(toMap(jsonValue.asJsonObject()));
+        public static Optional<Map<String, Object>> toMap(JsonNode node) {
+            if (node != null && !node.isNull() && node.isObject() && !node.isEmpty()) {
+                return Optional.of(toMap((ObjectNode) node));
             }
             return Optional.empty();
         }
 
-        private static Map<String, Object> toMap(JsonObject jo) {
+        private static Map<String, Object> toMap(ObjectNode obj) {
             Map<String, Object> ro = new HashMap<>();
-            if (jo != null) {
-                Set<Map.Entry<String, JsonValue>> entrySet = jo.entrySet();
-                for (Map.Entry<String, JsonValue> es : entrySet) {
-                    ro.put(es.getKey(), toObject(es.getValue()));
+            if (obj != null) {
+                Iterator<Map.Entry<String, JsonNode>> fields = obj.properties().iterator();
+                while (fields.hasNext()) {
+                    Map.Entry<String, JsonNode> entry = fields.next();
+                    ro.put(entry.getKey(), toObject(entry.getValue()));
                 }
             }
             return ro;
         }
 
-        private static Object toObject(JsonValue jsonValue) {
-            Object ret = null;
-            JsonValue.ValueType typ = jsonValue.getValueType();
-            if (null != typ)
-                switch (typ) {
-                    case NUMBER:
-                        ret = ((JsonNumber) jsonValue).bigDecimalValue();
-                        break;
-                    case STRING:
-                        ret = ((JsonString) jsonValue).getString();
-                        break;
-                    case FALSE:
-                        ret = Boolean.FALSE;
-                        break;
-                    case TRUE:
-                        ret = Boolean.TRUE;
-                        break;
-                    case ARRAY:
-                        JsonArray arr = (JsonArray) jsonValue;
-                        List<Object> vals = new ArrayList<>();
-                        int sz = arr.size();
-                        for (int i = 0; i < sz; i++) {
-                            JsonValue v = arr.get(i);
-                            vals.add(toObject(v));
-                        }
-                        ret = vals;
-                        break;
-                    case OBJECT:
-                        ret = toMap((JsonObject) jsonValue);
-                        break;
-                    default:
-                        break;
+        private static Object toObject(JsonNode node) {
+            if (node == null || node.isNull()) {
+                return null;
+            } else if (node.isNumber()) {
+                return node.decimalValue();
+            } else if (node.isTextual()) {
+                return node.asText();
+            } else if (node.isBoolean()) {
+                return node.booleanValue();
+            } else if (node.isArray()) {
+                List<Object> vals = new ArrayList<>();
+                for (int i = 0; i < node.size(); i++) {
+                    vals.add(toObject(node.get(i)));
                 }
-            return ret;
+                return vals;
+            } else if (node.isObject()) {
+                return toMap((ObjectNode) node);
+            }
+            return null;
         }
     }
 }

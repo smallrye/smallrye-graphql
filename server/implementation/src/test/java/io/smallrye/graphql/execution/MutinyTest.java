@@ -4,14 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.test.mutiny.CustomException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class MutinyTest extends ExecutionTestBase {
 
@@ -21,29 +20,30 @@ public class MutinyTest extends ExecutionTestBase {
 
     @Test
     public void testBasicQuery() {
-        JsonObject data = executeAndGetData(TEST_QUERY);
+        ObjectNode data = executeAndGetData(TEST_QUERY);
 
-        JsonValue jsonValue = data.get("book");
+        JsonNode jsonValue = data.get("book");
         assertNotNull(jsonValue);
 
-        JsonObject book = jsonValue.asJsonObject();
+        ObjectNode book = (ObjectNode) jsonValue;
 
         assertNotNull(book);
 
-        assertFalse(book.isNull("title"), "title should not be null");
+        assertFalse(book.has("title") && book.get("title").isNull(), "title should not be null");
     }
 
     @Test
     public void testFailureQuery() {
-        JsonArray errors = executeAndGetErrors(FAILURE_TEST_QUERY);
+        ArrayNode errors = executeAndGetErrors(FAILURE_TEST_QUERY);
 
         assertNotNull(errors);
         assertEquals(errors.size(), 1);
-        var extensions = errors.get(0).asJsonObject().getJsonObject("extensions");
-        assertEquals("custom-error", extensions.getString("code"), "error code");
-        assertEquals(CustomException.class.getName(), extensions.getString("exception"), "exception");
-        assertEquals("DataFetchingException", extensions.getString("classification"), "classification");
-        assertEquals(CustomException.class.getSimpleName().length(), extensions.getInt("test-extension"), "test extension");
+        ObjectNode extensions = (ObjectNode) ((ObjectNode) errors.get(0)).get("extensions");
+        assertEquals("custom-error", extensions.get("code").asText(), "error code");
+        assertEquals(CustomException.class.getName(), extensions.get("exception").asText(), "exception");
+        assertEquals("DataFetchingException", extensions.get("classification").asText(), "classification");
+        assertEquals(CustomException.class.getSimpleName().length(), extensions.get("test-extension").asInt(),
+                "test extension");
     }
 
     private static final String TEST_QUERY = "{\n" +
