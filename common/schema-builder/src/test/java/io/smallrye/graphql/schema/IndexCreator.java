@@ -1,6 +1,8 @@
 package io.smallrye.graphql.schema;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;

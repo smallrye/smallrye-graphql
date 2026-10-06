@@ -1,6 +1,8 @@
 package io.smallrye.graphql.client.vertx.typesafe;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;

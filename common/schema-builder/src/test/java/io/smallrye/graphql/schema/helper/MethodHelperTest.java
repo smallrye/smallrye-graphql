@@ -1,14 +1,18 @@
 package io.smallrye.graphql.schema.helper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
-import org.jboss.jandex.*;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.MethodInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import io.smallrye.graphql.schema.*;
+import io.smallrye.graphql.schema.IndexCreator;
 
 class MethodHelperTest {
 
