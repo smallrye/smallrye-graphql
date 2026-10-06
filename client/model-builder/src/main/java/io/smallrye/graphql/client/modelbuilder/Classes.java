@@ -24,6 +24,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonStructure;
+import jakarta.json.JsonValue;
+
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
@@ -95,6 +100,8 @@ public class Classes {
     public static boolean isClass(Type type) {
         return type.kind().equals(Type.Kind.CLASS);
     }
+
+    private static final DotName JAKARTA_JSON_VALUE = DotName.createSimple(JsonValue.class.getName());
 
     /**
      * Return true if this is an array
@@ -206,9 +213,14 @@ public class Classes {
     private static final DotName INTEGER_OPTIONAL = DotName.createSimple(OptionalInt.class.getName());
     private static final DotName DOUBLE_OPTIONAL = DotName.createSimple(OptionalDouble.class.getName());
     private static final DotName LONG_OPTIONAL = DotName.createSimple(OptionalLong.class.getName());
+    private static final DotName JAKARTA_JSON_STRUCTURE = DotName.createSimple(JsonStructure.class.getName());
+    private static final DotName JAKARTA_JSON_OBJECT = DotName.createSimple(JsonObject.class.getName());
+    private static final DotName JAKARTA_JSON_ARRAY = DotName.createSimple(JsonArray.class.getName());
+    private static final List<DotName> JAKARTA_JSONS = new ArrayList<>();
 
     private static final List<DotName> KNOWN_COLLECTIONS = new ArrayList<>();
     private static final List<DotName> KNOWN_MAPS = new ArrayList<>();
+
     static {
         KNOWN_COLLECTIONS.add(COLLECTION);
         KNOWN_COLLECTIONS.add(LIST);
@@ -228,5 +240,14 @@ public class Classes {
         KNOWN_MAPS.add(TREE_MAP);
         KNOWN_MAPS.add(HASHTABLE);
         KNOWN_MAPS.add(SORTED_MAP);
+
+        JAKARTA_JSONS.add(JAKARTA_JSON_VALUE);
+        JAKARTA_JSONS.add(JAKARTA_JSON_STRUCTURE);
+        JAKARTA_JSONS.add(JAKARTA_JSON_OBJECT);
+        JAKARTA_JSONS.add(JAKARTA_JSON_ARRAY);
+    }
+
+    public static boolean isJakartaJson(Type type) {
+        return JAKARTA_JSONS.contains(type.name());
     }
 }

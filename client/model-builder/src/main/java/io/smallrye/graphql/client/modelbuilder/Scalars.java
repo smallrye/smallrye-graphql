@@ -43,6 +43,7 @@ public class Scalars {
     private static final String PERIOD = "Period";
     private static final String DURATION = "Duration";
     private static final String VOID = "Void";
+    private static final String JSON = "JSON";
 
     private Scalars() {
     }
@@ -72,10 +73,6 @@ public class Scalars {
         populateScalar(URL.class.getName(), STRING);
         populateScalar(URI.class.getName(), STRING);
         populateScalar("org.bson.types.ObjectId", STRING);
-        populateScalar("javax.json.JsonObject", STRING);
-        populateScalar("javax.json.JsonArray", STRING);
-        populateScalar("jakarta.json.JsonObject", STRING);
-        populateScalar("jakarta.json.JsonArray", STRING);
 
         // Boolean
         populateScalar(Boolean.class.getName(), BOOLEAN);
@@ -136,6 +133,19 @@ public class Scalars {
         // Void
         populateScalar(Void.class.getName(), VOID);
         populateScalar(void.class.getName(), VOID);
+
+        // Json
+        populateScalar("javax.json.JsonObject", JSON);
+        populateScalar("javax.json.JsonArray", JSON);
+        populateScalar("javax.json.JsonValue", JSON);
+        populateScalar("jakarta.json.JsonObject", JSON);
+        populateScalar("jakarta.json.JsonArray", JSON);
+        populateScalar("jakarta.json.JsonValue", JSON);
+
+        populateScalar("tools.jackson.databind.JsonNode", JSON);
+        populateScalar("tools.jackson.databind.node.ArrayNode", JSON);
+        populateScalar("tools.jackson.databind.node.ObjectNode", JSON);
+
     }
 
     private static void populateScalar(String className, String scalarName) {

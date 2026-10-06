@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.json.JsonValue;
+
 import org.eclipse.microprofile.graphql.Id;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
@@ -21,6 +23,7 @@ import io.smallrye.graphql.api.Namespace;
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.graphql.client.modelbuilder.ClientModelBuilder;
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Testing query building using the client model implementation.
@@ -39,6 +42,12 @@ public class ClientModelBuilderTest {
 
         @Subscription
         float returnNonNullFloat(float someFloat);
+
+        @Query
+        JsonValue returnJsonValue(JsonValue someJsonValue);
+
+        @Query
+        JsonNode returnJsonNode(JsonNode someJsonNode);
     }
 
     @Test
@@ -47,7 +56,7 @@ public class ClientModelBuilderTest {
         ClientModels clientModels = ClientModelBuilder.build(Index.of(ScalarClientApi.class));
         assertNotNull(clientModels.getClientModelByConfigKey(configKey));
         ClientModel clientModel = clientModels.getClientModelByConfigKey(configKey);
-        assertEquals(3, clientModel.getOperationMap().size());
+        assertEquals(5, clientModel.getOperationMap().size());
         assertOperation(clientModel,
                 new MethodKey("returnInteger", new Class<?>[] { Integer.class }),
                 "query returnInteger($someNumber: Int) { returnInteger(someNumber: $someNumber) }");
@@ -59,6 +68,14 @@ public class ClientModelBuilderTest {
         assertOperation(clientModel,
                 new MethodKey("returnNonNullFloat", new Class<?>[] { float.class }),
                 "subscription returnNonNullFloat($someFloat: Float!) { returnNonNullFloat(someFloat: $someFloat) }");
+
+        assertOperation(clientModel,
+                new MethodKey("returnJsonValue", new Class<?>[] { JsonValue.class }),
+                "query returnJsonValue($someJsonValue: JSON) { returnJsonValue(someJsonValue: $someJsonValue) }");
+
+        assertOperation(clientModel,
+                new MethodKey("returnJsonNode", new Class<?>[] { JsonNode.class }),
+                "query returnJsonNode($someJsonNode: JSON) { returnJsonNode(someJsonNode: $someJsonNode) }");
     }
 
     @GraphQLClientApi(configKey = "collection")

@@ -6,9 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.HashMap;
 import java.util.Map;
 
+import jakarta.json.Json;
+import jakarta.json.JsonValue;
+
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.impl.RequestImpl;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -58,6 +63,35 @@ public class RequestImplTest {
 
         request.setVariable("key", TestEnum.TEST);
         assertEquals("{\"query\":\"example\",\"variables\":{\"key\":\"TEST\"}}", request.toJson());
+
+    }
+
+    @Test
+    public void testJsonTypesInVariablesToJson() {
+        RequestImpl request = new RequestImpl("example");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jacksonJson = objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("id", "test"));
+        request.setVariable("key", jacksonJson);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":[{\"id\":\"test\"}]}}", request.toJson());
+
+        JsonValue jakartaJson = Json.createArrayBuilder().add(Json.createObjectBuilder().add("id", "test").build()).build();
+        request.setVariable("key", jakartaJson);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":[{\"id\":\"test\"}]}}", request.toJson());
+    }
+
+    @Test
+    public void testJsonTypesInFieldsToJson() {
+        RequestImpl request = new RequestImpl("example");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jacksonJson = objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("id", "test"));
+        request.setVariable("key", jacksonJson);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":[{\"id\":\"test\"}]}}", request.toJson());
+
+        JsonValue jakartaJson = Json.createArrayBuilder().add(Json.createObjectBuilder().add("id", "test").build()).build();
+        request.setVariable("key", jakartaJson);
+        assertEquals("{\"query\":\"example\",\"variables\":{\"key\":[{\"id\":\"test\"}]}}", request.toJson());
     }
 
     public record TestRecord(TestEnum enumValue) {

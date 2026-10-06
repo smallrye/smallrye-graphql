@@ -246,6 +246,10 @@ public class MethodInvocation implements NamedElement {
         return !method.getReturnType().isAnnotationPresent(Multiple.class);
     }
 
+    public boolean needsParsson() {
+        return this.type.isJakartaJson();
+    }
+
     public boolean isDeclaredInObject() {
         return method.getDeclaringClass().equals(Object.class);
     }

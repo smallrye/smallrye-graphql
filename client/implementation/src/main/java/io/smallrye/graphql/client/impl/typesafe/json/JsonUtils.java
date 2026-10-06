@@ -1,9 +1,13 @@
 package io.smallrye.graphql.client.impl.typesafe.json;
 
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.json.Json;
+import jakarta.json.stream.JsonParser;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
@@ -52,5 +56,18 @@ public class JsonUtils {
                 && jsonValue.get(0).isObject()
                 && typename.equals(
                         jsonValue.get(0).has("__typename") ? jsonValue.get(0).get("__typename").asText(null) : null);
+    }
+
+    public static boolean IS_PARSON_PRESENT = checkParsson();
+
+    public static boolean checkParsson() {
+        try {
+            // is there any JsonParserImpl present?
+            try (JsonParser parser = Json.createParser(Reader.nullReader())) {
+                return true;
+            }
+        } catch (jakarta.json.JsonException ex1) {
+            return false;
+        }
     }
 }

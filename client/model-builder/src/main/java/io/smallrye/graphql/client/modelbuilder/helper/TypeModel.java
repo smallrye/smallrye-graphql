@@ -40,7 +40,8 @@ import io.smallrye.graphql.client.modelbuilder.Scalars;
  * @author mskacelik
  */
 public class TypeModel {
-    private Type type;
+    private final Type type;
+    private final boolean isJakartaJson;
 
     /**
      * Factory method to create a TypeModel from a Jandex Type.
@@ -59,6 +60,7 @@ public class TypeModel {
      */
     TypeModel(Type type) {
         this.type = type;
+        this.isJakartaJson = Classes.isJakartaJson(type);
     }
 
     /**
@@ -379,6 +381,10 @@ public class TypeModel {
      */
     public boolean isInterface() {
         return Classes.isInterface(type) && !isUnion();
+    }
+
+    public boolean isJakartaJson() {
+        return this.isJakartaJson;
     }
 
     /**

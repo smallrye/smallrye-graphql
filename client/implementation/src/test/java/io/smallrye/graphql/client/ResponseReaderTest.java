@@ -12,20 +12,53 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.smallrye.graphql.client.impl.ResponseImpl;
 import io.smallrye.graphql.client.impl.ResponseReader;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 public class ResponseReaderTest {
-
     private static final String EXAMPLE_RESPONSE_ONE_ITEM = "{\n" +
             "  \"data\": {\n" +
             "    \"people\": \n" +
             "      {\n" +
             "        \"name\": \"jane\",\n" +
             "        \"gender\": \"FEMALE\"\n" +
+            "      }\n" +
+            "  }\n" +
+            "}";
+
+    private static final String EXAMPLE_RESPONSE_ONE_ITEM_WITH_JSON_OBJECT = "{\n" +
+            "  \"data\": {\n" +
+            "    \"giraffe\": \n" +
+            "      {\n" +
+            "        \"name\": \"frank\",\n" +
+            "        \"height\": 25.2,\n" +
+            "        \"meta\": {\"spots\": \"many\"}\n" +
+            "      }\n" +
+            "  }\n" +
+            "}";
+
+    private static final String EXAMPLE_RESPONSE_ONE_ITEM_WITH_JSON_ARRAY = "{\n" +
+            "  \"data\": {\n" +
+            "    \"giraffe\": \n" +
+            "      {\n" +
+            "        \"name\": \"frank\",\n" +
+            "        \"height\": 25.2,\n" +
+            "        \"meta\": [\n" +
+            "          {\"base_colour\": \"yellow\"},\n" +
+            "          {\"spots\": \"many\"}\n" +
+            "        ]\n" +
             "      }\n" +
             "  }\n" +
             "}";
@@ -54,14 +87,16 @@ public class ResponseReaderTest {
     private static final String EXAMPLE_RESPONSE_SCALARS = "{\n" +
             "  \"data\": {\n" +
             "    \"number\": 32,\n" +
-            "    \"string\": \"hello\"\n" +
+            "    \"string\": \"hello\",\n" +
+            "    \"json\": {\"key\": \"value\"}\n" +
             "  }\n" +
             "}";
 
     private static final String EXAMPLE_RESPONSE_SCALARS_LIST = "{\n" +
             "  \"data\": {\n" +
             "    \"numbers\": [32, 33],\n" +
-            "    \"strings\": [\"hello\", \"bye\"]\n" +
+            "    \"strings\": [\"hello\", \"bye\"],\n" +
+            "    \"jsonArray\": [{\"key1\": \"value1\"}, {\"key2\": \"value2\"}]\n" +
             "  }\n" +
             "}";
     private static final String EXAMPLE_RESPONSE_WITH_UNEXPECTED_FIELD = "{\n" +
@@ -107,6 +142,83 @@ public class ResponseReaderTest {
     }
 
     @Test
+    public void testGetObjectWithJsonObject() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM_WITH_JSON_OBJECT, null);
+        JsonNode jacksonObject = JsonNodeFactory.instance.objectNode().put("spots", "many");
+        JacksonGiraffe jacksonFrank = response.getObject(JacksonGiraffe.class, "giraffe");
+        assertEquals("frank", jacksonFrank.getName());
+        assertEquals(25.2, jacksonFrank.getHeight());
+        assertEquals(jacksonObject, jacksonFrank.getMeta());
+
+        JakartaGiraffe jakartaFrank = response.getObject(JakartaGiraffe.class, "giraffe");
+        JsonValue jakartaObject = Json.createObjectBuilder().add("spots", "many").build();
+        assertEquals("frank", jakartaFrank.getName());
+        assertEquals(25.2, jakartaFrank.getHeight());
+        assertEquals(jakartaObject, jakartaFrank.getMeta());
+    }
+
+    @Test
+    public void testRawJsonObject() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
+        JsonNode jacksonResponse = JsonNodeFactory.instance.objectNode()
+                .put("name", "jane")
+                .put("gender", "FEMALE");
+        JsonNode jacksonRawResponse = response.getObject(JsonNode.class, "people");
+        assertEquals(jacksonResponse, jacksonRawResponse);
+
+        JsonObject jakartaResponse = Json.createObjectBuilder().add("name", "jane").add("gender", "FEMALE").build();
+        JsonValue jakartaRawResponse = response.getObject(JsonValue.class, "people");
+        assertEquals(jakartaResponse, jakartaRawResponse);
+    }
+
+    @Test
+    public void testRawJsonArray() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_TWO_ITEMS, null);
+        JsonNode jacksonResponse = JsonNodeFactory.instance.arrayNode()
+                .add(JsonNodeFactory.instance.objectNode().put("name", "david").put("gender", "MALE"))
+                .add(JsonNodeFactory.instance.objectNode().put("name", "jane").put("gender", "FEMALE"));
+        JsonNode jacksonRawResponse = response.getObject(ArrayNode.class, "people");
+        assertEquals(jacksonResponse, jacksonRawResponse);
+
+        JsonValue jakartaRawResponse = response.getObject(JsonValue.class, "people");
+        JsonArray jakartaResponse = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder().add("name", "david").add("gender", "MALE").build())
+                .add(Json.createObjectBuilder().add("name", "jane").add("gender", "FEMALE").build())
+                .build();
+        assertEquals(jakartaResponse, jakartaRawResponse);
+    }
+
+    @Test
+    public void testGetObjectWithJsonArray() {
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM_WITH_JSON_ARRAY, null);
+        JsonNode jacksonArray = JsonNodeFactory.instance.arrayNode()
+                .add(JsonNodeFactory.instance.objectNode().put("base_colour", "yellow"))
+                .add(JsonNodeFactory.instance.objectNode().put("spots", "many"));
+        JacksonGiraffe jacksonFrank = response.getObject(JacksonGiraffe.class, "giraffe");
+        assertEquals("frank", jacksonFrank.getName());
+        assertEquals(25.2, jacksonFrank.getHeight());
+        assertEquals(jacksonArray, jacksonFrank.getMeta());
+
+        JakartaGiraffe jakartaFrank = response.getObject(JakartaGiraffe.class, "giraffe");
+        JsonValue jakartaObject = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder().add("base_colour", "yellow").build())
+                .add(Json.createObjectBuilder().add("spots", "many").build())
+                .build();
+        assertEquals("frank", jakartaFrank.getName());
+        assertEquals(25.2, jakartaFrank.getHeight());
+        assertEquals(jakartaObject, jakartaFrank.getMeta());
+    }
+
+    @Test
+    public void testScalars() {
+        JsonObject object = Json.createObjectBuilder().add("key", "value").build();
+        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_SCALARS, null);
+        assertEquals("hello", response.getObject(String.class, "string"));
+        assertEquals(32, response.getObject(Long.class, "number"));
+        assertEquals(object, response.getObject(JsonObject.class, "json"));
+    }
+
+    @Test
     public void testGetObject() {
         ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_ONE_ITEM, null);
         Person person = response.getObject(Person.class, "people");
@@ -115,19 +227,95 @@ public class ResponseReaderTest {
     }
 
     @Test
-    public void testScalars() {
-        ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_SCALARS, null);
-        assertEquals("hello", response.getObject(String.class, "string"));
-        assertEquals(32, response.getObject(Long.class, "number"));
-    }
-
-    @Test
     public void testScalarsList() {
+        JsonArray jakartaArray = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder().add("key1", "value1").build())
+                .add(Json.createObjectBuilder().add("key2", "value2").build())
+                .build();
+        ArrayNode jacksonArray = JsonNodeFactory.instance
+                .arrayNode()
+                .add(JsonNodeFactory.instance.objectNode().put("key1", "value1"))
+                .add(JsonNodeFactory.instance.objectNode().put("key2", "value2"));
+
         ResponseImpl response = ResponseReader.readFrom(EXAMPLE_RESPONSE_SCALARS_LIST, null);
         assertEquals("hello", response.getList(String.class, "strings").get(0));
         assertEquals("bye", response.getList(String.class, "strings").get(1));
         assertEquals(32, response.getList(Long.class, "numbers").get(0));
         assertEquals(33, response.getList(Long.class, "numbers").get(1));
+        assertEquals(jakartaArray, response.getObject(JsonArray.class, "jsonArray"));
+        assertEquals(jacksonArray, response.getObject(ArrayNode.class, "jsonArray"));
+    }
+
+    static class JacksonGiraffe {
+        String name;
+        Double height;
+        JsonNode meta;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Double getHeight() {
+            return height;
+        }
+
+        public void setHeight(Double height) {
+            this.height = height;
+        }
+
+        public JsonNode getMeta() {
+            return meta;
+        }
+
+        public void setMeta(JsonNode meta) {
+            this.meta = meta;
+        }
+    }
+
+    static class JakartaGiraffe {
+        String name;
+        Double height;
+        JsonValue meta;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Double getHeight() {
+            return height;
+        }
+
+        public void setHeight(Double height) {
+            this.height = height;
+        }
+
+        public JsonValue getMeta() {
+            return meta;
+        }
+
+        public void setMeta(JsonValue meta) {
+            this.meta = meta;
+        }
+    }
+
+    static class UnsupportedFieldType {
+        JsonString string;
+
+        public JsonString getString() {
+            return string;
+        }
+
+        public void setString(JsonString string) {
+            this.string = string;
+        }
     }
 
     @Test
