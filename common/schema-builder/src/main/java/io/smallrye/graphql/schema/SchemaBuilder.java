@@ -252,13 +252,15 @@ public class SchemaBuilder {
 
     private void addDirectiveTypes(Schema schema) {
         // custom directives from annotations
+        Set<DotName> seenDirectiveClasses = new HashSet<>();
         for (AnnotationInstance annotationInstance : ScanningContext.getIndex().getAnnotations(DIRECTIVE)) {
             ClassInfo classInfo = annotationInstance.target().asClass();
             boolean federationEnabled = Boolean.getBoolean("smallrye.graphql.federation.enabled");
             // only add federation-related directive types to the schema if federation is enabled
             DotName packageName = classInfo.name().packagePrefixName();
             if ((packageName == null || !packageName.toString().startsWith(FEDERATION_ANNOTATIONS_PACKAGE.toString())
-                    || federationEnabled) && !isGraphQLJavaDirective(classInfo)) {
+                    || federationEnabled) && !isGraphQLJavaDirective(classInfo)
+                    && seenDirectiveClasses.add(classInfo.name())) {
                 schema.addDirectiveType(directiveTypeCreator.create(classInfo));
             }
 
