@@ -24,12 +24,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.smallrye.graphql.api.Deprecated;
 import io.smallrye.graphql.index.app.SomeDirective;
 import io.smallrye.graphql.schema.SchemaBuilder;
 import io.smallrye.graphql.schema.SchemaBuilderException;
@@ -274,6 +276,38 @@ public class SchemaBuilderTest {
         assertNotNull(titleDirectiveInstance);
         assertEquals(someDirective, titleDirectiveInstance.getType());
         assertArrayEquals(new String[] { "getter" }, (Object[]) titleDirectiveInstance.getValue("value"));
+    }
+
+    @Test
+    public void testSchemaWithDuplicateDirectiveAnnotationIndexEntries() throws IOException {
+        // Simulates a deployment (e.g. servlet) where the same directive annotation class
+        // ends up indexed twice and merged via a CompositeIndex, see
+        // https://github.com/smallrye/smallrye-graphql/issues/2722
+        Path apiDir = Paths.get(System.getProperty("user.dir"), "../../server/api/target/classes/io/smallrye/graphql/api")
+                .normalize();
+
+        Indexer indexer1 = new Indexer();
+        indexer1.index(Files.newInputStream(apiDir.resolve("Directive.class")));
+        indexer1.index(Files.newInputStream(apiDir.resolve("DirectiveLocation.class")));
+        indexer1.index(Files.newInputStream(apiDir.resolve("Deprecated.class")));
+        indexer1.index(getResourceAsStream("io/smallrye/graphql/index/app/Movie.class"));
+        indexer1.index(getResourceAsStream("io/smallrye/graphql/index/app/MovieTriviaController.class"));
+        Index index1 = indexer1.complete();
+
+        Indexer indexer2 = new Indexer();
+        indexer2.index(Files.newInputStream(apiDir.resolve("Directive.class")));
+        indexer2.index(Files.newInputStream(apiDir.resolve("DirectiveLocation.class")));
+        indexer2.index(Files.newInputStream(apiDir.resolve("Deprecated.class")));
+        Index index2 = indexer2.complete();
+
+        IndexView compositeIndex = CompositeIndex.create(index1, index2);
+
+        Schema schema = SchemaBuilder.build(compositeIndex);
+
+        long deprecatedDirectiveCount = schema.getDirectiveTypes().stream()
+                .filter(d -> Deprecated.class.getName().equals(d.getClassName()))
+                .count();
+        assertEquals(1, deprecatedDirectiveCount);
     }
 
     @Test
