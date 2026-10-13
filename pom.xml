@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>smallrye-graphql-parent</artifactId>
-    <version>3.0.0.Beta8</version>
+    <version>3.0.0.Beta-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <name>SmallRye: GraphQL Parent</name>
@@ -85,7 +85,7 @@
         <connection>scm:git:git@github.com:smallrye/smallrye-graphql.git</connection>
         <developerConnection>scm:git:git@github.com:smallrye/smallrye-graphql.git</developerConnection>
         <url>https://github.com/smallrye/smallrye-graphql/</url>
-        <tag>3.0.0.Beta8</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
