@@ -1,0 +1,53 @@
+= Typesafe Client Static Directives
+include::_attributes.adoc[]
+
+== Custom Static Directives
+
+The declaration of custom static directives for the typesafe client follows the same principles as the server-side xref:directives.adoc[directives]. With only exception of using the https://spec.graphql.org/draft/#ExecutableDirectiveLocation[Executable Directive Locations] instead of Type System Directive Locations.
+
+[source,java]
+----
+@Directive(on = { FIELD, VARIABLE_DEFINITION })
+@Retention(RUNTIME)
+public @interface MyDirective {
+    String value() default "";
+}
+----
+
+Applying this to your API should look like this:
+
+[source,java]
+----
+import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+
+@GraphQLClientApi
+public @interface MyClientApi {
+    
+    @Query
+    @MyDirective("top-level field")
+    MySuperHero getMySuperHero(@MyDirective("variable definition") String nameOfMySuperHero);
+    
+    class MySuperHero {
+        @MyDirective("field")
+        String name;
+    }
+}
+----
+
+Your API is going to generate a query something like this:
+
+....
+query mySuperHero(
+  $nameOfMySuperHero: String @myDirective(value: "variable definition")
+) {
+  mySuperHero(nameOfMySuperHero: $nameOfMySuperHero)
+    @myDirective(value: "top-level field") {
+    name @myDirective(value: "field")
+  }
+}
+....
+
+____
+++[++NOTE++]++
+The current implementation supports only FIELD and VARIABLE++_++DEFINITION locations.
+____
