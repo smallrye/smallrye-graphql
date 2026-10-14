@@ -1,4 +1,5 @@
 # testSubscriptions
 1| type Subscription           |   arraySubscription: [String]              |   Java array in subscription should map to [String] in graphql
-2| type Subscription           |   listSubscription: [String]               |   Java array in subscription should map to [String] in graphql
+2| type Subscription           |   listSubscription: [String]               |   Java List in subscription should map to [String] in graphql
 3| type Subscription           |   stockQuoteMulti(stockCode: String): Stock|   Subscription must be able to take arguments
+4| type Subscription           |   stockQuoteFlow(stockCode: String): Stock |   Flow.Publisher subscription (MicroProfile spec requirement)

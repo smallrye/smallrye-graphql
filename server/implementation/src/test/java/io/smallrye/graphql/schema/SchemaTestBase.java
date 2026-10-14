@@ -11,6 +11,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.AfterEach;
 
+import graphql.language.BooleanValue;
 import graphql.language.StringValue;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLSchema;
@@ -36,7 +37,8 @@ public abstract class SchemaTestBase {
                 ((StringValue) graphQLDirective.getArguments().get(0).toAppliedArgument().getArgumentValue().getValue())
                         .getValue());
         assertEquals(resolvableValue, graphQLDirective.getArguments().get(1).toAppliedArgument().getArgumentValue().getValue());
-        assertEquals(true, graphQLDirective.getArguments().get(1).getArgumentDefaultValue().getValue());
+        assertEquals(true,
+                ((BooleanValue) graphQLDirective.getArguments().get(1).getArgumentDefaultValue().getValue()).isValue());
     }
 
     protected GraphQLSchema createGraphQLSchema(Class<?>... api) {
