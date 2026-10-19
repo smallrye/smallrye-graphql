@@ -340,16 +340,9 @@ public class ReferenceCreator {
 
         String fieldTypeName = fieldType.name().toString();
 
-        if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
-            // ID
-            return Scalars.getIDScalar(fieldTypeName);
-        } else if (Scalars.isScalar(fieldTypeName)) {
-            // Scalar
-            if (FormatHelper.hasAnyFormatting(annotations)) {
-                return Scalars.getFormattedScalar(fieldTypeName);
-            }
-            return Scalars.getScalar(fieldTypeName);
-        } else if (fieldType.kind().equals(Type.Kind.ARRAY)) {
+        // Unwrap arrays and collections first, so an annotation like @Id (which applies to the
+        // element type, e.g. @Id List<String>) is evaluated against the element, not the wrapper.
+        if (fieldType.kind().equals(Type.Kind.ARRAY)) {
             // Java Array
             Type typeInArray = fieldType.asArrayType().component();
             Type typeInMethodArray = methodType.asArrayType().component();
@@ -361,6 +354,15 @@ public class ReferenceCreator {
             Type typeInMethodCollection = methodType.asParameterizedType().arguments().get(0);
             return getReference(direction, typeInCollection, typeInMethodCollection, annotations, parentObjectReference,
                     declaringClassName);
+        } else if (annotations != null && annotations.containsOneOfTheseAnnotations(Annotations.ID)) {
+            // ID
+            return Scalars.getIDScalar(fieldTypeName);
+        } else if (Scalars.isScalar(fieldTypeName)) {
+            // Scalar
+            if (FormatHelper.hasAnyFormatting(annotations)) {
+                return Scalars.getFormattedScalar(fieldTypeName);
+            }
+            return Scalars.getScalar(fieldTypeName);
         } else if (Classes.isMap(fieldType)) {
             ParameterizedType parameterizedFieldType = fieldType.asParameterizedType();
             List<Type> fieldArguments = parameterizedFieldType.arguments();
