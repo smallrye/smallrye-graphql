@@ -1,0 +1,10 @@
+classpath:/home/runner/work/smallrye-graphql/smallrye-graphql/client/api/target/smallrye-graphql-client-api-3.0.0.Beta9.jar	50883:1792413709442
+classpath:/home/runner/.m2/repository/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar	151307:1652885430000
+classpath:/home/runner/.m2/repository/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar	26226:1652885429000
+classpath:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar	26378:1708008216000
+classpath:/home/runner/.m2/repository/jakarta/el/jakarta.el-api/5.0.0/jakarta.el-api-5.0.0.jar	87908:1645783394000
+classpath:/home/runner/.m2/repository/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar	25287:1643175355000
+classpath:/home/runner/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar	10681:1634410593000
+classpath:/home/runner/.m2/repository/tools/jackson/core/jackson-databind/3.1.7/jackson-databind-3.1.7.jar	1951590:1790036838000
+classpath:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar	82104:1768776434000
+classpath:/home/runner/.m2/repository/tools/jackson/core/jackson-core/3.1.7/jackson-core-3.1.7.jar	602666:1790033772000

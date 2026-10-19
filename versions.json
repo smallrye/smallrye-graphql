@@ -1,10 +1,15 @@
 [
   {
-    "version": "3.0.0.Beta8",
-    "title": "3.0.0.Beta8",
+    "version": "3.0.0.Beta9",
+    "title": "3.0.0.Beta9",
     "aliases": [
       "latest"
     ]
+  },
+  {
+    "version": "3.0.0.Beta8",
+    "title": "3.0.0.Beta8",
+    "aliases": []
   },
   {
     "version": "3.0.0.Beta7",
