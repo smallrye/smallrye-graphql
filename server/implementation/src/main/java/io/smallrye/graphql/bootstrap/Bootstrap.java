@@ -527,6 +527,7 @@ public class Bootstrap {
                     .description(value.getDescription());
             if (value.hasDirectiveInstances()) {
                 definitionBuilder = definitionBuilder.withDirectives(createGraphQLDirectives(value.getDirectiveInstances()));
+                getDeprecationReason(value.getDirectiveInstances()).ifPresent(definitionBuilder::deprecationReason);
             }
             enumBuilder = enumBuilder.value(definitionBuilder.build());
         }
@@ -830,6 +831,7 @@ public class Bootstrap {
         // Directives
         if (operation.hasDirectiveInstances()) {
             fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+            getDeprecationReason(operation.getDirectiveInstances()).ifPresent(fieldBuilder::deprecate);
         }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
@@ -865,6 +867,7 @@ public class Bootstrap {
         // Directives
         if (operation.hasDirectiveInstances()) {
             fieldBuilder = fieldBuilder.withDirectives(createGraphQLDirectives(operation.getDirectiveInstances()));
+            getDeprecationReason(operation.getDirectiveInstances()).ifPresent(fieldBuilder::deprecate);
         }
 
         GraphQLFieldDefinition graphQLFieldDefinition = fieldBuilder.build();
@@ -882,6 +885,24 @@ public class Bootstrap {
         return directiveInstances.stream()
                 .map(this::createGraphQLDirectiveFrom)
                 .toArray(GraphQLDirective[]::new);
+    }
+
+    /**
+     * Looks for a {@code @Deprecated} directive instance (either the SmallRye one, applied with a reason, or the
+     * one derived from {@code java.lang.Deprecated}) among the given directive instances, and if found, returns the
+     * deprecation reason to use, falling back to the GraphQL spec's default reason when none was supplied.
+     */
+    private Optional<String> getDeprecationReason(Collection<DirectiveInstance> directiveInstances) {
+        return directiveInstances.stream()
+                .filter(directiveInstance -> DEPRECATED_DIRECTIVE_CLASS_NAME.equals(directiveInstance.getType().getClassName()))
+                .findFirst()
+                .map(directiveInstance -> {
+                    Object reason = directiveInstance.getValues().get(DEPRECATED_DIRECTIVE_REASON_ARGUMENT);
+                    if (reason instanceof String && !((String) reason).isEmpty()) {
+                        return (String) reason;
+                    }
+                    return DEFAULT_DEPRECATION_REASON;
+                });
     }
 
     private List<GraphQLFieldDefinition> createGraphQLFieldDefinitionsFromFields(Reference owner, Collection<Field> fields) {
@@ -905,6 +926,7 @@ public class Bootstrap {
             for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
                 fieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
             }
+            getDeprecationReason(field.getDirectiveInstances()).ifPresent(fieldBuilder::deprecate);
         }
 
         // Auto Map argument
@@ -992,6 +1014,7 @@ public class Bootstrap {
             for (DirectiveInstance directiveInstance : field.getDirectiveInstances()) {
                 inputFieldBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
             }
+            getDeprecationReason(field.getDirectiveInstances()).ifPresent(inputFieldBuilder::deprecate);
         }
 
         // Default value (on method)
@@ -1157,6 +1180,7 @@ public class Bootstrap {
             for (DirectiveInstance directiveInstance : argument.getDirectiveInstances()) {
                 argumentBuilder.withDirective(createGraphQLDirectiveFrom(directiveInstance));
             }
+            getDeprecationReason(argument.getDirectiveInstances()).ifPresent(argumentBuilder::deprecate);
         }
 
         return argumentBuilder.build();
@@ -1265,6 +1289,10 @@ public class Bootstrap {
 
     private static final String CONTEXT = "io.smallrye.graphql.api.Context";
     private static final String OBSERVES = "javax.enterprise.event.Observes";
+
+    private static final String DEPRECATED_DIRECTIVE_CLASS_NAME = "io.smallrye.graphql.api.Deprecated";
+    private static final String DEPRECATED_DIRECTIVE_REASON_ARGUMENT = "reason";
+    private static final String DEFAULT_DEPRECATION_REASON = "No longer supported";
 
     private static final List<String> IGNORABLE_ARGUMENTS = Arrays.asList(CONTEXT, OBSERVES);
 

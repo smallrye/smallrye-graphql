@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -212,6 +213,52 @@ class SchemaTest extends SchemaTestBase {
         assertEquals("InputTypeField description", inputWithDirectives.getField("foo").getDescription());
         assertNotNull(inputWithDirectives.getField("bar").getDirective("inputDirective"),
                 "Input type field InputWithDirectivesInput.bar should have directive @inputDirective");
+    }
+
+    @Test
+    void schemaWithDeprecatedDirectives() {
+        GraphQLSchema graphQLSchema = createGraphQLSchema(io.smallrye.graphql.api.Deprecated.class,
+                DeprecatedTestApi.class, DeprecatedTestApi.ItemWithDeprecations.class,
+                DeprecatedTestApi.InputWithDeprecations.class, DeprecatedTestApi.EnumWithDeprecations.class);
+
+        GraphQLObjectType itemType = graphQLSchema.getObjectType("ItemWithDeprecations");
+
+        GraphQLFieldDefinition currentField = itemType.getFieldDefinition("current");
+        assertFalse(currentField.isDeprecated());
+        assertNull(currentField.getDeprecationReason());
+
+        GraphQLFieldDefinition withSmallRyeField = itemType.getFieldDefinition("withSmallRye");
+        assertTrue(withSmallRyeField.isDeprecated());
+        assertEquals("Use `current`.", withSmallRyeField.getDeprecationReason());
+
+        GraphQLFieldDefinition withJavaLangField = itemType.getFieldDefinition("withJavaLang");
+        assertTrue(withJavaLangField.isDeprecated());
+        assertEquals("No longer supported", withJavaLangField.getDeprecationReason());
+
+        GraphQLObjectType queryRoot = graphQLSchema.getQueryType();
+
+        GraphQLFieldDefinition itemQuery = queryRoot.getFieldDefinition("item");
+        assertFalse(itemQuery.isDeprecated());
+
+        GraphQLFieldDefinition oldItemQuery = queryRoot.getFieldDefinition("oldItem");
+        assertTrue(oldItemQuery.isDeprecated());
+        assertEquals("Use `item`.", oldItemQuery.getDeprecationReason());
+
+        GraphQLArgument argument = queryRoot.getFieldDefinition("itemWithArgument").getArgument("arg");
+        assertTrue(argument.isDeprecated());
+        assertEquals("Use no argument.", argument.getDeprecationReason());
+
+        GraphQLInputObjectType inputType = graphQLSchema.getTypeAs("InputWithDeprecationsInput");
+        assertFalse(inputType.getField("current").isDeprecated());
+        GraphQLInputObjectField inputField = inputType.getField("withSmallRye");
+        assertTrue(inputField.isDeprecated());
+        assertEquals("Use `current`.", inputField.getDeprecationReason());
+
+        GraphQLEnumType enumType = graphQLSchema.getTypeAs("EnumWithDeprecations");
+        assertFalse(enumType.getValue("CURRENT").isDeprecated());
+        GraphQLEnumValueDefinition enumValue = enumType.getValue("OLD");
+        assertTrue(enumValue.isDeprecated());
+        assertEquals("Use `CURRENT`.", enumValue.getDeprecationReason());
     }
 
     @Test
