@@ -2,7 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { GraphiQL, HISTORY_PLUGIN } from 'graphiql';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import 'graphiql/setup-workers/esm.sh';
+import 'graphiql/style.css';
+
+// Monaco editor workers are bundled next to this script (see the workers/ directory)
+globalThis.MonacoEnvironment = {
+	getWorker(_workerId, label) {
+		var name = label === 'json' || label === 'graphql' ? label : 'editor';
+		return new Worker(new URL(name + '.worker.js', import.meta.url), { type: 'module' });
+	},
+};
 
 const api = '/graphql';
 const logo = '/graphql-ui';
