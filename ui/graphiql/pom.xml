@@ -17,7 +17,7 @@
         <path.graphiql>graphql-ui</path.graphiql>
         <react.version>19.3.0</react.version>
         <graphiql.version>5.4.0</graphiql.version>
-        <graphql-js.version>16.14.2</graphql-js.version>
+        <graphql-js.version>17.0.2</graphql-js.version>
         <graphql-ws.version>6.4.1</graphql-ws.version>
         <version.esbuild-java>2.1.5</version.esbuild-java>
         <version.exec-maven-plugin>3.6.4</version.exec-maven-plugin>
@@ -470,7 +470,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>graphql</artifactId>
-                        <version>16.14.2</version>
+                        <version>17.0.2</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
