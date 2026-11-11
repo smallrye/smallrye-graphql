@@ -48,7 +48,7 @@
         <version.hibernate-validator>9.1.6.Final</version.hibernate-validator>
         <version.glasfish-el>4.0.2</version.glasfish-el>
         <version.rxjava>2.2.21</version.rxjava>
-        <version.jackson>3.1.8</version.jackson>
+        <version.jackson>3.3.0</version.jackson>
         <version.mongo-bson>5.14.0</version.mongo-bson>
         <version.mockito>5.24.0</version.mockito>
         <version.weld.servlet>5.1.0.Final</version.weld.servlet>
