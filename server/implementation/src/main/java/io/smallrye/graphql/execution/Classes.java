@@ -20,6 +20,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Class helper
@@ -173,6 +178,11 @@ public class Classes {
         NUMBERS.add(LONG_PRIMATIVE);
         NUMBERS.add(FLOAT);
         NUMBERS.add(FLOAT_PRIMATIVE);
+        NUMBERS.add(AtomicInteger.class.getName());
+        NUMBERS.add(AtomicLong.class.getName());
+        NUMBERS.add(OptionalInt.class.getName());
+        NUMBERS.add(OptionalLong.class.getName());
+        NUMBERS.add(OptionalDouble.class.getName());
 
         DATES.add(LOCALDATE);
         DATES.add(LOCALTIME);
