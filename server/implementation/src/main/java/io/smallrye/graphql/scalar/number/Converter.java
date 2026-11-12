@@ -3,6 +3,8 @@ package io.smallrye.graphql.scalar.number;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import io.smallrye.graphql.transformation.NumberTransformer;
+
 /**
  * Convert to the correct Type
  *
@@ -14,8 +16,17 @@ public interface Converter {
 
     public Object fromBigInteger(BigInteger value);
 
-    default boolean isInRange(BigInteger value) {
-        return true;
+    default Object fromLong(long value) {
+        return fromBigInteger(BigInteger.valueOf(value));
+    }
+
+    default Object fromFloat(float value) {
+        // Widening a float to double is exact
+        return fromDouble(value);
+    }
+
+    default Object fromDouble(double value) {
+        return fromBigDecimal(NumberTransformer.bigDecimalValue(value));
     }
 
 }
