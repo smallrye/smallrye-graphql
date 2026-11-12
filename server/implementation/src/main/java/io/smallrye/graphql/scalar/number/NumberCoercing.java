@@ -4,13 +4,18 @@ import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.OptionalDouble;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import graphql.Scalars;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
+import io.smallrye.graphql.transformation.NumberTransformer;
 
 /**
  * The Coercing used by numbers
@@ -31,16 +36,33 @@ public class NumberCoercing implements Coercing {
 
     private Object convertImpl(Object input) {
 
+        if (input instanceof BigInteger value) {
+            return converter.fromBigInteger(value);
+        } else if (input instanceof BigDecimal value) {
+            return converter.fromBigDecimal(value);
+        } else if (input instanceof Float value) {
+            NumberTransformer.finiteFloat(value);
+        } else if (input instanceof Double value) {
+            NumberTransformer.finiteDouble(value);
+        } else if (input instanceof OptionalDouble optional && optional.isPresent()) {
+            NumberTransformer.finiteDouble(optional.getAsDouble());
+        }
+
         for (Class supportedClass : supportedTypes) {
             if (supportedClass.isInstance(input)) {
                 return supportedClass.cast(input);
             }
         }
 
-        if (input instanceof Number) {
-            return input;
-        } else if (input instanceof String) {
-            return input;
+        if (input instanceof Byte || input instanceof Short || input instanceof Integer || input instanceof Long
+                || input instanceof AtomicInteger || input instanceof AtomicLong) {
+            return converter.fromLong(((Number) input).longValue());
+        } else if (input instanceof Float value) {
+            return converter.fromFloat(value);
+        } else if (input instanceof Double value) {
+            return converter.fromDouble(value);
+        } else if (input instanceof Number || input instanceof String) {
+            return converter.fromBigDecimal(new BigDecimal(input.toString()));
         } else {
             throw msg.numberFormatException(input.toString());
         }
@@ -53,7 +75,7 @@ public class NumberCoercing implements Coercing {
             return null;
         try {
             return convertImpl(input);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ArithmeticException e) {
             throw msg.coercingSerializeException(name, input.getClass().getSimpleName(), e);
         }
     }
@@ -62,7 +84,7 @@ public class NumberCoercing implements Coercing {
     public Object parseValue(Object input) {
         try {
             return convertImpl(input);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ArithmeticException e) {
             throw msg.coercingParseValueException(name, input.getClass().getSimpleName(), e);
         }
     }
@@ -74,55 +96,58 @@ public class NumberCoercing implements Coercing {
         if (input instanceof StringValue) {
             try {
                 BigDecimal value = new BigDecimal(((StringValue) input).getValue());
-                return converter.fromBigDecimal(value);
+                return parseDecimalLiteral(value, input);
             } catch (NumberFormatException e) {
                 throw msg.numberCoercingParseException(input.toString());
-            } catch (ArithmeticException e) {
-                throw msg.integerCoercingParseException(input.toString());
             }
         } else if (input instanceof IntValue) {
             BigInteger value = ((IntValue) input).getValue();
-            if (!converter.isInRange(value)) {
-                throw msg.coercingParseLiteralException(name, value.toString());
+            try {
+                return converter.fromBigInteger(value);
+            } catch (ArithmeticException e) {
+                throw msg.coercingParseLiteralException(name, input.toString());
             }
-            return converter.fromBigInteger(value);
         } else if (input instanceof FloatValue) {
-            BigDecimal value = ((FloatValue) input).getValue();
-            try {
-                return converter.fromBigDecimal(value);
-            } catch (ArithmeticException e) {
-                throw msg.integerCoercingParseException(input.toString());
-            }
-
+            return parseDecimalLiteral(((FloatValue) input).getValue(), input);
         } else if (input instanceof BigDecimal) {
-            BigDecimal value = (BigDecimal) input;
-            try {
-                return converter.fromBigDecimal(value);
-            } catch (ArithmeticException e) {
-                throw msg.integerCoercingParseException(input.toString());
-            }
+            return parseDecimalLiteral((BigDecimal) input, input);
         } else if (input instanceof BigInteger) {
             BigInteger value = (BigInteger) input;
-            if (!converter.isInRange(value)) {
-                throw msg.coercingParseLiteralException(name, value.toString());
+            try {
+                return converter.fromBigInteger(value);
+            } catch (ArithmeticException e) {
+                throw msg.coercingParseLiteralException(name, input.toString());
             }
-            return converter.fromBigInteger(value);
         }
         throw msg.coercingParseLiteralException(input.getClass().getSimpleName());
     }
 
+    private Object parseDecimalLiteral(BigDecimal value, Object input) {
+        try {
+            return converter.fromBigDecimal(value);
+        } catch (ArithmeticException e) {
+            if (Scalars.GraphQLInt.getName().equals(name)
+                    && value.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) >= 0
+                    && value.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0) {
+                // An in-range value can only fail the exact Int conversion if it has a fractional part.
+                throw msg.integerCoercingParseException(input.toString());
+            }
+            throw msg.coercingParseLiteralException(name, input.toString());
+        }
+    }
+
     @Override
     public Value<?> valueToLiteral(Object input) {
-        Object s = serialize(input);
-        if (s instanceof BigDecimal) {
-            return FloatValue.newFloatValue((BigDecimal) s).build();
-        } else if (s instanceof BigInteger) {
-            return IntValue.newIntValue((BigInteger) s).build();
-        } else if (input instanceof Float || input instanceof Double) {
-            return new FloatValue(BigDecimal.valueOf(((Number) input).doubleValue()));
-        } else if (input instanceof Number) {
+        Object serialized = serialize(input);
+        if (serialized instanceof BigDecimal) {
+            return FloatValue.newFloatValue((BigDecimal) serialized).build();
+        } else if (serialized instanceof BigInteger) {
+            return IntValue.newIntValue((BigInteger) serialized).build();
+        } else if (serialized instanceof Float || serialized instanceof Double) {
+            return new FloatValue(BigDecimal.valueOf(((Number) serialized).doubleValue()));
+        } else if (serialized instanceof Number) {
             // For other Number types like Integer, Long, etc.
-            return new IntValue(BigInteger.valueOf(((Number) input).longValue()));
+            return new IntValue(BigInteger.valueOf(((Number) serialized).longValue()));
         } else {
             throw new CoercingParseLiteralException("Input is not a valid number type: " + input);
         }
