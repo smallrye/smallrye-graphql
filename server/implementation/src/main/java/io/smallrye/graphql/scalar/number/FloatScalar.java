@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.OptionalDouble;
 
 import graphql.Scalars;
+import io.smallrye.graphql.transformation.NumberTransformer;
 
 /**
  * Scalar for Float.
@@ -20,12 +21,22 @@ public class FloatScalar extends AbstractNumberScalar {
                 new Converter() {
                     @Override
                     public Object fromBigDecimal(BigDecimal bigDecimal) {
-                        return bigDecimal.doubleValue();
+                        return NumberTransformer.doubleValueFinite(bigDecimal);
                     }
 
                     @Override
                     public Object fromBigInteger(BigInteger bigInteger) {
-                        return bigInteger.doubleValue();
+                        return NumberTransformer.doubleValueFinite(bigInteger);
+                    }
+
+                    @Override
+                    public Object fromLong(long value) {
+                        return (double) value;
+                    }
+
+                    @Override
+                    public Object fromDouble(double value) {
+                        return NumberTransformer.finiteDouble(value);
                     }
 
                 },
