@@ -425,7 +425,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>balanced-match</artifactId>
-                        <version>4.0.4</version>
+                        <version>5.0.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
