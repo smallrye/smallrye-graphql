@@ -17,7 +17,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import graphql.execution.ValuesResolver;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
@@ -108,6 +110,14 @@ public class ArgumentHelper extends AbstractHelper {
         if (argumentValueFromGraphQLJava == null) {
             if (argument.hasWrapper() && argument.getWrapper().isOptional()) {
                 return Optional.empty();
+            }
+            // A primitive can not be null, so an explicit null falls back to the default value
+            if (!argument.hasWrapper() && argument.hasDefaultValue()
+                    && Classes.isPrimitive(argument.getReference().getClassName())) {
+                GraphQLArgument graphQLArgument = dfe.getFieldDefinition().getArgument(argument.getName());
+                Object defaultValue = ValuesResolver.valueToInternalValue(graphQLArgument.getArgumentDefaultValue(),
+                        graphQLArgument.getType(), dfe.getGraphQlContext(), dfe.getLocale());
+                return transformOrAdapt(defaultValue, argument, dfe);
             }
             return null;
         }
