@@ -104,8 +104,8 @@ public class FieldHelper extends AbstractHelper {
 
     @Override
     protected Class<?> getArrayType(final Field field) {
-        if (Classes.isNumberLikeType(field.getReference().getClassName())) {
-            // The scalar serializes each numeric element; preserving its Java type also avoids copying the array.
+        if (!field.hasTransformation() && Classes.isNumberLikeType(field.getReference().getClassName())) {
+            // Unformatted numeric elements are serialized by the scalar without copying the array.
             return classloadingService.loadClass(field.getReference().getClassName());
         }
         return classloadingService.loadClass(field.getReference().getGraphQLClassName());
