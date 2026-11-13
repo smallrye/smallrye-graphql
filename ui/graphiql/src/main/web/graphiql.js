@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { GraphiQL, HISTORY_PLUGIN } from 'graphiql';
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import { GraphiQL, DEFAULT_PLUGINS } from 'graphiql';
+import { createTransport } from '@graphiql/toolkit';
+import { createClient } from 'graphql-ws';
 import 'graphiql/style.css';
 
 // Monaco editor workers are bundled next to this script (see the workers/ directory)
@@ -12,8 +13,9 @@ globalThis.MonacoEnvironment = {
 	},
 };
 
-const api = '/graphql';
-const logo = '/graphql-ui';
+// The paths are set by render.js, which is not bundled so that they can be changed after the build
+// (Quarkus rewrites them to its configured paths)
+const { api, logo } = globalThis.smallRyeGraphQLUi ?? { api: '/graphql', logo: '/graphql-ui' };
 const defaultQuery = '';
 const shouldPersistHeaders = false;
 
@@ -131,21 +133,32 @@ if (
 	};
 }
 
-const fetcher = createGraphiQLFetcher({
+const transport = createTransport({
 	url: getUrl(),
-	subscriptionUrl: getWsUrl(),
 	headers: mergedHeaders,
+	subscriptionClient: createClient({ url: getWsUrl() }),
 });
 
-const plugins = [HISTORY_PLUGIN];
+// History, Query Builder and Collections
+const plugins = DEFAULT_PLUGINS;
+
+// LOGO (top-left corner of the top bar), the default GraphiQL brand is shown when embedded
+const brand = embed
+	? undefined
+	: React.createElement(
+			'a',
+			{ id: 'graphQLUiLogoLink', className: 'graphiql-un-styled', href: logo },
+			React.createElement('img', { src: 'logo.png', alt: 'SmallRye Graphql', height: 28 })
+		);
 
 function App() {
 	return React.createElement(GraphiQL, {
-		fetcher: fetcher,
+		brand: brand,
+		transport: transport,
 		plugins: plugins,
-		query: parameters.query,
-		variables: parameters.variables,
-		headers: parameters.headers,
+		initialQuery: parameters.query,
+		initialVariables: parameters.variables,
+		initialHeaders: parameters.headers,
 		operationName: parameters.operationName,
 		onEditQuery: onEditQuery,
 		onEditVariables: onEditVariables,
@@ -159,22 +172,3 @@ function App() {
 const container = document.getElementById('graphiql');
 const root = ReactDOM.createRoot(container);
 root.render(React.createElement(App));
-
-// LOGO (top-left corner)
-if (!embed) {
-	// Wait for the DOM to update after React render
-	setTimeout(function() {
-		var sidebar = document.getElementsByClassName(
-			'graphiql-sidebar'
-		)[0];
-		if (sidebar) {
-			var logoLink = document.createElement('a');
-			logoLink.id = 'graphQLUiLogoLink';
-			logoLink.className = 'graphiql-un-styled';
-			logoLink.href = logo;
-			logoLink.innerHTML =
-				"<img src='logo.png' alt='SmallRye Graphql' height='44' align='middle'>";
-			sidebar.insertBefore(logoLink, sidebar.firstChild);
-		}
-	}, 500);
-}

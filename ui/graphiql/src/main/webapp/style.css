@@ -2,23 +2,6 @@ body {
     margin: 0;
 }
 
-.graphiql-container, .CodeMirror-info, .CodeMirror-lint-tooltip, reach-portal {
-    --color-primary: 199, 63%, 51% !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    body:not(.graphiql-light) .graphiql-container,body:not(.graphiql-light) .CodeMirror-info,body:not(.graphiql-light) .CodeMirror-lint-tooltip,body:not(.graphiql-light) reach-portal {
-    	--color-base: 210, 10%, 23% !important;
-    }
-}
-
-body.graphiql-dark .graphiql-container,
-body.graphiql-dark .CodeMirror-info,
-body.graphiql-dark .CodeMirror-lint-tooltip,
-body.graphiql-dark reach-portal {
-	--color-base: 210, 10%, 23% !important;
-}
-
 #graphiql {
     height: 100vh;
 }
@@ -26,4 +9,24 @@ body.graphiql-dark reach-portal {
 #graphQLUiLogoLink {
     display: flex;
     justify-content: center;
+}
+
+/* Run button in SmallRye blue (GraphiQL's design tokens are oklch). GraphiQL sets data-theme on .graphiql-container
+   to the resolved theme; the media query only covers the first render, before it is set. */
+.graphiql-execute-button,
+.graphiql-container[data-theme=dark] .graphiql-execute-button {
+    --btn-primary: 60% .12 233;
+    --btn-primary-border: 66% .12 233;
+}
+
+@media (prefers-color-scheme: light) {
+    .graphiql-execute-button {
+        --btn-primary: 56% .12 233;
+        --btn-primary-border: 50% .12 233;
+    }
+}
+
+.graphiql-container[data-theme=light] .graphiql-execute-button {
+    --btn-primary: 56% .12 233;
+    --btn-primary-border: 50% .12 233;
 }
