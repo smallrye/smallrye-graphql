@@ -10,11 +10,15 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 
 import graphql.schema.DataFetchingEnvironment;
@@ -22,6 +26,7 @@ import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JacksonCreator;
+import io.smallrye.graphql.json.NumericInputField;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
@@ -30,6 +35,7 @@ import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.schema.model.Reference;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
+import io.smallrye.graphql.transformation.NumberTransformer;
 import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 import tools.jackson.core.JacksonException;
@@ -108,6 +114,14 @@ public class ArgumentHelper extends AbstractHelper {
         if (argumentValueFromGraphQLJava == null) {
             if (argument.hasWrapper() && argument.getWrapper().isOptional()) {
                 return Optional.empty();
+            }
+            String type = argument.getReference().getClassName();
+            if (type.equals(OptionalInt.class.getName())) {
+                return OptionalInt.empty();
+            } else if (type.equals(OptionalLong.class.getName())) {
+                return OptionalLong.empty();
+            } else if (type.equals(OptionalDouble.class.getName())) {
+                return OptionalDouble.empty();
             }
             return null;
         }
@@ -213,9 +227,8 @@ public class ArgumentHelper extends AbstractHelper {
                 argumentValue = correctComplexObjectFromMap((Map) argumentValue, field, dfe);
             }
 
-            argumentValue = coerceToParameterType(argumentValue, reflectionInvoker.getMethod());
-
             try {
+                argumentValue = coerceToParameterType(argumentValue, reflectionInvoker.getMethod());
                 Object adaptedObject = reflectionInvoker.invoke(argumentValue);
                 return adaptedObject;
             } catch (Exception ex) {
@@ -237,17 +250,17 @@ public class ArgumentHelper extends AbstractHelper {
         if (value instanceof Number) {
             Number num = (Number) value;
             if (expected == Long.class || expected == long.class) {
-                return num.longValue();
+                return NumberTransformer.longValueExact(num);
             } else if (expected == Integer.class || expected == int.class) {
-                return num.intValue();
+                return NumberTransformer.intValueExact(num);
             } else if (expected == Short.class || expected == short.class) {
-                return num.shortValue();
+                return NumberTransformer.shortValueExact(num);
             } else if (expected == Byte.class || expected == byte.class) {
-                return num.byteValue();
+                return NumberTransformer.byteValueExact(num);
             } else if (expected == Double.class || expected == double.class) {
-                return num.doubleValue();
+                return NumberTransformer.doubleValueFinite(num);
             } else if (expected == Float.class || expected == float.class) {
-                return num.floatValue();
+                return NumberTransformer.floatValueFinite(num);
             }
         }
         if (expected == String.class) {
@@ -377,6 +390,7 @@ public class ArgumentHelper extends AbstractHelper {
     private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
+        validateNumericInputFields(m, className);
         Map<String, Object> targetValues = removeTargetValues(m, className);
 
         // Let's see if there are any fields that needs transformation or adaption
@@ -474,6 +488,39 @@ public class ArgumentHelper extends AbstractHelper {
             }
         }
         return targetValues;
+    }
+
+    private void validateNumericInputFields(Map values, String className) throws AbstractDataFetcherException {
+        for (NumericInputField numericField : InputFieldsInfo.getNumericInputFields(className)) {
+            Field field = numericField.field();
+            Object value = values.get(field.getName());
+            if (value != null) {
+                try {
+                    validateNumericInputValue(value, numericField);
+                } catch (ArithmeticException e) {
+                    throw new TransformException(e, field, value);
+                }
+            }
+        }
+    }
+
+    private void validateNumericInputValue(Object value, NumericInputField numericField)
+            throws AbstractDataFetcherException {
+        if (value instanceof Number number) {
+            if (numericField.numberType() != null) {
+                numericField.numberType().checkRange(number);
+            }
+        } else if (value instanceof Collection<?> collection) {
+            for (Object element : collection) {
+                if (element != null) {
+                    validateNumericInputValue(element, numericField);
+                }
+            }
+        } else if (value instanceof Map map && numericField.numberType() == null) {
+            validateNumericInputFields(map, numericField.field().getReference().getClassName());
+        } else if (value instanceof Optional<?> optional && optional.isPresent()) {
+            validateNumericInputValue(optional.get(), numericField);
+        }
     }
 
     private Object invokeTargetFields(Object target, String className, Map<String, Object> targetValues,

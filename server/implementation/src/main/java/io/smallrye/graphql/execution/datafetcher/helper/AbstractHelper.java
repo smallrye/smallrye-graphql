@@ -1,8 +1,6 @@
 package io.smallrye.graphql.execution.datafetcher.helper;
 
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +25,8 @@ import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Wrapper;
 import io.smallrye.graphql.spi.ClassloadingService;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
+import io.smallrye.graphql.transformation.NumberTransformer;
+import io.smallrye.graphql.transformation.TransformException;
 import io.smallrye.graphql.transformation.Transformer;
 
 /**
@@ -148,23 +148,33 @@ public abstract class AbstractHelper {
             // Also handle optionals
             return recursiveTransformOptional(value, field, dfe);
         } else if (field.getReference().getClassName().equals("java.util.OptionalInt")) {
-            if (value instanceof BigDecimal)
-                return OptionalInt.of(((BigDecimal) value).intValueExact());
             if (value instanceof OptionalInt)
                 return value;
-            return OptionalInt.of((Integer) value);
+            try {
+                return OptionalInt.of(NumberTransformer.intValueExact((Number) value));
+            } catch (ArithmeticException e) {
+                throw new TransformException(e, field, value);
+            }
         } else if (field.getReference().getClassName().equals("java.util.OptionalLong")) {
-            if (value instanceof BigDecimal)
-                return OptionalLong.of(((BigDecimal) value).longValueExact());
             if (value instanceof OptionalLong)
                 return value;
-            return OptionalLong.of(((BigInteger) value).longValueExact());
+            try {
+                return OptionalLong.of(NumberTransformer.longValueExact((Number) value));
+            } catch (ArithmeticException e) {
+                throw new TransformException(e, field, value);
+            }
         } else if (field.getReference().getClassName().equals("java.util.OptionalDouble")) {
-            if (value instanceof BigDecimal)
-                return OptionalDouble.of(((BigDecimal) value).doubleValue());
-            if (value instanceof OptionalDouble)
-                return value;
-            return OptionalDouble.of((Double) value);
+            try {
+                if (value instanceof OptionalDouble optional) {
+                    if (optional.isPresent()) {
+                        NumberTransformer.finiteDouble(optional.getAsDouble());
+                    }
+                    return value;
+                }
+                return OptionalDouble.of(NumberTransformer.doubleValueFinite((Number) value));
+            } catch (ArithmeticException e) {
+                throw new TransformException(e, field, value);
+            }
         } else {
             // we need to transform before we make sure the type is correct
             value = singleTransform(value, field);

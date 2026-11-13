@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import graphql.schema.DataFetchingEnvironment;
+import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.transformation.AbstractDataFetcherException;
@@ -103,6 +104,10 @@ public class FieldHelper extends AbstractHelper {
 
     @Override
     protected Class<?> getArrayType(final Field field) {
+        if (!field.hasTransformation() && Classes.isNumberLikeType(field.getReference().getClassName())) {
+            // Unformatted numeric elements are serialized by the scalar without copying the array.
+            return classloadingService.loadClass(field.getReference().getClassName());
+        }
         return classloadingService.loadClass(field.getReference().getGraphQLClassName());
     }
 
