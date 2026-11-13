@@ -1,1 +1,1 @@
-import 'monaco-editor/esm/vs/language/json/json.worker.js';
+import 'monaco-editor/languages/features/json/json.worker.js';

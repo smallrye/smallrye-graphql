@@ -16,7 +16,7 @@
     <properties>
         <path.graphiql>graphql-ui</path.graphiql>
         <react.version>19.3.0</react.version>
-        <graphiql.version>5.4.0</graphiql.version>
+        <graphiql.version>6.0.1</graphiql.version>
         <graphql-js.version>17.1.0</graphql-js.version>
         <graphql-ws.version>6.4.1</graphql-ws.version>
         <version.esbuild-java>2.1.5</version.esbuild-java>
@@ -81,7 +81,7 @@
             <version>${graphiql.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- NOTE: The following dependency can be uncommented (and imported in render.js) to include
+        <!-- NOTE: The following dependency can be uncommented (and imported in graphiql.js) to include
          the GraphiQL plugin explorer in the project -->
         <!--        <dependency>-->
 <!--            <groupId>org.mvnpm.at.graphiql</groupId>-->
@@ -169,23 +169,33 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.graphiql</groupId>
+                        <artifactId>plugin-collections</artifactId>
+                        <version>1.0.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.graphiql</groupId>
                         <artifactId>plugin-doc-explorer</artifactId>
-                        <version>0.4.4</version>
+                        <version>1.0.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.graphiql</groupId>
                         <artifactId>plugin-history</artifactId>
-                        <version>0.4.4</version>
+                        <version>1.0.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.graphiql</groupId>
+                        <artifactId>plugin-query-builder</artifactId>
+                        <version>1.0.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.graphiql</groupId>
                         <artifactId>react</artifactId>
-                        <version>0.39.1</version>
+                        <version>1.0.2</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.graphiql</groupId>
                         <artifactId>toolkit</artifactId>
-                        <version>0.12.1</version>
+                        <version>1.0.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.headlessui</groupId>
@@ -206,6 +216,11 @@
                         <groupId>org.mvnpm.at.internationalized</groupId>
                         <artifactId>string</artifactId>
                         <version>3.2.10</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm.at.isaacs</groupId>
+                        <artifactId>nonrecursive-glob-match</artifactId>
+                        <version>1.1.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.n1ru4l</groupId>
@@ -375,17 +390,17 @@
                     <dependency>
                         <groupId>org.mvnpm.at.swc</groupId>
                         <artifactId>helpers</artifactId>
-                        <version>0.5.23</version>
+                        <version>0.5.24</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tanstack</groupId>
                         <artifactId>react-virtual</artifactId>
-                        <version>3.14.25</version>
+                        <version>3.14.26</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.tanstack</groupId>
                         <artifactId>virtual-core</artifactId>
-                        <version>3.19.10</version>
+                        <version>3.19.11</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm.at.types</groupId>
@@ -409,6 +424,16 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
+                        <artifactId>balanced-match</artifactId>
+                        <version>4.0.4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
+                        <artifactId>brace-expansion</artifactId>
+                        <version>5.0.12</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
                         <artifactId>clsx</artifactId>
                         <version>2.1.1</version>
                     </dependency>
@@ -429,6 +454,11 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
+                        <artifactId>dompurify</artifactId>
+                        <version>3.4.15</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
                         <artifactId>entities</artifactId>
                         <version>8.1.0</version>
                     </dependency>
@@ -440,7 +470,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>framer-motion</artifactId>
-                        <version>13.5.1</version>
+                        <version>14.11.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
@@ -455,12 +485,12 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>graphiql</artifactId>
-                        <version>5.4.0</version>
+                        <version>6.0.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>graphql-language-service</artifactId>
-                        <version>5.7.0</version>
+                        <version>6.0.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
@@ -504,6 +534,11 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
+                        <artifactId>marked</artifactId>
+                        <version>14.0.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
                         <artifactId>mdurl</artifactId>
                         <version>2.1.0</version>
                     </dependency>
@@ -514,33 +549,28 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
+                        <artifactId>minimatch</artifactId>
+                        <version>11.0.6</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
                         <artifactId>monaco-editor</artifactId>
-                        <version>0.52.2</version>
+                        <version>0.57.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>monaco-graphql</artifactId>
-                        <version>1.9.0</version>
+                        <version>2.0.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>motion-dom</artifactId>
-                        <version>13.5.1</version>
+                        <version>14.11.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>motion-utils</artifactId>
-                        <version>13.5.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm</groupId>
-                        <artifactId>nullthrows</artifactId>
-                        <version>1.1.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.mvnpm</groupId>
-                        <artifactId>picomatch-browser</artifactId>
-                        <version>2.2.6</version>
+                        <version>14.7.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
@@ -644,8 +674,13 @@
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
+                        <artifactId>zod</artifactId>
+                        <version>4.6.7</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mvnpm</groupId>
                         <artifactId>zustand</artifactId>
-                        <version>5.0.16</version>
+                        <version>5.1.0</version>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -700,7 +735,7 @@
                                 <argument>${basedir}/src/main/web</argument>
                                 <argument>${project.build.directory}/classes/META-INF/resources/${path.graphiql}</argument>
                                 <argument>${project.build.directory}/esbuild</argument>
-                                <argument>render.js</argument>
+                                <argument>graphiql.js</argument>
                                 <argument>workers/editor.worker.js</argument>
                                 <argument>workers/json.worker.js</argument>
                                 <argument>workers/graphql.worker.js</argument>
