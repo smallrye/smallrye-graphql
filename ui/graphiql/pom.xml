@@ -535,7 +535,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>marked</artifactId>
-                        <version>14.0.0</version>
+                        <version>18.2.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
