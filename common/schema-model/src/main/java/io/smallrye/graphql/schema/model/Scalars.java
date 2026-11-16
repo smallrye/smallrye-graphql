@@ -157,11 +157,11 @@ public class Scalars {
         populateScalar(AtomicInteger.class.getName(), INTEGER, Integer.class.getName());
 
         // Float
-        populateScalar(Float.class.getName(), FLOAT, Float.class.getName());
-        populateScalar(float.class.getName(), FLOAT, Float.class.getName());
-        populateScalar(Double.class.getName(), FLOAT, Float.class.getName());
-        populateScalar(double.class.getName(), FLOAT, Float.class.getName());
-        populateScalar(OptionalDouble.class.getName(), FLOAT, Float.class.getName());
+        populateScalar(Float.class.getName(), FLOAT, Double.class.getName());
+        populateScalar(float.class.getName(), FLOAT, Double.class.getName());
+        populateScalar(Double.class.getName(), FLOAT, Double.class.getName());
+        populateScalar(double.class.getName(), FLOAT, Double.class.getName());
+        populateScalar(OptionalDouble.class.getName(), FLOAT, Double.class.getName());
 
         // BigInteger
         populateScalar(BigInteger.class.getName(), BIGINTEGER, BigInteger.class.getName());

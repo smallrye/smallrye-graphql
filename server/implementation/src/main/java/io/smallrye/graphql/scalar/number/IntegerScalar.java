@@ -6,6 +6,7 @@ import java.util.OptionalInt;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import graphql.Scalars;
+import io.smallrye.graphql.transformation.NumberTransformer;
 
 /**
  * Scalar for Integer.
@@ -26,13 +27,17 @@ public class IntegerScalar extends AbstractNumberScalar {
 
                     @Override
                     public Object fromBigInteger(BigInteger bigInteger) {
-                        return bigInteger.intValue();
+                        return bigInteger.intValueExact();
                     }
 
                     @Override
-                    public boolean isInRange(BigInteger value) {
-                        return (value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0
-                                || value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) > 0);
+                    public Object fromLong(long value) {
+                        return Math.toIntExact(value);
+                    }
+
+                    @Override
+                    public Object fromDouble(double value) {
+                        return NumberTransformer.intValueExact(value);
                     }
 
                 },

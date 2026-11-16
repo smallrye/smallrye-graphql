@@ -10,11 +10,15 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 
 import jakarta.json.bind.Jsonb;
@@ -25,6 +29,7 @@ import graphql.schema.GraphQLScalarType;
 import io.smallrye.graphql.execution.Classes;
 import io.smallrye.graphql.json.InputFieldsInfo;
 import io.smallrye.graphql.json.JsonBCreator;
+import io.smallrye.graphql.json.NumericInputField;
 import io.smallrye.graphql.scalar.GraphQLScalarTypes;
 import io.smallrye.graphql.schema.model.AdaptWith;
 import io.smallrye.graphql.schema.model.Argument;
@@ -108,6 +113,14 @@ public class ArgumentHelper extends AbstractHelper {
         if (argumentValueFromGraphQLJava == null) {
             if (argument.hasWrapper() && argument.getWrapper().isOptional()) {
                 return Optional.empty();
+            }
+            String type = argument.getReference().getClassName();
+            if (type.equals(OptionalInt.class.getName())) {
+                return OptionalInt.empty();
+            } else if (type.equals(OptionalLong.class.getName())) {
+                return OptionalLong.empty();
+            } else if (type.equals(OptionalDouble.class.getName())) {
+                return OptionalDouble.empty();
             }
             return null;
         }
@@ -336,6 +349,7 @@ public class ArgumentHelper extends AbstractHelper {
     private Object correctComplexObjectFromMap(Map m, Field field, DataFetchingEnvironment dfe)
             throws AbstractDataFetcherException {
         String className = field.getReference().getClassName();
+        validateNumericInputFields(m, className);
 
         // Let's see if there are any fields that needs transformation or adaption
         if (InputFieldsInfo.hasTransformationFields(className)) {
@@ -503,4 +517,37 @@ public class ArgumentHelper extends AbstractHelper {
     }
 
     private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
+
+    private void validateNumericInputFields(Map values, String className) throws AbstractDataFetcherException {
+        for (NumericInputField numericField : InputFieldsInfo.getNumericInputFields(className)) {
+            Field field = numericField.field();
+            Object value = values.get(field.getName());
+            if (value != null) {
+                try {
+                    validateNumericInputValue(value, numericField);
+                } catch (ArithmeticException e) {
+                    throw new TransformException(e, field, value);
+                }
+            }
+        }
+    }
+
+    private void validateNumericInputValue(Object value, NumericInputField numericField)
+            throws AbstractDataFetcherException {
+        if (value instanceof Number number) {
+            if (numericField.numberType() != null) {
+                numericField.numberType().checkRange(number);
+            }
+        } else if (value instanceof Collection<?> collection) {
+            for (Object element : collection) {
+                if (element != null) {
+                    validateNumericInputValue(element, numericField);
+                }
+            }
+        } else if (value instanceof Map map && numericField.numberType() == null) {
+            validateNumericInputFields(map, numericField.field().getReference().getClassName());
+        } else if (value instanceof Optional<?> optional && optional.isPresent()) {
+            validateNumericInputValue(optional.get(), numericField);
+        }
+    }
 }

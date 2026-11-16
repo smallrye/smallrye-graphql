@@ -12,7 +12,11 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonValue;
 import jakarta.json.JsonValue.ValueType;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -39,15 +43,46 @@ import io.smallrye.graphql.spi.ClassloadingService;
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class JsonBCreator {
+    private static final JsonbSerializer<AtomicInteger> ATOMIC_INTEGER_SERIALIZER = new JsonbSerializer<>() {
+        @Override
+        public void serialize(AtomicInteger value, JsonGenerator generator, SerializationContext context) {
+            generator.write(value.get());
+        }
+    };
+    private static final JsonbSerializer<AtomicLong> ATOMIC_LONG_SERIALIZER = new JsonbSerializer<>() {
+        @Override
+        public void serialize(AtomicLong value, JsonGenerator generator, SerializationContext context) {
+            generator.write(value.get());
+        }
+    };
+    private static final JsonbDeserializer<AtomicInteger> ATOMIC_INTEGER_DESERIALIZER = new JsonbDeserializer<>() {
+        @Override
+        public AtomicInteger deserialize(JsonParser parser, DeserializationContext context, Type type) {
+            JsonValue value = parser.getValue();
+            return value.getValueType() == ValueType.NULL ? null : new AtomicInteger(((JsonNumber) value).intValueExact());
+        }
+    };
+    private static final JsonbDeserializer<AtomicLong> ATOMIC_LONG_DESERIALIZER = new JsonbDeserializer<>() {
+        @Override
+        public AtomicLong deserialize(JsonParser parser, DeserializationContext context, Type type) {
+            JsonValue value = parser.getValue();
+            return value.getValueType() == ValueType.NULL ? null : new AtomicLong(((JsonNumber) value).longValueExact());
+        }
+    };
+
     private static final Jsonb JSONB = JsonbBuilder.create(new JsonbConfig()
             .withFormatting(true)
             .withNullValues(true) //null values are required by @JsonbCreator
             .withSerializers(CUSTOM_STRING_SERIALIZER,
                     CUSTOM_INT_SERIALIZER,
-                    CUSTOM_FLOAT_SERIALIZER)
+                    CUSTOM_FLOAT_SERIALIZER,
+                    ATOMIC_INTEGER_SERIALIZER,
+                    ATOMIC_LONG_SERIALIZER)
             .withDeserializers(CUSTOM_STRING_DESERIALIZER,
                     CUSTOM_INT_DESERIALIZER,
-                    CUSTOM_FLOAT_DESERIALIZER));
+                    CUSTOM_FLOAT_DESERIALIZER,
+                    ATOMIC_INTEGER_DESERIALIZER,
+                    ATOMIC_LONG_DESERIALIZER));
 
     private static final Map<String, Jsonb> jsonMap = new HashMap<>();
 
@@ -99,7 +134,9 @@ public class JsonBCreator {
     private static JsonbConfig createDefaultConfig() {
         return new JsonbConfig()
                 .withNullValues(Boolean.TRUE)
-                .withFormatting(Boolean.TRUE);
+                .withFormatting(Boolean.TRUE)
+                .withSerializers(ATOMIC_INTEGER_SERIALIZER, ATOMIC_LONG_SERIALIZER)
+                .withDeserializers(ATOMIC_INTEGER_DESERIALIZER, ATOMIC_LONG_DESERIALIZER);
     }
 
     static class CustomScalarSerializers {
