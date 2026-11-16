@@ -34,10 +34,7 @@ public class BigIntegerScalar extends AbstractNumberScalar {
                         // so bound the absolute scale as well as the precision. Thrown as an ArithmeticException so that
                         // NumberCoercing.parseLiteral translates it into a normal CoercingParseLiteralException instead of
                         // exhausting resources.
-                        if (bigDecimal.precision() > MAX_PRECISION || Math.abs((long) bigDecimal.scale()) > MAX_SCALE) {
-                            throw new ArithmeticException("Numeric literal magnitude out of allowed range");
-                        }
-                        return bigDecimal.toBigIntegerExact();
+                        return toBigIntegerExact(bigDecimal);
                     }
 
                     @Override
@@ -47,5 +44,12 @@ public class BigIntegerScalar extends AbstractNumberScalar {
 
                 },
                 AtomicLong.class, OptionalLong.class, BigInteger.class, Long.class, long.class);
+    }
+
+    public static BigInteger toBigIntegerExact(BigDecimal value) {
+        if (value.precision() > MAX_PRECISION || Math.abs((long) value.scale()) > MAX_SCALE) {
+            throw new ArithmeticException("Numeric literal magnitude out of allowed range");
+        }
+        return value.toBigIntegerExact();
     }
 }

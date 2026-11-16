@@ -15,6 +15,7 @@ import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
+import graphql.schema.CoercingParseValueException;
 
 /**
  * Guards against unbounded {@link BigInteger} allocation (CWE-770) when parsing numeric literals mapped to the
@@ -36,6 +37,24 @@ class BigIntegerScalarLiteralTest {
     void hugeExponentStringLiteralIsRejectedQuickly() {
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> assertThrows(CoercingParseLiteralException.class,
                 () -> coercing.parseLiteral(new StringValue("1e64000000"))));
+    }
+
+    @Test
+    void hugeExponentVariableIsRejectedQuickly() {
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> assertThrows(CoercingParseValueException.class,
+                () -> coercing.parseValue(new BigDecimal("1e64000000"))));
+    }
+
+    @Test
+    void variableBeyondLongRangeRemainsABigInteger() {
+        BigInteger value = new BigInteger("99999999999999999999999999999");
+        assertEquals(value, coercing.parseValue(new BigDecimal(value)));
+    }
+
+    @Test
+    void floatingPointIntegerVariablesKeepTheirExactValue() {
+        assertEquals(new BigInteger("-9223372036854775808"), coercing.parseValue((double) Long.MIN_VALUE));
+        assertEquals(new BigInteger("9223372036854774784"), coercing.parseValue(Math.nextDown(0x1p63)));
     }
 
     @Test

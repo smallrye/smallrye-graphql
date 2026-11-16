@@ -10,6 +10,8 @@ import java.util.Map;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.InputType;
 import io.smallrye.graphql.schema.model.Operation;
+import io.smallrye.graphql.schema.model.ReferenceType;
+import io.smallrye.graphql.transformation.BoundedNumberType;
 
 /**
  * Here we create a mapping of all fields in a input type that needs transformation and mapping
@@ -19,6 +21,8 @@ import io.smallrye.graphql.schema.model.Operation;
 public class InputFieldsInfo {
 
     private static final Map<String, Map<String, Field>> inputFieldTransformationMap = new HashMap<>();
+    private static final NumericInputField[] NO_NUMERIC_FIELDS = new NumericInputField[0];
+    private static final Map<String, NumericInputField[]> numericInputFields = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldAdaptingToMap = new HashMap<>();
     private static final Map<String, Map<String, Field>> inputFieldAdaptingWithMap = new HashMap<>();
     private static final Map<String, List<Field>> creatorParameters = new HashMap<>();
@@ -36,15 +40,24 @@ public class InputFieldsInfo {
             InputFieldsInfo.creatorParameters.put(inputType.getClassName(), creatorParameters);
 
             Map<String, Field> fieldsThatNeedsTransformation = new HashMap<>();
+            List<NumericInputField> fieldsNeedingNumericValidation = new ArrayList<>();
             Map<String, Field> fieldsThatNeedsAdaptingToScalar = new HashMap<>();
             Map<String, Field> fieldsThatNeedsAdaptingWith = new HashMap<>();
 
             Collection<Field> fields = inputType.getFields().values();
             for (Field field : fields) {
                 // See if there is a transformation
-                if (field.hasTransformation()
-                        && !field.getTransformation().isJsonB()) {
+                if (field.hasTransformation() && !field.getTransformation().isJsonB()) {
                     fieldsThatNeedsTransformation.put(field.getName(), field);
+                }
+                // Nested input objects are bound together with their parent, so their numeric fields are checked from here
+                if (field.getReference().getType() == ReferenceType.INPUT) {
+                    fieldsNeedingNumericValidation.add(new NumericInputField(field, null));
+                } else if (!field.hasTransformation()) {
+                    BoundedNumberType numberType = BoundedNumberType.forClassName(field.getReference().getClassName());
+                    if (numberType != null) {
+                        fieldsNeedingNumericValidation.add(new NumericInputField(field, numberType));
+                    }
                 }
                 // See if there is an adapter
                 if (field.isAdaptingWith()) {
@@ -63,6 +76,7 @@ public class InputFieldsInfo {
             if (!fieldsThatNeedsTransformation.isEmpty()) {
                 inputFieldTransformationMap.put(inputType.getClassName(), fieldsThatNeedsTransformation);
             }
+            numericInputFields.put(inputType.getClassName(), fieldsNeedingNumericValidation.toArray(NO_NUMERIC_FIELDS));
 
             if (!fieldsThatNeedsAdaptingToScalar.isEmpty()) {
                 inputFieldAdaptingToMap.put(inputType.getClassName(), fieldsThatNeedsAdaptingToScalar);
@@ -79,6 +93,10 @@ public class InputFieldsInfo {
 
     public static boolean hasTransformationFields(String className) {
         return inputFieldTransformationMap.containsKey(className);
+    }
+
+    public static NumericInputField[] getNumericInputFields(String className) {
+        return numericInputFields.getOrDefault(className, NO_NUMERIC_FIELDS);
     }
 
     public static Map<String, Field> getTransformationFields(String className) {
