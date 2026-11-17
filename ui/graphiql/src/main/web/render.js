@@ -143,9 +143,9 @@ function App() {
 	return React.createElement(GraphiQL, {
 		fetcher: fetcher,
 		plugins: plugins,
-		query: parameters.query,
-		variables: parameters.variables,
-		headers: parameters.headers,
+		initialQuery: parameters.query,
+		initialVariables: parameters.variables,
+		initialHeaders: parameters.headers,
 		operationName: parameters.operationName,
 		onEditQuery: onEditQuery,
 		onEditVariables: onEditVariables,
