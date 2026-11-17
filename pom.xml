@@ -41,7 +41,7 @@
         <version.extended-scalars>24.0</version.extended-scalars>
         <version.io.micrometer>1.17.2</version.io.micrometer>
         <version.vertx>5.2.3</version.vertx>
-        <version.smallrye-opentelemetry>2.15.1</version.smallrye-opentelemetry>
+        <version.smallrye-opentelemetry>2.16.0</version.smallrye-opentelemetry>
 
 
         <!-- Test -->
