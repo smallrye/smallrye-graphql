@@ -1,0 +1,67 @@
+= Overview
+include::_attributes.adoc[]
+
+[.lead]
+GraphQL endpoints and clients in Java, code first: your Java types and methods are the GraphQL schema.
+
+SmallRye GraphQL implements https://github.com/eclipse/microprofile-graphql/[Eclipse MicroProfile GraphQL],
+https://github.com/graphql/graphql-over-http[GraphQL over HTTP] and
+https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md[GraphQL over WebSocket], and supports
+xref:federation.adoc[GraphQL Federation].
+
+== An endpoint
+
+A class annotated with `@GraphQLApi` exposes its methods as queries (`@Query`), mutations (`@Mutation`)
+and subscriptions (`@Subscription`). The schema is built from them and from the types they use:
+
+[source,java]
+----
+@GraphQLApi
+public class SuperHeroesResource {
+
+    @Inject
+    SuperHeroService service;
+
+    @Query
+    public List<SuperHero> allHeroesIn(String location) {
+        return service.heroesIn(location);
+    }
+}
+----
+
+See the server-side features in the contents below, and xref:server-configuration.adoc[the server configuration].
+
+== A type-safe client
+
+The client side is a Java interface that mirrors the API. SmallRye GraphQL implements it and sends the
+queries:
+
+[source,java]
+----
+@GraphQLClientApi
+public interface SuperHeroesApi {
+    List<SuperHero> allHeroesIn(String location);
+}
+----
+
+[source,java]
+----
+@Inject
+SuperHeroesApi superHeroesApi;
+
+List<SuperHero> heroes = superHeroesApi.allHeroesIn("Outer Space");
+----
+
+xref:typesafe-client-usage.adoc[The type-safe client] covers the rest, and the
+xref:dynamic-client-usage.adoc[dynamic client] builds queries at run time instead.
+
+== Using it
+
+Most applications use SmallRye GraphQL through a runtime that sets it up:
+
+* *Quarkus*: the https://quarkus.io/guides/smallrye-graphql[GraphQL server] and
+  https://quarkus.io/guides/smallrye-graphql-client[GraphQL client] guides.
+* *WildFly*: the https://github.com/wildfly-extras/wildfly-graphql-feature-pack[GraphQL feature pack].
+
+The client also runs xref:client-standalone.adoc[on its own], outside any runtime, and the
+xref:maven-plugin.adoc[Maven] and xref:gradle-plugin.adoc[Gradle] plugins generate the schema at build time.
