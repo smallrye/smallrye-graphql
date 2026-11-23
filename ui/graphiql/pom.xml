@@ -18,7 +18,7 @@
         <react.version>19.3.0</react.version>
         <graphiql.version>5.4.0</graphiql.version>
         <graphql-js.version>16.14.2</graphql-js.version>
-        <graphql-ws.version>6.4.1</graphql-ws.version>
+        <graphql-ws.version>6.4.3</graphql-ws.version>
         <version.esbuild-java>2.1.5</version.esbuild-java>
         <version.exec-maven-plugin>3.6.4</version.exec-maven-plugin>
     </properties>
@@ -465,7 +465,7 @@
                     <dependency>
                         <groupId>org.mvnpm</groupId>
                         <artifactId>graphql-ws</artifactId>
-                        <version>6.4.1</version>
+                        <version>6.4.3</version>
                     </dependency>
                     <dependency>
                         <groupId>org.mvnpm</groupId>
