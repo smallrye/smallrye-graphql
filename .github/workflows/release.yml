@@ -27,9 +27,13 @@ jobs:
     secrets: inherit
     with:
       version: ${{github.event.inputs.tag || github.ref_name}}
+      # publish-gradle needs the Maven artifacts to actually be on Central before it
+      # can resolve them, so make sure this job doesn't report done until they're deployed
+      watch_release_workflow: true
 
   publish-gradle:
     name: Publish Gradle
+    needs: perform-release
     uses: ./.github/workflows/publish-gradle.yml
     secrets: inherit
     with:
