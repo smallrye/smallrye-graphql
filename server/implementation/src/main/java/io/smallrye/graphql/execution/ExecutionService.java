@@ -183,6 +183,12 @@ public class ExecutionService {
                 // Operation name
                 smallRyeContext.getOperationName().ifPresent(executionBuilder::operationName);
 
+                // Extensions from the client
+                Map<String, Object> extensionsFromClient = smallRyeContext.getExtensionsFromClient();
+                if (extensionsFromClient != null) {
+                    executionBuilder.extensions(extensionsFromClient);
+                }
+
                 // DataLoaders
                 List<Operation> batchOperations = schema.getBatchOperations();
                 if (!batchOperations.isEmpty()) {
