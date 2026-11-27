@@ -1,0 +1,76 @@
+title: SmallRye GraphQL
+nav:
+- title: Overview
+  page: index
+- title: Server side features
+  items:
+  - title: Customizing JSON (de)serializers
+    page: custom-json-serializers-deserializers
+  - title: Directives
+    page: directives
+  - title: Federation
+    page: federation
+  - title: Custom error extensions
+    page: custom-error-extensions
+  - title: Response extensions
+    page: extensions
+  - title: Returning Void from Mutations
+    page: mutation-void
+  - title: Handling of the WebSocket's init-payload
+    page: handling-init-payload-from-the-websocket
+  - title: Custom scalars
+    page: custom-scalar
+  - title: Inspecting executable directives
+    page: inspecting-executable-directives-on-server-side
+  - title: Namespaces
+    page: namespaces-on-server-side
+  - title: Target input fields
+    page: target-for-input-types
+  - title: Kotlin support
+    page: kotlin
+- title: Typesafe client
+  items:
+  - title: Basic usage
+    page: typesafe-client-usage
+  - title: Unions and Interfaces
+    page: typesafe-client-unions-and-interfaces
+  - title: Reactive
+    page: typesafe-client-reactive-types
+  - title: Custom scalar types
+    page: typesafe-client-custom-scalars
+  - title: Adding headers
+    page: typesafe-client-headers
+  - title: Logging
+    page: typesafe-client-logging
+  - title: Running multiple queries at once
+    page: typesafe-client-multiple-queries
+  - title: Error handling
+    page: typesafe-client-error-handling
+  - title: Accessing metadata of responses
+    page: typesafe-client-accessing-metadata-of-responses
+  - title: Static Directives
+    page: typesafe-client-directives
+- title: Dynamic client
+  items:
+  - title: Basic usage
+    page: dynamic-client-usage
+  - title: Error handling
+    page: dynamic-client-error-handling
+- title: Clients in general
+  items:
+  - title: Bootstrapping the client
+    page: client-standalone
+  - title: Using SmallRye Stork
+    page: using-smallrye-stork
+- title: Developer tools
+  items:
+  - title: Maven plugin
+    page: maven-plugin
+  - title: Gradle plugin
+    page: gradle-plugin
+- title: Reference material
+  items:
+  - title: Server-side configuration
+    page: server-configuration
+  - title: Client-side configuration
+    page: client-configuration
