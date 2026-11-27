@@ -19,7 +19,7 @@
         <graphiql.version>6.0.1</graphiql.version>
         <graphql-js.version>17.1.0</graphql-js.version>
         <graphql-ws.version>6.4.3</graphql-ws.version>
-        <version.esbuild-java>2.1.5</version.esbuild-java>
+        <version.esbuild-java>2.2.1</version.esbuild-java>
         <version.exec-maven-plugin>3.7.0</version.exec-maven-plugin>
     </properties>
     
